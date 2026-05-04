@@ -144,11 +144,18 @@ type ReferrerBreakdown = Record<ReferrerClass, number>;
 // keyed by providerSlug); editorial mounts emit no provider_activity, so
 // they're invisible to that funnel. This breakdown reads accounts directly
 // so editorial submissions surface in the admin UI.
+//
+// Both provider and editorial SBF mounts now tag entrySource: provider
+// page sets `/provider/{slug}`, editorial sets `/caregiver-support/{slug}`.
+// Accounts created from non-SBF paths (auth callback, provider claims,
+// listing creation, etc.) leave signup_source NULL and are excluded here —
+// the card answers "where did SBF submissions come from?", not "where did
+// signups come from?"
 type EntrySourceBreakdown = {
-  total: number;
+  total: number;                  // editorial + provider + other
   editorial_total: number;        // signup_source LIKE '/caregiver-support/%'
-  provider_total: number;         // signup_source IS NULL — legacy + current provider mounts
-  other_total: number;            // signup_source set but not /caregiver-support/ — future entry points
+  provider_total: number;         // signup_source LIKE '/provider/%'
+  other_total: number;            // signup_source set but neither — future entry points
   top_editorial_articles: Array<{ slug: string; count: number }>; // top 5 by count
 };
 type WindowResult = {
@@ -348,14 +355,17 @@ async function fetchWindow(
   if (from) outreachQ = outreachQ.gte("created_at", from);
   if (to) outreachQ = outreachQ.lt("created_at", to);
 
-  // Accounts created in the window — one row per family that completed the
-  // SBF intake (provider page or editorial). signup_source carries the
-  // entry path: '/caregiver-support/{slug}' for editorial, NULL for legacy +
-  // current provider mounts. Tight column projection so this stays a flat
-  // scan; per-account volume is tiny vs the activity tables.
+  // SBF-tagged accounts created in the window. signup_source is set ONLY
+  // by the SBF intake (provider mounts → '/provider/{slug}', editorial →
+  // '/caregiver-support/{slug}'). NULL means non-SBF account creation
+  // (auth callback, provider claim, listing creation, etc.) — explicitly
+  // filtered out so the bucket counts mean "SBF submissions" rather than
+  // "all new accounts". Pre-this-deploy provider SBF rows are NULL and
+  // therefore invisible until the new tagging takes effect.
   let accountsQ = db
     .from("accounts")
     .select("signup_source")
+    .not("signup_source", "is", null)
     .limit(50000);
   if (from) accountsQ = accountsQ.gte("created_at", from);
   if (to) accountsQ = accountsQ.lt("created_at", to);
@@ -673,22 +683,22 @@ async function fetchWindow(
     unassigned: sizesFor("unassigned"),
   };
 
-  // Entry-source bucketing — answers "did editorial-mounted SBF produce
-  // signups?" Editorial signup_sources match '/caregiver-support/<slug>'.
-  // Provider mounts currently leave it NULL. Future entry points (other
-  // pages mounting the module) get bucketed under "other".
+  // Entry-source bucketing — query already filters to signup_source IS NOT
+  // NULL, so every row here is an SBF submission with a tagged origin.
+  // Editorial: '/caregiver-support/{slug}'. Provider: '/provider/{slug}'.
+  // Future entry points fall into "other".
   const entrySourceBreakdown = EMPTY_ENTRY_SOURCE_BREAKDOWN();
   const editorialSlugCounts = new Map<string, number>();
-  const accountRows = (accountsRes.data ?? []) as Array<{ signup_source: string | null }>;
+  const accountRows = (accountsRes.data ?? []) as Array<{ signup_source: string }>;
   entrySourceBreakdown.total = accountRows.length;
   for (const row of accountRows) {
     const src = row.signup_source;
-    if (src === null) {
-      entrySourceBreakdown.provider_total++;
-    } else if (src.startsWith("/caregiver-support/")) {
+    if (src.startsWith("/caregiver-support/")) {
       entrySourceBreakdown.editorial_total++;
       const slug = src.slice("/caregiver-support/".length);
       editorialSlugCounts.set(slug, (editorialSlugCounts.get(slug) || 0) + 1);
+    } else if (src.startsWith("/provider/")) {
+      entrySourceBreakdown.provider_total++;
     } else {
       entrySourceBreakdown.other_total++;
     }

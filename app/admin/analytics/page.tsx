@@ -103,11 +103,13 @@ interface ReferrerBreakdown {
   other: number;
 }
 
-// Submissions bucketed by entry source — answers "did editorial-mounted
-// SBF produce signups?" Editorial mounts pass entrySource=`/caregiver-support/{slug}`,
-// which lands in accounts.signup_source. Provider mounts and legacy rows
-// stay NULL. The existing benefits funnel above is provider_activity-only,
-// so editorial submissions are invisible to it without this card.
+// SBF submissions bucketed by entry source. Both editorial AND provider
+// mounts now tag entrySource — editorial passes /caregiver-support/{slug},
+// provider passes /provider/{slug}. The query filters to NOT NULL so non-
+// SBF account creations (auth callback, claim flows, listing creation)
+// don't pollute the counts. Pre-tagging-deploy provider SBF rows are NULL
+// and therefore invisible until enough time passes for tagged inserts to
+// dominate the window.
 interface EntrySourceBreakdown {
   total: number;
   editorial_total: number;
@@ -948,13 +950,13 @@ function EntrySourceCard({
         {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
       </div>
       <p className="text-xs text-gray-500 mb-5">
-        Family profiles created via SBF intake {rangeLabel(range).toLowerCase()}. Bucketed by{" "}
+        SBF intake submissions {rangeLabel(range).toLowerCase()}, bucketed by{" "}
         <code className="text-[11px] bg-gray-50 px-1 rounded">accounts.signup_source</code>
-        : editorial mounts pass <code className="text-[11px] bg-gray-50 px-1 rounded">/caregiver-support/&#123;slug&#125;</code>; provider mounts + legacy rows are NULL.
+        . Editorial mounts tag <code className="text-[11px] bg-gray-50 px-1 rounded">/caregiver-support/&#123;slug&#125;</code>; provider mounts tag <code className="text-[11px] bg-gray-50 px-1 rounded">/provider/&#123;slug&#125;</code>. Untagged accounts (auth callback, claim flows, etc.) are excluded. Provider SBF submissions made before the tagging deploy are also untagged → invisible until they roll out of the window.
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-3 mb-5">
-        <EntrySourceStat label="Total" value={b.total} delta={null} />
+        <EntrySourceStat label="Total tagged" value={b.total} delta={null} />
         <EntrySourceStat
           label="Editorial"
           value={b.editorial_total}
@@ -962,7 +964,7 @@ function EntrySourceCard({
           delta={editorialDelta}
         />
         <EntrySourceStat
-          label="Provider / legacy"
+          label="Provider"
           value={b.provider_total}
           subLabel={pct(b.provider_total, b.total)}
           delta={providerDelta}
@@ -993,7 +995,7 @@ function EntrySourceCard({
         </div>
       ) : b.editorial_total === 0 ? (
         <p className="text-[11px] text-gray-400 mt-3">
-          No editorial submissions yet in this window. Once <code className="text-[10px] bg-gray-50 px-1 rounded">EditorialBenefitsModule</code> goes live on <code className="text-[10px] bg-gray-50 px-1 rounded">/caregiver-support/[slug]</code>, this card surfaces top articles by submission count.
+          No editorial submissions yet in this window. Top articles by submission count appear here once <code className="text-[10px] bg-gray-50 px-1 rounded">/caregiver-support/[slug]</code> mounts start producing tagged accounts.
         </p>
       ) : null}
     </div>

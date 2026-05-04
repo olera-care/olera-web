@@ -1566,12 +1566,13 @@ function CallSection({
 
   const isBusy = activeAction !== null;
 
-  // Show only once pre-call is done (or further along)
+  // LEGACY: Show only for old workflow pre-consent statuses
+  // V2 uses NeedsCallSection for calling and ConsentedSection for post-consent
   const callableStatuses = new Set([
     "pre_call_outreach",
     "calling",
     "connected_no_consent",
-    "consented",
+    // Note: 'consented' removed - in V2, ConsentedSection handles this status
   ]);
   if (!callableStatuses.has(ctx.outreach.status)) return null;
 

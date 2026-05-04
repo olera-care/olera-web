@@ -18,6 +18,7 @@ import SeniorCareFAQ from "@/components/article/SeniorCareFAQ";
 import StarPlusFAQ from "@/components/article/StarPlusFAQ";
 import MedicaidEligibilityFAQ from "@/components/article/MedicaidEligibilityFAQ";
 import EligibilityChecker from "@/components/article/EligibilityChecker";
+import EditorialBenefitsModule from "@/components/article/EditorialBenefitsModule";
 
 // ISR: revalidate every 60 seconds
 export const revalidate = 60;
@@ -391,23 +392,15 @@ export default async function ResourceArticlePage({
             );
           })()}
 
-          {/* Contextual CTA */}
-          {primaryCareType && (
-            <Link
-              href={`/browse?type=${primaryCareType}`}
-              className="group block my-12 p-5 rounded-xl border border-gray-200 hover:border-primary-200 hover:bg-primary-50/30 transition-all duration-200"
-            >
-              <p className="text-base font-semibold text-gray-900 mb-1">
-                Looking for {CARE_TYPE_CONFIG[primaryCareType].label.toLowerCase()} providers?
-              </p>
-              <p className="text-sm text-gray-500 flex items-center gap-1">
-                Browse verified options in your area
-                <svg className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </p>
-            </Link>
-          )}
+          {/* Inquiry CTA — replaces the prior /browse?type= link block.
+              EditorialBenefitsModule resolves visitor state via /api/geo,
+              loads program data, and renders BenefitsDiscoveryModule with
+              entrySource set so accounts.signup_source captures the
+              article slug. Geo-fail path renders a styled fallback link to
+              /benefits/finder. Single-variant on editorial — no
+              BenefitsArmGate (we want clean editorial-vs-provider baseline,
+              not arm-vs-arm noise inside editorial). */}
+          <EditorialBenefitsModule articleSlug={slug} />
 
           {/* Author + Tags */}
           <div className="mt-12 pt-8 border-t border-gray-200">

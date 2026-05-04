@@ -24,6 +24,11 @@ export interface TrackBenefitsEventPayload {
    *  funnel break out per-card pickup rates. Only set on
    *  `benefits_step_completed` for stepName === "care-need". */
   careNeedSelected?: string | null;
+  /** Path of the page the module was mounted on. Provider pages leave this
+   *  null (routing is implied by providerSlug); editorial mounts pass
+   *  `/caregiver-support/{slug}`. Used downstream to segment funnel by
+   *  entry page. */
+  entrySource?: string | null;
 }
 
 export function trackBenefitsEvent(payload: TrackBenefitsEventPayload): void {

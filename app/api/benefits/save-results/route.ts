@@ -138,6 +138,11 @@ interface SaveResultsPayload {
    *  email + downstream re-engagement copy. Optional — falls back to
    *  generic copy when missing. */
   relationship?: "my-parent" | "my-spouse" | "myself" | "other-family";
+  /** Path of the page where the user submitted the intake. Editorial mounts
+   *  pass `/caregiver-support/{slug}`; provider-page mounts leave undefined.
+   *  Persisted to accounts.signup_source so downstream conversion analysis
+   *  can segment by entry page. */
+  entrySource?: string;
   matchedPrograms: SavedProgramInput[];
   matchCount: number;
 }
@@ -169,6 +174,7 @@ export async function POST(req: Request) {
     contactChannel = "email",
     providerSlug,
     relationship,
+    entrySource,
     matchedPrograms,
     matchCount,
   } = payload;
@@ -420,6 +426,7 @@ export async function POST(req: Request) {
           user_id: userId,
           display_name: displayName,
           onboarding_completed: false,
+          signup_source: entrySource || null,
         })
         .select("id")
         .single();

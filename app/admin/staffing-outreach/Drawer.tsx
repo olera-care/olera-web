@@ -374,8 +374,8 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
               <ToQueueSection ctx={ctx} onAction={handleAction} onAdvance={handleAdvance} setError={setError} />
               <SequencingSection ctx={ctx} onAdvance={handleAdvance} setError={setError} />
               <NeedsCallSection ctx={ctx} onAdvance={handleAdvance} setError={setError} />
-              {/* Legacy Sections - still needed for transition */}
-              <NewSection ctx={ctx} onAction={handleAction} onAdvance={handleAdvance} setError={setError} />
+              {/* Legacy Sections - for providers still in old workflow statuses */}
+              {/* NewSection removed - replaced by ToQueueSection for V2 */}
               <NurturingSection ctx={ctx} onAction={handleAction} onAdvance={handleAdvance} setError={setError} />
               <CallSection ctx={ctx} onAdvance={handleAdvance} setError={setError} />
               {/* Terminal state sections */}

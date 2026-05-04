@@ -233,6 +233,7 @@ function NextStepPanel({
 
         {/* Stage-specific guidance + primary CTA */}
         <div className="space-y-3 px-4 py-4">
+          <ManualFollowupBanner ctx={ctx} action={action} setError={setError} />
           <StageGuidance
             ctx={ctx}
             onSchedulePreFlight={() => setShowPreFlight(true)}
@@ -472,6 +473,73 @@ function StageGuidance({
   }
 
   return <Guidance>No actions available in this stage.</Guidance>;
+}
+
+// ── Manual-followup banner ─────────────────────────────────────────────
+
+/**
+ * If this row has a pending manual_followup task, show a banner at the
+ * top of the Next Step panel that explains WHY it's queued and what
+ * the admin should do. Without this banner, manual_followup tasks
+ * surface as "Manual follow-up" with no context.
+ */
+function ManualFollowupBanner({
+  ctx,
+  action,
+  setError,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (e: string | null) => void;
+}) {
+  const task = ctx.pending_tasks.find((t) => t.task_type === "manual_followup");
+  if (!task) return null;
+  const reason = String((task.payload as Record<string, unknown>)?.reason ?? "");
+  const meta = followupMetaFor(reason);
+  return (
+    <div className="rounded-md border border-amber-200 bg-amber-50/70 p-3">
+      <p className="text-sm font-medium text-amber-900">{meta.title}</p>
+      <p className="mt-1 text-xs text-amber-800">{meta.body}</p>
+      <div className="mt-2">
+        <button
+          onClick={() => action("complete_task", { task_id: task.id }).catch((e) => setError(e instanceof Error ? e.message : "Failed"))}
+          className="rounded-md border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-50"
+        >
+          Mark this follow-up done
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function followupMetaFor(reason: string): { title: string; body: string } {
+  switch (reason) {
+    case "continue_dialogue":
+      return {
+        title: "💬 Continue the dialogue",
+        body: "You marked this stakeholder engaged. Reply to their last email externally, schedule a meeting, or escalate. When you've responded, mark this follow-up done.",
+      };
+    case "cadence_ended_cold":
+      return {
+        title: "📭 Outreach cadence ended — no reply",
+        body: "All scheduled emails fired with no reply. Decide: send a custom re-engage email, close as no-response (auto-reopens in 90 days), or close as not interested.",
+      };
+    case "no_recipients_at_send_time":
+      return {
+        title: "⚠ Couldn't send — all contacts stale",
+        body: "The next scheduled email had no active recipients. Add a fresh contact in the Contacts section below, or close this row as wrong-contact.",
+      };
+    case "all_recipients_failed":
+      return {
+        title: "❌ All recipients failed",
+        body: "Resend errored on every recipient for the most recent send. Check the email addresses for typos, retry by editing the upcoming send, or escalate.",
+      };
+    default:
+      return {
+        title: "✋ Manual follow-up needed",
+        body: "Take a look at the row's history below to decide next steps.",
+      };
+  }
 }
 
 // ── Inline panels (call, meeting) ──────────────────────────────────────

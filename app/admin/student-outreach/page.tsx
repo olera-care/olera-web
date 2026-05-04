@@ -230,7 +230,12 @@ export default function StudentOutreachPage() {
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : rows.length === 0 ? (
-        <EmptyState campusFiltered={Boolean(campusSlug)} tab={tab} />
+        <EmptyState
+          campusFiltered={Boolean(campusSlug)}
+          tab={tab}
+          tabCounts={tabCounts}
+          onAddStakeholder={() => setShowAdd(true)}
+        />
       ) : (
         <ul className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
           {rows.map((row) => (
@@ -293,10 +298,63 @@ export default function StudentOutreachPage() {
   );
 }
 
-function EmptyState({ campusFiltered, tab }: { campusFiltered: boolean; tab: string }) {
+function EmptyState({
+  campusFiltered,
+  tab,
+  tabCounts,
+  onAddStakeholder,
+}: {
+  campusFiltered: boolean;
+  tab: string;
+  tabCounts: TabCounts | null;
+  onAddStakeholder: () => void;
+}) {
+  // Total-zero panel: brand-new system, no stakeholders anywhere. Give a
+  // single clear next-step instead of a generic empty message.
+  const totalZero = tabCounts?.all === 0;
+  if (totalZero) {
+    return (
+      <div className="py-12 text-center">
+        <p className="text-sm font-medium text-gray-700">
+          No stakeholders yet — let's add the first one.
+        </p>
+        <p className="mt-1 text-xs text-gray-500">
+          Pick a campus, find a pre-health advisor or pre-med society, and click below to add them.
+          Ask your supervisor which campuses you own.
+        </p>
+        <button
+          onClick={onAddStakeholder}
+          className="mt-4 rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700"
+        >
+          + Add Stakeholder
+        </button>
+      </div>
+    );
+  }
+
+  // Tab-specific guidance.
+  if (tab === "queued") {
+    const hasInProgress = (tabCounts?.in_progress ?? 0) > 0;
+    return (
+      <div className="py-12 text-center">
+        <p className="text-sm text-gray-700">No tasks due right now. 🎉</p>
+        <p className="mt-1 text-xs text-gray-500">
+          {hasInProgress
+            ? "Pipeline is running. Use this quiet time to add more stakeholders."
+            : "Add a campus or stakeholder to get started."}
+        </p>
+        <button
+          onClick={onAddStakeholder}
+          className="mt-4 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          + Add Stakeholder
+        </button>
+      </div>
+    );
+  }
+
   let msg = "Nothing in this tab.";
-  if (tab === "queued") msg = "No tasks due right now. 🎉";
-  else if (tab === "in_progress") msg = "No stakeholders being actively worked.";
+  if (tab === "in_progress") msg = "No stakeholders being actively worked.";
   else if (tab === "partnered") msg = "No active partners yet.";
   else if (tab === "closed" && !campusFiltered) {
     msg = "No closed-out stakeholders.";

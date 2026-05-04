@@ -105,7 +105,9 @@ export async function GET(req: NextRequest) {
 
   let rows = (outreachRows ?? []) as OutreachRow[];
 
-  // Queued tab: keep only rows with at least one due-now task.
+  // Queued tab: keep only rows with at least one admin-actionable task due
+  // now. Auto-send tasks (outreach_email_send) are handled by the cron and
+  // shouldn't surface as queued work to the admin.
   if (tab === "queued" && rows.length > 0) {
     const idSet = new Set(rows.map((r) => r.id));
     const { data: dueTasks } = await db
@@ -113,6 +115,7 @@ export async function GET(req: NextRequest) {
       .select("outreach_id")
       .in("outreach_id", Array.from(idSet))
       .eq("status", "pending")
+      .neq("task_type", "outreach_email_send")
       .lte("due_at", new Date().toISOString());
     const dueIds = new Set((dueTasks ?? []).map((t) => t.outreach_id));
     rows = rows.filter((r) => dueIds.has(r.id));
@@ -319,11 +322,13 @@ async function computeTabCounts(
     }
   }
 
-  // Tasks scan: queued = distinct outreach_ids with a pending task due ≤ now.
+  // Tasks scan: queued = distinct outreach_ids with an admin-actionable
+  // pending task due ≤ now. Excludes outreach_email_send (cron handles it).
   let taskQ = db
     .from("student_outreach_tasks")
     .select("outreach_id, due_at, student_outreach!inner(campus_id, stakeholder_type)")
     .eq("status", "pending")
+    .neq("task_type", "outreach_email_send")
     .lte("due_at", new Date().toISOString());
   if (filters.campusId) taskQ = taskQ.eq("student_outreach.campus_id", filters.campusId);
   if (filters.type) taskQ = taskQ.eq("student_outreach.stakeholder_type", filters.type);

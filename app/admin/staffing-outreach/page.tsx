@@ -388,9 +388,9 @@ export default function StaffingOutreachPage() {
                   >
                     <div className="min-w-0 flex-1">
                       {/* Claimed indicator - shown above name */}
-                      {isClaimed && row.claimed_by_initials && (
+                      {isClaimed && (
                         <p className="text-xs text-blue-600 mb-0.5">
-                          Claimed by {row.claimed_by_initials}
+                          Claimed
                         </p>
                       )}
                       <p className="truncate text-sm font-medium text-gray-900">

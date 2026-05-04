@@ -746,8 +746,10 @@ function SequencingSection({
 }) {
   const [moving, setMoving] = useState(false);
 
-  // Only show for sequencing status
-  if (ctx.outreach.status !== "sequencing") {
+  // Show for all statuses that appear in the Sequencing tab
+  // V2: sequencing | Legacy: pre_call_outreach, nurturing
+  const sequencingStatuses = new Set(["sequencing", "pre_call_outreach", "nurturing"]);
+  if (!sequencingStatuses.has(ctx.outreach.status)) {
     return null;
   }
 
@@ -1349,10 +1351,10 @@ function NurturingSection({
   const followUpEmail = generateFollowUpEmailText(universityName);
   const [emailBody, setEmailBody] = useState(followUpEmail.body);
 
-  // Only show for pre-consent nurturing statuses
-  // Don't show for consented/activated (they've engaged) or queued (use NewSection)
+  // LEGACY: Only show for calling statuses in the Needs Call tab
+  // pre_call_outreach and nurturing now use V2 SequencingSection
+  // Don't show for consented/activated (they've engaged) or queued (use ToQueueSection)
   const showForStatuses = new Set([
-    "pre_call_outreach",
     "calling",
     "connected_no_consent",
   ]);
@@ -1566,12 +1568,13 @@ function CallSection({
 
   const isBusy = activeAction !== null;
 
-  // LEGACY: Show only for old workflow pre-consent statuses
-  // V2 uses NeedsCallSection for calling and ConsentedSection for post-consent
+  // LEGACY: Show only for old workflow calling statuses in Needs Call tab
+  // V2 uses SequencingSection for pre_call_outreach (in Sequencing tab)
+  // V2 uses NeedsCallSection for needs_call and ConsentedSection for consented
   const callableStatuses = new Set([
-    "pre_call_outreach",
     "calling",
     "connected_no_consent",
+    // Note: 'pre_call_outreach' removed - now in Sequencing tab, uses SequencingSection
     // Note: 'consented' removed - in V2, ConsentedSection handles this status
   ]);
   if (!callableStatuses.has(ctx.outreach.status)) return null;

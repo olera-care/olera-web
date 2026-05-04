@@ -103,6 +103,19 @@ interface ReferrerBreakdown {
   other: number;
 }
 
+// Submissions bucketed by entry source — answers "did editorial-mounted
+// SBF produce signups?" Editorial mounts pass entrySource=`/caregiver-support/{slug}`,
+// which lands in accounts.signup_source. Provider mounts and legacy rows
+// stay NULL. The existing benefits funnel above is provider_activity-only,
+// so editorial submissions are invisible to it without this card.
+interface EntrySourceBreakdown {
+  total: number;
+  editorial_total: number;
+  provider_total: number;
+  other_total: number;
+  top_editorial_articles: Array<{ slug: string; count: number }>;
+}
+
 interface SummaryResponse {
   windowed: {
     range: { from: string | null; to: string | null };
@@ -115,6 +128,7 @@ interface SummaryResponse {
     benefits_funnel: BenefitsFunnel;
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
+    entry_source_breakdown: EntrySourceBreakdown;
   };
   prior: {
     counts: WindowedCounts;
@@ -126,6 +140,7 @@ interface SummaryResponse {
     benefits_funnel: BenefitsFunnel;
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
+    entry_source_breakdown: EntrySourceBreakdown;
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -227,6 +242,7 @@ export default function AdminAnalyticsPage() {
       <WindowedCard summary={summary} loading={loading} range={range} />
       <QaFunnelCard summary={summary} loading={loading} range={range} />
       <BenefitsFunnelCard summary={summary} loading={loading} range={range} />
+      <EntrySourceCard summary={summary} loading={loading} range={range} />
       <TopProvidersCard summary={summary} loading={loading} />
       <LatestEventsCard summary={summary} loading={loading} />
 
@@ -888,6 +904,121 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
           {byVariant.unassigned.started} sessions in window with no variant assigned (events fired before any A/B was wired).
         </p>
       )}
+    </div>
+  );
+}
+
+// Submissions bucketed by entry source. The benefits funnel above is
+// provider_activity-driven and editorial mounts emit zero provider_activity,
+// so editorial submissions are invisible there. This card reads accounts
+// directly so editorial conversions surface — and so we can answer
+// "did /caregiver-support/ produce signups?" without a SQL detour.
+function EntrySourceCard({
+  summary,
+  loading,
+  range,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+  range: DateRangeValue;
+}) {
+  if (loading && !summary) {
+    return <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6 h-32 animate-pulse" />;
+  }
+  if (!summary) return null;
+
+  const b = summary.windowed.entry_source_breakdown;
+  const pb = summary.prior?.entry_source_breakdown ?? null;
+
+  const pct = (n: number, d: number) => (d > 0 ? `${Math.round((n / d) * 100)}%` : "—");
+  const delta = (curr: number, prior: number | null) => {
+    if (prior === null) return null;
+    if (prior === 0) return curr > 0 ? "new" : null;
+    const change = Math.round(((curr - prior) / prior) * 100);
+    return `${change >= 0 ? "+" : ""}${change}%`;
+  };
+
+  const editorialDelta = delta(b.editorial_total, pb?.editorial_total ?? null);
+  const providerDelta = delta(b.provider_total, pb?.provider_total ?? null);
+
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
+      <div className="flex items-baseline gap-3 mb-1">
+        <h2 className="text-base font-semibold text-gray-900">Submissions by Entry Source</h2>
+        {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
+      </div>
+      <p className="text-xs text-gray-500 mb-5">
+        Family profiles created via SBF intake {rangeLabel(range).toLowerCase()}. Bucketed by{" "}
+        <code className="text-[11px] bg-gray-50 px-1 rounded">accounts.signup_source</code>
+        : editorial mounts pass <code className="text-[11px] bg-gray-50 px-1 rounded">/caregiver-support/&#123;slug&#125;</code>; provider mounts + legacy rows are NULL.
+      </p>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-3 mb-5">
+        <EntrySourceStat label="Total" value={b.total} delta={null} />
+        <EntrySourceStat
+          label="Editorial"
+          value={b.editorial_total}
+          subLabel={pct(b.editorial_total, b.total)}
+          delta={editorialDelta}
+        />
+        <EntrySourceStat
+          label="Provider / legacy"
+          value={b.provider_total}
+          subLabel={pct(b.provider_total, b.total)}
+          delta={providerDelta}
+        />
+        <EntrySourceStat label="Other" value={b.other_total} subLabel={pct(b.other_total, b.total)} delta={null} />
+      </div>
+
+      {b.top_editorial_articles.length > 0 ? (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-2">
+            Top editorial articles
+          </div>
+          <ul className="space-y-1.5">
+            {b.top_editorial_articles.map(({ slug, count }) => (
+              <li key={slug} className="flex items-baseline justify-between text-sm">
+                <a
+                  href={`/caregiver-support/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-700 hover:text-gray-900 truncate mr-3 underline-offset-2 hover:underline"
+                >
+                  /caregiver-support/{slug}
+                </a>
+                <span className="tabular-nums text-gray-900 font-medium flex-shrink-0">{count}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : b.editorial_total === 0 ? (
+        <p className="text-[11px] text-gray-400 mt-3">
+          No editorial submissions yet in this window. Once <code className="text-[10px] bg-gray-50 px-1 rounded">EditorialBenefitsModule</code> goes live on <code className="text-[10px] bg-gray-50 px-1 rounded">/caregiver-support/[slug]</code>, this card surfaces top articles by submission count.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function EntrySourceStat({
+  label,
+  value,
+  subLabel,
+  delta,
+}: {
+  label: string;
+  value: number;
+  subLabel?: string;
+  delta: string | null;
+}) {
+  return (
+    <div>
+      <div className="text-[11px] font-medium uppercase tracking-wider text-gray-400 mb-0.5">{label}</div>
+      <div className="flex items-baseline gap-2">
+        <div className="text-xl font-semibold tabular-nums text-gray-900">{value}</div>
+        {subLabel && <div className="text-[12px] text-gray-500 tabular-nums">{subLabel}</div>}
+      </div>
+      {delta && <div className="text-[11px] text-gray-400 mt-0.5">{delta} vs prior</div>}
     </div>
   );
 }

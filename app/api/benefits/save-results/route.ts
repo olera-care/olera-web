@@ -665,9 +665,18 @@ export async function POST(req: Request) {
       topSavings,
       isNewUser,
     });
-    sendSlackAlert(alert.text, alert.blocks).catch((err) => {
-      console.error("[save-results] Slack alert failed:", err);
-    });
+    // Awaited via Promise.allSettled — fire-and-forget gets killed by
+    // Vercel's serverless runtime once the response goes out (cost a 7h
+    // diagnosis on the agent-outreach route, 2026-05-03). Adds ~200-400ms
+    // latency but guarantees the alert lands. allSettled so a Slack
+    // failure doesn't abort the response — the canonical accounts row is
+    // already in the DB at this point.
+    const [slackResult] = await Promise.allSettled([
+      sendSlackAlert(alert.text, alert.blocks),
+    ]);
+    if (slackResult.status === "rejected") {
+      console.error("[save-results] Slack alert failed:", slackResult.reason);
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════

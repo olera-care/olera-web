@@ -31,6 +31,7 @@ import { sendSlackAlert, slackOutreachRequestSubmitted } from "@/lib/slack";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const RATE_LIMIT_MAX = 3;
+const VALID_RELATIONSHIPS = new Set(["my-parent", "my-spouse", "myself", "other-family"]);
 
 interface TargetProvider {
   id: string;
@@ -60,12 +61,20 @@ export async function POST(request: NextRequest) {
       city,
       state,
       category,
+      relationship,
       target_providers,
       question_id,
       question_text,
       session_id,
       honeypot,
     } = body ?? {};
+
+    // Sanitize relationship: only accept the known enum values; anything else
+    // gets dropped silently. Optional field — null is the no-answer signal.
+    const normalizedRelationship: string | null =
+      typeof relationship === "string" && VALID_RELATIONSHIPS.has(relationship)
+        ? relationship
+        : null;
 
     // Honeypot: bots fill hidden fields. Pretend success and skip everything
     // else — never reveal the filter to the bot population.
@@ -135,7 +144,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Log seeker_activity event (fire-and-forget). The DB CHECK constraint
-    // accepts outreach_request_submitted as of migration 064.
+    // accepts outreach_request_submitted as of migration 064. Relationship
+    // lives in metadata (no column on agent_outreach_requests in v0); future
+    // Phase 4 can promote it if we want to query.
     db.from("seeker_activity")
       .insert({
         profile_id: null,
@@ -148,6 +159,7 @@ export async function POST(request: NextRequest) {
           city,
           state,
           category,
+          relationship: normalizedRelationship,
           had_question: Boolean(question_text),
         },
       })
@@ -165,6 +177,7 @@ export async function POST(request: NextRequest) {
       city: typeof city === "string" ? city : "",
       state: typeof state === "string" ? state : "",
       category: typeof category === "string" ? category : "",
+      relationship: normalizedRelationship,
       questionText: typeof question_text === "string" ? question_text : null,
       targetProviders: targets.map((t) => ({ name: t.name, slug: t.slug, address: t.address })),
     });

@@ -8,11 +8,11 @@
  * → mod 4). For these visitors, BenefitsDiscoveryModule is hidden and this
  * module renders in the Q&A area instead.
  *
- * The pitch: "Have an AI agent contact the top providers in [city] for you."
- * Visual proof = 3 mini cards of real same-city + same-category providers
- * (server-rendered via lib/agent-outreach-providers.ts). Family submits
- * email → POST /api/outreach/request → Slack alert → TJ does the outreach
- * manually with Claude Code (24h SLA, Wizard of Oz).
+ * The pitch (two-line H2): outcome first ("Skip the phone calls"), mechanic
+ * second ("Have an AI agent contact the top providers in [City] for you").
+ * The mechanic line is intentional — it plants the seed for the broader
+ * agent-callable layer (Medicaid, etc.) we want families to associate with
+ * Olera. Pulsing dots + the "AI agent" phrase share the load.
  *
  * Spec: plans/agent-outreach-cta-workbook.md → "Olera-hosted outreach module
  * for H1". Decision rule: ≥6% email-capture rate vs 3% baseline = greenlight
@@ -21,7 +21,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { Spinner, Star } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import type { ProviderCardData } from "@/lib/types/provider";
@@ -30,6 +29,15 @@ interface RecentQuestion {
   id: string;
   text: string;
 }
+
+type Relationship = "my-parent" | "my-spouse" | "myself" | "other-family";
+
+const RELATIONSHIPS: Array<{ value: Relationship; label: string }> = [
+  { value: "my-parent", label: "Parent" },
+  { value: "my-spouse", label: "Spouse" },
+  { value: "myself", label: "Me" },
+  { value: "other-family", label: "Family" },
+];
 
 interface AgentOutreachModuleProps {
   sourceProviderId: string;
@@ -46,7 +54,7 @@ interface AgentOutreachModuleProps {
 }
 
 async function fireSeekerEvent(
-  eventType: "outreach_module_impression" | "outreach_card_clicked" | "outreach_request_submitted",
+  eventType: "outreach_module_impression" | "outreach_card_clicked",
   metadata: Record<string, unknown>,
 ) {
   try {
@@ -64,6 +72,32 @@ async function fireSeekerEvent(
   }
 }
 
+/**
+ * 3x3 grid of dots that fade in/out on a staggered 1.5s cycle. Reads as
+ * ambient AI processing — same visual language as Anthropic, Claude, Grok.
+ * Each dot's animation-delay is a small offset across the 1.5s cycle so the
+ * group shimmers rather than pulses in lockstep.
+ */
+function PulsingDots() {
+  return (
+    <div
+      aria-hidden="true"
+      className="grid grid-cols-3 gap-[3px] w-[18px] h-[18px] shrink-0"
+    >
+      {Array.from({ length: 9 }).map((_, i) => (
+        <span
+          key={i}
+          className="block w-1 h-1 rounded-full bg-slate-700 animate-outreach-dot"
+          style={{
+            // Staggered diagonal wave: top-left fires first, bottom-right last.
+            animationDelay: `${((i % 3) + Math.floor(i / 3)) * 0.12}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function AgentOutreachModule({
   sourceProviderId,
   sourceProviderName,
@@ -73,13 +107,13 @@ export default function AgentOutreachModule({
   topProviders,
   recentQuestion,
 }: AgentOutreachModuleProps) {
-  const router = useRouter();
   const [email, setEmail] = useState("");
+  const [relationship, setRelationship] = useState<Relationship | null>(null);
   const [honeypot, setHoneypot] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [skipped, setSkipped] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const impressionFiredRef = useRef(false);
   const sessionIdRef = useRef<string>("");
 
@@ -111,7 +145,8 @@ export default function AgentOutreachModule({
       state,
       category,
     });
-    router.push(`/provider/${card.slug}`);
+    // Card click is link, not router.push — opens in new tab so the
+    // outreach form is preserved if the family wants to come back and submit.
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -145,6 +180,7 @@ export default function AgentOutreachModule({
           city,
           state,
           category,
+          relationship,
           target_providers: topProviders.map((p) => ({
             id: p.id,
             name: p.name,
@@ -180,40 +216,50 @@ export default function AgentOutreachModule({
     }
   }
 
-  // Caller handles the "no candidates" case; if topProviders is empty we
-  // still render nothing as belt-and-suspenders — the H2 promises 3 cards.
   if (topProviders.length === 0) return null;
+  if (dismissed) return null;
 
-  if (skipped) return null;
-
-  const cardCountWord = topProviders.length === 1 ? "this" : `these ${topProviders.length}`;
+  // Use the first card's display category (matches what families see on cards).
+  // Falls back to the raw provider_category if cards somehow miss the field.
+  const categoryLabel = topProviders[0]?.primaryCategory || category;
 
   return (
     <section
       id="agent-outreach"
-      className="mt-6 bg-cream-50 border border-cream-200 rounded-2xl p-6 md:p-8"
+      className="mt-8 pt-8 border-t border-slate-200"
       data-arm="outreach"
     >
       {!submitted && (
         <>
-          <div className="max-w-xl">
-            <h2 className="text-xl md:text-2xl font-semibold text-slate-900 leading-tight">
-              Have an AI agent contact the top providers in {city} for you
-            </h2>
-            <p className="mt-2 text-sm md:text-base text-slate-600 leading-relaxed">
-              We'll get pricing, intake, and availability from {cardCountWord} providers. No phone calls.
-            </p>
+          <div className="flex items-start gap-3">
+            <div className="pt-1.5">
+              <PulsingDots />
+            </div>
+            <div className="max-w-xl">
+              <h2 className="text-xl md:text-2xl font-semibold text-slate-900 leading-tight">
+                Skip the phone calls.
+              </h2>
+              <p className="mt-1 text-base md:text-lg text-slate-700 leading-snug">
+                Have an AI agent contact the top providers in {city} for you.
+              </p>
+            </div>
           </div>
 
-          <div className="mt-5 -mx-6 md:-mx-8 px-6 md:px-8 overflow-x-auto">
-            <ul className="flex gap-3 snap-x snap-mandatory pb-2">
+          <p className="mt-5 text-xs uppercase tracking-wider text-slate-500">
+            Top {topProviders.length} {categoryLabel} {topProviders.length === 1 ? "provider" : "providers"} in {city}, where families are actively reaching out
+          </p>
+
+          <div className="mt-3 -mx-1 overflow-x-auto">
+            <ul className="flex gap-3 snap-x snap-mandatory pb-2 px-1">
               {topProviders.map((card) => (
                 <li key={card.id} className="snap-start shrink-0">
-                  <button
-                    type="button"
+                  <a
+                    href={`/provider/${card.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     onClick={() => handleCardClick(card)}
                     className="block w-[160px] text-left rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm transition overflow-hidden"
-                    aria-label={`View ${card.name}`}
+                    aria-label={`View ${card.name} (opens in new tab)`}
                   >
                     <div className="relative w-full aspect-[4/3] bg-slate-100">
                       <Image
@@ -243,19 +289,41 @@ export default function AgentOutreachModule({
                         </div>
                       )}
                       {card.highlights[0] && (
-                        <span className="mt-2 inline-block text-[10px] font-medium uppercase tracking-wide text-slate-700 bg-slate-100 rounded-full px-2 py-0.5">
+                        <span className="mt-2 inline-block text-[10px] font-medium text-slate-600 bg-slate-100 rounded-full px-2 py-0.5">
                           {card.highlights[0]}
                         </span>
                       )}
                       <p className="mt-2 text-xs text-slate-500 truncate">{card.address}</p>
                     </div>
-                  </button>
+                  </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-2">
+          <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-slate-500">Care is for (optional):</span>
+              {RELATIONSHIPS.map((r) => {
+                const selected = relationship === r.value;
+                return (
+                  <button
+                    key={r.value}
+                    type="button"
+                    onClick={() => setRelationship(selected ? null : r.value)}
+                    aria-pressed={selected}
+                    className={`text-xs rounded-full px-3 py-1 border transition ${
+                      selected
+                        ? "bg-slate-900 text-white border-slate-900"
+                        : "bg-white text-slate-700 border-slate-300 hover:border-slate-400"
+                    }`}
+                  >
+                    {r.label}
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-2">
               <label className="sr-only" htmlFor="agent-outreach-email">Your email</label>
               <input
@@ -295,7 +363,7 @@ export default function AgentOutreachModule({
                     Sending
                   </>
                 ) : (
-                  "Send the agent"
+                  "Get the answers"
                 )}
               </button>
             </div>
@@ -305,27 +373,32 @@ export default function AgentOutreachModule({
               </p>
             )}
             <p className="text-[11px] text-slate-500">
-              We'll only use your email to send the outreach summary. No spam.
+              We'll only use your email to send back the outreach summary. No spam.
             </p>
           </form>
         </>
       )}
 
       {submitted && (
-        <div className="flex flex-col gap-2">
-          <h3 className="text-lg md:text-xl font-semibold text-slate-900">
-            Got it. We'll reach out within 24 hours.
-          </h3>
-          <p className="text-sm text-slate-600">
-            We're contacting these {topProviders.length} providers and will email you back with pricing, intake requirements, and availability.
-          </p>
-          <button
-            type="button"
-            onClick={() => setSkipped(true)}
-            className="self-start mt-2 text-xs text-slate-500 hover:text-slate-700 underline underline-offset-2"
-          >
-            Dismiss
-          </button>
+        <div className="flex items-start gap-3">
+          <div className="pt-1.5">
+            <PulsingDots />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg md:text-xl font-semibold text-slate-900">
+              On it.
+            </h3>
+            <p className="mt-1 text-sm text-slate-600 leading-relaxed">
+              We'll email you back with what we hear from these {topProviders.length} {categoryLabel.toLowerCase()} {topProviders.length === 1 ? "provider" : "providers"} — pricing, intake requirements, and availability.
+            </p>
+            <button
+              type="button"
+              onClick={() => setDismissed(true)}
+              className="mt-3 text-xs text-slate-500 hover:text-slate-700 underline underline-offset-2"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
     </section>

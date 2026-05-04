@@ -953,6 +953,17 @@ export function slackBenefitsCompleted(opts: {
  * surfaces in push notifications and server logs (see
  * feedback_phi_in_subject_lines.md).
  */
+/** Display label for the relationship enum. Optional — many submitters skip. */
+function formatRelationshipForSlack(rel: string | null): string | null {
+  switch (rel) {
+    case "my-parent": return "for their parent";
+    case "my-spouse": return "for their spouse";
+    case "myself": return "for themselves";
+    case "other-family": return "for a family member";
+    default: return null;
+  }
+}
+
 export function slackOutreachRequestSubmitted(opts: {
   requestId: string;
   askerEmail: string;
@@ -961,6 +972,7 @@ export function slackOutreachRequestSubmitted(opts: {
   city: string;
   state: string;
   category: string;
+  relationship: string | null;
   questionText: string | null;
   targetProviders: Array<{ name: string; slug: string; address: string }>;
 }): { text: string; blocks: SlackBlock[] } {
@@ -971,6 +983,20 @@ export function slackOutreachRequestSubmitted(opts: {
     .map((p) => `• <${siteUrl}/provider/${p.slug}|${p.name}> — ${p.address}`)
     .join("\n");
 
+  const relLabel = formatRelationshipForSlack(opts.relationship);
+
+  // First section's fields. Two columns; we pad with the relationship row only
+  // when the family told us — keeps the alert dense when they didn't.
+  const summaryFields = [
+    { type: "mrkdwn", text: `*Reply to:*\n${opts.askerEmail}` },
+    { type: "mrkdwn", text: `*Source page:*\n<${siteUrl}/provider/${opts.sourceProviderSlug}|${opts.sourceProviderName}>` },
+    { type: "mrkdwn", text: `*Where:*\n${opts.city}, ${opts.state}` },
+    { type: "mrkdwn", text: `*Category:*\n${opts.category}` },
+  ];
+  if (relLabel) {
+    summaryFields.push({ type: "mrkdwn", text: `*Care is:*\n${relLabel}` });
+  }
+
   const blocks: SlackBlock[] = [
     {
       type: "header",
@@ -978,12 +1004,7 @@ export function slackOutreachRequestSubmitted(opts: {
     },
     {
       type: "section",
-      fields: [
-        { type: "mrkdwn", text: `*Reply to:*\n${opts.askerEmail}` },
-        { type: "mrkdwn", text: `*Source page:*\n<${siteUrl}/provider/${opts.sourceProviderSlug}|${opts.sourceProviderName}>` },
-        { type: "mrkdwn", text: `*Where:*\n${opts.city}, ${opts.state}` },
-        { type: "mrkdwn", text: `*Category:*\n${opts.category}` },
-      ],
+      fields: summaryFields,
     },
     {
       type: "section",
@@ -1007,7 +1028,7 @@ export function slackOutreachRequestSubmitted(opts: {
   blocks.push({
     type: "context",
     elements: [
-      { type: "mrkdwn", text: `Request \`${opts.requestId}\` · 24h SLA · reply in thread when handled` },
+      { type: "mrkdwn", text: `Request \`${opts.requestId}\` · reply in thread when handled` },
     ],
   });
 

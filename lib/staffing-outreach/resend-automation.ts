@@ -12,6 +12,14 @@
  *   1. Email 1 (Initial outreach) - immediately
  *   2. Wait 3 days
  *   3. Email 2 (Follow-up) - if not enrolled
+ *
+ * MOCK MODE:
+ *   When RESEND_STAFFING_AUDIENCE_ID is not configured, the module runs in mock mode.
+ *   This allows testing the V2 UI flow without actual Resend integration.
+ *   In mock mode:
+ *   - startEmailSequence() returns success with a mock contact ID
+ *   - stopEmailSequence() returns success immediately
+ *   - No actual emails are sent
  */
 
 import { Resend } from "resend";
@@ -20,6 +28,9 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
 // Resend Automation audience ID - set this in Resend Dashboard
 const STAFFING_AUTOMATION_AUDIENCE_ID = process.env.RESEND_STAFFING_AUDIENCE_ID ?? "";
+
+// Mock mode is enabled when audience ID is not configured
+const IS_MOCK_MODE = !STAFFING_AUTOMATION_AUDIENCE_ID;
 
 let resendClient: Resend | null = null;
 
@@ -65,19 +76,31 @@ export interface StartSequenceResult {
  * 3. Send Email 2 (if not enrolled)
  *
  * Webhooks will update our database as emails are sent/opened/clicked.
+ *
+ * In MOCK MODE (no audience ID configured):
+ * - Returns success with a mock contact ID
+ * - No actual emails are sent
+ * - Useful for testing the UI flow
  */
 export async function startEmailSequence(
   params: StartSequenceParams
 ): Promise<StartSequenceResult> {
+  // Mock mode: return success without calling Resend
+  if (IS_MOCK_MODE) {
+    const mockContactId = `mock_${params.outreachId.slice(0, 8)}`;
+    console.log(
+      `[resend-automation] MOCK MODE: Simulating sequence start for ${params.email} (outreach: ${params.outreachId})`
+    );
+    return {
+      success: true,
+      contactId: mockContactId,
+    };
+  }
+
   const resend = getResend();
   if (!resend) {
     console.error("[resend-automation] RESEND_API_KEY not configured");
     return { success: false, error: "Resend not configured" };
-  }
-
-  if (!STAFFING_AUTOMATION_AUDIENCE_ID) {
-    console.error("[resend-automation] RESEND_STAFFING_AUDIENCE_ID not configured");
-    return { success: false, error: "Automation audience not configured" };
   }
 
   try {
@@ -123,8 +146,14 @@ export async function startEmailSequence(
 export async function stopEmailSequence(
   email: string
 ): Promise<{ success: boolean; error?: string }> {
+  // Mock mode: return success without calling Resend
+  if (IS_MOCK_MODE) {
+    console.log(`[resend-automation] MOCK MODE: Simulating sequence stop for ${email}`);
+    return { success: true };
+  }
+
   const resend = getResend();
-  if (!resend || !STAFFING_AUTOMATION_AUDIENCE_ID) {
+  if (!resend) {
     return { success: false, error: "Resend not configured" };
   }
 
@@ -150,8 +179,13 @@ export async function stopEmailSequence(
 export async function isInSequence(
   email: string
 ): Promise<{ inSequence: boolean; contactId?: string; error?: string }> {
+  // Mock mode: check based on local state (always return false since we don't track)
+  if (IS_MOCK_MODE) {
+    return { inSequence: false };
+  }
+
   const resend = getResend();
-  if (!resend || !STAFFING_AUTOMATION_AUDIENCE_ID) {
+  if (!resend) {
     return { inSequence: false, error: "Resend not configured" };
   }
 
@@ -169,6 +203,14 @@ export async function isInSequence(
     // Contact not found is not an error, just means not in sequence
     return { inSequence: false };
   }
+}
+
+/**
+ * Check if the module is running in mock mode.
+ * Useful for showing warnings in the UI.
+ */
+export function isResendMockMode(): boolean {
+  return IS_MOCK_MODE;
 }
 
 /**

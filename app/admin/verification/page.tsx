@@ -118,6 +118,23 @@ const TRUST_OPTIONS = [
   { value: "none", label: "Not scored" },
 ];
 
+// ── Helper to format relative time ──
+
+function formatDaysAgo(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "1 day ago";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 14) return "1 week ago";
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (diffDays < 60) return "1 month ago";
+  return `${Math.floor(diffDays / 30)} months ago`;
+}
+
 // ── Filter Components ──
 
 function StateSelectFilter({
@@ -811,10 +828,17 @@ export default function AdminVerificationPage() {
                           )}
                         </td>
                       )}
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {filter === "pending" && submission?.submitted_at
-                          ? new Date(submission.submitted_at).toLocaleDateString()
-                          : new Date(provider.updated_at).toLocaleDateString()}
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-gray-500">
+                          {filter === "pending" && submission?.submitted_at
+                            ? new Date(submission.submitted_at).toLocaleDateString()
+                            : new Date(provider.updated_at).toLocaleDateString()}
+                        </p>
+                        {filter === "unverified_claims" && (
+                          <p className="text-xs text-gray-400">
+                            {formatDaysAgo(provider.updated_at)}
+                          </p>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex gap-2 justify-end">

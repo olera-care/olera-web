@@ -922,6 +922,18 @@ export default function AdminVerificationPage() {
   );
 }
 
+// ── Helper to check if provider has verification attempts ──
+
+function hasVerificationAttempts(provider: Provider): boolean {
+  const metadata = provider.metadata;
+  if (!metadata) return false;
+
+  const attempts = metadata.verification_attempts || [];
+  const emailOtpAttempt = metadata.email_otp_attempt;
+
+  return attempts.length > 0 || !!emailOtpAttempt;
+}
+
 // ── Verification Review Modal ──
 
 interface VerificationReviewModalProps {
@@ -1331,8 +1343,11 @@ function VerificationReviewModal({
       {/* Pre-Claim Engagement - Only show if there's engagement data */}
       <PreClaimEngagementSection journey={provider.claim_journey} />
 
+      {/* Verification Attempts - Always show if they exist (regardless of submission) */}
+      <VerificationAttemptsSection provider={provider} formatDate={formatDate} />
+
       {/* Submission Details */}
-      {submission ? (
+      {submission && (
         <div className="space-y-5">
           <div>
             <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
@@ -1433,9 +1448,6 @@ function VerificationReviewModal({
             </div>
           )}
 
-          {/* Verification Attempts */}
-          <VerificationAttemptsSection provider={provider} formatDate={formatDate} />
-
           {/* Show notes (new field) or affiliation (legacy field) */}
           {(submission.notes || submission.affiliation) && (
             <div>
@@ -1490,7 +1502,10 @@ function VerificationReviewModal({
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {/* Empty state - only show if NO submission AND NO verification attempts */}
+      {!submission && !hasVerificationAttempts(provider) && (
         <EmptyStateMessage
           currentTab={currentTab}
           isHighTrust={provider.claim_trust_level === "high" || provider.verification_state === "not_required"}
@@ -1595,7 +1610,7 @@ function VerificationAttemptsSection({ provider, formatDate }: VerificationAttem
 
   return (
     <>
-      <div>
+      <div className="mb-5">
         <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
           Verification Attempts ({allAttempts.length})
         </p>

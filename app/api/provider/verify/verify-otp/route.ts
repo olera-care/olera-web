@@ -208,6 +208,9 @@ export async function POST(request: NextRequest) {
           verification_state: "verified",
           metadata: updatedMetadata,
           updated_at: new Date().toISOString(),
+          // Persist trust level for admin visibility
+          claim_trust_level: trustResult.level,
+          claim_trust_reason: `Email OTP verified: ${trustResult.reason}`,
         })
         .eq("id", profileId);
 
@@ -320,6 +323,9 @@ export async function POST(request: NextRequest) {
           verification_state: "pending",
           metadata: updatedMetadata,
           updated_at: new Date().toISOString(),
+          // Persist trust level for admin visibility
+          claim_trust_level: trustResult.level,
+          claim_trust_reason: `Email OTP verified but ${trustResult.reason}`,
         })
         .eq("id", profileId);
 

@@ -71,6 +71,10 @@ interface QaEmailIssue {
 }
 
 interface BenefitsFunnel {
+  // Distinct sessions that saw the module render. Apples-to-apples top-of-
+  // funnel for all four arms (benefits_entry_viewed for the 3 form arms,
+  // outreach_module_impression for the outreach arm).
+  impressions: number;
   started: number;
   care_need_completed: number;
   age_completed: number;
@@ -84,8 +88,8 @@ interface BenefitsFunnelByVariant {
   loss: BenefitsFunnel;
   empathic: BenefitsFunnel;
   // 4th arm — H1 demand-test surface, replaces SBF for 25% of provider-page
-  // visitors. Only `started` (impressions) and `saved` (submissions) populate;
-  // middle steps are N/A and render as "—" in the table.
+  // visitors. Populates impressions, started (card click), and saved (form
+  // submission); middle "care need" step is N/A and renders as "—".
   outreach: BenefitsFunnel;
   // Legacy V2 arms — historical, retained for the rollup window when V2 data
   // exists. Frozen after cutover.
@@ -684,7 +688,7 @@ function VariantSplit({ byVariant }: { byVariant: ProviderQaFunnelByVariant }) {
   );
 }
 
-// ── Benefits Intake Funnel ───────────────────────────────────────────────
+// ── Family Intake ────────────────────────────────────────────────────────
 
 function BenefitsFunnelCard({
   summary,
@@ -703,8 +707,9 @@ function BenefitsFunnelCard({
   const f = summary.windowed.benefits_funnel;
   const pf = summary.prior?.benefits_funnel ?? null;
 
-  // Distinct sessions per stage. `started` is the cohort denominator (the
-  // user clicked a care-need card). Each subsequent stage is a session that
+  // Distinct sessions per stage. `impressions` is the cohort denominator (the
+  // module rendered on a provider page). `started` is the first interactive
+  // step (care-need card click). Each subsequent stage is a session that
   // fired benefits_step_completed for that step. The save step's completion
   // is the conversion event — it fires immediately before the save-results
   // POST in BenefitsDiscoveryModule.
@@ -716,12 +721,20 @@ function BenefitsFunnelCard({
     tooltip: string;
   }> = [
     {
+      label: "Impressions",
+      value: f.impressions,
+      prior: pf?.impressions ?? null,
+      prev: null,
+      tooltip:
+        "Distinct sessions that saw the intake module render on a provider page (cohort denominator). Mirrors the outreach module's impression event so the four A/B arms can be compared apples-to-apples.",
+    },
+    {
       label: "Started",
       value: f.started,
       prior: pf?.started ?? null,
-      prev: null,
+      prev: f.impressions,
       tooltip:
-        "Distinct sessions that clicked a care-need card to launch the benefits intake (cohort denominator).",
+        "Distinct sessions that took the first interactive action — clicked a care-need card on the benefits form, or clicked a recommended provider card on the outreach module. % shown is conversion from Impressions (engagement rate).",
     },
     {
       label: "Care need ✓",
@@ -760,14 +773,14 @@ function BenefitsFunnelCard({
   return (
     <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
       <div className="flex items-baseline gap-3 mb-1">
-        <h2 className="text-base font-semibold text-gray-900">Benefits Intake Funnel</h2>
+        <h2 className="text-base font-semibold text-gray-900">Family Intake</h2>
         {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
       </div>
       <p className="text-xs text-gray-500 mb-5">
-        Cohort: distinct sessions that started the benefits intake on a provider page {rangeLabel(range).toLowerCase()}. Step % is conversion from the previous step.
+        Top-line tracks the embedded benefits-help form on a provider page {rangeLabel(range).toLowerCase()} — distinct sessions per step, with % showing conversion from the previous step. The 4-arm A/B comparison below adds the AI agent outreach module so all variants can be compared on a shared Impressions denominator.
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-5 gap-y-4">
         {stages.map((s) => (
           <FunnelStat key={s.label} {...s} />
         ))}
@@ -780,13 +793,13 @@ function BenefitsFunnelCard({
 
 function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVariant }) {
   const totalAssigned =
-    byVariant.availability.started +
-    byVariant.loss.started +
-    byVariant.empathic.started +
-    byVariant.outreach.started +
-    byVariant.control.started +
-    byVariant.money_loss.started;
-  const waitingForFirstStart = totalAssigned === 0;
+    byVariant.availability.impressions +
+    byVariant.loss.impressions +
+    byVariant.empathic.impressions +
+    byVariant.outreach.impressions +
+    byVariant.control.impressions +
+    byVariant.money_loss.impressions;
+  const waitingForFirstImpression = totalAssigned === 0;
 
   const rate = (num: number, den: number) =>
     den > 0 ? `${Math.round((num / den) * 100)}%` : "—";
@@ -805,15 +818,21 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
     { key: "control" as const, label: "control (legacy V2)" },
     { key: "money_loss" as const, label: "money_loss (legacy V2)" },
   ];
-  const legacyArms = legacyCandidates.filter((a) => byVariant[a.key].started > 0);
+  // Legacy V2 rows predate the benefits_entry_viewed instrumentation, so
+  // they'll have started > 0 but impressions == 0. Keep them visible while
+  // any signal exists in either column so the historical funnel doesn't
+  // disappear from the dashboard mid-window.
+  const legacyArms = legacyCandidates.filter(
+    (a) => byVariant[a.key].started > 0 || byVariant[a.key].impressions > 0,
+  );
 
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">
       <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
-        A/B Test — entry-point copy (4-arm)
+        A/B Test — entry-point module (4-arm)
       </div>
       <p className="text-[11px] text-gray-400 mb-3">
-        Deterministic 1/4 split by session id (djb2 hash mod 4) — 3 benefits-copy arms + 1 outreach arm. Conversion % = contact/email submitted / started. Variant copy strings + commentary live in the{" "}
+        Deterministic 1/4 split by session id (djb2 hash mod 4) — 3 benefits-help copy arms + 1 AI agent outreach arm. Impressions = module rendered on a provider page; Started = first interactive action (care-need click for benefits, recommended-card click for outreach); Submitted = email/form submission. Conversion % = Submitted / Impressions, so all four arms compare on the same denominator. Variant copy strings + commentary live in the{" "}
         <a
           href="https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d"
           target="_blank"
@@ -824,9 +843,9 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
         </a>
         .
       </p>
-      {waitingForFirstStart && (
+      {waitingForFirstImpression && (
         <p className="text-[12px] text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-3 py-2 mb-3">
-          Waiting for the first variant-tagged start. The numbers below populate once a new <code className="text-[11px] bg-white/60 px-1 rounded">benefits_started</code> event fires in this window.
+          Waiting for the first variant-tagged impression. The numbers below populate once a new module impression fires in this window.
         </p>
       )}
       <div className="overflow-x-auto -mx-1">
@@ -834,6 +853,7 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
           <thead>
             <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
               <th className="px-3 py-2 font-medium">Variant</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Impressions</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Started</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Care need ✓</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Submitted</th>
@@ -849,32 +869,43 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
                     {label}
                     <div className="text-[11px] font-normal text-gray-400 truncate max-w-[280px]">{description}</div>
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.started}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.impressions}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
                   {/* Outreach arm has no middle "care need" step — show — instead of 0. */}
                   <td className="px-3 py-2 text-right tabular-nums text-gray-700">
                     {isOutreach ? <span className="text-gray-300">—</span> : r.care_need_completed}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.saved}</td>
-                  <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.saved, r.started)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.saved, r.impressions)}</td>
                 </tr>
               );
             })}
             {legacyArms.length > 0 && (
               <>
                 <tr>
-                  <td colSpan={5} className="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-gray-400">
+                  <td colSpan={6} className="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-gray-400">
                     Legacy V2 (historical)
                   </td>
                 </tr>
                 {legacyArms.map(({ key, label }) => {
                   const r = byVariant[key];
+                  // Legacy V2 rows predate the benefits_entry_viewed event,
+                  // so they have impressions=0 even when they have meaningful
+                  // started/saved counts. Fall back to saved/started so the
+                  // historical conversion rate stays visible until those
+                  // rows roll out of the window entirely.
+                  const legacyConversion =
+                    r.impressions > 0 ? rate(r.saved, r.impressions) : rate(r.saved, r.started);
                   return (
                     <tr key={key} className="border-b border-gray-50 opacity-60">
                       <td className="px-3 py-2 font-medium text-gray-500">{label}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-gray-400">
+                        {r.impressions > 0 ? r.impressions : <span className="text-gray-300">—</span>}
+                      </td>
                       <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-gray-600">{r.care_need_completed}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-gray-600">{r.saved}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-gray-700">{rate(r.saved, r.started)}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-gray-700">{legacyConversion}</td>
                     </tr>
                   );
                 })}
@@ -883,9 +914,9 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
           </tbody>
         </table>
       </div>
-      {byVariant.unassigned.started > 0 && (
+      {byVariant.unassigned.impressions > 0 && (
         <p className="text-[11px] text-gray-400 mt-3">
-          {byVariant.unassigned.started} sessions in window with no variant assigned (events fired before any A/B was wired).
+          {byVariant.unassigned.impressions} sessions in window with no variant assigned (events fired before any A/B was wired).
         </p>
       )}
     </div>

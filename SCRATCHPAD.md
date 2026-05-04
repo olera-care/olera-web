@@ -111,24 +111,30 @@ TJ tested the v1 module on a Washington DC nursing-home page. Visual was solid b
 - `a8b85c28` — Second pre-test fixes (caption case, prefers-reduced-motion)
 - `b3ad7ee5` — Slack fire-and-forget fix (await + Promise.allSettled)
 
-### 2026-05-04 (PM) — H2 capture work built locally on `keen-hopper`. Awaiting push + PR + preview test.
+### 2026-05-04 (PM) — H2 capture PR #726 open on staging. Pre-test clean. Awaiting Vercel preview test.
 
-Three pieces shipped as planned, four commits on `keen-hopper` off latest `origin/staging` (`4eb7808a`):
+**Branch + commit chain on `keen-hopper`** (off latest `origin/staging` `4eb7808a`):
 
 - `f54eac82` — H1 ship marker + H2 plan in SCRATCHPAD
 - `afba46c4` — `app/llms.txt/route.ts` (curated AI-agent map per llmstxt.org spec; 6 categories + top 10 state benefits pages dynamic from pipeline data; 1hr ISR)
 - `880cbacd` — Article + GovernmentService JSON-LD on `/benefits/[slug]` and `/benefits/[slug]/[program]`; FAQPage on program pages when `program.faqs` populated; fix broken Org logo path in `app/layout.tsx` (`/logo.png` → `/images/olera-logo.png`)
 - `65c2f820` — `lib/analytics/referrer.ts` classifier + extracted `sanitizeReferrer`/`OLERA_HOSTS`; track route writes `referrer_class` to anonymous page_view metadata; admin summary buckets page_views by class; admin UI adds "Traffic source" SubRow with 6 stats + prior-window deltas
+- `f640d2d3` — SCRATCHPAD H2 status update
+
+**Pushed + PR opened:** [PR #726 — `keen-hopper` → `staging`](https://github.com/olera-care/olera-web/pull/726). State: open, mergeable.
 
 **Scope calls (deliberate skips):**
 - Provider detail JSON-LD: already comprehensive (LocalBusiness with reviews, offers, geo, sameAs, priceSpec). No work needed.
 - `/m/[token]` SBF results ItemList: page is `robots: noindex` for PII reasons. AI agents won't crawl. Skipped.
 
-**Verification done:** zero new TS errors over baseline (56 phantom-module errors pre-existing, all `@phosphor-icons/react` / `isbot` unrelated). Pre-test caught two bugs during build (overpromising savings on llms.txt benefits-finder line; broken Org logo path) — fixed inline.
+**Verification done:**
+- Zero new TS errors over baseline (56 phantom-module errors pre-existing, all `@phosphor-icons/react` / `isbot` unrelated to H2 changes).
+- Pre-test caught two bugs during build (overpromising savings on llms.txt benefits-finder line; broken Org logo path) — fixed inline.
+- Final /pre-test review (post-commit, pre-merge): **clean — no bugs found.** Walked all 8 files end-to-end, traced every data chain, confirmed JSONB freeform metadata adds no DB risk, confirmed `dynamic="force-static"` + `revalidate=3600` is the right ISR combo, confirmed `program.faqs` shape matches schema generation, confirmed no event_type allowlist trap.
 
 **Decision-gate measurement (now with admin visibility):** /admin/analytics → "Traffic source" → AI chat counts. Baseline is whatever lands in the first day or two. Decision question after 2-4 weeks: did llms.txt + JSON-LD move ai_chat counts up materially, OR did total page views grow without ai_chat moving (meaning agents aren't citing us yet — we'd then need outreach to crawl directly).
 
-**Workflow next:** push `keen-hopper` → PR to staging → /pre-test on Vercel preview → merge → /pr-merge to promote staging→main if clean. Same flow as H1.
+**Resume next session here →** Test on Vercel preview (URL appears as a check in PR #726). Test plan: (1) `/llms.txt` renders + state benefits links resolve; (2) `view-source` on `/benefits/california` shows Article schema; (3) `view-source` on a program page shows Article + GovernmentService + FAQPage; (4) Org logo URL resolves (no more 404); (5) Admin /admin/analytics shows new "Traffic source" SubRow. If healthy, /pr-merge 726 → /pr-merge promote staging to main.
 
 ---
 

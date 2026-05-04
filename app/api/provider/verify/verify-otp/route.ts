@@ -173,6 +173,20 @@ export async function POST(request: NextRequest) {
 
     if (trustResult.level === "high") {
       // High trust = instant verification
+      // Build the verification attempt record for audit trail
+      const attemptRecord = {
+        method: "email",
+        value: email,
+        submitted_at: new Date().toISOString(),
+        reason: `Email OTP verified: ${trustResult.reason}`,
+        claimer_name: fullName,
+        verified: true,
+        otp_verified: true,
+      };
+
+      // Get existing attempts array or create new one
+      const existingAttempts = (cleanMetadata.verification_attempts as Record<string, unknown>[]) || [];
+
       const updatedMetadata = {
         ...cleanMetadata,
         verification_method: "email",
@@ -180,6 +194,12 @@ export async function POST(request: NextRequest) {
         verified_at: new Date().toISOString(),
         verification_reason: `Email OTP verified: ${trustResult.reason}`,
         claimer_name: fullName,
+        // Clear any previous rejection so they appear in Verified tab
+        badge_rejected: null,
+        badge_rejected_at: null,
+        // Record successful attempt in the attempts array for audit trail
+        verification_attempt: attemptRecord,
+        verification_attempts: [...existingAttempts, attemptRecord],
       };
 
       const { error: updateError } = await admin
@@ -188,6 +208,9 @@ export async function POST(request: NextRequest) {
           verification_state: "verified",
           metadata: updatedMetadata,
           updated_at: new Date().toISOString(),
+          // Persist trust level for admin visibility
+          claim_trust_level: trustResult.level,
+          claim_trust_reason: `Email OTP verified: ${trustResult.reason}`,
         })
         .eq("id", profileId);
 
@@ -266,19 +289,31 @@ export async function POST(request: NextRequest) {
       // Check if this is the first failed attempt (to avoid duplicate Slack alerts)
       const isFirstFailure = profile.verification_state !== "pending";
 
+      // Build the verification attempt record for audit trail
+      const attemptRecord = {
+        method: "email",
+        value: email,
+        submitted_at: new Date().toISOString(),
+        reason: `OTP verified but ${trustResult.reason}`,
+        claimer_name: fullName,
+        verified: false,
+        otp_verified: true,
+      };
+
+      // Get existing attempts array or create new one
+      const existingAttempts = (cleanMetadata.verification_attempts as Record<string, unknown>[]) || [];
+
       // Store the OTP attempt info and preserve claimer info for future attempts
+      // Note: We store in verification_attempts only (not email_otp_attempt) to avoid
+      // duplicate entries in the admin panel, which combines both sources
       const updatedMetadata = {
         ...cleanMetadata,
         // Ensure claimer info is set (may already exist from send-otp)
         claimer_email: email,
         claimer_name: fullName,
-        email_otp_attempt: {
-          email,
-          fullName,
-          submitted_at: new Date().toISOString(),
-          reason: `OTP verified but ${trustResult.reason}`,
-          otp_verified: true,
-        },
+        // Store in verification_attempts array for consistent audit trail
+        verification_attempt: attemptRecord,
+        verification_attempts: [...existingAttempts, attemptRecord],
       };
 
       // Update profile to pending state so admin can review
@@ -288,6 +323,9 @@ export async function POST(request: NextRequest) {
           verification_state: "pending",
           metadata: updatedMetadata,
           updated_at: new Date().toISOString(),
+          // Persist trust level for admin visibility
+          claim_trust_level: trustResult.level,
+          claim_trust_reason: `Email OTP verified but ${trustResult.reason}`,
         })
         .eq("id", profileId);
 

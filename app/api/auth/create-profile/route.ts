@@ -5,7 +5,7 @@ import type { Account, Profile, ProfileCategory, Membership } from "@/lib/types"
 import { sendLoopsEvent } from "@/lib/loops";
 import { generateUniqueSlug } from "@/lib/slug";
 import { validateDisplayName, sanitizeCareTypes } from "@/lib/validation";
-import { scoreClaimTrust } from "@/lib/claim-trust";
+import { scoreClaimTrust, extractDomainFromWebsite } from "@/lib/claim-trust";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -209,6 +209,16 @@ export async function POST(request: Request) {
           // Everyone who completes email verification gets full access
           const shouldAutoVerify = emailMatches || domainMatches;
 
+          // Always run trust scoring for visibility in admin panel
+          const existingName = existing.display_name || orgName || sanitizedDisplayName;
+          const trustResult = await scoreClaimTrust({
+            email: user.email || "",
+            providerName: existingName,
+            providerCity: existing.city || city || null,
+            providerState: existing.state || state || null,
+            providerDomain: extractDomainFromWebsite(existing.website),
+          });
+
           // Atomic claim: only update if account_id is still NULL
           // When shouldAutoVerify=false, set both claim_state="pending" AND verification_state="unverified"
           // so the claim appears in the Verification page for admin review
@@ -216,21 +226,9 @@ export async function POST(request: Request) {
             account_id: accountId,
             claim_state: shouldAutoVerify ? "claimed" : "pending",
             verification_state: shouldAutoVerify ? "verified" : "unverified",
+            claim_trust_level: trustResult.level,
+            claim_trust_reason: trustResult.reason,
           };
-
-          // Run trust scoring for claims that need admin review
-          // This provides context (trust level + reason) for admins in the Verification page
-          if (!shouldAutoVerify) {
-            const existingName = existing.display_name || orgName || sanitizedDisplayName;
-            const trustResult = await scoreClaimTrust({
-              email: user.email || "",
-              providerName: existingName,
-              providerCity: existing.city || city || null,
-              providerState: existing.state || state || null,
-            });
-            claimUpdate.claim_trust_level = trustResult.level;
-            claimUpdate.claim_trust_reason = trustResult.reason;
-          }
 
           if (!existing.display_name?.trim() && (orgName || sanitizedDisplayName))
             claimUpdate.display_name = orgName?.trim().slice(0, 100) || sanitizedDisplayName;

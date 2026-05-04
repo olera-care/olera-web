@@ -42,6 +42,7 @@ import {
   startEmailSequence,
   stopEmailSequence,
   getSequenceEmailPreviews,
+  isResendMockMode,
 } from "@/lib/staffing-outreach/resend-automation";
 import {
   getServiceArea,
@@ -815,13 +816,16 @@ async function handleStartSequence(
   }
 
   // Update outreach status to sequencing
+  // Note: email1_sent_at/email2_sent_at are set by webhook when Resend confirms delivery
+  // In mock mode, set email1_sent_at immediately since no webhook will come
   const now = new Date().toISOString();
+  const isMockMode = isResendMockMode();
   await db
     .from("staffing_outreach")
     .update({
       status: "sequencing",
       sequence_started_at: now,
-      email1_sent_at: now, // Email 1 sends immediately
+      ...(isMockMode && { email1_sent_at: now }), // Mock mode: simulate immediate send
       resend_automation_id: result.contactId,
       sequence_email: recipientEmail, // Store email for proper sequence stopping
       // Schedule auto-transition to needs_call after Email 2 + 3 days (6 days total)

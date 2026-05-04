@@ -16,6 +16,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
 
 // Use service role for webhook processing (no user context)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -90,17 +91,26 @@ export async function POST(req: NextRequest) {
   const recipientEmail = event.data.to[0]; // Primary recipient
 
   // Find the outreach record by sequence_email
+  // Don't filter by status - webhooks can arrive after status changes
   const { data: outreach, error: findError } = await db
     .from("staffing_outreach")
-    .select("id, status, email1_sent_at, email2_sent_at")
+    .select("id, status, email1_sent_at, email2_sent_at, sequence_email")
     .eq("sequence_email", recipientEmail)
-    .eq("status", "sequencing")
+    .order("sequence_started_at", { ascending: false })
+    .limit(1)
     .single();
 
   if (findError || !outreach) {
     // Not found - might be a non-staffing email, ignore
-    console.log(`[resend-webhook] No active sequence found for ${recipientEmail}`);
+    console.log(`[resend-webhook] No outreach found for ${recipientEmail}`);
     return NextResponse.json({ ok: true, ignored: true });
+  }
+
+  // Skip processing for terminal statuses (bounced, closed, enrolled)
+  const terminalStatuses = ["bounced", "closed", "enrolled", "activated"];
+  if (terminalStatuses.includes(outreach.status) && event.type !== "email.bounced") {
+    console.log(`[resend-webhook] Skipping event for terminal status ${outreach.status}`);
+    return NextResponse.json({ ok: true, skipped: true });
   }
 
   const now = new Date().toISOString();
@@ -120,7 +130,7 @@ export async function POST(req: NextRequest) {
       break;
 
     case "email.bounced":
-      await handleEmailBounced(db, outreach.id, event.data.bounce?.message, now);
+      await handleEmailBounced(db, outreach.id, outreach.sequence_email, event.data.bounce?.message, now);
       break;
 
     default:
@@ -205,6 +215,7 @@ async function handleEmailClicked(
 async function handleEmailBounced(
   db: ReturnType<typeof getServiceClient>,
   outreachId: string,
+  sequenceEmail: string | null,
   bounceMessage: string | undefined,
   now: string
 ) {
@@ -216,6 +227,11 @@ async function handleEmailBounced(
       updated_at: now,
     })
     .eq("id", outreachId);
+
+  // Remove from Resend audience to stop further emails
+  if (sequenceEmail) {
+    await stopEmailSequence(sequenceEmail);
+  }
 
   await insertTouchpoint(db, outreachId, "email_bounced", now, {
     bounce_message: bounceMessage,

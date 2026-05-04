@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { startEmailSequence } from "@/lib/staffing-outreach/resend-automation";
+import { startEmailSequence, isResendMockMode } from "@/lib/staffing-outreach/resend-automation";
 import { getServiceArea, type StaffingOutreachRow } from "@/lib/staffing-outreach/types";
 
 interface BatchResult {
@@ -144,12 +144,15 @@ async function handleStartSequenceBatch(
 
     if (seqResult.success) {
       // Update status
+      // Note: email1_sent_at/email2_sent_at are set by webhook when Resend confirms delivery
+      // In mock mode, set email1_sent_at immediately since no webhook will come
+      const isMockMode = isResendMockMode();
       await db
         .from("staffing_outreach")
         .update({
           status: "sequencing",
           sequence_started_at: now,
-          email1_sent_at: now,
+          ...(isMockMode && { email1_sent_at: now }), // Mock mode: simulate immediate send
           resend_automation_id: seqResult.contactId,
           sequence_email: recipientEmail,
           next_action_due_at: new Date(Date.now() + 6 * 86400_000).toISOString(),

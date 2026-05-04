@@ -761,7 +761,7 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">
       <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
-        A/B Test — entry-point copy (3-arm)
+        A/B Test — entry-point copy (4-arm)
       </div>
       <p className="text-[11px] text-gray-400 mb-3">
         Deterministic 1/4 split by session id (djb2 hash mod 4) — 3 benefits-copy arms + 1 outreach arm. Conversion % = contact/email submitted / started. Variant copy strings + commentary live in the{" "}

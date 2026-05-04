@@ -160,6 +160,7 @@ export interface EngagementSignals {
 /** A queue row is the outreach record joined with the provider's display info. */
 export interface QueueRow extends StaffingOutreachRow {
   provider_name: string;
+  provider_email: string | null;
   provider_phone: string | null;
   provider_city: string | null;
   provider_state: string | null;

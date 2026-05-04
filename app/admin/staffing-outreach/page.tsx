@@ -399,8 +399,9 @@ export default function StaffingOutreachPage() {
                           .filter(Boolean)
                           .join(", ") || "—"}
                         {/* Show email (primary for To Queue) or phone as fallback */}
-                        {row.research_data?.general_email ? (
-                          <span className="text-gray-600"> · {row.research_data.general_email}</span>
+                        {/* Check both provider.email and research_data.general_email (same as drawer) */}
+                        {(row.provider_email || row.research_data?.general_email) ? (
+                          <span className="text-gray-600"> · {row.provider_email || row.research_data?.general_email}</span>
                         ) : row.provider_phone ? (
                           <span> · {row.provider_phone}</span>
                         ) : null}
@@ -408,7 +409,7 @@ export default function StaffingOutreachPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {/* No email indicator - important for To Queue tab */}
-                      {stage === "to_queue" && !row.research_data?.general_email && (
+                      {stage === "to_queue" && !row.provider_email && !row.research_data?.general_email && (
                         <span className="hidden sm:inline rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700" title="No email address">
                           No email
                         </span>

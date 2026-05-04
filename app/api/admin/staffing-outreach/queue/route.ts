@@ -177,6 +177,7 @@ export async function GET(req: NextRequest) {
   interface ProviderRow {
     provider_id: string;
     provider_name: string;
+    email: string | null;
     phone: string | null;
     city: string | null;
     state: string | null;
@@ -187,7 +188,7 @@ export async function GET(req: NextRequest) {
   const providerIds = rows.map((r) => r.provider_id);
   const { data: providersRaw, error: provErr } = await db
     .from("olera-providers")
-    .select("provider_id, provider_name, phone, city, state, website, slug")
+    .select("provider_id, provider_name, email, phone, city, state, website, slug")
     .in("provider_id", providerIds);
 
   if (provErr) {
@@ -257,6 +258,7 @@ export async function GET(req: NextRequest) {
     return {
       ...r,
       provider_name: p?.provider_name ?? "(unknown provider)",
+      provider_email: p?.email ?? null,
       provider_phone: p?.phone ?? null,
       provider_city: p?.city ?? null,
       provider_state: p?.state ?? null,

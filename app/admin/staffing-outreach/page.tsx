@@ -270,7 +270,6 @@ export default function StaffingOutreachPage() {
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
-                {t.icon && <span>{t.icon}</span>}
                 {t.label}
                 {typeof count === "number" && (
                   <span className={`text-xs ${

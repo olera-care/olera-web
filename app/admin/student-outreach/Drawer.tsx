@@ -47,15 +47,19 @@ import {
 } from "@/lib/student-outreach/presets";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 
+type TabContext = "research" | "calls" | "replies" | "meetings" | "partners" | "all";
+
 interface DrawerProps {
   outreachId: string;
+  /** Which tab the drawer was opened from. Drives primary-CTA adaptation. */
+  tabContext?: TabContext;
   onClose: () => void;
   onAction: (refreshed: DrawerContext | null) => void;
 }
 
 type ActionFn = (action: string, payload?: Record<string, unknown>) => Promise<DrawerContext>;
 
-export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
+export function Drawer({ outreachId, tabContext = "all", onClose, onAction }: DrawerProps) {
   const [ctx, setCtx] = useState<DrawerContext | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -142,6 +146,7 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
           ) : ctx ? (
             <div className="space-y-6">
               <RelationshipBanner ctx={ctx} />
+              <TabContextBanner tabContext={tabContext} ctx={ctx} action={action} setError={setError} />
               <NextStepPanel ctx={ctx} action={action} setError={setError} />
               <ResearchSection ctx={ctx} action={action} setError={setError} />
               <ContactsSection ctx={ctx} action={action} setError={setError} />
@@ -234,7 +239,6 @@ function NextStepPanel({
 
         {/* Stage-specific guidance + primary CTA */}
         <div className="space-y-3 px-4 py-4">
-          <ManualFollowupBanner ctx={ctx} action={action} setError={setError} />
           <StageGuidance
             ctx={ctx}
             onSchedulePreFlight={() => setShowPreFlight(true)}
@@ -496,65 +500,6 @@ function StageGuidance({
  * the admin should do. Without this banner, manual_followup tasks
  * surface as "Manual follow-up" with no context.
  */
-function ManualFollowupBanner({
-  ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
-  const task = ctx.pending_tasks.find((t) => t.task_type === "manual_followup");
-  if (!task) return null;
-  const reason = String((task.payload as Record<string, unknown>)?.reason ?? "");
-  const meta = followupMetaFor(reason);
-  return (
-    <div className="rounded-md border border-amber-200 bg-amber-50/70 p-3">
-      <p className="text-sm font-medium text-amber-900">{meta.title}</p>
-      <p className="mt-1 text-xs text-amber-800">{meta.body}</p>
-      <div className="mt-2">
-        <button
-          onClick={() => action("complete_task", { task_id: task.id }).catch((e) => setError(e instanceof Error ? e.message : "Failed"))}
-          className="rounded-md border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-50"
-        >
-          Mark this follow-up done
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function followupMetaFor(reason: string): { title: string; body: string } {
-  switch (reason) {
-    case "continue_dialogue":
-      return {
-        title: "💬 Continue the dialogue",
-        body: "You marked this stakeholder engaged. Reply to their last email externally, schedule a meeting, or escalate. When you've responded, mark this follow-up done.",
-      };
-    case "cadence_ended_cold":
-      return {
-        title: "📭 Outreach cadence ended — no reply",
-        body: "All scheduled emails fired with no reply. Decide: send a custom re-engage email, close as no-response (auto-reopens in 90 days), or close as not interested.",
-      };
-    case "no_recipients_at_send_time":
-      return {
-        title: "⚠ Couldn't send — all contacts stale",
-        body: "The next scheduled email had no active recipients. Add a fresh contact in the Contacts section below, or close this row as wrong-contact.",
-      };
-    case "all_recipients_failed":
-      return {
-        title: "❌ All recipients failed",
-        body: "Resend errored on every recipient for the most recent send. Check the email addresses for typos, retry by editing the upcoming send, or escalate.",
-      };
-    default:
-      return {
-        title: "✋ Manual follow-up needed",
-        body: "Take a look at the row's history below to decide next steps.",
-      };
-  }
-}
-
 // ── Inline panels (call, meeting) ──────────────────────────────────────
 
 function CallLogPanel({
@@ -1359,6 +1304,290 @@ function DangerZone({
         </DangerButton>
       </div>
     </section>
+  );
+}
+
+// ── Tab-context banner ─────────────────────────────────────────────────
+
+/**
+ * Renders at the top of the drawer with tab-aware primary CTAs. Drives
+ * the v7 mental model where what you do depends on the tab you opened
+ * from. Custom-task star + a banner with the tab-relevant actions.
+ */
+function TabContextBanner({
+  tabContext,
+  ctx,
+  action,
+  setError,
+}: {
+  tabContext: TabContext;
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (e: string | null) => void;
+}) {
+  const [showFollowupModal, setShowFollowupModal] = useState(false);
+  const [showScheduledModal, setShowScheduledModal] = useState(false);
+
+  const handleErr = (p: Promise<unknown>) =>
+    p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
+
+  const customTask = ctx.pending_tasks.find(
+    (t) =>
+      t.task_type === "manual_followup" &&
+      (t.payload as Record<string, unknown>)?.reason === "custom",
+  );
+
+  const meetingTouchpoint = ctx.touchpoints.find((t) => {
+    if (t.touchpoint_type === "meeting_scheduled") return true;
+    const reason = (t.payload as Record<string, unknown>)?.reason;
+    if (t.touchpoint_type === "note_added" && reason === "meeting_in_flight") return true;
+    return false;
+  });
+  const meetingState =
+    meetingTouchpoint?.touchpoint_type === "meeting_scheduled"
+      ? "scheduled"
+      : meetingTouchpoint?.touchpoint_type === "note_added"
+      ? "in_flight"
+      : "none";
+
+  return (
+    <div className="space-y-2">
+      {customTask && (
+        <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50/60 px-3 py-2 text-xs text-amber-900">
+          <span className="text-amber-500">★</span>
+          <span><strong>Custom task:</strong> {String((customTask.payload as Record<string, unknown>)?.notes ?? "see Pending Tasks below")}</span>
+        </div>
+      )}
+
+      {tabContext === "calls" && (
+        <div className="rounded-md border border-emerald-200 bg-emerald-50/40 px-3 py-2 text-xs text-emerald-900">
+          📞 You opened this from <strong>Calls</strong>. Make the phone call now (script + dial below). After the call: log the disposition.
+        </div>
+      )}
+
+      {tabContext === "replies" && (
+        <div className="space-y-2">
+          <div className="rounded-md border border-blue-200 bg-blue-50/40 px-3 py-2 text-xs text-blue-900">
+            📬 You opened this from <strong>Replies</strong>. Read their email reply, then pick what to do:
+          </div>
+          {ctx.outreach.status !== "active_partner" && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => handleErr(action("flag_wants_meeting"))}
+                title="They want to meet — coordinate time over email. Cancels remaining cadence."
+                className="rounded-md bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-200"
+              >
+                🤝 Wants a meeting
+              </button>
+              <button
+                onClick={() => setShowScheduledModal(true)}
+                title="A meeting is already on Logan's calendar (Calendly auto-booked or you scheduled it)."
+                className="rounded-md bg-indigo-100 px-3 py-1.5 text-xs font-medium text-indigo-900 hover:bg-indigo-200"
+              >
+                📅 Meeting already scheduled
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {tabContext === "meetings" && (
+        <div className="space-y-2">
+          <div className="rounded-md border border-indigo-200 bg-indigo-50/40 px-3 py-2 text-xs text-indigo-900">
+            📅 You opened this from <strong>Meetings</strong>.{" "}
+            {meetingState === "in_flight" && "Coordinating time. When booked, mark Scheduled."}
+            {meetingState === "scheduled" && "Meeting is on the calendar. After it happens, mark partner OR send back to Replies for follow-up."}
+            {meetingState === "none" && "No meeting state on this row."}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {meetingState === "in_flight" && (
+              <button
+                onClick={() => setShowScheduledModal(true)}
+                title="Meeting is now booked — record it."
+                className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
+              >
+                ✓ Mark as Scheduled
+              </button>
+            )}
+            {meetingState === "scheduled" && (
+              <>
+                <button
+                  onClick={() => setShowFollowupModal(true)}
+                  title="Meeting happened but they need follow-up before becoming an Active Partner. Notes go back to Replies."
+                  className="rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200"
+                >
+                  🔄 Needs follow-up — back to Replies
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {tabContext === "research" && (
+        <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
+          🔍 You opened this from <strong>Research</strong>. Fill in research below and click "Schedule outreach" to start the email cadence.
+        </div>
+      )}
+
+      {tabContext === "partners" && (
+        <div className="rounded-md border border-emerald-200 bg-emerald-50/40 px-3 py-2 text-xs text-emerald-900">
+          ⭐ Active Partner. Light-touch — seasonal emails fire automatically. Click the row only if you need to update something.
+        </div>
+      )}
+
+      {showScheduledModal && (
+        <MarkScheduledModal
+          onCancel={() => setShowScheduledModal(false)}
+          onConfirm={async (meeting_at) => {
+            try {
+              await action("mark_meeting_scheduled", meeting_at ? { meeting_at } : {});
+              setShowScheduledModal(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+
+      {showFollowupModal && (
+        <FollowupNotesModal
+          onCancel={() => setShowFollowupModal(false)}
+          onConfirm={async (notes) => {
+            try {
+              await action("mark_meeting_followup", { notes });
+              setShowFollowupModal(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function MarkScheduledModal({
+  onCancel,
+  onConfirm,
+}: {
+  onCancel: () => void;
+  onConfirm: (meeting_at: string | null) => Promise<void>;
+}) {
+  const [meetingAt, setMeetingAt] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-md rounded-xl bg-white shadow-2xl">
+        <header className="border-b border-gray-100 px-6 py-4">
+          <h3 className="text-base font-semibold text-gray-900">Meeting scheduled</h3>
+          <p className="mt-0.5 text-xs text-gray-500">
+            Optional: enter the meeting date so it shows on the row. You can leave blank.
+          </p>
+        </header>
+        <div className="px-6 py-4">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-gray-700">Meeting date (optional)</span>
+            <input
+              type="datetime-local"
+              value={meetingAt}
+              onChange={(e) => setMeetingAt(e.target.value)}
+              className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          </label>
+        </div>
+        <footer className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
+          <button
+            onClick={onCancel}
+            disabled={submitting}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              setSubmitting(true);
+              try {
+                await onConfirm(meetingAt ? new Date(meetingAt).toISOString() : null);
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+            disabled={submitting}
+            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {submitting ? "Saving…" : "Mark scheduled"}
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+function FollowupNotesModal({
+  onCancel,
+  onConfirm,
+}: {
+  onCancel: () => void;
+  onConfirm: (notes: string) => Promise<void>;
+}) {
+  const [notes, setNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl">
+        <header className="border-b border-gray-100 px-6 py-4">
+          <h3 className="text-base font-semibold text-gray-900">Needs follow-up — back to Replies</h3>
+          <p className="mt-0.5 text-xs text-gray-500">
+            Capture what was discussed so the team can run the follow-up email. The note shows on
+            the row in Replies.
+          </p>
+        </header>
+        <div className="px-6 py-4 space-y-2">
+          {err && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-gray-700">Meeting outcome notes *</span>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={5}
+              placeholder="e.g. Met with dean. Open to listserv access but needs to consult marketing first. Following up next week."
+              className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          </label>
+        </div>
+        <footer className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
+          <button
+            onClick={onCancel}
+            disabled={submitting}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              if (!notes.trim()) return setErr("Add some notes so the team has context.");
+              setSubmitting(true);
+              setErr(null);
+              try {
+                await onConfirm(notes.trim());
+              } catch (e) {
+                setErr(e instanceof Error ? e.message : "Save failed");
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+            disabled={submitting}
+            className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          >
+            {submitting ? "Saving…" : "Send back to Replies"}
+          </button>
+        </footer>
+      </div>
+    </div>
   );
 }
 

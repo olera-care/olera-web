@@ -214,32 +214,41 @@ export interface Task {
   created_at: string;
 }
 
-/** A queue row joins the outreach record with its campus + a slim "next task" view. */
-export interface QueueRow extends OutreachRow {
+/**
+ * v7 TabRow — what the queue endpoint returns per row, enriched with
+ * indicators that drive the per-tab UI (custom task star, stale flag,
+ * meeting state, post-meeting follow-up notes, due-call shortcut).
+ */
+export interface TabRow extends OutreachRow {
   campus_name: string;
   campus_slug: string;
-  next_task: {
-    id: string;
-    task_type: TaskType;
-    due_at: string;
-  } | null;
-  /** All admin-actionable pending task types on this row (drives flag badges). */
-  pending_task_types: TaskType[];
-  /** Primary contact's phone (drives the "📞 Call now" badge w/ number on Queued rows). */
-  primary_contact_phone: string | null;
   primary_contact_name: string | null;
-  open_approvals: number;
+  primary_contact_phone: string | null;
+  has_custom_task: boolean;
+  custom_task_summary: string | null;
+  /** Days since last email_sent (no reply since). Only populated for Replies tab. */
+  stale_days: number | null;
+  meeting_state: "none" | "in_flight" | "scheduled";
+  meeting_at: string | null;
+  followup_notes: string | null;
+  followup_author: string | null;
+  followup_at: string | null;
+  last_activity_at: string | null;
+  /** Calls tab only: the due call task to surface "Tap to dial" UX. */
+  due_call_task: { id: string; due_at: string } | null;
 }
 
-/** Counts shown above the tab row + approvals pill. */
+/** Legacy alias kept while cleaning up old call sites. */
+export type QueueRow = TabRow;
+
+/** v7 tab counts — one number per tab in the new workflow. */
 export interface TabCounts {
-  queued: number;
-  in_progress: number;
-  partnered: number;
-  closed: number;
+  research: number;
+  calls: number;
+  replies: number;
+  meetings: number;
+  partners: number;
   all: number;
-  /** Drives the header approvals pill. */
-  open_approvals: number;
 }
 
 /** What the drawer needs to render every section. */

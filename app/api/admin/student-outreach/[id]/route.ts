@@ -109,6 +109,12 @@ export async function POST(
       case "mark_meeting_scheduled":
         await handleMarkMeetingScheduled(db, row, body, user.id);
         break;
+      case "flag_wants_meeting":
+        await handleFlagWantsMeeting(db, row, body, user.id);
+        break;
+      case "mark_meeting_followup":
+        await handleMarkMeetingFollowup(db, row, body, user.id);
+        break;
       case "mark_partner":
       case "mark_active_partner":
         await handleMarkPartner(db, row, body, user.id);
@@ -517,40 +523,84 @@ async function handleAddNote(
 
 // ── Stage-specific handlers ─────────────────────────────────────────────
 
+/**
+ * v7: log that a meeting is on the calendar (Calendly auto-booked or
+ * admin manually created in Google Cal). No stage transition — meeting
+ * state lives purely in touchpoint payloads. Marks engaged if not yet.
+ */
 async function handleMarkMeetingScheduled(
   db: DB,
   row: OutreachRow,
-  body: { meeting_at?: string; meeting_kind?: string; meeting_link?: string; notes?: string },
+  body: { meeting_at?: string; notes?: string },
   userId: string,
 ) {
-  if (!body.meeting_at) throw new Error("meeting_at required");
-  const meetingAt = new Date(body.meeting_at);
-  if (isNaN(meetingAt.getTime())) throw new Error("Invalid meeting_at");
+  let meetingAt: Date | null = null;
+  if (body.meeting_at) {
+    meetingAt = new Date(body.meeting_at);
+    if (isNaN(meetingAt.getTime())) throw new Error("Invalid meeting_at");
+  }
 
-  const research = {
-    ...row.research_data,
-    meeting_at: meetingAt.toISOString(),
-    meeting_kind: body.meeting_kind ?? row.research_data.meeting_kind,
-    meeting_link: body.meeting_link ?? row.research_data.meeting_link,
-  };
-
-  await transitionStage(db, row, "meeting_scheduled", userId, body.notes, {
-    research_data: research,
-  });
-
-  // Queue a "log meeting outcome" task at meeting time.
-  await queueTask(
-    db,
-    row.id,
-    { task_type: "meeting_held_logging", due_at: meetingAt },
-    userId,
-  );
+  // Ensure the row is engaged (cancels remaining cadence).
+  if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
+    await transitionStage(db, row, "engaged", userId, "meeting scheduled");
+  }
 
   await insertTouchpoint(db, row.id, "meeting_scheduled", userId, {
     channel: "meeting",
     notes: body.notes ?? null,
-    payload: { meeting_at: meetingAt.toISOString(), kind: body.meeting_kind ?? null },
+    payload: meetingAt
+      ? { meeting_at: meetingAt.toISOString() }
+      : { meeting_at: null },
   });
+
+  await touchOutreach(db, row.id, userId);
+}
+
+/**
+ * v7: admin saw a reply expressing interest in a meeting — flag the row
+ * as "wants meeting (in flight)". Surfaces in Meetings tab as
+ * "Finding a time" and stays in Replies for ongoing email coordination.
+ */
+async function handleFlagWantsMeeting(
+  db: DB,
+  row: OutreachRow,
+  body: { notes?: string },
+  userId: string,
+) {
+  // Mark engaged if not yet — cancels cadence so we're not still emailing
+  // while coordinating a meeting.
+  if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
+    await transitionStage(db, row, "engaged", userId, "wants a meeting");
+  }
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    notes: body.notes ?? null,
+    payload: { reason: "meeting_in_flight" },
+  });
+  await touchOutreach(db, row.id, userId);
+}
+
+/**
+ * v7: meeting happened — admin wants to keep the row in dialogue (NOT
+ * graduate to Active Partner). Logs the meeting outcome notes which
+ * surface in the Replies tab so the team knows context for follow-up.
+ */
+async function handleMarkMeetingFollowup(
+  db: DB,
+  row: OutreachRow,
+  body: { notes?: string },
+  userId: string,
+) {
+  if (!body.notes?.trim()) throw new Error("Follow-up notes required so the team has context");
+  await insertTouchpoint(db, row.id, "meeting_held", userId, {
+    channel: "meeting",
+    outcome: "needs_followup",
+    notes: body.notes.trim(),
+  });
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    notes: body.notes.trim(),
+    payload: { reason: "post_meeting_followup", notes: body.notes.trim() },
+  });
+  await touchOutreach(db, row.id, userId);
 }
 
 async function handleLogMeetingHeld(

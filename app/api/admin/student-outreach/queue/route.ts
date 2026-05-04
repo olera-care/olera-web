@@ -1,33 +1,87 @@
 /**
  * GET /api/admin/student-outreach/queue
  *
- * Returns campuses (for the dropdown) + paginated outreach rows + tab counts
- * + an `open_approval_total` for the header pill.
+ * v7: tab-driven query. Returns rows for the requested tab plus counts
+ * for ALL tabs (so the UI can show accurate badges in one round-trip).
  *
- * Query params:
- *   campus      campus slug (optional filter)
- *   type        stakeholder type filter (optional)
- *   tab         queued|in_progress|partnered|closed|all
- *   approvals   "open" → restrict to rows with at least one open approval
- *   search      substring on organization_name (optional)
- *   page        0-indexed page, default 0
- *   pageSize    default 50
+ * Tabs (workflow order):
+ *   research   — status IN (prospect, researched)
+ *   calls      — pending outreach_followup_call task with due_at <= now
+ *   replies    — outreach_sent + engaged (excludes active_partner); enriched
+ *                with stale flag, meeting flag, post-meeting follow-up notes
+ *   meetings   — most-recent meeting touchpoint is in_flight or scheduled
+ *   partners   — status = active_partner
+ *   all        — everything (with show_closed toggle)
+ *
+ * Active Partners are excluded from research / calls / replies / meetings.
+ * Closed rows only appear in `all` (and only when show_closed=true).
+ *
+ * Per-row indicators (across tabs where applicable):
+ *   has_custom_task      — pending manual_followup with payload.reason='custom'
+ *   stale_days           — only for replies; days since last email_sent (if >4)
+ *   meeting_state        — none | in_flight | scheduled
+ *   meeting_at           — when meeting_state=scheduled
+ *   followup_notes       — when row has recent post_meeting_followup
+ *   followup_author_id   — admin user_id who logged the followup
+ *   followup_at          — when the followup was logged
+ *   primary_contact_*    — name + phone (calls tab needs phone prominent)
+ *   last_activity_at     — most recent touchpoint (replaces 4-hour timer)
+ *   custom_task_summary  — first description of pending custom tasks
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import {
-  IN_PROGRESS_STATUSES,
-  PARTNERED_STATUSES,
-  CLOSED_STATUSES,
-  type Campus,
-  type OutreachRow,
-  type QueueRow,
-  type StakeholderType,
-  type TabCounts,
+import type {
+  Campus,
+  OutreachRow,
+  StakeholderType,
+  Status,
 } from "@/lib/student-outreach/types";
 
 const PAGE_SIZE_DEFAULT = 50;
+const STALE_DAYS = 4;
+
+const RESEARCH_STATUSES: Status[] = ["prospect", "researched"];
+const REPLIES_STATUSES: Status[] = ["outreach_sent", "engaged"];
+const PARTNER_STATUSES: Status[] = ["active_partner"];
+const CLOSED_STATUSES: Status[] = [
+  "not_interested",
+  "no_response_closed",
+  "do_not_contact",
+  "wrong_contact",
+  "redirected",
+];
+// Legacy active-partner values (pre-migration 065); still surface in Partners.
+const PARTNER_ALL: string[] = [...PARTNER_STATUSES, "agreed", "distributed"];
+
+type DB = ReturnType<typeof getServiceClient>;
+
+export interface TabCounts {
+  research: number;
+  calls: number;
+  replies: number;
+  meetings: number;
+  partners: number;
+  all: number;
+}
+
+export interface TabRow extends OutreachRow {
+  campus_name: string;
+  campus_slug: string;
+  primary_contact_name: string | null;
+  primary_contact_phone: string | null;
+  has_custom_task: boolean;
+  custom_task_summary: string | null;
+  stale_days: number | null;
+  meeting_state: "none" | "in_flight" | "scheduled";
+  meeting_at: string | null;
+  followup_notes: string | null;
+  followup_author: string | null;
+  followup_at: string | null;
+  last_activity_at: string | null;
+  /** Calls tab only: the due call task. */
+  due_call_task: { id: string; due_at: string } | null;
+}
 
 export async function GET(req: NextRequest) {
   const user = await getAuthUser();
@@ -37,327 +91,484 @@ export async function GET(req: NextRequest) {
 
   const db = getServiceClient();
   const url = new URL(req.url);
+  const tab = url.searchParams.get("tab") ?? "research";
   const campusSlug = url.searchParams.get("campus");
   const typeFilter = url.searchParams.get("type") as StakeholderType | null;
-  const tab = url.searchParams.get("tab") ?? "queued";
-  const approvalsFilter = url.searchParams.get("approvals");
   const search = (url.searchParams.get("search") ?? "").trim();
+  const showClosed = url.searchParams.get("show_closed") === "true";
   const page = Math.max(0, parseInt(url.searchParams.get("page") ?? "0", 10));
   const pageSize = Math.min(
     200,
     Math.max(1, parseInt(url.searchParams.get("pageSize") ?? String(PAGE_SIZE_DEFAULT), 10)),
   );
 
-  // ── Active campuses (dropdown) ─────────────────────────────────────────
-  const { data: campuses, error: campusesErr } = await db
+  // Active campuses (dropdown).
+  const { data: campuses } = await db
     .from("student_outreach_campuses")
     .select("*")
     .eq("is_active", true)
     .order("name", { ascending: true });
-  if (campusesErr) {
-    return NextResponse.json({ error: campusesErr.message }, { status: 500 });
-  }
   const campusList = (campuses ?? []) as Campus[];
   const campusMap = new Map(campusList.map((c) => [c.id, c]));
   const selectedCampus = campusSlug
     ? campusList.find((c) => c.slug === campusSlug) ?? null
     : null;
 
-  // ── Tab counts (single grouped scan + open-approval count for pill) ────
+  // Counts for all tabs (one efficient pass + a few small queries).
   const tabCounts = await computeTabCounts(db, {
     campusId: selectedCampus?.id ?? null,
     type: typeFilter,
   });
 
-  // ── Filtered query ─────────────────────────────────────────────────────
-  let query = db.from("student_outreach").select("*", { count: "exact" });
-  if (selectedCampus) query = query.eq("campus_id", selectedCampus.id);
-  if (typeFilter) query = query.eq("stakeholder_type", typeFilter);
-  if (search) query = query.ilike("organization_name", `%${search}%`);
-
-  switch (tab) {
-    case "in_progress":
-      query = query.in("status", IN_PROGRESS_STATUSES);
-      break;
-    case "partnered":
-      // Include un-migrated legacy rows so they don't disappear before
-      // migration 065 runs. Post-migration this is just active_partner.
-      query = query.in("status", [...PARTNERED_STATUSES, "agreed", "distributed"]);
-      break;
-    case "closed":
-      query = query.in("status", CLOSED_STATUSES);
-      break;
-    case "queued":
-    case "all":
-    default:
-      // Filtering for queued happens via tasks below; "all" needs no extra filter.
-      break;
-  }
-
-  query = query
-    .order("last_edited_at", { ascending: false })
-    .range(page * pageSize, page * pageSize + pageSize - 1);
-
-  const { data: outreachRows, error: rowsErr, count } = await query;
-  if (rowsErr) {
-    return NextResponse.json({ error: rowsErr.message }, { status: 500 });
-  }
-
-  let rows = (outreachRows ?? []) as OutreachRow[];
-
-  // Queued tab: keep only rows with at least one admin-actionable task due
-  // now. Auto-send tasks (outreach_email_send) are handled by the cron and
-  // shouldn't surface as queued work to the admin.
-  if (tab === "queued" && rows.length > 0) {
-    const idSet = new Set(rows.map((r) => r.id));
-    const { data: dueTasks } = await db
-      .from("student_outreach_tasks")
-      .select("outreach_id")
-      .in("outreach_id", Array.from(idSet))
-      .eq("status", "pending")
-      .neq("task_type", "outreach_email_send")
-      .lte("due_at", new Date().toISOString());
-    const dueIds = new Set((dueTasks ?? []).map((t) => t.outreach_id));
-    rows = rows.filter((r) => dueIds.has(r.id));
-  }
-
-  // Approvals filter (header pill click-through).
-  if (approvalsFilter === "open" && rows.length > 0) {
-    const ids = rows.map((r) => r.id);
-    const { data: open } = await db
-      .from("student_outreach_approvals")
-      .select("outreach_id")
-      .in("outreach_id", ids)
-      .eq("status", "requested");
-    const ok = new Set((open ?? []).map((a) => a.outreach_id));
-    rows = rows.filter((r) => ok.has(r.id));
-  }
-
-  // ── Hydrate with campus + next-task + primary-contact + open-approvals ──
-  const ids = rows.map((r) => r.id);
-
-  const [tasksRes, contactsRes, approvalsRes] = await Promise.all([
-    ids.length === 0
-      ? Promise.resolve({ data: [] })
-      : db
-          .from("student_outreach_tasks")
-          .select("id, outreach_id, task_type, due_at")
-          .in("outreach_id", ids)
-          .eq("status", "pending")
-          .neq("task_type", "outreach_email_send")
-          .order("due_at", { ascending: true }),
-    ids.length === 0
-      ? Promise.resolve({ data: [] })
-      : db
-          .from("student_outreach_contacts")
-          .select("outreach_id, name, phone, is_primary, status, created_at")
-          .in("outreach_id", ids)
-          .eq("status", "active")
-          .order("is_primary", { ascending: false })
-          .order("created_at", { ascending: true }),
-    ids.length === 0
-      ? Promise.resolve({ data: [] })
-      : db
-          .from("student_outreach_approvals")
-          .select("outreach_id")
-          .in("outreach_id", ids)
-          .eq("status", "requested"),
-  ]);
-
-  const nextTaskByOutreach = new Map<string, { id: string; task_type: string; due_at: string }>();
-  const pendingTaskTypesByOutreach = new Map<string, Set<string>>();
-  for (const t of (tasksRes.data ?? []) as Array<{ id: string; outreach_id: string; task_type: string; due_at: string }>) {
-    if (!nextTaskByOutreach.has(t.outreach_id)) {
-      nextTaskByOutreach.set(t.outreach_id, { id: t.id, task_type: t.task_type, due_at: t.due_at });
-    }
-    let set = pendingTaskTypesByOutreach.get(t.outreach_id);
-    if (!set) { set = new Set(); pendingTaskTypesByOutreach.set(t.outreach_id, set); }
-    set.add(t.task_type);
-  }
-
-  const primaryContactByOutreach = new Map<string, { name: string; phone: string | null }>();
-  for (const c of (contactsRes.data ?? []) as Array<{ outreach_id: string; name: string; phone: string | null }>) {
-    if (!primaryContactByOutreach.has(c.outreach_id)) {
-      primaryContactByOutreach.set(c.outreach_id, { name: c.name, phone: c.phone });
-    }
-  }
-
-  const openApprovalCount = new Map<string, number>();
-  for (const a of (approvalsRes.data ?? []) as Array<{ outreach_id: string }>) {
-    openApprovalCount.set(a.outreach_id, (openApprovalCount.get(a.outreach_id) ?? 0) + 1);
-  }
-
-  const queueRows: QueueRow[] = rows.map((r) => {
-    const c = campusMap.get(r.campus_id);
-    const nextTask = nextTaskByOutreach.get(r.id) ?? null;
-    const primary = primaryContactByOutreach.get(r.id) ?? null;
-    return {
-      ...r,
-      campus_name: c?.name ?? "(unknown campus)",
-      campus_slug: c?.slug ?? "",
-      next_task: nextTask
-        ? { id: nextTask.id, task_type: nextTask.task_type as QueueRow["next_task"] extends { task_type: infer T } ? T : never, due_at: nextTask.due_at }
-        : null,
-      pending_task_types: Array.from(pendingTaskTypesByOutreach.get(r.id) ?? []) as QueueRow["pending_task_types"],
-      primary_contact_name: primary?.name ?? null,
-      primary_contact_phone: primary?.phone ?? null,
-      open_approvals: openApprovalCount.get(r.id) ?? 0,
-    };
-  });
-
-  // ── Synthetic inbox-check task: list outreach_sent rows that may have
-  // received replies the admin needs to triage. Always returned (the
-  // page renders it above the regular list).
-  const inboxCheck = await computeInboxCheck(db, {
+  // Per-tab base row IDs.
+  const rowIds = await fetchRowIdsForTab(db, {
+    tab,
     campusId: selectedCampus?.id ?? null,
     type: typeFilter,
-    campusMap,
+    search,
+    showClosed,
+    page,
+    pageSize,
   });
+  if (rowIds.length === 0) {
+    return NextResponse.json({
+      campuses: campusList,
+      rows: [],
+      total: 0,
+      tab_counts: tabCounts,
+    });
+  }
+
+  // Hydrate the row objects + indicator data.
+  const rows = await hydrateRows(db, rowIds, tab, campusMap);
 
   return NextResponse.json({
     campuses: campusList,
-    rows: queueRows,
-    total: count ?? queueRows.length,
-    tabCounts,
-    inbox_check: inboxCheck,
+    rows,
+    total: rows.length,
+    tab_counts: tabCounts,
   });
 }
 
-interface InboxCheckRow {
-  outreach_id: string;
-  organization_name: string;
-  campus_name: string;
-  stakeholder_type: StakeholderType;
-  last_email_sent_at: string | null;
-  last_email_subject: string | null;
-}
-
-async function computeInboxCheck(
-  db: DB,
-  filters: { campusId: string | null; type: StakeholderType | null; campusMap: Map<string, Campus> },
-): Promise<{ count: number; rows: InboxCheckRow[] }> {
-  let q = db
-    .from("student_outreach")
-    .select("id, organization_name, stakeholder_type, campus_id")
-    .eq("status", "outreach_sent")
-    .order("last_edited_at", { ascending: false })
-    .limit(50);
-  if (filters.campusId) q = q.eq("campus_id", filters.campusId);
-  if (filters.type) q = q.eq("stakeholder_type", filters.type);
-
-  const { data: rows } = await q;
-  const list = ((rows ?? []) as Array<{
-    id: string;
-    organization_name: string;
-    stakeholder_type: StakeholderType;
-    campus_id: string;
-  }>);
-  if (list.length === 0) return { count: 0, rows: [] };
-
-  const ids = list.map((r) => r.id);
-  const { data: tps } = await db
-    .from("student_outreach_touchpoints")
-    .select("outreach_id, payload, created_at")
-    .in("outreach_id", ids)
-    .eq("touchpoint_type", "email_sent")
-    .order("created_at", { ascending: false });
-
-  const lastByOutreach = new Map<string, { at: string; subject: string | null }>();
-  for (const tp of (tps ?? []) as Array<{ outreach_id: string; payload: Record<string, unknown>; created_at: string }>) {
-    if (!lastByOutreach.has(tp.outreach_id)) {
-      // Subject isn't stored on email_sent touchpoint payload (the
-      // task's payload had it). For MVP we just show "—" rather than
-      // back-resolve the task. Drawer shows full content on click.
-      lastByOutreach.set(tp.outreach_id, { at: tp.created_at, subject: null });
-    }
-  }
-
-  const out: InboxCheckRow[] = list.map((r) => {
-    const last = lastByOutreach.get(r.id) ?? null;
-    return {
-      outreach_id: r.id,
-      organization_name: r.organization_name,
-      campus_name: filters.campusMap.get(r.campus_id)?.name ?? "(unknown campus)",
-      stakeholder_type: r.stakeholder_type,
-      last_email_sent_at: last?.at ?? null,
-      last_email_subject: last?.subject ?? null,
-    };
-  });
-
-  return { count: out.length, rows: out };
-}
-
-// ── Tab-count computation ────────────────────────────────────────────────
-
-type DB = ReturnType<typeof getServiceClient>;
+// ── Counts ──────────────────────────────────────────────────────────────
 
 async function computeTabCounts(
   db: DB,
   filters: { campusId: string | null; type: StakeholderType | null },
 ): Promise<TabCounts> {
-  const counts: TabCounts = {
-    queued: 0,
-    in_progress: 0,
-    partnered: 0,
-    closed: 0,
-    all: 0,
-    open_approvals: 0,
-  };
+  const counts: TabCounts = { research: 0, calls: 0, replies: 0, meetings: 0, partners: 0, all: 0 };
 
-  // Single scan: status of every row in scope.
+  // Single status scan in scope.
   let q = db.from("student_outreach").select("id, status");
   if (filters.campusId) q = q.eq("campus_id", filters.campusId);
   if (filters.type) q = q.eq("stakeholder_type", filters.type);
+  const { data: scan } = await q;
 
-  const { data: scan, error } = await q;
-  if (error || !scan) return counts;
+  const research = new Set<string>(RESEARCH_STATUSES);
+  const replies = new Set<string>(REPLIES_STATUSES);
+  const partner = new Set<string>(PARTNER_ALL);
 
-  const inProgress = new Set<string>(IN_PROGRESS_STATUSES);
-  // Include legacy values that haven't been migrated.
-  const partnered = new Set<string>([...PARTNERED_STATUSES, "agreed", "distributed"]);
-  const closed = new Set<string>(CLOSED_STATUSES);
-
-  const inProgressIds = new Set<string>();
-  for (const row of scan as Array<{ id: string; status: string }>) {
+  let inProgressIds: string[] = [];
+  for (const row of (scan ?? []) as Array<{ id: string; status: string }>) {
     counts.all++;
-    if (inProgress.has(row.status)) {
-      counts.in_progress++;
-      inProgressIds.add(row.id);
-    } else if (partnered.has(row.status)) {
-      counts.partnered++;
-    } else if (closed.has(row.status)) {
-      counts.closed++;
+    if (research.has(row.status)) counts.research++;
+    else if (partner.has(row.status)) counts.partners++;
+    else if (replies.has(row.status)) {
+      counts.replies++;
+      inProgressIds.push(row.id);
     }
   }
 
-  // Tasks scan: queued = distinct outreach_ids with an admin-actionable
-  // pending task due ≤ now. Excludes outreach_email_send (cron handles it).
-  let taskQ = db
+  // Calls count: distinct outreach_id with a pending call task due now.
+  // Scope to current filters.
+  let callQ = db
     .from("student_outreach_tasks")
-    .select("outreach_id, due_at, student_outreach!inner(campus_id, stakeholder_type)")
+    .select("outreach_id, student_outreach!inner(campus_id, stakeholder_type, status)")
     .eq("status", "pending")
-    .neq("task_type", "outreach_email_send")
+    .eq("task_type", "outreach_followup_call")
     .lte("due_at", new Date().toISOString());
-  if (filters.campusId) taskQ = taskQ.eq("student_outreach.campus_id", filters.campusId);
-  if (filters.type) taskQ = taskQ.eq("student_outreach.stakeholder_type", filters.type);
-  const { data: tasks } = await taskQ;
-  const queuedSet = new Set<string>();
-  for (const t of (tasks ?? []) as Array<{ outreach_id: string }>) {
-    queuedSet.add(t.outreach_id);
+  if (filters.campusId) callQ = callQ.eq("student_outreach.campus_id", filters.campusId);
+  if (filters.type) callQ = callQ.eq("student_outreach.stakeholder_type", filters.type);
+  const { data: callTasks } = await callQ;
+  const callSet = new Set<string>();
+  for (const t of (callTasks ?? []) as Array<{ outreach_id: string; student_outreach: { status: string } }>) {
+    // Skip Active Partners (defensive — they shouldn't have call tasks but be safe).
+    if (partner.has(t.student_outreach.status)) continue;
+    callSet.add(t.outreach_id);
   }
-  counts.queued = queuedSet.size;
+  counts.calls = callSet.size;
 
-  // Approvals scan for header pill.
-  let apprQ = db
-    .from("student_outreach_approvals")
-    .select("outreach_id, student_outreach!inner(campus_id, stakeholder_type)")
-    .eq("status", "requested");
-  if (filters.campusId) apprQ = apprQ.eq("student_outreach.campus_id", filters.campusId);
-  if (filters.type) apprQ = apprQ.eq("student_outreach.stakeholder_type", filters.type);
-  const { data: appr } = await apprQ;
-  const apprSet = new Set<string>();
-  for (const a of (appr ?? []) as Array<{ outreach_id: string }>) apprSet.add(a.outreach_id);
-  counts.open_approvals = apprSet.size;
+  // Meetings count: among in-progress rows, those whose most-recent
+  // meeting-related touchpoint is in_flight or scheduled.
+  if (inProgressIds.length > 0) {
+    counts.meetings = await countMeetingsAmongRows(db, inProgressIds);
+  }
 
   return counts;
+}
+
+/**
+ * For each row, find the most-recent meeting-related touchpoint and
+ * count those whose state is in_flight or scheduled.
+ */
+async function countMeetingsAmongRows(db: DB, ids: string[]): Promise<number> {
+  // We query touchpoints in the relevant scope ordered by created_at DESC
+  // and tally the first match per outreach_id.
+  const { data } = await db
+    .from("student_outreach_touchpoints")
+    .select("outreach_id, touchpoint_type, payload, created_at")
+    .in("outreach_id", ids)
+    .or(
+      "touchpoint_type.eq.meeting_scheduled," +
+      "touchpoint_type.eq.meeting_held," +
+      "touchpoint_type.eq.meeting_no_show," +
+      "touchpoint_type.eq.meeting_rescheduled," +
+      "touchpoint_type.eq.note_added",
+    )
+    .order("created_at", { ascending: false });
+
+  const seen = new Set<string>();
+  let count = 0;
+  for (const tp of (data ?? []) as Array<{
+    outreach_id: string;
+    touchpoint_type: string;
+    payload: Record<string, unknown> | null;
+  }>) {
+    if (seen.has(tp.outreach_id)) continue;
+    const reason = tp.payload?.reason;
+    if (tp.touchpoint_type === "note_added" && reason !== "meeting_in_flight") continue;
+    seen.add(tp.outreach_id);
+    if (tp.touchpoint_type === "meeting_scheduled") count++;
+    else if (tp.touchpoint_type === "note_added" && reason === "meeting_in_flight") count++;
+    // meeting_held / no_show / rescheduled = not currently in meetings tab
+  }
+  return count;
+}
+
+// ── Per-tab row ID fetchers ─────────────────────────────────────────────
+
+async function fetchRowIdsForTab(
+  db: DB,
+  opts: {
+    tab: string;
+    campusId: string | null;
+    type: StakeholderType | null;
+    search: string;
+    showClosed: boolean;
+    page: number;
+    pageSize: number;
+  },
+): Promise<string[]> {
+  const { tab, campusId, type, search, showClosed, page, pageSize } = opts;
+
+  switch (tab) {
+    case "research":
+      return await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize });
+    case "partners":
+      return await idsByStatus(db, PARTNER_ALL as Status[], { campusId, type, search, page, pageSize });
+    case "all": {
+      const inc = showClosed
+        ? [...RESEARCH_STATUSES, ...REPLIES_STATUSES, ...PARTNER_ALL, ...CLOSED_STATUSES]
+        : [...RESEARCH_STATUSES, ...REPLIES_STATUSES, ...PARTNER_ALL];
+      return await idsByStatus(db, inc as Status[], { campusId, type, search, page, pageSize });
+    }
+    case "replies":
+      return await idsByStatus(db, REPLIES_STATUSES, { campusId, type, search, page, pageSize });
+    case "calls":
+      return await idsByCallsDue(db, { campusId, type, search, page, pageSize });
+    case "meetings":
+      return await idsByMeetings(db, { campusId, type, search, page, pageSize });
+    default:
+      return [];
+  }
+}
+
+interface QueryOpts {
+  campusId: string | null;
+  type: StakeholderType | null;
+  search: string;
+  page: number;
+  pageSize: number;
+}
+
+async function idsByStatus(
+  db: DB,
+  statuses: Status[],
+  opts: QueryOpts,
+): Promise<string[]> {
+  let q = db
+    .from("student_outreach")
+    .select("id")
+    .in("status", statuses)
+    .order("last_edited_at", { ascending: false })
+    .range(opts.page * opts.pageSize, opts.page * opts.pageSize + opts.pageSize - 1);
+  if (opts.campusId) q = q.eq("campus_id", opts.campusId);
+  if (opts.type) q = q.eq("stakeholder_type", opts.type);
+  if (opts.search) q = q.ilike("organization_name", `%${opts.search}%`);
+  const { data } = await q;
+  return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
+}
+
+async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
+  let q = db
+    .from("student_outreach_tasks")
+    .select("outreach_id, due_at, student_outreach!inner(campus_id, stakeholder_type, status, organization_name)")
+    .eq("status", "pending")
+    .eq("task_type", "outreach_followup_call")
+    .lte("due_at", new Date().toISOString())
+    .order("due_at", { ascending: true });
+  if (opts.campusId) q = q.eq("student_outreach.campus_id", opts.campusId);
+  if (opts.type) q = q.eq("student_outreach.stakeholder_type", opts.type);
+  if (opts.search) q = q.ilike("student_outreach.organization_name", `%${opts.search}%`);
+  const { data } = await q;
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  const partner = new Set<string>(PARTNER_ALL);
+  for (const t of (data ?? []) as Array<{ outreach_id: string; student_outreach: { status: string } }>) {
+    if (seen.has(t.outreach_id)) continue;
+    if (partner.has(t.student_outreach.status)) continue;
+    seen.add(t.outreach_id);
+    ids.push(t.outreach_id);
+    if (ids.length >= opts.pageSize) break;
+  }
+  return ids;
+}
+
+async function idsByMeetings(db: DB, opts: QueryOpts): Promise<string[]> {
+  // First, get candidate in-progress rows in scope.
+  let baseQ = db
+    .from("student_outreach")
+    .select("id")
+    .in("status", REPLIES_STATUSES);
+  if (opts.campusId) baseQ = baseQ.eq("campus_id", opts.campusId);
+  if (opts.type) baseQ = baseQ.eq("stakeholder_type", opts.type);
+  if (opts.search) baseQ = baseQ.ilike("organization_name", `%${opts.search}%`);
+  const { data: candidates } = await baseQ;
+  const candidateIds = ((candidates ?? []) as Array<{ id: string }>).map((r) => r.id);
+  if (candidateIds.length === 0) return [];
+
+  // Determine meeting state per row from latest meeting-related touchpoint.
+  const stateById = await meetingStatePerRow(db, candidateIds);
+  const filtered: string[] = [];
+  for (const id of candidateIds) {
+    const state = stateById.get(id) ?? "none";
+    if (state === "in_flight" || state === "scheduled") filtered.push(id);
+    if (filtered.length >= opts.pageSize) break;
+  }
+  return filtered;
+}
+
+async function meetingStatePerRow(db: DB, ids: string[]): Promise<Map<string, "none" | "in_flight" | "scheduled">> {
+  const { data } = await db
+    .from("student_outreach_touchpoints")
+    .select("outreach_id, touchpoint_type, payload, created_at")
+    .in("outreach_id", ids)
+    .or(
+      "touchpoint_type.eq.meeting_scheduled," +
+      "touchpoint_type.eq.meeting_held," +
+      "touchpoint_type.eq.meeting_no_show," +
+      "touchpoint_type.eq.meeting_rescheduled," +
+      "touchpoint_type.eq.note_added",
+    )
+    .order("created_at", { ascending: false });
+
+  const out = new Map<string, "none" | "in_flight" | "scheduled">();
+  for (const tp of (data ?? []) as Array<{
+    outreach_id: string;
+    touchpoint_type: string;
+    payload: Record<string, unknown> | null;
+  }>) {
+    if (out.has(tp.outreach_id)) continue;
+    const reason = tp.payload?.reason;
+    // note_added with reason=meeting_in_flight or scheduled is the signal
+    if (tp.touchpoint_type === "note_added") {
+      if (reason === "meeting_in_flight") {
+        out.set(tp.outreach_id, "in_flight");
+      } else if (reason === "post_meeting_followup") {
+        out.set(tp.outreach_id, "none"); // had a meeting but is now in followup
+      }
+      // Other note_added reasons aren't meeting-related → don't decide here, keep looking
+      // But out.has is the gate; we need to skip non-meeting note_added
+      if (reason !== "meeting_in_flight" && reason !== "post_meeting_followup") {
+        out.delete(tp.outreach_id);
+        continue;
+      }
+    } else if (tp.touchpoint_type === "meeting_scheduled") {
+      out.set(tp.outreach_id, "scheduled");
+    } else if (
+      tp.touchpoint_type === "meeting_held" ||
+      tp.touchpoint_type === "meeting_no_show" ||
+      tp.touchpoint_type === "meeting_rescheduled"
+    ) {
+      out.set(tp.outreach_id, "none");
+    }
+  }
+  return out;
+}
+
+// ── Hydrate rows with all indicators ────────────────────────────────────
+
+async function hydrateRows(
+  db: DB,
+  ids: string[],
+  tab: string,
+  campusMap: Map<string, Campus>,
+): Promise<TabRow[]> {
+  // Fetch outreach rows.
+  const { data: rowsRaw } = await db
+    .from("student_outreach")
+    .select("*")
+    .in("id", ids);
+  const rowMap = new Map<string, OutreachRow>();
+  for (const r of (rowsRaw ?? []) as OutreachRow[]) rowMap.set(r.id, r);
+  // Preserve order from ids.
+  const orderedRows = ids.map((id) => rowMap.get(id)).filter((r): r is OutreachRow => Boolean(r));
+
+  if (orderedRows.length === 0) return [];
+
+  // Parallel hydration: contacts + tasks + touchpoints.
+  const [contactsRes, tasksRes, touchpointsRes] = await Promise.all([
+    db
+      .from("student_outreach_contacts")
+      .select("outreach_id, name, phone, is_primary, status, created_at")
+      .in("outreach_id", ids)
+      .eq("status", "active")
+      .order("is_primary", { ascending: false })
+      .order("created_at", { ascending: true }),
+    db
+      .from("student_outreach_tasks")
+      .select("id, outreach_id, task_type, due_at, payload, status")
+      .in("outreach_id", ids)
+      .eq("status", "pending"),
+    db
+      .from("student_outreach_touchpoints")
+      .select("outreach_id, touchpoint_type, payload, notes, created_at, created_by")
+      .in("outreach_id", ids)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  // Primary contact per row.
+  const primaryByOutreach = new Map<string, { name: string; phone: string | null }>();
+  for (const c of (contactsRes.data ?? []) as Array<{ outreach_id: string; name: string; phone: string | null }>) {
+    if (!primaryByOutreach.has(c.outreach_id)) primaryByOutreach.set(c.outreach_id, { name: c.name, phone: c.phone });
+  }
+
+  // Custom-task indicator + due-call task per row.
+  const customTaskByOutreach = new Map<string, string>();
+  const dueCallTaskByOutreach = new Map<string, { id: string; due_at: string }>();
+  const nowIso = new Date().toISOString();
+  for (const t of (tasksRes.data ?? []) as Array<{
+    id: string;
+    outreach_id: string;
+    task_type: string;
+    due_at: string;
+    payload: Record<string, unknown> | null;
+  }>) {
+    if (
+      t.task_type === "manual_followup" &&
+      t.payload?.reason === "custom" &&
+      !customTaskByOutreach.has(t.outreach_id)
+    ) {
+      customTaskByOutreach.set(t.outreach_id, String(t.payload.notes ?? t.payload.description ?? "Custom task"));
+    }
+    if (
+      t.task_type === "outreach_followup_call" &&
+      t.due_at <= nowIso &&
+      !dueCallTaskByOutreach.has(t.outreach_id)
+    ) {
+      dueCallTaskByOutreach.set(t.outreach_id, { id: t.id, due_at: t.due_at });
+    }
+  }
+
+  // Indicators derived from touchpoints (per row).
+  const lastEmailSentByOutreach = new Map<string, string>();
+  const lastReplyByOutreach = new Map<string, string>();
+  const meetingStateByOutreach = new Map<string, { state: "in_flight" | "scheduled"; meeting_at: string | null }>();
+  const followupByOutreach = new Map<string, { notes: string; author: string | null; at: string }>();
+  const lastActivityByOutreach = new Map<string, string>();
+
+  for (const tp of (touchpointsRes.data ?? []) as Array<{
+    outreach_id: string;
+    touchpoint_type: string;
+    payload: Record<string, unknown> | null;
+    notes: string | null;
+    created_at: string;
+    created_by: string | null;
+  }>) {
+    if (!lastActivityByOutreach.has(tp.outreach_id)) {
+      lastActivityByOutreach.set(tp.outreach_id, tp.created_at);
+    }
+    if (tp.touchpoint_type === "email_sent" && !lastEmailSentByOutreach.has(tp.outreach_id)) {
+      lastEmailSentByOutreach.set(tp.outreach_id, tp.created_at);
+    }
+    if (tp.touchpoint_type === "email_replied" && !lastReplyByOutreach.has(tp.outreach_id)) {
+      lastReplyByOutreach.set(tp.outreach_id, tp.created_at);
+    }
+    // Meeting state + post-meeting follow-up: use most recent meeting-related touchpoint.
+    if (!meetingStateByOutreach.has(tp.outreach_id)) {
+      if (tp.touchpoint_type === "meeting_scheduled") {
+        meetingStateByOutreach.set(tp.outreach_id, {
+          state: "scheduled",
+          meeting_at: (tp.payload?.meeting_at as string) ?? null,
+        });
+      } else if (tp.touchpoint_type === "note_added" && tp.payload?.reason === "meeting_in_flight") {
+        meetingStateByOutreach.set(tp.outreach_id, { state: "in_flight", meeting_at: null });
+      } else if (
+        tp.touchpoint_type === "meeting_held" ||
+        tp.touchpoint_type === "meeting_no_show" ||
+        tp.touchpoint_type === "meeting_rescheduled"
+      ) {
+        // Mark as "no current meeting" by setting an empty marker — we use sentinel.
+        // Actual state = none; just don't fill the map.
+      }
+    }
+    if (
+      !followupByOutreach.has(tp.outreach_id) &&
+      tp.touchpoint_type === "note_added" &&
+      tp.payload?.reason === "post_meeting_followup"
+    ) {
+      followupByOutreach.set(tp.outreach_id, {
+        notes: (tp.payload?.notes as string) ?? tp.notes ?? "",
+        author: tp.created_by ?? null,
+        at: tp.created_at,
+      });
+    }
+  }
+
+  // Build TabRow output.
+  const tabRows: TabRow[] = orderedRows.map((row) => {
+    const primary = primaryByOutreach.get(row.id) ?? null;
+    const ms = meetingStateByOutreach.get(row.id);
+    const lastEmail = lastEmailSentByOutreach.get(row.id);
+    const reply = lastReplyByOutreach.get(row.id);
+    const stale = computeStaleDays(lastEmail, reply);
+    const followup = followupByOutreach.get(row.id);
+    const camp = campusMap.get(row.campus_id);
+    return {
+      ...row,
+      campus_name: camp?.name ?? "(unknown campus)",
+      campus_slug: camp?.slug ?? "",
+      primary_contact_name: primary?.name ?? null,
+      primary_contact_phone: primary?.phone ?? null,
+      has_custom_task: customTaskByOutreach.has(row.id),
+      custom_task_summary: customTaskByOutreach.get(row.id) ?? null,
+      stale_days: tab === "replies" ? stale : null,
+      meeting_state: ms?.state ?? "none",
+      meeting_at: ms?.meeting_at ?? null,
+      followup_notes: followup?.notes ?? null,
+      followup_author: followup?.author ?? null,
+      followup_at: followup?.at ?? null,
+      last_activity_at: lastActivityByOutreach.get(row.id) ?? null,
+      due_call_task: tab === "calls" ? dueCallTaskByOutreach.get(row.id) ?? null : null,
+    };
+  });
+
+  return tabRows;
+}
+
+function computeStaleDays(lastEmailSent: string | undefined, lastReply: string | undefined): number | null {
+  if (!lastEmailSent) return null;
+  if (lastReply && new Date(lastReply) > new Date(lastEmailSent)) return null;
+  const days = Math.floor((Date.now() - new Date(lastEmailSent).getTime()) / 86_400_000);
+  return days >= STALE_DAYS ? days : null;
 }

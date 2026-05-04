@@ -143,12 +143,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to record request" }, { status: 500 });
     }
 
-    // Log seeker_activity event (fire-and-forget). The DB CHECK constraint
-    // accepts outreach_request_submitted as of migration 064. Relationship
-    // lives in metadata (no column on agent_outreach_requests in v0); future
-    // Phase 4 can promote it if we want to query.
-    db.from("seeker_activity")
-      .insert({
+    // Activity event + Slack alert. Both are awaited — fire-and-forget gets
+    // killed by Vercel's serverless runtime once the response is sent, which
+    // is exactly how the missing-Slack-alert symptom showed up the first
+    // time. Run them in parallel via Promise.allSettled so neither blocks
+    // the other and neither failing aborts the response (the canonical
+    // agent_outreach_requests row is already in the DB at this point).
+    const slackPayload = slackOutreachRequestSubmitted({
+      requestId: inserted.id,
+      askerEmail: normalizedEmail,
+      sourceProviderName: typeof source_provider_name === "string" ? source_provider_name : source_provider_id,
+      sourceProviderSlug: source_provider_id,
+      city: typeof city === "string" ? city : "",
+      state: typeof state === "string" ? state : "",
+      category: typeof category === "string" ? category : "",
+      relationship: normalizedRelationship,
+      questionText: typeof question_text === "string" ? question_text : null,
+      targetProviders: targets.map((t) => ({ name: t.name, slug: t.slug, address: t.address })),
+    });
+
+    const [activityResult, slackResult] = await Promise.allSettled([
+      db.from("seeker_activity").insert({
         profile_id: null,
         event_type: "outreach_request_submitted",
         related_provider_id: source_provider_id,
@@ -162,28 +177,21 @@ export async function POST(request: NextRequest) {
           relationship: normalizedRelationship,
           had_question: Boolean(question_text),
         },
-      })
-      .then(({ error: actErr }: { error: { message: string } | null }) => {
-        if (actErr) console.error("[seeker_activity] outreach_request_submitted failed:", actErr);
-      });
+      }),
+      sendSlackAlert(slackPayload.text, slackPayload.blocks),
+    ]);
 
-    // Slack alert — primary fulfillment surface. Fire-and-forget so a Slack
-    // outage never blocks the user response. TJ acts directly from this alert.
-    const slackPayload = slackOutreachRequestSubmitted({
-      requestId: inserted.id,
-      askerEmail: normalizedEmail,
-      sourceProviderName: typeof source_provider_name === "string" ? source_provider_name : source_provider_id,
-      sourceProviderSlug: source_provider_id,
-      city: typeof city === "string" ? city : "",
-      state: typeof state === "string" ? state : "",
-      category: typeof category === "string" ? category : "",
-      relationship: normalizedRelationship,
-      questionText: typeof question_text === "string" ? question_text : null,
-      targetProviders: targets.map((t) => ({ name: t.name, slug: t.slug, address: t.address })),
-    });
-    sendSlackAlert(slackPayload.text, slackPayload.blocks).catch((err) => {
-      console.error("[outreach/request] Slack alert failed:", err);
-    });
+    if (activityResult.status === "rejected") {
+      console.error("[seeker_activity] outreach_request_submitted threw:", activityResult.reason);
+    } else if (activityResult.value.error) {
+      console.error("[seeker_activity] outreach_request_submitted failed:", activityResult.value.error);
+    }
+
+    if (slackResult.status === "rejected") {
+      console.error("[outreach/request] Slack alert threw:", slackResult.reason);
+    } else if (!slackResult.value.success) {
+      console.error("[outreach/request] Slack alert failed:", slackResult.value.error);
+    }
 
     return NextResponse.json({ ok: true, id: inserted.id }, { status: 201 });
   } catch (err) {

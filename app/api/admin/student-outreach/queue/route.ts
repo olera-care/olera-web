@@ -483,7 +483,7 @@ async function hydrateRows(
   // Indicators derived from touchpoints (per row).
   const lastEmailSentByOutreach = new Map<string, string>();
   const lastReplyByOutreach = new Map<string, string>();
-  const meetingStateByOutreach = new Map<string, { state: "in_flight" | "scheduled"; meeting_at: string | null }>();
+  const meetingStateByOutreach = new Map<string, { state: "in_flight" | "scheduled" | "none"; meeting_at: string | null }>();
   const followupByOutreach = new Map<string, { notes: string; author: string | null; at: string }>();
   const lastActivityByOutreach = new Map<string, string>();
 
@@ -504,7 +504,11 @@ async function hydrateRows(
     if (tp.touchpoint_type === "email_replied" && !lastReplyByOutreach.has(tp.outreach_id)) {
       lastReplyByOutreach.set(tp.outreach_id, tp.created_at);
     }
-    // Meeting state + post-meeting follow-up: use most recent meeting-related touchpoint.
+    // Meeting state + post-meeting follow-up: use the FIRST meeting-related
+    // touchpoint we encounter (most recent due to DESC ordering). Setting a
+    // sentinel "none" entry on meeting_held/no_show/rescheduled blocks older
+    // meeting_scheduled touchpoints from incorrectly resurrecting a row in
+    // the Meetings tab.
     if (!meetingStateByOutreach.has(tp.outreach_id)) {
       if (tp.touchpoint_type === "meeting_scheduled") {
         meetingStateByOutreach.set(tp.outreach_id, {
@@ -518,8 +522,10 @@ async function hydrateRows(
         tp.touchpoint_type === "meeting_no_show" ||
         tp.touchpoint_type === "meeting_rescheduled"
       ) {
-        // Mark as "no current meeting" by setting an empty marker — we use sentinel.
-        // Actual state = none; just don't fill the map.
+        meetingStateByOutreach.set(tp.outreach_id, { state: "none", meeting_at: null });
+      } else if (tp.touchpoint_type === "note_added" && tp.payload?.reason === "post_meeting_followup") {
+        // Post-meeting followup is itself a "no current meeting" signal.
+        meetingStateByOutreach.set(tp.outreach_id, { state: "none", meeting_at: null });
       }
     }
     if (

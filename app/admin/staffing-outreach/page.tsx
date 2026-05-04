@@ -16,7 +16,7 @@
  * and /api/admin/staffing-outreach/[id] (drawer detail).
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Drawer } from "./Drawer";
 import Select from "@/components/ui/Select";
 import type {
@@ -52,6 +52,7 @@ export default function StaffingOutreachPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
+  const hasAutoSelected = useRef(false); // Track if we've done initial batch selection
 
   // Debounce search input
   useEffect(() => {
@@ -80,9 +81,10 @@ export default function StaffingOutreachPage() {
       setRows(data.rows ?? []);
       setTabCounts(data.tabCounts ?? {});
       setTotal(data.total ?? 0);
-      // Auto-select first batch if none chosen
-      if (!batchId && data.batches?.[0]) {
+      // Auto-select first batch only on initial load (not when user selects "All")
+      if (!hasAutoSelected.current && !batchId && data.batches?.[0]) {
         setBatchId(data.batches[0].id);
+        hasAutoSelected.current = true;
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");

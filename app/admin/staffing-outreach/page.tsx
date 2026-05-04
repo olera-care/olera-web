@@ -192,7 +192,7 @@ export default function StaffingOutreachPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Staffing Outreach</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Provider Outreach</h1>
         <p className="text-lg text-gray-600 mt-1">
           Enroll home care agencies into the Student Caregiver Pilot.
         </p>

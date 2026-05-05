@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
-import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@/lib/slack";
+import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail, slackQuestionEmailEnriched } from "@/lib/slack";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { questionConfirmationEmail, questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
@@ -606,6 +606,28 @@ export async function PATCH(request: NextRequest) {
             recipientType: 'family',
             emailLogId: enrichEmailLogId ?? undefined,
           });
+
+          // Slack alert — qa_email_capture conversion event. Awaited so it
+          // survives Vercel's serverless teardown (per
+          // feedback_serverless_fire_and_forget.md). Lives in the same
+          // try/catch as the email so a Slack failure logs but doesn't
+          // mask an email-success response back to the client.
+          try {
+            const { text, blocks } = slackQuestionEmailEnriched({
+              questionId: updated.id,
+              askerEmail: updates.asker_email,
+              questionText: updated.question,
+              sourceProviderName: providerName || "the provider",
+              sourceProviderSlug: providerSlug,
+              city: providerCity,
+              state: providerState,
+              category: cleanCategory,
+              alternatives,
+            });
+            await sendSlackAlert(text, blocks);
+          } catch (slackErr) {
+            console.error("[slack] question_email_enriched alert failed:", slackErr);
+          }
         } catch (emailErr) {
           console.error("Question confirmation email failed:", emailErr);
         }

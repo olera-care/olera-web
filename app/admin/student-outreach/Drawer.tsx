@@ -38,7 +38,6 @@ import {
   PROGRAMS,
   ROLES_BY_TYPE,
   singleProgram,
-  supportsAltChannels,
   supportsApprovals,
   supportsMultipleContacts,
 } from "@/lib/student-outreach/presets";
@@ -171,6 +170,7 @@ function DrawerBody({
       <RelationshipBanner ctx={ctx} />
       <TabContextBanner tabContext={tabContext} />
       <NextStepPanel ctx={ctx} action={action} setError={setError} />
+      <JobBoardTaskSection ctx={ctx} action={action} setError={setError} />
       <DangerZone ctx={ctx} action={action} setError={setError} />
 
       <div>
@@ -184,7 +184,12 @@ function DrawerBody({
         {showMore && (
           <div className="mt-4 space-y-6">
             <ResearchSection ctx={ctx} action={action} setError={setError} />
-            <ContactsSection ctx={ctx} action={action} setError={setError} />
+            {/* v8.7: Contacts section only for student orgs (multi-officer).
+                Single-contact types render the primary contact inline in
+                ResearchSection to avoid a redundant section. */}
+            {supportsMultipleContacts(ctx.outreach.stakeholder_type) && (
+              <ContactsSection ctx={ctx} action={action} setError={setError} />
+            )}
             {supportsApprovals(ctx.outreach.stakeholder_type) && (
               <ApprovalsSection ctx={ctx} action={action} setError={setError} />
             )}
@@ -531,9 +536,6 @@ function ResearchSection({
 }) {
   const r = ctx.outreach.research_data;
   const type = ctx.outreach.stakeholder_type;
-  const [website, setWebsite] = useState(r.website ?? "");
-  const [officialEmail, setOfficialEmail] = useState(r.official_email ?? "");
-  const [phone, setPhone] = useState(r.phone ?? "");
   const [notes, setNotes] = useState(r.notes ?? "");
   const [orgName, setOrgName] = useState(ctx.outreach.organization_name);
 
@@ -552,13 +554,21 @@ function ResearchSection({
 
   const programOptions = useMemo(() => PROGRAMS.filter((p) => p !== OTHER), []);
 
+  // v8.7: for single-contact types (advisor / dept_head / professor) we
+  // render the primary contact inline here instead of a separate
+  // Contacts section. Track the first/last/email/phone right alongside
+  // the rest of the research fields.
+  const isMultiContact = type === "student_org";
+  const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
+  const [firstName, setFirstName] = useState(primary?.first_name ?? "");
+  const [lastName, setLastName] = useState(primary?.last_name ?? "");
+  const [email, setEmail] = useState(primary?.email ?? "");
+  const [phone, setPhone] = useState(primary?.phone ?? "");
+
   const saveResearch = async () => {
     try {
       await action("update_research", {
         research: {
-          website,
-          official_email: officialEmail,
-          phone,
           notes,
         } satisfies ResearchData,
       });
@@ -576,7 +586,34 @@ function ResearchSection({
     } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
   };
 
+  const savePrimaryContact = async () => {
+    if (!primary) {
+      // No contact exists yet; create one. Only fire when there's at least a first name.
+      if (!firstName.trim()) return;
+      try {
+        await action("add_contact", {
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          email: email.trim() || null,
+          phone: phone.trim() || null,
+          is_primary: true,
+        });
+      } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
+      return;
+    }
+    try {
+      await action("update_contact", {
+        contact_id: primary.id,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: email.trim() || null,
+        phone: phone.trim() || null,
+      });
+    } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
+  };
+
   const showDepartment = type === "dept_head" || type === "professor";
+  const showOrgName = type === "student_org"; // others auto-derive
 
   return (
     <section>
@@ -584,7 +621,9 @@ function ResearchSection({
         Research
       </h3>
       <div className="space-y-3 rounded-lg border border-gray-200 bg-white p-4">
-        <Field label="Organization name" value={orgName} onChange={setOrgName} onBlur={saveOutreach} />
+        {showOrgName && (
+          <Field label="Organization name" value={orgName} onChange={setOrgName} onBlur={saveOutreach} />
+        )}
 
         {showDepartment && (
           <>
@@ -603,6 +642,16 @@ function ResearchSection({
               />
             )}
           </>
+        )}
+
+        {/* v8.7: primary contact embedded for single-contact types */}
+        {!isMultiContact && (
+          <div className="grid grid-cols-2 gap-2">
+            <Field label="First name" value={firstName} onChange={setFirstName} onBlur={savePrimaryContact} />
+            <Field label="Last name" value={lastName} onChange={setLastName} onBlur={savePrimaryContact} />
+            <Field type="email" label="Email" value={email} onChange={setEmail} onBlur={savePrimaryContact} placeholder="name@uni.edu" />
+            <Field label="Phone" value={phone} onChange={setPhone} onBlur={savePrimaryContact} />
+          </div>
         )}
 
         {/* Programs */}
@@ -626,9 +675,6 @@ function ResearchSection({
           />
         )}
 
-        <Field label="Website" value={website} onChange={setWebsite} onBlur={saveResearch} placeholder="https://..." />
-        <Field label="Official email" value={officialEmail} onChange={setOfficialEmail} onBlur={saveResearch} placeholder="advising@..." />
-        <Field label="Phone" value={phone} onChange={setPhone} onBlur={saveResearch} />
         <Field label="Research notes" value={notes} onChange={setNotes} onBlur={saveResearch} multiline />
       </div>
     </section>
@@ -705,18 +751,13 @@ function ContactRow({
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-gray-900">
             {contact.is_primary && "★ "}
-            {contact.name}
+            {[contact.first_name, contact.last_name].filter(Boolean).join(" ") || contact.name}
             {contact.role && <span className="ml-2 text-gray-500">{contact.role}</span>}
             {stale && <span className="ml-2 text-xs text-gray-400">[{contact.status}]</span>}
           </p>
           <p className="mt-0.5 truncate text-xs text-gray-500">
-            {[contact.email, contact.phone, contact.instagram].filter(Boolean).join(" · ") || "—"}
+            {[contact.email, contact.phone].filter(Boolean).join(" · ") || "—"}
           </p>
-          {contact.contact_form_url && (
-            <a href={contact.contact_form_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">
-              Open contact form ↗
-            </a>
-          )}
         </div>
         {!stale && (
           <SmallButton onClick={() => action("mark_contact_stale", { contact_id: contact.id }).catch((e) => setError(e.message))}>
@@ -739,16 +780,19 @@ function AddContactInline({
   setError: (e: string | null) => void;
   onSaved: () => void;
 }) {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("");
   const [roleOther, setRoleOther] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [instagram, setInstagram] = useState("");
   const [isPrimary, setIsPrimary] = useState(false);
   return (
     <div className="space-y-2 rounded-md border border-dashed border-gray-200 p-3">
-      <Field label="Name *" value={name} onChange={setName} />
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="First name *" value={firstName} onChange={setFirstName} />
+        <Field label="Last name" value={lastName} onChange={setLastName} />
+      </div>
       <Select
         label="Role"
         value={role}
@@ -760,22 +804,19 @@ function AddContactInline({
       )}
       <Field label="Email" value={email} onChange={setEmail} type="email" />
       <Field label="Phone" value={phone} onChange={setPhone} />
-      {supportsAltChannels(type) && (
-        <Field label="Instagram" value={instagram} onChange={setInstagram} placeholder="@handle" />
-      )}
       <label className="flex items-center gap-2 text-xs text-gray-600">
         <input type="checkbox" checked={isPrimary} onChange={(e) => setIsPrimary(e.target.checked)} />
         Primary contact
       </label>
       <PrimaryButton onClick={async () => {
-        if (!name.trim()) { setError("Name required"); return; }
+        if (!firstName.trim()) { setError("First name required"); return; }
         try {
           await action("add_contact", {
-            name,
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
             role: role === OTHER ? roleOther : role,
             email,
             phone,
-            instagram,
             is_primary: isPrimary,
           });
           onSaved();
@@ -785,36 +826,113 @@ function AddContactInline({
   );
 }
 
-// ── Approvals (dept_head only) ─────────────────────────────────────────
+// ── Job board task (v8.7) ──────────────────────────────────────────────
+//
+// When this stakeholder granted "Post on university job board", a
+// partner_share_update task is queued (deduped by campus). Render an
+// action card with a Gmail composer link + Mark posted button.
 
-// Permission-checklist labels — these strings double as approval_for keys
-// so we can recognize granted-rows by string match.
-const PERMISSION_KINDS = [
-  {
-    key: "email_professors",
-    approval_for: "Email professors directly",
-    approval_type: "department" as const,
-    title: "Email professors directly",
-    blurb: "Get permission to email faculty in this department.",
-    tooltip: "When granted, you'll be able to bulk-import professors and start emailing them.",
-  },
-  {
-    key: "listserv",
-    approval_for: "Access department listserv",
-    approval_type: "listserv" as const,
-    title: "Access dept listserv",
-    blurb: "Send Olera info to the whole department's student listserv.",
-    tooltip: "If granted, dept emails students on our behalf via their listserv.",
-  },
-  {
-    key: "distribute",
-    approval_for: "Dept head distributes for us",
-    approval_type: "department" as const,
-    title: "They distribute for us",
-    blurb: "The dept head forwards our flyer to faculty / students themselves.",
-    tooltip: "The dept head agrees to share our materials directly. Often a fast path to Active Partner.",
-  },
-] as const;
+function JobBoardTaskSection({
+  ctx,
+  action,
+  setError,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (e: string | null) => void;
+}) {
+  const task = ctx.pending_tasks.find(
+    (t) =>
+      t.task_type === "partner_share_update" &&
+      (t.payload as Record<string, unknown> | null)?.reason === "job_board_post",
+  );
+  if (!task) return null;
+
+  const handleErr = (p: Promise<unknown>) =>
+    p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
+
+  const subject = encodeURIComponent(
+    `Olera — clinical experience opportunity for ${ctx.campus.name} pre-health students`,
+  );
+  const composerUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
+
+  return (
+    <section>
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        Job board post
+      </h3>
+      <div className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/40 p-4 text-sm text-emerald-950">
+        <p>
+          <strong>Permission granted.</strong> Post Olera&apos;s clinical-experience listing to{" "}
+          {ctx.campus.name}&apos;s job board, then click <em>Mark posted</em> below.
+        </p>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <a
+            href={composerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+          >
+            Open Gmail composer ↗
+          </a>
+          <button
+            onClick={() => handleErr(action("mark_job_board_posted"))}
+            className="rounded-md border border-emerald-300 bg-white px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-50"
+          >
+            Mark posted
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Approvals (advisor + dept_head) ────────────────────────────────────
+
+// v8.7: collapsed to two binary permissions per the simplification spec.
+//   - "Email professors directly" — dept_head only. Yes = bulk import
+//     unlocks; No (denied) = dept distributes on our behalf.
+//   - "Post on university job board" — both advisor and dept_head. Yes =
+//     queue a campus-scoped post task (deduped by campus).
+//
+// Each kind doubles as the canonical approval_for string so we can
+// recognize granted/denied rows by string match against the approvals
+// table.
+
+interface PermissionKind {
+  key: string;
+  approval_for: string;
+  approval_type: "department" | "marketing" | "listserv" | "job_board" | "other";
+  title: string;
+  blurb: string;
+  tooltip: string;
+}
+
+const PROFESSOR_PERMISSION: PermissionKind = {
+  key: "email_professors",
+  approval_for: "Email professors directly",
+  approval_type: "department",
+  title: "Email professors directly",
+  blurb: "Yes — bulk-import professors. No — dept head distributes our materials on our behalf.",
+  tooltip: "When granted, you can bulk-import professors and email them directly.",
+};
+
+const JOB_BOARD_PERMISSION: PermissionKind = {
+  key: "job_board",
+  approval_for: "Post on university job board",
+  approval_type: "job_board",
+  title: "Post on university job board",
+  blurb: "Permission to publish Olera's clinical-experience posting on the campus job board.",
+  tooltip: "When granted, a 'Post to job board' task is queued (one per campus, deduped if multiple grant).",
+};
+
+function permissionKindsFor(type: StakeholderType): PermissionKind[] {
+  if (type === "dept_head") return [PROFESSOR_PERMISSION, JOB_BOARD_PERMISSION];
+  if (type === "advisor") return [JOB_BOARD_PERMISSION];
+  return [];
+}
+
+const ALL_PERMISSION_KINDS = [PROFESSOR_PERMISSION, JOB_BOARD_PERMISSION];
 
 function ApprovalsSection({
   ctx,
@@ -828,21 +946,26 @@ function ApprovalsSection({
   const [showOther, setShowOther] = useState(false);
   const [showBulkProf, setShowBulkProf] = useState(false);
 
+  const kinds = permissionKindsFor(ctx.outreach.stakeholder_type);
+
   // Look up each permission's current status from approvals.
   const findApproval = (approval_for: string) =>
     ctx.approvals.find((a) => a.approval_for === approval_for) ?? null;
 
-  // Other approvals (non-checklist, e.g. "Other" generics).
-  const knownStrings: Set<string> = new Set(PERMISSION_KINDS.map((p) => p.approval_for));
+  // Other approvals (non-checklist, e.g. "Other" generics or legacy
+  // listserv/distribute approvals from before v8.7's simplification).
+  const knownStrings: Set<string> = new Set(ALL_PERMISSION_KINDS.map((p) => p.approval_for));
   const otherApprovals = ctx.approvals.filter((a) => !knownStrings.has(a.approval_for));
+
+  if (kinds.length === 0) return null;
 
   return (
     <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500" title="Permissions you can ask this dept head for. Track which path is granted.">
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500" title="Permissions you can ask this stakeholder for. Track which is granted.">
         Permissions
       </h3>
       <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-4">
-        {PERMISSION_KINDS.map((p) => {
+        {kinds.map((p) => {
           const approval = findApproval(p.approval_for);
           return (
             <PermissionRow
@@ -909,7 +1032,7 @@ function PermissionRow({
   setError,
   onGranted,
 }: {
-  kind: typeof PERMISSION_KINDS[number];
+  kind: PermissionKind;
   approval: Approval | null;
   action: ActionFn;
   setError: (e: string | null) => void;

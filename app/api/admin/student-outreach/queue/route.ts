@@ -95,6 +95,8 @@ export interface TabRow extends OutreachRow {
   awaiting_callback_kind: AwaitingCallbackKind | null;
   /** v8 humanized next-scheduled-action label (Partners tab today). */
   next_step_label: string | null;
+  /** v8.7: pending Post-to-job-board task on this stakeholder. */
+  has_pending_job_board_task: boolean;
 }
 
 export async function GET(req: NextRequest) {
@@ -551,6 +553,7 @@ async function hydrateRows(
   const customTaskByOutreach = new Map<string, string>();
   const dueCallTaskByOutreach = new Map<string, { id: string; due_at: string }>();
   const hasPendingEmail = new Set<string>();
+  const hasPendingJobBoard = new Set<string>();
   const earliestTaskByOutreach = new Map<string, { task_type: string; due_at: string; payload: Record<string, unknown> | null }>();
   const nowIso = new Date().toISOString();
   for (const t of (tasksRes.data ?? []) as Array<{
@@ -576,6 +579,9 @@ async function hydrateRows(
     }
     if (t.task_type === "outreach_email_send") {
       hasPendingEmail.add(t.outreach_id);
+    }
+    if (t.task_type === "partner_share_update" && t.payload?.reason === "job_board_post") {
+      hasPendingJobBoard.add(t.outreach_id);
     }
     const cur = earliestTaskByOutreach.get(t.outreach_id);
     if (!cur || t.due_at < cur.due_at) {
@@ -637,6 +643,7 @@ async function hydrateRows(
       awaiting_callback_at: state.awaiting_callback_at,
       awaiting_callback_kind: state.awaiting_callback_kind,
       next_step_label: deriveNextStepLabel(row.status, earliestTask),
+      has_pending_job_board_task: hasPendingJobBoard.has(row.id),
     };
   });
 

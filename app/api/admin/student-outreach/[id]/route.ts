@@ -203,6 +203,9 @@ export async function POST(
       case "unlock_professors_via_dept":
         await handleUnlockProfessors(db, row, body, user.id);
         break;
+      case "mark_job_board_posted":
+        await handleMarkJobBoardPosted(db, row, user.id);
+        break;
 
       // ── Tasks ───────────────────────────────────────────────────────
       case "complete_task":
@@ -1346,6 +1349,8 @@ async function handleAddContact(
   row: OutreachRow,
   body: {
     name?: string;
+    first_name?: string;
+    last_name?: string;
     role?: string;
     email?: string;
     phone?: string;
@@ -1356,7 +1361,16 @@ async function handleAddContact(
   },
   userId: string,
 ) {
-  if (!body.name?.trim()) throw new Error("Contact name required");
+  // v8.7: accept either legacy `name` or new first_name + last_name. At
+  // least a first name is required; we derive the full name for the
+  // legacy `name` column.
+  const first = (body.first_name ?? "").trim();
+  const last = (body.last_name ?? "").trim();
+  const fullName =
+    body.name?.trim() ||
+    [first, last].filter(Boolean).join(" ") ||
+    "";
+  if (!fullName) throw new Error("Contact first name required");
   if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
     throw new Error("Invalid email");
   }
@@ -1373,7 +1387,9 @@ async function handleAddContact(
     .from("student_outreach_contacts")
     .insert({
       outreach_id: row.id,
-      name: body.name.trim(),
+      name: fullName,
+      first_name: first || null,
+      last_name: last || null,
       role: body.role ?? null,
       email: body.email ?? null,
       phone: body.phone ?? null,
@@ -1409,6 +1425,8 @@ async function handleUpdateContact(
   body: {
     contact_id?: string;
     name?: string;
+    first_name?: string | null;
+    last_name?: string | null;
     role?: string | null;
     email?: string | null;
     phone?: string | null;
@@ -1433,8 +1451,19 @@ async function handleUpdateContact(
     last_edited_by: userId,
     last_edited_at: new Date().toISOString(),
   };
-  for (const k of ["name", "role", "email", "phone", "instagram", "contact_form_url", "is_primary", "notes"] as const) {
+  for (const k of ["name", "first_name", "last_name", "role", "email", "phone", "instagram", "contact_form_url", "is_primary", "notes"] as const) {
     if (body[k] !== undefined) patch[k] = body[k];
+  }
+  // v8.7: keep `name` in sync with first_name + last_name when those are
+  // provided and `name` wasn't explicitly set in the same patch.
+  if (
+    body.name === undefined &&
+    (body.first_name !== undefined || body.last_name !== undefined)
+  ) {
+    const first = (body.first_name ?? "").trim();
+    const last = (body.last_name ?? "").trim();
+    const derived = [first, last].filter(Boolean).join(" ");
+    if (derived) patch.name = derived;
   }
   await db
     .from("student_outreach_contacts")
@@ -1583,7 +1612,90 @@ async function handleResolveApproval(
       approval_type: (approval as { approval_type: string }).approval_type,
     },
   });
+
+  // v8.7: granting "Post on university job board" queues a campus-scoped
+  // post task. Dedupe: only queue if no other stakeholder at this campus
+  // already has a pending job-board task — admin posts ONCE per campus.
+  const approvalFor = (approval as { approval_for: string }).approval_for;
+  if (body.resolution === "granted" && approvalFor === "Post on university job board") {
+    await maybeQueueJobBoardTask(db, row, userId);
+  }
+
   await touchOutreach(db, row.id, userId);
+}
+
+/**
+ * v8.7: admin clicked "Mark posted" on the job board task. Completes
+ * any pending job-board task on this stakeholder (typically just one)
+ * and logs a touchpoint for history.
+ */
+async function handleMarkJobBoardPosted(db: DB, row: OutreachRow, userId: string) {
+  const { data: tasks } = await db
+    .from("student_outreach_tasks")
+    .select("id, payload")
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .eq("task_type", "partner_share_update");
+  const jobBoardTasks = ((tasks ?? []) as Array<{ id: string; payload: Record<string, unknown> | null }>)
+    .filter((t) => t.payload?.reason === "job_board_post");
+  if (jobBoardTasks.length === 0) {
+    throw new Error("No pending job board task on this stakeholder");
+  }
+  for (const t of jobBoardTasks) {
+    await db
+      .from("student_outreach_tasks")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+        completed_by: userId,
+      })
+      .eq("id", t.id);
+  }
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    payload: { reason: "job_board_posted" },
+  });
+  await touchOutreach(db, row.id, userId);
+}
+
+/**
+ * v8.7: queue a "Post to university job board" task on this stakeholder
+ * — but only if there isn't already a pending one for any other
+ * stakeholder at this campus. Job board is a campus-level resource;
+ * we post ONCE per campus.
+ */
+async function maybeQueueJobBoardTask(db: DB, row: OutreachRow, userId: string) {
+  // Pull all stakeholder ids at this campus.
+  const { data: campusRows } = await db
+    .from("student_outreach")
+    .select("id")
+    .eq("campus_id", row.campus_id);
+  const campusIds = ((campusRows ?? []) as Array<{ id: string }>).map((r) => r.id);
+  if (campusIds.length === 0) return;
+
+  // Any pending job-board task already?
+  const { data: existing } = await db
+    .from("student_outreach_tasks")
+    .select("id")
+    .in("outreach_id", campusIds)
+    .eq("status", "pending")
+    .eq("task_type", "partner_share_update")
+    .contains("payload", { reason: "job_board_post" });
+  if ((existing ?? []).length > 0) return;
+
+  // Queue on the granter (this row).
+  await queueTask(
+    db,
+    row.id,
+    {
+      task_type: "partner_share_update",
+      due_at: new Date(),
+      payload: { reason: "job_board_post" },
+    },
+    userId,
+  );
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    payload: { reason: "job_board_task_queued" },
+  });
 }
 
 async function handleUnlockProfessors(

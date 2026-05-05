@@ -646,8 +646,16 @@ function StakeholderCard({
           </p>
           {footnote}
         </button>
-        {hasRightSide && (
+        {(hasRightSide || row.has_pending_job_board_task) && (
           <div className="flex shrink-0 flex-col items-end gap-1.5">
+            {row.has_pending_job_board_task && (
+              <span
+                title="Pending: post Olera's listing to the campus job board."
+                className="shrink-0 rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-900"
+              >
+                Job board: post pending
+              </span>
+            )}
             {pills}
             {rightActions}
           </div>

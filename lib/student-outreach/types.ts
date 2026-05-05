@@ -156,7 +156,11 @@ export interface OutreachRow {
 export interface Contact {
   id: string;
   outreach_id: string;
+  /** Legacy full-name field. Kept for backward compatibility — new code
+   *  reads/writes first_name + last_name and the server derives `name`. */
   name: string;
+  first_name: string | null;
+  last_name: string | null;
   role: string | null;
   email: string | null;
   phone: string | null;
@@ -266,6 +270,8 @@ export interface TabRow extends OutreachRow {
   awaiting_callback_kind: AwaitingCallbackKind | null;
   /** v8: humanized next-scheduled-action label (Partners tab today). */
   next_step_label: string | null;
+  /** v8.7: stakeholder has a pending 'Post to job board' task. */
+  has_pending_job_board_task: boolean;
 }
 
 /** Legacy alias kept while cleaning up old call sites. */

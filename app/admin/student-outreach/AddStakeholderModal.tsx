@@ -57,21 +57,21 @@ const TYPE_FINDER_HINTS: Record<StakeholderType, string> = {
 };
 
 interface OfficerDraft {
-  name: string;
+  firstName: string;
+  lastName: string;
   role: string;
   roleOther: string;
   email: string;
   phone: string;
-  instagram: string;
 }
 
 const blankOfficer = (): OfficerDraft => ({
-  name: "",
+  firstName: "",
+  lastName: "",
   role: "",
   roleOther: "",
   email: "",
   phone: "",
-  instagram: "",
 });
 
 export function AddStakeholderModal({
@@ -127,8 +127,8 @@ export function AddStakeholderModal({
       department === OTHER ? departmentOther.trim() : department.trim() || null;
 
     const initialContacts = supportsMultipleContacts(type)
-      ? officers.filter((o) => o.name.trim()).map(officerToPayload)
-      : (singleContact.name.trim() ? [officerToPayload(singleContact)] : []);
+      ? officers.filter((o) => o.firstName.trim()).map(officerToPayload)
+      : (singleContact.firstName.trim() ? [officerToPayload(singleContact)] : []);
 
     setSubmitting(true);
     try {
@@ -445,7 +445,10 @@ function OfficersBuilder({
               </button>
             )}
           </div>
-          <Field label="Name" value={o.name} onChange={(v) => update(i, { name: v })} />
+          <div className="grid grid-cols-2 gap-2">
+            <Field label="First name" value={o.firstName} onChange={(v) => update(i, { firstName: v })} />
+            <Field label="Last name" value={o.lastName} onChange={(v) => update(i, { lastName: v })} />
+          </div>
           <Select
             label="Role"
             value={o.role}
@@ -461,7 +464,6 @@ function OfficersBuilder({
           )}
           <Field label="Email" value={o.email} onChange={(v) => update(i, { email: v })} type="email" />
           <Field label="Phone" value={o.phone} onChange={(v) => update(i, { phone: v })} />
-          <Field label="Instagram" value={o.instagram} onChange={(v) => update(i, { instagram: v })} placeholder="@handle" />
         </div>
       ))}
       <button
@@ -489,7 +491,10 @@ function SingleContactForm({
   return (
     <div className="space-y-2">
       <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Contact</p>
-      <Field label="Name" value={contact.name} onChange={(v) => update({ name: v })} />
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="First name" value={contact.firstName} onChange={(v) => update({ firstName: v })} />
+        <Field label="Last name" value={contact.lastName} onChange={(v) => update({ lastName: v })} />
+      </div>
       <Select
         label="Role"
         value={contact.role}
@@ -509,11 +514,11 @@ function SingleContactForm({
 
 function officerToPayload(o: OfficerDraft) {
   return {
-    name: o.name.trim(),
+    first_name: o.firstName.trim(),
+    last_name: o.lastName.trim(),
     role: (o.role === OTHER ? o.roleOther.trim() : o.role) || null,
     email: o.email.trim() || null,
     phone: o.phone.trim() || null,
-    instagram: o.instagram.trim() || null,
     is_primary: false,
   };
 }

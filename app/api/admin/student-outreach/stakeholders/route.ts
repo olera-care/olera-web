@@ -27,7 +27,6 @@ export async function POST(req: NextRequest) {
 
   const campus_slug = (body.campus_slug as string)?.trim();
   const stakeholder_type = body.stakeholder_type as StakeholderType;
-  const organization_name = (body.organization_name as string)?.trim();
   const department = (body.department as string)?.trim() || null;
   const programs = Array.isArray(body.programs) ? (body.programs as string[]) : [];
   const notes = (body.notes as string)?.trim() || null;
@@ -41,6 +40,25 @@ export async function POST(req: NextRequest) {
   if (!campus_slug) return NextResponse.json({ error: "campus_slug required" }, { status: 400 });
   if (!stakeholder_type || !STAKEHOLDER_TYPES.includes(stakeholder_type)) {
     return NextResponse.json({ error: "Invalid stakeholder_type" }, { status: 400 });
+  }
+
+  // v8.7: organization_name is auto-derived for single-contact types so
+  // admins don't have to type the same name twice. For student_org the
+  // admin still owns the org name (it's the org, not a person).
+  const initContactFirst = (initial_contact?.first_name as string | undefined)?.trim() ?? "";
+  const initContactLast = (initial_contact?.last_name as string | undefined)?.trim() ?? "";
+  const initContactFull =
+    initContactFirst && initContactLast
+      ? `${initContactFirst} ${initContactLast}`
+      : initContactFirst || initContactLast || (initial_contact?.name as string | undefined)?.trim() || "";
+
+  let organization_name = (body.organization_name as string)?.trim() ?? "";
+  if (!organization_name) {
+    if (stakeholder_type === "advisor" || stakeholder_type === "professor") {
+      organization_name = initContactFull;
+    } else if (stakeholder_type === "dept_head" && department) {
+      organization_name = `${department} Department`;
+    }
   }
   if (!organization_name) {
     return NextResponse.json({ error: "organization_name required" }, { status: 400 });
@@ -78,11 +96,21 @@ export async function POST(req: NextRequest) {
 
   const newId = (created as { id: string }).id;
 
-  // Optional first contact
-  if (initial_contact && initial_contact.name?.trim()) {
+  // Optional first contact. Either the legacy `name` or the new
+  // first_name + last_name is acceptable; we derive the missing one.
+  const hasContactPayload =
+    initial_contact &&
+    (initial_contact.name?.trim() ||
+      initial_contact.first_name?.trim() ||
+      initial_contact.last_name?.trim());
+  if (hasContactPayload) {
+    const fullName =
+      (initial_contact.name as string | undefined)?.trim() || initContactFull;
     await db.from("student_outreach_contacts").insert({
       outreach_id: newId,
-      name: initial_contact.name.trim(),
+      name: fullName,
+      first_name: initContactFirst || null,
+      last_name: initContactLast || null,
       role: initial_contact.role ?? null,
       email: initial_contact.email ?? null,
       phone: initial_contact.phone ?? null,

@@ -33,6 +33,8 @@ const RESEND_THROTTLE_MS = 150;
 export interface EmailRecipient {
   contact_id: string;
   name: string;
+  /** Preferred for personalization. Falls back to first word of `name`. */
+  first_name?: string | null;
   email: string;
 }
 
@@ -129,7 +131,7 @@ export async function sendOutreachEmail(
   const results: PerRecipientResult[] = [];
   for (let i = 0; i < input.recipients.length; i++) {
     const r = input.recipients[i];
-    const firstName = firstNameOf(r.name);
+    const firstName = (r.first_name && r.first_name.trim()) || firstNameOf(r.name);
     const subject = substituteVars(input.subject, { first_name: firstName, ...staticVars });
     const body = substituteVars(input.body, { first_name: firstName, ...staticVars });
     const html = bodyToHtml(body);

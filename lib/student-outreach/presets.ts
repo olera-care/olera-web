@@ -96,9 +96,10 @@ export function supportsAltChannels(type: StakeholderType): boolean {
   return type === "student_org";
 }
 
-/** Whether the type ever needs the approvals subsystem (dept heads gate professors). */
+/** Whether the type ever needs the approvals subsystem.
+ *  v8.7: dept_head needs Email-professors + job-board; advisor needs job-board. */
 export function supportsApprovals(type: StakeholderType): boolean {
-  return type === "dept_head";
+  return type === "dept_head" || type === "advisor";
 }
 
 /** Single program (advisors) vs. multi (everyone else). */

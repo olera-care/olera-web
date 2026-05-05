@@ -140,9 +140,15 @@ export async function POST(req: NextRequest) {
     const profId = (profRow as { id: string }).id;
 
     if (entry.email || entry.role) {
+      // v8.7: split the parsed full name into first/last for personalization.
+      const [firstWord, ...restWords] = entry.name.trim().split(/\s+/);
+      const firstName = firstWord ?? null;
+      const lastName = restWords.length > 0 ? restWords.join(" ") : null;
       await db.from("student_outreach_contacts").insert({
         outreach_id: profId,
         name: entry.name,
+        first_name: firstName,
+        last_name: lastName,
         role: entry.role,
         email: entry.email,
         is_primary: true,

@@ -186,7 +186,12 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
     .eq("status", "active");
   const recipients: EmailRecipient[] = ((contactRows ?? []) as Contact[])
     .filter((c) => c.email && c.email.trim().length > 0)
-    .map((c) => ({ contact_id: c.id, name: c.name, email: c.email! }));
+    .map((c) => ({
+      contact_id: c.id,
+      name: c.name,
+      first_name: c.first_name,
+      email: c.email!,
+    }));
 
   if (recipients.length === 0) {
     await annotateOutcome(db, taskId, "skipped_no_recipients");

@@ -28,7 +28,8 @@ import { BulkProfessorImportModal } from "./BulkProfessorImportModal";
 const PROFESSOR_APPROVAL_KEY = "Email professors directly";
 
 interface AdvisorRow {
-  name: string;
+  firstName: string;
+  lastName: string;
   role: string;
   email: string;
   phone: string;
@@ -36,13 +37,15 @@ interface AdvisorRow {
 
 interface DeptHeadRow {
   department: string;
-  headName: string;
+  headFirstName: string;
+  headLastName: string;
   email: string;
   phone: string;
 }
 
 interface OrgOfficer {
-  name: string;
+  firstName: string;
+  lastName: string;
   role: string;
   email: string;
   phone: string;
@@ -54,9 +57,9 @@ interface OrgDraft {
   officers: OrgOfficer[];
 }
 
-const blankAdvisor = (): AdvisorRow => ({ name: "", role: "Pre-Health Advisor", email: "", phone: "" });
-const blankDeptHead = (): DeptHeadRow => ({ department: "", headName: "", email: "", phone: "" });
-const blankOfficer = (): OrgOfficer => ({ name: "", role: "President", email: "", phone: "" });
+const blankAdvisor = (): AdvisorRow => ({ firstName: "", lastName: "", role: "Pre-Health Advisor", email: "", phone: "" });
+const blankDeptHead = (): DeptHeadRow => ({ department: "", headFirstName: "", headLastName: "", email: "", phone: "" });
+const blankOfficer = (): OrgOfficer => ({ firstName: "", lastName: "", role: "President", email: "", phone: "" });
 const blankOrg = (): OrgDraft => ({
   orgName: "",
   programs: ["Pre-Med"],
@@ -138,13 +141,13 @@ export function BulkResearchModal({ campus, onClose, onSaved }: Props) {
 
   // ── Save ────────────────────────────────────────────────────────────
 
-  const validAdvisors = advisors.filter((a) => a.name.trim());
-  const validDeptHeads = deptHeads.filter((d) => d.department.trim() && d.headName.trim());
+  const validAdvisors = advisors.filter((a) => a.firstName.trim());
+  const validDeptHeads = deptHeads.filter((d) => d.department.trim() && d.headFirstName.trim());
   const validOrgs = orgs
-    .filter((o) => o.orgName.trim() && o.officers.some((off) => off.name.trim()))
+    .filter((o) => o.orgName.trim() && o.officers.some((off) => off.firstName.trim()))
     .map((o) => ({
       ...o,
-      officers: o.officers.filter((off) => off.name.trim()),
+      officers: o.officers.filter((off) => off.firstName.trim()),
     }));
 
   const totalToSave = validAdvisors.length + validDeptHeads.length + validOrgs.length;
@@ -308,21 +311,22 @@ function AdvisorsTab({
 }) {
   const onPaste = (lines: string[][]) => {
     const newRows = lines.map<AdvisorRow>((cols) => ({
-      name: cols[0]?.trim() ?? "",
-      role: cols[1]?.trim() || "Pre-Health Advisor",
-      email: cols[2]?.trim() ?? "",
-      phone: cols[3]?.trim() ?? "",
+      firstName: cols[0]?.trim() ?? "",
+      lastName: cols[1]?.trim() ?? "",
+      role: cols[2]?.trim() || "Pre-Health Advisor",
+      email: cols[3]?.trim() ?? "",
+      phone: cols[4]?.trim() ?? "",
     }));
-    // Replace blank trailing rows; keep filled rows.
-    const filledExisting = rows.filter((r) => r.name.trim());
+    const filledExisting = rows.filter((r) => r.firstName.trim());
     setRows([...filledExisting, ...newRows, blankAdvisor()]);
   };
   return (
     <div className="space-y-2">
-      <RowGridHeader columns={["Name", "Role", "Email", "Phone"]} />
+      <RowGridHeader columns={["First", "Last", "Role", "Email", "Phone"]} />
       {rows.map((row, i) => (
-        <RowGrid key={i} onRemove={rows.length > 1 ? () => setRows(rows.filter((_, j) => j !== i)) : undefined}>
-          <Cell value={row.name} onChange={(v) => updateRow(rows, setRows, i, { ...row, name: v })} placeholder="Marcus Reyes" />
+        <RowGrid5 key={i} onRemove={rows.length > 1 ? () => setRows(rows.filter((_, j) => j !== i)) : undefined}>
+          <Cell value={row.firstName} onChange={(v) => updateRow(rows, setRows, i, { ...row, firstName: v })} placeholder="Marcus" />
+          <Cell value={row.lastName} onChange={(v) => updateRow(rows, setRows, i, { ...row, lastName: v })} placeholder="Reyes" />
           <SelectCell
             value={row.role}
             onChange={(v) => updateRow(rows, setRows, i, { ...row, role: v })}
@@ -330,7 +334,7 @@ function AdvisorsTab({
           />
           <Cell type="email" value={row.email} onChange={(v) => updateRow(rows, setRows, i, { ...row, email: v })} placeholder="mreyes@uh.edu" />
           <Cell value={row.phone} onChange={(v) => updateRow(rows, setRows, i, { ...row, phone: v })} placeholder="+1 832 467 2621" />
-        </RowGrid>
+        </RowGrid5>
       ))}
       <div className="flex gap-2">
         <button
@@ -340,7 +344,7 @@ function AdvisorsTab({
           + Add row
         </button>
         <PasteFromSpreadsheet
-          columns={["Name", "Role", "Email", "Phone"]}
+          columns={["First", "Last", "Role", "Email", "Phone"]}
           onAddRows={onPaste}
         />
       </div>
@@ -360,28 +364,30 @@ function DeptHeadsTab({
   const onPaste = (lines: string[][]) => {
     const newRows = lines.map<DeptHeadRow>((cols) => ({
       department: cols[0]?.trim() ?? "",
-      headName: cols[1]?.trim() ?? "",
-      email: cols[2]?.trim() ?? "",
-      phone: cols[3]?.trim() ?? "",
+      headFirstName: cols[1]?.trim() ?? "",
+      headLastName: cols[2]?.trim() ?? "",
+      email: cols[3]?.trim() ?? "",
+      phone: cols[4]?.trim() ?? "",
     }));
-    const filledExisting = rows.filter((r) => r.department.trim() || r.headName.trim());
+    const filledExisting = rows.filter((r) => r.department.trim() || r.headFirstName.trim());
     setRows([...filledExisting, ...newRows, blankDeptHead()]);
   };
   return (
     <div className="space-y-2">
-      <RowGridHeader columns={["Department", "Head name", "Email", "Phone"]} />
+      <RowGridHeader columns={["Department", "First", "Last", "Email", "Phone"]} />
       {rows.map((row, i) => (
-        <RowGrid key={i} onRemove={rows.length > 1 ? () => setRows(rows.filter((_, j) => j !== i)) : undefined}>
+        <RowGrid5 key={i} onRemove={rows.length > 1 ? () => setRows(rows.filter((_, j) => j !== i)) : undefined}>
           <SelectCell
             value={row.department}
             onChange={(v) => updateRow(rows, setRows, i, { ...row, department: v })}
             options={DEPARTMENTS.filter((d) => d !== OTHER)}
             placeholder="— Pick department —"
           />
-          <Cell value={row.headName} onChange={(v) => updateRow(rows, setRows, i, { ...row, headName: v })} placeholder="Dr. Sarah Chen" />
+          <Cell value={row.headFirstName} onChange={(v) => updateRow(rows, setRows, i, { ...row, headFirstName: v })} placeholder="Sarah" />
+          <Cell value={row.headLastName} onChange={(v) => updateRow(rows, setRows, i, { ...row, headLastName: v })} placeholder="Chen" />
           <Cell type="email" value={row.email} onChange={(v) => updateRow(rows, setRows, i, { ...row, email: v })} placeholder="schen@bio.tamu.edu" />
           <Cell value={row.phone} onChange={(v) => updateRow(rows, setRows, i, { ...row, phone: v })} placeholder="+1 979 845 2721" />
-        </RowGrid>
+        </RowGrid5>
       ))}
       <div className="flex gap-2">
         <button
@@ -391,7 +397,7 @@ function DeptHeadsTab({
           + Add row
         </button>
         <PasteFromSpreadsheet
-          columns={["Department", "Head name", "Email", "Phone"]}
+          columns={["Department", "First", "Last", "Email", "Phone"]}
           onAddRows={onPaste}
         />
       </div>
@@ -445,9 +451,9 @@ function StudentOrgsTab({
             )}
           </div>
 
-          <RowGridHeader columns={["Name", "Role", "Email", "Phone"]} />
+          <RowGridHeader columns={["First", "Last", "Role", "Email", "Phone"]} />
           {org.officers.map((off, j) => (
-            <RowGrid
+            <RowGrid5
               key={j}
               onRemove={
                 org.officers.length > 1
@@ -456,11 +462,18 @@ function StudentOrgsTab({
               }
             >
               <Cell
-                value={off.name}
+                value={off.firstName}
                 onChange={(v) =>
-                  updateOrg(i, { ...org, officers: org.officers.map((o, k) => (k === j ? { ...o, name: v } : o)) })
+                  updateOrg(i, { ...org, officers: org.officers.map((o, k) => (k === j ? { ...o, firstName: v } : o)) })
                 }
-                placeholder="Sofia Martinez"
+                placeholder="Sofia"
+              />
+              <Cell
+                value={off.lastName}
+                onChange={(v) =>
+                  updateOrg(i, { ...org, officers: org.officers.map((o, k) => (k === j ? { ...o, lastName: v } : o)) })
+                }
+                placeholder="Martinez"
               />
               <SelectCell
                 value={off.role}
@@ -484,7 +497,7 @@ function StudentOrgsTab({
                 }
                 placeholder="+1 …"
               />
-            </RowGrid>
+            </RowGrid5>
           ))}
           <div className="mt-1 flex flex-wrap gap-2">
             <button
@@ -494,15 +507,16 @@ function StudentOrgsTab({
               + Officer
             </button>
             <PasteFromSpreadsheet
-              columns={["Name", "Role", "Email", "Phone"]}
+              columns={["First", "Last", "Role", "Email", "Phone"]}
               onAddRows={(lines) => {
                 const newOfficers = lines.map<OrgOfficer>((cols) => ({
-                  name: cols[0]?.trim() ?? "",
-                  role: cols[1]?.trim() || "Member",
-                  email: cols[2]?.trim() ?? "",
-                  phone: cols[3]?.trim() ?? "",
+                  firstName: cols[0]?.trim() ?? "",
+                  lastName: cols[1]?.trim() ?? "",
+                  role: cols[2]?.trim() || "Member",
+                  email: cols[3]?.trim() ?? "",
+                  phone: cols[4]?.trim() ?? "",
                 }));
-                const filledExisting = org.officers.filter((o) => o.name.trim());
+                const filledExisting = org.officers.filter((o) => o.firstName.trim());
                 updateOrg(i, {
                   ...org,
                   officers: [...filledExisting, ...newOfficers, blankOfficer()],
@@ -765,8 +779,9 @@ function PasteFromSpreadsheet({
 // ── Row primitives ───────────────────────────────────────────────────────
 
 function RowGridHeader({ columns }: { columns: string[] }) {
+  const colsClass = columns.length === 5 ? "grid-cols-5" : "grid-cols-4";
   return (
-    <div className="grid grid-cols-4 gap-2 px-1 pb-1">
+    <div className={`grid gap-2 px-1 pb-1 ${colsClass}`}>
       {columns.map((c) => (
         <p key={c} className="text-[10px] font-medium uppercase tracking-wide text-gray-400">
           {c}
@@ -776,7 +791,7 @@ function RowGridHeader({ columns }: { columns: string[] }) {
   );
 }
 
-function RowGrid({
+function RowGrid5({
   children,
   onRemove,
 }: {
@@ -785,7 +800,7 @@ function RowGrid({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="grid flex-1 grid-cols-4 gap-2">{children}</div>
+      <div className="grid flex-1 grid-cols-5 gap-2">{children}</div>
       <button
         onClick={onRemove}
         disabled={!onRemove}
@@ -853,67 +868,49 @@ function updateRow<T>(rows: T[], setRows: (r: T[]) => void, i: number, next: T) 
 // ── API helpers ──────────────────────────────────────────────────────────
 
 async function createAdvisor(campusSlug: string, a: AdvisorRow): Promise<void> {
-  const initialContact =
-    a.email.trim() || a.phone.trim()
-      ? {
-          name: a.name.trim(),
-          role: a.role || null,
-          email: a.email.trim() || null,
-          phone: a.phone.trim() || null,
-          is_primary: true,
-        }
-      : { name: a.name.trim(), role: a.role || null, is_primary: true };
-
   await postStakeholder({
     campus_slug: campusSlug,
     stakeholder_type: "advisor",
-    organization_name: a.name.trim(),
     department: null,
     programs: ["Pre-Med"],
     notes: null,
     research_data: {},
-    initial_contact: initialContact,
+    initial_contact: {
+      first_name: a.firstName.trim(),
+      last_name: a.lastName.trim(),
+      role: a.role || null,
+      email: a.email.trim() || null,
+      phone: a.phone.trim() || null,
+      is_primary: true,
+    },
   });
 }
 
 async function createDeptHead(campusSlug: string, d: DeptHeadRow): Promise<void> {
   const dept = d.department.trim();
-  const initialContact =
-    d.email.trim() || d.phone.trim()
-      ? {
-          name: d.headName.trim(),
-          role: "Department Chair",
-          email: d.email.trim() || null,
-          phone: d.phone.trim() || null,
-          is_primary: true,
-        }
-      : { name: d.headName.trim(), role: "Department Chair", is_primary: true };
-
   await postStakeholder({
     campus_slug: campusSlug,
     stakeholder_type: "dept_head",
-    organization_name: `${dept} Department`,
     department: dept,
     programs: ["Pre-Med", "Pre-Dental"],
     notes: null,
     research_data: {},
-    initial_contact: initialContact,
+    initial_contact: {
+      first_name: d.headFirstName.trim(),
+      last_name: d.headLastName.trim(),
+      role: "Department Chair",
+      email: d.email.trim() || null,
+      phone: d.phone.trim() || null,
+      is_primary: true,
+    },
   });
 }
 
 async function createOrg(campusSlug: string, org: OrgDraft): Promise<void> {
-  const namedOfficers = org.officers.filter((o) => o.name.trim());
+  const namedOfficers = org.officers.filter((o) => o.firstName.trim());
   if (namedOfficers.length === 0) return;
   const first = namedOfficers[0];
   const rest = namedOfficers.slice(1);
-
-  const firstContact = {
-    name: first.name.trim(),
-    role: first.role || null,
-    email: first.email.trim() || null,
-    phone: first.phone.trim() || null,
-    is_primary: true,
-  };
 
   const created = await postStakeholder({
     campus_slug: campusSlug,
@@ -923,17 +920,24 @@ async function createOrg(campusSlug: string, org: OrgDraft): Promise<void> {
     programs: org.programs,
     notes: null,
     research_data: {},
-    initial_contact: firstContact,
+    initial_contact: {
+      first_name: first.firstName.trim(),
+      last_name: first.lastName.trim(),
+      role: first.role || null,
+      email: first.email.trim() || null,
+      phone: first.phone.trim() || null,
+      is_primary: true,
+    },
   });
 
-  // Loop additional officers via the per-row add_contact action.
   for (const off of rest) {
     await fetch(`/api/admin/student-outreach/${created.outreach.id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "add_contact",
-        name: off.name.trim(),
+        first_name: off.firstName.trim(),
+        last_name: off.lastName.trim(),
         role: off.role || null,
         email: off.email.trim() || null,
         phone: off.phone.trim() || null,

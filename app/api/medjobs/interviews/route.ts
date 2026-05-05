@@ -5,6 +5,7 @@ import { sendEmail } from "@/lib/email";
 import { generateICS } from "@/lib/ics-generator";
 import { generateMedJobsNotificationUrl } from "@/lib/claim-tokens";
 import { getAccessTier, canScheduleInterview } from "@/lib/medjobs-access";
+import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
 import type { InterviewStatus } from "@/lib/types";
 
 function getAdminClient() {
@@ -220,7 +221,7 @@ export async function POST(request: NextRequest) {
       if (termsAcceptedAt) {
         const { data: providerMeta } = await admin
           .from("business_profiles")
-          .select("metadata")
+          .select("metadata, source_provider_id")
           .eq("id", resolvedProviderId)
           .single();
 
@@ -237,6 +238,61 @@ export async function POST(request: NextRequest) {
               updated_at: new Date().toISOString(),
             })
             .eq("id", resolvedProviderId);
+        }
+
+        // Auto-enrollment: Check if this provider is in staffing_outreach and auto-enroll them
+        // Look up by provider_id (the olera-providers table ID) via source_provider_id
+        // Note: Provider may be in multiple batches (different universities), so we use limit(1)
+        // and order by updated_at to get the most recently active outreach record
+        const sourceProviderId = providerMeta?.source_provider_id as string | null;
+        if (sourceProviderId) {
+          // Exclude enrolled and all closed statuses
+          const excludedStatuses = ["enrolled", "closed", "bounced", "do_not_contact", "wrong_number"];
+          const { data: outreachRows } = await admin
+            .from("staffing_outreach")
+            .select("id, status, batch_id, sequence_email")
+            .eq("provider_id", sourceProviderId)
+            .not("status", "in", `(${excludedStatuses.join(",")})`)
+            .order("updated_at", { ascending: false })
+            .limit(1);
+          const outreach = outreachRows?.[0];
+
+          if (outreach) {
+            // Update outreach status to enrolled
+            await admin
+              .from("staffing_outreach")
+              .update({
+                status: "enrolled",
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", outreach.id);
+
+            // Stop Resend automation if sequence was active
+            if (outreach.sequence_email) {
+              try {
+                await stopEmailSequence(outreach.sequence_email);
+                console.log(`[medjobs/interviews] Stopped Resend sequence for ${outreach.sequence_email}`);
+              } catch (e) {
+                console.error("[medjobs/interviews] Failed to stop Resend sequence:", e);
+                // Non-fatal - enrollment still succeeded
+              }
+            }
+
+            // Log touchpoint for audit trail
+            await admin.from("staffing_touchpoints").insert({
+              outreach_id: outreach.id,
+              type: "system_enrolled",
+              notes: "Auto-enrolled via interview T&C acceptance",
+              payload: {
+                interview_id: interview.id,
+                provider_profile_id: resolvedProviderId,
+                enrollment_source: "medjobs_authenticated",
+              },
+            });
+
+            // Atomic increment of batch enrolled count
+            await admin.rpc("increment_batch_enrolled", { p_batch_id: outreach.batch_id });
+          }
         }
       }
     }

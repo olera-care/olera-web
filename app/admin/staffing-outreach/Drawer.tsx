@@ -3,23 +3,23 @@
 /**
  * Staffing Outreach V2 drawer.
  *
- * Sections (matching the V2 workflow):
+ * Sections (matching the V2 5-tab workflow):
  *   1. ProviderSummary    — header with status badge, contact info, engagement signals
  *   2. ToQueueSection     — email preview + "Start Sequence" button (queued status)
  *   3. SequencingSection  — sequence timeline, engagement indicators (sequencing status)
- *   4. NeedsCallSection   — call disposition, consent capture (needs_call status)
- *   5. ConsentedSection   — waiting for enrollment (consented status)
- *   6. EnrolledSection    — success state (enrolled status)
- *   7. ActivatedSection   — waiting for T&C (activated status)
- *   8. ClosedSection      — closed/bounced states
- *   9. HistorySection     — chronological touchpoint timeline
+ *   4. NeedsCallSection   — call disposition + "Update & Restart Sequence" (needs_call, consented)
+ *   5. EnrolledSection    — success state (enrolled, activated)
+ *   6. ClosedSection      — closed/bounced states with reopen options
+ *   7. HistorySection     — chronological touchpoint timeline
+ *
+ * Enrollment path: Provider receives automated emails → schedules interview via MedJobs →
+ * accepts T&C during interview → auto-enrolled via interview API.
  *
  * After any action, the parent page refetches the queue and auto-advances
  * to the next provider in the same tab.
  */
 
 import { useCallback, useEffect, useState } from "react";
-import Select from "@/components/ui/Select";
 import {
   getServiceArea,
   type DrawerContext,
@@ -356,10 +356,10 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
               <NurturingSection />
               <CallSection />
               {/* Terminal state sections */}
-              <ConsentedSection ctx={ctx} onRefresh={handleRefresh} setError={setError} />
+              {/* Note: ConsentedSection removed - now handled by NeedsCallSection */}
+              {/* Note: ActivatedSection removed - legacy status, mapped to Enrolled tab */}
               <EnrolledSection ctx={ctx} />
-              <ActivatedSection ctx={ctx} onRefresh={handleRefresh} setError={setError} />
-              <ClosedSection ctx={ctx} onRefresh={handleRefresh} setError={setError} />
+              <ClosedSection ctx={ctx} onAdvance={handleAdvance} setError={setError} />
               <HistorySection touchpoints={ctx.touchpoints} />
             </div>
           ) : null}
@@ -865,7 +865,8 @@ function SequencingSection({
 
 /**
  * NeedsCallSection - V2: shown for providers in "Needs Call" tab
- * Simplified call disposition and consent capture
+ * Primary action: "Update Email & Restart Sequence" - captures correct email and restarts automated sequence
+ * Also handles consented status (legacy - shows existing contact info)
  */
 function NeedsCallSection({
   ctx,
@@ -876,21 +877,18 @@ function NeedsCallSection({
   onAdvance: (action: string, payload?: Record<string, unknown>) => Promise<void>;
   setError: (err: string | null) => void;
 }) {
-  const [showConnected, setShowConnected] = useState(false);
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [showScript, setShowScript] = useState(true);
-  const [name, setName] = useState("");
-  const [role, setRole] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [notes, setNotes] = useState("");
-  const [activeAction, setActiveAction] = useState<TouchpointType | "connected" | null>(null);
+  const [activeAction, setActiveAction] = useState<TouchpointType | "restart" | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ type: TouchpointType; title: string; message: string } | null>(null);
 
   const isBusy = activeAction !== null;
 
   // Show for all statuses in the Needs Call tab
-  // V2: needs_call | Legacy: calling, connected_no_consent
-  const needsCallStatuses = new Set(["needs_call", "calling", "connected_no_consent"]);
+  // V2: needs_call, consented | Legacy: calling, connected_no_consent
+  const needsCallStatuses = new Set(["needs_call", "consented", "calling", "connected_no_consent"]);
   if (!needsCallStatuses.has(ctx.outreach.status)) {
     return null;
   }
@@ -907,7 +905,6 @@ function NeedsCallSection({
   };
 
   const handleDispositionWithConfirm = (type: TouchpointType) => {
-    // Destructive actions require confirmation
     if (type === "manual_dnc") {
       setConfirmDialog({
         type,
@@ -919,29 +916,49 @@ function NeedsCallSection({
     }
   };
 
-  const submitConnected = async () => {
-    if (!name.trim() || !email.trim()) {
-      setError("Name and email are required.");
+  // Update email and restart the automated sequence from To Queue
+  const submitUpdateAndRestart = async () => {
+    if (!email.trim()) {
+      setError("Email is required.");
       return;
     }
-    setActiveAction("connected");
+    setActiveAction("restart");
     try {
-      await onAdvance("add_contact_and_send", { name, role, email, phone, notes });
+      await onAdvance("reopen_to_queue", { email: email.trim() });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Send failed");
+      setError(e instanceof Error ? e.message : "Failed to restart sequence");
     } finally {
       setActiveAction(null);
     }
   };
 
-  // Check for prior engagement to highlight in the UI
+  // Check for prior engagement
   const hasOpened = ctx.touchpoints.some((t) => t.type === "email_opened");
   const hasClicked = ctx.touchpoints.some((t) => t.type === "email_clicked");
+
+  // Check for existing contact (for legacy consented status)
+  const verifiedContact = ctx.contacts.find((c) => c.is_primary) || ctx.contacts[0];
+  const isConsented = ctx.outreach.status === "consented";
 
   return (
     <section>
       <SectionHeader title="Call Provider" />
       <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        {/* Legacy consented status - show existing contact info */}
+        {isConsented && verifiedContact && (
+          <div className="rounded-xl bg-amber-50 px-4 py-3">
+            <p className="text-sm font-medium text-amber-800">
+              Legacy: Contact captured via old flow
+            </p>
+            <p className="text-sm text-amber-700">
+              {verifiedContact.name} · {verifiedContact.email}
+            </p>
+            <p className="mt-1 text-xs text-amber-600">
+              Provider will auto-enroll when they accept T&C via MedJobs interview.
+            </p>
+          </div>
+        )}
+
         {/* Engagement hint */}
         {(hasOpened || hasClicked) && (
           <p className="text-sm text-gray-500">
@@ -967,61 +984,43 @@ function NeedsCallSection({
           )}
         </div>
 
-        {/* Primary action: Connected */}
+        {/* Primary action: Update Email & Restart Sequence */}
         <button
-          onClick={() => setShowConnected((s) => !s)}
+          onClick={() => setShowUpdateForm((s) => !s)}
           disabled={isBusy}
           className="flex w-full items-center justify-center rounded-xl bg-gray-900 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
         >
-          {showConnected ? "Hide form" : "Connected — Capture Contact"}
+          {showUpdateForm ? "Hide form" : "Update Email & Restart Sequence"}
         </button>
 
-        {/* Connected form */}
-        {showConnected && (
-          <div className="space-y-3 rounded-xl bg-emerald-50/50 p-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Name" value={name} onChange={setName} placeholder="Jane Doe" />
-              <Select
-                label="Role"
-                value={role}
-                onChange={setRole}
-                placeholder="Select..."
-                size="sm"
-                options={[
-                  { value: "Owner", label: "Owner" },
-                  { value: "Administrator", label: "Administrator" },
-                  { value: "HR Manager", label: "HR Manager" },
-                  { value: "Hiring Manager", label: "Hiring Manager" },
-                  { value: "Recruiter", label: "Recruiter" },
-                  { value: "Office Manager", label: "Office Manager" },
-                  { value: "Director of Nursing", label: "Director of Nursing" },
-                  { value: "Care Coordinator", label: "Care Coordinator" },
-                  { value: "Other", label: "Other" },
-                ]}
-              />
-            </div>
+        {/* Update & Restart form */}
+        {showUpdateForm && (
+          <div className="space-y-3 rounded-xl bg-blue-50/50 p-4">
+            <p className="text-sm text-gray-600">
+              Got the correct email on the call? Enter it here to restart the automated email sequence.
+            </p>
             <div className="grid grid-cols-2 gap-3">
               <Field
                 label="Email"
                 value={email}
                 onChange={setEmail}
-                placeholder="jane@agency.com"
+                placeholder="correct@agency.com"
                 type="email"
               />
-              <Field label="Phone" value={phone} onChange={setPhone} placeholder="(555) 123-4567" />
+              <Field label="Phone (optional)" value={phone} onChange={setPhone} placeholder="(555) 123-4567" />
             </div>
             <button
-              onClick={submitConnected}
-              disabled={isBusy || !name.trim() || !email.trim()}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-40"
+              onClick={submitUpdateAndRestart}
+              disabled={isBusy || !email.trim()}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-40"
             >
-              {activeAction === "connected" && <Spinner />}
-              Send Enrollment Email
+              {activeAction === "restart" && <Spinner />}
+              Update & Restart Sequence
             </button>
           </div>
         )}
 
-        {/* Secondary dispositions */}
+        {/* Call dispositions */}
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => disposition("call_no_answer")}
@@ -1285,32 +1284,47 @@ function CallSection() {
 // ── Terminal State Sections ───────────────────────────────────────────────
 
 /**
- * EnrolledSection - shown for enrolled providers
- * Shows success state with enrollment details
+ * EnrolledSection - shown for enrolled AND activated providers (Enrolled tab)
+ * Shows success state for enrolled, pending state for activated (legacy status)
  */
 function EnrolledSection({ ctx }: { ctx: DrawerContext }) {
-  if (ctx.outreach.status !== "enrolled") return null;
+  const status = ctx.outreach.status;
+  // Show for both enrolled and activated (activated is legacy - clicked magic link)
+  if (status !== "enrolled" && status !== "activated") return null;
 
+  const isActivated = status === "activated";
   const enrollmentTouchpoint = ctx.touchpoints.find((t) => t.type === "system_enrolled");
-  const enrollmentDate = enrollmentTouchpoint?.created_at;
+  const activationTouchpoint = ctx.touchpoints.find((t) => t.type === "system_activated");
+  const relevantDate = isActivated ? activationTouchpoint?.created_at : enrollmentTouchpoint?.created_at;
   const verifiedContact = ctx.contacts.find((c) => c.is_primary) || ctx.contacts[0];
 
   return (
     <section>
-      <SectionHeader title="Enrolled" />
-      <div className="rounded-2xl border border-gray-100 bg-emerald-50/50 p-5 shadow-sm">
-        {/* Success indicator */}
+      <SectionHeader title={isActivated ? "Awaiting T&C" : "Enrolled"} />
+      <div className={`rounded-2xl border border-gray-100 p-5 shadow-sm ${isActivated ? "bg-blue-50/50" : "bg-emerald-50/50"}`}>
+        {/* Status indicator */}
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500">
-            <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-            </svg>
+          <div className={`flex h-10 w-10 items-center justify-center rounded-full ${isActivated ? "bg-blue-500" : "bg-emerald-500"}`}>
+            {isActivated ? (
+              <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            )}
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-800">Successfully enrolled</p>
-            {enrollmentDate && (
+            <p className="text-sm font-medium text-gray-800">
+              {isActivated ? "Clicked enrollment link" : "Successfully enrolled"}
+            </p>
+            {isActivated && (
+              <p className="text-xs text-gray-500">Waiting for T&C acceptance</p>
+            )}
+            {relevantDate && !isActivated && (
               <p className="text-xs text-gray-500">
-                {new Date(enrollmentDate).toLocaleDateString("en-US", {
+                {new Date(relevantDate).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
                   year: "numeric",
@@ -1328,176 +1342,19 @@ function EnrolledSection({ ctx }: { ctx: DrawerContext }) {
               {verifiedContact.email}
               {verifiedContact.phone && <span className="ml-3">{verifiedContact.phone}</span>}
             </p>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-/**
- * ConsentedSection - shown for consented providers (agreed on call, enrollment email sent)
- * Waiting for them to click the magic link
- */
-function ConsentedSection({
-  ctx,
-  onRefresh,
-  setError,
-}: {
-  ctx: DrawerContext;
-  onRefresh: (action: string, payload?: Record<string, unknown>) => Promise<void>;
-  setError: (err: string | null) => void;
-}) {
-  const [resending, setResending] = useState(false);
-
-  if (ctx.outreach.status !== "consented") return null;
-
-  const consentTouchpoint = ctx.touchpoints.find((t) => t.type === "call_connected_consent");
-  const consentDate = consentTouchpoint?.created_at;
-  const verifiedContact = ctx.contacts.find((c) => c.is_primary) || ctx.contacts[0];
-
-  const resendEnrollmentEmail = async () => {
-    if (!verifiedContact) {
-      setError("No contact to send to");
-      return;
-    }
-    setResending(true);
-    try {
-      await onRefresh("resend_enrollment_email", {
-        contactId: verifiedContact.id,
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to resend email");
-    } finally {
-      setResending(false);
-    }
-  };
-
-  return (
-    <section>
-      <SectionHeader title="Awaiting Enrollment" />
-      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        {/* Status indicator */}
-        <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
-            <svg className="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-800">Enrollment email sent</p>
-            <p className="text-xs text-gray-500">Waiting for them to click the link</p>
-          </div>
-        </div>
-
-        {/* Contact details */}
-        {verifiedContact && (
-          <div className="rounded-xl bg-gray-50 px-4 py-3">
-            <p className="text-sm font-medium text-gray-800">{verifiedContact.name}</p>
-            <p className="text-sm text-gray-500">
-              {verifiedContact.email}
-              {verifiedContact.phone && <span className="ml-3">{verifiedContact.phone}</span>}
-            </p>
-            {consentDate && (
+            {isActivated && relevantDate && (
               <p className="mt-1 text-xs text-gray-400">
-                Consented {new Date(consentDate).toLocaleDateString()}
+                Clicked {new Date(relevantDate).toLocaleDateString()}
               </p>
             )}
           </div>
         )}
 
-        {/* Resend option */}
-        {verifiedContact && (
-          <button
-            onClick={resendEnrollmentEmail}
-            disabled={resending}
-            className="mt-4 w-full text-center text-sm text-gray-500 transition-colors hover:text-gray-700 disabled:opacity-50"
-          >
-            {resending ? "Sending..." : "Resend enrollment email"}
-          </button>
-        )}
-      </div>
-    </section>
-  );
-}
-
-/**
- * ActivatedSection - shown for activated providers (clicked magic link but haven't enrolled)
- * Shows they're one step away from enrollment
- */
-function ActivatedSection({
-  ctx,
-  onRefresh,
-  setError,
-}: {
-  ctx: DrawerContext;
-  onRefresh: (action: string, payload?: Record<string, unknown>) => Promise<void>;
-  setError: (err: string | null) => void;
-}) {
-  const [resending, setResending] = useState(false);
-
-  if (ctx.outreach.status !== "activated") return null;
-
-  const activationTouchpoint = ctx.touchpoints.find((t) => t.type === "system_activated");
-  const activationDate = activationTouchpoint?.created_at;
-  const verifiedContact = ctx.contacts.find((c) => c.is_primary) || ctx.contacts[0];
-
-  const resendEnrollmentEmail = async () => {
-    if (!verifiedContact) {
-      setError("No contact to send to");
-      return;
-    }
-    setResending(true);
-    try {
-      await onRefresh("resend_enrollment_email", {
-        contactId: verifiedContact.id,
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to resend email");
-    } finally {
-      setResending(false);
-    }
-  };
-
-  return (
-    <section>
-      <SectionHeader title="Awaiting T&C Acceptance" />
-      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        {/* Status indicator */}
-        <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-            <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-800">Link clicked</p>
-            <p className="text-xs text-gray-500">Waiting for T&C acceptance</p>
-          </div>
-        </div>
-
-        {/* Contact details */}
-        {verifiedContact && (
-          <div className="rounded-xl bg-gray-50 px-4 py-3">
-            <p className="text-sm font-medium text-gray-800">{verifiedContact.name}</p>
-            <p className="text-sm text-gray-500">{verifiedContact.email}</p>
-            {activationDate && (
-              <p className="mt-1 text-xs text-gray-400">
-                Clicked {new Date(activationDate).toLocaleDateString()}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Resend option */}
-        {verifiedContact && (
-          <button
-            onClick={resendEnrollmentEmail}
-            disabled={resending}
-            className="mt-4 w-full text-center text-sm text-gray-500 transition-colors hover:text-gray-700 disabled:opacity-50"
-          >
-            {resending ? "Sending..." : "Resend enrollment email"}
-          </button>
+        {/* Note for activated status */}
+        {isActivated && (
+          <p className="mt-3 text-xs text-gray-500">
+            Provider will auto-enroll when they accept T&C via MedJobs interview.
+          </p>
         )}
       </div>
     </section>
@@ -1506,18 +1363,20 @@ function ActivatedSection({
 
 /**
  * ClosedSection - shown for closed, bounced, do_not_contact and wrong_number statuses
- * Shows reason for closure and option to reopen
+ * Shows reason for closure and options to reopen (to Queue or to Needs Call)
  */
 function ClosedSection({
   ctx,
-  onRefresh,
+  onAdvance,
   setError,
 }: {
   ctx: DrawerContext;
-  onRefresh: (action: string, payload?: Record<string, unknown>) => Promise<void>;
+  onAdvance: (action: string, payload?: Record<string, unknown>) => Promise<void>;
   setError: (err: string | null) => void;
 }) {
-  const [reopening, setReopening] = useState(false);
+  const [reopening, setReopening] = useState<"queue" | "call" | null>(null);
+  const [showReopenForm, setShowReopenForm] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
 
   const status = ctx.outreach.status;
   // V2: Also handle 'closed' and 'bounced' statuses
@@ -1538,14 +1397,25 @@ function ClosedSection({
   const closureNotes = relevantTouchpoint?.notes;
   const isAutoClosed = !!autoClosureTouchpoint && !closureTouchpoint;
 
-  const handleReopen = async () => {
-    setReopening(true);
+  const handleReopenToQueue = async () => {
+    setReopening("queue");
     try {
-      await onRefresh("reopen", {});
+      // Use onAdvance to close drawer and move to next provider after reopening
+      await onAdvance("reopen_to_queue", { email: newEmail.trim() || undefined });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to reopen");
-    } finally {
-      setReopening(false);
+      setReopening(null);
+    }
+  };
+
+  const handleReopenToNeedsCall = async () => {
+    setReopening("call");
+    try {
+      // Use onAdvance to close drawer and move to next provider after reopening
+      await onAdvance("reopen", {});
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to reopen");
+      setReopening(null);
     }
   };
 
@@ -1580,19 +1450,62 @@ function ClosedSection({
 
         {/* Notes if any */}
         {closureNotes && (
-          <div className="rounded-xl bg-white px-4 py-3">
+          <div className="mb-4 rounded-xl bg-white px-4 py-3">
             <p className="text-sm text-gray-600">{closureNotes}</p>
           </div>
         )}
 
-        {/* Reopen option */}
-        <button
-          onClick={handleReopen}
-          disabled={reopening}
-          className="mt-4 w-full text-center text-sm text-gray-500 transition-colors hover:text-gray-700 disabled:opacity-50"
-        >
-          {reopening ? "Reopening..." : "Reopen for outreach"}
-        </button>
+        {/* Reopen options */}
+        {!showReopenForm ? (
+          <div className="space-y-2">
+            <button
+              onClick={() => setShowReopenForm(true)}
+              disabled={reopening !== null}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
+            >
+              Reopen to Queue
+            </button>
+            <button
+              onClick={handleReopenToNeedsCall}
+              disabled={reopening !== null}
+              className="w-full text-center text-sm text-gray-500 transition-colors hover:text-gray-700 disabled:opacity-50"
+            >
+              {reopening === "call" ? "Reopening..." : "Reopen to Needs Call"}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3 rounded-xl bg-white p-4">
+            <p className="text-sm text-gray-600">
+              Restart the email sequence from the beginning. Optionally update the email address.
+            </p>
+            <Field
+              label="Email (optional)"
+              value={newEmail}
+              onChange={setNewEmail}
+              placeholder={ctx.outreach.research_data.general_email || "new@email.com"}
+              type="email"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleReopenToQueue}
+                disabled={reopening !== null}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-900 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
+              >
+                {reopening === "queue" && <Spinner size="sm" />}
+                {reopening === "queue" ? "Reopening..." : "Reopen to Queue"}
+              </button>
+              <button
+                onClick={() => {
+                  setShowReopenForm(false);
+                  setNewEmail("");
+                }}
+                className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

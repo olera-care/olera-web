@@ -2,25 +2,26 @@
  * GET    /api/admin/staffing-outreach/[id]   — drawer detail
  * POST   /api/admin/staffing-outreach/[id]   — actions, dispatched on body.action
  *
- * Actions supported:
+ * V2 Core Actions (MVP Simplified):
  *   claim                    hold the row for 60 min
  *   release                  drop the claim
  *   update_research          set research_data fields, optional notes
- *   mark_pre_call_complete   advance status queued→pre_call_outreach (legacy)
- *   send_pre_call            fire pre-call email + log touchpoint (legacy)
- *   send_follow_up           fire follow-up reminder email (legacy)
- *   log_email_sent           log email touchpoint only (Gmail flow, no email send)
- *   log_contact_form         log a contact_form_submitted touchpoint
- *   disposition              log a call disposition + state transition
- *   add_contact_and_send     capture verified contact + fire Step 1 email
- *   revert_to_queued         move back to queued status (to_queue tab)
- *   reopen                   reopen a closed provider → needs_call
- *   resend_enrollment_email  resend Step 1 email to an activated provider
- *
- * V2 Actions:
  *   start_sequence           trigger Resend automation for email sequence
  *   move_to_needs_call       skip sequence, start calling immediately
- *   mark_closed              mark as closed (replaces DNC workflow)
+ *   disposition              log a call disposition + state transition
+ *   add_contact_and_send     capture verified contact + fire enrollment email
+ *   mark_closed              mark as closed
+ *   reopen                   reopen a closed provider → needs_call
+ *   reopen_to_queue          reopen to queue OR restart sequence with updated email
+ *
+ * Legacy Actions (kept for backwards compatibility):
+ *   mark_pre_call_complete   advance status queued→pre_call_outreach
+ *   send_pre_call            fire pre-call email + log touchpoint
+ *   send_follow_up           fire follow-up reminder email
+ *   log_email_sent           log email touchpoint only (Gmail flow)
+ *   log_contact_form         log a contact_form_submitted touchpoint
+ *   revert_to_queued         move back to queued (use reopen_to_queue instead)
+ *   resend_enrollment_email  resend enrollment email to consented/activated provider
  *
  * Mutations always insert a touchpoint and update outreach.updated_at.
  * Response shape mirrors the GET payload (refreshed DrawerContext) so
@@ -102,6 +103,7 @@ export async function POST(
 
   try {
     switch (action) {
+      // ── V2 Core Actions ────────────────────────────────────────────────
       case "claim":
         await handleClaim(id, user.id);
         break;
@@ -111,46 +113,61 @@ export async function POST(
       case "update_research":
         await handleUpdateResearch(outreach, body, user.id);
         break;
-      case "mark_pre_call_complete":
-        await handleMarkPreCallComplete(outreach, user.id);
-        break;
-      case "send_pre_call":
-        await handleSendPreCall(outreach, body, user.id, admin);
-        break;
-      case "send_follow_up":
-        await handleSendFollowUp(outreach, body, user.id, admin);
-        break;
-      case "log_email_sent":
-        await handleLogEmailSent(outreach, body, user.id);
-        break;
-      case "log_contact_form":
-        await handleLogContactForm(outreach, body, user.id);
-        break;
-      case "disposition":
-        await handleDisposition(outreach, body, user.id);
-        break;
-      case "add_contact_and_send":
-        await handleAddContactAndSend(outreach, body, user.id);
-        break;
-      case "revert_to_queued":
-        await handleRevertToQueued(outreach, user.id);
-        break;
-      case "reopen":
-        await handleReopen(outreach, user.id);
-        break;
-      case "resend_enrollment_email":
-        await handleResendEnrollmentEmail(outreach, body, user.id);
-        break;
-      // V2 Actions
       case "start_sequence":
         await handleStartSequence(outreach, body, user.id);
         break;
       case "move_to_needs_call":
         await handleMoveToNeedsCall(outreach, user.id);
         break;
+      case "disposition":
+        await handleDisposition(outreach, body, user.id);
+        break;
+      case "add_contact_and_send":
+        // Captures consent + sends enrollment email (still used in V2)
+        await handleAddContactAndSend(outreach, body, user.id);
+        break;
       case "mark_closed":
         await handleMarkClosed(outreach, body, user.id);
         break;
+      case "reopen":
+        // Reopen closed provider to needs_call
+        await handleReopen(outreach, user.id);
+        break;
+      case "reopen_to_queue":
+        // Reopen to queue OR restart sequence with updated email
+        await handleReopenToQueue(outreach, body, user.id);
+        break;
+
+      // ── Legacy Actions (kept for backwards compatibility) ──────────────
+      case "mark_pre_call_complete":
+        // Legacy: manual pre-call workflow
+        await handleMarkPreCallComplete(outreach, user.id);
+        break;
+      case "send_pre_call":
+        // Legacy: manual email send via Olera
+        await handleSendPreCall(outreach, body, user.id, admin);
+        break;
+      case "send_follow_up":
+        // Legacy: manual follow-up email via Olera
+        await handleSendFollowUp(outreach, body, user.id, admin);
+        break;
+      case "log_email_sent":
+        // Legacy: Gmail flow (mark as sent manually)
+        await handleLogEmailSent(outreach, body, user.id);
+        break;
+      case "log_contact_form":
+        // Legacy: contact form submission tracking
+        await handleLogContactForm(outreach, body, user.id);
+        break;
+      case "revert_to_queued":
+        // Legacy: use reopen_to_queue instead
+        await handleRevertToQueued(outreach, user.id);
+        break;
+      case "resend_enrollment_email":
+        // Legacy: resend magic link enrollment email
+        await handleResendEnrollmentEmail(outreach, body, user.id);
+        break;
+
       default:
         return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
     }
@@ -593,25 +610,37 @@ async function handleAddContactAndSend(
 }
 
 /**
- * Revert a provider back to queued status (Initial Contact tab).
- * Used when initial email was sent by mistake.
+ * Revert a provider back to queued status (To Queue tab).
+ * Used to restart the email sequence from the beginning.
  */
 async function handleRevertToQueued(outreach: StaffingOutreachRow, userId: string) {
   const db = getServiceClient();
 
+  // Stop any active Resend sequence
+  const sequenceEmail = outreach.sequence_email || outreach.research_data.general_email;
+  if (outreach.resend_automation_id && sequenceEmail) {
+    await stopEmailSequence(sequenceEmail);
+  }
+
   // Log touchpoint for audit trail
-  await insertTouchpoint(outreach.id, "status_reverted", userId, "User marked as sent by mistake", {
+  await insertTouchpoint(outreach.id, "status_reverted", userId, "Restarting email sequence", {
     from_status: outreach.status,
     to_status: "queued",
-    reason: "Sent by mistake - moved back to Initial Contact",
+    reason: "Moved back to To Queue to restart sequence",
   });
 
-  // Revert status to queued (Initial Contact tab)
+  // Revert status to queued (To Queue tab) and reset sequence tracking
   await db
     .from("staffing_outreach")
     .update({
       status: "queued",
       next_action_due_at: new Date().toISOString(), // Due now so it's ready for action
+      // Reset sequence tracking fields so they can start fresh
+      sequence_started_at: null,
+      email1_sent_at: null,
+      email2_sent_at: null,
+      resend_automation_id: null,
+      sequence_email: null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", outreach.id);
@@ -638,12 +667,69 @@ async function handleReopen(outreach: StaffingOutreachRow, userId: string) {
   });
 
   // Move back to needs_call status (V2 workflow)
-  const nextDue = new Date(Date.now() + 1 * 86400_000).toISOString(); // Due tomorrow
+  // Set due date to NOW so it immediately appears in the Needs Call list
+  const nextDue = new Date().toISOString();
   await db
     .from("staffing_outreach")
     .update({
       status: "needs_call",
       next_action_due_at: nextDue,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", outreach.id);
+}
+
+/**
+ * Reopen/restart a provider back to queued status (To Queue tab).
+ * V2: Allows restarting the email sequence from the beginning, optionally with a new email.
+ *
+ * Can be called from:
+ * - Closed statuses (closed, bounced, do_not_contact, wrong_number) - reopen
+ * - Needs Call statuses (needs_call, consented, calling, connected_no_consent) - restart with updated email
+ */
+async function handleReopenToQueue(
+  outreach: StaffingOutreachRow,
+  body: { email?: string },
+  userId: string,
+) {
+  const db = getServiceClient();
+
+  // Allow from closed statuses AND needs_call statuses (for "Update & Restart Sequence")
+  const closedStatuses = ["closed", "bounced", "do_not_contact", "wrong_number"];
+  const needsCallStatuses = ["needs_call", "consented", "calling", "connected_no_consent"];
+  const allowedStatuses = [...closedStatuses, ...needsCallStatuses];
+
+  if (!allowedStatuses.includes(outreach.status)) {
+    throw new Error("Cannot restart sequence from current status");
+  }
+
+  // Update email in research_data if provided
+  const newEmail = body.email?.trim();
+  const researchData = newEmail
+    ? { ...outreach.research_data, general_email: newEmail }
+    : outreach.research_data;
+
+  // Log touchpoint for audit trail
+  await insertTouchpoint(outreach.id, "status_reverted", userId, "Reopened to queue", {
+    from_status: outreach.status,
+    to_status: "queued",
+    new_email: newEmail ?? null,
+    reason: "Reopened to restart email sequence",
+  });
+
+  // Move back to queued status and reset sequence tracking
+  await db
+    .from("staffing_outreach")
+    .update({
+      status: "queued",
+      research_data: researchData,
+      // Reset sequence tracking fields so they can start fresh
+      sequence_started_at: null,
+      email1_sent_at: null,
+      email2_sent_at: null,
+      resend_automation_id: null,
+      sequence_email: null,
+      next_action_due_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
     .eq("id", outreach.id);

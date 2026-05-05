@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { Star } from "@phosphor-icons/react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { assignIntakeVariant, type IntakeVariant } from "@/lib/analytics/variant";
+import type { ProviderCardData } from "@/lib/types/provider";
 
 interface QAEntry {
   id?: string;
@@ -33,6 +35,13 @@ interface QASectionProps {
   // the visitor's session is in that arm, this prop is ignored and enrichment
   // is forced ON. The arm tests whether SBF was cannibalizing email capture.
   hasBenefitsSection?: boolean;
+  /** Top 3 providers in the same city + category (already excludes this
+   *  provider). Computed server-side via getTopProvidersByCityAndCategory.
+   *  Used by the qa_email_capture arm's enrichment prompt to surface
+   *  "3 more in [City]" cards inline as preview-before-email. Pass the
+   *  same array provider page passes to AgentOutreachSlot. Empty array
+   *  is fine — fallback copy renders. */
+  alternativeProviders?: ProviderCardData[];
 }
 
 // More menu icon component
@@ -118,6 +127,7 @@ export default function QASectionV2({
     "Do you accept insurance or Medicaid?",
   ],
   hasBenefitsSection = false,
+  alternativeProviders = [],
 }: QASectionProps) {
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState("");
@@ -551,25 +561,197 @@ export default function QASectionV2({
             </div>
           </div>
 
-          {/* Guest enrichment — single email field. Copy varies by arm:
-              qa_email_capture upgrades the value-promise to include
-              comparison-alternative providers, anchored on city when known. */}
-          {showEnrichment && (
+          {/* Guest enrichment — qa_email_capture arm gets a redesigned compact
+              prompt with 3 inline provider cards as preview-before-email.
+              Other arms (rare: only when hasBenefitsSection=false) keep the
+              original gray-box prompt for backwards compat. */}
+          {showEnrichment && isQaCaptureArm && (
+            <>
+              {alternativeProviders.length > 0 ? (
+                <div className="mt-4 pt-6 border-t border-zinc-100">
+                  {/* Headline — 3 words. The whole punch. */}
+                  <h3 className="text-[20px] md:text-2xl font-semibold text-zinc-900 tracking-tight leading-tight">
+                    {alternativeProviders.length} more
+                    {providerCity ? ` in ${providerCity}` : " nearby"}.
+                  </h3>
+
+                  {/* Compact text-only cards. No images. Each card is one
+                      provider's name + a single metadata line (rating,
+                      reviews, city). Mobile-first: stacked vertically, each
+                      ~50-55px tall. Three cards = ~165px total. Cards open
+                      in new tab so the form survives a click-through. */}
+                  <ul className="mt-3 space-y-1.5">
+                    {alternativeProviders.slice(0, 3).map((alt) => {
+                      const metaParts: string[] = [];
+                      if (alt.rating > 0) {
+                        metaParts.push(
+                          alt.reviewCount && alt.reviewCount > 0
+                            ? `${alt.rating.toFixed(1)} (${alt.reviewCount})`
+                            : alt.rating.toFixed(1),
+                        );
+                      }
+                      if (alt.address) metaParts.push(alt.address);
+                      return (
+                        <li key={alt.id}>
+                          <a
+                            href={`/provider/${alt.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block rounded-lg border border-zinc-200 bg-white px-3.5 py-2.5 hover:border-zinc-300 transition"
+                          >
+                            <div className="text-[14px] font-medium text-zinc-900 leading-snug truncate">
+                              {alt.name}
+                            </div>
+                            <div className="mt-0.5 flex items-center gap-1 text-[12px] text-zinc-500 truncate">
+                              {alt.rating > 0 && (
+                                <Star size={11} weight="fill" className="text-amber-500 shrink-0" />
+                              )}
+                              <span className="truncate">{metaParts.join(" · ")}</span>
+                            </div>
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  {/* Email + CTA. Mobile-first: stacked, full-width. md:+
+                      collapses to a row. Black CTA — Linear-style maximum
+                      contrast. */}
+                  <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="email"
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && !enriching) { e.preventDefault(); handleEnrich(); } }}
+                      placeholder="your@email.com"
+                      autoComplete="email"
+                      inputMode="email"
+                      autoFocus
+                      className={`flex-1 min-w-0 px-4 py-3 border rounded-lg text-[15px] text-zinc-900 placeholder-zinc-400 bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 transition ${
+                        guestError ? "border-red-300" : "border-zinc-300"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleEnrich}
+                      disabled={enriching || !guestEmail.trim()}
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 px-5 py-3 text-[15px] font-semibold text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {enriching && (
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      )}
+                      Send the list
+                    </button>
+                  </div>
+
+                  {/* Honeypot */}
+                  <input
+                    type="text"
+                    name="website"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    style={{ display: "none" }}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                  />
+
+                  {guestError ? (
+                    <p className="mt-2 text-[12px] text-red-500" role="alert">{guestError}</p>
+                  ) : (
+                    <p className="mt-2 text-[12px] text-zinc-500">Free. No spam.</p>
+                  )}
+
+                  <div className="mt-4 text-center">
+                    <button
+                      type="button"
+                      onClick={handleDismissEnrichment}
+                      className="text-[12px] text-zinc-400 hover:text-zinc-600 transition"
+                    >
+                      Skip
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Empty-alternatives fallback — small cities / rare categories
+                   where the helper returns 0 candidates. Drop the cards
+                   framing; lean on the reply-notification value alone. */
+                <div className="mt-4 pt-6 border-t border-zinc-100">
+                  <h3 className="text-[20px] md:text-2xl font-semibold text-zinc-900 tracking-tight leading-tight">
+                    Save your spot.
+                  </h3>
+                  <p className="mt-1.5 text-[14px] text-zinc-600">
+                    We&apos;ll email when {providerName} replies.
+                  </p>
+
+                  <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="email"
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && !enriching) { e.preventDefault(); handleEnrich(); } }}
+                      placeholder="your@email.com"
+                      autoComplete="email"
+                      inputMode="email"
+                      autoFocus
+                      className={`flex-1 min-w-0 px-4 py-3 border rounded-lg text-[15px] text-zinc-900 placeholder-zinc-400 bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 transition ${
+                        guestError ? "border-red-300" : "border-zinc-300"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleEnrich}
+                      disabled={enriching || !guestEmail.trim()}
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 px-5 py-3 text-[15px] font-semibold text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {enriching && (
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      )}
+                      Send
+                    </button>
+                  </div>
+
+                  <input
+                    type="text"
+                    name="website"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    style={{ display: "none" }}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                  />
+
+                  {guestError ? (
+                    <p className="mt-2 text-[12px] text-red-500" role="alert">{guestError}</p>
+                  ) : (
+                    <p className="mt-2 text-[12px] text-zinc-500">Free. No spam.</p>
+                  )}
+
+                  <div className="mt-4 text-center">
+                    <button
+                      type="button"
+                      onClick={handleDismissEnrichment}
+                      className="text-[12px] text-zinc-400 hover:text-zinc-600 transition"
+                    >
+                      Skip
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Legacy enrichment prompt — preserved for non-qa_email_capture
+              arms that hit !hasBenefitsSection (rare: pages without benefits
+              data). Unchanged so the experiment stays clean. */}
+          {showEnrichment && !isQaCaptureArm && (
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
               <p className="text-[14px] font-medium text-gray-800 mb-1">
                 Get notified when they reply
               </p>
               <p className="text-[12px] text-gray-500 mb-3">
-                {isQaCaptureArm ? (
-                  <>
-                    We&apos;ll email you when {providerName} replies — and send
-                    3 similar providers
-                    {providerCity ? ` in ${providerCity}` : " nearby"} in case
-                    they don&apos;t reply fast.
-                  </>
-                ) : (
-                  <>We&apos;ll email you — nothing else.</>
-                )}
+                We&apos;ll email you — nothing else.
               </p>
 
               <div className="flex gap-2">

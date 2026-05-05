@@ -534,9 +534,8 @@ export function questionConfirmationEmail(opts: {
     opts.alternatives && opts.alternatives.length > 0
       ? `
     <p style="font-size:15px;color:#6b7280;margin:24px 0 12px;line-height:1.5;">
-      While you wait, here ${opts.alternatives.length === 1 ? "is" : "are"} ${opts.alternatives.length} similar
-      provider${opts.alternatives.length === 1 ? "" : "s"}${opts.city ? ` in ${opts.city}` : " nearby"}
-      in case <strong>${opts.providerName}</strong> doesn't reply fast:
+      While you wait for <strong>${opts.providerName}</strong> to reply, here ${opts.alternatives.length === 1 ? "is" : "are"} ${opts.alternatives.length} similar
+      provider${opts.alternatives.length === 1 ? "" : "s"}${opts.city ? ` in ${opts.city}` : " nearby"} to compare:
     </p>
     <div style="margin:0 0 24px;">
       ${opts.alternatives

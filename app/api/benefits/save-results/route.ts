@@ -143,6 +143,10 @@ interface SaveResultsPayload {
    *  Persisted to accounts.signup_source so downstream conversion analysis
    *  can segment by entry page. */
   entrySource?: string;
+  /** Anonymous session id from lib/analytics/session.ts. Persisted to
+   *  accounts.session_id so the admin Family Intake drill-in can join an
+   *  account back to its impression / started events on provider_activity. */
+  sessionId?: string;
   matchedPrograms: SavedProgramInput[];
   matchCount: number;
 }
@@ -175,6 +179,7 @@ export async function POST(req: Request) {
     providerSlug,
     relationship,
     entrySource,
+    sessionId,
     matchedPrograms,
     matchCount,
   } = payload;
@@ -427,6 +432,7 @@ export async function POST(req: Request) {
           display_name: displayName,
           onboarding_completed: false,
           signup_source: entrySource || null,
+          session_id: sessionId || null,
         })
         .select("id")
         .single();

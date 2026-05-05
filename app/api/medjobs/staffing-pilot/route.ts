@@ -129,19 +129,8 @@ export async function POST(req: NextRequest) {
     })
     .eq("id", payload.oid);
 
-  // Increment the batch enrolled count
-  const { data: currentBatch } = await db
-    .from("staffing_batches")
-    .select("total_enrolled")
-    .eq("id", outreach.batch_id)
-    .single();
-
-  if (currentBatch) {
-    await db
-      .from("staffing_batches")
-      .update({ total_enrolled: (currentBatch.total_enrolled ?? 0) + 1 })
-      .eq("id", outreach.batch_id);
-  }
+  // Atomic increment of batch enrolled count
+  await db.rpc("increment_batch_enrolled", { p_batch_id: outreach.batch_id });
 
   // Get provider and batch info for the success response
   const [{ data: provider }, { data: batch }] = await Promise.all([

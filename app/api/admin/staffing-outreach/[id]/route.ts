@@ -2,25 +2,27 @@
  * GET    /api/admin/staffing-outreach/[id]   — drawer detail
  * POST   /api/admin/staffing-outreach/[id]   — actions, dispatched on body.action
  *
- * Actions supported:
+ * V2 Core Actions (MVP Simplified):
  *   claim                    hold the row for 60 min
  *   release                  drop the claim
  *   update_research          set research_data fields, optional notes
- *   mark_pre_call_complete   advance status queued→pre_call_outreach (legacy)
- *   send_pre_call            fire pre-call email + log touchpoint (legacy)
- *   send_follow_up           fire follow-up reminder email (legacy)
- *   log_email_sent           log email touchpoint only (Gmail flow, no email send)
- *   log_contact_form         log a contact_form_submitted touchpoint
- *   disposition              log a call disposition + state transition
- *   add_contact_and_send     capture verified contact + fire Step 1 email
- *   revert_to_queued         move back to queued status (to_queue tab)
- *   reopen                   reopen a closed provider → needs_call
- *   resend_enrollment_email  resend Step 1 email to an activated provider
- *
- * V2 Actions:
  *   start_sequence           trigger Resend automation for email sequence
  *   move_to_needs_call       skip sequence, start calling immediately
- *   mark_closed              mark as closed (replaces DNC workflow)
+ *   disposition              log a call disposition + state transition
+ *   add_contact_and_send     capture verified contact + fire enrollment email
+ *   mark_closed              mark as closed
+ *   reopen                   reopen a closed provider → needs_call
+ *   reopen_to_queue          reopen closed provider → queued (manual start)
+ *   restart_sequence         update email + auto-start sequence → sequencing
+ *
+ * Legacy Actions (kept for backwards compatibility):
+ *   mark_pre_call_complete   advance status queued→pre_call_outreach
+ *   send_pre_call            fire pre-call email + log touchpoint
+ *   send_follow_up           fire follow-up reminder email
+ *   log_email_sent           log email touchpoint only (Gmail flow)
+ *   log_contact_form         log a contact_form_submitted touchpoint
+ *   revert_to_queued         move back to queued (use reopen_to_queue instead)
+ *   resend_enrollment_email  resend enrollment email to consented/activated provider
  *
  * Mutations always insert a touchpoint and update outreach.updated_at.
  * Response shape mirrors the GET payload (refreshed DrawerContext) so
@@ -102,6 +104,7 @@ export async function POST(
 
   try {
     switch (action) {
+      // ── V2 Core Actions ────────────────────────────────────────────────
       case "claim":
         await handleClaim(id, user.id);
         break;
@@ -111,46 +114,65 @@ export async function POST(
       case "update_research":
         await handleUpdateResearch(outreach, body, user.id);
         break;
-      case "mark_pre_call_complete":
-        await handleMarkPreCallComplete(outreach, user.id);
-        break;
-      case "send_pre_call":
-        await handleSendPreCall(outreach, body, user.id, admin);
-        break;
-      case "send_follow_up":
-        await handleSendFollowUp(outreach, body, user.id, admin);
-        break;
-      case "log_email_sent":
-        await handleLogEmailSent(outreach, body, user.id);
-        break;
-      case "log_contact_form":
-        await handleLogContactForm(outreach, body, user.id);
-        break;
-      case "disposition":
-        await handleDisposition(outreach, body, user.id);
-        break;
-      case "add_contact_and_send":
-        await handleAddContactAndSend(outreach, body, user.id);
-        break;
-      case "revert_to_queued":
-        await handleRevertToQueued(outreach, user.id);
-        break;
-      case "reopen":
-        await handleReopen(outreach, user.id);
-        break;
-      case "resend_enrollment_email":
-        await handleResendEnrollmentEmail(outreach, body, user.id);
-        break;
-      // V2 Actions
       case "start_sequence":
         await handleStartSequence(outreach, body, user.id);
         break;
       case "move_to_needs_call":
         await handleMoveToNeedsCall(outreach, user.id);
         break;
+      case "disposition":
+        await handleDisposition(outreach, body, user.id);
+        break;
+      case "add_contact_and_send":
+        // Captures consent + sends enrollment email (still used in V2)
+        await handleAddContactAndSend(outreach, body, user.id);
+        break;
       case "mark_closed":
         await handleMarkClosed(outreach, body, user.id);
         break;
+      case "reopen":
+        // Reopen closed provider to needs_call
+        await handleReopen(outreach, user.id);
+        break;
+      case "reopen_to_queue":
+        // Reopen closed provider to queue (manual start required)
+        await handleReopenToQueue(outreach, body, user.id);
+        break;
+      case "restart_sequence":
+        // Update email and auto-start sequence (from Needs Call)
+        await handleRestartSequence(outreach, body, user.id);
+        break;
+
+      // ── Legacy Actions (kept for backwards compatibility) ──────────────
+      case "mark_pre_call_complete":
+        // Legacy: manual pre-call workflow
+        await handleMarkPreCallComplete(outreach, user.id);
+        break;
+      case "send_pre_call":
+        // Legacy: manual email send via Olera
+        await handleSendPreCall(outreach, body, user.id, admin);
+        break;
+      case "send_follow_up":
+        // Legacy: manual follow-up email via Olera
+        await handleSendFollowUp(outreach, body, user.id, admin);
+        break;
+      case "log_email_sent":
+        // Legacy: Gmail flow (mark as sent manually)
+        await handleLogEmailSent(outreach, body, user.id);
+        break;
+      case "log_contact_form":
+        // Legacy: contact form submission tracking
+        await handleLogContactForm(outreach, body, user.id);
+        break;
+      case "revert_to_queued":
+        // Legacy: use reopen_to_queue instead
+        await handleRevertToQueued(outreach, user.id);
+        break;
+      case "resend_enrollment_email":
+        // Legacy: resend magic link enrollment email
+        await handleResendEnrollmentEmail(outreach, body, user.id);
+        break;
+
       default:
         return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
     }
@@ -593,25 +615,37 @@ async function handleAddContactAndSend(
 }
 
 /**
- * Revert a provider back to queued status (Initial Contact tab).
- * Used when initial email was sent by mistake.
+ * Revert a provider back to queued status (To Queue tab).
+ * Used to restart the email sequence from the beginning.
  */
 async function handleRevertToQueued(outreach: StaffingOutreachRow, userId: string) {
   const db = getServiceClient();
 
+  // Stop any active Resend sequence
+  const sequenceEmail = outreach.sequence_email || outreach.research_data.general_email;
+  if (outreach.resend_automation_id && sequenceEmail) {
+    await stopEmailSequence(sequenceEmail);
+  }
+
   // Log touchpoint for audit trail
-  await insertTouchpoint(outreach.id, "status_reverted", userId, "User marked as sent by mistake", {
+  await insertTouchpoint(outreach.id, "status_reverted", userId, "Restarting email sequence", {
     from_status: outreach.status,
     to_status: "queued",
-    reason: "Sent by mistake - moved back to Initial Contact",
+    reason: "Moved back to To Queue to restart sequence",
   });
 
-  // Revert status to queued (Initial Contact tab)
+  // Revert status to queued (To Queue tab) and reset sequence tracking
   await db
     .from("staffing_outreach")
     .update({
       status: "queued",
       next_action_due_at: new Date().toISOString(), // Due now so it's ready for action
+      // Reset sequence tracking fields so they can start fresh
+      sequence_started_at: null,
+      email1_sent_at: null,
+      email2_sent_at: null,
+      resend_automation_id: null,
+      sequence_email: null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", outreach.id);
@@ -638,7 +672,8 @@ async function handleReopen(outreach: StaffingOutreachRow, userId: string) {
   });
 
   // Move back to needs_call status (V2 workflow)
-  const nextDue = new Date(Date.now() + 1 * 86400_000).toISOString(); // Due tomorrow
+  // Set due date to NOW so it immediately appears in the Needs Call list
+  const nextDue = new Date().toISOString();
   await db
     .from("staffing_outreach")
     .update({
@@ -647,6 +682,157 @@ async function handleReopen(outreach: StaffingOutreachRow, userId: string) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", outreach.id);
+}
+
+/**
+ * Reopen a closed provider back to queued status.
+ * Admin must manually click "Start Sequence" after this.
+ */
+async function handleReopenToQueue(
+  outreach: StaffingOutreachRow,
+  body: { email?: string },
+  userId: string,
+) {
+  const db = getServiceClient();
+
+  // Only allow from closed statuses
+  const closedStatuses = ["closed", "bounced", "do_not_contact", "wrong_number"];
+  if (!closedStatuses.includes(outreach.status)) {
+    throw new Error("Can only reopen to queue from closed status");
+  }
+
+  // Update email in research_data if provided
+  const newEmail = body.email?.trim();
+  const researchData = newEmail
+    ? { ...outreach.research_data, general_email: newEmail }
+    : outreach.research_data;
+
+  // Log touchpoint for audit trail
+  await insertTouchpoint(outreach.id, "status_reverted", userId, "Reopened to queue", {
+    from_status: outreach.status,
+    to_status: "queued",
+    new_email: newEmail ?? null,
+  });
+
+  // Move back to queued status and reset sequence tracking
+  await db
+    .from("staffing_outreach")
+    .update({
+      status: "queued",
+      research_data: researchData,
+      sequence_started_at: null,
+      email1_sent_at: null,
+      email2_sent_at: null,
+      resend_automation_id: null,
+      sequence_email: null,
+      next_action_due_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", outreach.id);
+}
+
+/**
+ * Update email and auto-start the email sequence.
+ * Used from Needs Call tab when admin gets a corrected email from a call.
+ * Goes directly to 'sequencing' status (no manual start needed).
+ */
+async function handleRestartSequence(
+  outreach: StaffingOutreachRow,
+  body: { email?: string },
+  userId: string,
+) {
+  const db = getServiceClient();
+
+  // Only allow from needs_call statuses
+  const needsCallStatuses = ["needs_call", "consented", "calling", "connected_no_consent"];
+  if (!needsCallStatuses.includes(outreach.status)) {
+    throw new Error("Can only restart sequence from Needs Call status");
+  }
+
+  // Email is required for restart
+  const newEmail = body.email?.trim();
+  if (!newEmail) {
+    throw new Error("Email is required to restart sequence");
+  }
+
+  // Update email in research_data
+  const researchData = { ...outreach.research_data, general_email: newEmail };
+
+  // Defensively stop any existing sequence before starting new one
+  // This is idempotent - if contact doesn't exist in Resend, it just succeeds
+  if (outreach.sequence_email) {
+    try {
+      await stopEmailSequence(outreach.sequence_email);
+    } catch (e) {
+      console.error("[restart_sequence] Failed to stop existing sequence:", e);
+      // Non-fatal - continue with restart
+    }
+  }
+
+  // First update the research_data with new email
+  await db
+    .from("staffing_outreach")
+    .update({
+      research_data: researchData,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", outreach.id);
+
+  // Get provider and batch info for sequence
+  const [{ data: provider }, { data: batch }] = await Promise.all([
+    db.from("olera-providers")
+      .select("provider_name, provider_id")
+      .eq("provider_id", outreach.provider_id)
+      .single(),
+    db.from("staffing_batches")
+      .select("university_name, university_slug")
+      .eq("id", outreach.batch_id)
+      .single(),
+  ]);
+
+  if (!provider) throw new Error("Provider not found");
+  if (!batch) throw new Error("Batch not found");
+
+  const serviceArea = getServiceArea(batch.university_slug);
+
+  // Start the Resend automation
+  const result = await startEmailSequence({
+    email: newEmail,
+    outreachId: outreach.id,
+    providerId: outreach.provider_id,
+    providerName: provider.provider_name,
+    universityName: batch.university_name,
+    serviceArea,
+    batchId: outreach.batch_id,
+  });
+
+  if (!result.success) {
+    throw new Error(result.error || "Failed to start email sequence");
+  }
+
+  // Update to sequencing status
+  const now = new Date().toISOString();
+  const isMockMode = isResendMockMode();
+  await db
+    .from("staffing_outreach")
+    .update({
+      status: "sequencing",
+      sequence_started_at: now,
+      ...(isMockMode && { email1_sent_at: now }),
+      resend_automation_id: result.contactId,
+      sequence_email: newEmail,
+      next_action_due_at: new Date(Date.now() + 6 * 86400_000).toISOString(),
+      updated_at: now,
+    })
+    .eq("id", outreach.id);
+
+  // Log touchpoint
+  await insertTouchpoint(outreach.id, "sequence_started", userId, "Restarted sequence with updated email", {
+    recipient_email: newEmail,
+    resend_contact_id: result.contactId,
+    from_status: outreach.status,
+    restart: true,
+  });
 }
 
 /**

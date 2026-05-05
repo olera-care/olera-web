@@ -84,5 +84,7 @@ export function variantSurfaceLabel(variant: IntakeVariant): string {
       return "Empathic framing";
     case "outreach":
       return "AI agent outreach";
+    case "qa_email_capture":
+      return "Q&A email capture (no SBF)";
   }
 }

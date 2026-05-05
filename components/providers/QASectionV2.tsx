@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Star } from "@phosphor-icons/react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useSavedProviders, type SaveProviderData } from "@/hooks/use-saved-providers";
+import InlineAnswerCard from "@/components/providers/InlineAnswerCard";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
-import { isPreviewMode } from "@/lib/analytics/preview-mode";
-import { useIntakeVariant } from "@/hooks/use-intake-variant";
-import { getCategoryDisplayName, type ProviderCardData } from "@/lib/types/provider";
+import type { IntakeVariant } from "@/lib/analytics/variant";
 
 interface QAEntry {
   id?: string;
@@ -23,7 +22,9 @@ interface QASectionProps {
   providerId: string;
   providerName: string;
   providerImage?: string;
-  providerCity?: string | null;
+  providerSlug?: string;
+  providerLocation?: string;
+  providerCareTypes?: string[];
   questions?: QAEntry[];
   suggestedQuestions?: string[];
   // When true, the page has a benefits discovery module below Q&A.
@@ -31,25 +32,10 @@ interface QASectionProps {
   // because the benefits intake is the stronger conversion path — it
   // captures name + email + a full profile rather than just an email.
   // The spotlight handoff then owns the post-submit moment.
-  //
-  // OVERRIDDEN by qa_email_capture variant (5th arm, since 2026-05-05): when
-  // the visitor's session is in that arm, this prop is ignored and enrichment
-  // is forced ON. The arm tests whether SBF was cannibalizing email capture.
   hasBenefitsSection?: boolean;
-  /** Top 3 providers in the same city + category (already excludes this
-   *  provider). Computed server-side via getTopProvidersByCityAndCategory.
-   *  Used by the qa_email_capture arm's enrichment prompt to surface
-   *  "Top 3 [Category] in [City]" cards inline as preview-before-email.
-   *  Pass the same array provider page passes to AgentOutreachSlot. Empty
-   *  array is fine — fallback copy renders. */
-  alternativeProviders?: ProviderCardData[];
-  /** Display-ready provider category, used in the qa_email_capture arm's
-   *  headline for specificity ("Top 3 Assisted Living in [City]" vs the
-   *  generic "Top 3 in [City]"). Pass the same value the provider page
-   *  passes to AgentOutreachSlot's `category` prop (i.e., the resolved
-   *  PROFILE_CAT_TO_SUPABASE_CAT lookup). null falls back gracefully to
-   *  the generic headline. */
-  providerCategory?: string | null;
+  // Variant for A/B test — determines which experience to render.
+  // "inline_answer" variant shows expanded answer + email capture inline.
+  variant?: IntakeVariant;
 }
 
 // More menu icon component
@@ -126,7 +112,9 @@ export default function QASectionV2({
   providerId,
   providerName,
   providerImage,
-  providerCity,
+  providerSlug,
+  providerLocation = "",
+  providerCareTypes = [],
   questions: initialQuestions = [],
   suggestedQuestions = [
     "What services do you provide?",
@@ -135,10 +123,10 @@ export default function QASectionV2({
     "Do you accept insurance or Medicaid?",
   ],
   hasBenefitsSection = false,
-  alternativeProviders = [],
-  providerCategory = null,
+  variant,
 }: QASectionProps) {
-  const { user } = useAuth();
+  const { user, openAuth } = useAuth();
+  const { toggleSave } = useSavedProviders();
   const [inputValue, setInputValue] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const [questions, setQuestions] = useState<QAEntry[]>(initialQuestions);
@@ -156,40 +144,11 @@ export default function QASectionV2({
   const [guestError, setGuestError] = useState("");
   const [enriching, setEnriching] = useState(false);
 
-  // ─── Intake variant detection (5-arm A/B since 2026-05-05) ───────────────
-  // Reads from the shared useIntakeVariant hook so this component agrees with
-  // IntakeVariantSlots (and any future caller) on which arm a session is in
-  // — single source of truth for the dial-controlled allocation. Returns
-  // null until the weights fetch resolves; SSR renders without variant
-  // knowledge, post-mount the assignment lands. The qa_email_capture arm
-  // overrides hasBenefitsSection to false (forces enrichment on) AND fires
-  // an impression event for funnel comparison.
-  const variant = useIntakeVariant();
-  const variantImpressionFiredRef = useRef(false);
-  useEffect(() => {
-    if (variant !== "qa_email_capture" || variantImpressionFiredRef.current) return;
-    variantImpressionFiredRef.current = true;
-    // Admin preview mode: skip the impression so inspection doesn't pollute
-    // the qa_email_capture funnel. variant is still set, so the UI renders.
-    if (isPreviewMode()) return;
-    const sid = getOrCreateSessionId();
-    void fetch("/api/activity/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        actor_type: "family",
-        event_type: "qa_email_capture_impression",
-        related_provider_id: providerId,
-        metadata: { session_id: sid, variant: "qa_email_capture" },
-      }),
-      keepalive: true,
-    }).catch(() => {});
-  }, [variant, providerId]);
-
-  // Effective hasBenefitsSection: true qa_email_capture overrides the prop.
-  // Pre-mount (variant === null) we trust the prop so SSR matches.
-  const isQaCaptureArm = variant === "qa_email_capture";
-  const effectiveHasBenefitsSection = isQaCaptureArm ? false : hasBenefitsSection;
+  // Inline answer variant state (accordion-style expansion)
+  const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
+  const [inlineSubmitting, setInlineSubmitting] = useState(false);
+  const [inlineSuccess, setInlineSuccess] = useState(false);
+  const isInlineAnswerVariant = variant === "inline_answer";
 
   // Edit question state
   const [editingQuestion, setEditingQuestion] = useState<QAEntry | null>(null);
@@ -235,12 +194,6 @@ export default function QASectionV2({
   const submitQuestion = useCallback(async (questionText: string, suggestionIndex?: number) => {
     if (!questionText.trim()) return;
 
-    // Admin preview mode: silent no-op. The page's PreviewModeBanner
-    // already tells the operator submissions are disabled — re-stating it
-    // via an error toast would conflict with "Something went wrong" which
-    // implies system failure, not intentional preview behavior.
-    if (isPreviewMode()) return;
-
     setSubmitting(true);
     setSubmitStatus("idle");
     if (suggestionIndex !== undefined) setTappedIndex(suggestionIndex);
@@ -267,11 +220,10 @@ export default function QASectionV2({
         setQuestions((prev) => [data.question, ...prev]);
 
         // For guests: show enrichment prompt after successful submit.
-        // SKIP when the page has a benefits module (in arms other than
-        // qa_email_capture) — the benefits spotlight handoff owns the
-        // post-submit moment and captures email as part of its intake.
-        // qa_email_capture arm forces enrichment ON via effectiveHasBenefitsSection.
-        if (!user && data.question.id && !effectiveHasBenefitsSection) {
+        // SKIP when the page has a benefits module — the benefits spotlight
+        // handoff owns the post-submit moment and captures email as part of
+        // its intake. Showing both fights for focus and scroll position.
+        if (!user && data.question.id && !hasBenefitsSection) {
           setEnrichQuestionId(data.question.id);
           setShowEnrichment(true);
         }
@@ -305,7 +257,7 @@ export default function QASectionV2({
     } finally {
       setSubmitting(false);
     }
-  }, [providerId, user, honeypot, effectiveHasBenefitsSection]);
+  }, [providerId, user, honeypot, hasBenefitsSection]);
 
   // Handle submit from chat bar
   const handleChatSubmit = () => {
@@ -316,8 +268,6 @@ export default function QASectionV2({
   // Enrich anonymous question with email (optional, post-submit)
   const handleEnrich = async () => {
     if (!enrichQuestionId) return;
-    // Admin preview mode: silent no-op (matches submitQuestion behavior).
-    if (isPreviewMode()) return;
     setGuestError("");
 
     // Honeypot
@@ -347,7 +297,6 @@ export default function QASectionV2({
         body: JSON.stringify({
           id: enrichQuestionId,
           asker_email: guestEmail.trim().toLowerCase(),
-          session_id: getOrCreateSessionId(),
         }),
       });
     } catch {
@@ -367,6 +316,95 @@ export default function QASectionV2({
     setGuestEmail("");
     setTimeout(() => { setSubmitStatus("idle"); setTappedIndex(null); }, 2000);
   };
+
+  // ─── Inline Answer Variant Handlers ────────────────────────────────────────
+
+  const handleInlineQuestionTap = useCallback(async (questionText: string, index: number) => {
+    if (!isInlineAnswerVariant) return;
+
+    // Accordion: collapse current if tapping the same question
+    if (expandedQuestion === questionText) {
+      setExpandedQuestion(null);
+      return;
+    }
+
+    // First, submit the question (existing behavior)
+    submitQuestion(questionText, index);
+
+    // Then expand the inline answer card
+    setExpandedQuestion(questionText);
+    setInlineSuccess(false);
+  }, [isInlineAnswerVariant, expandedQuestion, submitQuestion]);
+
+  const handleInlineEmailSubmit = useCallback(async (email: string) => {
+    if (!expandedQuestion) return;
+
+    setInlineSubmitting(true);
+
+    try {
+      // Capture email via dedicated inline-answer endpoint (handles user creation + welcome email)
+      const captureRes = await fetch("/api/inline-answer/capture-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          providerId,
+          providerName,
+          questionText: expandedQuestion,
+          sessionId: getOrCreateSessionId(),
+        }),
+      });
+
+      if (!captureRes.ok) {
+        const data = await captureRes.json();
+        console.error("[inline-answer] capture-email failed:", data.error);
+        // Don't throw - still show success state as the tracking event fired
+      }
+
+      // Track conversion (fire-and-forget)
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          event_type: "inline_answer_converted",
+          related_provider_id: providerId,
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            question_text: expandedQuestion,
+            email,
+            variant: "inline_answer",
+          },
+        }),
+        keepalive: true,
+      }).catch(() => {});
+
+      setInlineSuccess(true);
+    } catch (err) {
+      console.error("[inline-answer] email submit error:", err);
+    } finally {
+      setInlineSubmitting(false);
+    }
+  }, [expandedQuestion, providerId, providerName]);
+
+  const handleInlineSave = useCallback(() => {
+    const saveData: SaveProviderData = {
+      providerId,
+      slug: providerSlug || providerId,
+      name: providerName,
+      location: providerLocation,
+      careTypes: providerCareTypes,
+      image: providerImage || null,
+    };
+    toggleSave(saveData);
+    // Collapse the card after saving
+    setExpandedQuestion(null);
+  }, [providerId, providerSlug, providerName, providerLocation, providerCareTypes, providerImage, toggleSave]);
+
+  const handleInlineCollapse = useCallback(() => {
+    setExpandedQuestion(null);
+    setInlineSuccess(false);
+  }, []);
 
   const handleEditSubmit = async () => {
     if (!editingQuestion?.id || !editValue.trim() || editSubmitting) return;
@@ -582,207 +620,13 @@ export default function QASectionV2({
             </div>
           </div>
 
-          {/* Guest enrichment — qa_email_capture arm gets a redesigned compact
-              prompt with 3 inline provider cards as preview-before-email.
-              Other arms (rare: only when hasBenefitsSection=false) keep the
-              original gray-box prompt for backwards compat. */}
-          {showEnrichment && isQaCaptureArm && (
-            <>
-              {alternativeProviders.length > 0 ? (
-                <div className="mt-4 pt-6 border-t border-zinc-100">
-                  {/* Headline — "Top N [Category] in [City]" implies curation
-                      (we ranked them), specificity (this kind of care) and
-                      relevance (where the user is). Category falls through
-                      cleanly when missing, leaving "Top N in [City]". */}
-                  <h3 className="text-[20px] md:text-2xl font-semibold text-zinc-900 tracking-tight leading-tight">
-                    Top {alternativeProviders.length}
-                    {providerCategory ? ` ${getCategoryDisplayName(providerCategory)}` : ""}
-                    {providerCity ? ` in ${providerCity}` : " nearby"}.
-                  </h3>
-                  {/* Sub-line surfaces the dual-promise that's otherwise
-                      only visible in the success-confirmation block above.
-                      Without this, users miss that this email ALSO notifies
-                      them when [Provider] replies. */}
-                  <p className="mt-1.5 text-[13px] text-zinc-500">
-                    Plus, we&apos;ll email when {providerName} replies.
-                  </p>
-
-                  {/* Compact text-only cards. No images. Each card is one
-                      provider's name + a single metadata line (rating,
-                      reviews, city). Mobile-first: stacked vertically, each
-                      ~50-55px tall. Three cards = ~165px total. Cards open
-                      in new tab so the form survives a click-through. */}
-                  <ul className="mt-3 space-y-1.5">
-                    {alternativeProviders.slice(0, 3).map((alt) => {
-                      const metaParts: string[] = [];
-                      if (alt.rating > 0) {
-                        metaParts.push(
-                          alt.reviewCount && alt.reviewCount > 0
-                            ? `${alt.rating.toFixed(1)} (${alt.reviewCount})`
-                            : alt.rating.toFixed(1),
-                        );
-                      }
-                      if (alt.address) metaParts.push(alt.address);
-                      return (
-                        <li key={alt.id}>
-                          <a
-                            href={`/provider/${alt.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block rounded-lg border border-zinc-200 bg-white px-3.5 py-2.5 hover:border-zinc-300 transition"
-                          >
-                            <div className="text-[14px] font-medium text-zinc-900 leading-snug truncate">
-                              {alt.name}
-                            </div>
-                            <div className="mt-0.5 flex items-center gap-1 text-[12px] text-zinc-500 truncate">
-                              {alt.rating > 0 && (
-                                <Star size={11} weight="fill" className="text-amber-500 shrink-0" />
-                              )}
-                              <span className="truncate">{metaParts.join(" · ")}</span>
-                            </div>
-                          </a>
-                        </li>
-                      );
-                    })}
-                  </ul>
-
-                  {/* Email + CTA. Mobile-first: stacked, full-width. md:+
-                      collapses to a row. Black CTA — Linear-style maximum
-                      contrast. */}
-                  <div className="mt-4 flex flex-col sm:flex-row gap-2">
-                    <input
-                      type="email"
-                      value={guestEmail}
-                      onChange={(e) => setGuestEmail(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter" && !enriching) { e.preventDefault(); handleEnrich(); } }}
-                      placeholder="your@email.com"
-                      autoComplete="email"
-                      inputMode="email"
-                      autoFocus
-                      className={`flex-1 min-w-0 px-4 py-3 border rounded-lg text-[15px] text-zinc-900 placeholder-zinc-400 bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 transition ${
-                        guestError ? "border-red-300" : "border-zinc-300"
-                      }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleEnrich}
-                      disabled={enriching || !guestEmail.trim()}
-                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 px-5 py-3 text-[15px] font-semibold text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      {enriching && (
-                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      )}
-                      Email me these
-                    </button>
-                  </div>
-
-                  {/* Honeypot */}
-                  <input
-                    type="text"
-                    name="website"
-                    value={honeypot}
-                    onChange={(e) => setHoneypot(e.target.value)}
-                    style={{ display: "none" }}
-                    tabIndex={-1}
-                    autoComplete="off"
-                    aria-hidden="true"
-                  />
-
-                  {guestError ? (
-                    <p className="mt-2 text-[12px] text-red-500" role="alert">{guestError}</p>
-                  ) : (
-                    <p className="mt-2 text-[12px] text-zinc-500">Free. No spam.</p>
-                  )}
-
-                  <div className="mt-4 text-center">
-                    <button
-                      type="button"
-                      onClick={handleDismissEnrichment}
-                      className="text-[12px] text-zinc-400 hover:text-zinc-600 transition"
-                    >
-                      Skip
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                /* Empty-alternatives fallback — small cities / rare categories
-                   where the helper returns 0 candidates. Drop the cards
-                   framing; lean on the reply-notification value alone. */
-                <div className="mt-4 pt-6 border-t border-zinc-100">
-                  <h3 className="text-[20px] md:text-2xl font-semibold text-zinc-900 tracking-tight leading-tight">
-                    Save your spot.
-                  </h3>
-                  <p className="mt-1.5 text-[14px] text-zinc-600">
-                    We&apos;ll email when {providerName} replies.
-                  </p>
-
-                  <div className="mt-4 flex flex-col sm:flex-row gap-2">
-                    <input
-                      type="email"
-                      value={guestEmail}
-                      onChange={(e) => setGuestEmail(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter" && !enriching) { e.preventDefault(); handleEnrich(); } }}
-                      placeholder="your@email.com"
-                      autoComplete="email"
-                      inputMode="email"
-                      autoFocus
-                      className={`flex-1 min-w-0 px-4 py-3 border rounded-lg text-[15px] text-zinc-900 placeholder-zinc-400 bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 transition ${
-                        guestError ? "border-red-300" : "border-zinc-300"
-                      }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleEnrich}
-                      disabled={enriching || !guestEmail.trim()}
-                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 px-5 py-3 text-[15px] font-semibold text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      {enriching && (
-                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      )}
-                      Send
-                    </button>
-                  </div>
-
-                  <input
-                    type="text"
-                    name="website"
-                    value={honeypot}
-                    onChange={(e) => setHoneypot(e.target.value)}
-                    style={{ display: "none" }}
-                    tabIndex={-1}
-                    autoComplete="off"
-                    aria-hidden="true"
-                  />
-
-                  {guestError ? (
-                    <p className="mt-2 text-[12px] text-red-500" role="alert">{guestError}</p>
-                  ) : (
-                    <p className="mt-2 text-[12px] text-zinc-500">Free. No spam.</p>
-                  )}
-
-                  <div className="mt-4 text-center">
-                    <button
-                      type="button"
-                      onClick={handleDismissEnrichment}
-                      className="text-[12px] text-zinc-400 hover:text-zinc-600 transition"
-                    >
-                      Skip
-                    </button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Legacy enrichment prompt — preserved for non-qa_email_capture
-              arms that hit !hasBenefitsSection (rare: pages without benefits
-              data). Unchanged so the experiment stays clean. */}
-          {showEnrichment && !isQaCaptureArm && (
+          {/* Guest enrichment — single email field */}
+          {showEnrichment && (
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
               <p className="text-[14px] font-medium text-gray-800 mb-1">
                 Get notified when they reply
               </p>
-              <p className="text-[12px] text-gray-500 mb-3">
+              <p className="text-[12px] text-gray-400 mb-3">
                 We&apos;ll email you — nothing else.
               </p>
 
@@ -845,32 +689,54 @@ export default function QASectionV2({
             <div className="space-y-2 mb-4">
               {suggestedQuestions.map((q, i) => {
                 const isTapped = tappedIndex === i;
+                const isExpanded = isInlineAnswerVariant && expandedQuestion === q;
+                const isOtherExpanded = isInlineAnswerVariant && expandedQuestion && expandedQuestion !== q;
+
                 return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => {
-                      if (submitting) return;
-                      submitQuestion(q, i);
-                    }}
-                    disabled={submitting}
-                    className={`group/card w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all duration-150 cursor-pointer disabled:cursor-default ${
-                      isTapped
-                        ? "bg-primary-50 border-primary-200"
-                        : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-[0.99]"
-                    }`}
-                  >
-                    <span className={`text-[15px] leading-snug flex-1 ${
-                      isTapped ? "text-primary-700 font-medium" : "text-gray-700 font-medium"
-                    }`}>
-                      {q}
-                    </span>
-                    {isTapped && submitting ? (
-                      <span className="w-4 h-4 border-2 border-primary-300 border-t-primary-600 rounded-full animate-spin shrink-0" />
-                    ) : (
-                      <ArrowIcon />
+                  <div key={i}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (submitting) return;
+                        if (isInlineAnswerVariant) {
+                          handleInlineQuestionTap(q, i);
+                        } else {
+                          submitQuestion(q, i);
+                        }
+                      }}
+                      disabled={submitting}
+                      className={`group/card w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all duration-150 cursor-pointer disabled:cursor-default ${
+                        isTapped || isExpanded
+                          ? "bg-primary-50 border-primary-200"
+                          : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-[0.99]"
+                      } ${isOtherExpanded ? "opacity-50" : ""} ${isExpanded ? "hidden" : ""}`}
+                    >
+                      <span className={`text-[15px] leading-snug flex-1 ${
+                        isTapped || isExpanded ? "text-primary-700 font-medium" : "text-gray-700 font-medium"
+                      }`}>
+                        {q}
+                      </span>
+                      {isTapped && submitting ? (
+                        <span className="w-4 h-4 border-2 border-primary-300 border-t-primary-600 rounded-full animate-spin shrink-0" />
+                      ) : (
+                        <ArrowIcon />
+                      )}
+                    </button>
+
+                    {/* Inline Answer Card (inline_answer variant only) */}
+                    {isExpanded && (
+                      <InlineAnswerCard
+                        question={q}
+                        providerName={providerName}
+                        providerId={providerId}
+                        onEmailSubmit={handleInlineEmailSubmit}
+                        onSave={handleInlineSave}
+                        onCollapse={handleInlineCollapse}
+                        isSubmitting={inlineSubmitting}
+                        isSuccess={inlineSuccess}
+                      />
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>

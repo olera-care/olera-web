@@ -1,37 +1,33 @@
 // Deterministic variant assignment for the SBF intake A/B test on provider
 // pages. Pure function: same sessionId always returns the same arm, so a user
 // sees the same variant for the lifetime of their session cookie (30 days per
-// lib/analytics/session.ts).
+// lib/analytics/session.ts). No infra; no flag service; no admin UI.
 //
 // Hash: djb2. Cheap, no dep, well-distributed for short strings like UUIDs.
 //
 // ─── 5-arm IntakeVariant (canonical, since 2026-05-05) ──────────────────────
-// Adds a "qa_email_capture" arm on top of the existing 4. Sessions in this arm
-// see NO benefits / outreach module on the provider page; instead the Q&A
-// section's post-submit guest enrichment prompt is enabled (it's normally
-// suppressed when SBF is on the page) with an upgraded value-promise. Tests
-// the hypothesis that the SBF on provider pages was cannibalizing Q&A's email
-// capture instead of complementing it. See plans/family-acquisition-radical-ideas.md.
+// Adds "inline_answer" arm to the existing 4-arm A/B. The 20% in the
+// inline_answer arm see an inline Q&A experience: when tapping a suggested
+// question, it expands with a template answer + email capture, without
+// leaving the page. Tests inline conversion vs the benefits module handoff.
 //
-//   availability     — "There's help paying for care in {state}."   (benefits, positive)
-//   loss             — "Most {state} families miss out on help…"     (benefits, loss)
-//   empathic         — "Care is expensive."                          (benefits, shared-truth)
-//   outreach         — "Don't know which one to trust?" (H1 demand test, care-team framing)
-//   qa_email_capture — Q&A enrichment ON, SBF / outreach OFF.        (qa-first email capture)
+//   availability   — "There's help paying for care in {state}." (benefits, positive)
+//   loss           — "Most {state} families miss out on help…"   (benefits, loss)
+//   empathic       — "Care is expensive."                        (benefits, shared-truth)
+//   outreach       — "Have an AI agent contact the top providers." (H1 demand test)
+//   inline_answer  — Inline Q&A answer expansion with email capture (H2 inline UX test)
 //
-// Page-level routing decides which surface renders. BenefitsDiscoveryModule,
-// AgentOutreachModule, and QASectionV2's enrichment prompt are mutually
-// exclusive across the 5 arms.
+// Mod 5 → 0/1/2/3/4 mapped to availability/loss/empathic/outreach/inline_answer.
+// Page-level routing decides which module to render; BenefitsDiscoveryModule,
+// AgentOutreachModule, and the inline Q&A experience are mutually exclusive.
 //
-// ─── Allocation (since 2026-05-05) ──────────────────────────────────────────
-// Allocation is no longer a hardcoded equal split. Live percentages come from
-// the experiment_weights table (one row per experiment, edited via the dial
-// in /admin/analytics). assignIntakeVariantWeighted reads the weights and
-// version number, walks a cumulative-bucket lookup over [0, 1), and returns
-// the picked arm. assignIntakeVariant is kept for the few legacy callers that
-// still need an equal-split fallback (BenefitsDiscoveryModule's mod-3 V3 copy
-// A/B continues to use its own assignBenefitsVariant — gcd(3, N) = 1 keeps
-// the two splits uncorrelated for any N coprime with 3, including 5).
+// ─── 3-arm BenefitsVariant (legacy, kept for in-flight V3 caller) ───────────
+// BenefitsDiscoveryModule still assigns its own variant via assignBenefitsVariant
+// for the 3-arm V3 SBF copy A/B. Task 5 of the agent-outreach plan will lift
+// variant assignment to the page (single source of truth) and remove the legacy
+// 3-arm function. Until then, the two APIs coexist; routing logic that needs
+// to choose between BenefitsDiscoveryModule, AgentOutreachModule, and the
+// inline answer experience must call assignIntakeVariant (mod 5).
 //
 // V3 rename history (2026-04-30): replaced the old "control" | "money_loss"
 // 2-arm copy A/B with the 3-arm test on the rebuilt 2-step embedded SBF. Each
@@ -40,44 +36,15 @@
 // Live copy strings + per-variant performance tracked in Notion:
 //   https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d
 
-/**
- * Canonical list of intake-variant arms. The array is the source of
- * truth — IntakeVariant derives from it via `as const`, and the
- * weights helper, admin UI, and assignment logic all iterate this list
- * rather than hardcoding individual arm names. Adding a new arm is a
- * one-line append here (plus a copy entry in variant-copy.ts and an
- * updated default-weights map below — TypeScript will flag both).
- */
-export const INTAKE_VARIANTS = [
-  "availability",
-  "loss",
-  "empathic",
-  "outreach",
-  "qa_email_capture",
-] as const;
+export type IntakeVariant = "availability" | "loss" | "empathic" | "outreach" | "inline_answer";
 
-export type IntakeVariant = (typeof INTAKE_VARIANTS)[number];
+/** Narrow alias for the 3 benefits-copy arms. Excludes the outreach arm and
+ *  inline_answer arm because the BenefitsDiscoveryModule never legitimately
+ *  renders for them. */
+export type BenefitsVariant = Exclude<IntakeVariant, "outreach" | "inline_answer">;
 
-/** Narrow alias for the benefits-copy arms. Excludes outreach because the
- *  BenefitsDiscoveryModule never legitimately renders for it, and
- *  qa_email_capture because that arm suppresses the SBF entirely. */
-export type BenefitsVariant = Exclude<IntakeVariant, "outreach" | "qa_email_capture">;
-
+const INTAKE_VARIANTS: IntakeVariant[] = ["availability", "loss", "empathic", "outreach", "inline_answer"];
 const BENEFITS_VARIANTS: BenefitsVariant[] = ["availability", "loss", "empathic"];
-
-/** Default equal split. Used when the experiment_weights row is missing
- *  or unreadable (DB hiccup, env not wired, etc.) so the page always
- *  renders something instead of going dark. Adding a new arm requires
- *  updating this map — TypeScript will flag the missing entry. */
-export const INTAKE_VARIANT_DEFAULT_WEIGHTS: Record<IntakeVariant, number> = {
-  availability: 20,
-  loss: 20,
-  empathic: 20,
-  outreach: 20,
-  qa_email_capture: 20,
-};
-
-export type IntakeWeightMap = Partial<Record<IntakeVariant, number>>;
 
 function djb2(str: string): number {
   let hash = 5381;
@@ -88,54 +55,11 @@ function djb2(str: string): number {
   return hash >>> 0; // coerce to unsigned 32-bit
 }
 
-/** Equal-split assignment across the canonical arms. Kept for callers
- *  that haven't been wired to the weighted path yet (e.g. legacy
- *  assignBenefitsVariant). New code should use assignIntakeVariantWeighted
- *  at the page-level routing point. */
+/** Canonical 5-arm assignment. Use this at the page-level routing point to
+ *  choose between BenefitsDiscoveryModule, AgentOutreachModule, and the
+ *  inline Q&A answer experience. */
 export function assignIntakeVariant(sessionId: string): IntakeVariant {
-  return INTAKE_VARIANTS[djb2(sessionId) % INTAKE_VARIANTS.length];
-}
-
-/**
- * Weighted assignment. Given a per-variant percentage map and a config
- * version, returns the arm this session falls into.
- *
- * `weights`: dict of variant → integer 0-100. Missing keys default to 0
- *   (arm is dark). Sum is expected to be 100 but the function is robust
- *   to drift — it normalizes against the actual sum, so e.g. {a:50,b:50}
- *   and {a:1,b:1} both yield a 50/50 split. If the sum is 0 (every arm
- *   zeroed out, malformed row, etc.) we fall back to equal split across
- *   the canonical arms rather than going dark.
- *
- * `version`: namespaced into the hash so a deliberate weight change
- *   reshuffles returning sessions in one cut. Same sessionId + same
- *   version always returns the same arm.
- */
-export function assignIntakeVariantWeighted(
-  sessionId: string,
-  weights: IntakeWeightMap,
-  version: number,
-): IntakeVariant {
-  const total = INTAKE_VARIANTS.reduce((sum, v) => sum + Math.max(0, weights[v] ?? 0), 0);
-  if (total <= 0) return INTAKE_VARIANTS[djb2(sessionId) % INTAKE_VARIANTS.length];
-
-  // djb2 → unsigned 32-bit → [0, 1). Stable across runs of the same
-  // (sessionId, version) input, which is what we need for stickiness.
-  const r = djb2(`${sessionId}:v${version}`) / 0x1_0000_0000;
-  const target = r * total;
-
-  let cumulative = 0;
-  for (const v of INTAKE_VARIANTS) {
-    cumulative += Math.max(0, weights[v] ?? 0);
-    if (target < cumulative) return v;
-  }
-  // Floating-point pinhole — target landed on or past the last bucket
-  // boundary. Pick the last variant with non-zero weight so the picked
-  // arm is one the operator actually wants traffic in.
-  for (let i = INTAKE_VARIANTS.length - 1; i >= 0; i--) {
-    if ((weights[INTAKE_VARIANTS[i]] ?? 0) > 0) return INTAKE_VARIANTS[i];
-  }
-  return INTAKE_VARIANTS[0];
+  return INTAKE_VARIANTS[djb2(sessionId) % 5];
 }
 
 /** Legacy 3-arm assignment — kept for BenefitsDiscoveryModule's in-component

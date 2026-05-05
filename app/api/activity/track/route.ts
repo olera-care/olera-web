@@ -50,6 +50,11 @@ const ANONYMOUS_EVENT_TYPES = [
   "search_click",
   "cta_click_public",
   "benefits_started",
+  // inline_answer variant A/B test events
+  "inline_answer_viewed",
+  "inline_answer_expanded",
+  "inline_answer_converted",
+  "inline_answer_saved",
 ] as const;
 
 function getServiceDb() {

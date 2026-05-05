@@ -133,10 +133,10 @@ type BenefitsFunnelByVariant = {
   availability: BenefitsVariantRow;
   loss: BenefitsVariantRow;
   empathic: BenefitsVariantRow;
-  outreach: BenefitsVariantRow;        // 4th arm: AI outreach module (H1 demand test)
-  qa_email_capture: BenefitsVariantRow; // 5th arm: Q&A enrichment ON, SBF off (since 2026-05-05)
-  control: BenefitsVariantRow;     // legacy V2
-  money_loss: BenefitsVariantRow;  // legacy V2
+  outreach: BenefitsVariantRow;       // 4th arm: AI outreach module (H1 demand test)
+  inline_answer: BenefitsVariantRow;  // 5th arm: inline Q&A answer expansion (H2 UX test)
+  control: BenefitsVariantRow;        // legacy V2
+  money_loss: BenefitsVariantRow;     // legacy V2
   unassigned: BenefitsVariantRow;
 };
 // Page-view referrer breakdown — counts page_view events by traffic class
@@ -242,10 +242,10 @@ const EMPTY_BENEFITS_FUNNEL_BY_VARIANT = (): BenefitsFunnelByVariant => ({
   availability: EMPTY_BENEFITS_FUNNEL(),
   loss: EMPTY_BENEFITS_FUNNEL(),
   empathic: EMPTY_BENEFITS_FUNNEL(),
-  outreach: EMPTY_BENEFITS_FUNNEL(),         // 4th arm
-  qa_email_capture: EMPTY_BENEFITS_FUNNEL(), // 5th arm
-  control: EMPTY_BENEFITS_FUNNEL(),     // legacy V2
-  money_loss: EMPTY_BENEFITS_FUNNEL(),  // legacy V2
+  outreach: EMPTY_BENEFITS_FUNNEL(),       // 4th arm
+  inline_answer: EMPTY_BENEFITS_FUNNEL(),  // 5th arm
+  control: EMPTY_BENEFITS_FUNNEL(),        // legacy V2
+  money_loss: EMPTY_BENEFITS_FUNNEL(),     // legacy V2
   unassigned: EMPTY_BENEFITS_FUNNEL(),
 });
 const EMPTY_REFERRER_BREAKDOWN = (): ReferrerBreakdown => ({
@@ -353,26 +353,29 @@ async function fetchWindow(
   if (from) benefitsQ = benefitsQ.gte("created_at", from);
   if (to) benefitsQ = benefitsQ.lt("created_at", to);
 
-  // Agent outreach 4th-arm + qa_email_capture 5th-arm funnel. Different
-  // table (seeker_activity), different shape from the SBF arms.
-  //   outreach          — impression → card click → submit
-  //   qa_email_capture  — impression → (question_asked from POST /api/questions)
-  //                       → question_email_enriched
-  // Both arm sets bucketed by event_type below; metadata.variant is set on
-  // qa_email_capture events but not strictly needed for bucketing.
+  // Agent outreach 4th-arm funnel. Different table (seeker_activity) and
+  // different shape — no middle steps, just impression → submission. Bucketed
+  // into the `outreach` variant row by definition (the events are unique to
+  // that arm, no metadata.variant needed).
   let outreachQ = db
     .from("seeker_activity")
     .select("event_type, metadata")
-    .in("event_type", [
-      "outreach_module_impression",
-      "outreach_card_clicked",
-      "outreach_request_submitted",
-      "qa_email_capture_impression",
-      "question_email_enriched",
-    ])
+    .in("event_type", ["outreach_module_impression", "outreach_card_clicked", "outreach_request_submitted"])
     .limit(50000);
   if (from) outreachQ = outreachQ.gte("created_at", from);
   if (to) outreachQ = outreachQ.lt("created_at", to);
+
+  // Inline answer 5th-arm funnel. Lives in provider_activity like benefits.
+  // Event types: inline_answer_viewed (impression), inline_answer_expanded
+  // (started), inline_answer_converted (submitted). Bucketed by metadata.variant
+  // = "inline_answer".
+  let inlineAnswerQ = db
+    .from("provider_activity")
+    .select("event_type, metadata")
+    .in("event_type", ["inline_answer_viewed", "inline_answer_expanded", "inline_answer_converted"])
+    .limit(50000);
+  if (from) inlineAnswerQ = inlineAnswerQ.gte("created_at", from);
+  if (to) inlineAnswerQ = inlineAnswerQ.lt("created_at", to);
 
   // SBF-tagged accounts created in the window. signup_source is set ONLY
   // by the SBF intake (provider mounts → '/provider/{slug}', editorial →
@@ -389,7 +392,7 @@ async function fetchWindow(
   if (from) accountsQ = accountsQ.gte("created_at", from);
   if (to) accountsQ = accountsQ.lt("created_at", to);
 
-  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes, benefitsRes, outreachRes, accountsRes] = await Promise.all([
+  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes, benefitsRes, outreachRes, inlineAnswerRes, accountsRes] = await Promise.all([
     providerQ,
     seekerQ,
     distinctQ,
@@ -398,6 +401,7 @@ async function fetchWindow(
     issuesEventsQ,
     benefitsQ,
     outreachQ,
+    inlineAnswerQ,
     accountsQ,
   ]);
 
@@ -407,6 +411,7 @@ async function fetchWindow(
   if (openersRes.error) return { error: "Q&A email openers query failed" };
   if (funnelRes.error) return { error: "Q&A funnel query failed" };
   if (outreachRes.error) return { error: "outreach funnel query failed" };
+  if (inlineAnswerRes.error) return { error: "inline_answer funnel query failed" };
   if (issuesEventsRes.error) return { error: "Q&A issues query failed" };
   if (benefitsRes.error) return { error: "benefits funnel query failed" };
   if (accountsRes.error) return { error: "accounts entry-source query failed" };
@@ -599,9 +604,9 @@ async function fetchWindow(
     | "availability"
     | "loss"
     | "empathic"
-    | "outreach"          // 4th arm
-    | "qa_email_capture"  // 5th arm (since 2026-05-05)
-    | "control"      // legacy V2
+    | "outreach"       // 4th arm
+    | "inline_answer"  // 5th arm
+    | "control"        // legacy V2
     | "money_loss"   // legacy V2
     | "unassigned";
   const emptyStages = (): Record<keyof BenefitsFunnel, Set<string>> => ({
@@ -618,7 +623,7 @@ async function fetchWindow(
     loss: emptyStages(),
     empathic: emptyStages(),
     outreach: emptyStages(),
-    qa_email_capture: emptyStages(),
+    inline_answer: emptyStages(),
     control: emptyStages(),
     money_loss: emptyStages(),
     unassigned: emptyStages(),
@@ -639,6 +644,7 @@ async function fetchWindow(
     "availability",
     "loss",
     "empathic",
+    "inline_answer",
     "control",
     "money_loss",
   ]);
@@ -666,42 +672,46 @@ async function fetchWindow(
     benefitsStageSets[stage].add(sid);
     benefitsByVariantSets[bucket][stage].add(sid);
   }
-  // Bucket outreach + qa_email_capture events by distinct session_id into
-  // their respective arm. These events are unique per arm (event_type IS
-  // the variant signal). Stage mapping mirrors the SBF arms so the funnel
-  // reads apples-to-apples on a shared impressions denominator:
-  //
-  //   outreach arm:
-  //     outreach_module_impression   → impressions  (passive: module rendered)
-  //     outreach_card_clicked        → started      (first interactive action)
-  //     outreach_request_submitted   → saved        (form submitted)
-  //
-  //   qa_email_capture arm:
-  //     qa_email_capture_impression  → impressions  (Q&A section rendered for arm)
-  //     question_email_enriched      → saved        (email captured post-question)
-  //     no `started` middle stage; arm collapses impressions → saved
+  // Bucket outreach events by distinct session_id into the "outreach" arm.
+  // These events are unique to that arm (no metadata.variant needed — the
+  // event_type is the variant). Stage mapping mirrors the benefits arms so
+  // the funnel reads apples-to-apples:
+  //   outreach_module_impression  → impressions  (passive: module rendered)
+  //   outreach_card_clicked       → started      (first interactive action)
+  //   outreach_request_submitted  → saved        (form submitted)
   for (const r of (outreachRes.data ?? []) as Array<{
     event_type: string;
     metadata: Record<string, unknown> | null;
   }>) {
-    const sid = typeof r.metadata?.session_id === "string" ? r.metadata.session_id : null;
-    if (r.event_type === "outreach_module_impression") {
-      if (sid) benefitsByVariantSets.outreach.impressions.add(sid);
-    } else if (r.event_type === "outreach_card_clicked") {
-      if (sid) benefitsByVariantSets.outreach.started.add(sid);
-    } else if (r.event_type === "outreach_request_submitted") {
-      if (sid) benefitsByVariantSets.outreach.saved.add(sid);
-    } else if (r.event_type === "qa_email_capture_impression") {
-      if (sid) benefitsByVariantSets.qa_email_capture.impressions.add(sid);
-    } else if (r.event_type === "question_email_enriched") {
-      // The PATCH route doesn't carry session_id (no client involvement at
-      // that point). Use question_id as the dedup key — each question's
-      // enrichment counts once per question, which is the right unit for
-      // this arm. Fall back to a generated key if both are missing (rare).
-      const qid = typeof r.metadata?.question_id === "string" ? r.metadata.question_id : null;
-      const key = qid || sid || `${r.event_type}-${Math.random()}`;
-      benefitsByVariantSets.qa_email_capture.saved.add(key);
-    }
+    const sid = r.metadata?.session_id;
+    if (typeof sid !== "string" || !sid) continue;
+    const stage: keyof BenefitsFunnel | undefined =
+      r.event_type === "outreach_module_impression" ? "impressions"
+      : r.event_type === "outreach_card_clicked" ? "started"
+      : r.event_type === "outreach_request_submitted" ? "saved"
+      : undefined;
+    if (!stage) continue;
+    benefitsByVariantSets.outreach[stage].add(sid);
+  }
+
+  // Inline answer 5th-arm: same structure as outreach but lives in
+  // provider_activity. Event mapping:
+  //   inline_answer_viewed     → impressions  (passive: module rendered)
+  //   inline_answer_expanded   → started      (first interactive action)
+  //   inline_answer_converted  → saved        (email submitted)
+  for (const r of (inlineAnswerRes.data ?? []) as Array<{
+    event_type: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    const sid = r.metadata?.session_id;
+    if (typeof sid !== "string" || !sid) continue;
+    const stage: keyof BenefitsFunnel | undefined =
+      r.event_type === "inline_answer_viewed" ? "impressions"
+      : r.event_type === "inline_answer_expanded" ? "started"
+      : r.event_type === "inline_answer_converted" ? "saved"
+      : undefined;
+    if (!stage) continue;
+    benefitsByVariantSets.inline_answer[stage].add(sid);
   }
 
   // Top-line funnel = the 3 benefits arms only (the embedded form). The
@@ -730,7 +740,7 @@ async function fetchWindow(
     loss: sizesFor("loss"),
     empathic: sizesFor("empathic"),
     outreach: sizesFor("outreach"),
-    qa_email_capture: sizesFor("qa_email_capture"),
+    inline_answer: sizesFor("inline_answer"),
     control: sizesFor("control"),
     money_loss: sizesFor("money_loss"),
     unassigned: sizesFor("unassigned"),

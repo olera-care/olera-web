@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { assignIntakeVariant, type IntakeVariant } from "@/lib/analytics/variant";
 
 interface QAEntry {
   id?: string;
@@ -18,6 +20,7 @@ interface QASectionProps {
   providerId: string;
   providerName: string;
   providerImage?: string;
+  providerCity?: string | null;
   questions?: QAEntry[];
   suggestedQuestions?: string[];
   // When true, the page has a benefits discovery module below Q&A.
@@ -25,6 +28,10 @@ interface QASectionProps {
   // because the benefits intake is the stronger conversion path — it
   // captures name + email + a full profile rather than just an email.
   // The spotlight handoff then owns the post-submit moment.
+  //
+  // OVERRIDDEN by qa_email_capture variant (5th arm, since 2026-05-05): when
+  // the visitor's session is in that arm, this prop is ignored and enrichment
+  // is forced ON. The arm tests whether SBF was cannibalizing email capture.
   hasBenefitsSection?: boolean;
 }
 
@@ -102,6 +109,7 @@ export default function QASectionV2({
   providerId,
   providerName,
   providerImage,
+  providerCity,
   questions: initialQuestions = [],
   suggestedQuestions = [
     "What services do you provide?",
@@ -128,6 +136,38 @@ export default function QASectionV2({
   const [honeypot, setHoneypot] = useState("");
   const [guestError, setGuestError] = useState("");
   const [enriching, setEnriching] = useState(false);
+
+  // ─── Intake variant detection (5-arm A/B since 2026-05-05) ───────────────
+  // Client-side because session ID lives in localStorage. SSR renders without
+  // variant knowledge (variant === null), then post-mount we resolve it. The
+  // qa_email_capture arm overrides hasBenefitsSection to false (forces
+  // enrichment on) AND fires an impression event for funnel comparison.
+  const [variant, setVariant] = useState<IntakeVariant | null>(null);
+  const variantImpressionFiredRef = useRef(false);
+  useEffect(() => {
+    const sid = getOrCreateSessionId();
+    const v = assignIntakeVariant(sid);
+    setVariant(v);
+    if (v === "qa_email_capture" && !variantImpressionFiredRef.current) {
+      variantImpressionFiredRef.current = true;
+      void fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "family",
+          event_type: "qa_email_capture_impression",
+          related_provider_id: providerId,
+          metadata: { session_id: sid, variant: "qa_email_capture" },
+        }),
+        keepalive: true,
+      }).catch(() => {});
+    }
+  }, [providerId]);
+
+  // Effective hasBenefitsSection: true qa_email_capture overrides the prop.
+  // Pre-mount (variant === null) we trust the prop so SSR matches.
+  const isQaCaptureArm = variant === "qa_email_capture";
+  const effectiveHasBenefitsSection = isQaCaptureArm ? false : hasBenefitsSection;
 
   // Edit question state
   const [editingQuestion, setEditingQuestion] = useState<QAEntry | null>(null);
@@ -199,10 +239,11 @@ export default function QASectionV2({
         setQuestions((prev) => [data.question, ...prev]);
 
         // For guests: show enrichment prompt after successful submit.
-        // SKIP when the page has a benefits module — the benefits spotlight
-        // handoff owns the post-submit moment and captures email as part of
-        // its intake. Showing both fights for focus and scroll position.
-        if (!user && data.question.id && !hasBenefitsSection) {
+        // SKIP when the page has a benefits module (in arms other than
+        // qa_email_capture) — the benefits spotlight handoff owns the
+        // post-submit moment and captures email as part of its intake.
+        // qa_email_capture arm forces enrichment ON via effectiveHasBenefitsSection.
+        if (!user && data.question.id && !effectiveHasBenefitsSection) {
           setEnrichQuestionId(data.question.id);
           setShowEnrichment(true);
         }
@@ -236,7 +277,7 @@ export default function QASectionV2({
     } finally {
       setSubmitting(false);
     }
-  }, [providerId, user, honeypot, hasBenefitsSection]);
+  }, [providerId, user, honeypot, effectiveHasBenefitsSection]);
 
   // Handle submit from chat bar
   const handleChatSubmit = () => {
@@ -510,14 +551,25 @@ export default function QASectionV2({
             </div>
           </div>
 
-          {/* Guest enrichment — single email field */}
+          {/* Guest enrichment — single email field. Copy varies by arm:
+              qa_email_capture upgrades the value-promise to include
+              comparison-alternative providers, anchored on city when known. */}
           {showEnrichment && (
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
               <p className="text-[14px] font-medium text-gray-800 mb-1">
                 Get notified when they reply
               </p>
-              <p className="text-[12px] text-gray-400 mb-3">
-                We&apos;ll email you — nothing else.
+              <p className="text-[12px] text-gray-500 mb-3">
+                {isQaCaptureArm ? (
+                  <>
+                    We&apos;ll email you when {providerName} replies — and send
+                    3 similar providers
+                    {providerCity ? ` in ${providerCity}` : " nearby"} in case
+                    they don&apos;t reply fast.
+                  </>
+                ) : (
+                  <>We&apos;ll email you — nothing else.</>
+                )}
               </p>
 
               <div className="flex gap-2">

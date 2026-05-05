@@ -1,24 +1,24 @@
 "use client";
 
 /**
- * Variant routing for the 4-way SBF intake A/B test on provider pages.
+ * Variant routing for the 5-way SBF intake A/B test on provider pages.
  *
- *   25% availability  ┐
- *   25% loss          ├─  see BenefitsDiscoveryModule (3-arm copy A/B inside)
- *   25% empathic      ┘
- *   25% outreach      →   see AgentOutreachModule on the Q&A surface
+ *   20% availability       ┐
+ *   20% loss               ├─  see BenefitsDiscoveryModule (3-arm copy A/B inside)
+ *   20% empathic           ┘
+ *   20% outreach           →   see AgentOutreachModule on the Q&A surface
+ *   20% qa_email_capture   →   NO SBF / NO outreach module. Q&A enrichment ON.
  *
  * Math note: BenefitsDiscoveryModule does its own mod-3 copy assignment
- * internally. Combining mod-3 (which 3-arm) with this mod-4 (outreach vs not)
- * on the same sessionId yields a uniform 1/4 distribution across all 4 arms
- * — gcd(3,4) = 1, so the two mods are uncorrelated.
+ * internally. Combining mod-3 (which 3-arm) with this mod-5 (which surface)
+ * on the same sessionId yields a uniform 1/5 distribution across all 5 arms
+ * — gcd(3,5) = 1, so the two mods are uncorrelated.
  *
  * SSR behavior: BenefitsArmGate renders children eagerly (matching today's
  * pre-mount paint), then hides them after mount if the assigned variant is
- * "outreach". 25% of visitors see a brief flash of BenefitsDiscoveryModule
- * disappearing before AgentOutreachModule appears in the Q&A section. The
- * other 75% see no change. Trade chosen to preserve first-paint UX for the
- * majority arm.
+ * "outreach" OR "qa_email_capture". 40% of visitors now see a brief flash
+ * of BenefitsDiscoveryModule disappearing. Trade preserved for first-paint
+ * UX of the 60% benefits-arm majority.
  */
 
 import { useEffect, useState, type ReactNode } from "react";
@@ -29,12 +29,13 @@ import type { ProviderCardData } from "@/lib/types/provider";
 
 /**
  * Wraps the BenefitsDiscoveryModule section. Renders children unless the
- * session is in the outreach arm.
+ * session is in the outreach OR qa_email_capture arm.
  */
 export function BenefitsArmGate({ children }: { children: ReactNode }) {
   const [hide, setHide] = useState(false);
   useEffect(() => {
-    if (assignIntakeVariant(getOrCreateSessionId()) === "outreach") setHide(true);
+    const v = assignIntakeVariant(getOrCreateSessionId());
+    if (v === "outreach" || v === "qa_email_capture") setHide(true);
   }, []);
   if (hide) return null;
   return <>{children}</>;

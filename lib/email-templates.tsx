@@ -519,7 +519,39 @@ export function questionConfirmationEmail(opts: {
   providerName: string;
   question: string;
   providerUrl: string;
+  /** Optional list of similar providers nearby. When provided, the email
+   *  ends with a "While you wait" block listing them with name + city + a
+   *  link to each. Used by the qa_email_capture variant to deliver on the
+   *  enrichment-prompt promise ("we'll send 3 similar providers in [City]
+   *  in case they don't reply fast"). Pass [] (empty array) or omit to
+   *  fall back to the original single-CTA email. */
+  alternatives?: Array<{ name: string; city: string | null; url: string }>;
+  /** City of the original provider, used in the alternatives header copy.
+   *  When omitted, the header drops the city qualifier. */
+  city?: string | null;
 }): string {
+  const alternativesBlock =
+    opts.alternatives && opts.alternatives.length > 0
+      ? `
+    <p style="font-size:15px;color:#6b7280;margin:24px 0 12px;line-height:1.5;">
+      While you wait, here ${opts.alternatives.length === 1 ? "is" : "are"} ${opts.alternatives.length} similar
+      provider${opts.alternatives.length === 1 ? "" : "s"}${opts.city ? ` in ${opts.city}` : " nearby"}
+      in case <strong>${opts.providerName}</strong> doesn't reply fast:
+    </p>
+    <div style="margin:0 0 24px;">
+      ${opts.alternatives
+        .map(
+          (a) => `
+        <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin:0 0 8px;">
+          <a href="${a.url}" style="font-size:15px;font-weight:600;color:#111827;text-decoration:none;">${a.name}</a>
+          ${a.city ? `<div style="font-size:13px;color:#6b7280;margin-top:2px;">${a.city}</div>` : ""}
+        </div>`,
+        )
+        .join("")}
+    </div>
+  `
+      : "";
+
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your question was posted</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
@@ -529,6 +561,7 @@ export function questionConfirmationEmail(opts: {
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">${opts.question}</p>
     </div>
     <div>${button("View on Olera", opts.providerUrl)}</div>
+    ${alternativesBlock}
   `);
 }
 

@@ -1007,6 +1007,7 @@ export default async function ProviderPage({
                   providerId={profile.slug}
                   providerName={profile.display_name}
                   providerImage={images[0]}
+                  providerCity={profile.city}
                   questions={answeredQuestions.map((q) => ({
                     id: q.id,
                     question: q.question,

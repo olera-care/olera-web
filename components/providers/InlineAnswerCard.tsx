@@ -37,7 +37,9 @@ export default function InlineAnswerCard({
   const [inputFocused, setInputFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const firstName = providerName?.split(/[\s(]/)[0] || "them";
+  // Extract first name - handle names starting with (Test) or similar prefixes
+  const cleanName = providerName?.replace(/^\([^)]+\)\s*/, "") || "";
+  const firstName = cleanName.split(/\s/)[0] || providerName?.split(/\s/)[0] || "them";
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 50);
@@ -133,29 +135,20 @@ export default function InlineAnswerCard({
       `}
     >
       <div className="p-6">
-        {/* Question with checkmark - one line, clean */}
+        {/* Question with sent badge - styled like benefits module */}
         <div
           className={`
-            flex items-start gap-2.5
             transition-all duration-500 ease-out delay-75
             ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}
           `}
         >
-          {questionSent && (
-            <div className="mt-0.5 w-5 h-5 rounded-full bg-primary-50 flex items-center justify-center shrink-0">
-              <svg
-                className="w-3 h-3 text-primary-600"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-              </svg>
-            </div>
-          )}
-          <p className="text-[15px] text-gray-600 leading-snug">
-            &ldquo;{question}&rdquo;
+          <p className="font-display italic text-[15px] text-gray-500 leading-relaxed">
+            <span className="text-gray-700">&ldquo;{question}&rdquo;</span>
+            {questionSent && (
+              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-gray-100 text-gray-600 not-italic">
+                Sent
+              </span>
+            )}
           </p>
         </div>
 

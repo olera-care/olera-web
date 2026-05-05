@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import PulseHeader from "@/components/admin/PulseHeader";
@@ -10,6 +10,8 @@ import {
   type DateRangeValue,
 } from "@/components/admin/DateRangePopover";
 import { useAnimatedCount } from "@/hooks/use-animated-count";
+import VariantPreviewCard from "@/components/admin/VariantPreviewCard";
+import VariantSessionsList from "@/components/admin/VariantSessionsList";
 
 interface WindowedCounts {
   page_view: number;
@@ -184,16 +186,6 @@ function rangeFromSearch(sp: ReturnType<typeof useSearchParams>): DateRangeValue
   return DEFAULT_RANGE;
 }
 
-function rangeToSearch(range: DateRangeValue): string {
-  const params = new URLSearchParams();
-  params.set("preset", range.preset);
-  if (range.preset === "custom") {
-    if (range.customFrom) params.set("from", range.customFrom);
-    if (range.customTo) params.set("to", range.customTo);
-  }
-  return params.toString();
-}
-
 export default function AdminAnalyticsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -201,9 +193,23 @@ export default function AdminAnalyticsPage() {
   const range = useMemo(() => rangeFromSearch(searchParams), [searchParams]);
   const setRange = useCallback(
     (next: DateRangeValue) => {
-      router.replace(`/admin/analytics?${rangeToSearch(next)}`, { scroll: false });
+      // Merge into existing params so other URL state (notably ?variant=
+      // for the Family Intake drill-in expansion) survives a date-range
+      // change. Replacing the URLSearchParams wholesale would silently
+      // collapse any open drill-in.
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("preset");
+      params.delete("from");
+      params.delete("to");
+      params.set("preset", next.preset);
+      if (next.preset === "custom") {
+        if (next.customFrom) params.set("from", next.customFrom);
+        if (next.customTo) params.set("to", next.customTo);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `/admin/analytics?${qs}` : "/admin/analytics", { scroll: false });
     },
-    [router],
+    [router, searchParams],
   );
 
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
@@ -804,12 +810,57 @@ function BenefitsFunnelCard({
         ))}
       </div>
 
-      <BenefitsVariantSplit byVariant={summary.windowed.benefits_funnel_by_variant} />
+      <BenefitsVariantSplit byVariant={summary.windowed.benefits_funnel_by_variant} range={range} />
     </div>
   );
 }
 
-function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVariant }) {
+type VariantKey = keyof BenefitsFunnelByVariant;
+const DRILLABLE_VARIANTS: ReadonlySet<VariantKey> = new Set([
+  "availability",
+  "loss",
+  "empathic",
+  "outreach",
+  "control",
+  "money_loss",
+]);
+
+function BenefitsVariantSplit({
+  byVariant,
+  range,
+}: {
+  byVariant: BenefitsFunnelByVariant;
+  range: DateRangeValue;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // Read the expanded variant from the URL so the state survives reload
+  // and is shareable via link. Validates against the known set so a stray
+  // ?variant=foo doesn't try to render a missing arm.
+  const expandedRaw = searchParams.get("variant");
+  const expandedVariant: VariantKey | null =
+    expandedRaw && DRILLABLE_VARIANTS.has(expandedRaw as VariantKey)
+      ? (expandedRaw as VariantKey)
+      : null;
+
+  const toggleVariant = useCallback(
+    (key: VariantKey) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (expandedVariant === key) {
+        params.delete("variant");
+      } else {
+        params.set("variant", key);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `/admin/analytics?${qs}` : "/admin/analytics", { scroll: false });
+    },
+    [searchParams, expandedVariant, router],
+  );
+
+  const resolved = resolveRange(range);
+  const dateFrom = resolved.from ?? null;
+  const dateTo = resolved.to ?? null;
+
   const totalAssigned =
     byVariant.availability.impressions +
     byVariant.loss.impressions +
@@ -823,12 +874,13 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
     den > 0 ? `${Math.round((num / den) * 100)}%` : "—";
 
   // Active arms. Empty rows are still shown so the layout stays stable as
-  // data trickles in.
-  const activeArms: Array<{ key: keyof BenefitsFunnelByVariant; label: string; description: string; isOutreach?: boolean }> = [
-    { key: "availability", label: "availability", description: "There's help paying for care in {state}." },
-    { key: "loss", label: "loss", description: "Most {state} families miss out on help paying for care." },
-    { key: "empathic", label: "empathic", description: "Care is expensive." },
-    { key: "outreach", label: "outreach", description: "Have an AI agent contact the top providers for you.", isOutreach: true },
+  // data trickles in. Narrow key types so VariantPreviewCard's prop
+  // signature (IntakeVariant + legacy strings) accepts them without a cast.
+  const activeArms = [
+    { key: "availability" as const, label: "availability", description: "There's help paying for care in {state}." },
+    { key: "loss" as const, label: "loss", description: "Most {state} families miss out on help paying for care." },
+    { key: "empathic" as const, label: "empathic", description: "Care is expensive." },
+    { key: "outreach" as const, label: "outreach", description: "Have an AI agent contact the top providers for you.", isOutreach: true },
   ];
   // Legacy V2 arms only render when they have data in the window — once the
   // historical window rolls past V2, these rows disappear automatically.
@@ -881,21 +933,48 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
           <tbody>
             {activeArms.map(({ key, label, description, isOutreach }) => {
               const r = byVariant[key];
+              const isExpanded = expandedVariant === key;
               return (
-                <tr key={key} className="border-b border-gray-50">
-                  <td className="px-3 py-2 font-medium text-gray-700">
-                    {label}
-                    <div className="text-[11px] font-normal text-gray-400 truncate max-w-[280px]">{description}</div>
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.impressions}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
-                  {/* Outreach arm has no middle "care need" step — show — instead of 0. */}
-                  <td className="px-3 py-2 text-right tabular-nums text-gray-700">
-                    {isOutreach ? <span className="text-gray-300">—</span> : r.care_need_completed}
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.saved}</td>
-                  <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.saved, r.impressions)}</td>
-                </tr>
+                <Fragment key={key}>
+                  <tr
+                    className={`border-b border-gray-50 cursor-pointer transition-colors ${
+                      isExpanded ? "bg-gray-50/60" : "hover:bg-gray-50/40"
+                    }`}
+                    onClick={() => toggleVariant(key)}
+                    aria-expanded={isExpanded}
+                  >
+                    <td className="px-3 py-2 font-medium text-gray-700">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`inline-block text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                          aria-hidden="true"
+                        >
+                          ›
+                        </span>
+                        <span>{label}</span>
+                      </div>
+                      <div className="text-[11px] font-normal text-gray-400 truncate max-w-[280px] pl-4">{description}</div>
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.impressions}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
+                    {/* Outreach arm has no middle "care need" step — show — instead of 0. */}
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-700">
+                      {isOutreach ? <span className="text-gray-300">—</span> : r.care_need_completed}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.saved}</td>
+                    <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.saved, r.impressions)}</td>
+                  </tr>
+                  {isExpanded && (
+                    <tr className="bg-gray-50/30">
+                      <td colSpan={6} className="px-3 py-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
+                          <VariantPreviewCard variant={key} />
+                          <VariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               );
             })}
             {legacyArms.length > 0 && (
@@ -907,6 +986,7 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
                 </tr>
                 {legacyArms.map(({ key, label }) => {
                   const r = byVariant[key];
+                  const isExpanded = expandedVariant === key;
                   // Legacy V2 rows predate the benefits_entry_viewed event,
                   // so they have impressions=0 even when they have meaningful
                   // started/saved counts. Fall back to saved/started so the
@@ -915,16 +995,44 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
                   const legacyConversion =
                     r.impressions > 0 ? rate(r.saved, r.impressions) : rate(r.saved, r.started);
                   return (
-                    <tr key={key} className="border-b border-gray-50 opacity-60">
-                      <td className="px-3 py-2 font-medium text-gray-500">{label}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-gray-400">
-                        {r.impressions > 0 ? r.impressions : <span className="text-gray-300">—</span>}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-gray-600">{r.care_need_completed}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-gray-600">{r.saved}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-gray-700">{legacyConversion}</td>
-                    </tr>
+                    <Fragment key={key}>
+                      <tr
+                        className={`border-b border-gray-50 cursor-pointer transition-colors ${
+                          isExpanded ? "bg-gray-50/60" : "hover:bg-gray-50/40 opacity-60"
+                        }`}
+                        onClick={() => toggleVariant(key)}
+                        aria-expanded={isExpanded}
+                      >
+                        <td className="px-3 py-2 font-medium text-gray-500">
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`inline-block text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                              aria-hidden="true"
+                            >
+                              ›
+                            </span>
+                            <span>{label}</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-400">
+                          {r.impressions > 0 ? r.impressions : <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-600">{r.care_need_completed}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-600">{r.saved}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-700">{legacyConversion}</td>
+                      </tr>
+                      {isExpanded && (
+                        <tr className="bg-gray-50/30">
+                          <td colSpan={6} className="px-3 py-4">
+                            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
+                              <VariantPreviewCard variant={key} />
+                              <VariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </>

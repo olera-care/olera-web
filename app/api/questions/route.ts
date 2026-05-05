@@ -5,6 +5,7 @@ import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { questionConfirmationEmail, questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
+import { getCategoryDisplayName } from "@/lib/types/provider";
 
 /**
  * GET /api/questions?provider_id=xxx
@@ -557,13 +558,23 @@ export async function PATCH(request: NextRequest) {
 
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
           // Subject reflects what the user clicked. qa_email_capture
-          // visitors clicked "Send the list" expecting providers in their
-          // inbox — the subject leads with that. Other paths (rare,
-          // non-qa_email_capture submissions where alternatives weren't
-          // looked up) keep the original question-led subject.
+          // visitors clicked "Email me these" expecting curated top-N
+          // providers in their inbox — subject leads with "Top N [Category]
+          // in [City]" so the inbox preview matches the in-page promise.
+          // Falls back to "providers" if category isn't display-ready
+          // (e.g., business_profiles rows with snake_case enum values).
+          // Other paths (rare, non-qa_email_capture submissions where
+          // alternatives weren't looked up) keep the original
+          // question-led subject.
+          const cleanCategory =
+            providerCategoryRaw && !providerCategoryRaw.includes("_")
+              ? getCategoryDisplayName(providerCategoryRaw)
+              : null;
+          const subjectNoun = cleanCategory || "providers";
+          const cityPhrase = providerCity ? `in ${providerCity}` : "nearby";
           const emailSubject =
             alternatives.length > 0
-              ? `${alternatives.length} similar provider${alternatives.length === 1 ? "" : "s"}${providerCity ? ` in ${providerCity}` : " nearby"}`
+              ? `Top ${alternatives.length} ${subjectNoun} ${cityPhrase}`
               : `Your question to ${providerName || "a provider"} on Olera`;
           const enrichEmailLogId = await reserveEmailLogId({
             to: updates.asker_email,

@@ -569,11 +569,19 @@ export default function QASectionV2({
             <>
               {alternativeProviders.length > 0 ? (
                 <div className="mt-4 pt-6 border-t border-zinc-100">
-                  {/* Headline — 3 words. The whole punch. */}
+                  {/* Headline — "Top N" implies curation, not "N more"
+                      filler. Quality signal in 3 words. */}
                   <h3 className="text-[20px] md:text-2xl font-semibold text-zinc-900 tracking-tight leading-tight">
-                    {alternativeProviders.length} more
+                    Top {alternativeProviders.length}
                     {providerCity ? ` in ${providerCity}` : " nearby"}.
                   </h3>
+                  {/* Sub-line surfaces the dual-promise that's otherwise
+                      only visible in the success-confirmation block above.
+                      Without this, users miss that this email ALSO notifies
+                      them when [Provider] replies. */}
+                  <p className="mt-1.5 text-[13px] text-zinc-500">
+                    Plus, we&apos;ll email when {providerName} replies.
+                  </p>
 
                   {/* Compact text-only cards. No images. Each card is one
                       provider's name + a single metadata line (rating,
@@ -640,7 +648,7 @@ export default function QASectionV2({
                       {enriching && (
                         <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       )}
-                      Send the list
+                      Email me these
                     </button>
                   </div>
 

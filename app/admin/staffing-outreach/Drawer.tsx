@@ -865,7 +865,7 @@ function SequencingSection({
 
 /**
  * NeedsCallSection - V2: shown for providers in "Needs Call" tab
- * Primary action: "Update Email & Restart Sequence" - captures correct email and restarts automated sequence
+ * Primary action: "Update Email & Restart Sequence" - captures correct email and auto-starts sequence (→ Sequencing)
  * Also handles consented status (legacy - shows existing contact info)
  */
 function NeedsCallSection({
@@ -916,7 +916,7 @@ function NeedsCallSection({
     }
   };
 
-  // Update email and restart the automated sequence from To Queue
+  // Update email and auto-start the sequence (goes directly to Sequencing)
   const submitUpdateAndRestart = async () => {
     if (!email.trim()) {
       setError("Email is required.");
@@ -924,7 +924,7 @@ function NeedsCallSection({
     }
     setActiveAction("restart");
     try {
-      await onAdvance("reopen_to_queue", { email: email.trim() });
+      await onAdvance("restart_sequence", { email: email.trim() });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to restart sequence");
     } finally {

@@ -133,6 +133,7 @@ export async function POST(request: NextRequest) {
         question_id: typeof question_id === "string" ? question_id : null,
         question_text: typeof question_text === "string" ? question_text : null,
         target_provider_ids: targets.map((t) => t.id),
+        session_id: typeof session_id === "string" ? session_id : null,
         status: "queued",
       })
       .select("id")

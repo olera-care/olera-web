@@ -1,0 +1,88 @@
+// Variant copy strings for the Family Intake A/B test.
+//
+// Two consumers:
+//   1. components/providers/BenefitsDiscoveryModule — the live module on
+//      provider pages. Imports VARIANT_COPY for the 3 benefits arms.
+//   2. components/admin/VariantPreviewCard — the static admin preview
+//      rendered inside the admin analytics drill-in. Imports the same
+//      strings + the outreach copy below.
+//
+// Single source of truth so changing copy in one place updates both
+// surfaces. Strings also live in the SBF Copy Variants Notion DB; that
+// remains the durable record of what each arm earned (commentary,
+// rationale, dates), but the actual rendered string is here.
+//
+//   https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d
+
+import type { BenefitsVariant, IntakeVariant } from "./variant";
+
+export const BENEFITS_VARIANT_COPY: Record<
+  BenefitsVariant,
+  { h2: (state: string) => string; sub: (state: string) => string }
+> = {
+  availability: {
+    h2: (state) => `${state} care benefits for families like yours.`,
+    sub: () => "Tell us what's needed — we'll find what fits.",
+  },
+  loss: {
+    h2: (state) => `Most ${state} families miss the care benefits they qualify for.`,
+    sub: () => "$400–$900/month often goes unclaimed. Tell us what's needed.",
+  },
+  empathic: {
+    // Anchored to state so the punchy short H2 doesn't read naked on a
+    // provider page where the user hasn't been primed for empathy.
+    h2: (state) => `Care is expensive in ${state}.`,
+    sub: () => "Tell us what's needed — we'll find programs that may help.",
+  },
+};
+
+// Outreach is structurally a different module (AgentOutreachModule), not a
+// copy swap on the benefits form. The h2 + sub here drive the static admin
+// preview only — the live module composes its own headline from these
+// pieces plus city-specific phrasing the admin preview can stub with a
+// placeholder city name.
+export const OUTREACH_VARIANT_COPY = {
+  h2: () => "Skip the phone calls.",
+  sub: (city: string) =>
+    `Have an AI agent contact the top providers in ${city} for you.`,
+};
+
+// Care-need card labels — identical across the 3 benefits arms. Kept in
+// sync with CARE_NEED_OPTIONS in BenefitsDiscoveryModule. The admin preview
+// renders a non-interactive version of these as visual context.
+export const CARE_NEED_LABELS: Array<{ label: string; description: string }> = [
+  { label: "Paying for care", description: "Medicare savings, cash benefits, food help" },
+  { label: "In-home care", description: "Personal care, daily tasks, mobility" },
+  { label: "Memory & medical care", description: "Dementia care, doctor visits, prescriptions" },
+  { label: "Caregiver & social support", description: "Respite breaks, social programs" },
+];
+
+// Code-value → user-facing label, used by the admin drill-in to show
+// "In-home care" instead of the camelCase enum value stored in
+// metadata.care_need_selected. Falls back to the raw value for any
+// unknown code so legacy data still renders.
+export function careNeedLabel(value: string | null): string | null {
+  if (!value) return null;
+  switch (value) {
+    case "payingForCare": return "Paying for care";
+    case "stayingAtHome": return "In-home care";
+    case "memoryHealth":  return "Memory & medical care";
+    case "companionship": return "Caregiver & social support";
+    default: return value;
+  }
+}
+
+// Surface label for the admin UI. Maps the technical variant name to
+// something a non-engineer reading the dashboard can scan.
+export function variantSurfaceLabel(variant: IntakeVariant): string {
+  switch (variant) {
+    case "availability":
+      return "Availability framing";
+    case "loss":
+      return "Loss framing";
+    case "empathic":
+      return "Empathic framing";
+    case "outreach":
+      return "AI agent outreach";
+  }
+}

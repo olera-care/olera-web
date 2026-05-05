@@ -218,37 +218,47 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: `Failed to publish: ${updateError.message}` }, { status: 500 });
     }
 
-    // Log provider-side activity (fire-and-forget)
-    db.from("provider_activity").insert({
-      provider_id: question.provider_id,
-      profile_id: profile.id,
-      event_type: "question_responded",
-      metadata: {
-        question_id: id,
-        question_preview: question.question?.substring(0, 100),
-        answer_preview: answer.trim().substring(0, 100),
-        asker_name: question.asker_name,
-      },
-    }).then(({ error: actErr }: { error: { message: string } | null }) => {
-      if (actErr) console.error("[provider_activity] question_responded insert failed:", actErr);
-    });
-
-    // Only notify on first answer that's published — not for pending or edits
+    // Activity insert + Slack alert. Both awaited via Promise.allSettled —
+    // fire-and-forget gets killed by Vercel's serverless runtime once the
+    // response goes out (cost a 7h diagnosis on the agent-outreach route,
+    // 2026-05-03). allSettled so neither blocks the other and neither
+    // failing aborts the response — the canonical question.answer is
+    // already in the DB at this point.
     const isFirstAnswer = !question.answer;
     const shouldNotify = isFirstAnswer && isVerified;
+    const providerName = profile.display_name || "A provider";
+
+    const slackForQuestion = shouldNotify
+      ? slackQuestionAnswered({
+          providerName,
+          providerSlug: profile.slug,
+          askerName: question.asker_name || "Someone",
+          question: question.question || "",
+          answer: answer.trim(),
+        })
+      : null;
+    const sideEffectResults = await Promise.allSettled([
+      db.from("provider_activity").insert({
+        provider_id: question.provider_id,
+        profile_id: profile.id,
+        event_type: "question_responded",
+        metadata: {
+          question_id: id,
+          question_preview: question.question?.substring(0, 100),
+          answer_preview: answer.trim().substring(0, 100),
+          asker_name: question.asker_name,
+        },
+      }),
+      ...(slackForQuestion ? [sendSlackAlert(slackForQuestion.text, slackForQuestion.blocks)] : []),
+    ]);
+    if (sideEffectResults[0].status === "rejected") {
+      console.error("[provider_activity] question_responded insert failed:", sideEffectResults[0].reason);
+    }
+    if (slackForQuestion && sideEffectResults[1] && sideEffectResults[1].status === "rejected") {
+      console.error("[provider/questions] Slack alert failed:", sideEffectResults[1].reason);
+    }
 
     if (shouldNotify) {
-      const providerName = profile.display_name || "A provider";
-
-      // Slack notification (fire-and-forget)
-      const slack = slackQuestionAnswered({
-        providerName,
-        providerSlug: profile.slug,
-        askerName: question.asker_name || "Someone",
-        question: question.question || "",
-        answer: answer.trim(),
-      });
-      sendSlackAlert(slack.text, slack.blocks).catch(() => {});
 
       // Email the asker that their question was answered (fire-and-forget)
       if (question.asker_email) {

@@ -42,6 +42,7 @@ import {
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { trackBenefitsEvent, type BenefitsStepEvent } from "@/lib/analytics/track-step";
 import { assignBenefitsVariant, type BenefitsVariant } from "@/lib/analytics/variant";
+import { BENEFITS_VARIANT_COPY } from "@/lib/analytics/variant-copy";
 import { matchesCareNeed, type CareNeed } from "@/lib/benefits/match-care-need";
 import type { MatchableProvider } from "@/lib/benefits/provider-tie-in";
 import type { WaiverProgram } from "@/data/waiver-library";
@@ -73,6 +74,12 @@ interface BenefitsDiscoveryModuleProps {
   providerCareTypes?: string[] | null;
   /** category string for the provider tie-in helper. */
   providerCategory?: string | null;
+  /** Path of the page the module is mounted on. Provider pages leave this
+   *  unset (routing is implied by providerSlug). Editorial mounts pass
+   *  `/caregiver-support/{slug}` so downstream analytics can segment
+   *  conversion by entry page. Persisted to accounts.signup_source on submit
+   *  and attached to every funnel event. */
+  entrySource?: string;
 }
 
 // ─── Care need cards — order matters. "Paying for care" first because it's
@@ -90,32 +97,10 @@ const CARE_NEED_OPTIONS: Array<{
   { value: "companionship", label: "Caregiver & social support", description: "Respite breaks, social programs", icon: HandHeart },
 ];
 
-// ─── 3-arm copy: H2 + sub for step 1.
-//     Strings live here AND in the SBF Copy Variants Notion DB. When you
-//     change copy, update both — the Notion DB is the durable record of
-//     what each arm earned.
-//
-//     Umbrella term is "care benefits" not "paying for care" — the latter
-//     overlaps with the first card label and creates a confusing
-//     "wait, one of four options is the same as the headline?" moment.
-//     "Care benefits" is the conceptual layer above the cards, which are
-//     TYPES of care needs.
-const VARIANT_COPY: Record<BenefitsVariant, { h2: (state: string) => string; sub: (state: string) => string }> = {
-  availability: {
-    h2: (state) => `${state} care benefits for families like yours.`,
-    sub: () => "Tell us what's needed — we'll find what fits.",
-  },
-  loss: {
-    h2: (state) => `Most ${state} families miss the care benefits they qualify for.`,
-    sub: () => "$400–$900/month often goes unclaimed. Tell us what's needed.",
-  },
-  empathic: {
-    // Anchored to state so the punchy short H2 doesn't read naked on a
-    // provider page where the user hasn't been primed for empathy.
-    h2: (state) => `Care is expensive in ${state}.`,
-    sub: () => "Tell us what's needed — we'll find programs that may help.",
-  },
-};
+// 3-arm copy lives in lib/analytics/variant-copy.ts as BENEFITS_VARIANT_COPY
+// so the admin drill-in's static preview shares one source. Notion DB
+// remains the durable commentary record:
+// https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d
 
 // ─── Relationship — step 2's tap-question. Powers the personalized H2 on
 //     step 3 ("Save your parent's matches") AND gives us a structural data
@@ -176,6 +161,7 @@ export default function BenefitsDiscoveryModule({
   providerSlug,
   providerCareTypes,
   providerCategory,
+  entrySource,
 }: BenefitsDiscoveryModuleProps) {
   // ─── Step + form state ───────────────────────────────────────────────
   const [step, setStep] = useState<Step>("care-need");
@@ -222,6 +208,7 @@ export default function BenefitsDiscoveryModule({
       providerName: providerName || null,
       providerSlug: providerSlug || null,
       variant,
+      entrySource: entrySource || null,
       ...extras,
     });
   }
@@ -309,6 +296,7 @@ export default function BenefitsDiscoveryModule({
           providerSlug: providerSlug || null,
           sessionId,
           variant,
+          entrySource: entrySource || null,
         }),
         keepalive: true,
       }).catch(() => {});
@@ -373,6 +361,8 @@ export default function BenefitsDiscoveryModule({
           phone: phone.trim() ? phone : undefined,
           relationship: relationship || undefined,
           providerSlug: providerSlug || undefined,
+          entrySource: entrySource || undefined,
+          sessionId: sessionId || undefined,
           matchedPrograms: matchingPrograms.map((p) => ({
             programId: p.id,
             stateId,
@@ -412,7 +402,7 @@ export default function BenefitsDiscoveryModule({
   // RENDER
   // ═════════════════════════════════════════════════════════════════════
 
-  const v = VARIANT_COPY[variant];
+  const v = BENEFITS_VARIANT_COPY[variant];
 
   // Progress bar — single proportional bar across the full width. Fills as
   // the user completes steps. Beats the segmented design (3 separate bars

@@ -722,11 +722,28 @@ export function slackBenefitsStarted(opts: {
   stateName: string | null;
   providerName: string | null;
   providerSlug: string | null;
+  /** Path of the page that mounted the module. Editorial articles pass
+   *  `/caregiver-support/{slug}`; provider mounts leave undefined. When
+   *  set to an editorial path, the source line renders "On article: …"
+   *  with a clickable link instead of the "On provider page: …" default. */
+  entrySource?: string | null;
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-  const providerLine = opts.providerName && opts.providerSlug
-    ? `<${siteUrl}/provider/${opts.providerSlug}|${opts.providerName}>`
-    : opts.providerName || "unknown provider";
+  const isEditorialSource = !!opts.entrySource && opts.entrySource.startsWith("/caregiver-support/");
+
+  // Source line — editorial mounts get an "On article" link to the actual
+  // article slug; provider mounts (or unknown) keep the original "On
+  // provider page" framing. Falls through to "unknown" when neither is set.
+  let sourceLine: string;
+  if (isEditorialSource) {
+    const slug = opts.entrySource!.slice("/caregiver-support/".length);
+    sourceLine = `*On article:* <${siteUrl}${opts.entrySource}|${slug}>`;
+  } else {
+    const providerLine = opts.providerName && opts.providerSlug
+      ? `<${siteUrl}/provider/${opts.providerSlug}|${opts.providerName}>`
+      : opts.providerName || "unknown provider";
+    sourceLine = `*On provider page:* ${providerLine}`;
+  }
 
   return {
     text: `Benefits intake started: ${opts.careNeedLabel}${opts.stateCode ? ` (${opts.stateCode})` : ""}`,
@@ -746,7 +763,7 @@ export function slackBenefitsStarted(opts: {
       },
       {
         type: "section",
-        text: { type: "mrkdwn", text: `*On provider page:* ${providerLine}` },
+        text: { type: "mrkdwn", text: sourceLine },
       },
     ],
   };

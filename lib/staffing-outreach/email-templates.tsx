@@ -104,17 +104,47 @@ function escapeHtml(s: string): string {
 export function preCallEmail(opts: {
   providerName: string;
   adminFirstName: string;
+  universityName: string;
+  demoVideoUrl?: string;
 }): { subject: string; html: string } {
-  const subject = "Pre-nursing/pre-med PRN program — quick question";
+  // Keep subject under ~60 chars for email client previews
+  const subject = "Student caregiver program — quick question";
   const body = `
     <p>Hi,</p>
-    <p>I work with Dr. Logan DuBose at Olera. He's running a free pilot connecting pre-nursing and pre-medical students to PRN shifts at home care agencies, and would like to share the details with whoever handles hiring at ${escapeHtml(opts.providerName)}.</p>
+    <p>I work with Dr. Logan DuBose at Olera. He's running a free pilot connecting pre-nursing and pre-medical students from ${escapeHtml(opts.universityName)} to PRN shifts at home care agencies, and would like to share the details with whoever handles hiring at ${escapeHtml(opts.providerName)}.</p>
+    ${opts.demoVideoUrl ? videoEmbed(opts.demoVideoUrl, "Watch the 90-second program overview") : ""}
     <p>Could you point me to the right person or email? I'll follow up by phone shortly.</p>
+    <p style="margin:20px 0;">
+      <a href="${BASE_URL}" style="color:${BRAND_COLOR};font-weight:600;">Learn more at olera.care →</a>
+    </p>
     <p style="margin:20px 0 0;">Thanks,<br/>${escapeHtml(opts.adminFirstName)}, Olera</p>
   `;
   return {
     subject,
-    html: layout(body, "Permission ask — pre-nursing/pre-med PRN program"),
+    html: layout(body, `${opts.universityName} student caregiver pilot — permission ask`),
+  };
+}
+
+/**
+ * Follow-up reminder email — sent after 5 business days if the provider
+ * hasn't responded to the initial pre-call email. Brief and direct.
+ */
+export function followUpReminderEmail(opts: {
+  providerName: string;
+  adminFirstName: string;
+  universityName: string;
+}): { subject: string; html: string } {
+  // Keep subject under ~60 chars for email client previews
+  const subject = "Following up — student caregiver program";
+  const body = `
+    <p>Hi,</p>
+    <p>Just following up on my email from last week about Dr. Logan DuBose's student caregiver program at ${escapeHtml(opts.universityName)}.</p>
+    <p>We're connecting pre-nursing and pre-med students with home care agencies like ${escapeHtml(opts.providerName)} for PRN shifts. The pilot is free — happy to share more details if you can point me to the right person.</p>
+    <p style="margin:20px 0 0;">Thanks,<br/>${escapeHtml(opts.adminFirstName)}, Olera</p>
+  `;
+  return {
+    subject,
+    html: layout(body, `Following up — ${opts.universityName} student caregiver pilot`),
   };
 }
 
@@ -143,5 +173,64 @@ export function postConsentStep1Email(opts: {
   return {
     subject,
     html: layout(body, "Free three-month pilot — student caregivers for your agency"),
+  };
+}
+
+// ── Plain-text templates for Gmail compose ───────────────────────────────
+// These generate plain-text emails for the "Open in Gmail" flow.
+// The user pastes these into Gmail, which handles formatting and signature.
+
+/**
+ * Initial outreach email — sent before any call attempt.
+ * Full Logan-voice pitch with program details.
+ */
+export function initialOutreachPlainText(opts: {
+  universityName: string;
+  serviceArea: string;
+}): { subject: string; body: string } {
+  return {
+    subject: `${opts.universityName} Student Caregiver Program`,
+    body: `Hello
+
+I am hoping to reach the person who handles hiring to share more information on a pilot ${opts.universityName} Student Caregiver Program.
+
+My name is Dr. Logan DuBose. I am a physician-researcher working with the National Institute of Aging, a small business owner, and affiliate faculty at ${opts.universityName}. I am currently working on a pilot program to match pre-nursing and pre-medical students with care agency jobs so they can help improve community care worker turnover and shortages, while gaining critical experience for their future careers as doctors and nurses.
+
+Would you be interested in hearing more about this program? In pilot testing in the ${opts.serviceArea}, I have seen potential for it to be an evergreen pipeline delivering vetted pre-health ${opts.universityName} students seeking employment in caregiver roles.
+
+Some materials to consider:
+• Pilot website here (demo profiles): https://olera.care/medjobs/providers
+• Demo video I made here: https://www.youtube.com/watch?v=ParY1tGaiew (~7 minutes long)
+• Recent system improvements since the last pilot include a more robust candidate vetting and scheduling system, and the price point potentially being lowered to $50/month (however, for earlier adopters, I am not charging anything for a period of time, and instead would appreciate feedback and reviews of the system)
+• Goal to send 5 new candidates a week with 1-3 solid hires per month in perpetuity
+
+Please let me know if you have any questions, would like to meet, or if there is any interest in restarting the program. If I can get your team's buy-in, then I will begin recruitment for you at ${opts.universityName} pre-nursing and pre-medical organizations this month (and could be sending vetted candidates for summer caregiving roles ASAP)!
+
+Take care!
+
+Best,
+Logan`,
+  };
+}
+
+/**
+ * Follow-up email — sent 3+ days after initial email if no response.
+ * Brief nudge to resurface the original outreach.
+ */
+export function followUpPlainText(opts: {
+  universityName: string;
+}): { subject: string; body: string } {
+  return {
+    subject: `Quick follow-up – ${opts.universityName} Student Program`,
+    body: `Hi,
+
+Just wanted to follow up in case this got buried.
+
+We're starting to connect agencies with pre-nursing students from ${opts.universityName} who are actively looking for caregiving roles.
+
+Would it make sense to share a quick overview or schedule a brief call?
+
+Best,
+Logan`,
   };
 }

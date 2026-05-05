@@ -52,7 +52,16 @@ export default function QASectionWithVariant({
 
   useEffect(() => {
     const sessionId = getOrCreateSessionId();
-    const assigned = assignIntakeVariant(sessionId);
+
+    // Allow URL override for testing: ?variant=inline_answer (or any valid variant)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlVariant = urlParams.get("variant") as IntakeVariant | null;
+    const validVariants: IntakeVariant[] = ["availability", "loss", "empathic", "outreach", "inline_answer"];
+
+    const assigned = (urlVariant && validVariants.includes(urlVariant))
+      ? urlVariant
+      : assignIntakeVariant(sessionId);
+
     setVariant(assigned);
 
     // For inline_answer and outreach variants, the benefits module is hidden

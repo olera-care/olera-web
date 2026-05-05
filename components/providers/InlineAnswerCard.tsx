@@ -71,8 +71,13 @@ export default function InlineAnswerCard({
   useEffect(() => {
     if (isSuccess && !showSuccess) {
       setShowSuccess(true);
+      // Auto-collapse after 5 seconds
+      const timer = setTimeout(() => {
+        onCollapse();
+      }, 5000);
+      return () => clearTimeout(timer);
     }
-  }, [isSuccess, showSuccess]);
+  }, [isSuccess, showSuccess, onCollapse]);
 
   const handleSubmit = async () => {
     setError("");
@@ -122,31 +127,33 @@ export default function InlineAnswerCard({
       `}
     >
       <div className="px-6 pt-6 pb-5">
-        {/* Sent confirmation + Question */}
+        {/* Question + Sent confirmation (conditional) */}
         <div
           className={`
             transition-all duration-500 delay-75
             ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
           `}
         >
-          <div className="flex items-center gap-2 mb-3">
-            <svg
-              className="w-4 h-4 text-emerald-500"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-            </svg>
-            <span className="text-[14px] text-emerald-600 font-medium">
-              Sent to {firstName}
-            </span>
-          </div>
-
-          <p className="text-[18px] font-semibold text-gray-900 leading-snug mb-4">
+          <p className="text-[18px] font-semibold text-gray-900 leading-snug mb-2">
             {question}
           </p>
+
+          {questionSent && (
+            <div className="flex items-center gap-1.5 mb-3">
+              <svg
+                className="w-3.5 h-3.5 text-emerald-500"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+              <span className="text-[13px] text-emerald-600 font-medium">
+                Sent to {firstName}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Answer - unattributed, helpful info */}
@@ -171,11 +178,14 @@ export default function InlineAnswerCard({
         />
 
         {showSuccess ? (
-          /* Success state - warm and reassuring */
-          <div
+          /* Success state - warm and reassuring, tappable to dismiss */
+          <button
+            type="button"
+            onClick={onCollapse}
             className={`
-              text-center py-6
+              w-full text-center py-6 cursor-pointer
               transition-all duration-500
+              hover:bg-gray-50 rounded-xl
               ${showSuccess ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
@@ -198,7 +208,7 @@ export default function InlineAnswerCard({
             <p className="text-[14px] text-gray-500">
               We&apos;ll email you when they reply
             </p>
-          </div>
+          </button>
         ) : (
           /* Email capture - the personal zone */
           <div

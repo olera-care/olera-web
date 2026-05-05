@@ -9,6 +9,8 @@ interface InlineAnswerCardProps {
   providerName: string;
   providerImage?: string;
   providerId: string;
+  providerLocation?: string;
+  providerCareTypes?: string[];
   onEmailSubmit: (email: string) => Promise<void>;
   onSave: () => void;
   onCollapse: () => void;
@@ -22,6 +24,8 @@ export default function InlineAnswerCard({
   providerName,
   providerImage,
   providerId,
+  providerLocation,
+  providerCareTypes,
   onEmailSubmit,
   onSave,
   onCollapse,
@@ -44,12 +48,19 @@ export default function InlineAnswerCard({
   const rawFirstName = cleanName.split(/\s/)[0] || providerName?.split(/\s/)[0] || "them";
   const firstName = rawFirstName.replace(/'s$/i, "") || rawFirstName;
 
+  // Build contextual label: "Typical for home care in Texas"
+  const careType = providerCareTypes?.[0]?.toLowerCase() || "care";
+  const location = providerLocation?.split(",")[0]?.trim() || null;
+  const contextLabel = location
+    ? `Typical for ${careType} in ${location}`
+    : `Typical for ${careType} providers`;
+
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(timer);
   }, []);
 
-  // Scroll the card into view when it mounts (prevents layout shift disorientation)
+  // Scroll the card into view when it mounts
   useEffect(() => {
     if (mounted && cardRef.current) {
       const scrollTimer = setTimeout(() => {
@@ -63,7 +74,7 @@ export default function InlineAnswerCard({
     if (mounted && inputRef.current && !showSuccess) {
       const focusTimer = setTimeout(() => {
         inputRef.current?.focus();
-      }, 450);
+      }, 500);
       return () => clearTimeout(focusTimer);
     }
   }, [mounted, showSuccess]);
@@ -107,7 +118,6 @@ export default function InlineAnswerCard({
     try {
       await onEmailSubmit(email.trim().toLowerCase());
     } catch (err) {
-      // Display API errors (e.g., provider email, network errors)
       const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
       setError(message);
     }
@@ -141,139 +151,146 @@ export default function InlineAnswerCard({
       ref={cardRef}
       className={`
         bg-white rounded-2xl
-        shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)]
-        border border-gray-100/80
+        ring-1 ring-inset ring-emerald-200
+        shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)]
         overflow-hidden
         transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
         ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"}
       `}
     >
-      <div className="p-6">
-        {/* Question with sent badge - styled like benefits module */}
-        <div
+      {showSuccess ? (
+        /* ═══════════════════════════════════════════════════════════════
+           Success State — Celebratory but not overwhelming
+           ═══════════════════════════════════════════════════════════════ */
+        <button
+          type="button"
+          onClick={onCollapse}
           className={`
-            transition-all duration-500 ease-out delay-75
-            ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}
+            w-full p-8 cursor-pointer text-center
+            transition-all duration-700 ease-out
+            hover:bg-gray-50/50
+            ${showSuccess ? "opacity-100 scale-100" : "opacity-0 scale-95"}
           `}
         >
-          <p className="font-display italic text-[15px] text-gray-500 leading-relaxed">
-            <span className="text-gray-700">&ldquo;{question}&rdquo;</span>
-            {questionSent && (
-              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 not-italic">
-                Sent
-              </span>
+          <div className="relative w-fit mx-auto mb-4">
+            {providerImage ? (
+              <img
+                src={providerImage}
+                alt={firstName}
+                className="w-16 h-16 rounded-full object-cover ring-[3px] ring-white shadow-lg"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-[3px] ring-white shadow-lg">
+                <span className="text-2xl font-semibold text-gray-500">
+                  {firstName.charAt(0)}
+                </span>
+              </div>
             )}
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-white shadow-sm">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </div>
+          </div>
+          <p className="text-[17px] font-semibold text-gray-900">
+            Connected with {firstName}
           </p>
-        </div>
-
-        {/* Answer section */}
-        <div
-          className={`
-            mt-5
-            transition-all duration-500 ease-out delay-150
-            ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}
-          `}
-        >
-          <p className="text-[17px] text-gray-900 font-medium leading-relaxed">
-            {answer}
+          <p className="text-[14px] text-gray-500 mt-1">
+            We&apos;ll email you when they reply
           </p>
-        </div>
-
-        {/* Spacer */}
-        <div className="h-6" />
-
-        {showSuccess ? (
-          /* Success state */
-          <button
-            type="button"
-            onClick={onCollapse}
+        </button>
+      ) : (
+        /* ═══════════════════════════════════════════════════════════════
+           Main Card — Question → Context → Answer → Action
+           ═══════════════════════════════════════════════════════════════ */
+        <div className="p-6">
+          {/* ─── Question Block ─────────────────────────────────────────── */}
+          <div
             className={`
-              w-full rounded-2xl bg-gradient-to-b from-gray-50 to-gray-100/50
-              py-8 cursor-pointer
-              transition-all duration-700 ease-out
-              hover:from-gray-100/80 hover:to-gray-100/80
-              ${showSuccess ? "opacity-100 scale-100" : "opacity-0 scale-95"}
+              transition-all duration-500 ease-out delay-75
+              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
-            <div className="relative w-fit mx-auto mb-4">
+            <div className="flex items-start justify-between gap-3">
+              <p className="font-display italic text-[16px] text-gray-800 leading-relaxed flex-1">
+                &ldquo;{question}&rdquo;
+              </p>
+              {questionSent && (
+                <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 tracking-wide uppercase">
+                  Sent
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* ─── Context Label ──────────────────────────────────────────── */}
+          <div
+            className={`
+              mt-3
+              transition-all duration-500 ease-out delay-100
+              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+            `}
+          >
+            <p className="flex items-center gap-2 text-[13px] text-gray-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              {contextLabel}
+            </p>
+          </div>
+
+          {/* ─── Answer Block ───────────────────────────────────────────── */}
+          <div
+            className={`
+              mt-4
+              transition-all duration-500 ease-out delay-150
+              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+            `}
+          >
+            <p className="text-[17px] text-gray-900 font-medium leading-[1.6]">
+              {answer}
+            </p>
+          </div>
+
+          {/* ─── Divider ────────────────────────────────────────────────── */}
+          <div
+            className={`
+              my-6
+              transition-all duration-500 ease-out delay-200
+              ${mounted ? "opacity-100" : "opacity-0"}
+            `}
+          >
+            <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+          </div>
+
+          {/* ─── Email Capture Block ────────────────────────────────────── */}
+          <div
+            className={`
+              transition-all duration-500 ease-out delay-250
+              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+            `}
+          >
+            {/* CTA with Avatar */}
+            <div className="flex items-center gap-3 mb-4">
               {providerImage ? (
                 <img
                   src={providerImage}
                   alt={firstName}
-                  className="w-16 h-16 rounded-full object-cover ring-[3px] ring-white shadow-md"
+                  className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center ring-[3px] ring-white shadow-md">
-                  <span className="text-2xl font-semibold text-gray-500">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
+                  <span className="text-sm font-semibold text-gray-500">
                     {firstName.charAt(0)}
                   </span>
                 </div>
               )}
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-white">
-                <svg
-                  className="w-3.5 h-3.5 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                </svg>
-              </div>
+              <p className="text-[16px] text-gray-700">
+                Hear directly from <span className="font-semibold text-gray-900">{firstName}</span>.
+              </p>
             </div>
 
-            <p className="text-[16px] font-semibold text-gray-900">
-              Connected with {firstName}
-            </p>
-            <p className="text-[14px] text-gray-500 mt-1">
-              We&apos;ll email you when they reply
-            </p>
-          </button>
-        ) : (
-          /* Email capture zone */
-          <div
-            className={`
-              transition-all duration-500 ease-out delay-200
-              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}
-            `}
-          >
-            {/* Personal zone */}
-            <div className="rounded-2xl bg-gray-50/70 p-5 border border-gray-100/50">
-              {/* Avatar */}
-              <div className="flex justify-center mb-3">
-                {providerImage ? (
-                  <img
-                    src={providerImage}
-                    alt={firstName}
-                    className="w-14 h-14 rounded-full object-cover ring-2 ring-white shadow-sm"
-                  />
-                ) : (
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center ring-2 ring-white shadow-sm">
-                    <span className="text-xl font-semibold text-gray-500">
-                      {firstName.charAt(0)}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* CTA text */}
-              <p className="text-center text-[16px] text-gray-600 mb-4">
-                <span className="font-semibold text-gray-900">{firstName}</span> will answer you directly
-              </p>
-
-              {/* Input with button inside */}
-              <div
-                className={`
-                  relative flex items-center
-                  bg-white rounded-full
-                  transition-all duration-200 ease-out
-                  ${inputFocused
-                    ? "ring-2 ring-gray-900 ring-offset-1"
-                    : "ring-1 ring-gray-200 hover:ring-gray-300"
-                  }
-                  ${error ? "ring-2 ring-red-300 ring-offset-1" : ""}
-                `}
-              >
+            {/* Input + Button Row */}
+            <div className="flex gap-3">
+              <div className="flex-1 min-w-0">
                 <input
                   ref={inputRef}
                   type="email"
@@ -285,87 +302,71 @@ export default function InlineAnswerCard({
                   onKeyDown={handleKeyDown}
                   onFocus={() => setInputFocused(true)}
                   onBlur={() => setInputFocused(false)}
-                  placeholder="your email"
+                  placeholder="you@email.com — we'll send their reply"
                   autoComplete="email"
                   disabled={isSubmitting}
-                  className="
-                    flex-1 min-w-0 pl-5 pr-2 py-3
-                    text-[15px] text-gray-900 placeholder-gray-400
-                    bg-transparent border-none
-                    focus:outline-none disabled:opacity-50
-                  "
-                />
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting || !email.trim()}
                   className={`
-                    mr-1.5 w-9 h-9 rounded-full
-                    flex items-center justify-center
+                    w-full px-4 py-3
+                    text-[15px] text-gray-900 placeholder-gray-400
+                    bg-white border rounded-xl
                     transition-all duration-200 ease-out
-                    ${email.trim() && !isSubmitting
-                      ? "bg-gray-900 hover:bg-black active:scale-95"
-                      : "bg-gray-200"
+                    focus:outline-none disabled:opacity-50
+                    ${inputFocused
+                      ? "border-emerald-400 ring-2 ring-emerald-100"
+                      : error
+                        ? "border-red-300 ring-2 ring-red-50"
+                        : "border-gray-200 hover:border-gray-300"
                     }
-                    disabled:cursor-not-allowed
                   `}
-                  aria-label="Send"
-                >
-                  {isSubmitting ? (
-                    <span className="w-4 h-4 border-2 border-gray-400 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <svg
-                      className={`w-4 h-4 transition-colors ${email.trim() ? "text-white" : "text-gray-400"}`}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                    </svg>
-                  )}
-                </button>
+                />
               </div>
-
-              {error ? (
-                <p className="text-[13px] text-red-500 mt-2.5 text-center font-medium">
-                  {error}
-                </p>
-              ) : (
-                <p className="text-[12px] text-gray-400 mt-2.5 text-center flex items-center justify-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                  We&apos;ll notify you · No spam
-                </p>
-              )}
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting || !email.trim()}
+                className={`
+                  shrink-0 px-5 py-3
+                  text-[15px] font-semibold text-white
+                  bg-emerald-600 rounded-xl
+                  transition-all duration-200 ease-out
+                  hover:bg-emerald-700 active:scale-[0.98]
+                  disabled:opacity-40 disabled:cursor-not-allowed
+                  disabled:hover:bg-emerald-600
+                `}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Sending...
+                  </span>
+                ) : (
+                  "Send their reply"
+                )}
+              </button>
             </div>
 
-            {/* Save for later - bolder text */}
-            <button
-              type="button"
-              onClick={handleSave}
-              className="
-                w-full group flex items-center justify-center gap-2
-                mt-4 py-3
-                text-[15px] font-medium text-gray-500 hover:text-gray-700
-                transition-all duration-200
-              "
-            >
-              <svg
-                className="w-[18px] h-[18px] transition-all duration-300 ease-out group-hover:text-rose-400 group-hover:scale-110"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.5}
-                viewBox="0 0 24 24"
+            {/* Error Message */}
+            {error && (
+              <p className="text-[13px] text-red-600 mt-2 font-medium">
+                {error}
+              </p>
+            )}
+
+            {/* Trust Line + Save Fallback */}
+            <p className="text-[13px] text-gray-500 mt-4 leading-relaxed">
+              One email. No calls. Or{" "}
+              <button
+                type="button"
+                onClick={handleSave}
+                className="font-medium text-gray-700 underline underline-offset-2 decoration-gray-300 hover:text-gray-900 hover:decoration-gray-500 transition-colors"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-              </svg>
-              <span>Save for later</span>
-            </button>
+                save for later
+              </button>
+              {" "}— no email needed.
+            </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

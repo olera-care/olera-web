@@ -733,6 +733,8 @@ export default function QASectionV2({
                         providerName={providerName}
                         providerImage={providerImage}
                         providerId={providerId}
+                        providerLocation={providerLocation}
+                        providerCareTypes={providerCareTypes}
                         onEmailSubmit={handleInlineEmailSubmit}
                         onSave={handleInlineSave}
                         onCollapse={handleInlineCollapse}

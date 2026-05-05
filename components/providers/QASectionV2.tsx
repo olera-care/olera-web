@@ -730,6 +730,7 @@ export default function QASectionV2({
                       <InlineAnswerCard
                         question={q}
                         providerName={providerName}
+                        providerImage={providerImage}
                         providerId={providerId}
                         onEmailSubmit={handleInlineEmailSubmit}
                         onSave={handleInlineSave}

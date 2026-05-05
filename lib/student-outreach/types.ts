@@ -263,6 +263,8 @@ export interface TabRow extends OutreachRow {
   awaiting_callback_at: string | null;
   /** v8: voicemail vs. they-said-they'd-call-back. */
   awaiting_callback_kind: AwaitingCallbackKind | null;
+  /** v8: humanized next-scheduled-action label (Partners tab today). */
+  next_step_label: string | null;
 }
 
 /** Legacy alias kept while cleaning up old call sites. */

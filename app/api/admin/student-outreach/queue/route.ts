@@ -87,6 +87,8 @@ export interface TabRow extends OutreachRow {
   replies_state: RepliesState | null;
   awaiting_callback_at: string | null;
   awaiting_callback_kind: AwaitingCallbackKind | null;
+  /** v8 humanized next-scheduled-action label (Partners tab today). */
+  next_step_label: string | null;
 }
 
 export async function GET(req: NextRequest) {
@@ -568,10 +570,12 @@ async function hydrateRows(
     if (!primaryByOutreach.has(c.outreach_id)) primaryByOutreach.set(c.outreach_id, { name: c.name, phone: c.phone });
   }
 
-  // Custom-task indicator + due-call task + pending-email-task indicator (for stale derivation).
+  // Custom-task indicator + due-call task + pending-email-task indicator (for stale derivation)
+  // + earliest pending task per row (for the Partners-tab "Next step" pill).
   const customTaskByOutreach = new Map<string, string>();
   const dueCallTaskByOutreach = new Map<string, { id: string; due_at: string }>();
   const hasPendingEmail = new Set<string>();
+  const earliestTaskByOutreach = new Map<string, { task_type: string; due_at: string; payload: Record<string, unknown> | null }>();
   const nowIso = new Date().toISOString();
   for (const t of (tasksRes.data ?? []) as Array<{
     id: string;
@@ -596,6 +600,14 @@ async function hydrateRows(
     }
     if (t.task_type === "outreach_email_send") {
       hasPendingEmail.add(t.outreach_id);
+    }
+    const cur = earliestTaskByOutreach.get(t.outreach_id);
+    if (!cur || t.due_at < cur.due_at) {
+      earliestTaskByOutreach.set(t.outreach_id, {
+        task_type: t.task_type,
+        due_at: t.due_at,
+        payload: t.payload,
+      });
     }
   }
 
@@ -625,6 +637,7 @@ async function hydrateRows(
       tab === "replies"
         ? deriveRepliesState(state, hasPendingEmail.has(row.id))
         : null;
+    const earliestTask = earliestTaskByOutreach.get(row.id) ?? null;
     return {
       ...row,
       campus_name: camp?.name ?? "(unknown campus)",
@@ -647,10 +660,77 @@ async function hydrateRows(
       replies_state: repliesState,
       awaiting_callback_at: state.awaiting_callback_at,
       awaiting_callback_kind: state.awaiting_callback_kind,
+      next_step_label: deriveNextStepLabel(row.status, earliestTask),
     };
   });
 
   return tabRows;
+}
+
+/**
+ * Humanize the earliest pending task into a "Next: …" label. Used by the
+ * Partners-tab pill but tab-agnostic — any caller can render it.
+ * Returns null when there's no useful next step (e.g. mid-cadence rows
+ * already surface their state via the cadence step list).
+ */
+function deriveNextStepLabel(
+  status: string,
+  task: { task_type: string; due_at: string; payload: Record<string, unknown> | null } | null,
+): string | null {
+  if (!task) {
+    return status === "active_partner" ? "No upcoming tasks" : null;
+  }
+  const when = formatRelativeFuture(task.due_at);
+  switch (task.task_type) {
+    case "outreach_email_send": {
+      const season = task.payload?.season as string | undefined;
+      if (status === "active_partner" && season) {
+        return `Next: ${formatSeason(season)} email · ${when}`;
+      }
+      const day = task.payload?.day as number | undefined;
+      return typeof day === "number" && day >= 0
+        ? `Next: Day ${day} email · ${when}`
+        : `Next: email · ${when}`;
+    }
+    case "outreach_followup_call":
+      return `Next: follow-up call · ${when}`;
+    case "outreach_followup_email":
+      return `Next: follow-up email · ${when}`;
+    case "yearly_leadership_recheck":
+      return `Next: leadership recheck · ${when}`;
+    case "partner_seasonal_checkin":
+      return `Next: seasonal check-in · ${when}`;
+    case "partner_share_update":
+      return `Next: share update · ${when}`;
+    case "approval_request_followup":
+      return `Next: approval check-in · ${when}`;
+    case "manual_followup":
+      // Custom tasks already surface as the ⭐ pill — don't double up.
+      if (task.payload?.reason === "custom") return null;
+      return `Next: manual follow-up · ${when}`;
+    default:
+      return `Next: ${task.task_type.replace(/_/g, " ")} · ${when}`;
+  }
+}
+
+function formatSeason(season: string): string {
+  // "fall_kickoff" → "fall kickoff"
+  return season.replace(/_/g, " ");
+}
+
+function formatRelativeFuture(iso: string): string {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms < 0) {
+    const days = Math.round(-ms / 86_400_000);
+    return days >= 1 ? `${days}d overdue` : "due now";
+  }
+  const min = Math.round(ms / 60_000);
+  if (min < 60) return `in ${min}m`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `in ${hr}h`;
+  const d = Math.round(hr / 24);
+  if (d < 60) return `in ${d}d`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 function computeStaleDays(lastEmailSent: string | null, lastReply: string | null): number | null {

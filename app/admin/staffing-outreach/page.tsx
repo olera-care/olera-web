@@ -16,7 +16,7 @@
  * and /api/admin/staffing-outreach/[id] (drawer detail).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Drawer } from "./Drawer";
 import Select from "@/components/ui/Select";
 import type {
@@ -52,7 +52,7 @@ export default function StaffingOutreachPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
-  const hasAutoSelected = useRef(false); // Track if we've done initial batch selection
+  const [showQueueConfirm, setShowQueueConfirm] = useState(false); // Queue All confirmation modal
 
   // Debounce search input
   useEffect(() => {
@@ -81,11 +81,7 @@ export default function StaffingOutreachPage() {
       setRows(data.rows ?? []);
       setTabCounts(data.tabCounts ?? {});
       setTotal(data.total ?? 0);
-      // Auto-select first batch only on initial load (not when user selects "All")
-      if (!hasAutoSelected.current && !batchId && data.batches?.[0]) {
-        setBatchId(data.batches[0].id);
-        hasAutoSelected.current = true;
-      }
+      // Note: Default to "All Universities" (batchId = null) for overview
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -111,24 +107,23 @@ export default function StaffingOutreachPage() {
     [batches],
   );
 
-  // Queue All handler
-  const handleQueueAll = useCallback(async () => {
+  // Queue All - show confirmation modal
+  const handleQueueAllClick = useCallback(() => {
     if (!batchId) {
       setError("Select a university first to queue all providers");
       return;
     }
-
     const toQueueCount = tabCounts["to_queue"] ?? 0;
     if (toQueueCount === 0) {
       setError("No providers to queue");
       return;
     }
+    setShowQueueConfirm(true);
+  }, [batchId, tabCounts]);
 
-    const confirmed = window.confirm(
-      `Start email sequence for ${toQueueCount} providers in ${currentBatch?.university_name}?`
-    );
-    if (!confirmed) return;
-
+  // Queue All - execute after confirmation
+  const handleQueueAllConfirm = useCallback(async () => {
+    setShowQueueConfirm(false);
     setQueueingAll(true);
     setError(null);
     try {
@@ -157,7 +152,7 @@ export default function StaffingOutreachPage() {
     } finally {
       setQueueingAll(false);
     }
-  }, [batchId, currentBatch, tabCounts, refetch]);
+  }, [batchId, refetch]);
 
   const handleRowAction = useCallback(
     async (refreshedCtx: DrawerContext | null) => {
@@ -286,7 +281,7 @@ export default function StaffingOutreachPage() {
         {/* Queue All button - only show on To Queue tab with providers */}
         {stage === "to_queue" && (tabCounts["to_queue"] ?? 0) > 0 && batchId && (
           <button
-            onClick={handleQueueAll}
+            onClick={handleQueueAllClick}
             disabled={queueingAll}
             className="flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -475,6 +470,56 @@ export default function StaffingOutreachPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Queue All Confirmation Modal */}
+      {showQueueConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowQueueConfirm(false)}
+          />
+          {/* Modal */}
+          <div className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+              <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Start Email Sequences
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              This will start the automated email sequence for{" "}
+              <span className="font-semibold text-gray-900">
+                {tabCounts["to_queue"] ?? 0} providers
+              </span>{" "}
+              in{" "}
+              <span className="font-semibold text-gray-900">
+                {currentBatch?.university_name}
+              </span>.
+            </p>
+            <p className="mt-3 text-sm text-gray-500">
+              Each provider will receive Email 1 immediately, then Email 2 after 3 days if they haven&apos;t enrolled.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setShowQueueConfirm(false)}
+                className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleQueueAllConfirm}
+                disabled={queueingAll}
+                className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+              >
+                {queueingAll ? "Starting..." : `Start ${tabCounts["to_queue"] ?? 0} Sequences`}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

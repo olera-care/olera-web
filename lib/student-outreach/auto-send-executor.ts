@@ -415,3 +415,113 @@ export async function endOfCadenceSweep(): Promise<{ queued: number }> {
 
   return { queued };
 }
+
+/**
+ * v8 awaiting-callback auto-grace sweep.
+ *
+ * When a row has been waiting for a callback (call_voicemail OR
+ * call_connected{awaiting_callback:true}) for more than 5 days with
+ * no resolution, log a `resume_outreach` note (clears the awaiting
+ * state) and queue a fresh outreach_followup_call task. Prevents rows
+ * from getting stuck in Replies indefinitely if the team forgets.
+ *
+ * Resolution events (any newer than the awaiting touchpoint) cause
+ * us to skip:
+ *   - email_replied / ig_dm_replied / contact_form_submitted
+ *   - call_connected without awaiting_callback
+ *   - note_added with reason=resume_outreach
+ *
+ * Idempotent.
+ */
+export async function awaitingCallbackSweep(): Promise<{ resumed: number }> {
+  const db = getServiceClient();
+  const fiveDaysAgo = new Date(Date.now() - 5 * DAY_MS);
+
+  // Candidates: rows in active outreach states (not partner / closed) that
+  // have *any* awaiting-callback touchpoint older than 5 days. We over-fetch
+  // intentionally; the per-row scan applies the resolver semantics.
+  const { data: rowsRaw } = await db
+    .from("student_outreach")
+    .select("id, status")
+    .in("status", ["outreach_sent", "engaged"]);
+  const candidateIds = ((rowsRaw ?? []) as Array<{ id: string; status: string }>).map((r) => r.id);
+  if (candidateIds.length === 0) return { resumed: 0 };
+
+  const { data: tps } = await db
+    .from("student_outreach_touchpoints")
+    .select("outreach_id, touchpoint_type, payload, created_at")
+    .in("outreach_id", candidateIds)
+    .order("created_at", { ascending: false });
+
+  // Walk DESC per row. For each row, track:
+  //   - resolverSeen: a more-recent resolver after any callback candidate
+  //   - candidateAt: the (most recent) unresolved awaiting-callback timestamp
+  const candidate = new Map<string, string>();
+  const resolverSeen = new Set<string>();
+
+  for (const tp of (tps ?? []) as Array<{
+    outreach_id: string;
+    touchpoint_type: string;
+    payload: Record<string, unknown> | null;
+    created_at: string;
+  }>) {
+    if (candidate.has(tp.outreach_id)) continue; // already decided per row
+    const reason = (tp.payload?.reason as string | undefined) ?? null;
+    const awaitingFlag = tp.payload?.awaiting_callback === true;
+
+    const isResolver =
+      tp.touchpoint_type === "email_replied" ||
+      tp.touchpoint_type === "ig_dm_replied" ||
+      tp.touchpoint_type === "contact_form_submitted" ||
+      (tp.touchpoint_type === "call_connected" && !awaitingFlag) ||
+      (tp.touchpoint_type === "note_added" && reason === "resume_outreach");
+
+    if (isResolver) {
+      resolverSeen.add(tp.outreach_id);
+      // We can't yet decide — we only know there's no candidate so far. Continue scanning
+      // so an older touchpoint won't rewind. Mark by setting candidate to "" sentinel?
+      // Simpler: mark this row as "not_a_candidate" by adding to candidate with empty string,
+      // which we'll treat as "skip in the resume loop".
+      candidate.set(tp.outreach_id, "");
+      continue;
+    }
+
+    const isAwaiting =
+      tp.touchpoint_type === "call_voicemail" ||
+      (tp.touchpoint_type === "call_connected" && awaitingFlag);
+    if (isAwaiting && !resolverSeen.has(tp.outreach_id)) {
+      candidate.set(tp.outreach_id, tp.created_at);
+    }
+  }
+
+  let resumed = 0;
+  for (const [id, at] of candidate) {
+    if (!at) continue;
+    if (new Date(at) > fiveDaysAgo) continue;
+
+    // Skip if there's already a pending follow-up call (admin or earlier sweep).
+    const { data: existing } = await db
+      .from("student_outreach_tasks")
+      .select("id")
+      .eq("outreach_id", id)
+      .eq("status", "pending")
+      .eq("task_type", "outreach_followup_call");
+    if ((existing ?? []).length > 0) continue;
+
+    await db.from("student_outreach_tasks").insert({
+      outreach_id: id,
+      task_type: "outreach_followup_call" as TaskType,
+      due_at: new Date().toISOString(),
+      payload: { reason: "auto_resume_awaiting_callback" },
+      created_by: null,
+    });
+    await insertTouchpoint(db, id, "note_added", {
+      reason: "resume_outreach",
+      auto_grace: true,
+      awaiting_since: at,
+    });
+    resumed++;
+  }
+
+  return { resumed };
+}

@@ -21,7 +21,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
-import { endOfCadenceSweep, executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
+import {
+  awaitingCallbackSweep,
+  endOfCadenceSweep,
+  executeEmailTask,
+} from "@/lib/student-outreach/auto-send-executor";
 
 const BATCH_SIZE = 5;
 const MAX_RUNTIME_MS = 50_000; // Vercel default is 60s; leave headroom.
@@ -76,10 +80,20 @@ async function runCron(req: NextRequest) {
     console.error("End-of-cadence sweep failed:", err);
   }
 
+  // v8 awaiting-callback grace sweep (5d). Auto-resumes outreach for
+  // rows stuck in Replies awaiting a callback that never came.
+  let callbackSweep = { resumed: 0 };
+  try {
+    callbackSweep = await awaitingCallbackSweep();
+  } catch (err) {
+    console.error("Awaiting-callback sweep failed:", err);
+  }
+
   return NextResponse.json({
     candidates: candidates.length,
     results,
     sweep,
+    callback_sweep: callbackSweep,
     elapsed_ms: Date.now() - startedAt,
   });
 }

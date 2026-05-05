@@ -144,22 +144,58 @@ export function Drawer({ outreachId, tabContext = "all", onClose, onAction }: Dr
           ) : error ? (
             <p className="py-8 text-center text-sm text-red-600">{error}</p>
           ) : ctx ? (
-            <div className="space-y-6">
-              <RelationshipBanner ctx={ctx} />
-              <TabContextBanner tabContext={tabContext} ctx={ctx} action={action} setError={setError} />
-              <NextStepPanel ctx={ctx} action={action} setError={setError} />
-              <ResearchSection ctx={ctx} action={action} setError={setError} />
-              <ContactsSection ctx={ctx} action={action} setError={setError} />
-              {supportsApprovals(ctx.outreach.stakeholder_type) && (
-                <ApprovalsSection ctx={ctx} action={action} setError={setError} />
-              )}
-              <HistorySection ctx={ctx} />
-              <DangerZone ctx={ctx} action={action} setError={setError} />
-            </div>
+            <DrawerBody ctx={ctx} tabContext={tabContext} action={action} setError={setError} />
           ) : null}
         </div>
       </aside>
     </>
+  );
+}
+
+/**
+ * v8 two-zone layout: action card (Next Step) + Close Out (Danger Zone)
+ * are always visible. Research / Contacts / Approvals / History tuck
+ * under a "More details" toggle so the action surface stays clean.
+ */
+function DrawerBody({
+  ctx,
+  tabContext,
+  action,
+  setError,
+}: {
+  ctx: DrawerContext;
+  tabContext: TabContext;
+  action: ActionFn;
+  setError: (e: string | null) => void;
+}) {
+  const [showMore, setShowMore] = useState(false);
+  return (
+    <div className="space-y-6">
+      <RelationshipBanner ctx={ctx} />
+      <TabContextBanner tabContext={tabContext} ctx={ctx} />
+      <NextStepPanel ctx={ctx} action={action} setError={setError} />
+      <DangerZone ctx={ctx} action={action} setError={setError} />
+
+      <div>
+        <button
+          onClick={() => setShowMore((s) => !s)}
+          className="flex w-full items-center justify-between rounded-md border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+        >
+          <span>{showMore ? "Hide details" : "More details"}</span>
+          <span className="text-gray-400" aria-hidden>{showMore ? "▴" : "▾"}</span>
+        </button>
+        {showMore && (
+          <div className="mt-4 space-y-6">
+            <ResearchSection ctx={ctx} action={action} setError={setError} />
+            <ContactsSection ctx={ctx} action={action} setError={setError} />
+            {supportsApprovals(ctx.outreach.stakeholder_type) && (
+              <ApprovalsSection ctx={ctx} action={action} setError={setError} />
+            )}
+            <HistorySection ctx={ctx} />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -204,8 +240,25 @@ function NextStepPanel({
   const [showMeetingForm, setShowMeetingForm] = useState(false);
   const [showOfferCall, setShowOfferCall] = useState(false);
 
+  const [showFollowup, setShowFollowup] = useState(false);
   const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
   const partnerCtaVisible = PARTNER_CTA_STAGES.includes(status);
+
+  // v8: detect if there's an active scheduled meeting on this row
+  // (drives the "Log meeting outcome" follow-up button visibility).
+  const hasActiveScheduledMeeting = useMemo(() => {
+    for (const t of ctx.touchpoints) {
+      if (t.touchpoint_type === "meeting_scheduled") return true;
+      if (
+        t.touchpoint_type === "meeting_held" ||
+        t.touchpoint_type === "meeting_no_show" ||
+        t.touchpoint_type === "meeting_rescheduled"
+      ) return false;
+      const reason = (t.payload as Record<string, unknown>)?.reason;
+      if (t.touchpoint_type === "note_added" && reason === "post_meeting_followup") return false;
+    }
+    return false;
+  }, [ctx.touchpoints]);
 
   const baseCtx = {
     stakeholder_type: type,
@@ -270,6 +323,22 @@ function NextStepPanel({
           )}
         </div>
 
+        {/* v8: post-meeting follow-up — for booked rows where the meeting happened */}
+        {hasActiveScheduledMeeting && (
+          <div className="border-t border-gray-100 bg-blue-50/30 px-4 py-3">
+            <button
+              onClick={() => setShowFollowup(true)}
+              title="Meeting happened but they need follow-up before becoming an Active Partner. Notes go back to Replies."
+              className="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              🔄 Log meeting outcome — needs follow-up
+            </button>
+            <p className="mt-1.5 text-center text-[11px] text-blue-900/80">
+              Records the meeting outcome and surfaces notes on the row in Replies.
+            </p>
+          </div>
+        )}
+
         {/* Always-visible Mark-as-Partner graduation */}
         {partnerCtaVisible && (
           <div className="border-t border-gray-100 bg-emerald-50/30 px-4 py-3">
@@ -315,6 +384,20 @@ function NextStepPanel({
               setShowPartner(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
+            }
+          }}
+        />
+      )}
+      {showFollowup && (
+        <FollowupNotesModal
+          onCancel={() => setShowFollowup(false)}
+          onConfirm={async (notes) => {
+            try {
+              await action("mark_meeting_followup", { notes });
+              setShowFollowup(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+              throw e;
             }
           }}
         />
@@ -1307,163 +1390,64 @@ function DangerZone({
   );
 }
 
-// ── Tab-context banner ─────────────────────────────────────────────────
+// ── Tab-context banner (v8 — informational only) ───────────────────────
 
 /**
- * Renders at the top of the drawer with tab-aware primary CTAs. Drives
- * the v7 mental model where what you do depends on the tab you opened
- * from. Custom-task star + a banner with the tab-relevant actions.
+ * v8: tab-aware contextual hint. Action buttons live on the row cards
+ * now (Replies / Meetings / Calls each have their own state-driven
+ * buttons), so the drawer just sets context and surfaces custom tasks.
  */
 function TabContextBanner({
   tabContext,
   ctx,
-  action,
-  setError,
 }: {
   tabContext: TabContext;
   ctx: DrawerContext;
-  action: ActionFn;
-  setError: (e: string | null) => void;
 }) {
-  const [showFollowupModal, setShowFollowupModal] = useState(false);
-  const [showScheduledModal, setShowScheduledModal] = useState(false);
-
-  const handleErr = (p: Promise<unknown>) =>
-    p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
-
   const customTask = ctx.pending_tasks.find(
     (t) =>
       t.task_type === "manual_followup" &&
       (t.payload as Record<string, unknown>)?.reason === "custom",
   );
 
-  const meetingTouchpoint = ctx.touchpoints.find((t) => {
-    if (t.touchpoint_type === "meeting_scheduled") return true;
-    const reason = (t.payload as Record<string, unknown>)?.reason;
-    if (t.touchpoint_type === "note_added" && reason === "meeting_in_flight") return true;
-    return false;
-  });
-  const meetingState =
-    meetingTouchpoint?.touchpoint_type === "meeting_scheduled"
-      ? "scheduled"
-      : meetingTouchpoint?.touchpoint_type === "note_added"
-      ? "in_flight"
-      : "none";
+  const blurbs: Record<TabContext, string> = {
+    research: "🔍 Research mode — fill in basics below and schedule the email cadence when ready.",
+    calls: "📞 Calls mode — close this drawer and use the green dial + 'Log outcome' button on the row.",
+    replies: "📬 Inbox triage — close this drawer and use the row's state buttons to record the reply.",
+    meetings: "📅 Meeting mode — close this drawer and use the row buttons to mark scheduled or graduate to Partner.",
+    partners: "⭐ Active Partner — light-touch maintenance. Seasonal emails fire automatically.",
+    all: "",
+  };
+
+  const tone: Record<TabContext, string> = {
+    research: "border-gray-200 bg-gray-50 text-gray-700",
+    calls: "border-emerald-200 bg-emerald-50/40 text-emerald-900",
+    replies: "border-blue-200 bg-blue-50/40 text-blue-900",
+    meetings: "border-indigo-200 bg-indigo-50/40 text-indigo-900",
+    partners: "border-emerald-200 bg-emerald-50/40 text-emerald-900",
+    all: "",
+  };
+
+  const blurb = blurbs[tabContext];
 
   return (
     <div className="space-y-2">
       {customTask && (
         <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50/60 px-3 py-2 text-xs text-amber-900">
           <span className="text-amber-500">★</span>
-          <span><strong>Custom task:</strong> {String((customTask.payload as Record<string, unknown>)?.notes ?? "see Pending Tasks below")}</span>
-        </div>
-      )}
-
-      {tabContext === "calls" && (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50/40 px-3 py-2 text-xs text-emerald-900">
-          📞 You opened this from <strong>Calls</strong>. Make the phone call now (script + dial below). After the call: log the disposition.
-        </div>
-      )}
-
-      {tabContext === "replies" && (
-        <div className="space-y-2">
-          <div className="rounded-md border border-blue-200 bg-blue-50/40 px-3 py-2 text-xs text-blue-900">
-            📬 You opened this from <strong>Replies</strong>. Read their email reply, then pick what to do:
-          </div>
-          {ctx.outreach.status !== "active_partner" && (
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => handleErr(action("flag_wants_meeting"))}
-                title="They want to meet — coordinate time over email. Cancels remaining cadence."
-                className="rounded-md bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-200"
-              >
-                🤝 Wants a meeting
-              </button>
-              <button
-                onClick={() => setShowScheduledModal(true)}
-                title="A meeting is already on Logan's calendar (Calendly auto-booked or you scheduled it)."
-                className="rounded-md bg-indigo-100 px-3 py-1.5 text-xs font-medium text-indigo-900 hover:bg-indigo-200"
-              >
-                📅 Meeting already scheduled
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {tabContext === "meetings" && (
-        <div className="space-y-2">
-          <div className="rounded-md border border-indigo-200 bg-indigo-50/40 px-3 py-2 text-xs text-indigo-900">
-            📅 You opened this from <strong>Meetings</strong>.{" "}
-            {meetingState === "in_flight" && "Coordinating time. When booked, mark Scheduled."}
-            {meetingState === "scheduled" && "Meeting is on the calendar. After it happens, mark partner OR send back to Replies for follow-up."}
-            {meetingState === "none" && "No meeting state on this row."}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {meetingState === "in_flight" && (
-              <button
-                onClick={() => setShowScheduledModal(true)}
-                title="Meeting is now booked — record it."
-                className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
-              >
-                ✓ Mark as Scheduled
-              </button>
+          <span>
+            <strong>Custom task:</strong>{" "}
+            {String(
+              (customTask.payload as Record<string, unknown>)?.notes ??
+                "see Pending Tasks below",
             )}
-            {meetingState === "scheduled" && (
-              <>
-                <button
-                  onClick={() => setShowFollowupModal(true)}
-                  title="Meeting happened but they need follow-up before becoming an Active Partner. Notes go back to Replies."
-                  className="rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200"
-                >
-                  🔄 Needs follow-up — back to Replies
-                </button>
-              </>
-            )}
-          </div>
+          </span>
         </div>
       )}
-
-      {tabContext === "research" && (
-        <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
-          🔍 You opened this from <strong>Research</strong>. Fill in research below and click "Schedule outreach" to start the email cadence.
+      {blurb && (
+        <div className={`rounded-md border px-3 py-2 text-xs ${tone[tabContext]}`}>
+          {blurb}
         </div>
-      )}
-
-      {tabContext === "partners" && (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50/40 px-3 py-2 text-xs text-emerald-900">
-          ⭐ Active Partner. Light-touch — seasonal emails fire automatically. Click the row only if you need to update something.
-        </div>
-      )}
-
-      {showScheduledModal && (
-        <MarkScheduledModal
-          onCancel={() => setShowScheduledModal(false)}
-          onConfirm={async (meeting_at) => {
-            try {
-              await action("mark_meeting_scheduled", meeting_at ? { meeting_at } : {});
-              setShowScheduledModal(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Save failed");
-              throw e;
-            }
-          }}
-        />
-      )}
-
-      {showFollowupModal && (
-        <FollowupNotesModal
-          onCancel={() => setShowFollowupModal(false)}
-          onConfirm={async (notes) => {
-            try {
-              await action("mark_meeting_followup", { notes });
-              setShowFollowupModal(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Save failed");
-              throw e;
-            }
-          }}
-        />
       )}
     </div>
   );

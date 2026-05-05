@@ -215,9 +215,30 @@ export interface Task {
 }
 
 /**
- * v7 TabRow — what the queue endpoint returns per row, enriched with
+ * v8 Replies tab sub-state. Derived server-side in the queue endpoint
+ * and rendered as one of seven state cards. Single source of truth for
+ * "what action does the row need next?" — UI is dumb.
+ *
+ * Precedence (when a row matches multiple): needs_followup > booked >
+ * wants_meeting > awaiting_callback > stale > engaged > mid_cadence.
+ */
+export type RepliesState =
+  | "mid_cadence"
+  | "engaged"
+  | "wants_meeting"
+  | "booked"
+  | "needs_followup"
+  | "awaiting_callback"
+  | "stale";
+
+/** Reason for an awaiting-callback state — surfaces in the row card copy. */
+export type AwaitingCallbackKind = "voicemail" | "promised";
+
+/**
+ * v7/v8 TabRow — what the queue endpoint returns per row, enriched with
  * indicators that drive the per-tab UI (custom task star, stale flag,
- * meeting state, post-meeting follow-up notes, due-call shortcut).
+ * meeting state, post-meeting follow-up notes, due-call shortcut,
+ * v8 replies sub-state, awaiting-callback details).
  */
 export interface TabRow extends OutreachRow {
   campus_name: string;
@@ -236,6 +257,12 @@ export interface TabRow extends OutreachRow {
   last_activity_at: string | null;
   /** Calls tab only: the due call task to surface "Tap to dial" UX. */
   due_call_task: { id: string; due_at: string } | null;
+  /** v8 Replies tab only: which state card to render. Null otherwise. */
+  replies_state: RepliesState | null;
+  /** v8: when the awaiting-callback state began (for "N days ago" copy). */
+  awaiting_callback_at: string | null;
+  /** v8: voicemail vs. they-said-they'd-call-back. */
+  awaiting_callback_kind: AwaitingCallbackKind | null;
 }
 
 /** Legacy alias kept while cleaning up old call sites. */

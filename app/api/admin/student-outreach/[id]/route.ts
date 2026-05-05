@@ -148,6 +148,12 @@ export async function POST(
       case "log_call":
         await handleLogCall(db, row, body, user.id);
         break;
+      case "resume_outreach":
+        await handleResumeOutreach(db, row, body, user.id);
+        break;
+      case "classify_reply":
+        await handleClassifyReply(db, row, body, user.id);
+        break;
       case "log_ig_dm_sent":
         await handleLogTouch(db, row, body, user.id, "ig_dm_sent", "ig_dm");
         break;
@@ -553,6 +559,8 @@ async function handleMarkMeetingScheduled(
       : { meeting_at: null },
   });
 
+  // v8: supersede any in-flight email cadence — the conversation has moved on.
+  await supersedePendingOutreachEmails(db, row.id, userId);
   await touchOutreach(db, row.id, userId);
 }
 
@@ -576,6 +584,8 @@ async function handleFlagWantsMeeting(
     notes: body.notes ?? null,
     payload: { reason: "meeting_in_flight" },
   });
+  // v8: supersede any pending cadence emails — we're coordinating a meeting now.
+  await supersedePendingOutreachEmails(db, row.id, userId);
   await touchOutreach(db, row.id, userId);
 }
 
@@ -785,6 +795,9 @@ async function handleLogReply(
     channel,
     notes: body.notes ?? null,
   });
+  // v8: a reply supersedes any pending email_send tasks so the cron
+  // doesn't fire after they've already replied.
+  await supersedePendingOutreachEmails(db, row.id, userId);
   // A reply jumps the row to engaged (cadence freezes).
   if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
     await transitionStage(db, row, "engaged", userId, body.notes ?? null);
@@ -793,44 +806,280 @@ async function handleLogReply(
   }
 }
 
+/**
+ * v8: cancel any pending outreach_email_send tasks for this row. Called
+ * when admin signals they've heard back (reply, callback, classify_reply,
+ * mark_meeting_scheduled, flag_wants_meeting). Prevents the cron from
+ * firing the next cadence email after the conversation has moved on.
+ */
+async function supersedePendingOutreachEmails(db: DB, outreachId: string, userId: string) {
+  const { data: cancelled } = await db
+    .from("student_outreach_tasks")
+    .update({
+      status: "superseded",
+      completed_at: new Date().toISOString(),
+      completed_by: userId,
+    })
+    .eq("outreach_id", outreachId)
+    .eq("status", "pending")
+    .eq("task_type", "outreach_email_send")
+    .select("id");
+  if (cancelled && cancelled.length > 0) {
+    await insertTouchpoint(db, outreachId, "task_superseded", userId, {
+      payload: {
+        cancelled_task_ids: cancelled.map((c) => (c as { id: string }).id),
+        reason: "reply_received",
+      },
+    });
+  }
+}
+
+/**
+ * v8: cancel any pending outreach_followup_call tasks for this row. Called
+ * when admin logs voicemail or "they'll call back" — the row moves to
+ * Replies (awaiting_callback) so we shouldn't keep prompting a call.
+ * Admin's "Resume outreach" action re-queues a fresh call task.
+ */
+async function supersedePendingFollowupCalls(db: DB, outreachId: string, userId: string) {
+  const { data: cancelled } = await db
+    .from("student_outreach_tasks")
+    .update({
+      status: "superseded",
+      completed_at: new Date().toISOString(),
+      completed_by: userId,
+    })
+    .eq("outreach_id", outreachId)
+    .eq("status", "pending")
+    .eq("task_type", "outreach_followup_call")
+    .select("id");
+  if (cancelled && cancelled.length > 0) {
+    await insertTouchpoint(db, outreachId, "task_superseded", userId, {
+      payload: {
+        cancelled_task_ids: cancelled.map((c) => (c as { id: string }).id),
+        reason: "awaiting_callback",
+      },
+    });
+  }
+}
+
+/**
+ * v8: log a phone-call outcome from the Calls-tab Log Call Outcome modal.
+ *
+ * Six outcomes drive different downstream effects:
+ *   - no_answer            → log call_no_answer (cadence continues)
+ *   - voicemail            → log call_voicemail{awaiting_callback:true},
+ *                             supersede pending call task → row moves to
+ *                             Replies as `awaiting_callback`
+ *   - promised_callback    → log call_connected{awaiting_callback:true},
+ *                             supersede pending call task → Replies tab
+ *   - connected_engaged    → log call_connected, transition to engaged,
+ *                             supersede pending email tasks
+ *   - connected_not_interested → log call_connected, transition to not_interested
+ *   - wrong_number         → log call_wrong_number, transition to wrong_contact
+ *
+ * Also supports the legacy `disposition` shape from OutreachStepList.
+ */
 async function handleLogCall(
   db: DB,
   row: OutreachRow,
-  body: { disposition?: string; contact_id?: string; notes?: string },
+  body: {
+    disposition?: string;
+    outcome?: string;
+    contact_id?: string;
+    notes?: string;
+  },
   userId: string,
 ) {
-  const dispositionMap: Record<string, TouchpointType> = {
-    no_answer: "call_no_answer",
-    voicemail: "call_voicemail",
-    connected: "call_connected",
-    wrong_number: "call_wrong_number",
-  };
-  const type = dispositionMap[body.disposition ?? ""];
-  if (!type) throw new Error("Invalid disposition");
+  // v8 outcome routing (preferred). Falls back to legacy disposition map.
+  const outcome = body.outcome ?? legacyDispositionToOutcome(body.disposition);
+  if (!outcome) throw new Error("Invalid call outcome");
 
-  await insertTouchpoint(db, row.id, type, userId, {
-    contact_id: body.contact_id ?? null,
-    channel: "phone",
-    outcome: body.disposition ?? null,
-    notes: body.notes ?? null,
-  });
-
-  if (type === "call_wrong_number") {
-    await transitionStage(db, row, "wrong_contact", userId, body.notes ?? null);
-    return;
-  }
-
-  if (type === "call_connected") {
-    if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
-      await transitionStage(db, row, "engaged", userId, body.notes ?? null);
+  switch (outcome) {
+    case "no_answer": {
+      await insertTouchpoint(db, row.id, "call_no_answer", userId, {
+        contact_id: body.contact_id ?? null,
+        channel: "phone",
+        outcome,
+        notes: body.notes ?? null,
+      });
+      // Cadence continues. If we were still researched/prospect, advance to outreach_sent.
+      if (row.status === "researched" || row.status === "prospect") {
+        await transitionStage(db, row, "outreach_sent", userId);
+      } else {
+        await touchOutreach(db, row.id, userId);
+      }
       return;
     }
+    case "voicemail": {
+      await insertTouchpoint(db, row.id, "call_voicemail", userId, {
+        contact_id: body.contact_id ?? null,
+        channel: "phone",
+        outcome,
+        notes: body.notes ?? null,
+        payload: { awaiting_callback: true },
+      });
+      await supersedePendingFollowupCalls(db, row.id, userId);
+      if (row.status === "researched" || row.status === "prospect") {
+        await transitionStage(db, row, "outreach_sent", userId);
+      } else {
+        await touchOutreach(db, row.id, userId);
+      }
+      return;
+    }
+    case "promised_callback": {
+      await insertTouchpoint(db, row.id, "call_connected", userId, {
+        contact_id: body.contact_id ?? null,
+        channel: "phone",
+        outcome,
+        notes: body.notes ?? null,
+        payload: { awaiting_callback: true },
+      });
+      await supersedePendingFollowupCalls(db, row.id, userId);
+      // Connected — even briefly — moves us to engaged.
+      if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
+        await transitionStage(db, row, "engaged", userId, body.notes ?? null);
+      } else {
+        await touchOutreach(db, row.id, userId);
+      }
+      return;
+    }
+    case "connected_engaged": {
+      await insertTouchpoint(db, row.id, "call_connected", userId, {
+        contact_id: body.contact_id ?? null,
+        channel: "phone",
+        outcome,
+        notes: body.notes ?? null,
+      });
+      await supersedePendingOutreachEmails(db, row.id, userId);
+      await supersedePendingFollowupCalls(db, row.id, userId);
+      if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
+        await transitionStage(db, row, "engaged", userId, body.notes ?? null);
+      } else {
+        await touchOutreach(db, row.id, userId);
+      }
+      return;
+    }
+    case "connected_not_interested": {
+      await insertTouchpoint(db, row.id, "call_connected", userId, {
+        contact_id: body.contact_id ?? null,
+        channel: "phone",
+        outcome,
+        notes: body.notes ?? null,
+      });
+      await transitionStage(db, row, "not_interested", userId, body.notes ?? null);
+      return;
+    }
+    case "wrong_number": {
+      await insertTouchpoint(db, row.id, "call_wrong_number", userId, {
+        contact_id: body.contact_id ?? null,
+        channel: "phone",
+        outcome,
+        notes: body.notes ?? null,
+      });
+      await transitionStage(db, row, "wrong_contact", userId, body.notes ?? null);
+      return;
+    }
+    default:
+      throw new Error(`Unknown call outcome: ${outcome}`);
   }
+}
 
-  if (row.status === "researched" || row.status === "prospect") {
-    await transitionStage(db, row, "outreach_sent", userId);
-  } else {
-    await touchOutreach(db, row.id, userId);
+function legacyDispositionToOutcome(disposition: string | undefined): string | null {
+  if (!disposition) return null;
+  switch (disposition) {
+    case "no_answer": return "no_answer";
+    case "voicemail": return "voicemail";
+    case "connected": return "connected_engaged";
+    case "wrong_number": return "wrong_number";
+    default: return null;
+  }
+}
+
+/**
+ * v8: admin clicked "Still nothing — resume outreach" on an
+ * awaiting-callback Replies row. Logs a resolver note (clears the
+ * awaiting-callback state) and re-queues a follow-up call task so
+ * the row reappears in the Calls tab.
+ */
+async function handleResumeOutreach(
+  db: DB,
+  row: OutreachRow,
+  body: { notes?: string },
+  userId: string,
+) {
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    notes: body.notes ?? null,
+    payload: { reason: "resume_outreach" },
+  });
+  // Re-queue a fresh call task (3 days out). Skip if there's already a pending one.
+  const { data: existing } = await db
+    .from("student_outreach_tasks")
+    .select("id")
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .eq("task_type", "outreach_followup_call");
+  if ((existing ?? []).length === 0) {
+    await queueTask(
+      db,
+      row.id,
+      {
+        task_type: "outreach_followup_call",
+        due_at: new Date(Date.now() + 3 * DAY_MS),
+        payload: { reason: "resumed_after_callback" },
+      },
+      userId,
+    );
+  }
+  await touchOutreach(db, row.id, userId);
+}
+
+/**
+ * v8: ReplyClassifierModal callback. Maps the four user choices to
+ * existing actions. The mini-modal is shared between "they replied
+ * via email" and "got a callback" paths.
+ *
+ *   keep_emailing      → log_email_replied (engaged + supersede emails)
+ *   wants_meeting      → flag_wants_meeting (note_added meeting_in_flight)
+ *   already_booked     → mark_meeting_scheduled (with optional meeting_at)
+ *   committed          → mark_partner with the supplied evidence
+ */
+async function handleClassifyReply(
+  db: DB,
+  row: OutreachRow,
+  body: {
+    classification?: string;
+    notes?: string;
+    meeting_at?: string;
+    evidence?: DistributionEvidence;
+    evidence_notes?: string;
+  },
+  userId: string,
+) {
+  switch (body.classification) {
+    case "keep_emailing":
+      await handleLogReply(db, row, { notes: body.notes }, userId, "email_replied", "email");
+      return;
+    case "wants_meeting":
+      await handleFlagWantsMeeting(db, row, { notes: body.notes }, userId);
+      return;
+    case "already_booked":
+      await handleMarkMeetingScheduled(
+        db,
+        row,
+        { meeting_at: body.meeting_at, notes: body.notes },
+        userId,
+      );
+      return;
+    case "committed":
+      await handleMarkPartner(
+        db,
+        row,
+        { evidence: body.evidence, evidence_notes: body.evidence_notes, notes: body.notes },
+        userId,
+      );
+      return;
+    default:
+      throw new Error("Invalid classification");
   }
 }
 

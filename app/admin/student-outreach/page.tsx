@@ -1,23 +1,20 @@
 "use client";
 
 /**
- * Admin Student Outreach Funnel — main page (v7).
+ * Admin Student Outreach Funnel — main page (v8).
  *
  * Six tabs in workflow order:
  *   🔍 Research → 📞 Calls → 📬 Replies → 📅 Meetings → ⭐ Active Partners → 🔎 All
  *
- * No persistent header pills (no approvals, no inbox timer). Just two
- * action buttons (Add Stakeholder, Add Custom Task).
- *
- * Each tab has its own row rendering optimized for the work mode:
- *   - Calls: phone number prominent, Tap to dial
- *   - Replies: stale flag, meeting flag, post-meeting notes inline
- *   - Meetings: in-flight vs scheduled treatment
- *   - Partners: last touch + next seasonal date
- *   - Research / All: standard row
- *
- * A row with a pending custom task gets a ⭐ star icon across all tabs.
- * Active Partners do NOT show in research / calls / replies / meetings.
+ * v8 changes vs v7:
+ *   - Calls tab: row click opens LogCallOutcomeModal (6 outcomes routing the row)
+ *   - Replies tab: top "Open Gmail" banner + 7 state cards
+ *     (mid_cadence | engaged | wants_meeting | booked | needs_followup |
+ *      awaiting_callback | stale). Each state has its own primary action.
+ *   - Meetings tab: top "Open Calendar" banner + 2 state cards
+ *     (in_flight = "Finding a time" | scheduled = "Booked")
+ *   - Reply-classifier mini-modal shared between "They replied" and "Got a callback"
+ *   - All state derivation is server-side in queue/route.ts; the UI is dumb
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -25,10 +22,15 @@ import Link from "next/link";
 import { Drawer } from "./Drawer";
 import { AddStakeholderModal } from "./AddStakeholderModal";
 import { AddCustomTaskModal } from "./AddCustomTaskModal";
+import { LogCallOutcomeModal } from "./LogCallOutcomeModal";
+import { ReplyClassifierModal } from "./ReplyClassifierModal";
+import { MarkPartnerModal } from "./MarkPartnerModal";
 import {
   STAKEHOLDER_TYPE_LABELS,
   type Campus,
+  type DistributionEvidence,
   type DrawerContext,
+  type RepliesState,
   type StakeholderType,
   type TabCounts,
   type TabRow,
@@ -45,10 +47,10 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   { key: "research",  emoji: "🔍", label: "Research",        tooltip: "New stakeholders that still need research before email outreach starts." },
-  { key: "calls",     emoji: "📞", label: "Calls",           tooltip: "Phone calls due today. Click a row to see the script and tap to dial." },
-  { key: "replies",   emoji: "📬", label: "Replies",         tooltip: "Stakeholders mid-outreach or engaged. Check email for replies, mark engaged, decide next step." },
-  { key: "meetings",  emoji: "📅", label: "Meetings",        tooltip: "Stakeholders who want a meeting or have one booked. Verify or schedule." },
-  { key: "partners",  emoji: "⭐", label: "Active Partners", tooltip: "Stakeholders who are sharing with students. Light-touch, mostly automated seasonal emails." },
+  { key: "calls",     emoji: "📞", label: "Calls",           tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
+  { key: "replies",   emoji: "📬", label: "Replies",         tooltip: "Email replies, callbacks, voicemails. Triage what they said and pick the next step." },
+  { key: "meetings",  emoji: "📅", label: "Meetings",        tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
+  { key: "partners",  emoji: "⭐", label: "Active Partners", tooltip: "Stakeholders sharing with students. Mostly automated seasonal emails." },
   { key: "all",       emoji: "🔎", label: "All",             tooltip: "Search and filter every stakeholder across all stages." },
 ];
 
@@ -75,6 +77,14 @@ export default function StudentOutreachPage() {
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
+
+  // v8: per-row action modals (driven by row buttons, not the drawer).
+  const [callOutcomeRow, setCallOutcomeRow] = useState<TabRow | null>(null);
+  const [classifierRow, setClassifierRow] = useState<{
+    row: TabRow;
+    source: "email_reply" | "callback";
+  } | null>(null);
+  const [partnerRow, setPartnerRow] = useState<TabRow | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -114,6 +124,23 @@ export default function StudentOutreachPage() {
   const currentCampus = useMemo(
     () => campuses.find((c) => c.slug === campusSlug) ?? null,
     [campuses, campusSlug],
+  );
+
+  // Direct-API helper for row-driven actions (no drawer round-trip).
+  const callAction = useCallback(
+    async (outreachId: string, action: string, payload: Record<string, unknown> = {}) => {
+      const res = await fetch(`/api/admin/student-outreach/${outreachId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, ...payload }),
+      });
+      if (!res.ok) {
+        const { error: e } = await res.json().catch(() => ({ error: "Action failed" }));
+        throw new Error(e || "Action failed");
+      }
+      await refetch();
+    },
+    [refetch],
   );
 
   return (
@@ -222,6 +249,11 @@ export default function StudentOutreachPage() {
         })}
       </div>
 
+      {/* v8: top banners for tabs that anchor on inbox/calendar */}
+      {tab === "replies" && <RepliesTabBanner />}
+      {tab === "meetings" && <MeetingsTabBanner />}
+      {tab === "calls" && <CallsTabBanner />}
+
       {tab === "all" && (
         <div className="mb-3 flex items-center gap-2 text-xs text-gray-600">
           <label className="inline-flex cursor-pointer items-center gap-1.5">
@@ -243,10 +275,35 @@ export default function StudentOutreachPage() {
       ) : rows.length === 0 ? (
         <EmptyState tab={tab} tabCounts={tabCounts} onAdd={() => setShowAdd(true)} />
       ) : (
-        <ul className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
+        <ul className="space-y-2">
           {rows.map((row) => (
             <li key={row.id}>
-              <RowCard tab={tab} row={row} onClick={() => setOpenOutreachId(row.id)} />
+              <RowCard
+                tab={tab}
+                row={row}
+                onOpenDrawer={() => setOpenOutreachId(row.id)}
+                onLogCallOutcome={() => setCallOutcomeRow(row)}
+                onClassifyReply={(source) => setClassifierRow({ row, source })}
+                onMarkPartner={() => setPartnerRow(row)}
+                onResumeOutreach={async () => {
+                  if (!window.confirm("Resume outreach? Re-queues a follow-up call in 3 days.")) return;
+                  try { await callAction(row.id, "resume_outreach"); }
+                  catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
+                }}
+                onCloseAsNoResponse={async () => {
+                  if (!window.confirm("Close as No Response? Re-opens automatically in 90 days.")) return;
+                  try { await callAction(row.id, "mark_no_response_closed"); }
+                  catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
+                }}
+                onMarkScheduledFromInFlight={() => setClassifierRow({ row, source: "email_reply" })}
+                onSendFollowupEmail={() => {
+                  const subject = encodeURIComponent(
+                    `Following up — ${row.organization_name}`,
+                  );
+                  const url = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
+                  window.open(url, "_blank", "noopener,noreferrer");
+                }}
+              />
             </li>
           ))}
         </ul>
@@ -260,6 +317,58 @@ export default function StudentOutreachPage() {
           onAction={handleDrawerAction}
         />
       )}
+
+      {/* Modals driven by row buttons */}
+      {callOutcomeRow && (
+        <LogCallOutcomeModal
+          organizationName={callOutcomeRow.organization_name}
+          contactName={callOutcomeRow.primary_contact_name}
+          contactPhone={callOutcomeRow.primary_contact_phone}
+          onCancel={() => setCallOutcomeRow(null)}
+          onSubmit={async (outcome, notes) => {
+            await callAction(callOutcomeRow.id, "log_call", {
+              outcome,
+              notes,
+            });
+            setCallOutcomeRow(null);
+          }}
+        />
+      )}
+      {classifierRow && (
+        <ReplyClassifierModal
+          organizationName={classifierRow.row.organization_name}
+          source={classifierRow.source}
+          onCancel={() => setClassifierRow(null)}
+          onSubmit={async (classification, payload) => {
+            await callAction(classifierRow.row.id, "classify_reply", {
+              classification,
+              notes: payload.notes,
+              meeting_at: payload.meeting_at,
+            });
+            setClassifierRow(null);
+          }}
+          onChooseCommitted={() => {
+            const r = classifierRow.row;
+            setClassifierRow(null);
+            setPartnerRow(r);
+          }}
+        />
+      )}
+      {partnerRow && (
+        <MarkPartnerModal
+          organizationName={partnerRow.organization_name}
+          onCancel={() => setPartnerRow(null)}
+          onConfirm={async (payload: { evidence: DistributionEvidence; evidence_notes: string }) => {
+            try {
+              await callAction(partnerRow.id, "mark_partner", payload);
+              setPartnerRow(null);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+            }
+          }}
+        />
+      )}
+
       {showAdd && (
         <AddStakeholderModal
           campuses={campuses}
@@ -290,6 +399,63 @@ export default function StudentOutreachPage() {
           onError={setError}
         />
       )}
+    </div>
+  );
+}
+
+// ── Top banners (Gmail / Calendar / Calls) ──────────────────────────────
+
+function RepliesTabBanner() {
+  return (
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-3">
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-blue-900">📬 Inbox triage</p>
+        <p className="text-xs text-blue-800/80">
+          Replies, callbacks, and voicemail notifications all land in the <strong>outreach@olera.care</strong> inbox.
+          Open Gmail, then come back here to triage each row.
+        </p>
+      </div>
+      <a
+        href="https://mail.google.com/mail/u/0/#inbox"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+      >
+        Open Gmail ↗
+      </a>
+    </div>
+  );
+}
+
+function MeetingsTabBanner() {
+  return (
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-indigo-200 bg-indigo-50/60 px-4 py-3">
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-indigo-900">📅 Meeting status</p>
+        <p className="text-xs text-indigo-800/80">
+          Coordinate times in email, then mark scheduled here. Booked meetings live on Google Calendar.
+        </p>
+      </div>
+      <a
+        href="https://calendar.google.com/calendar/u/0/r"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="shrink-0 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700"
+      >
+        Open Calendar ↗
+      </a>
+    </div>
+  );
+}
+
+function CallsTabBanner() {
+  return (
+    <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
+      <p className="text-sm font-medium text-emerald-900">📞 Calls due now</p>
+      <p className="text-xs text-emerald-800/80">
+        Tap the green dial button on a row, then click anywhere on the row to log the outcome. Voicemails
+        and &ldquo;they&rsquo;ll call back&rdquo; promises move the row to Replies until they reach out.
+      </p>
     </div>
   );
 }
@@ -325,7 +491,7 @@ function EmptyState({
   const blurbs: Record<TabKey, string> = {
     research: "No stakeholders need research right now.",
     calls: "No phone calls due. 🎉",
-    replies: "No mid-outreach stakeholders to triage. Add more or wait for cadences to start.",
+    replies: "No inbox triage right now. The cadence is humming along.",
     meetings: "No meetings in flight or booked.",
     partners: "No active partners yet. Mark a stakeholder as Active Partner when they commit to sharing.",
     all: "No matches.",
@@ -335,7 +501,36 @@ function EmptyState({
 
 // ── Row rendering ───────────────────────────────────────────────────────
 
+interface RowCardCallbacks {
+  onOpenDrawer: () => void;
+  onLogCallOutcome: () => void;
+  onClassifyReply: (source: "email_reply" | "callback") => void;
+  onMarkPartner: () => void;
+  onResumeOutreach: () => Promise<void>;
+  onCloseAsNoResponse: () => Promise<void>;
+  onMarkScheduledFromInFlight: () => void;
+  onSendFollowupEmail: () => void;
+}
+
 function RowCard({
+  tab,
+  row,
+  ...cb
+}: { tab: TabKey; row: TabRow } & RowCardCallbacks) {
+  // v8: Replies tab uses state-card layout. Other tabs use compact list rows.
+  if (tab === "replies") {
+    return <RepliesRowCard row={row} {...cb} />;
+  }
+  if (tab === "meetings") {
+    return <MeetingsRowCard row={row} {...cb} />;
+  }
+  if (tab === "calls") {
+    return <CallsRowCard row={row} {...cb} />;
+  }
+  return <CompactRow tab={tab} row={row} onClick={cb.onOpenDrawer} />;
+}
+
+function CompactRow({
   tab,
   row,
   onClick,
@@ -347,147 +542,384 @@ function RowCard({
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+      className="flex w-full items-center justify-between gap-4 rounded-lg border border-gray-100 bg-white px-4 py-3 text-left transition-colors hover:bg-gray-50"
     >
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          {row.has_custom_task && (
-            <span
-              title={`Custom task: ${row.custom_task_summary ?? "see drawer"}`}
-              className="text-amber-500"
-              aria-label="custom task pending"
-            >
-              ★
-            </span>
-          )}
-          <p className="truncate text-sm font-medium text-gray-900">
-            {row.organization_name}
-            {row.department && (
-              <span className="ml-1 text-gray-500">· {row.department}</span>
-            )}
-          </p>
-        </div>
-        <p className="truncate text-xs text-gray-500">
-          {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
-          {row.primary_contact_name && ` · ${row.primary_contact_name}`}
-        </p>
-        <RowSubInfo tab={tab} row={row} />
+        <RowHeader row={row} />
+        <RowSubLine row={row} tab={tab} />
       </div>
-      <RowRightSide tab={tab} row={row} />
     </button>
   );
 }
 
-function RowSubInfo({ tab, row }: { tab: TabKey; row: TabRow }) {
-  // Tab-specific inline detail row.
-  if (tab === "calls") {
-    return null; // phone number rendered on the right side, prominent
-  }
-
-  if (tab === "replies") {
-    const flags: Array<{ kind: string; label: string; tone: string; tooltip: string }> = [];
-    if (row.followup_notes) {
-      flags.push({
-        kind: "followup",
-        label: `📅 Met — needs follow-up`,
-        tone: "bg-blue-100 text-blue-900",
-        tooltip: row.followup_notes,
-      });
-    }
-    if (row.meeting_state === "scheduled") {
-      flags.push({
-        kind: "booked",
-        label: row.meeting_at ? `📅 Booked ${formatShortDate(row.meeting_at)}` : `📅 Booked`,
-        tone: "bg-indigo-100 text-indigo-900",
-        tooltip: "Meeting on the calendar.",
-      });
-    } else if (row.meeting_state === "in_flight") {
-      flags.push({
-        kind: "in_flight",
-        label: "🤝 Wants meeting",
-        tone: "bg-amber-100 text-amber-900",
-        tooltip: "Replied wanting a meeting; coordinating time.",
-      });
-    }
-    if (row.stale_days != null) {
-      flags.push({
-        kind: "stale",
-        label: `💤 No reply in ${row.stale_days}d`,
-        tone: "bg-gray-200 text-gray-700",
-        tooltip: "No reply since the last email. Decide: keep waiting, custom email, or close.",
-      });
-    }
-    return (
-      <div className="mt-1 flex flex-wrap items-center gap-1.5">
-        {flags.map((f) => (
-          <span key={f.kind} title={f.tooltip} className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${f.tone}`}>
-            {f.label}
-          </span>
-        ))}
-        {row.followup_notes && (
-          <span className="block w-full truncate text-[11px] italic text-gray-600 mt-0.5">
-            "{row.followup_notes.slice(0, 120)}{row.followup_notes.length > 120 ? "…" : ""}"
-          </span>
+function RowHeader({ row }: { row: TabRow }) {
+  return (
+    <div className="flex items-center gap-2">
+      {row.has_custom_task && (
+        <span
+          title={`Custom task: ${row.custom_task_summary ?? "see drawer"}`}
+          className="text-amber-500"
+          aria-label="custom task pending"
+        >
+          ★
+        </span>
+      )}
+      <p className="truncate text-sm font-medium text-gray-900">
+        {row.organization_name}
+        {row.department && (
+          <span className="ml-1 text-gray-500">· {row.department}</span>
         )}
-        {row.last_activity_at && (
-          <span className="block w-full text-[10px] text-gray-400 mt-0.5">
-            Last activity {formatRelative(row.last_activity_at)}
-          </span>
-        )}
-      </div>
-    );
-  }
-
-  if (tab === "meetings") {
-    const label = row.meeting_state === "scheduled"
-      ? row.meeting_at ? `📅 Booked ${formatShortDate(row.meeting_at)}` : "📅 Booked"
-      : "🤝 Finding a time";
-    const tone = row.meeting_state === "scheduled" ? "bg-indigo-100 text-indigo-900" : "bg-amber-100 text-amber-900";
-    return (
-      <div className="mt-1">
-        <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${tone}`}>{label}</span>
-      </div>
-    );
-  }
-
-  if (tab === "partners") {
-    return (
-      <div className="mt-1 text-[10px] text-gray-500">
-        Last activity {row.last_activity_at ? formatRelative(row.last_activity_at) : "—"}
-      </div>
-    );
-  }
-
-  if (tab === "all") {
-    return (
-      <div className="mt-1 text-[10px] text-gray-500">
-        Stage: {row.status} · last activity {row.last_activity_at ? formatRelative(row.last_activity_at) : "—"}
-      </div>
-    );
-  }
-
-  // research tab
-  return null;
+      </p>
+    </div>
+  );
 }
 
-function RowRightSide({ tab, row }: { tab: TabKey; row: TabRow }) {
-  if (tab === "calls") {
+function RowSubLine({ row, tab }: { row: TabRow; tab: TabKey }) {
+  return (
+    <p className="mt-0.5 truncate text-xs text-gray-500">
+      {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
+      {row.primary_contact_name && ` · ${row.primary_contact_name}`}
+      {tab === "all" && ` · ${row.status}`}
+      {(tab === "partners" || tab === "all") && row.last_activity_at && (
+        <> · last activity {formatRelative(row.last_activity_at)}</>
+      )}
+    </p>
+  );
+}
+
+// ── Calls tab row card ──────────────────────────────────────────────────
+
+function CallsRowCard({
+  row,
+  onOpenDrawer,
+  onLogCallOutcome,
+}: { row: TabRow } & RowCardCallbacks) {
+  return (
+    <div
+      className="rounded-lg border border-emerald-200 bg-white px-4 py-3 hover:border-emerald-300 hover:bg-emerald-50/30"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <button
+          onClick={onOpenDrawer}
+          className="min-w-0 flex-1 text-left"
+          title="Open the drawer for full context, script, and history."
+        >
+          <RowHeader row={row} />
+          <p className="mt-0.5 truncate text-xs text-gray-500">
+            {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
+            {row.primary_contact_name && ` · ${row.primary_contact_name}`}
+          </p>
+          {row.due_call_task && (
+            <p className="mt-0.5 text-[11px] text-gray-400">
+              {formatDueDate(row.due_call_task.due_at)}
+            </p>
+          )}
+        </button>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          {row.primary_contact_phone && (
+            <a
+              href={`tel:${row.primary_contact_phone}`}
+              onClick={(e) => e.stopPropagation()}
+              title="Tap to dial (mobile) — opens the default phone app."
+              className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+            >
+              📞 {row.primary_contact_phone}
+            </a>
+          )}
+          <button
+            onClick={onLogCallOutcome}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Log outcome →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Meetings tab row card ───────────────────────────────────────────────
+
+function MeetingsRowCard({
+  row,
+  onOpenDrawer,
+  onMarkScheduledFromInFlight,
+  onMarkPartner,
+}: { row: TabRow } & RowCardCallbacks) {
+  if (row.meeting_state === "scheduled") {
     return (
-      <div className="flex shrink-0 items-center gap-2">
-        {row.primary_contact_phone && (
-          <span title={`Tap the row to dial ${row.primary_contact_phone}`} className="rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white">
-            📞 {row.primary_contact_phone}
-          </span>
-        )}
-        {row.due_call_task && (
-          <span className="hidden text-xs text-gray-400 sm:inline">
-            {formatDueDate(row.due_call_task.due_at)}
-          </span>
-        )}
+      <div className="rounded-lg border border-indigo-200 bg-indigo-50/30 px-4 py-3 hover:bg-indigo-50/60">
+        <div className="flex items-start justify-between gap-3">
+          <button onClick={onOpenDrawer} className="min-w-0 flex-1 text-left">
+            <RowHeader row={row} />
+            <p className="mt-0.5 truncate text-xs text-gray-500">
+              {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
+              {row.primary_contact_name && ` · ${row.primary_contact_name}`}
+            </p>
+            <p className="mt-1 text-xs font-medium text-indigo-900">
+              📅 Booked {row.meeting_at ? formatLongDate(row.meeting_at) : "(time TBD)"}
+            </p>
+          </button>
+          <div className="flex shrink-0 gap-2">
+            <button
+              onClick={onMarkPartner}
+              title="Meeting happened and they committed to sharing — graduate them to Active Partner."
+              className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+            >
+              Mark Partner ★
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
-  return null;
+  // in_flight
+  return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50/30 px-4 py-3 hover:bg-amber-50/60">
+      <div className="flex items-start justify-between gap-3">
+        <button onClick={onOpenDrawer} className="min-w-0 flex-1 text-left">
+          <RowHeader row={row} />
+          <p className="mt-0.5 truncate text-xs text-gray-500">
+            {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
+            {row.primary_contact_name && ` · ${row.primary_contact_name}`}
+          </p>
+          <p className="mt-1 text-xs font-medium text-amber-900">
+            🤝 Finding a time — coordinate over email, then mark scheduled
+          </p>
+        </button>
+        <div className="flex shrink-0 gap-2">
+          <button
+            onClick={onMarkScheduledFromInFlight}
+            className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+          >
+            Mark scheduled →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Replies tab row card (v8 — 7 states) ────────────────────────────────
+
+function RepliesRowCard({
+  row,
+  onOpenDrawer,
+  onClassifyReply,
+  onMarkPartner,
+  onResumeOutreach,
+  onCloseAsNoResponse,
+  onSendFollowupEmail,
+}: { row: TabRow } & RowCardCallbacks) {
+  const state: RepliesState = row.replies_state ?? "mid_cadence";
+
+  // Color tone per state.
+  const tone: Record<RepliesState, string> = {
+    mid_cadence: "border-gray-200 bg-white",
+    engaged: "border-blue-200 bg-blue-50/40",
+    wants_meeting: "border-amber-200 bg-amber-50/40",
+    booked: "border-indigo-200 bg-indigo-50/40",
+    needs_followup: "border-blue-200 bg-blue-50/40",
+    awaiting_callback: "border-purple-200 bg-purple-50/40",
+    stale: "border-gray-300 bg-gray-50",
+  };
+
+  return (
+    <div className={`rounded-lg border px-4 py-3 hover:opacity-100 ${tone[state]}`}>
+      <button onClick={onOpenDrawer} className="block w-full text-left">
+        <RowHeader row={row} />
+        <p className="mt-0.5 truncate text-xs text-gray-500">
+          {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
+          {row.primary_contact_name && ` · ${row.primary_contact_name}`}
+        </p>
+        <RepliesStateLine row={row} state={state} />
+      </button>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <RepliesStateActions
+          state={state}
+          onClassifyReply={onClassifyReply}
+          onMarkPartner={onMarkPartner}
+          onResumeOutreach={onResumeOutreach}
+          onCloseAsNoResponse={onCloseAsNoResponse}
+          onSendFollowupEmail={onSendFollowupEmail}
+        />
+      </div>
+    </div>
+  );
+}
+
+function RepliesStateLine({ row, state }: { row: TabRow; state: RepliesState }) {
+  switch (state) {
+    case "mid_cadence":
+      return (
+        <p className="mt-1 text-xs text-gray-500">
+          Mid-cadence{row.last_activity_at ? ` · last activity ${formatRelative(row.last_activity_at)}` : ""}{" "}
+          · keep waiting for a reply
+        </p>
+      );
+    case "engaged":
+      return (
+        <p className="mt-1 text-xs font-medium text-blue-900">
+          📬 They replied{row.last_activity_at ? ` · ${formatRelative(row.last_activity_at)}` : ""}
+        </p>
+      );
+    case "wants_meeting":
+      return (
+        <p className="mt-1 text-xs font-medium text-amber-900">
+          🤝 Wants a meeting · coordinate the time
+        </p>
+      );
+    case "booked":
+      return (
+        <p className="mt-1 text-xs font-medium text-indigo-900">
+          📅 Booked {row.meeting_at ? formatLongDate(row.meeting_at) : "(time TBD)"}
+        </p>
+      );
+    case "needs_followup":
+      return (
+        <div className="mt-1">
+          <p className="text-xs font-medium text-blue-900">🔄 Met — needs follow-up</p>
+          {row.followup_notes && (
+            <p className="mt-0.5 text-[11px] italic text-gray-700">
+              &quot;{row.followup_notes.slice(0, 160)}
+              {row.followup_notes.length > 160 ? "…" : ""}&quot;
+            </p>
+          )}
+        </div>
+      );
+    case "awaiting_callback":
+      return (
+        <p className="mt-1 text-xs font-medium text-purple-900">
+          📞 {row.awaiting_callback_kind === "promised" ? "Promised callback" : "Voicemail left"}
+          {row.awaiting_callback_at && ` · ${formatRelative(row.awaiting_callback_at)}`}
+          {" — check inbox / voicemail"}
+        </p>
+      );
+    case "stale":
+      return (
+        <p className="mt-1 text-xs font-medium text-gray-700">
+          💤 No reply{row.stale_days != null ? ` in ${row.stale_days} days` : ""} · cadence ended
+        </p>
+      );
+  }
+}
+
+function RepliesStateActions({
+  state,
+  onClassifyReply,
+  onMarkPartner,
+  onResumeOutreach,
+  onCloseAsNoResponse,
+  onSendFollowupEmail,
+}: {
+  state: RepliesState;
+  onClassifyReply: (source: "email_reply" | "callback") => void;
+  onMarkPartner: () => void;
+  onResumeOutreach: () => Promise<void>;
+  onCloseAsNoResponse: () => Promise<void>;
+  onSendFollowupEmail: () => void;
+}) {
+  switch (state) {
+    case "mid_cadence":
+      return (
+        <button
+          onClick={() => onClassifyReply("email_reply")}
+          title="Saw a reply in Gmail? Click to triage what they said."
+          className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+        >
+          📬 They replied
+        </button>
+      );
+    case "engaged":
+      return (
+        <>
+          <button
+            onClick={() => onClassifyReply("email_reply")}
+            className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+          >
+            Triage their reply
+          </button>
+          <button
+            onClick={onMarkPartner}
+            title="They committed to sharing with students."
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+          >
+            Mark Partner ★
+          </button>
+        </>
+      );
+    case "wants_meeting":
+      return (
+        <button
+          onClick={() => onClassifyReply("email_reply")}
+          title="Got a time? Open the classifier and pick 'Already booked' to schedule."
+          className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+        >
+          Mark scheduled →
+        </button>
+      );
+    case "booked":
+      // Informational — no row buttons. Drawer opens for editing.
+      return (
+        <span className="text-[11px] italic text-gray-500">
+          Tap the row to view meeting details.
+        </span>
+      );
+    case "needs_followup":
+      return (
+        <>
+          <button
+            onClick={onSendFollowupEmail}
+            title="Open Gmail composer with a follow-up subject pre-filled."
+            className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+          >
+            Send follow-up email ↗
+          </button>
+          <button
+            onClick={onMarkPartner}
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+          >
+            Mark Partner ★
+          </button>
+        </>
+      );
+    case "awaiting_callback":
+      return (
+        <>
+          <button
+            onClick={() => onClassifyReply("callback")}
+            className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+          >
+            Got a callback
+          </button>
+          <button
+            onClick={() => onResumeOutreach()}
+            title="Still nothing — re-queue a call in 3 days and resume cadence."
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Resume outreach
+          </button>
+        </>
+      );
+    case "stale":
+      return (
+        <>
+          <button
+            onClick={onSendFollowupEmail}
+            title="Open Gmail with a custom re-engage subject pre-filled."
+            className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+          >
+            Custom re-engage ↗
+          </button>
+          <button
+            onClick={() => onCloseAsNoResponse()}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Close as no response
+          </button>
+        </>
+      );
+  }
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────
@@ -514,8 +946,13 @@ function formatRelative(iso: string): string {
   return new Date(iso).toLocaleDateString();
 }
 
-function formatShortDate(iso: string): string {
+function formatLongDate(iso: string): string {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return d.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }

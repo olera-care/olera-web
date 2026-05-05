@@ -32,8 +32,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import type {
+  AwaitingCallbackKind,
   Campus,
   OutreachRow,
+  RepliesState,
   StakeholderType,
   Status,
 } from "@/lib/student-outreach/types";
@@ -81,6 +83,10 @@ export interface TabRow extends OutreachRow {
   last_activity_at: string | null;
   /** Calls tab only: the due call task. */
   due_call_task: { id: string; due_at: string } | null;
+  /** v8 Replies tab only: which state card to render. */
+  replies_state: RepliesState | null;
+  awaiting_callback_at: string | null;
+  awaiting_callback_kind: AwaitingCallbackKind | null;
 }
 
 export async function GET(req: NextRequest) {
@@ -210,39 +216,15 @@ async function computeTabCounts(
 }
 
 /**
- * For each row, find the most-recent meeting-related touchpoint and
- * count those whose state is in_flight or scheduled.
+ * For each row, derive the meeting state and count those whose state
+ * is in_flight or scheduled. Uses the v8 unified derivation.
  */
 async function countMeetingsAmongRows(db: DB, ids: string[]): Promise<number> {
-  // We query touchpoints in the relevant scope ordered by created_at DESC
-  // and tally the first match per outreach_id.
-  const { data } = await db
-    .from("student_outreach_touchpoints")
-    .select("outreach_id, touchpoint_type, payload, created_at")
-    .in("outreach_id", ids)
-    .or(
-      "touchpoint_type.eq.meeting_scheduled," +
-      "touchpoint_type.eq.meeting_held," +
-      "touchpoint_type.eq.meeting_no_show," +
-      "touchpoint_type.eq.meeting_rescheduled," +
-      "touchpoint_type.eq.note_added",
-    )
-    .order("created_at", { ascending: false });
-
-  const seen = new Set<string>();
+  const tpsByRow = await fetchTouchpointsByRow(db, ids);
   let count = 0;
-  for (const tp of (data ?? []) as Array<{
-    outreach_id: string;
-    touchpoint_type: string;
-    payload: Record<string, unknown> | null;
-  }>) {
-    if (seen.has(tp.outreach_id)) continue;
-    const reason = tp.payload?.reason;
-    if (tp.touchpoint_type === "note_added" && reason !== "meeting_in_flight") continue;
-    seen.add(tp.outreach_id);
-    if (tp.touchpoint_type === "meeting_scheduled") count++;
-    else if (tp.touchpoint_type === "note_added" && reason === "meeting_in_flight") count++;
-    // meeting_held / no_show / rescheduled = not currently in meetings tab
+  for (const id of ids) {
+    const state = deriveStateFromTouchpoints(tpsByRow.get(id) ?? []);
+    if (state.meeting_state === "in_flight" || state.meeting_state === "scheduled") count++;
   }
   return count;
 }
@@ -348,66 +330,198 @@ async function idsByMeetings(db: DB, opts: QueryOpts): Promise<string[]> {
   const candidateIds = ((candidates ?? []) as Array<{ id: string }>).map((r) => r.id);
   if (candidateIds.length === 0) return [];
 
-  // Determine meeting state per row from latest meeting-related touchpoint.
-  const stateById = await meetingStatePerRow(db, candidateIds);
+  // Determine meeting state per row using the shared v8 derivation.
+  const tpsByRow = await fetchTouchpointsByRow(db, candidateIds);
   const filtered: string[] = [];
   for (const id of candidateIds) {
-    const state = stateById.get(id) ?? "none";
-    if (state === "in_flight" || state === "scheduled") filtered.push(id);
+    const state = deriveStateFromTouchpoints(tpsByRow.get(id) ?? []);
+    if (state.meeting_state === "in_flight" || state.meeting_state === "scheduled") filtered.push(id);
     if (filtered.length >= opts.pageSize) break;
   }
   return filtered;
 }
 
-async function meetingStatePerRow(db: DB, ids: string[]): Promise<Map<string, "none" | "in_flight" | "scheduled">> {
+async function fetchTouchpointsByRow(db: DB, ids: string[]): Promise<Map<string, TouchpointRow[]>> {
   const { data } = await db
     .from("student_outreach_touchpoints")
-    .select("outreach_id, touchpoint_type, payload, created_at")
+    .select("outreach_id, touchpoint_type, payload, notes, created_at, created_by")
     .in("outreach_id", ids)
-    .or(
-      "touchpoint_type.eq.meeting_scheduled," +
-      "touchpoint_type.eq.meeting_held," +
-      "touchpoint_type.eq.meeting_no_show," +
-      "touchpoint_type.eq.meeting_rescheduled," +
-      "touchpoint_type.eq.note_added",
-    )
     .order("created_at", { ascending: false });
-
-  const out = new Map<string, "none" | "in_flight" | "scheduled">();
-  for (const tp of (data ?? []) as Array<{
-    outreach_id: string;
-    touchpoint_type: string;
-    payload: Record<string, unknown> | null;
-  }>) {
-    if (out.has(tp.outreach_id)) continue;
-    const reason = tp.payload?.reason;
-    // note_added with reason=meeting_in_flight or scheduled is the signal
-    if (tp.touchpoint_type === "note_added") {
-      if (reason === "meeting_in_flight") {
-        out.set(tp.outreach_id, "in_flight");
-      } else if (reason === "post_meeting_followup") {
-        out.set(tp.outreach_id, "none"); // had a meeting but is now in followup
-      }
-      // Other note_added reasons aren't meeting-related → don't decide here, keep looking
-      // But out.has is the gate; we need to skip non-meeting note_added
-      if (reason !== "meeting_in_flight" && reason !== "post_meeting_followup") {
-        out.delete(tp.outreach_id);
-        continue;
-      }
-    } else if (tp.touchpoint_type === "meeting_scheduled") {
-      out.set(tp.outreach_id, "scheduled");
-    } else if (
-      tp.touchpoint_type === "meeting_held" ||
-      tp.touchpoint_type === "meeting_no_show" ||
-      tp.touchpoint_type === "meeting_rescheduled"
-    ) {
-      out.set(tp.outreach_id, "none");
+  const out = new Map<string, TouchpointRow[]>();
+  for (const tp of (data ?? []) as TouchpointRow[]) {
+    let list = out.get(tp.outreach_id);
+    if (!list) {
+      list = [];
+      out.set(tp.outreach_id, list);
     }
+    list.push(tp);
   }
   return out;
 }
 
 // ── Hydrate rows with all indicators ────────────────────────────────────
+
+interface TouchpointRow {
+  outreach_id: string;
+  touchpoint_type: string;
+  payload: Record<string, unknown> | null;
+  notes: string | null;
+  created_at: string;
+  created_by: string | null;
+}
+
+interface DerivedState {
+  meeting_state: "none" | "in_flight" | "scheduled";
+  meeting_at: string | null;
+  followup_notes: string | null;
+  followup_author: string | null;
+  followup_at: string | null;
+  awaiting_callback_at: string | null;
+  awaiting_callback_kind: AwaitingCallbackKind | null;
+  last_email_sent_at: string | null;
+  last_reply_at: string | null;
+  last_activity_at: string | null;
+}
+
+/**
+ * v8 single source of truth for per-row state derivation. Walks
+ * touchpoints DESC (newest first) and picks the first event in each
+ * category. Newer events naturally override older ones.
+ *
+ * "Resolution" of awaiting-callback: a more-recent (DESC: earlier in
+ * scan) email_replied / call_connected without awaiting_callback /
+ * note_added{reason:resume_outreach} clears the state.
+ */
+function deriveStateFromTouchpoints(touchpoints: TouchpointRow[]): DerivedState {
+  let meeting_state: DerivedState["meeting_state"] = "none";
+  let meeting_at: string | null = null;
+  let meetingDecided = false;
+
+  let followup_notes: string | null = null;
+  let followup_author: string | null = null;
+  let followup_at: string | null = null;
+
+  let awaiting_callback_at: string | null = null;
+  let awaiting_callback_kind: AwaitingCallbackKind | null = null;
+  let callbackResolved = false; // once we see a resolver newer than the candidate, reject older callback events.
+
+  let last_email_sent_at: string | null = null;
+  let last_reply_at: string | null = null;
+  let last_activity_at: string | null = null;
+
+  for (const tp of touchpoints) {
+    if (last_activity_at === null) last_activity_at = tp.created_at;
+
+    const reason = (tp.payload?.reason as string | undefined) ?? null;
+    const awaitingCallbackFlag = tp.payload?.awaiting_callback === true;
+
+    // Meeting state — first match wins.
+    if (!meetingDecided) {
+      if (tp.touchpoint_type === "meeting_scheduled") {
+        meeting_state = "scheduled";
+        meeting_at = (tp.payload?.meeting_at as string) ?? null;
+        meetingDecided = true;
+      } else if (tp.touchpoint_type === "note_added" && reason === "meeting_in_flight") {
+        meeting_state = "in_flight";
+        meetingDecided = true;
+      } else if (
+        tp.touchpoint_type === "meeting_held" ||
+        tp.touchpoint_type === "meeting_no_show" ||
+        tp.touchpoint_type === "meeting_rescheduled" ||
+        (tp.touchpoint_type === "note_added" && reason === "post_meeting_followup")
+      ) {
+        meeting_state = "none";
+        meetingDecided = true;
+      }
+    }
+
+    // Post-meeting follow-up notes — first match wins.
+    if (
+      followup_at === null &&
+      tp.touchpoint_type === "note_added" &&
+      reason === "post_meeting_followup"
+    ) {
+      followup_notes = (tp.payload?.notes as string) ?? tp.notes ?? "";
+      followup_author = tp.created_by;
+      followup_at = tp.created_at;
+    }
+
+    // Reply / engagement resolver detection.
+    const isReply =
+      tp.touchpoint_type === "email_replied" ||
+      tp.touchpoint_type === "ig_dm_replied" ||
+      tp.touchpoint_type === "contact_form_submitted";
+    const isConnectedNoCallback =
+      tp.touchpoint_type === "call_connected" && !awaitingCallbackFlag;
+    const isResumeNote =
+      tp.touchpoint_type === "note_added" && reason === "resume_outreach";
+
+    if (isReply && last_reply_at === null) last_reply_at = tp.created_at;
+
+    if (!callbackResolved && (isReply || isConnectedNoCallback || isResumeNote)) {
+      callbackResolved = true;
+    }
+
+    // Awaiting-callback candidate — voicemail or "they'll call back" promise.
+    if (awaiting_callback_at === null && !callbackResolved) {
+      if (tp.touchpoint_type === "call_voicemail") {
+        awaiting_callback_at = tp.created_at;
+        awaiting_callback_kind = "voicemail";
+      } else if (tp.touchpoint_type === "call_connected" && awaitingCallbackFlag) {
+        awaiting_callback_at = tp.created_at;
+        awaiting_callback_kind = "promised";
+      }
+    }
+
+    if (last_email_sent_at === null && tp.touchpoint_type === "email_sent") {
+      last_email_sent_at = tp.created_at;
+    }
+  }
+
+  return {
+    meeting_state,
+    meeting_at,
+    followup_notes,
+    followup_author,
+    followup_at,
+    awaiting_callback_at,
+    awaiting_callback_kind,
+    last_email_sent_at,
+    last_reply_at,
+    last_activity_at,
+  };
+}
+
+/**
+ * v8 Replies-tab sub-state derivation. Single source of truth — UI
+ * renders one of seven cards from this enum. Precedence:
+ * needs_followup > booked > wants_meeting > awaiting_callback >
+ * stale > engaged > mid_cadence.
+ */
+function deriveRepliesState(
+  state: DerivedState,
+  hasPendingEmailTask: boolean,
+): RepliesState {
+  if (state.followup_at) return "needs_followup";
+  if (state.meeting_state === "scheduled") return "booked";
+  if (state.meeting_state === "in_flight") return "wants_meeting";
+  if (state.awaiting_callback_at) return "awaiting_callback";
+
+  // Stale: cadence is exhausted (no pending email task) and last email is old, and no reply.
+  const lastEmail = state.last_email_sent_at;
+  const lastReply = state.last_reply_at;
+  const replyAfterEmail =
+    lastReply && lastEmail && new Date(lastReply) > new Date(lastEmail);
+  if (replyAfterEmail) return "engaged";
+  if (lastReply && !lastEmail) return "engaged";
+
+  if (lastEmail && !hasPendingEmailTask) {
+    const days = (Date.now() - new Date(lastEmail).getTime()) / 86_400_000;
+    if (days >= STALE_DAYS) return "stale";
+  }
+
+  return "mid_cadence";
+}
 
 async function hydrateRows(
   db: DB,
@@ -454,9 +568,10 @@ async function hydrateRows(
     if (!primaryByOutreach.has(c.outreach_id)) primaryByOutreach.set(c.outreach_id, { name: c.name, phone: c.phone });
   }
 
-  // Custom-task indicator + due-call task per row.
+  // Custom-task indicator + due-call task + pending-email-task indicator (for stale derivation).
   const customTaskByOutreach = new Map<string, string>();
   const dueCallTaskByOutreach = new Map<string, { id: string; due_at: string }>();
+  const hasPendingEmail = new Set<string>();
   const nowIso = new Date().toISOString();
   for (const t of (tasksRes.data ?? []) as Array<{
     id: string;
@@ -479,78 +594,37 @@ async function hydrateRows(
     ) {
       dueCallTaskByOutreach.set(t.outreach_id, { id: t.id, due_at: t.due_at });
     }
+    if (t.task_type === "outreach_email_send") {
+      hasPendingEmail.add(t.outreach_id);
+    }
   }
 
-  // Indicators derived from touchpoints (per row).
-  const lastEmailSentByOutreach = new Map<string, string>();
-  const lastReplyByOutreach = new Map<string, string>();
-  const meetingStateByOutreach = new Map<string, { state: "in_flight" | "scheduled" | "none"; meeting_at: string | null }>();
-  const followupByOutreach = new Map<string, { notes: string; author: string | null; at: string }>();
-  const lastActivityByOutreach = new Map<string, string>();
+  // Group touchpoints per outreach (already DESC from query).
+  const tpsByOutreach = new Map<string, TouchpointRow[]>();
+  for (const tp of (touchpointsRes.data ?? []) as TouchpointRow[]) {
+    let list = tpsByOutreach.get(tp.outreach_id);
+    if (!list) {
+      list = [];
+      tpsByOutreach.set(tp.outreach_id, list);
+    }
+    list.push(tp);
+  }
 
-  for (const tp of (touchpointsRes.data ?? []) as Array<{
-    outreach_id: string;
-    touchpoint_type: string;
-    payload: Record<string, unknown> | null;
-    notes: string | null;
-    created_at: string;
-    created_by: string | null;
-  }>) {
-    if (!lastActivityByOutreach.has(tp.outreach_id)) {
-      lastActivityByOutreach.set(tp.outreach_id, tp.created_at);
-    }
-    if (tp.touchpoint_type === "email_sent" && !lastEmailSentByOutreach.has(tp.outreach_id)) {
-      lastEmailSentByOutreach.set(tp.outreach_id, tp.created_at);
-    }
-    if (tp.touchpoint_type === "email_replied" && !lastReplyByOutreach.has(tp.outreach_id)) {
-      lastReplyByOutreach.set(tp.outreach_id, tp.created_at);
-    }
-    // Meeting state + post-meeting follow-up: use the FIRST meeting-related
-    // touchpoint we encounter (most recent due to DESC ordering). Setting a
-    // sentinel "none" entry on meeting_held/no_show/rescheduled blocks older
-    // meeting_scheduled touchpoints from incorrectly resurrecting a row in
-    // the Meetings tab.
-    if (!meetingStateByOutreach.has(tp.outreach_id)) {
-      if (tp.touchpoint_type === "meeting_scheduled") {
-        meetingStateByOutreach.set(tp.outreach_id, {
-          state: "scheduled",
-          meeting_at: (tp.payload?.meeting_at as string) ?? null,
-        });
-      } else if (tp.touchpoint_type === "note_added" && tp.payload?.reason === "meeting_in_flight") {
-        meetingStateByOutreach.set(tp.outreach_id, { state: "in_flight", meeting_at: null });
-      } else if (
-        tp.touchpoint_type === "meeting_held" ||
-        tp.touchpoint_type === "meeting_no_show" ||
-        tp.touchpoint_type === "meeting_rescheduled"
-      ) {
-        meetingStateByOutreach.set(tp.outreach_id, { state: "none", meeting_at: null });
-      } else if (tp.touchpoint_type === "note_added" && tp.payload?.reason === "post_meeting_followup") {
-        // Post-meeting followup is itself a "no current meeting" signal.
-        meetingStateByOutreach.set(tp.outreach_id, { state: "none", meeting_at: null });
-      }
-    }
-    if (
-      !followupByOutreach.has(tp.outreach_id) &&
-      tp.touchpoint_type === "note_added" &&
-      tp.payload?.reason === "post_meeting_followup"
-    ) {
-      followupByOutreach.set(tp.outreach_id, {
-        notes: (tp.payload?.notes as string) ?? tp.notes ?? "",
-        author: tp.created_by ?? null,
-        at: tp.created_at,
-      });
-    }
+  // Derive state per row.
+  const stateByOutreach = new Map<string, DerivedState>();
+  for (const id of ids) {
+    stateByOutreach.set(id, deriveStateFromTouchpoints(tpsByOutreach.get(id) ?? []));
   }
 
   // Build TabRow output.
   const tabRows: TabRow[] = orderedRows.map((row) => {
     const primary = primaryByOutreach.get(row.id) ?? null;
-    const ms = meetingStateByOutreach.get(row.id);
-    const lastEmail = lastEmailSentByOutreach.get(row.id);
-    const reply = lastReplyByOutreach.get(row.id);
-    const stale = computeStaleDays(lastEmail, reply);
-    const followup = followupByOutreach.get(row.id);
+    const state = stateByOutreach.get(row.id)!;
     const camp = campusMap.get(row.campus_id);
+    const repliesState =
+      tab === "replies"
+        ? deriveRepliesState(state, hasPendingEmail.has(row.id))
+        : null;
     return {
       ...row,
       campus_name: camp?.name ?? "(unknown campus)",
@@ -559,23 +633,30 @@ async function hydrateRows(
       primary_contact_phone: primary?.phone ?? null,
       has_custom_task: customTaskByOutreach.has(row.id),
       custom_task_summary: customTaskByOutreach.get(row.id) ?? null,
-      stale_days: tab === "replies" ? stale : null,
-      meeting_state: ms?.state ?? "none",
-      meeting_at: ms?.meeting_at ?? null,
-      followup_notes: followup?.notes ?? null,
-      followup_author: followup?.author ?? null,
-      followup_at: followup?.at ?? null,
-      last_activity_at: lastActivityByOutreach.get(row.id) ?? null,
+      stale_days:
+        tab === "replies"
+          ? computeStaleDays(state.last_email_sent_at, state.last_reply_at)
+          : null,
+      meeting_state: state.meeting_state,
+      meeting_at: state.meeting_at,
+      followup_notes: state.followup_notes,
+      followup_author: state.followup_author,
+      followup_at: state.followup_at,
+      last_activity_at: state.last_activity_at,
       due_call_task: tab === "calls" ? dueCallTaskByOutreach.get(row.id) ?? null : null,
+      replies_state: repliesState,
+      awaiting_callback_at: state.awaiting_callback_at,
+      awaiting_callback_kind: state.awaiting_callback_kind,
     };
   });
 
   return tabRows;
 }
 
-function computeStaleDays(lastEmailSent: string | undefined, lastReply: string | undefined): number | null {
+function computeStaleDays(lastEmailSent: string | null, lastReply: string | null): number | null {
   if (!lastEmailSent) return null;
   if (lastReply && new Date(lastReply) > new Date(lastEmailSent)) return null;
   const days = Math.floor((Date.now() - new Date(lastEmailSent).getTime()) / 86_400_000);
   return days >= STALE_DAYS ? days : null;
 }
+

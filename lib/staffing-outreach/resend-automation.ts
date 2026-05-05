@@ -229,7 +229,7 @@ function escapeHtml(s: string): string {
  */
 function loganSignature(): string {
   const photoUrl = "https://olera.care/images/for-providers/team/logan.jpg";
-  const calendarUrl = "https://calendly.com/logan-dubose/olera-intro";
+  const calendarUrl = "https://calendly.com/caregivers979/home-care-agency-manager-interview";
 
   return `
     <table cellpadding="0" cellspacing="0" style="margin-top:24px;border-top:1px solid #e5e7eb;padding-top:20px;">
@@ -246,8 +246,8 @@ function loganSignature(): string {
           <p style="margin:0 0 8px;">Co-founder, <a href="https://www.olera.care" style="color:${BRAND_COLOR};">www.olera.care</a></p>
           <p style="margin:0 0 8px;">
             <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};">LinkedIn</a> |
-            <a href="https://www.facebook.com/oleracare" style="color:${BRAND_COLOR};">Facebook</a> |
-            <a href="https://www.youtube.com/@oleracare" style="color:${BRAND_COLOR};">YouTube</a>
+            <a href="https://www.facebook.com/oleracare/" style="color:${BRAND_COLOR};">Facebook</a> |
+            <a href="https://www.youtube.com/@OleraCare" style="color:${BRAND_COLOR};">YouTube</a>
           </p>
           <p style="margin:0;">
             <a href="${calendarUrl}" style="color:${BRAND_COLOR};font-weight:500;">Schedule a meeting →</a>

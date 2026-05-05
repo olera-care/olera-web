@@ -17,7 +17,7 @@
  *   - All state derivation is server-side in queue/route.ts; the UI is dumb
  */
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Drawer } from "./Drawer";
 import { AddStakeholderModal } from "./AddStakeholderModal";
@@ -61,6 +61,25 @@ const TYPE_FILTERS: Array<{ key: StakeholderType | "all"; label: string }> = [
   { key: "dept_head", label: "Dept Heads" },
   { key: "professor", label: "Professors" },
 ];
+
+// "Stop outreach" reason → action name map (declared near the type constants
+// so the renderRow callback can resolve it without re-importing).
+const STOP_OUTREACH_ACTIONS: Record<
+  "not_interested" | "no_response_closed" | "wrong_contact" | "do_not_contact",
+  string
+> = {
+  not_interested: "mark_not_interested",
+  no_response_closed: "mark_no_response_closed",
+  wrong_contact: "mark_wrong_contact",
+  do_not_contact: "mark_dnc",
+};
+
+const STOP_OUTREACH_LABELS: Record<keyof typeof STOP_OUTREACH_ACTIONS, string> = {
+  not_interested: "Not interested",
+  no_response_closed: "No response",
+  wrong_contact: "Wrong contact",
+  do_not_contact: "Do not contact",
+};
 
 export default function StudentOutreachPage() {
   const [campuses, setCampuses] = useState<Campus[]>([]);
@@ -141,6 +160,39 @@ export default function StudentOutreachPage() {
       await refetch();
     },
     [refetch],
+  );
+
+  // Per-row render — used by both the flat list and the Replies grouped list.
+  const renderRow = useCallback(
+    (row: TabRow) => (
+      <RowCard
+        tab={tab}
+        row={row}
+        onOpenDrawer={() => setOpenOutreachId(row.id)}
+        onLogCallOutcome={() => setCallOutcomeRow(row)}
+        onClassifyReply={(source) => setClassifierRow({ row, source })}
+        onMarkPartner={() => setPartnerRow(row)}
+        onResumeOutreach={async () => {
+          if (!window.confirm("Try again? Re-queues a follow-up call in 3 days.")) return;
+          try { await callAction(row.id, "resume_outreach"); }
+          catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
+        }}
+        onStopOutreach={async (reason) => {
+          const action = STOP_OUTREACH_ACTIONS[reason];
+          const label = STOP_OUTREACH_LABELS[reason];
+          if (!window.confirm(`Stop outreach: ${label}?`)) return;
+          try { await callAction(row.id, action); }
+          catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
+        }}
+        onMarkScheduledFromInFlight={() => setClassifierRow({ row, source: "email_reply" })}
+        onSendFollowupEmail={() => {
+          const subject = encodeURIComponent(`Following up — ${row.organization_name}`);
+          const url = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
+          window.open(url, "_blank", "noopener,noreferrer");
+        }}
+      />
+    ),
+    [tab, callAction],
   );
 
   return (
@@ -272,39 +324,14 @@ export default function StudentOutreachPage() {
         <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
-      ) : rows.length === 0 ? (
+      ) : rows.length === 0 && tab !== "replies" ? (
         <EmptyState tab={tab} tabCounts={tabCounts} onAdd={() => setShowAdd(true)} />
+      ) : tab === "replies" ? (
+        <RepliesGroupedList rows={rows} renderRow={(row) => renderRow(row)} />
       ) : (
         <ul className="space-y-2">
           {rows.map((row) => (
-            <li key={row.id}>
-              <RowCard
-                tab={tab}
-                row={row}
-                onOpenDrawer={() => setOpenOutreachId(row.id)}
-                onLogCallOutcome={() => setCallOutcomeRow(row)}
-                onClassifyReply={(source) => setClassifierRow({ row, source })}
-                onMarkPartner={() => setPartnerRow(row)}
-                onResumeOutreach={async () => {
-                  if (!window.confirm("Resume outreach? Re-queues a follow-up call in 3 days.")) return;
-                  try { await callAction(row.id, "resume_outreach"); }
-                  catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
-                }}
-                onCloseAsNoResponse={async () => {
-                  if (!window.confirm("Close as No Response? Re-opens automatically in 90 days.")) return;
-                  try { await callAction(row.id, "mark_no_response_closed"); }
-                  catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
-                }}
-                onMarkScheduledFromInFlight={() => setClassifierRow({ row, source: "email_reply" })}
-                onSendFollowupEmail={() => {
-                  const subject = encodeURIComponent(
-                    `Following up — ${row.organization_name}`,
-                  );
-                  const url = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
-                  window.open(url, "_blank", "noopener,noreferrer");
-                }}
-              />
-            </li>
+            <li key={row.id}>{renderRow(row)}</li>
           ))}
         </ul>
       )}
@@ -403,60 +430,61 @@ export default function StudentOutreachPage() {
   );
 }
 
-// ── Top banners (Gmail / Calendar / Calls) ──────────────────────────────
+// ── Top banners ──────────────────────────────────────────────────────────
+//
+// v8.2: one short line + (optional) link button. Subtle gray chrome.
+// No emoji, no onboarding paragraphs.
+
+function BannerBar({ children }: { children: ReactNode }) {
+  return (
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-100 bg-gray-50 px-4 py-2.5">
+      {children}
+    </div>
+  );
+}
+
+function BannerLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="shrink-0 rounded-md bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700"
+    >
+      {children}
+    </a>
+  );
+}
 
 function RepliesTabBanner() {
   return (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-3">
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-blue-900">📬 Inbox triage</p>
-        <p className="text-xs text-blue-800/80">
-          Replies, callbacks, and voicemail notifications all land in the <strong>outreach@olera.care</strong> inbox.
-          Open Gmail, then come back here to triage each row.
-        </p>
-      </div>
-      <a
-        href="https://mail.google.com/mail/u/0/#inbox"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
-      >
-        Open Gmail ↗
-      </a>
-    </div>
+    <BannerBar>
+      <span className="text-sm font-medium text-gray-800">
+        Inbox triage. Check Gmail for replies, callbacks, and voicemails.
+      </span>
+      <BannerLink href="https://mail.google.com/mail/u/0/#inbox">Open Gmail ↗</BannerLink>
+    </BannerBar>
   );
 }
 
 function MeetingsTabBanner() {
   return (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-indigo-200 bg-indigo-50/60 px-4 py-3">
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-indigo-900">📅 Meeting status</p>
-        <p className="text-xs text-indigo-800/80">
-          Coordinate times in email, then mark scheduled here. Booked meetings live on Google Calendar.
-        </p>
-      </div>
-      <a
-        href="https://calendar.google.com/calendar/u/0/r"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="shrink-0 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700"
-      >
-        Open Calendar ↗
-      </a>
-    </div>
+    <BannerBar>
+      <span className="text-sm font-medium text-gray-800">
+        Meetings to book or run.
+      </span>
+      <BannerLink href="https://calendar.google.com/calendar/u/0/r">Open Calendar ↗</BannerLink>
+    </BannerBar>
   );
 }
 
 function CallsTabBanner() {
   return (
-    <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
-      <p className="text-sm font-medium text-emerald-900">📞 Calls due now</p>
-      <p className="text-xs text-emerald-800/80">
-        Tap the green dial button on a row, then click anywhere on the row to log the outcome. Voicemails
-        and &ldquo;they&rsquo;ll call back&rdquo; promises move the row to Replies until they reach out.
-      </p>
-    </div>
+    <BannerBar>
+      <span className="text-sm font-medium text-gray-800">
+        Calls due. Tap the number to dial, then log what happened.
+      </span>
+    </BannerBar>
   );
 }
 
@@ -501,11 +529,17 @@ function EmptyState({
 
 // ── Row rendering ───────────────────────────────────────────────────────
 //
-// v8.1: every tab uses a single unified shell (`StakeholderCard`) so the
-// layout, spacing, hover, and interaction patterns are identical. Per-tab
-// differences live in three slots: status pills (inline with org name),
-// optional footnote text, and a vertically-stacked button stack on the
-// right.
+// v8.2: every tab uses one shell (`StakeholderCard`) with one border
+// tone (gray-200), three pill tones (neutral / attention / partner), and
+// two button tones (primary gray-900 / celebration emerald-600). Per-tab
+// content lives in three slots: pills (inline with org name), footnote
+// (small text below sub-line), and a right-side button stack.
+
+type StopOutreachReason =
+  | "not_interested"
+  | "no_response_closed"
+  | "wrong_contact"
+  | "do_not_contact";
 
 interface RowCardCallbacks {
   onOpenDrawer: () => void;
@@ -513,12 +547,10 @@ interface RowCardCallbacks {
   onClassifyReply: (source: "email_reply" | "callback") => void;
   onMarkPartner: () => void;
   onResumeOutreach: () => Promise<void>;
-  onCloseAsNoResponse: () => Promise<void>;
+  onStopOutreach: (reason: StopOutreachReason) => Promise<void>;
   onMarkScheduledFromInFlight: () => void;
   onSendFollowupEmail: () => void;
 }
-
-type Tone = "gray" | "emerald" | "blue" | "amber" | "indigo" | "purple";
 
 function RowCard({
   tab,
@@ -529,7 +561,6 @@ function RowCard({
   return (
     <StakeholderCard
       row={row}
-      borderTone={slots.borderTone}
       pills={slots.pills}
       footnote={slots.footnote}
       rightActions={slots.rightActions}
@@ -539,30 +570,23 @@ function RowCard({
 }
 
 /**
- * Unified row shell. Renders the org-name header (with optional pills
- * inline), the campus/type/contact sub-line, an optional footnote, and
- * a right-aligned vertical stack of action buttons.
+ * Unified row shell. Same chrome on every tab.
  */
 function StakeholderCard({
   row,
-  borderTone,
   pills,
   footnote,
   rightActions,
   onOpenDrawer,
 }: {
   row: TabRow;
-  borderTone: Tone;
   pills: ReactNode;
   footnote: ReactNode;
   rightActions: ReactNode;
   onOpenDrawer: () => void;
 }) {
-  const borderClass = BORDER_TONE[borderTone];
   return (
-    <div
-      className={`rounded-lg border bg-white px-4 py-3 transition-colors hover:bg-gray-50 ${borderClass}`}
-    >
+    <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50">
       <div className="flex items-start justify-between gap-3">
         <button
           onClick={onOpenDrawer}
@@ -603,13 +627,14 @@ function StakeholderCard({
   );
 }
 
-const BORDER_TONE: Record<Tone, string> = {
-  gray: "border-gray-200 hover:border-gray-300",
-  emerald: "border-emerald-200 hover:border-emerald-300",
-  blue: "border-blue-200 hover:border-blue-300",
-  amber: "border-amber-200 hover:border-amber-300",
-  indigo: "border-indigo-200 hover:border-indigo-300",
-  purple: "border-purple-200 hover:border-purple-300",
+// ── Pills (3 tones) ──────────────────────────────────────────────────────
+
+type PillTone = "neutral" | "attention" | "partner";
+
+const PILL_TONE: Record<PillTone, string> = {
+  neutral: "bg-gray-100 text-gray-700",
+  attention: "bg-amber-100 text-amber-900",
+  partner: "bg-emerald-100 text-emerald-900",
 };
 
 function Pill({
@@ -617,45 +642,37 @@ function Pill({
   title,
   children,
 }: {
-  tone: Tone;
+  tone: PillTone;
   title?: string;
   children: ReactNode;
 }) {
-  const toneClass: Record<Tone, string> = {
-    gray: "bg-gray-100 text-gray-700",
-    emerald: "bg-emerald-100 text-emerald-900",
-    blue: "bg-blue-100 text-blue-900",
-    amber: "bg-amber-100 text-amber-900",
-    indigo: "bg-indigo-100 text-indigo-900",
-    purple: "bg-purple-100 text-purple-900",
-  };
   return (
     <span
       title={title}
-      className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-medium ${toneClass[tone]}`}
+      className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${PILL_TONE[tone]}`}
     >
       {children}
     </span>
   );
 }
 
-type PrimaryTone = "gray" | "blue" | "emerald" | "indigo";
+// ── Buttons (2 primary tones) ────────────────────────────────────────────
 
-const PRIMARY_TONE_CLASS: Record<PrimaryTone, string> = {
-  gray: "bg-gray-900 hover:bg-gray-700",
-  blue: "bg-blue-600 hover:bg-blue-700",
-  emerald: "bg-emerald-600 hover:bg-emerald-700",
-  indigo: "bg-indigo-600 hover:bg-indigo-700",
+type ButtonTone = "primary" | "celebration";
+
+const BUTTON_TONE: Record<ButtonTone, string> = {
+  primary: "bg-gray-900 hover:bg-gray-700",
+  celebration: "bg-emerald-600 hover:bg-emerald-700",
 };
 
 function PrimaryAction({
   onClick,
-  tone = "gray",
+  tone = "primary",
   title,
   children,
 }: {
   onClick: () => void;
-  tone?: PrimaryTone;
+  tone?: ButtonTone;
   title?: string;
   children: ReactNode;
 }) {
@@ -663,44 +680,141 @@ function PrimaryAction({
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       title={title}
-      className={`rounded-md px-3 py-1.5 text-xs font-semibold text-white ${PRIMARY_TONE_CLASS[tone]}`}
+      className={`rounded-md px-3 py-1.5 text-xs font-semibold text-white ${BUTTON_TONE[tone]}`}
     >
       {children}
     </button>
   );
 }
 
-function SecondaryAction({
-  onClick,
-  title,
-  children,
-}: {
+// ── Overflow ⋯ menu (with two-step Stop outreach picker) ─────────────────
+
+interface OverflowItem {
+  label: string;
   onClick: () => void;
-  title?: string;
-  children: ReactNode;
+  tone?: "default" | "celebration";
+}
+
+function OverflowMenu({
+  items,
+  onStopOutreach,
+}: {
+  items: OverflowItem[];
+  onStopOutreach: (reason: StopOutreachReason) => Promise<void>;
 }) {
+  const [open, setOpen] = useState(false);
+  const [showReasons, setShowReasons] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setShowReasons(false);
+      }
+    };
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        setShowReasons(false);
+      }
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [open]);
+
+  const close = () => { setOpen(false); setShowReasons(false); };
+  const stop = (reason: StopOutreachReason) => {
+    void onStopOutreach(reason);
+    close();
+  };
+
+  return (
+    <div ref={ref} className="relative self-end">
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen((s) => !s); setShowReasons(false); }}
+        className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+        title="More actions"
+        aria-label="More actions"
+      >
+        <span aria-hidden>⋯</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-30 mt-1 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+          {showReasons ? (
+            <>
+              <p className="px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">
+                Stop outreach — why?
+              </p>
+              <MenuItem onClick={() => stop("no_response_closed")}>No response</MenuItem>
+              <MenuItem onClick={() => stop("not_interested")}>Not interested</MenuItem>
+              <MenuItem onClick={() => stop("wrong_contact")}>Wrong contact</MenuItem>
+              <MenuItem onClick={() => stop("do_not_contact")} danger>Do not contact</MenuItem>
+              <div className="my-1 border-t border-gray-100" />
+              <MenuItem onClick={() => setShowReasons(false)}>← Back</MenuItem>
+            </>
+          ) : (
+            <>
+              {items.map((item, i) => (
+                <MenuItem
+                  key={i}
+                  onClick={() => { item.onClick(); close(); }}
+                  celebration={item.tone === "celebration"}
+                >
+                  {item.label}
+                </MenuItem>
+              ))}
+              {items.length > 0 && <div className="my-1 border-t border-gray-100" />}
+              <MenuItem onClick={() => setShowReasons(true)} danger>
+                Stop outreach…
+              </MenuItem>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MenuItem({
+  children,
+  onClick,
+  danger,
+  celebration,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+  danger?: boolean;
+  celebration?: boolean;
+}) {
+  const colorClass = danger
+    ? "text-red-700 hover:bg-red-50"
+    : celebration
+    ? "text-emerald-700 hover:bg-emerald-50"
+    : "text-gray-700 hover:bg-gray-50";
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
-      title={title}
-      className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+      className={`block w-full px-3 py-1.5 text-left text-xs font-medium ${colorClass}`}
     >
       {children}
     </button>
   );
 }
+
+// ── Per-tab slot builders ────────────────────────────────────────────────
 
 interface RowSlots {
-  borderTone: Tone;
   pills: ReactNode;
   footnote: ReactNode;
   rightActions: ReactNode;
 }
 
-/**
- * Per-tab slot builder. Picks border tone, status pills, footnote text,
- * and the right-side action stack for a row. The shell handles the rest.
- */
 function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): RowSlots {
   if (tab === "research") return researchSlots(row);
   if (tab === "calls") return callsSlots(row, cb);
@@ -711,47 +825,42 @@ function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): RowSlots
 }
 
 function researchSlots(row: TabRow): RowSlots {
-  const ready = row.status === "researched";
+  if (row.status === "researched") {
+    return {
+      pills: <Pill tone="attention" title="Has contact + programs — schedule the email cadence next.">Ready to schedule</Pill>,
+      footnote: null,
+      rightActions: null,
+    };
+  }
   return {
-    borderTone: ready ? "emerald" : "gray",
-    pills: ready ? (
-      <Pill tone="emerald" title="Has contact + programs — schedule the email cadence next.">
-        ✓ Ready to schedule
-      </Pill>
-    ) : (
-      <Pill tone="gray" title="Add a contact and programs to enable scheduling.">
-        Needs contact + programs
-      </Pill>
-    ),
+    pills: <Pill tone="neutral" title="Add a contact and programs to enable scheduling.">Needs contact</Pill>,
     footnote: null,
     rightActions: null,
   };
 }
 
 function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
+  // No pill (the Calls tab name carries the meaning). Phone shows as plain
+  // clickable text in the footnote. Single primary CTA on the right.
   return {
-    borderTone: "emerald",
-    pills: (
-      <Pill tone="emerald" title="Phone call due — tap to dial, then log the outcome.">
-        📞 Call due{row.due_call_task ? ` · ${formatDueDate(row.due_call_task.due_at)}` : ""}
-      </Pill>
-    ),
-    footnote: null,
-    rightActions: (
-      <>
-        {row.primary_contact_phone && (
-          <a
-            href={`tel:${row.primary_contact_phone}`}
-            onClick={(e) => e.stopPropagation()}
-            title="Tap to dial (mobile) — opens the default phone app."
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
-          >
-            📞 {row.primary_contact_phone}
-          </a>
+    pills: null,
+    footnote: row.primary_contact_phone ? (
+      <p className="mt-0.5 text-xs text-gray-700">
+        Phone:{" "}
+        <a
+          href={`tel:${row.primary_contact_phone}`}
+          onClick={(e) => e.stopPropagation()}
+          title="Tap to dial (mobile) — opens the default phone app."
+          className="text-gray-700 underline decoration-gray-300 hover:decoration-gray-500"
+        >
+          {row.primary_contact_phone}
+        </a>
+        {row.due_call_task && (
+          <span className="ml-2 text-gray-400">· {formatDueDate(row.due_call_task.due_at)}</span>
         )}
-        <SecondaryAction onClick={cb.onLogCallOutcome}>Log outcome →</SecondaryAction>
-      </>
-    ),
+      </p>
+    ) : null,
+    rightActions: <PrimaryAction onClick={cb.onLogCallOutcome}>Log outcome</PrimaryAction>,
   };
 }
 
@@ -759,74 +868,65 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   const state: RepliesState = row.replies_state ?? "mid_cadence";
   switch (state) {
     case "mid_cadence":
+      // No pill — absence is the signal. Single conditional CTA.
       return {
-        borderTone: "gray",
-        pills: <Pill tone="gray" title="Cadence is still firing — keep waiting for a reply.">Mid-cadence</Pill>,
+        pills: null,
         footnote: row.last_activity_at ? (
-          <p className="mt-0.5 text-[11px] text-gray-400">Last activity {formatRelative(row.last_activity_at)}</p>
+          <p className="mt-0.5 text-[11px] text-gray-400">
+            Last activity {formatRelative(row.last_activity_at)}
+          </p>
         ) : null,
         rightActions: (
           <PrimaryAction
-            tone="blue"
             onClick={() => cb.onClassifyReply("email_reply")}
-            title="Saw a reply in Gmail? Click to triage what they said."
+            title="Saw a reply in Gmail? Click to log what they said."
           >
-            📬 They replied
+            Saw a reply?
           </PrimaryAction>
         ),
       };
     case "engaged":
       return {
-        borderTone: "blue",
-        pills: <Pill tone="blue" title="They replied — pick what to do next.">📬 Replied</Pill>,
+        pills: <Pill tone="attention">Replied</Pill>,
         footnote: row.last_activity_at ? (
-          <p className="mt-0.5 text-[11px] text-gray-500">Last activity {formatRelative(row.last_activity_at)}</p>
+          <p className="mt-0.5 text-[11px] text-gray-500">
+            Last activity {formatRelative(row.last_activity_at)}
+          </p>
         ) : null,
         rightActions: (
           <>
-            <PrimaryAction tone="blue" onClick={() => cb.onClassifyReply("email_reply")}>
-              Triage reply
-            </PrimaryAction>
-            <PrimaryAction
-              tone="emerald"
-              onClick={cb.onMarkPartner}
-              title="They committed to sharing with students."
-            >
-              Mark Partner ★
-            </PrimaryAction>
+            <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Open reply</PrimaryAction>
+            <OverflowMenu
+              items={[{ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" }]}
+              onStopOutreach={cb.onStopOutreach}
+            />
           </>
         ),
       };
     case "wants_meeting":
       return {
-        borderTone: "amber",
-        pills: <Pill tone="amber" title="Replied wanting a meeting — pick a time over email.">🤝 Wants meeting</Pill>,
-        footnote: <p className="mt-0.5 text-[11px] text-gray-500">Coordinate the time, then mark scheduled.</p>,
+        pills: <Pill tone="attention">Wants to meet</Pill>,
+        footnote: <p className="mt-0.5 text-[11px] text-gray-500">Coordinate the time, then mark booked.</p>,
         rightActions: (
-          <PrimaryAction
-            tone="indigo"
-            onClick={() => cb.onClassifyReply("email_reply")}
-            title="Got a time? Pick 'Already booked' in the classifier."
-          >
-            Mark scheduled →
-          </PrimaryAction>
+          <>
+            <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Booked it</PrimaryAction>
+            <OverflowMenu
+              items={[{ label: "Open reply", onClick: () => cb.onClassifyReply("email_reply") }]}
+              onStopOutreach={cb.onStopOutreach}
+            />
+          </>
         ),
       };
     case "booked":
+      // Filtered out of Replies server-side in v8.2. Kept here for type-completeness only.
       return {
-        borderTone: "indigo",
-        pills: (
-          <Pill tone="indigo" title="Meeting on the calendar.">
-            📅 Booked {row.meeting_at ? formatLongDate(row.meeting_at) : "(time TBD)"}
-          </Pill>
-        ),
-        footnote: <p className="mt-0.5 text-[11px] italic text-gray-500">Tap the row to view meeting details.</p>,
+        pills: <Pill tone="neutral">{row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}</Pill>,
+        footnote: null,
         rightActions: null,
       };
     case "needs_followup":
       return {
-        borderTone: "blue",
-        pills: <Pill tone="blue" title="Meeting happened — they need a follow-up email.">🔄 Needs follow-up</Pill>,
+        pills: <Pill tone="attention">Met — needs follow-up</Pill>,
         footnote: row.followup_notes ? (
           <p className="mt-0.5 text-[11px] italic text-gray-700">
             &quot;{row.followup_notes.slice(0, 160)}
@@ -835,64 +935,45 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         ) : null,
         rightActions: (
           <>
-            <PrimaryAction
-              tone="blue"
-              onClick={cb.onSendFollowupEmail}
-              title="Open Gmail composer with a follow-up subject pre-filled."
-            >
-              Send follow-up ↗
-            </PrimaryAction>
-            <PrimaryAction tone="emerald" onClick={cb.onMarkPartner}>
-              Mark Partner ★
-            </PrimaryAction>
+            <PrimaryAction onClick={cb.onSendFollowupEmail}>Send email</PrimaryAction>
+            <OverflowMenu
+              items={[{ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" }]}
+              onStopOutreach={cb.onStopOutreach}
+            />
           </>
         ),
       };
     case "awaiting_callback":
       return {
-        borderTone: "purple",
         pills: (
-          <Pill tone="purple" title="Watching the inbox / voicemail for them to reach back.">
-            📞 {row.awaiting_callback_kind === "promised" ? "Promised callback" : "Voicemail left"}
-            {row.awaiting_callback_at ? ` · ${formatRelative(row.awaiting_callback_at)}` : ""}
+          <Pill tone="attention">
+            {row.awaiting_callback_kind === "promised" ? "Promised callback" : "Voicemail"}
+            {row.awaiting_callback_at ? ` · ${formatShortRelative(row.awaiting_callback_at)}` : ""}
           </Pill>
         ),
-        footnote: <p className="mt-0.5 text-[11px] text-gray-500">Check Gmail for callback or voicemail notifications.</p>,
+        footnote: <p className="mt-0.5 text-[11px] text-gray-500">Watch Gmail for callback or voicemail emails.</p>,
         rightActions: (
           <>
-            <PrimaryAction tone="blue" onClick={() => cb.onClassifyReply("callback")}>
-              Got a callback
-            </PrimaryAction>
-            <SecondaryAction
-              onClick={() => { void cb.onResumeOutreach(); }}
-              title="Still nothing — re-queue a call in 3 days and resume cadence."
-            >
-              Resume outreach
-            </SecondaryAction>
+            <PrimaryAction onClick={() => cb.onClassifyReply("callback")}>Got a callback?</PrimaryAction>
+            <OverflowMenu
+              items={[{ label: "Try again", onClick: () => { void cb.onResumeOutreach(); } }]}
+              onStopOutreach={cb.onStopOutreach}
+            />
           </>
         ),
       };
     case "stale":
       return {
-        borderTone: "gray",
         pills: (
-          <Pill tone="gray" title="Cadence ran out without a reply.">
-            💤 No reply{row.stale_days != null ? ` ${row.stale_days}d` : ""} · cadence ended
+          <Pill tone="neutral">
+            No reply{row.stale_days != null ? ` · ${row.stale_days}d` : ""}
           </Pill>
         ),
         footnote: null,
         rightActions: (
           <>
-            <PrimaryAction
-              tone="blue"
-              onClick={cb.onSendFollowupEmail}
-              title="Open Gmail with a custom re-engage subject pre-filled."
-            >
-              Custom re-engage ↗
-            </PrimaryAction>
-            <SecondaryAction onClick={() => { void cb.onCloseAsNoResponse(); }}>
-              Close as no response
-            </SecondaryAction>
+            <PrimaryAction onClick={cb.onSendFollowupEmail}>Send email</PrimaryAction>
+            <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />
           </>
         ),
       };
@@ -902,54 +983,52 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
 function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   if (row.meeting_state === "scheduled") {
     return {
-      borderTone: "indigo",
       pills: (
-        <Pill tone="indigo" title="Meeting is on the calendar.">
-          📅 Booked {row.meeting_at ? formatLongDate(row.meeting_at) : "(time TBD)"}
+        <Pill tone="neutral" title="Meeting is on the calendar.">
+          {row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}
         </Pill>
       ),
       footnote: null,
       rightActions: (
-        <PrimaryAction
-          tone="emerald"
-          onClick={cb.onMarkPartner}
-          title="Meeting happened and they committed — graduate to Active Partner."
-        >
-          Mark Partner ★
-        </PrimaryAction>
+        <>
+          <PrimaryAction
+            tone="celebration"
+            onClick={cb.onMarkPartner}
+            title="Meeting happened and they committed — graduate to Active Partner."
+          >
+            Make Partner ★
+          </PrimaryAction>
+          <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />
+        </>
       ),
     };
   }
   // in_flight
   return {
-    borderTone: "amber",
-    pills: <Pill tone="amber" title="Coordinating a meeting time over email.">🤝 Finding a time</Pill>,
-    footnote: <p className="mt-0.5 text-[11px] text-gray-500">Coordinate over email, then mark scheduled.</p>,
+    pills: <Pill tone="attention">Finding a time</Pill>,
+    footnote: <p className="mt-0.5 text-[11px] text-gray-500">Coordinate over email, then mark booked.</p>,
     rightActions: (
-      <PrimaryAction tone="indigo" onClick={cb.onMarkScheduledFromInFlight}>
-        Mark scheduled →
-      </PrimaryAction>
+      <>
+        <PrimaryAction onClick={cb.onMarkScheduledFromInFlight}>Booked it</PrimaryAction>
+        <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />
+      </>
     ),
   };
 }
 
 function partnersSlots(row: TabRow): RowSlots {
+  // No "Active Partner" pill — the tab name carries the meaning. Just the
+  // Next: … pill (when there's an upcoming task).
   return {
-    borderTone: "emerald",
-    pills: (
-      <>
-        <Pill tone="emerald" title="Distributing to students. Maintain the relationship.">
-          ⭐ Active Partner
-        </Pill>
-        {row.next_step_label && (
-          <Pill tone="indigo" title="Earliest scheduled action for this partner.">
-            {row.next_step_label}
-          </Pill>
-        )}
-      </>
-    ),
+    pills: row.next_step_label ? (
+      <Pill tone="partner" title="Earliest scheduled action for this partner.">
+        {row.next_step_label}
+      </Pill>
+    ) : null,
     footnote: row.last_activity_at ? (
-      <p className="mt-0.5 text-[11px] text-gray-400">Last activity {formatRelative(row.last_activity_at)}</p>
+      <p className="mt-0.5 text-[11px] text-gray-400">
+        Last activity {formatRelative(row.last_activity_at)}
+      </p>
     ) : null,
     rightActions: null,
   };
@@ -957,13 +1036,117 @@ function partnersSlots(row: TabRow): RowSlots {
 
 function allSlots(row: TabRow): RowSlots {
   return {
-    borderTone: "gray",
-    pills: <Pill tone="gray" title="Stage in the funnel.">{row.status}</Pill>,
+    pills: <Pill tone="neutral" title="Stage in the funnel.">{row.status}</Pill>,
     footnote: row.last_activity_at ? (
-      <p className="mt-0.5 text-[11px] text-gray-400">Last activity {formatRelative(row.last_activity_at)}</p>
+      <p className="mt-0.5 text-[11px] text-gray-400">
+        Last activity {formatRelative(row.last_activity_at)}
+      </p>
     ) : null,
     rightActions: null,
   };
+}
+
+// ── Replies grouping (v8.2) ──────────────────────────────────────────────
+//
+// Three sections by urgency. Default-open: Needs attention only.
+
+interface RepliesGroups {
+  needsAttention: TabRow[];
+  waiting: TabRow[];
+  stale: TabRow[];
+}
+
+function groupRepliesRows(rows: TabRow[]): RepliesGroups {
+  const needsAttention: TabRow[] = [];
+  const waiting: TabRow[] = [];
+  const stale: TabRow[] = [];
+  for (const row of rows) {
+    const s = row.replies_state;
+    if (s === "engaged" || s === "needs_followup" || s === "awaiting_callback") {
+      needsAttention.push(row);
+    } else if (s === "stale") {
+      stale.push(row);
+    } else {
+      // mid_cadence, wants_meeting (booked is filtered server-side)
+      waiting.push(row);
+    }
+  }
+  return { needsAttention, waiting, stale };
+}
+
+function RepliesGroupedList({
+  rows,
+  renderRow,
+}: {
+  rows: TabRow[];
+  renderRow: (row: TabRow) => ReactNode;
+}) {
+  const groups = useMemo(() => groupRepliesRows(rows), [rows]);
+  return (
+    <div className="space-y-4">
+      <RepliesSection
+        title="Needs attention"
+        rows={groups.needsAttention}
+        renderRow={renderRow}
+        defaultOpen
+        showWhenEmpty
+      />
+      <RepliesSection
+        title="Waiting"
+        rows={groups.waiting}
+        renderRow={renderRow}
+        defaultOpen={false}
+        showWhenEmpty={false}
+      />
+      <RepliesSection
+        title="Stale"
+        rows={groups.stale}
+        renderRow={renderRow}
+        defaultOpen={false}
+        showWhenEmpty={false}
+      />
+    </div>
+  );
+}
+
+function RepliesSection({
+  title,
+  rows,
+  renderRow,
+  defaultOpen,
+  showWhenEmpty,
+}: {
+  title: string;
+  rows: TabRow[];
+  renderRow: (row: TabRow) => ReactNode;
+  defaultOpen: boolean;
+  showWhenEmpty: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const count = rows.length;
+  if (count === 0 && !showWhenEmpty) return null;
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((s) => !s)}
+        className="flex w-full items-center gap-2 rounded-md px-1 py-1 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50"
+      >
+        <span className="w-3 text-gray-400" aria-hidden>{count === 0 ? "" : open ? "▾" : "▸"}</span>
+        <span>{title}</span>
+        <span className="text-gray-400">({count})</span>
+        {count === 0 && (
+          <span className="ml-2 text-xs font-medium text-emerald-700">✓ All caught up.</span>
+        )}
+      </button>
+      {open && count > 0 && (
+        <ul className="mt-2 space-y-2">
+          {rows.map((row) => (
+            <li key={row.id}>{renderRow(row)}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────
@@ -988,6 +1171,19 @@ function formatRelative(iso: string): string {
   const d = Math.round(hr / 24);
   if (d < 14) return `${d}d ago`;
   return new Date(iso).toLocaleDateString();
+}
+
+/** Compact form with no "ago" suffix — used inside pills. */
+function formatShortRelative(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const min = Math.round(ms / 60_000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min}m`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h`;
+  const d = Math.round(hr / 24);
+  if (d < 30) return `${d}d`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 function formatLongDate(iso: string): string {

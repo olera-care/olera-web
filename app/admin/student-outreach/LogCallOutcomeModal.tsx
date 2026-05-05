@@ -28,47 +28,45 @@ interface Props {
   onSubmit: (outcome: string, notes: string) => Promise<void>;
 }
 
-const OUTCOMES: Array<{
+interface Outcome {
   key: string;
   label: string;
   blurb: string;
-  tone: "ok" | "neutral" | "warn" | "danger";
-}> = [
+}
+
+const DIDNT_REACH: Outcome[] = [
   {
     key: "no_answer",
     label: "No answer",
-    blurb: "Phone rang out. Cadence continues, next call queued automatically.",
-    tone: "neutral",
+    blurb: "Cadence keeps running. Next call queued automatically.",
   },
   {
     key: "voicemail",
     label: "Left a voicemail",
-    blurb: "Logged the voicemail. Row moves to Replies — watch the inbox for callback or voicemail-to-email notifications.",
-    tone: "neutral",
+    blurb: "Row moves to Replies. Watch Gmail for the voicemail-to-email notification.",
   },
-  {
-    key: "promised_callback",
-    label: "They picked up — said they'd call back",
-    blurb: "Row moves to Replies as 'awaiting callback' until they reach out.",
-    tone: "neutral",
-  },
+];
+
+const REACHED_THEM: Outcome[] = [
   {
     key: "connected_engaged",
     label: "Connected — they're engaged",
-    blurb: "We talked, they're interested. Stops the email cadence; use the reply-classifier next.",
-    tone: "ok",
+    blurb: "Stops the email cadence. Use the reply-classifier next.",
+  },
+  {
+    key: "promised_callback",
+    label: "Promised to call back",
+    blurb: "Row moves to Replies as awaiting callback.",
   },
   {
     key: "connected_not_interested",
-    label: "Connected — not interested",
-    blurb: "Closes the row. We won't email or call again unless re-opened.",
-    tone: "warn",
+    label: "Not interested",
+    blurb: "Closes the row.",
   },
   {
     key: "wrong_number",
     label: "Wrong number",
-    blurb: "Marks all known contacts as unreachable on this number. Add a new contact to re-attempt.",
-    tone: "danger",
+    blurb: "Marks contacts unreachable on this number.",
   },
 ];
 
@@ -118,53 +116,23 @@ export function LogCallOutcomeModal({
           </p>
         </header>
 
-        <div className="space-y-2 px-6 py-4">
+        <div className="space-y-3 px-6 py-4">
           {error && (
             <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
           )}
 
-          <div className="space-y-1.5">
-            {OUTCOMES.map((o) => {
-              const active = outcome === o.key;
-              const toneClass =
-                o.tone === "ok"
-                  ? active
-                    ? "border-emerald-500 bg-emerald-50"
-                    : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/30"
-                  : o.tone === "warn"
-                  ? active
-                    ? "border-amber-500 bg-amber-50"
-                    : "border-gray-200 hover:border-amber-300 hover:bg-amber-50/30"
-                  : o.tone === "danger"
-                  ? active
-                    ? "border-red-500 bg-red-50"
-                    : "border-gray-200 hover:border-red-300 hover:bg-red-50/30"
-                  : active
-                  ? "border-gray-700 bg-gray-50"
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50";
-              return (
-                <button
-                  key={o.key}
-                  type="button"
-                  onClick={() => setOutcome(o.key)}
-                  className={`flex w-full items-start gap-3 rounded-md border p-3 text-left transition-colors ${toneClass}`}
-                >
-                  <span
-                    className={`mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-                      active ? "border-gray-900 bg-gray-900" : "border-gray-300"
-                    }`}
-                    aria-hidden
-                  >
-                    {active && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium text-gray-900">{o.label}</span>
-                    <span className="mt-0.5 block text-xs text-gray-600">{o.blurb}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          <OutcomeGroup
+            title="Didn't reach them"
+            outcomes={DIDNT_REACH}
+            selected={outcome}
+            onSelect={setOutcome}
+          />
+          <OutcomeGroup
+            title="Reached them"
+            outcomes={REACHED_THEM}
+            selected={outcome}
+            onSelect={setOutcome}
+          />
 
           <label className="block pt-2">
             <span className="mb-1 block text-xs font-medium text-gray-600">
@@ -196,6 +164,56 @@ export function LogCallOutcomeModal({
             {submitting ? "Logging…" : "Log outcome"}
           </button>
         </footer>
+      </div>
+    </div>
+  );
+}
+
+function OutcomeGroup({
+  title,
+  outcomes,
+  selected,
+  onSelect,
+}: {
+  title: string;
+  outcomes: Outcome[];
+  selected: string | null;
+  onSelect: (key: string) => void;
+}) {
+  return (
+    <div>
+      <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">
+        {title}
+      </p>
+      <div className="space-y-1.5">
+        {outcomes.map((o) => {
+          const active = selected === o.key;
+          return (
+            <button
+              key={o.key}
+              type="button"
+              onClick={() => onSelect(o.key)}
+              className={`flex w-full items-start gap-3 rounded-md border p-3 text-left transition-colors ${
+                active
+                  ? "border-gray-700 bg-gray-50"
+                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              <span
+                className={`mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                  active ? "border-gray-900 bg-gray-900" : "border-gray-300"
+                }`}
+                aria-hidden
+              >
+                {active && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium text-gray-900">{o.label}</span>
+                <span className="mt-0.5 block text-xs text-gray-600">{o.blurb}</span>
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

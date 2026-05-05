@@ -148,7 +148,12 @@ export async function GET(req: NextRequest) {
   }
 
   // Hydrate the row objects + indicator data.
-  const rows = await hydrateRows(db, rowIds, tab, campusMap);
+  let rows = await hydrateRows(db, rowIds, tab, campusMap);
+
+  // v8.2: booked rows live only in Meetings tab. Filter out of Replies.
+  if (tab === "replies") {
+    rows = rows.filter((r) => r.replies_state !== "booked");
+  }
 
   return NextResponse.json({
     campuses: campusList,
@@ -209,26 +214,41 @@ async function computeTabCounts(
   counts.calls = callSet.size;
 
   // Meetings count: among in-progress rows, those whose most-recent
-  // meeting-related touchpoint is in_flight or scheduled.
+  // meeting-related touchpoint is in_flight or scheduled. Also: rows
+  // with state=scheduled are dropped from the Replies tab in v8.2, so
+  // we subtract them from the replies count here.
   if (inProgressIds.length > 0) {
-    counts.meetings = await countMeetingsAmongRows(db, inProgressIds);
+    const { meetings, scheduled } = await countMeetingsAmongRows(db, inProgressIds);
+    counts.meetings = meetings;
+    counts.replies = Math.max(0, counts.replies - scheduled);
   }
 
   return counts;
 }
 
 /**
- * For each row, derive the meeting state and count those whose state
- * is in_flight or scheduled. Uses the v8 unified derivation.
+ * For each row, derive meeting state and return:
+ *   - meetings: in_flight + scheduled (Meetings-tab membership count)
+ *   - scheduled: scheduled-only (subtracted from Replies count, since
+ *                booked rows live only in Meetings now)
  */
-async function countMeetingsAmongRows(db: DB, ids: string[]): Promise<number> {
+async function countMeetingsAmongRows(
+  db: DB,
+  ids: string[],
+): Promise<{ meetings: number; scheduled: number }> {
   const tpsByRow = await fetchTouchpointsByRow(db, ids);
-  let count = 0;
+  let meetings = 0;
+  let scheduled = 0;
   for (const id of ids) {
     const state = deriveStateFromTouchpoints(tpsByRow.get(id) ?? []);
-    if (state.meeting_state === "in_flight" || state.meeting_state === "scheduled") count++;
+    if (state.meeting_state === "scheduled") {
+      meetings++;
+      scheduled++;
+    } else if (state.meeting_state === "in_flight") {
+      meetings++;
+    }
   }
-  return count;
+  return { meetings, scheduled };
 }
 
 // ── Per-tab row ID fetchers ─────────────────────────────────────────────

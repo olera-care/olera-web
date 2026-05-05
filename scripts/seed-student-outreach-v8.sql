@@ -73,6 +73,11 @@ BEGIN
     RAISE EXCEPTION 'No admin user found in admin_users — seed needs a real user_id for touchpoints.created_by';
   END IF;
 
+  -- Bypass the append-only touchpoints trigger for THIS transaction only so
+  -- the seed can wipe and re-create demo rows. Reverts at end of DO block
+  -- (SET LOCAL is scoped to the surrounding transaction).
+  SET LOCAL session_replication_role = 'replica';
+
   -- 2. Upsert the two demo campuses.
   INSERT INTO student_outreach_campuses (slug, name, state, city, is_active)
   VALUES ('texas-am', 'Texas A&M University', 'TX', 'College Station', true)

@@ -1,7 +1,7 @@
 # Texas Benefits Exploration Report
 
-> Generated 2026-04-09 by benefits-pipeline.js
-> Cost: $0.075 (15 calls, 7.8m)
+> Generated 2026-05-05 by benefits-pipeline.js
+> Cost: $0.000 (0 calls, 0s)
 
 ---
 
@@ -564,18 +564,18 @@ Our data differs from what official sources say:
 
 Generated 12 page drafts. Review in admin dashboard or `data/pipeline/TX/drafts.json`.
 
-- **Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)** (benefit) — 5 content sections, 6 FAQs
-- **STAR+PLUS** (benefit) — 6 content sections, 6 FAQs
-- **Program of All-Inclusive Care for the Elderly (PACE)** (benefit) — 6 content sections, 6 FAQs
-- **Supplemental Nutrition Assistance Program (SNAP)** (benefit) — 3 content sections, 6 FAQs
-- **Low-Income Home Energy Assistance Program (LIHEAP)** (benefit) — 4 content sections, 6 FAQs
-- **Weatherization Assistance Program** (benefit) — 4 content sections, 6 FAQs
-- **Texas State Health Insurance Assistance Program (SHIP)** (resource) — 2 content sections, 6 FAQs
-- **Meals on Wheels** (benefit) — 4 content sections, 6 FAQs
-- **Community Based Alternatives (CBA) Waiver** (benefit) — 4 content sections, 6 FAQs
-- **Community Caregiver Support Program** (benefit) — 2 content sections, 5 FAQs
-- **Legal Aid for Seniors through AAAs** (resource) — 3 content sections, 6 FAQs
-- **Long-Term Care Ombudsman Program** (resource) — 1 content sections, 6 FAQs
+- **Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)** (benefit) — 2 content sections, 8 FAQs
+- **STAR+PLUS Home and Community-Based Services (HCBS) Waiver** (benefit) — 2 content sections, 8 FAQs
+- **Program of All-Inclusive Care for the Elderly (PACE)** (benefit) — 0 content sections, 8 FAQs
+- **Supplemental Nutrition Assistance Program (SNAP)** (benefit) — 0 content sections, 6 FAQs
+- **Low-Income Home Energy Assistance Program (LIHEAP)** (benefit) — 1 content sections, 8 FAQs
+- **Weatherization Assistance Program** (benefit) — 0 content sections, 8 FAQs
+- **Texas State Health Insurance Assistance Program (SHIP)** (resource) — 0 content sections, 3 FAQs
+- **Meals on Wheels** (benefit) — 0 content sections, 6 FAQs
+- **Community Based Alternatives (CBA) Waiver** (benefit) — 1 content sections, 8 FAQs
+- **Community Caregiver Support Program** (benefit) — 0 content sections, 6 FAQs
+- **Legal Aid for Seniors through AAAs** (resource) — 0 content sections, 4 FAQs
+- **Long-Term Care Ombudsman Program** (resource) — 0 content sections, 4 FAQs
 
 ## What We Learned
 

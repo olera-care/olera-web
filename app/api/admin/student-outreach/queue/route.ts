@@ -149,10 +149,16 @@ export async function GET(req: NextRequest) {
   // card per campus where research_complete=false, surfaced above the
   // stakeholder rows as an entry-point/acceleration tool. Per-stakeholder
   // rows are unchanged.
-  const researchCampuses =
-    tab === "research"
-      ? await fetchResearchCampuses(db, selectedCampus?.id ?? null)
-      : null;
+  let researchCampuses: Awaited<ReturnType<typeof fetchResearchCampuses>> | null = null;
+  if (tab === "research") {
+    try {
+      researchCampuses = await fetchResearchCampuses(db, selectedCampus?.id ?? null);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to load campuses-in-research";
+      console.error("[student-outreach/queue]", msg);
+      return NextResponse.json({ error: msg }, { status: 500 });
+    }
+  }
 
   if (rowIds.length === 0) {
     return NextResponse.json({
@@ -205,7 +211,17 @@ async function fetchResearchCampuses(
     .eq("is_active", true)
     .eq("research_complete", false);
   if (filterCampusId) q = q.eq("id", filterCampusId);
-  const { data: rows } = await q;
+  const { data: rows, error } = await q;
+  if (error) {
+    // Most likely cause: migration 069 (research_complete column) has not
+    // been applied to this database yet. Throw so the GET handler can
+    // surface the message to the UI instead of returning an empty list
+    // and leaving the admin staring at a blank Research tab.
+    throw new Error(
+      `Failed to load campuses-in-research: ${error.message}. ` +
+        `If this references "research_complete", run migration 069_campus_research_complete.sql in Supabase.`,
+    );
+  }
   const campusRows = (rows ?? []) as Array<{
     id: string;
     slug: string;

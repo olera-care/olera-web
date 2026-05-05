@@ -1497,12 +1497,6 @@ function AddCampusInline({
           </>
         )}
 
-        {!showManualFields && presetSlug && (
-          <p className="self-center text-xs text-gray-500">
-            {city}, {state}
-          </p>
-        )}
-
         <div className="ml-auto flex gap-2">
           <button
             onClick={submit}

@@ -29,6 +29,9 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 // Resend Automation audience ID - set this in Resend Dashboard
 const STAFFING_AUTOMATION_AUDIENCE_ID = process.env.RESEND_STAFFING_AUDIENCE_ID ?? "";
 
+// Resend Automation ID for triggering the sequence
+const STAFFING_AUTOMATION_ID = process.env.RESEND_STAFFING_AUTOMATION_ID ?? "";
+
 // Mock mode is enabled when audience ID is not configured
 const IS_MOCK_MODE = !STAFFING_AUTOMATION_AUDIENCE_ID;
 
@@ -106,18 +109,53 @@ export async function startEmailSequence(
   try {
     // Add contact to the automation audience with custom fields
     // Resend Automations trigger based on audience membership
+    // Custom fields can be used in templates with {{field_name}} syntax
     const { data, error } = await resend.contacts.create({
       audienceId: STAFFING_AUTOMATION_AUDIENCE_ID,
       email: params.email,
       firstName: params.providerName,
       unsubscribed: false,
-      // Custom data fields used in email templates
-      // Note: Resend uses these in the {{custom_field}} syntax in templates
     });
 
     if (error) {
       console.error("[resend-automation] Failed to add contact:", error);
       return { success: false, error: error.message };
+    }
+
+    // Trigger the automation with custom data for email personalization
+    // The automation is set up with a "contact.created" custom event trigger
+    if (STAFFING_AUTOMATION_ID && RESEND_API_KEY) {
+      try {
+        const triggerResponse = await fetch(
+          `https://api.resend.com/automations/${STAFFING_AUTOMATION_ID}/trigger`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${RESEND_API_KEY}`,
+            },
+            body: JSON.stringify({
+              to: params.email,
+              data: {
+                firstName: params.providerName,
+                university_name: params.universityName,
+                service_area: params.serviceArea,
+                outreach_id: params.outreachId,
+              },
+            }),
+          }
+        );
+
+        if (!triggerResponse.ok) {
+          const errorText = await triggerResponse.text();
+          console.error("[resend-automation] Failed to trigger automation:", errorText);
+        } else {
+          console.log(`[resend-automation] Triggered automation for ${params.email}`);
+        }
+      } catch (triggerErr) {
+        console.error("[resend-automation] Error triggering automation:", triggerErr);
+        // Don't fail the whole operation if trigger fails - contact was still added
+      }
     }
 
     // Log success

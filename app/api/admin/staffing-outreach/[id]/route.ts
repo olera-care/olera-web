@@ -12,7 +12,8 @@
  *   add_contact_and_send     capture verified contact + fire enrollment email
  *   mark_closed              mark as closed
  *   reopen                   reopen a closed provider → needs_call
- *   reopen_to_queue          reopen to queue OR restart sequence with updated email
+ *   reopen_to_queue          reopen closed provider → queued (manual start)
+ *   restart_sequence         update email + auto-start sequence → sequencing
  *
  * Legacy Actions (kept for backwards compatibility):
  *   mark_pre_call_complete   advance status queued→pre_call_outreach
@@ -134,8 +135,12 @@ export async function POST(
         await handleReopen(outreach, user.id);
         break;
       case "reopen_to_queue":
-        // Reopen to queue OR restart sequence with updated email
+        // Reopen closed provider to queue (manual start required)
         await handleReopenToQueue(outreach, body, user.id);
+        break;
+      case "restart_sequence":
+        // Update email and auto-start sequence (from Needs Call)
+        await handleRestartSequence(outreach, body, user.id);
         break;
 
       // ── Legacy Actions (kept for backwards compatibility) ──────────────
@@ -680,12 +685,8 @@ async function handleReopen(outreach: StaffingOutreachRow, userId: string) {
 }
 
 /**
- * Reopen/restart a provider back to queued status (To Queue tab).
- * V2: Allows restarting the email sequence from the beginning, optionally with a new email.
- *
- * Can be called from:
- * - Closed statuses (closed, bounced, do_not_contact, wrong_number) - reopen
- * - Needs Call statuses (needs_call, consented, calling, connected_no_consent) - restart with updated email
+ * Reopen a closed provider back to queued status.
+ * Admin must manually click "Start Sequence" after this.
  */
 async function handleReopenToQueue(
   outreach: StaffingOutreachRow,
@@ -694,13 +695,10 @@ async function handleReopenToQueue(
 ) {
   const db = getServiceClient();
 
-  // Allow from closed statuses AND needs_call statuses (for "Update & Restart Sequence")
+  // Only allow from closed statuses
   const closedStatuses = ["closed", "bounced", "do_not_contact", "wrong_number"];
-  const needsCallStatuses = ["needs_call", "consented", "calling", "connected_no_consent"];
-  const allowedStatuses = [...closedStatuses, ...needsCallStatuses];
-
-  if (!allowedStatuses.includes(outreach.status)) {
-    throw new Error("Cannot restart sequence from current status");
+  if (!closedStatuses.includes(outreach.status)) {
+    throw new Error("Can only reopen to queue from closed status");
   }
 
   // Update email in research_data if provided
@@ -714,7 +712,6 @@ async function handleReopenToQueue(
     from_status: outreach.status,
     to_status: "queued",
     new_email: newEmail ?? null,
-    reason: "Reopened to restart email sequence",
   });
 
   // Move back to queued status and reset sequence tracking
@@ -723,7 +720,6 @@ async function handleReopenToQueue(
     .update({
       status: "queued",
       research_data: researchData,
-      // Reset sequence tracking fields so they can start fresh
       sequence_started_at: null,
       email1_sent_at: null,
       email2_sent_at: null,
@@ -733,6 +729,99 @@ async function handleReopenToQueue(
       updated_at: new Date().toISOString(),
     })
     .eq("id", outreach.id);
+}
+
+/**
+ * Update email and auto-start the email sequence.
+ * Used from Needs Call tab when admin gets a corrected email from a call.
+ * Goes directly to 'sequencing' status (no manual start needed).
+ */
+async function handleRestartSequence(
+  outreach: StaffingOutreachRow,
+  body: { email?: string },
+  userId: string,
+) {
+  const db = getServiceClient();
+
+  // Only allow from needs_call statuses
+  const needsCallStatuses = ["needs_call", "consented", "calling", "connected_no_consent"];
+  if (!needsCallStatuses.includes(outreach.status)) {
+    throw new Error("Can only restart sequence from Needs Call status");
+  }
+
+  // Email is required for restart
+  const newEmail = body.email?.trim();
+  if (!newEmail) {
+    throw new Error("Email is required to restart sequence");
+  }
+
+  // Update email in research_data
+  const researchData = { ...outreach.research_data, general_email: newEmail };
+
+  // First update the research_data with new email
+  await db
+    .from("staffing_outreach")
+    .update({
+      research_data: researchData,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", outreach.id);
+
+  // Get provider and batch info for sequence
+  const [{ data: provider }, { data: batch }] = await Promise.all([
+    db.from("olera-providers")
+      .select("provider_name, provider_id")
+      .eq("provider_id", outreach.provider_id)
+      .single(),
+    db.from("staffing_batches")
+      .select("university_name, university_slug")
+      .eq("id", outreach.batch_id)
+      .single(),
+  ]);
+
+  if (!provider) throw new Error("Provider not found");
+  if (!batch) throw new Error("Batch not found");
+
+  const serviceArea = getServiceArea(batch.university_slug);
+
+  // Start the Resend automation
+  const result = await startEmailSequence({
+    email: newEmail,
+    outreachId: outreach.id,
+    providerId: outreach.provider_id,
+    providerName: provider.provider_name,
+    universityName: batch.university_name,
+    serviceArea,
+    batchId: outreach.batch_id,
+  });
+
+  if (!result.success) {
+    throw new Error(result.error || "Failed to start email sequence");
+  }
+
+  // Update to sequencing status
+  const now = new Date().toISOString();
+  const isMockMode = isResendMockMode();
+  await db
+    .from("staffing_outreach")
+    .update({
+      status: "sequencing",
+      sequence_started_at: now,
+      ...(isMockMode && { email1_sent_at: now }),
+      resend_automation_id: result.contactId,
+      sequence_email: newEmail,
+      next_action_due_at: new Date(Date.now() + 6 * 86400_000).toISOString(),
+      updated_at: now,
+    })
+    .eq("id", outreach.id);
+
+  // Log touchpoint
+  await insertTouchpoint(outreach.id, "sequence_started", userId, "Restarted sequence with updated email", {
+    recipient_email: newEmail,
+    resend_contact_id: result.contactId,
+    from_status: outreach.status,
+    restart: true,
+  });
 }
 
 /**

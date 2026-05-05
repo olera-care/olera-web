@@ -482,7 +482,7 @@ export default function StaffingOutreachPage() {
             onClick={() => setShowQueueConfirm(false)}
           />
           {/* Drawer */}
-          <div className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-xl">
+          <div className="relative z-10 flex h-full w-full max-w-xl flex-col bg-white shadow-xl">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
               <h2 className="text-lg font-semibold text-gray-900">Start Email Sequences</h2>
@@ -498,39 +498,56 @@ export default function StaffingOutreachPage() {
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
-                <svg className="h-7 w-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">University</p>
+                  <p className="mt-1 text-lg font-semibold text-gray-900 truncate">{currentBatch?.university_name}</p>
+                </div>
+                <div className="rounded-xl bg-blue-50 p-4">
+                  <p className="text-xs font-medium text-blue-600 uppercase tracking-wide">Providers</p>
+                  <p className="mt-1 text-3xl font-bold text-blue-700">{tabCounts["to_queue"] ?? 0}</p>
+                </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">University</p>
-                  <p className="text-lg font-semibold text-gray-900">{currentBatch?.university_name}</p>
+              {/* What will happen */}
+              <div className="rounded-xl border border-gray-200 p-4 mb-6">
+                <p className="text-sm font-semibold text-gray-900 mb-3">What will happen</p>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">1</div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Email 1 sent immediately</p>
+                      <p className="text-xs text-gray-500">Introduction to the Student Caregiver Program</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">2</div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Wait 3 days</p>
+                      <p className="text-xs text-gray-500">Automated delay before follow-up</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">3</div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Email 2 sent if no response</p>
+                      <p className="text-xs text-gray-500">Brief follow-up to check interest</p>
+                    </div>
+                  </div>
                 </div>
+              </div>
 
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Providers to queue</p>
-                  <p className="text-3xl font-bold text-gray-900">{tabCounts["to_queue"] ?? 0}</p>
-                </div>
-
-                <div className="rounded-lg bg-gray-50 p-4">
-                  <p className="text-sm font-medium text-gray-700 mb-2">What will happen:</p>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li className="flex items-start gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                      <span>Email 1 sent immediately to each provider</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                      <span>Email 2 sent after 3 days if no response</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                      <span>Providers move to Sequencing tab</span>
-                    </li>
-                  </ul>
+              {/* Note about missing emails */}
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
+                <div className="flex gap-3">
+                  <svg className="h-5 w-5 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">Providers without email will be skipped</p>
+                    <p className="text-xs text-amber-700 mt-0.5">They&apos;ll stay in To Queue until you add an email address</p>
+                  </div>
                 </div>
               </div>
             </div>

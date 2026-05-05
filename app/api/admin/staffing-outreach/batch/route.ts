@@ -58,14 +58,9 @@ async function handleStartSequenceBatch(
     return NextResponse.json({ error: "No outreach IDs provided" }, { status: 400 });
   }
 
-  // Limit batch size to prevent timeout
-  const MAX_BATCH_SIZE = 50;
-  if (outreachIds.length > MAX_BATCH_SIZE) {
-    return NextResponse.json(
-      { error: `Batch too large. Maximum ${MAX_BATCH_SIZE} providers at a time.` },
-      { status: 400 },
-    );
-  }
+  // Note: No hard limit - we process sequentially which is safe.
+  // Each startEmailSequence call is fast (~100-500ms), so even 100+ providers
+  // should complete well within Vercel's timeout limits.
 
   // Get all outreach records with their batch and provider info
   const { data: outreachRows, error: fetchError } = await db

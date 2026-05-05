@@ -296,13 +296,30 @@ function PhoneStepRow({
   // v8.10.1: anchor on the earliest Day-0 email_sent timestamp (real
   // elapsed time), not on ctx.outreach.cadence_day — that column is
   // set to 0 on row create and never advances.
+  // v8.10.3: surface WHY a past day was skipped — either the contact
+  // had no phone at schedule time (handleScheduleSequence drops phone
+  // steps when has_phone=false), or the cadence was paused by a
+  // resolution event (reply / meeting / connected — see
+  // supersedePendingFollowupCalls). The step list only renders for
+  // outreach_sent / engaged / meeting_scheduled, so partner/closed
+  // exits don't surface here.
   if (!task) {
     const todayDay = computeTodayDay(ctx);
-    const isFuture = day > todayDay;
+    if (day > todayDay) {
+      return (
+        <li className="text-xs text-gray-400">
+          <span className="mr-1.5">○</span>
+          <span>Call — queues on Day {day}</span>
+        </li>
+      );
+    }
+    const reason = primary?.phone
+      ? "cadence paused"
+      : "no phone on file";
     return (
       <li className="text-xs text-gray-400">
         <span className="mr-1.5">○</span>
-        <span>Call — {isFuture ? `queues on Day ${day}` : "skipped"}</span>
+        <span>Call — skipped ({reason})</span>
       </li>
     );
   }

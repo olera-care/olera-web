@@ -25,6 +25,7 @@ import { BulkResearchModal } from "./BulkResearchModal";
 import { LogCallOutcomeModal } from "./LogCallOutcomeModal";
 import { ReplyClassifierModal } from "./ReplyClassifierModal";
 import { MarkPartnerModal } from "./MarkPartnerModal";
+import { PRESET_UNIVERSITIES } from "@/lib/student-outreach/universities";
 import {
   STAKEHOLDER_TYPE_LABELS,
   type Campus,
@@ -324,6 +325,7 @@ export default function StudentOutreachPage() {
         <ResearchTabContent
           rows={rows}
           researchCampuses={researchCampuses}
+          existingCampuses={campuses}
           renderRow={renderRow}
           onContinueCampus={(c) => setBulkResearchCampus(c)}
           onMarkResearchComplete={async (slug, name) => {
@@ -1158,6 +1160,7 @@ function RepliesSection({
 function ResearchTabContent({
   rows,
   researchCampuses,
+  existingCampuses,
   renderRow,
   onContinueCampus,
   onMarkResearchComplete,
@@ -1167,6 +1170,7 @@ function ResearchTabContent({
 }: {
   rows: TabRow[];
   researchCampuses: ResearchCampusCard[];
+  existingCampuses: Campus[];
   renderRow: (row: TabRow) => ReactNode;
   onContinueCampus: (campus: ResearchCampusCard) => void;
   onMarkResearchComplete: (slug: string, name: string) => Promise<void>;
@@ -1186,7 +1190,7 @@ function ResearchTabContent({
             Add a campus below or click + Add Stakeholder to start.
           </p>
           <div className="mt-4 flex justify-center">
-            <AddCampusInline onSubmit={onAddCampus} />
+            <AddCampusInline onSubmit={onAddCampus} existingCampuses={existingCampuses} />
           </div>
           <button
             onClick={onAddStakeholder}
@@ -1204,7 +1208,7 @@ function ResearchTabContent({
           No campuses in research and no stakeholders waiting. Add a new campus below to start more research.
         </p>
         <div className="mt-4 flex justify-center">
-          <AddCampusInline onSubmit={onAddCampus} />
+          <AddCampusInline onSubmit={onAddCampus} existingCampuses={existingCampuses} />
         </div>
       </div>
     );
@@ -1229,7 +1233,7 @@ function ResearchTabContent({
             ))}
           </ul>
           <div className="mt-3">
-            <AddCampusInline onSubmit={onAddCampus} />
+            <AddCampusInline onSubmit={onAddCampus} existingCampuses={existingCampuses} />
           </div>
         </div>
       )}
@@ -1249,7 +1253,7 @@ function ResearchTabContent({
 
       {!showCampusSection && (
         <div className="px-1">
-          <AddCampusInline onSubmit={onAddCampus} />
+          <AddCampusInline onSubmit={onAddCampus} existingCampuses={existingCampuses} />
         </div>
       )}
     </div>
@@ -1337,27 +1341,80 @@ function CampusOverflowMenu({ onMarkComplete }: { onMarkComplete: () => void }) 
   );
 }
 
+// Sentinel value used by the preset <select> for the "Other (type
+// manually)" escape hatch. Any non-empty string that's not a real slug
+// works; we picked one prefixed to avoid collision risk.
+const OTHER_PRESET_VALUE = "__other__";
+
 function AddCampusInline({
   onSubmit,
+  existingCampuses,
 }: {
   onSubmit: (input: { name: string; slug: string; city: string; state: string }) => Promise<void>;
+  existingCampuses: Campus[];
 }) {
   const [open, setOpen] = useState(false);
+  const [presetSlug, setPresetSlug] = useState<string>("");
   const [name, setName] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const reset = () => { setName(""); setCity(""); setState(""); setErr(null); };
+  // Filter the preset list down to universities NOT already in the
+  // database so admins can't accidentally re-add a campus.
+  const availablePresets = useMemo(() => {
+    const taken = new Set(existingCampuses.map((c) => c.slug));
+    return PRESET_UNIVERSITIES.filter((u) => !taken.has(u.slug));
+  }, [existingCampuses]);
+
+  const isOther = presetSlug === OTHER_PRESET_VALUE;
+
+  const reset = () => {
+    setPresetSlug("");
+    setName("");
+    setCity("");
+    setState("");
+    setErr(null);
+  };
+
+  // When admin picks a preset, auto-fill name/city/state. "Other" clears
+  // them so the admin can type freely.
+  const onPickPreset = (slug: string) => {
+    setPresetSlug(slug);
+    if (slug === OTHER_PRESET_VALUE || slug === "") {
+      setName("");
+      setCity("");
+      setState("");
+    } else {
+      const preset = PRESET_UNIVERSITIES.find((u) => u.slug === slug);
+      if (preset) {
+        setName(preset.name);
+        setCity(preset.city);
+        setState(preset.state);
+      }
+    }
+  };
 
   const submit = async () => {
-    if (!name.trim()) { setErr("Campus name required"); return; }
+    if (!name.trim()) {
+      setErr("Campus name required");
+      return;
+    }
     setSubmitting(true);
     setErr(null);
     try {
-      const slug = slugify(name);
-      await onSubmit({ name: name.trim(), slug, city: city.trim(), state: state.trim() });
+      // Use the preset's curated slug when one is picked; otherwise
+      // derive from the (manually-typed) name.
+      const slug = isOther || presetSlug === ""
+        ? slugify(name)
+        : presetSlug;
+      await onSubmit({
+        name: name.trim(),
+        slug,
+        city: city.trim(),
+        state: state.trim(),
+      });
       reset();
       setOpen(false);
     } catch (e) {
@@ -1377,6 +1434,11 @@ function AddCampusInline({
       </button>
     );
   }
+
+  // When a preset is picked we hide the city/state inputs (already
+  // filled). When admin chose "Other" we show the manual-entry inputs.
+  const showManualFields = isOther;
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -1384,40 +1446,68 @@ function AddCampusInline({
       </p>
       {err && <p className="mb-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">{err}</p>}
       <div className="flex flex-wrap items-end gap-2">
-        <label className="flex flex-col">
-          <span className="mb-1 text-[11px] font-medium text-gray-600">Campus name</span>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Texas A&M University"
+        <label className="flex flex-1 flex-col" style={{ minWidth: 280 }}>
+          <span className="mb-1 text-[11px] font-medium text-gray-600">University</span>
+          <select
+            value={presetSlug}
+            onChange={(e) => onPickPreset(e.target.value)}
             autoFocus
-            className="rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-          />
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+          >
+            <option value="">— pick a university —</option>
+            {availablePresets.map((u) => (
+              <option key={u.slug} value={u.slug}>
+                {u.name} ({u.state})
+              </option>
+            ))}
+            <option value={OTHER_PRESET_VALUE}>Other (type manually)</option>
+          </select>
         </label>
-        <label className="flex flex-col">
-          <span className="mb-1 text-[11px] font-medium text-gray-600">City</span>
-          <input
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="College Station"
-            className="rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-          />
-        </label>
-        <label className="flex flex-col">
-          <span className="mb-1 text-[11px] font-medium text-gray-600">State</span>
-          <input
-            value={state}
-            onChange={(e) => setState(e.target.value.toUpperCase())}
-            maxLength={2}
-            placeholder="TX"
-            className="w-16 rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-          />
-        </label>
-        <div className="flex gap-2">
+
+        {showManualFields && (
+          <>
+            <label className="flex flex-col">
+              <span className="mb-1 text-[11px] font-medium text-gray-600">Campus name</span>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Campus name"
+                className="rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+              />
+            </label>
+            <label className="flex flex-col">
+              <span className="mb-1 text-[11px] font-medium text-gray-600">City</span>
+              <input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="City"
+                className="rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+              />
+            </label>
+            <label className="flex flex-col">
+              <span className="mb-1 text-[11px] font-medium text-gray-600">State</span>
+              <input
+                value={state}
+                onChange={(e) => setState(e.target.value.toUpperCase())}
+                maxLength={2}
+                placeholder="TX"
+                className="w-16 rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+              />
+            </label>
+          </>
+        )}
+
+        {!showManualFields && presetSlug && (
+          <p className="self-center text-xs text-gray-500">
+            {city}, {state}
+          </p>
+        )}
+
+        <div className="ml-auto flex gap-2">
           <button
             onClick={submit}
-            disabled={submitting}
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+            disabled={submitting || !presetSlug}
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitting ? "Adding…" : "Add"}
           </button>

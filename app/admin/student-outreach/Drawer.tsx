@@ -138,6 +138,7 @@ export function Drawer({ outreachId, tabContext = "all", onClose, onAction }: Dr
                     </>
                   )}
                   {ctx.campus.name} · {STAKEHOLDER_TYPE_LABELS[ctx.outreach.stakeholder_type]}
+                  {primary?.role && ` · ${primary.role}`}
                 </p>
               </div>
             );
@@ -282,6 +283,7 @@ function NextStepPanel({
           <StageGuidance
             ctx={ctx}
             onSchedulePreFlight={() => setShowPreFlight(true)}
+            onOpenPartnerModal={() => setShowPartner(true)}
             action={action}
             setError={setError}
           />
@@ -377,11 +379,13 @@ function NextStepPanel({
 function StageGuidance({
   ctx,
   onSchedulePreFlight,
+  onOpenPartnerModal,
   action,
   setError,
 }: {
   ctx: DrawerContext;
   onSchedulePreFlight: () => void;
+  onOpenPartnerModal?: () => void;
   action: ActionFn;
   setError: (e: string | null) => void;
 }) {
@@ -458,6 +462,15 @@ function StageGuidance({
     const m = ctx.meeting_state;
     const r = ctx.replies_state;
 
+    // v8.10: when a phone call is overdue, the call card in the step list
+    // IS the action — banners would compete with it. Suppress the
+    // stale/engaged/awaiting/wants_meeting/needs_followup banners; keep
+    // meeting_scheduled (carries the meeting date, no call action expected).
+    const now = Date.now();
+    const hasOverdueCall = ctx.pending_tasks.some(
+      (t) => t.task_type === "outreach_followup_call" && new Date(t.due_at).getTime() <= now,
+    );
+
     let banner: React.ReactNode = null;
     if (m === "scheduled") {
       banner = (
@@ -467,6 +480,9 @@ function StageGuidance({
           {" "}After the meeting, click <em>Mark as Active Partner</em> if they committed, or use <em>Log meeting outcome</em> below if they need a follow-up email first.
         </Guidance>
       );
+    } else if (hasOverdueCall) {
+      // Single source of truth: the call card. Drop competing banners.
+      banner = null;
     } else if (m === "in_flight" || r === "wants_meeting") {
       banner = (
         <Guidance>
@@ -504,7 +520,7 @@ function StageGuidance({
     } else if (r === "stale") {
       banner = (
         <Guidance>
-          <strong>The email sequence ran without a reply.</strong> Try a custom re-engage email through Gmail, or close the row if it&apos;s not going anywhere.
+          <strong>Email cadence has stalled.</strong> Send a custom re-engage email through Gmail, or close the row if it&apos;s not going anywhere.
         </Guidance>
       );
     }
@@ -512,7 +528,7 @@ function StageGuidance({
     return (
       <>
         {banner}
-        <OutreachStepList ctx={ctx} action={action} setError={setError} />
+        <OutreachStepList ctx={ctx} action={action} setError={setError} onOpenPartnerModal={onOpenPartnerModal} />
       </>
     );
   }

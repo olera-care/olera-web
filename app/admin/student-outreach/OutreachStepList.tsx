@@ -15,6 +15,7 @@
 
 import { useMemo, useState } from "react";
 import { EditPendingEmailModal } from "./EditPendingEmailModal";
+import { LogCallOutcomeModal } from "./LogCallOutcomeModal";
 import { OUTREACH_DAYS_BY_TYPE, type OutreachDay, type OutreachStep } from "@/lib/student-outreach/cadence";
 import { callScript } from "@/lib/student-outreach/templates";
 import type { DrawerContext, Task, Touchpoint } from "@/lib/student-outreach/types";
@@ -25,9 +26,13 @@ interface Props {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (e: string | null) => void;
+  /** v8.10: PhoneStepRow's "Convert to Active Partner" outcome chains
+   *  into MarkPartnerModal — owned by NextStepPanel above. We bubble up
+   *  via this callback after logging the call. */
+  onOpenPartnerModal?: () => void;
 }
 
-export function OutreachStepList({ ctx, action, setError }: Props) {
+export function OutreachStepList({ ctx, action, setError, onOpenPartnerModal }: Props) {
   const days = OUTREACH_DAYS_BY_TYPE[ctx.outreach.stakeholder_type] ?? [];
 
   // Group: per cadence day, the email task (if any) + phone task (if any).
@@ -58,6 +63,7 @@ export function OutreachStepList({ ctx, action, setError }: Props) {
             phoneTask={phoneTaskByDay.get(day.day) ?? null}
             action={action}
             setError={setError}
+            onOpenPartnerModal={onOpenPartnerModal}
           />
         ))}
       </ol>
@@ -72,6 +78,7 @@ function DayRow({
   phoneTask,
   action,
   setError,
+  onOpenPartnerModal,
 }: {
   day: OutreachDay;
   ctx: DrawerContext;
@@ -79,6 +86,7 @@ function DayRow({
   phoneTask: Task | null;
   action: ActionFn;
   setError: (e: string | null) => void;
+  onOpenPartnerModal?: () => void;
 }) {
   return (
     <li className="rounded-md border border-gray-200 bg-white p-3">
@@ -93,6 +101,7 @@ function DayRow({
             ctx={ctx}
             action={action}
             setError={setError}
+            onOpenPartnerModal={onOpenPartnerModal}
           />
         ))}
       </ul>
@@ -107,6 +116,7 @@ function StepRow({
   ctx,
   action,
   setError,
+  onOpenPartnerModal,
 }: {
   day: number;
   step: OutreachStep;
@@ -114,12 +124,13 @@ function StepRow({
   ctx: DrawerContext;
   action: ActionFn;
   setError: (e: string | null) => void;
+  onOpenPartnerModal?: () => void;
 }) {
   if (step.channel === "email") {
     return <EmailStepRow day={day} task={task} ctx={ctx} action={action} setError={setError} />;
   }
   if (step.channel === "phone") {
-    return <PhoneStepRow day={day} task={task} ctx={ctx} action={action} setError={setError} />;
+    return <PhoneStepRow day={day} task={task} ctx={ctx} action={action} setError={setError} onOpenPartnerModal={onOpenPartnerModal} />;
   }
   return null;
 }
@@ -245,26 +256,22 @@ function PhoneStepRow({
   ctx,
   action,
   setError,
+  onOpenPartnerModal,
 }: {
   day: number;
   task: Task | null;
   ctx: DrawerContext;
   action: ActionFn;
   setError: (e: string | null) => void;
+  onOpenPartnerModal?: () => void;
 }) {
-  const [showPanel, setShowPanel] = useState(false);
-  const [notes, setNotes] = useState("");
+  const [showScript, setShowScript] = useState(false);
+  const [showLogModal, setShowLogModal] = useState(false);
 
-  // Already-logged call for this day?
+  // Already-logged call for this day? v8.10: filtered by payload.cadence_day.
   const callTouchpoint = ctx.touchpoints.find((t) => isCallForDay(t, day));
   const primary = ctx.contacts.find((c) => c.status === "active" && c.phone) ?? null;
   const handleErr = (p: Promise<unknown>) => p.catch((e) => setError(e instanceof Error ? e.message : "Failed"));
-
-  const log = (disposition: string) => {
-    handleErr(action("log_call", { disposition, contact_id: primary?.id ?? null, notes }));
-    setShowPanel(false);
-    setNotes("");
-  };
 
   if (callTouchpoint) {
     return (
@@ -278,11 +285,20 @@ function PhoneStepRow({
     );
   }
 
+  // No task in the DB for this phone step yet. v8.10: distinguish past vs.
+  // future based on today's relationship to the cadence anchor. Without an
+  // anchor we can't compute a date, so use the cadence-day number directly:
+  // future days say "queued for Day N", past days say "skipped".
   if (!task) {
+    // Heuristic: use ctx.outreach.cadence_day as the "today" anchor.
+    // If the row's current cadence_day is past this step's day, it's
+    // skipped; otherwise queued.
+    const todayDay = ctx.outreach.cadence_day ?? 0;
+    const isFuture = day > todayDay;
     return (
       <li className="text-xs text-gray-400">
         <span className="mr-1.5">○</span>
-        <span>Call — not scheduled</span>
+        <span>Call — {isFuture ? `queues on Day ${day}` : "skipped"}</span>
       </li>
     );
   }
@@ -298,91 +314,86 @@ function PhoneStepRow({
     day,
   );
 
-  // Due calls get a prominent green block. Future calls get a quieter ⏳ row.
+  // Due calls get a prominent green block; phone number is the dial
+  // affordance (tel: link), and the primary CTA is "Log the Call" which
+  // opens the v8.8 LogCallOutcomeModal (7 outcomes).
   if (isDue && primary?.phone) {
     return (
-      <li className="space-y-2 rounded-md border border-emerald-300 bg-emerald-50/60 p-3" title="Phone call is due. Tap to dial, then log the outcome below.">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-sm font-semibold text-emerald-900">📞 Call now — {primary.phone}</p>
-            <p className="text-[11px] text-emerald-800">
-              {primary.name}{primary.role ? ` · ${primary.role}` : ""} · Day {day}
-            </p>
-          </div>
-          <a
-            href={`tel:${primary.phone}`}
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
-            title="Tap to dial (works on mobile; opens default phone app)."
-          >
-            Tap to dial
-          </a>
-        </div>
-        <button
-          onClick={() => setShowPanel((s) => !s)}
-          className="text-xs text-emerald-900 underline hover:no-underline"
-        >
-          {showPanel ? "Hide script + log buttons" : "Show script + log the call"}
-        </button>
-        {showPanel && (
-          <div className="rounded-md border border-emerald-200 bg-white p-2 text-xs">
-            <pre className="mb-2 whitespace-pre-wrap text-gray-700">{script.script}</pre>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Notes from the call (optional)"
-              rows={2}
-              className="mb-2 w-full rounded-md border border-gray-200 px-2 py-1 text-xs focus:border-gray-400 focus:outline-none"
-            />
-            <div className="flex flex-wrap gap-1.5">
-              <button onClick={() => log("no_answer")} title="No one picked up." className="rounded border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700 hover:bg-gray-50">No answer</button>
-              <button onClick={() => log("voicemail")} title="Left a voicemail." className="rounded border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700 hover:bg-gray-50">Voicemail</button>
-              <button onClick={() => log("connected")} title="Talked to someone. They become 'engaged' if it was the stakeholder." className="rounded bg-emerald-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-emerald-700">Connected</button>
-              <button onClick={() => log("wrong_number")} title="Number didn't reach the right person." className="rounded border border-red-200 bg-red-50 px-2 py-1 text-[11px] text-red-700 hover:bg-red-100">Wrong number</button>
+      <>
+        <li className="space-y-2 rounded-md border border-emerald-300 bg-emerald-50/60 p-3" title="Phone call is due. Click the number to dial, then log the outcome.">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p className="text-sm font-semibold text-emerald-900">
+                📞 <a href={`tel:${primary.phone}`} className="underline hover:no-underline" title="Tap to dial (mobile)">{primary.phone}</a>
+              </p>
+              <p className="text-[11px] text-emerald-800">
+                {primary.name}{primary.role ? ` · ${primary.role}` : ""} · Day {day}
+              </p>
             </div>
+            <button
+              onClick={() => setShowLogModal(true)}
+              className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
+              title="Pick the outcome of the call. The cadence advances after logging."
+            >
+              Log the Call
+            </button>
           </div>
+          <button
+            onClick={() => setShowScript((s) => !s)}
+            className="text-xs text-emerald-900 underline hover:no-underline"
+          >
+            {showScript ? "Hide script" : "Show script"}
+          </button>
+          {showScript && (
+            <pre className="rounded-md border border-emerald-200 bg-white p-2 text-xs whitespace-pre-wrap text-gray-700">{script.script}</pre>
+          )}
+        </li>
+        {showLogModal && (
+          <LogCallOutcomeModal
+            organizationName={ctx.outreach.organization_name}
+            contactName={primary.name}
+            contactPhone={primary.phone}
+            onCancel={() => setShowLogModal(false)}
+            onSubmit={async (outcome, notes) => {
+              await handleErr(
+                action("log_call", {
+                  outcome,
+                  notes,
+                  contact_id: primary.id,
+                  cadence_day: day,
+                }),
+              );
+              setShowLogModal(false);
+            }}
+            onChooseConvert={async (notes) => {
+              await handleErr(
+                action("log_call", {
+                  outcome: "convert_to_partner",
+                  notes,
+                  contact_id: primary.id,
+                  cadence_day: day,
+                }),
+              );
+              setShowLogModal(false);
+              onOpenPartnerModal?.();
+            }}
+          />
         )}
-      </li>
+      </>
     );
   }
 
-  // Scheduled-but-not-due call (⏳ row)
+  // Scheduled-but-not-due call (⏳ row) — no inline log panel anymore;
+  // admin can log via the Calls tab when the task fires, or via the
+  // green block above when it goes due. Keeps this row purely passive.
   return (
-    <li className="space-y-1 text-xs">
-      <div className="flex items-start justify-between gap-2">
-        <span className="flex-1">
-          <span className="mr-1.5 text-gray-400">⏳</span>
-          <span className="font-medium text-gray-700">Call</span>
-          <span className="ml-1.5 text-gray-500">
-            Queued for {sched.toLocaleDateString()}
-            {primary?.phone && ` · ${primary.phone}`}
-          </span>
-        </span>
-        <button
-          onClick={() => setShowPanel((s) => !s)}
-          title="Don't want to wait — log a call now."
-          className="shrink-0 rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[11px] text-gray-700 hover:bg-gray-50"
-        >
-          {showPanel ? "Hide" : "Log early"}
-        </button>
-      </div>
-      {showPanel && (
-        <div className="rounded-md border border-gray-100 bg-gray-50 p-2 text-xs">
-          <pre className="mb-2 whitespace-pre-wrap text-gray-700">{script.script}</pre>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Notes (optional)"
-            rows={2}
-            className="mb-2 w-full rounded-md border border-gray-200 px-2 py-1 text-xs focus:border-gray-400 focus:outline-none"
-          />
-          <div className="flex flex-wrap gap-1.5">
-            <button onClick={() => log("no_answer")} className="rounded border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700 hover:bg-gray-50">No answer</button>
-            <button onClick={() => log("voicemail")} className="rounded border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700 hover:bg-gray-50">Voicemail</button>
-            <button onClick={() => log("connected")} className="rounded bg-emerald-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-emerald-700">Connected</button>
-            <button onClick={() => log("wrong_number")} className="rounded border border-red-200 bg-red-50 px-2 py-1 text-[11px] text-red-700 hover:bg-red-100">Wrong number</button>
-          </div>
-        </div>
-      )}
+    <li className="text-xs">
+      <span className="mr-1.5 text-gray-400">⏳</span>
+      <span className="font-medium text-gray-700">Call</span>
+      <span className="ml-1.5 text-gray-500">
+        Queued for {sched.toLocaleDateString()}
+        {primary?.phone && ` · ${primary.phone}`}
+      </span>
     </li>
   );
 }
@@ -407,12 +418,14 @@ function isEmailSentForDay(t: Touchpoint, day: number): boolean {
 
 function isCallForDay(t: Touchpoint, day: number): boolean {
   if (!["call_no_answer", "call_voicemail", "call_connected", "call_wrong_number"].includes(t.touchpoint_type)) return false;
+  // v8.10: handleLogCall now tags every call touchpoint with cadence_day
+  // (read from the task it claims). Untagged legacy touchpoints (pre-v8.10)
+  // still match Day 0 as a graceful fallback so existing rows don't lose
+  // their Day-0 timeline entry.
   const p = (t.payload ?? {}) as Record<string, unknown>;
-  // Calls don't currently tag day in payload (calls are admin-driven). For
-  // v4 MVP we accept that any call touchpoint stops further call rendering.
-  // A more precise mapping by day can come later.
-  void day;
-  return true;
+  const tagged = p.cadence_day;
+  if (typeof tagged === "number") return tagged === day;
+  return day === 0;
 }
 
 function humanCall(type: string): string {

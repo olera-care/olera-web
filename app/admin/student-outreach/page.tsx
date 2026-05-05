@@ -648,7 +648,8 @@ function StakeholderCard({
         >
           {/* v8.9: contact name leads. Universal — applies to every
               stakeholder type. When no contact exists yet, fall back to
-              the organization name so the card isn't blank. */}
+              the organization name so the card isn't blank.
+              v8.10: subline appends the contact's role when present. */}
           <p className="truncate text-sm font-medium text-gray-900">
             {row.primary_contact_name || row.organization_name}
           </p>
@@ -665,6 +666,7 @@ function StakeholderCard({
               </>
             )}
             {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
+            {row.primary_contact_role && ` · ${row.primary_contact_role}`}
           </p>
           {footnote}
         </button>

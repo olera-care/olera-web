@@ -143,6 +143,11 @@ export const OUTREACH_DAYS_BY_TYPE: Record<StakeholderType, OutreachDay[]> = {
       title: "Day 11 · call attempt",
       steps: [{ id: "phone", channel: "phone", required: true }],
     },
+    {
+      day: 12,
+      title: "Day 12 · final email",
+      steps: [{ id: "email", channel: "email", required: true, template: "followup_final" }],
+    },
   ],
   professor: [
     {

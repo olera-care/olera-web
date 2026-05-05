@@ -253,6 +253,7 @@ export interface TabRow extends OutreachRow {
   campus_slug: string;
   primary_contact_name: string | null;
   primary_contact_phone: string | null;
+  primary_contact_role: string | null;
   has_custom_task: boolean;
   custom_task_summary: string | null;
   /** Days since last email_sent (no reply since). Only populated for Replies tab. */

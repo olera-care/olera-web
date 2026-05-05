@@ -78,6 +78,7 @@ export interface TabRow extends OutreachRow {
   campus_slug: string;
   primary_contact_name: string | null;
   primary_contact_phone: string | null;
+  primary_contact_role: string | null;
   has_custom_task: boolean;
   custom_task_summary: string | null;
   stale_days: number | null;
@@ -525,7 +526,7 @@ async function hydrateRows(
   const [contactsRes, tasksRes, touchpointsRes] = await Promise.all([
     db
       .from("student_outreach_contacts")
-      .select("outreach_id, name, title, first_name, last_name, phone, is_primary, status, created_at")
+      .select("outreach_id, name, title, first_name, last_name, role, phone, is_primary, status, created_at")
       .in("outreach_id", ids)
       .eq("status", "active")
       .order("is_primary", { ascending: false })
@@ -544,14 +545,19 @@ async function hydrateRows(
 
   // Primary contact per row. v8.9: derive a display name that honors the
   // optional title — "Dr. Linda Park" instead of just "Linda Park" — so
-  // cards and tab rows match the drawer header.
-  const primaryByOutreach = new Map<string, { name: string; phone: string | null }>();
+  // cards and tab rows match the drawer header. v8.10: also surfaces role
+  // for the card subline (President / Department Chair / etc.).
+  const primaryByOutreach = new Map<
+    string,
+    { name: string; phone: string | null; role: string | null }
+  >();
   for (const c of (contactsRes.data ?? []) as Array<{
     outreach_id: string;
     name: string;
     title: string | null;
     first_name: string | null;
     last_name: string | null;
+    role: string | null;
     phone: string | null;
   }>) {
     if (primaryByOutreach.has(c.outreach_id)) continue;
@@ -562,6 +568,7 @@ async function hydrateRows(
     primaryByOutreach.set(c.outreach_id, {
       name: composed || c.name,
       phone: c.phone,
+      role: c.role,
     });
   }
 
@@ -643,6 +650,7 @@ async function hydrateRows(
       campus_slug: camp?.slug ?? "",
       primary_contact_name: primary?.name ?? null,
       primary_contact_phone: primary?.phone ?? null,
+      primary_contact_role: primary?.role ?? null,
       has_custom_task: customTaskByOutreach.has(row.id),
       custom_task_summary: customTaskByOutreach.get(row.id) ?? null,
       stale_days:

@@ -943,24 +943,26 @@ async function markCurrentCallTaskComplete(
   db: DB,
   outreachId: string,
   userId: string,
-): Promise<boolean> {
+): Promise<{ claimed: boolean; cadence_day: number | null }> {
   const nowIso = new Date().toISOString();
   const { data: dueRows } = await db
     .from("student_outreach_tasks")
-    .select("id")
+    .select("id, payload")
     .eq("outreach_id", outreachId)
     .eq("status", "pending")
     .eq("task_type", "outreach_followup_call")
     .lte("due_at", nowIso)
     .order("due_at", { ascending: false })
     .limit(1);
-  const due = (dueRows ?? []) as Array<{ id: string }>;
-  if (due.length === 0) return false;
+  const due = (dueRows ?? []) as Array<{ id: string; payload: Record<string, unknown> | null }>;
+  if (due.length === 0) return { claimed: false, cadence_day: null };
+  const dayRaw = due[0].payload?.day;
+  const cadence_day = typeof dayRaw === "number" ? dayRaw : null;
   await db
     .from("student_outreach_tasks")
     .update({ status: "completed", completed_at: nowIso, completed_by: userId })
     .eq("id", due[0].id);
-  return true;
+  return { claimed: true, cadence_day };
 }
 
 /**
@@ -999,12 +1001,29 @@ async function handleLogCall(
     outcome?: string;
     contact_id?: string;
     notes?: string;
+    /** v8.10: client-provided cadence day (PhoneStepRow knows it locally).
+     *  Server prefers this when set; otherwise it reads the day from the
+     *  task that markCurrentCallTaskComplete claims. */
+    cadence_day?: number;
   },
   userId: string,
 ) {
   // v8 outcome routing (preferred). Falls back to legacy disposition map.
   const outcome = body.outcome ?? legacyDispositionToOutcome(body.disposition);
   if (!outcome) throw new Error("Invalid call outcome");
+
+  // v8.10: claim the current call task first so we can tag the touchpoint
+  // with the right cadence_day. Outcomes that don't mark a task complete
+  // (connected_not_interested, wrong_number) still get tagged via body
+  // hint or the outermost claim — they transition stage immediately
+  // afterward, which cancels remaining tasks via tasksToCancelOnExit.
+  const claim = await markCurrentCallTaskComplete(db, row.id, userId);
+  const cadence_day =
+    typeof body.cadence_day === "number" ? body.cadence_day : claim.cadence_day;
+  const callPayload: Record<string, unknown> = {};
+  if (cadence_day !== null && cadence_day !== undefined) {
+    callPayload.cadence_day = cadence_day;
+  }
 
   switch (outcome) {
     case "no_answer": {
@@ -1013,8 +1032,8 @@ async function handleLogCall(
         channel: "phone",
         outcome,
         notes: body.notes ?? null,
+        payload: callPayload,
       });
-      await markCurrentCallTaskComplete(db, row.id, userId);
       if (row.status === "researched" || row.status === "prospect") {
         await transitionStage(db, row, "outreach_sent", userId);
       } else {
@@ -1028,9 +1047,8 @@ async function handleLogCall(
         channel: "phone",
         outcome,
         notes: body.notes ?? null,
-        payload: { awaiting_callback: true },
+        payload: { ...callPayload, awaiting_callback: true },
       });
-      await markCurrentCallTaskComplete(db, row.id, userId);
       if (row.status === "researched" || row.status === "prospect") {
         await transitionStage(db, row, "outreach_sent", userId);
       } else {
@@ -1044,9 +1062,8 @@ async function handleLogCall(
         channel: "phone",
         outcome,
         notes: body.notes ?? null,
-        payload: { awaiting_callback: true },
+        payload: { ...callPayload, awaiting_callback: true },
       });
-      await markCurrentCallTaskComplete(db, row.id, userId);
       if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
         await transitionStage(db, row, "engaged", userId, body.notes ?? null);
       } else {
@@ -1060,8 +1077,8 @@ async function handleLogCall(
         channel: "phone",
         outcome,
         notes: body.notes ?? null,
+        payload: callPayload,
       });
-      await markCurrentCallTaskComplete(db, row.id, userId);
       // Conversation has moved on — stop the cadence.
       await supersedePendingOutreachEmails(db, row.id, userId);
       await supersedePendingFollowupCalls(db, row.id, userId, "connected_engaged");
@@ -1083,8 +1100,8 @@ async function handleLogCall(
         channel: "phone",
         outcome,
         notes: body.notes ?? null,
+        payload: callPayload,
       });
-      await markCurrentCallTaskComplete(db, row.id, userId);
       await touchOutreach(db, row.id, userId);
       return;
     }
@@ -1094,6 +1111,7 @@ async function handleLogCall(
         channel: "phone",
         outcome,
         notes: body.notes ?? null,
+        payload: callPayload,
       });
       await transitionStage(db, row, "not_interested", userId, body.notes ?? null);
       return;
@@ -1104,6 +1122,7 @@ async function handleLogCall(
         channel: "phone",
         outcome,
         notes: body.notes ?? null,
+        payload: callPayload,
       });
       await transitionStage(db, row, "wrong_contact", userId, body.notes ?? null);
       return;

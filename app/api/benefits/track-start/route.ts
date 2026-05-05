@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     const providerSlug: string | null = body.providerSlug || null;
     const sessionId: string | null = body.sessionId || null;
     const variant: string | null = body.variant || null;
+    const entrySource: string | null = body.entrySource || null;
 
     const alert = slackBenefitsStarted({
       careNeedLabel,
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
       stateName,
       providerName,
       providerSlug,
+      entrySource,
     });
 
     // Persist as an anonymous provider_activity row so the admin analytics

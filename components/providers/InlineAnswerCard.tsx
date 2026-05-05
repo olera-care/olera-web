@@ -145,7 +145,7 @@ export default function InlineAnswerCard({
           <p className="font-display italic text-[15px] text-gray-500 leading-relaxed">
             <span className="text-gray-700">&ldquo;{question}&rdquo;</span>
             {questionSent && (
-              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-gray-100 text-gray-600 not-italic">
+              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 not-italic">
                 Sent
               </span>
             )}
@@ -160,9 +160,6 @@ export default function InlineAnswerCard({
             ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}
           `}
         >
-          <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wide mb-2">
-            General answer
-          </p>
           <p className="text-[17px] text-gray-900 font-medium leading-relaxed">
             {answer}
           </p>
@@ -234,20 +231,20 @@ export default function InlineAnswerCard({
                   <img
                     src={providerImage}
                     alt={firstName}
-                    className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm"
+                    className="w-14 h-14 rounded-full object-cover ring-2 ring-white shadow-sm"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center ring-2 ring-white shadow-sm">
-                    <span className="text-lg font-semibold text-gray-500">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center ring-2 ring-white shadow-sm">
+                    <span className="text-xl font-semibold text-gray-500">
                       {firstName.charAt(0)}
                     </span>
                   </div>
                 )}
               </div>
 
-              {/* CTA text - bolder name */}
+              {/* CTA text */}
               <p className="text-center text-[16px] text-gray-600 mb-4">
-                Get <span className="font-semibold text-gray-900">{firstName}&apos;s</span> personal reply
+                <span className="font-semibold text-gray-900">{firstName}</span> will answer you directly
               </p>
 
               {/* Input with button inside */}
@@ -316,9 +313,16 @@ export default function InlineAnswerCard({
                 </button>
               </div>
 
-              {error && (
+              {error ? (
                 <p className="text-[13px] text-red-500 mt-2.5 text-center font-medium">
                   {error}
+                </p>
+              ) : (
+                <p className="text-[12px] text-gray-400 mt-2.5 text-center flex items-center justify-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                  We&apos;ll notify you · No spam
                 </p>
               )}
             </div>

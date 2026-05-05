@@ -151,7 +151,6 @@ async function handleStartSequenceBatch(
           status: "sequencing",
           sequence_started_at: now,
           email1_sent_at: now, // Email sent directly, not via automation
-          resend_email1_id: seqResult.emailId,
           sequence_email: recipientEmail,
           next_action_due_at: new Date(Date.now() + 6 * 86400_000).toISOString(),
           updated_at: now,

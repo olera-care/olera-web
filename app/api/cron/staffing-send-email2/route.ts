@@ -95,7 +95,6 @@ export async function GET(request: NextRequest) {
             .from("staffing_outreach")
             .update({
               email2_sent_at: now,
-              resend_email2_id: sendResult.emailId,
               updated_at: now,
             })
             .eq("id", outreach.id);

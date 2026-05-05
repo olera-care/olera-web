@@ -818,8 +818,6 @@ async function handleRestartSequence(
       sequence_started_at: now,
       email1_sent_at: now, // Email sent directly, not via automation
       email2_sent_at: null, // Reset Email 2 for the new sequence
-      resend_email1_id: result.emailId,
-      resend_email2_id: null,
       sequence_email: newEmail,
       next_action_due_at: new Date(Date.now() + 6 * 86400_000).toISOString(),
       updated_at: now,
@@ -1010,7 +1008,6 @@ async function handleStartSequence(
       status: "sequencing",
       sequence_started_at: now,
       email1_sent_at: now, // Email sent directly, not via automation
-      resend_email1_id: result.emailId,
       sequence_email: recipientEmail,
       // Schedule auto-transition to needs_call after Email 2 + 3 days (6 days total)
       next_action_due_at: new Date(Date.now() + 6 * 86400_000).toISOString(),

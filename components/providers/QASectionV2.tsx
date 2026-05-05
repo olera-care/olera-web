@@ -357,8 +357,8 @@ export default function QASectionV2({
 
       if (!captureRes.ok) {
         const data = await captureRes.json();
-        console.error("[inline-answer] capture-email failed:", data.error);
-        // Don't throw - still show success state as the tracking event fired
+        // Throw error so InlineAnswerCard can display it
+        throw new Error(data.error || "Something went wrong. Please try again.");
       }
 
       // Track conversion (fire-and-forget)
@@ -381,7 +381,8 @@ export default function QASectionV2({
 
       setInlineSuccess(true);
     } catch (err) {
-      console.error("[inline-answer] email submit error:", err);
+      // Re-throw so InlineAnswerCard can catch and display the error
+      throw err;
     } finally {
       setInlineSubmitting(false);
     }

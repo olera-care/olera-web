@@ -89,7 +89,13 @@ export default function InlineAnswerCard({
       setError("Please enter a valid email");
       return;
     }
-    await onEmailSubmit(email.trim().toLowerCase());
+    try {
+      await onEmailSubmit(email.trim().toLowerCase());
+    } catch (err) {
+      // Display API errors (e.g., provider email, network errors)
+      const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(message);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

@@ -473,51 +473,85 @@ export default function StaffingOutreachPage() {
         </div>
       )}
 
-      {/* Queue All Confirmation Modal */}
+      {/* Queue All Confirmation Drawer */}
       {showQueueConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex justify-end">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/40"
             onClick={() => setShowQueueConfirm(false)}
           />
-          {/* Modal */}
-          <div className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-              <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Start Email Sequences
-            </h3>
-            <p className="mt-2 text-sm text-gray-600">
-              This will start the automated email sequence for{" "}
-              <span className="font-semibold text-gray-900">
-                {tabCounts["to_queue"] ?? 0} providers
-              </span>{" "}
-              in{" "}
-              <span className="font-semibold text-gray-900">
-                {currentBatch?.university_name}
-              </span>.
-            </p>
-            <p className="mt-3 text-sm text-gray-500">
-              Each provider will receive Email 1 immediately, then Email 2 after 3 days if they haven&apos;t enrolled.
-            </p>
-            <div className="mt-6 flex gap-3">
+          {/* Drawer */}
+          <div className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-xl">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+              <h2 className="text-lg font-semibold text-gray-900">Start Email Sequences</h2>
               <button
                 onClick={() => setShowQueueConfirm(false)}
-                className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
               >
-                Cancel
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-              <button
-                onClick={handleQueueAllConfirm}
-                disabled={queueingAll}
-                className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-              >
-                {queueingAll ? "Starting..." : `Start ${tabCounts["to_queue"] ?? 0} Sequences`}
-              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
+                <svg className="h-7 w-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">University</p>
+                  <p className="text-lg font-semibold text-gray-900">{currentBatch?.university_name}</p>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Providers to queue</p>
+                  <p className="text-3xl font-bold text-gray-900">{tabCounts["to_queue"] ?? 0}</p>
+                </div>
+
+                <div className="rounded-lg bg-gray-50 p-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">What will happen:</p>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                      <span>Email 1 sent immediately to each provider</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                      <span>Email 2 sent after 3 days if no response</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                      <span>Providers move to Sequencing tab</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-gray-100 px-6 py-4">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowQueueConfirm(false)}
+                  className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleQueueAllConfirm}
+                  disabled={queueingAll}
+                  className="flex-1 rounded-xl bg-gray-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {queueingAll ? "Starting..." : `Start ${tabCounts["to_queue"] ?? 0} Sequences`}
+                </button>
+              </div>
             </div>
           </div>
         </div>

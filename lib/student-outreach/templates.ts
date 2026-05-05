@@ -1,13 +1,17 @@
 /**
  * Email + call-script templates.
  *
- * v3: bodies + subjects contain `{first_name}` and other placeholders.
- * The email-send module substitutes per-recipient variables when
- * actually sending. This lets one editable draft go out personalized
- * to multiple officers.
+ * v3: bodies + subjects contain placeholders. The email-send module
+ * substitutes per-recipient variables when actually sending. This
+ * lets one editable draft go out personalized to multiple officers.
  *
  * Variables:
- *   {first_name}         per-recipient first name
+ *   {salutation}         per-recipient salutation, stakeholder-aware:
+ *                          dept_head/professor with title → "Dr. Smith"
+ *                          dept_head/professor without title → "Smith"
+ *                          advisor/student_org → first name ("Marcus")
+ *   {first_name}         per-recipient first name (legacy; kept for
+ *                          drafts and backward compat)
  *   {organization_name}  the stakeholder's display name
  *   {campus_name}        the campus
  *   {admin_first_name}   the admin's first name (sender)
@@ -47,6 +51,7 @@ const SIGN_OFF = [
 
 const PLACEHOLDER = {
   firstName: "{first_name}",
+  salutation: "{salutation}",
   orgName: "{organization_name}",
   campus: "{campus_name}",
   adminName: "{admin_first_name}",
@@ -72,11 +77,13 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
  */
 export function substituteVars(text: string, vars: {
   first_name?: string;
+  salutation?: string;
   organization_name?: string;
   campus_name?: string;
   admin_first_name?: string;
 }): string {
   return text
+    .replace(/\{salutation\}/g, vars.salutation ?? vars.first_name ?? "{salutation}")
     .replace(/\{first_name\}/g, vars.first_name ?? "{first_name}")
     .replace(/\{organization_name\}/g, vars.organization_name ?? "{organization_name}")
     .replace(/\{campus_name\}/g, vars.campus_name ?? "{campus_name}")
@@ -91,6 +98,34 @@ export function firstNameOf(fullName: string | null | undefined): string {
   return trimmed.split(/\s+/)[0];
 }
 
+/**
+ * Resolve the per-recipient salutation, stakeholder-aware:
+ *
+ *   dept_head / professor with title  →  "Dr. Smith"      (title + last_name)
+ *   dept_head / professor with last   →  "Smith"          (last_name only)
+ *   dept_head / professor with first  →  "Sarah"          (first_name fallback)
+ *   advisor / student_org             →  "Marcus"         (first_name)
+ *   no name at all                    →  "there"          (last-resort)
+ */
+export function salutationFor(
+  stakeholder_type: StakeholderType,
+  first_name: string | null | undefined,
+  last_name: string | null | undefined,
+  title: string | null | undefined,
+): string {
+  const first = first_name?.trim() || "";
+  const last = last_name?.trim() || "";
+  const t = title?.trim() || "";
+  const isFormal = stakeholder_type === "dept_head" || stakeholder_type === "professor";
+  if (isFormal) {
+    if (t && last) return `${t} ${last}`;
+    if (last) return last;
+    if (first) return first;
+    return "there";
+  }
+  return first || last || "there";
+}
+
 // ── Day-0 intro emails ──────────────────────────────────────────────────
 
 export function introEmail(ctx: TemplateContext): EmailDraft {
@@ -100,7 +135,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
       return {
         subject: `Paid clinical experience for ${PLACEHOLDER.orgName} members`,
         body: [
-          `Hi ${PLACEHOLDER.firstName},`,
+          `Hi ${PLACEHOLDER.salutation},`,
           ``,
           `I'm reaching out from Olera. We help pre-health students earn while building real patient-care experience — flexible hours, paid, and aligned with med/PA/nursing applications.`,
           ``,
@@ -116,7 +151,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
       return {
         subject: `A paid, resume-building option for ${PLACEHOLDER.campus} pre-health advisees`,
         body: [
-          `Hi ${PLACEHOLDER.firstName},`,
+          `Hi ${PLACEHOLDER.salutation},`,
           ``,
           `I'm with Olera. We connect pre-health students at ${PLACEHOLDER.campus} with paid caregiver work — meaningful patient-facing hours that strengthen med/PA/nursing applications.`,
           ``,
@@ -132,7 +167,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
       return {
         subject: `Career-aligned employment opportunity for ${PLACEHOLDER.campus} pre-health students`,
         body: [
-          `Dear ${PLACEHOLDER.firstName},`,
+          `Dear ${PLACEHOLDER.salutation},`,
           ``,
           `I lead outreach at Olera. We provide paid caregiver positions tailored for pre-health students — flexible enough to work around coursework and directly relevant to clinical careers.`,
           ``,
@@ -148,7 +183,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
       return {
         subject: `Paid clinical experience for ${PLACEHOLDER.campus} pre-health students`,
         body: [
-          `Dear ${PLACEHOLDER.firstName},`,
+          `Dear ${PLACEHOLDER.salutation},`,
           ``,
           `I'm reaching out from Olera with permission from your department. We offer paid caregiver work designed for pre-health students — flexible hours, real clinical exposure.`,
           ``,
@@ -169,7 +204,7 @@ export function followupLightEmail(_ctx: TemplateContext): EmailDraft {
   return {
     subject: `Re: paid clinical experience for {campus_name} students`,
     body: [
-      `Hi ${PLACEHOLDER.firstName},`,
+      `Hi ${PLACEHOLDER.salutation},`,
       ``,
       `Just bubbling this up in case it got buried. Happy to send a one-pager or jump on a 15-minute call — whichever is easier.`,
       ``,
@@ -185,7 +220,7 @@ export function followupSocialProofEmail(_ctx: TemplateContext): EmailDraft {
   return {
     subject: `Re: paid clinical experience for {campus_name} students`,
     body: [
-      `Hi ${PLACEHOLDER.firstName},`,
+      `Hi ${PLACEHOLDER.salutation},`,
       ``,
       `Wanted to share a quick example: pre-health students at peer schools are picking up 8-15 hours a week alongside their coursework, with the kind of patient-facing experience that strengthens applications.`,
       ``,
@@ -203,7 +238,7 @@ export function followupFinalEmail(_ctx: TemplateContext): EmailDraft {
   return {
     subject: `One last note — Olera for {campus_name} students`,
     body: [
-      `Hi ${PLACEHOLDER.firstName},`,
+      `Hi ${PLACEHOLDER.salutation},`,
       ``,
       `Closing the loop here. If now's not the right time, totally understand — I'll circle back next term. If it is, here's a one-line reply you can forward to students:`,
       ``,
@@ -224,7 +259,7 @@ export function postAgreedShareEmail(_ctx: TemplateContext): EmailDraft {
   return {
     subject: `Materials for your students — Olera`,
     body: [
-      `Hi ${PLACEHOLDER.firstName},`,
+      `Hi ${PLACEHOLDER.salutation},`,
       ``,
       `Thanks again for your willingness to share this with your students! Below is a short blurb plus a link they can use to learn more and apply:`,
       ``,
@@ -246,7 +281,7 @@ export function partnerSeasonalEmail(_ctx: TemplateContext, season: string): Ema
   return {
     subject: `${season} update from Olera`,
     body: [
-      `Hi ${PLACEHOLDER.firstName},`,
+      `Hi ${PLACEHOLDER.salutation},`,
       ``,
       `Hope the term is off to a good start! Wanted to circle back as we head into ${season.toLowerCase().replace("pre-", "")} — would it be helpful to share an updated one-pager with your students this cycle?`,
       ``,

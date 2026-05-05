@@ -646,20 +646,25 @@ function StakeholderCard({
           className="min-w-0 flex-1 text-left"
           title="Open the drawer for full context and history."
         >
+          {/* v8.9: contact name leads. Universal — applies to every
+              stakeholder type. When no contact exists yet, fall back to
+              the organization name so the card isn't blank. */}
           <p className="truncate text-sm font-medium text-gray-900">
-            {row.organization_name}
-            {row.department && (
-              <span className="ml-1 text-gray-500">· {row.department}</span>
-            )}
+            {row.primary_contact_name || row.organization_name}
           </p>
           <p className="mt-0.5 truncate text-xs text-gray-500">
-            {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
-            {/* v8.7.1: skip primary_contact_name when it matches the
-                organization name — for advisor/professor the org_name IS
-                the person's name, so showing it twice is redundant. */}
+            {/* Show org in the subline when it differs from the headline
+                (i.e. when there IS a contact and the org isn't the
+                person's own name as for some advisors). */}
             {row.primary_contact_name &&
-              row.primary_contact_name !== row.organization_name &&
-              ` · ${row.primary_contact_name}`}
+              row.primary_contact_name !== row.organization_name && (
+              <>
+                {row.organization_name}
+                {row.department && row.department !== row.organization_name && ` · ${row.department}`}
+                {" · "}
+              </>
+            )}
+            {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
           </p>
           {footnote}
         </button>

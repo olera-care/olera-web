@@ -21,6 +21,7 @@ import {
 import {
   getTemplate,
   firstNameOf,
+  salutationFor,
   substituteVars,
 } from "@/lib/student-outreach/templates";
 import type { Contact, StakeholderType } from "@/lib/student-outreach/types";
@@ -131,8 +132,15 @@ export function PreFlightReviewModal({
   const previewFirstName =
     (previewContact?.first_name && previewContact.first_name.trim()) ||
     firstNameOf(previewContact?.name);
+  const previewSalutation = salutationFor(
+    stakeholderType,
+    previewFirstName,
+    previewContact?.last_name ?? null,
+    previewContact?.title ?? null,
+  );
   const previewVars = {
     first_name: previewFirstName,
+    salutation: previewSalutation,
     organization_name: organizationName,
     campus_name: campusName,
     admin_first_name: "the Olera team",

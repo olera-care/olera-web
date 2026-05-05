@@ -57,6 +57,8 @@ const TYPE_FINDER_HINTS: Record<StakeholderType, string> = {
 };
 
 interface OfficerDraft {
+  /** Optional formal title (e.g. "Dr."). Only surfaced for dept_head + professor. */
+  title: string;
   firstName: string;
   lastName: string;
   role: string;
@@ -66,6 +68,7 @@ interface OfficerDraft {
 }
 
 const blankOfficer = (): OfficerDraft => ({
+  title: "",
   firstName: "",
   lastName: "",
   role: "",
@@ -109,6 +112,13 @@ export function AddStakeholderModal({
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, []);
+
+  // v8.9: prefill "Dr." for dept_head + professor types, but only if the
+  // admin hasn't already typed something. Won't clobber a custom value.
+  useEffect(() => {
+    if (type !== "dept_head" && type !== "professor") return;
+    setSingleContact((c) => (c.title.trim() ? c : { ...c, title: "Dr." }));
+  }, [type]);
 
   const programOptions = useMemo(() => PROGRAMS.filter((p) => p !== OTHER), []);
 
@@ -488,9 +498,18 @@ function SingleContactForm({
   setContact: (next: OfficerDraft) => void;
 }) {
   const update = (patch: Partial<OfficerDraft>) => setContact({ ...contact, ...patch });
+  const showTitle = type === "dept_head" || type === "professor";
   return (
     <div className="space-y-2">
       <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Contact</p>
+      {showTitle && (
+        <Field
+          label="Title"
+          value={contact.title}
+          onChange={(v) => update({ title: v })}
+          placeholder="Dr."
+        />
+      )}
       <div className="grid grid-cols-2 gap-2">
         <Field label="First name" value={contact.firstName} onChange={(v) => update({ firstName: v })} />
         <Field label="Last name" value={contact.lastName} onChange={(v) => update({ lastName: v })} />
@@ -514,6 +533,7 @@ function SingleContactForm({
 
 function officerToPayload(o: OfficerDraft) {
   return {
+    title: o.title.trim() || null,
     first_name: o.firstName.trim(),
     last_name: o.lastName.trim(),
     role: (o.role === OTHER ? o.roleOther.trim() : o.role) || null,

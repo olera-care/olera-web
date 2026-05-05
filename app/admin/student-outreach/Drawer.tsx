@@ -108,31 +108,40 @@ export function Drawer({ outreachId, tabContext = "all", onClose, onAction }: Dr
       <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} aria-label="Close drawer" />
       <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-white shadow-2xl">
         <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
-          {ctx ? (
-            <div className="min-w-0 flex-1">
-              <h2 className="truncate text-lg font-semibold text-gray-900">
-                {ctx.outreach.organization_name}
-              </h2>
-              <p className="truncate text-sm text-gray-500">
-                {ctx.campus.name} · {STAKEHOLDER_TYPE_LABELS[ctx.outreach.stakeholder_type]}
-                {ctx.outreach.department && ` · ${ctx.outreach.department}`}
-                {(() => {
-                  // v8.7.1: surface the primary contact's name in the
-                  // header subtitle for dept_head + student_org so admins
-                  // see WHO this stakeholder is (the head / president)
-                  // without scrolling into the Research section.
-                  const t = ctx.outreach.stakeholder_type;
-                  if (t !== "dept_head" && t !== "student_org") return null;
-                  const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
-                  if (!primary) return null;
-                  const display =
-                    [primary.first_name, primary.last_name].filter(Boolean).join(" ") || primary.name;
-                  if (!display) return null;
-                  return ` · ${display}`;
-                })()}
-              </p>
-            </div>
-          ) : (
+          {ctx ? (() => {
+            // v8.9: contact name leads everywhere. The displayed name is
+            // built from title + first + last when present, falling back
+            // to the legacy `name` column. Org/campus/type drop to the
+            // subline; if no contact exists yet, the org name takes the
+            // headline so the card isn't blank.
+            const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
+            const contactDisplay = primary
+              ? [primary.title, primary.first_name, primary.last_name]
+                  .filter(Boolean)
+                  .join(" ")
+                  .trim() || primary.name || null
+              : null;
+            const headline = contactDisplay || ctx.outreach.organization_name;
+            const showOrgInSubline =
+              !!contactDisplay && contactDisplay !== ctx.outreach.organization_name;
+            return (
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-lg font-semibold text-gray-900">{headline}</h2>
+                <p className="truncate text-sm text-gray-500">
+                  {showOrgInSubline && (
+                    <>
+                      {ctx.outreach.organization_name}
+                      {ctx.outreach.department &&
+                        ctx.outreach.department !== ctx.outreach.organization_name &&
+                        ` · ${ctx.outreach.department}`}
+                      {" · "}
+                    </>
+                  )}
+                  {ctx.campus.name} · {STAKEHOLDER_TYPE_LABELS[ctx.outreach.stakeholder_type]}
+                </p>
+              </div>
+            );
+          })() : (
             <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
           )}
           <button
@@ -438,29 +447,34 @@ function StageGuidance({
     );
   }
 
-  // outreach_sent / engaged: drive from server-derived state.
+  // outreach_sent / engaged / meeting_scheduled: v8.9 always renders the
+  // cadence step list (timeline + dial affordance). When higher-priority
+  // states are active (stale / engaged-reply / wants_meeting / etc), a
+  // contextual banner appears above the step list rather than replacing
+  // it — so the phone number and call-outcome buttons stay reachable
+  // regardless of which sub-state the row is in. Multiple things can be
+  // true at once (e.g. stale on email + call due today); both render.
   if (status === "outreach_sent" || status === "engaged" || status === "meeting_scheduled") {
     const m = ctx.meeting_state;
     const r = ctx.replies_state;
 
+    let banner: React.ReactNode = null;
     if (m === "scheduled") {
-      return (
+      banner = (
         <Guidance>
           <strong>Meeting is on the calendar.</strong>
           {ctx.meeting_at && <> It&apos;s scheduled for {new Date(ctx.meeting_at).toLocaleString()}.</>}
           {" "}After the meeting, click <em>Mark as Active Partner</em> if they committed, or use <em>Log meeting outcome</em> below if they need a follow-up email first.
         </Guidance>
       );
-    }
-    if (m === "in_flight" || r === "wants_meeting") {
-      return (
+    } else if (m === "in_flight" || r === "wants_meeting") {
+      banner = (
         <Guidance>
           <strong>They want to meet.</strong> Coordinate the time over email. When you have a date, close this drawer and click <em>Booked it</em> on the row.
         </Guidance>
       );
-    }
-    if (r === "needs_followup") {
-      return (
+    } else if (r === "needs_followup") {
+      banner = (
         <>
           <Guidance>
             <strong>Met — needs a follow-up.</strong> The meeting happened and they want time to think. Send a follow-up email through Gmail to keep the conversation alive. Once they commit, click <em>Mark as Active Partner</em>.
@@ -472,33 +486,35 @@ function StageGuidance({
           )}
         </>
       );
-    }
-    if (r === "awaiting_callback") {
+    } else if (r === "awaiting_callback") {
       const kindText = ctx.awaiting_callback_kind === "promised"
         ? "they promised to call back"
         : "you left them a voicemail";
-      return (
+      banner = (
         <Guidance>
           <strong>Waiting for a callback.</strong> You called and {kindText}. Watch Gmail for callback or voicemail-to-email notifications. The next scheduled phone day will automatically re-engage this row.
         </Guidance>
       );
-    }
-    if (r === "engaged") {
-      return (
+    } else if (r === "engaged") {
+      banner = (
         <Guidance>
           <strong>They replied.</strong> Open the email in Gmail to see what they said. Then close this drawer and click <em>Open reply</em> on the row to record the next step. If they&apos;ve already committed, click <em>Mark as Active Partner</em> below.
         </Guidance>
       );
-    }
-    if (r === "stale") {
-      return (
+    } else if (r === "stale") {
+      banner = (
         <Guidance>
           <strong>The email sequence ran without a reply.</strong> Try a custom re-engage email through Gmail, or close the row if it&apos;s not going anywhere.
         </Guidance>
       );
     }
-    // mid_cadence (or no derived state) — show the cadence step list.
-    return <OutreachStepList ctx={ctx} action={action} setError={setError} />;
+
+    return (
+      <>
+        {banner}
+        <OutreachStepList ctx={ctx} action={action} setError={setError} />
+      </>
+    );
   }
 
   if (status === "active_partner") {
@@ -573,7 +589,9 @@ function ResearchSection({
   // Contacts section. Track the first/last/email/phone right alongside
   // the rest of the research fields.
   const isMultiContact = type === "student_org";
+  const showTitleField = type === "dept_head" || type === "professor";
   const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
+  const [title, setTitle] = useState(primary?.title ?? (showTitleField ? "Dr." : ""));
   const [firstName, setFirstName] = useState(primary?.first_name ?? "");
   const [lastName, setLastName] = useState(primary?.last_name ?? "");
   const [email, setEmail] = useState(primary?.email ?? "");
@@ -606,6 +624,7 @@ function ResearchSection({
       if (!firstName.trim()) return;
       try {
         await action("add_contact", {
+          title: title.trim() || null,
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           email: email.trim() || null,
@@ -618,6 +637,7 @@ function ResearchSection({
     try {
       await action("update_contact", {
         contact_id: primary.id,
+        title: title.trim() || null,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         email: email.trim() || null,
@@ -660,12 +680,23 @@ function ResearchSection({
 
         {/* v8.7: primary contact embedded for single-contact types */}
         {!isMultiContact && (
-          <div className="grid grid-cols-2 gap-2">
-            <Field label="First name" value={firstName} onChange={setFirstName} onBlur={savePrimaryContact} />
-            <Field label="Last name" value={lastName} onChange={setLastName} onBlur={savePrimaryContact} />
-            <Field type="email" label="Email" value={email} onChange={setEmail} onBlur={savePrimaryContact} placeholder="name@uni.edu" />
-            <Field label="Phone" value={phone} onChange={setPhone} onBlur={savePrimaryContact} />
-          </div>
+          <>
+            {showTitleField && (
+              <Field
+                label="Title"
+                value={title}
+                onChange={setTitle}
+                onBlur={savePrimaryContact}
+                placeholder="Dr."
+              />
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="First name" value={firstName} onChange={setFirstName} onBlur={savePrimaryContact} />
+              <Field label="Last name" value={lastName} onChange={setLastName} onBlur={savePrimaryContact} />
+              <Field type="email" label="Email" value={email} onChange={setEmail} onBlur={savePrimaryContact} placeholder="name@uni.edu" />
+              <Field label="Phone" value={phone} onChange={setPhone} onBlur={savePrimaryContact} />
+            </div>
+          </>
         )}
 
         {/* Programs */}

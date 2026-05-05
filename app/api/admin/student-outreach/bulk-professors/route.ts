@@ -147,6 +147,7 @@ export async function POST(req: NextRequest) {
       await db.from("student_outreach_contacts").insert({
         outreach_id: profId,
         name: entry.name,
+        title: "Dr.",
         first_name: firstName,
         last_name: lastName,
         role: entry.role,

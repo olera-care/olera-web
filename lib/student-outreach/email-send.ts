@@ -18,7 +18,8 @@
  */
 
 import { sendEmail } from "@/lib/email";
-import { firstNameOf, substituteVars } from "./templates";
+import { firstNameOf, salutationFor, substituteVars } from "./templates";
+import type { StakeholderType } from "./types";
 
 const FROM_ADDRESS = process.env.STUDENT_OUTREACH_FROM_ADDRESS
   ?? "Olera Outreach <noreply@olera.care>";
@@ -35,11 +36,17 @@ export interface EmailRecipient {
   name: string;
   /** Preferred for personalization. Falls back to first word of `name`. */
   first_name?: string | null;
+  /** Used by salutation resolver for dept_head + professor. */
+  last_name?: string | null;
+  /** Optional formal title (e.g. "Dr."). Drives the formal salutation. */
+  title?: string | null;
   email: string;
 }
 
 export interface SendOutreachEmailInput {
   outreach_id: string;
+  /** Drives stakeholder-aware salutation resolution. */
+  stakeholder_type: StakeholderType;
   campus_name: string;
   organization_name: string;
   /** Logged on touchpoints + email_log; not used for Reply-To. */
@@ -132,8 +139,22 @@ export async function sendOutreachEmail(
   for (let i = 0; i < input.recipients.length; i++) {
     const r = input.recipients[i];
     const firstName = (r.first_name && r.first_name.trim()) || firstNameOf(r.name);
-    const subject = substituteVars(input.subject, { first_name: firstName, ...staticVars });
-    const body = substituteVars(input.body, { first_name: firstName, ...staticVars });
+    const salutation = salutationFor(
+      input.stakeholder_type,
+      firstName,
+      r.last_name ?? null,
+      r.title ?? null,
+    );
+    const subject = substituteVars(input.subject, {
+      first_name: firstName,
+      salutation,
+      ...staticVars,
+    });
+    const body = substituteVars(input.body, {
+      first_name: firstName,
+      salutation,
+      ...staticVars,
+    });
     const html = bodyToHtml(body);
 
     try {

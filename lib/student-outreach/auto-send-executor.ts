@@ -190,6 +190,8 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
       contact_id: c.id,
       name: c.name,
       first_name: c.first_name,
+      last_name: c.last_name,
+      title: c.title,
       email: c.email!,
     }));
 
@@ -237,6 +239,7 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
 
   const result = await sendOutreachEmail({
     outreach_id: row.id,
+    stakeholder_type: row.stakeholder_type,
     campus_name: (campus as { name: string } | null)?.name ?? "your campus",
     organization_name: row.organization_name,
     admin_first_name: adminFirstName,

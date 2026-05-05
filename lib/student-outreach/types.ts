@@ -161,6 +161,9 @@ export interface Contact {
   name: string;
   first_name: string | null;
   last_name: string | null;
+  /** Optional formal title (e.g. "Dr.", "Prof."). Drives the {salutation}
+   *  variable in email templates for dept_head + professor stakeholders. */
+  title: string | null;
   role: string | null;
   email: string | null;
   phone: string | null;

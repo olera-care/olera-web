@@ -109,6 +109,7 @@ export async function POST(req: NextRequest) {
     await db.from("student_outreach_contacts").insert({
       outreach_id: newId,
       name: fullName,
+      title: ((initial_contact.title as string | undefined)?.trim()) || null,
       first_name: initContactFirst || null,
       last_name: initContactLast || null,
       role: initial_contact.role ?? null,

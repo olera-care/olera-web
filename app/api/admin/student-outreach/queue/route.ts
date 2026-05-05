@@ -525,7 +525,7 @@ async function hydrateRows(
   const [contactsRes, tasksRes, touchpointsRes] = await Promise.all([
     db
       .from("student_outreach_contacts")
-      .select("outreach_id, name, phone, is_primary, status, created_at")
+      .select("outreach_id, name, title, first_name, last_name, phone, is_primary, status, created_at")
       .in("outreach_id", ids)
       .eq("status", "active")
       .order("is_primary", { ascending: false })
@@ -542,10 +542,27 @@ async function hydrateRows(
       .order("created_at", { ascending: false }),
   ]);
 
-  // Primary contact per row.
+  // Primary contact per row. v8.9: derive a display name that honors the
+  // optional title — "Dr. Linda Park" instead of just "Linda Park" — so
+  // cards and tab rows match the drawer header.
   const primaryByOutreach = new Map<string, { name: string; phone: string | null }>();
-  for (const c of (contactsRes.data ?? []) as Array<{ outreach_id: string; name: string; phone: string | null }>) {
-    if (!primaryByOutreach.has(c.outreach_id)) primaryByOutreach.set(c.outreach_id, { name: c.name, phone: c.phone });
+  for (const c of (contactsRes.data ?? []) as Array<{
+    outreach_id: string;
+    name: string;
+    title: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    phone: string | null;
+  }>) {
+    if (primaryByOutreach.has(c.outreach_id)) continue;
+    const composed = [c.title, c.first_name, c.last_name]
+      .map((s) => s?.trim() ?? "")
+      .filter(Boolean)
+      .join(" ");
+    primaryByOutreach.set(c.outreach_id, {
+      name: composed || c.name,
+      phone: c.phone,
+    });
   }
 
   // Custom-task indicator + due-call task + pending-email-task indicator (for stale derivation)

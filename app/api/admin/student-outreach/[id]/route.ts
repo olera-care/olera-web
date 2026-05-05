@@ -1418,6 +1418,7 @@ async function handleAddContact(
   row: OutreachRow,
   body: {
     name?: string;
+    title?: string | null;
     first_name?: string;
     last_name?: string;
     role?: string;
@@ -1457,6 +1458,7 @@ async function handleAddContact(
     .insert({
       outreach_id: row.id,
       name: fullName,
+      title: body.title?.trim() || null,
       first_name: first || null,
       last_name: last || null,
       role: body.role ?? null,
@@ -1494,6 +1496,7 @@ async function handleUpdateContact(
   body: {
     contact_id?: string;
     name?: string;
+    title?: string | null;
     first_name?: string | null;
     last_name?: string | null;
     role?: string | null;
@@ -1520,7 +1523,7 @@ async function handleUpdateContact(
     last_edited_by: userId,
     last_edited_at: new Date().toISOString(),
   };
-  for (const k of ["name", "first_name", "last_name", "role", "email", "phone", "instagram", "contact_form_url", "is_primary", "notes"] as const) {
+  for (const k of ["name", "title", "first_name", "last_name", "role", "email", "phone", "instagram", "contact_form_url", "is_primary", "notes"] as const) {
     if (body[k] !== undefined) patch[k] = body[k];
   }
   // v8.7: keep `name` in sync with first_name + last_name when those are

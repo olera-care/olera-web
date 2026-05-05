@@ -16,7 +16,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import type { ContactPermission, OutreachRow } from "@/lib/student-outreach/types";
+import type { OutreachRow } from "@/lib/student-outreach/types";
 
 interface Props {
   parentCandidates: OutreachRow[]; // dept_head and advisor rows in the same campus
@@ -33,11 +33,11 @@ interface ParsedEntry {
   reason?: string;
 }
 
-const PERM_OPTIONS: Array<{ value: ContactPermission; label: string; hint: string }> = [
-  { value: "via_dept", label: "Via Dept", hint: "Dept distributes on our behalf" },
-  { value: "via_listserv", label: "Via Listserv", hint: "Approved for dept listserv push" },
-  { value: "granted_direct", label: "Direct contact", hint: "Permission to email/call directly" },
-];
+// v8.7: this modal only opens once a dept_head has been granted "Email
+// professors directly" — so every imported professor inherits direct
+// permission. The earlier per-import permission picker (Via Dept / Via
+// Listserv / Direct) was redundant under the simplified binary model.
+const IMPORT_PERMISSION = "granted_direct" as const;
 
 export function BulkProfessorImportModal({
   parentCandidates,
@@ -46,7 +46,6 @@ export function BulkProfessorImportModal({
   onCreated,
 }: Props) {
   const [parentId, setParentId] = useState(defaultParentId ?? parentCandidates[0]?.id ?? "");
-  const [permission, setPermission] = useState<ContactPermission>("via_dept");
   const [department, setDepartment] = useState("");
   const [paste, setPaste] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -84,7 +83,7 @@ export function BulkProfessorImportModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           parent_outreach_id: parentId,
-          permission,
+          permission: IMPORT_PERMISSION,
           department: department.trim() || null,
           entries: parsed.filter((p) => p.ok).map((p) => ({
             name: p.name,
@@ -170,28 +169,6 @@ export function BulkProfessorImportModal({
                   ))}
                 </select>
               </label>
-
-              <div>
-                <span className="mb-1 block text-xs font-medium text-gray-600">Permission *</span>
-                <div className="flex flex-wrap gap-2">
-                  {PERM_OPTIONS.map((p) => (
-                    <button
-                      key={p.value}
-                      onClick={() => setPermission(p.value)}
-                      className={`rounded-md border px-3 py-1.5 text-sm ${
-                        permission === p.value
-                          ? "border-gray-900 bg-gray-900 text-white"
-                          : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-1 text-[11px] text-gray-500">
-                  {PERM_OPTIONS.find((p) => p.value === permission)?.hint}
-                </p>
-              </div>
 
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-gray-600">Department</span>

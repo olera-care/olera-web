@@ -435,19 +435,20 @@ export async function PATCH(request: NextRequest) {
       // Fire seeker_activity event for the enrichment. Always — every guest
       // who upgraded their question with email is the qa_email_capture
       // variant's `saved` signal. Awaited so we don't lose it to serverless
-      // teardown (per feedback_serverless_fire_and_forget.md).
+      // teardown (per feedback_serverless_fire_and_forget.md). Supabase
+      // does NOT throw on insert errors — destructure { error } and log
+      // explicitly so CHECK-constraint rejections aren't silent.
       if (updates.asker_email && updated?.id) {
-        try {
-          await db.from("seeker_activity").insert({
-            profile_id: null,
-            event_type: "question_email_enriched",
-            related_provider_id: existing.provider_id || null,
-            metadata: {
-              question_id: updated.id,
-              variant: "qa_email_capture",
-            },
-          });
-        } catch (actErr) {
+        const { error: actErr } = await db.from("seeker_activity").insert({
+          profile_id: null,
+          event_type: "question_email_enriched",
+          related_provider_id: existing.provider_id || null,
+          metadata: {
+            question_id: updated.id,
+            variant: "qa_email_capture",
+          },
+        });
+        if (actErr) {
           console.error("[seeker_activity] question_email_enriched insert failed:", actErr);
         }
       }
@@ -463,13 +464,19 @@ export async function PATCH(request: NextRequest) {
           const providerSlug = existing.provider_id || "";
           // Multi-strategy lookup: fetch name + city + state + category in
           // one go from each candidate source, mirroring the POST handler.
+          // Also capture the olera-providers.provider_id (excludeId) so we
+          // can correctly exclude this same provider from the alternatives
+          // suggestions below — the helper matches on olera-providers.provider_id,
+          // NOT on slug. Without this, alternatives could include the same
+          // provider the family is asking about.
           let providerName: string | null = null;
           let providerCity: string | null = null;
           let providerState: string | null = null;
           let providerCategoryRaw: string | null = null;
+          let excludeId: string | null = null;
           const { data: bp } = await db
             .from("business_profiles")
-            .select("display_name, city, state, category")
+            .select("display_name, city, state, category, source_provider_id")
             .eq("slug", providerSlug)
             .maybeSingle();
           if (bp) {
@@ -477,11 +484,12 @@ export async function PATCH(request: NextRequest) {
             providerCity = bp.city || null;
             providerState = bp.state || null;
             providerCategoryRaw = bp.category || null;
+            excludeId = bp.source_provider_id || null;
           }
           if (!providerName) {
             const { data: ios } = await db
               .from("olera-providers")
-              .select("provider_name, city, state, provider_category")
+              .select("provider_name, city, state, provider_category, provider_id")
               .eq("slug", providerSlug)
               .not("deleted", "is", true)
               .maybeSingle();
@@ -490,13 +498,14 @@ export async function PATCH(request: NextRequest) {
               providerCity = ios.city || null;
               providerState = ios.state || null;
               providerCategoryRaw = ios.provider_category || null;
+              excludeId = ios.provider_id || null;
             }
             if (!providerName) {
               const slugParts = providerSlug.split("-");
               const namePrefix = slugParts.slice(0, 3).join("-");
               const { data: candidates } = await db
                 .from("olera-providers")
-                .select("provider_name, state, city, provider_category")
+                .select("provider_name, state, city, provider_category, provider_id")
                 .not("deleted", "is", true)
                 .is("slug", null)
                 .ilike("provider_name", `${namePrefix.replace(/-/g, "%")}%`)
@@ -508,6 +517,7 @@ export async function PATCH(request: NextRequest) {
                     providerCity = c.city || null;
                     providerState = c.state || null;
                     providerCategoryRaw = c.provider_category || null;
+                    excludeId = c.provider_id || null;
                     break;
                   }
                 }
@@ -518,7 +528,11 @@ export async function PATCH(request: NextRequest) {
           // Fetch up to 3 similar providers nearby. Same helper that powers
           // AgentOutreachModule. Reuses its 10-min cache. Returns [] when
           // city/state/category isn't resolvable — email falls back to
-          // single-CTA layout in that case.
+          // single-CTA layout in that case. excludeId (resolved above) is
+          // the olera-providers.provider_id of the source provider, which
+          // is what the helper actually filters on. Falling back to the
+          // slug is safe (helper just won't filter) but ideally we have
+          // the real ID here.
           let alternatives: Array<{ name: string; city: string | null; url: string }> = [];
           if (providerCity && providerState && providerCategoryRaw) {
             try {
@@ -527,7 +541,7 @@ export async function PATCH(request: NextRequest) {
                 city: providerCity,
                 state: providerState,
                 category: providerCategoryRaw,
-                excludeProviderId: providerSlug,
+                excludeProviderId: excludeId || undefined,
                 limit: 3,
               });
               const siteUrlBase = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";

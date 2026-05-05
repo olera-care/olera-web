@@ -486,12 +486,30 @@ function StudentOrgsTab({
               />
             </RowGrid>
           ))}
-          <button
-            onClick={() => updateOrg(i, { ...org, officers: [...org.officers, blankOfficer()] })}
-            className="mt-1 rounded-md border border-dashed border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
-          >
-            + Officer
-          </button>
+          <div className="mt-1 flex flex-wrap gap-2">
+            <button
+              onClick={() => updateOrg(i, { ...org, officers: [...org.officers, blankOfficer()] })}
+              className="rounded-md border border-dashed border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+            >
+              + Officer
+            </button>
+            <PasteFromSpreadsheet
+              columns={["Name", "Role", "Email", "Phone"]}
+              onAddRows={(lines) => {
+                const newOfficers = lines.map<OrgOfficer>((cols) => ({
+                  name: cols[0]?.trim() ?? "",
+                  role: cols[1]?.trim() || "Member",
+                  email: cols[2]?.trim() ?? "",
+                  phone: cols[3]?.trim() ?? "",
+                }));
+                const filledExisting = org.officers.filter((o) => o.name.trim());
+                updateOrg(i, {
+                  ...org,
+                  officers: [...filledExisting, ...newOfficers, blankOfficer()],
+                });
+              }}
+            />
+          </div>
         </div>
       ))}
       <button

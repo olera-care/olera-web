@@ -611,6 +611,7 @@ function RowCard({
       row={row}
       pills={slots.pills}
       footnote={slots.footnote}
+      headlineAccessory={slots.headlineAccessory}
       rightActions={slots.rightActions}
       onOpenDrawer={cb.onOpenDrawer}
     />
@@ -628,31 +629,49 @@ function StakeholderCard({
   row,
   pills,
   footnote,
+  headlineAccessory,
   rightActions,
   onOpenDrawer,
 }: {
   row: TabRow;
   pills: ReactNode;
   footnote: ReactNode;
+  /** v8.10.2: optional inline accessory rendered right after the headline
+   *  contact name (e.g. a tel: link on the Calls tab). Sits on the same
+   *  line as the contact name, before the right-side action stack. */
+  headlineAccessory?: ReactNode;
   rightActions: ReactNode;
   onOpenDrawer: () => void;
 }) {
   const hasRightSide = pills || rightActions;
   return (
-    <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onOpenDrawer}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpenDrawer();
+        }
+      }}
+      title="Open the drawer for full context and history."
+      className="cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+    >
       <div className="flex items-start justify-between gap-3">
-        <button
-          onClick={onOpenDrawer}
-          className="min-w-0 flex-1 text-left"
-          title="Open the drawer for full context and history."
-        >
+        <div className="min-w-0 flex-1">
           {/* v8.9: contact name leads. Universal — applies to every
               stakeholder type. When no contact exists yet, fall back to
               the organization name so the card isn't blank.
-              v8.10: subline appends the contact's role when present. */}
-          <p className="truncate text-sm font-medium text-gray-900">
-            {row.primary_contact_name || row.organization_name}
-          </p>
+              v8.10: subline appends the contact's role when present.
+              v8.10.2: optional inline accessory (e.g. Calls-tab phone
+              link) renders on the same line as the contact name. */}
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm font-medium text-gray-900">
+              {row.primary_contact_name || row.organization_name}
+            </p>
+            {headlineAccessory}
+          </div>
           <p className="mt-0.5 truncate text-xs text-gray-500">
             {/* Show org in the subline when it differs from the headline
                 (i.e. when there IS a contact and the org isn't the
@@ -669,7 +688,7 @@ function StakeholderCard({
             {row.primary_contact_role && ` · ${row.primary_contact_role}`}
           </p>
           {footnote}
-        </button>
+        </div>
         {(hasRightSide || row.has_pending_job_board_task) && (
           <div className="flex shrink-0 flex-col items-end gap-1.5">
             {row.has_pending_job_board_task && (
@@ -856,6 +875,8 @@ interface RowSlots {
   pills: ReactNode;
   footnote: ReactNode;
   rightActions: ReactNode;
+  /** v8.10.2: optional inline accessory next to the headline contact name. */
+  headlineAccessory?: ReactNode;
 }
 
 function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): RowSlots {
@@ -883,9 +904,9 @@ function researchSlots(row: TabRow): RowSlots {
 }
 
 function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // No pill — the Calls tab name carries the meaning. Two stacked CTAs:
-  //   1. Tap to dial   (top — the action they're about to take)
-  //   2. Log call      (right under it — what they'll do after)
+  // v8.10.2: phone number renders inline next to the contact name as an
+  // underlined tel: link (mirrors the drawer's Day-N call block). Right
+  // side carries a single "Log call" primary CTA — the workflow action.
   return {
     pills: null,
     footnote: row.due_call_task ? (
@@ -893,20 +914,18 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         {formatDueDate(row.due_call_task.due_at)}
       </p>
     ) : null,
+    headlineAccessory: row.primary_contact_phone ? (
+      <a
+        href={`tel:${row.primary_contact_phone}`}
+        onClick={(e) => e.stopPropagation()}
+        title="Tap to dial (mobile) — opens the default phone app."
+        className="shrink-0 text-xs text-emerald-700 underline hover:no-underline"
+      >
+        📞 {row.primary_contact_phone}
+      </a>
+    ) : null,
     rightActions: (
-      <>
-        {row.primary_contact_phone && (
-          <a
-            href={`tel:${row.primary_contact_phone}`}
-            onClick={(e) => e.stopPropagation()}
-            title="Tap to dial (mobile) — opens the default phone app."
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-center text-xs font-semibold text-white hover:bg-emerald-700"
-          >
-            📞 {row.primary_contact_phone}
-          </a>
-        )}
-        <PrimaryAction onClick={cb.onLogCallOutcome}>Log call</PrimaryAction>
-      </>
+      <PrimaryAction onClick={cb.onLogCallOutcome}>Log call</PrimaryAction>
     ),
   };
 }

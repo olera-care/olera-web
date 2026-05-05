@@ -80,19 +80,19 @@ function ExternalLinkIcon({ className }: { className?: string }) {
 
 const STATUS_LABELS: Record<StaffingStatus, string> = {
   // V2 statuses
-  queued: "To Queue",
-  sequencing: "Sequencing",
-  needs_call: "Needs Call",
-  consented: "Consented",
-  activated: "Activated",
-  enrolled: "Enrolled",
-  bounced: "Bounced",
+  queued: "Not Started",
+  sequencing: "Sending",
+  needs_call: "Needs Follow-up",
+  consented: "Needs Follow-up",
+  activated: "Active Partner",
+  enrolled: "Active Partner",
+  bounced: "Closed",
   closed: "Closed",
   // Legacy statuses (map to V2 labels)
-  pre_call_outreach: "Sequencing",
-  calling: "Needs Call",
-  connected_no_consent: "Needs Call",
-  nurturing: "Sequencing",
+  pre_call_outreach: "Sending",
+  calling: "Needs Follow-up",
+  connected_no_consent: "Needs Follow-up",
+  nurturing: "Sending",
   do_not_contact: "Closed",
   wrong_number: "Closed",
 };
@@ -316,6 +316,12 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
                 {ctx.provider.provider_category}
                 {ctx.provider.city && ` · ${ctx.provider.city}, ${ctx.provider.state}`}
               </p>
+              {/* Show sequence email if available */}
+              {(ctx.outreach.sequence_email || ctx.outreach.research_data?.general_email || ctx.provider.email) && (
+                <p className="mt-0.5 truncate text-sm text-blue-600">
+                  {ctx.outreach.sequence_email || ctx.outreach.research_data?.general_email || ctx.provider.email}
+                </p>
+              )}
             </div>
           ) : (
             <p className="text-sm text-gray-400">Loading...</p>
@@ -848,7 +854,7 @@ function SequencingSection({
             {moving && (
               <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
             )}
-            Move to Calling
+            Move to Follow-up
           </button>
           <button
             onClick={handleMarkClosed}

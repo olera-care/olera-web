@@ -257,7 +257,7 @@ export default function QASectionV2({
     } finally {
       setSubmitting(false);
     }
-  }, [providerId, user, honeypot, hasBenefitsSection]);
+  }, [providerId, user, honeypot, hasBenefitsSection, isInlineAnswerVariant]);
 
   // Handle submit from chat bar
   const handleChatSubmit = () => {
@@ -736,7 +736,7 @@ export default function QASectionV2({
                         onCollapse={handleInlineCollapse}
                         isSubmitting={inlineSubmitting}
                         isSuccess={inlineSuccess}
-                        questionSent={submitStatus === "success" || !submitting}
+                        questionSent={submitStatus === "success"}
                       />
                     )}
                   </div>

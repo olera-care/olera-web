@@ -44,7 +44,6 @@ import {
   startEmailSequence,
   stopEmailSequence,
   getSequenceEmailPreviews,
-  isResendMockMode,
 } from "@/lib/staffing-outreach/resend-automation";
 import {
   getServiceArea,
@@ -810,16 +809,17 @@ async function handleRestartSequence(
     throw new Error(result.error || "Failed to start email sequence");
   }
 
-  // Update to sequencing status
+  // Update to sequencing status - email1_sent_at is set immediately since we send directly
   const now = new Date().toISOString();
-  const isMockMode = isResendMockMode();
   await db
     .from("staffing_outreach")
     .update({
       status: "sequencing",
       sequence_started_at: now,
-      ...(isMockMode && { email1_sent_at: now }),
-      resend_automation_id: result.contactId,
+      email1_sent_at: now, // Email sent directly, not via automation
+      email2_sent_at: null, // Reset Email 2 for the new sequence
+      resend_email1_id: result.emailId,
+      resend_email2_id: null,
       sequence_email: newEmail,
       next_action_due_at: new Date(Date.now() + 6 * 86400_000).toISOString(),
       updated_at: now,
@@ -827,9 +827,9 @@ async function handleRestartSequence(
     .eq("id", outreach.id);
 
   // Log touchpoint
-  await insertTouchpoint(outreach.id, "sequence_started", userId, "Restarted sequence with updated email", {
+  await insertTouchpoint(outreach.id, "sequence_email1_sent", userId, "Restarted sequence with updated email", {
     recipient_email: newEmail,
-    resend_contact_id: result.contactId,
+    resend_email_id: result.emailId,
     from_status: outreach.status,
     restart: true,
   });
@@ -1002,18 +1002,16 @@ async function handleStartSequence(
   }
 
   // Update outreach status to sequencing
-  // Note: email1_sent_at/email2_sent_at are set by webhook when Resend confirms delivery
-  // In mock mode, set email1_sent_at immediately since no webhook will come
+  // email1_sent_at is set immediately since we send directly (not via automation)
   const now = new Date().toISOString();
-  const isMockMode = isResendMockMode();
   await db
     .from("staffing_outreach")
     .update({
       status: "sequencing",
       sequence_started_at: now,
-      ...(isMockMode && { email1_sent_at: now }), // Mock mode: simulate immediate send
-      resend_automation_id: result.contactId,
-      sequence_email: recipientEmail, // Store email for proper sequence stopping
+      email1_sent_at: now, // Email sent directly, not via automation
+      resend_email1_id: result.emailId,
+      sequence_email: recipientEmail,
       // Schedule auto-transition to needs_call after Email 2 + 3 days (6 days total)
       next_action_due_at: new Date(Date.now() + 6 * 86400_000).toISOString(),
       updated_at: now,
@@ -1021,9 +1019,9 @@ async function handleStartSequence(
     .eq("id", outreach.id);
 
   // Log touchpoint
-  await insertTouchpoint(outreach.id, "sequence_started", userId, null, {
+  await insertTouchpoint(outreach.id, "sequence_email1_sent", userId, "Email 1 sent directly", {
     recipient_email: recipientEmail,
-    resend_contact_id: result.contactId,
+    resend_email_id: result.emailId,
     university: batch.university_name,
     service_area: serviceArea,
   });

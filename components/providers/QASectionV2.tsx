@@ -220,10 +220,10 @@ export default function QASectionV2({
         setQuestions((prev) => [data.question, ...prev]);
 
         // For guests: show enrichment prompt after successful submit.
-        // SKIP when the page has a benefits module — the benefits spotlight
-        // handoff owns the post-submit moment and captures email as part of
-        // its intake. Showing both fights for focus and scroll position.
-        if (!user && data.question.id && !hasBenefitsSection) {
+        // SKIP when:
+        //   - Page has a benefits module (spotlight handoff owns the moment)
+        //   - Inline answer variant (InlineAnswerCard handles email capture)
+        if (!user && data.question.id && !hasBenefitsSection && !isInlineAnswerVariant) {
           setEnrichQuestionId(data.question.id);
           setShowEnrichment(true);
         }
@@ -454,7 +454,9 @@ export default function QASectionV2({
   const answeredCount = questions.filter((q) => q.status === "answered" || q.answer).length;
 
   // Determine if we're in post-submit state (success or enrichment)
-  const isPostSubmit = submitStatus === "success" || showEnrichment;
+  // For inline_answer variant, the InlineAnswerCard handles everything inline,
+  // so we never show the old post-submit enrichment UI.
+  const isPostSubmit = !isInlineAnswerVariant && (submitStatus === "success" || showEnrichment);
 
   return (
     <div>
@@ -734,6 +736,7 @@ export default function QASectionV2({
                         onCollapse={handleInlineCollapse}
                         isSubmitting={inlineSubmitting}
                         isSuccess={inlineSuccess}
+                        questionSent={submitStatus === "success" || !submitting}
                       />
                     )}
                   </div>

@@ -24,6 +24,11 @@ import {
   type EmailSnapshot,
 } from "@/lib/student-outreach/sequencer";
 import { executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
+import {
+  deriveRepliesState,
+  deriveStateFromTouchpoints,
+  type TouchpointRow,
+} from "@/lib/student-outreach/state-derivation";
 import type {
   ApprovalStatus,
   ApprovalType,
@@ -340,6 +345,32 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     }
   }
 
+  // v8.3: derive state for the drawer's NextStepPanel guidance. Same
+  // function the queue endpoint uses, so the drawer and the row card
+  // agree on what state the row is in.
+  const tpRows: TouchpointRow[] = ((touchpoints ?? []) as Array<{
+    touchpoint_type: string;
+    payload: Record<string, unknown> | null;
+    notes: string | null;
+    created_at: string;
+    created_by: string | null;
+  }>).map((tp) => ({
+    outreach_id: row.id,
+    touchpoint_type: tp.touchpoint_type,
+    payload: tp.payload,
+    notes: tp.notes,
+    created_at: tp.created_at,
+    created_by: tp.created_by,
+  }));
+  const derived = deriveStateFromTouchpoints(tpRows);
+  const hasPendingEmailTask = (pending_tasks ?? []).some(
+    (t) => (t as { task_type: string }).task_type === "outreach_email_send",
+  );
+  const repliesState =
+    row.status === "outreach_sent" || row.status === "engaged"
+      ? deriveRepliesState(derived, hasPendingEmailTask)
+      : null;
+
   return {
     outreach: row,
     campus: campus as Campus,
@@ -351,6 +382,12 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     redirected_to: (redirectedTo.data ?? null) as DrawerContext["redirected_to"],
     permission_dependency: (permissionDep.data ?? null) as DrawerContext["permission_dependency"],
     admin_first_names: adminFirstNames,
+    replies_state: repliesState,
+    meeting_state: derived.meeting_state,
+    meeting_at: derived.meeting_at,
+    followup_notes: derived.followup_notes,
+    awaiting_callback_at: derived.awaiting_callback_at,
+    awaiting_callback_kind: derived.awaiting_callback_kind,
   };
 }
 

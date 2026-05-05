@@ -21,7 +21,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import Link from "next/link";
 import { Drawer } from "./Drawer";
 import { AddStakeholderModal } from "./AddStakeholderModal";
-import { AddCustomTaskModal } from "./AddCustomTaskModal";
 import { LogCallOutcomeModal } from "./LogCallOutcomeModal";
 import { ReplyClassifierModal } from "./ReplyClassifierModal";
 import { MarkPartnerModal } from "./MarkPartnerModal";
@@ -95,7 +94,6 @@ export default function StudentOutreachPage() {
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [showAddTask, setShowAddTask] = useState(false);
 
   // v8: per-row action modals (driven by row buttons, not the drawer).
   const [callOutcomeRow, setCallOutcomeRow] = useState<TabRow | null>(null);
@@ -206,13 +204,6 @@ export default function StudentOutreachPage() {
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <button
-            onClick={() => setShowAddTask(true)}
-            title="Add a one-off task to a stakeholder's queue (e.g. 'check on listserv access')."
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            + Add Custom Task
-          </button>
           <Link
             href="/admin/student-outreach/campuses"
             title="Browse and manage campuses (universities)."
@@ -223,7 +214,7 @@ export default function StudentOutreachPage() {
           <button
             onClick={() => setShowAdd(true)}
             title="Add a new advisor, dept head, or student org for a campus."
-            className="rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-700"
+            className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
           >
             + Add Stakeholder
           </button>
@@ -408,24 +399,6 @@ export default function StudentOutreachPage() {
           }}
         />
       )}
-      {showAddTask && (
-        <AddCustomTaskModal
-          campuses={campuses}
-          stakeholders={rows.map((r) => ({
-            id: r.id,
-            organization_name: r.organization_name,
-            stakeholder_type: r.stakeholder_type,
-            campus_slug: r.campus_slug,
-            campus_name: r.campus_name,
-          }))}
-          onCancel={() => setShowAddTask(false)}
-          onCreated={() => {
-            setShowAddTask(false);
-            refetch();
-          }}
-          onError={setError}
-        />
-      )}
     </div>
   );
 }
@@ -449,7 +422,7 @@ function BannerLink({ href, children }: { href: string; children: ReactNode }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="shrink-0 rounded-md bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-700"
+      className="shrink-0 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
     >
       {children}
     </a>
@@ -509,7 +482,7 @@ function EmptyState({
         </p>
         <button
           onClick={onAdd}
-          className="mt-4 rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700"
+          className="mt-4 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
         >
           + Add Stakeholder
         </button>
@@ -571,6 +544,10 @@ function RowCard({
 
 /**
  * Unified row shell. Same chrome on every tab.
+ *
+ * v8.3 layout: org name + sub-line + footnote on the LEFT (clickable to
+ * open drawer). Pills + primary action + overflow stack vertically on
+ * the RIGHT, in that order top-to-bottom.
  */
 function StakeholderCard({
   row,
@@ -585,6 +562,7 @@ function StakeholderCard({
   rightActions: ReactNode;
   onOpenDrawer: () => void;
 }) {
+  const hasRightSide = pills || rightActions;
   return (
     <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50">
       <div className="flex items-start justify-between gap-3">
@@ -593,32 +571,21 @@ function StakeholderCard({
           className="min-w-0 flex-1 text-left"
           title="Open the drawer for full context and history."
         >
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            {row.has_custom_task && (
-              <span
-                title={`Custom task: ${row.custom_task_summary ?? "see drawer"}`}
-                className="text-amber-500"
-                aria-label="custom task pending"
-              >
-                ★
-              </span>
+          <p className="truncate text-sm font-medium text-gray-900">
+            {row.organization_name}
+            {row.department && (
+              <span className="ml-1 text-gray-500">· {row.department}</span>
             )}
-            <p className="truncate text-sm font-medium text-gray-900">
-              {row.organization_name}
-              {row.department && (
-                <span className="ml-1 text-gray-500">· {row.department}</span>
-              )}
-            </p>
-            {pills}
-          </div>
+          </p>
           <p className="mt-0.5 truncate text-xs text-gray-500">
             {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
             {row.primary_contact_name && ` · ${row.primary_contact_name}`}
           </p>
           {footnote}
         </button>
-        {rightActions && (
-          <div className="flex shrink-0 flex-col items-stretch gap-1.5">
+        {hasRightSide && (
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            {pills}
             {rightActions}
           </div>
         )}
@@ -627,52 +594,33 @@ function StakeholderCard({
   );
 }
 
-// ── Pills (3 tones) ──────────────────────────────────────────────────────
-
-type PillTone = "neutral" | "attention" | "partner";
-
-const PILL_TONE: Record<PillTone, string> = {
-  neutral: "bg-gray-100 text-gray-700",
-  attention: "bg-amber-100 text-amber-900",
-  partner: "bg-emerald-100 text-emerald-900",
-};
+// ── Pills (single tone — soft slate, easy on the eyes) ──────────────────
 
 function Pill({
-  tone,
   title,
   children,
 }: {
-  tone: PillTone;
   title?: string;
   children: ReactNode;
 }) {
   return (
     <span
       title={title}
-      className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${PILL_TONE[tone]}`}
+      className="shrink-0 rounded px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-700"
     >
       {children}
     </span>
   );
 }
 
-// ── Buttons (2 primary tones) ────────────────────────────────────────────
-
-type ButtonTone = "primary" | "celebration";
-
-const BUTTON_TONE: Record<ButtonTone, string> = {
-  primary: "bg-gray-900 hover:bg-gray-700",
-  celebration: "bg-emerald-600 hover:bg-emerald-700",
-};
+// ── Buttons (single tone — emerald primary) ──────────────────────────────
 
 function PrimaryAction({
   onClick,
-  tone = "primary",
   title,
   children,
 }: {
   onClick: () => void;
-  tone?: ButtonTone;
   title?: string;
   children: ReactNode;
 }) {
@@ -680,7 +628,7 @@ function PrimaryAction({
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       title={title}
-      className={`rounded-md px-3 py-1.5 text-xs font-semibold text-white ${BUTTON_TONE[tone]}`}
+      className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
     >
       {children}
     </button>
@@ -827,40 +775,44 @@ function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): RowSlots
 function researchSlots(row: TabRow): RowSlots {
   if (row.status === "researched") {
     return {
-      pills: <Pill tone="attention" title="Has contact + programs — schedule the email cadence next.">Ready to schedule</Pill>,
+      pills: <Pill title="Has contact + programs — start the email sequence next.">Ready to email</Pill>,
       footnote: null,
       rightActions: null,
     };
   }
   return {
-    pills: <Pill tone="neutral" title="Add a contact and programs to enable scheduling.">Needs contact</Pill>,
+    pills: <Pill title="Add a contact and programs to start the email sequence.">Needs contact</Pill>,
     footnote: null,
     rightActions: null,
   };
 }
 
 function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // No pill (the Calls tab name carries the meaning). Phone shows as plain
-  // clickable text in the footnote. Single primary CTA on the right.
+  // No pill — the Calls tab name carries the meaning. Two stacked CTAs:
+  //   1. Tap to dial   (top — the action they're about to take)
+  //   2. Log call      (right under it — what they'll do after)
   return {
     pills: null,
-    footnote: row.primary_contact_phone ? (
-      <p className="mt-0.5 text-xs text-gray-700">
-        Phone:{" "}
-        <a
-          href={`tel:${row.primary_contact_phone}`}
-          onClick={(e) => e.stopPropagation()}
-          title="Tap to dial (mobile) — opens the default phone app."
-          className="text-gray-700 underline decoration-gray-300 hover:decoration-gray-500"
-        >
-          {row.primary_contact_phone}
-        </a>
-        {row.due_call_task && (
-          <span className="ml-2 text-gray-400">· {formatDueDate(row.due_call_task.due_at)}</span>
-        )}
+    footnote: row.due_call_task ? (
+      <p className="mt-0.5 text-[11px] text-gray-400">
+        {formatDueDate(row.due_call_task.due_at)}
       </p>
     ) : null,
-    rightActions: <PrimaryAction onClick={cb.onLogCallOutcome}>Log outcome</PrimaryAction>,
+    rightActions: (
+      <>
+        {row.primary_contact_phone && (
+          <a
+            href={`tel:${row.primary_contact_phone}`}
+            onClick={(e) => e.stopPropagation()}
+            title="Tap to dial (mobile) — opens the default phone app."
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-center text-xs font-semibold text-white hover:bg-emerald-700"
+          >
+            📞 {row.primary_contact_phone}
+          </a>
+        )}
+        <PrimaryAction onClick={cb.onLogCallOutcome}>Log call</PrimaryAction>
+      </>
+    ),
   };
 }
 
@@ -887,7 +839,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
       };
     case "engaged":
       return {
-        pills: <Pill tone="attention">Replied</Pill>,
+        pills: <Pill>Replied</Pill>,
         footnote: row.last_activity_at ? (
           <p className="mt-0.5 text-[11px] text-gray-500">
             Last activity {formatRelative(row.last_activity_at)}
@@ -905,7 +857,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
       };
     case "wants_meeting":
       return {
-        pills: <Pill tone="attention">Wants to meet</Pill>,
+        pills: <Pill>Wants to meet</Pill>,
         footnote: <p className="mt-0.5 text-[11px] text-gray-500">Coordinate the time, then mark booked.</p>,
         rightActions: (
           <>
@@ -920,13 +872,13 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     case "booked":
       // Filtered out of Replies server-side in v8.2. Kept here for type-completeness only.
       return {
-        pills: <Pill tone="neutral">{row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}</Pill>,
+        pills: <Pill>{row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}</Pill>,
         footnote: null,
         rightActions: null,
       };
     case "needs_followup":
       return {
-        pills: <Pill tone="attention">Met — needs follow-up</Pill>,
+        pills: <Pill>Met — needs follow-up</Pill>,
         footnote: row.followup_notes ? (
           <p className="mt-0.5 text-[11px] italic text-gray-700">
             &quot;{row.followup_notes.slice(0, 160)}
@@ -946,7 +898,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     case "awaiting_callback":
       return {
         pills: (
-          <Pill tone="attention">
+          <Pill>
             {row.awaiting_callback_kind === "promised" ? "Promised callback" : "Voicemail"}
             {row.awaiting_callback_at ? ` · ${formatShortRelative(row.awaiting_callback_at)}` : ""}
           </Pill>
@@ -965,9 +917,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     case "stale":
       return {
         pills: (
-          <Pill tone="neutral">
-            No reply{row.stale_days != null ? ` · ${row.stale_days}d` : ""}
-          </Pill>
+          <Pill>No reply{row.stale_days != null ? ` · ${row.stale_days}d` : ""}</Pill>
         ),
         footnote: null,
         rightActions: (
@@ -984,7 +934,7 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   if (row.meeting_state === "scheduled") {
     return {
       pills: (
-        <Pill tone="neutral" title="Meeting is on the calendar.">
+        <Pill title="Meeting is on the calendar.">
           {row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}
         </Pill>
       ),
@@ -992,7 +942,6 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
       rightActions: (
         <>
           <PrimaryAction
-            tone="celebration"
             onClick={cb.onMarkPartner}
             title="Meeting happened and they committed — graduate to Active Partner."
           >
@@ -1005,7 +954,7 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   }
   // in_flight
   return {
-    pills: <Pill tone="attention">Finding a time</Pill>,
+    pills: <Pill>Finding a time</Pill>,
     footnote: <p className="mt-0.5 text-[11px] text-gray-500">Coordinate over email, then mark booked.</p>,
     rightActions: (
       <>
@@ -1021,7 +970,7 @@ function partnersSlots(row: TabRow): RowSlots {
   // Next: … pill (when there's an upcoming task).
   return {
     pills: row.next_step_label ? (
-      <Pill tone="partner" title="Earliest scheduled action for this partner.">
+      <Pill title="Earliest scheduled action for this partner.">
         {row.next_step_label}
       </Pill>
     ) : null,
@@ -1036,7 +985,7 @@ function partnersSlots(row: TabRow): RowSlots {
 
 function allSlots(row: TabRow): RowSlots {
   return {
-    pills: <Pill tone="neutral" title="Stage in the funnel.">{row.status}</Pill>,
+    pills: <Pill title="Stage in the funnel.">{row.status}</Pill>,
     footnote: row.last_activity_at ? (
       <p className="mt-0.5 text-[11px] text-gray-400">
         Last activity {formatRelative(row.last_activity_at)}

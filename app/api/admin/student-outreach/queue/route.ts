@@ -31,6 +31,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import {
+  computeStaleDays,
+  deriveRepliesState,
+  deriveStateFromTouchpoints,
+  type DerivedState,
+  type TouchpointRow,
+} from "@/lib/student-outreach/state-derivation";
 import type {
   AwaitingCallbackKind,
   Campus,
@@ -41,7 +48,6 @@ import type {
 } from "@/lib/student-outreach/types";
 
 const PAGE_SIZE_DEFAULT = 50;
-const STALE_DAYS = 4;
 
 const RESEARCH_STATUSES: Status[] = ["prospect", "researched"];
 const REPLIES_STATUSES: Status[] = ["outreach_sent", "engaged"];
@@ -383,168 +389,6 @@ async function fetchTouchpointsByRow(db: DB, ids: string[]): Promise<Map<string,
 
 // ── Hydrate rows with all indicators ────────────────────────────────────
 
-interface TouchpointRow {
-  outreach_id: string;
-  touchpoint_type: string;
-  payload: Record<string, unknown> | null;
-  notes: string | null;
-  created_at: string;
-  created_by: string | null;
-}
-
-interface DerivedState {
-  meeting_state: "none" | "in_flight" | "scheduled";
-  meeting_at: string | null;
-  followup_notes: string | null;
-  followup_author: string | null;
-  followup_at: string | null;
-  awaiting_callback_at: string | null;
-  awaiting_callback_kind: AwaitingCallbackKind | null;
-  last_email_sent_at: string | null;
-  last_reply_at: string | null;
-  last_activity_at: string | null;
-}
-
-/**
- * v8 single source of truth for per-row state derivation. Walks
- * touchpoints DESC (newest first) and picks the first event in each
- * category. Newer events naturally override older ones.
- *
- * "Resolution" of awaiting-callback: a more-recent (DESC: earlier in
- * scan) email_replied / call_connected without awaiting_callback /
- * note_added{reason:resume_outreach} clears the state.
- */
-function deriveStateFromTouchpoints(touchpoints: TouchpointRow[]): DerivedState {
-  let meeting_state: DerivedState["meeting_state"] = "none";
-  let meeting_at: string | null = null;
-  let meetingDecided = false;
-
-  let followup_notes: string | null = null;
-  let followup_author: string | null = null;
-  let followup_at: string | null = null;
-
-  let awaiting_callback_at: string | null = null;
-  let awaiting_callback_kind: AwaitingCallbackKind | null = null;
-  let callbackResolved = false; // once we see a resolver newer than the candidate, reject older callback events.
-
-  let last_email_sent_at: string | null = null;
-  let last_reply_at: string | null = null;
-  let last_activity_at: string | null = null;
-
-  for (const tp of touchpoints) {
-    if (last_activity_at === null) last_activity_at = tp.created_at;
-
-    const reason = (tp.payload?.reason as string | undefined) ?? null;
-    const awaitingCallbackFlag = tp.payload?.awaiting_callback === true;
-
-    // Meeting state — first match wins.
-    if (!meetingDecided) {
-      if (tp.touchpoint_type === "meeting_scheduled") {
-        meeting_state = "scheduled";
-        meeting_at = (tp.payload?.meeting_at as string) ?? null;
-        meetingDecided = true;
-      } else if (tp.touchpoint_type === "note_added" && reason === "meeting_in_flight") {
-        meeting_state = "in_flight";
-        meetingDecided = true;
-      } else if (
-        tp.touchpoint_type === "meeting_held" ||
-        tp.touchpoint_type === "meeting_no_show" ||
-        tp.touchpoint_type === "meeting_rescheduled" ||
-        (tp.touchpoint_type === "note_added" && reason === "post_meeting_followup")
-      ) {
-        meeting_state = "none";
-        meetingDecided = true;
-      }
-    }
-
-    // Post-meeting follow-up notes — first match wins.
-    if (
-      followup_at === null &&
-      tp.touchpoint_type === "note_added" &&
-      reason === "post_meeting_followup"
-    ) {
-      followup_notes = (tp.payload?.notes as string) ?? tp.notes ?? "";
-      followup_author = tp.created_by;
-      followup_at = tp.created_at;
-    }
-
-    // Reply / engagement resolver detection.
-    const isReply =
-      tp.touchpoint_type === "email_replied" ||
-      tp.touchpoint_type === "ig_dm_replied" ||
-      tp.touchpoint_type === "contact_form_submitted";
-    const isConnectedNoCallback =
-      tp.touchpoint_type === "call_connected" && !awaitingCallbackFlag;
-    const isResumeNote =
-      tp.touchpoint_type === "note_added" && reason === "resume_outreach";
-
-    if (isReply && last_reply_at === null) last_reply_at = tp.created_at;
-
-    if (!callbackResolved && (isReply || isConnectedNoCallback || isResumeNote)) {
-      callbackResolved = true;
-    }
-
-    // Awaiting-callback candidate — voicemail or "they'll call back" promise.
-    if (awaiting_callback_at === null && !callbackResolved) {
-      if (tp.touchpoint_type === "call_voicemail") {
-        awaiting_callback_at = tp.created_at;
-        awaiting_callback_kind = "voicemail";
-      } else if (tp.touchpoint_type === "call_connected" && awaitingCallbackFlag) {
-        awaiting_callback_at = tp.created_at;
-        awaiting_callback_kind = "promised";
-      }
-    }
-
-    if (last_email_sent_at === null && tp.touchpoint_type === "email_sent") {
-      last_email_sent_at = tp.created_at;
-    }
-  }
-
-  return {
-    meeting_state,
-    meeting_at,
-    followup_notes,
-    followup_author,
-    followup_at,
-    awaiting_callback_at,
-    awaiting_callback_kind,
-    last_email_sent_at,
-    last_reply_at,
-    last_activity_at,
-  };
-}
-
-/**
- * v8 Replies-tab sub-state derivation. Single source of truth — UI
- * renders one of seven cards from this enum. Precedence:
- * needs_followup > booked > wants_meeting > awaiting_callback >
- * stale > engaged > mid_cadence.
- */
-function deriveRepliesState(
-  state: DerivedState,
-  hasPendingEmailTask: boolean,
-): RepliesState {
-  if (state.followup_at) return "needs_followup";
-  if (state.meeting_state === "scheduled") return "booked";
-  if (state.meeting_state === "in_flight") return "wants_meeting";
-  if (state.awaiting_callback_at) return "awaiting_callback";
-
-  // Stale: cadence is exhausted (no pending email task) and last email is old, and no reply.
-  const lastEmail = state.last_email_sent_at;
-  const lastReply = state.last_reply_at;
-  const replyAfterEmail =
-    lastReply && lastEmail && new Date(lastReply) > new Date(lastEmail);
-  if (replyAfterEmail) return "engaged";
-  if (lastReply && !lastEmail) return "engaged";
-
-  if (lastEmail && !hasPendingEmailTask) {
-    const days = (Date.now() - new Date(lastEmail).getTime()) / 86_400_000;
-    if (days >= STALE_DAYS) return "stale";
-  }
-
-  return "mid_cadence";
-}
-
 async function hydrateRows(
   db: DB,
   ids: string[],
@@ -751,12 +595,5 @@ function formatRelativeFuture(iso: string): string {
   const d = Math.round(hr / 24);
   if (d < 60) return `in ${d}d`;
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
-
-function computeStaleDays(lastEmailSent: string | null, lastReply: string | null): number | null {
-  if (!lastEmailSent) return null;
-  if (lastReply && new Date(lastReply) > new Date(lastEmailSent)) return null;
-  const days = Math.floor((Date.now() - new Date(lastEmailSent).getTime()) / 86_400_000);
-  return days >= STALE_DAYS ? days : null;
 }
 

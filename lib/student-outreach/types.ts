@@ -293,6 +293,13 @@ export interface DrawerContext {
   permission_dependency: Pick<OutreachRow, "id" | "organization_name" | "stakeholder_type" | "status"> | null;
   /** user_id → first-name display string. Used by history narration. */
   admin_first_names: Record<string, string>;
+  /** v8.3 — server-derived state used by the NextStepPanel guidance. */
+  replies_state: RepliesState | null;
+  meeting_state: "none" | "in_flight" | "scheduled";
+  meeting_at: string | null;
+  followup_notes: string | null;
+  awaiting_callback_at: string | null;
+  awaiting_callback_kind: AwaitingCallbackKind | null;
 }
 
 export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {

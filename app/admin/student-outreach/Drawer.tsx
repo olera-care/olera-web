@@ -16,7 +16,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { MarkPartnerModal } from "./MarkPartnerModal";
-import { OfferCallModal } from "./OfferCallModal";
 import { OutreachStepList } from "./OutreachStepList";
 import { PreFlightReviewModal } from "./PreFlightReviewModal";
 import {
@@ -32,8 +31,7 @@ import {
   type Status,
   type Task,
 } from "@/lib/student-outreach/types";
-import { callScript } from "@/lib/student-outreach/templates";
-import { CADENCE_END_DAY, OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
+import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
 import {
   DEPARTMENTS,
   OTHER,
@@ -43,7 +41,6 @@ import {
   supportsAltChannels,
   supportsApprovals,
   supportsMultipleContacts,
-  supportsPhoneOutreach,
 } from "@/lib/student-outreach/presets";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 
@@ -120,10 +117,6 @@ export function Drawer({ outreachId, tabContext = "all", onClose, onAction }: Dr
               <p className="truncate text-sm text-gray-500">
                 {ctx.campus.name} · {STAKEHOLDER_TYPE_LABELS[ctx.outreach.stakeholder_type]}
                 {ctx.outreach.department && ` · ${ctx.outreach.department}`}
-                {" · "}
-                <span className="font-medium text-gray-700">
-                  {STATUS_LABELS[ctx.outreach.status]}
-                </span>
               </p>
             </div>
           ) : (
@@ -168,11 +161,15 @@ function DrawerBody({
   action: ActionFn;
   setError: (e: string | null) => void;
 }) {
-  const [showMore, setShowMore] = useState(false);
+  // v8.3: auto-expand More details when this is a Research-stage row,
+  // since the research form IS the primary task there.
+  const [showMore, setShowMore] = useState(
+    ctx.outreach.status === "prospect" || ctx.outreach.status === "researched",
+  );
   return (
     <div className="space-y-6">
       <RelationshipBanner ctx={ctx} />
-      <TabContextBanner tabContext={tabContext} ctx={ctx} />
+      <TabContextBanner tabContext={tabContext} />
       <NextStepPanel ctx={ctx} action={action} setError={setError} />
       <DangerZone ctx={ctx} action={action} setError={setError} />
 
@@ -221,7 +218,13 @@ function RelationshipBanner({ ctx }: { ctx: DrawerContext }) {
   );
 }
 
-// ── Next Step panel — the star ─────────────────────────────────────────
+// ── Next Step panel ──────────────────────────────────────────────────────
+//
+// v8.3: drives guidance from the SAME state the row-card pill shows
+// (replies_state / meeting_state from the server). Gives the admin one
+// short paragraph: what's happening + what to do next. The row cards
+// own the actual buttons; the drawer just describes and offers a few
+// always-visible CTAs (Mark Partner, Log meeting outcome).
 
 function NextStepPanel({
   ctx,
@@ -236,36 +239,10 @@ function NextStepPanel({
   const type = ctx.outreach.stakeholder_type;
   const [showPreFlight, setShowPreFlight] = useState(false);
   const [showPartner, setShowPartner] = useState(false);
-  const [showCallScript, setShowCallScript] = useState(false);
-  const [showMeetingForm, setShowMeetingForm] = useState(false);
-  const [showOfferCall, setShowOfferCall] = useState(false);
-
   const [showFollowup, setShowFollowup] = useState(false);
-  const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
+
   const partnerCtaVisible = PARTNER_CTA_STAGES.includes(status);
-
-  // v8: detect if there's an active scheduled meeting on this row
-  // (drives the "Log meeting outcome" follow-up button visibility).
-  const hasActiveScheduledMeeting = useMemo(() => {
-    for (const t of ctx.touchpoints) {
-      if (t.touchpoint_type === "meeting_scheduled") return true;
-      if (
-        t.touchpoint_type === "meeting_held" ||
-        t.touchpoint_type === "meeting_no_show" ||
-        t.touchpoint_type === "meeting_rescheduled"
-      ) return false;
-      const reason = (t.payload as Record<string, unknown>)?.reason;
-      if (t.touchpoint_type === "note_added" && reason === "post_meeting_followup") return false;
-    }
-    return false;
-  }, [ctx.touchpoints]);
-
-  const baseCtx = {
-    stakeholder_type: type,
-    organization_name: ctx.outreach.organization_name,
-    campus_name: ctx.campus.name,
-  };
-  const callDraft = callScript(baseCtx, ctx.outreach.cadence_day);
+  const hasActiveScheduledMeeting = ctx.meeting_state === "scheduled";
 
   return (
     <section>
@@ -273,69 +250,25 @@ function NextStepPanel({
         Next step
       </h3>
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-        {/* Stage progress strip */}
-        <div className="border-b border-gray-100 px-4 py-2.5 bg-gray-50/50">
-          <p className="text-xs font-medium text-gray-700">
-            Stage: <span className="text-gray-900">{STATUS_LABELS[status]}</span>
-            {status === "outreach_sent" && (
-              <span className="ml-1.5 text-gray-500">
-                · Day {ctx.outreach.cadence_day} of {CADENCE_END_DAY}
-              </span>
-            )}
-            {status === "meeting_scheduled" && ctx.outreach.research_data.meeting_at && (
-              <span className="ml-1.5 text-gray-500">
-                · {new Date(ctx.outreach.research_data.meeting_at).toLocaleString()}
-              </span>
-            )}
-          </p>
-        </div>
-
-        {/* Stage-specific guidance + primary CTA */}
         <div className="space-y-3 px-4 py-4">
           <StageGuidance
             ctx={ctx}
             onSchedulePreFlight={() => setShowPreFlight(true)}
-            onLogCall={() => setShowCallScript(true)}
-            onScheduleMeeting={() => setShowMeetingForm(true)}
-            onOfferCall={() => setShowOfferCall(true)}
             action={action}
             setError={setError}
           />
-
-          {/* Inline call panel */}
-          {showCallScript && (
-            <CallLogPanel
-              script={callDraft.script}
-              primaryContactId={primary?.id ?? null}
-              action={action}
-              setError={setError}
-              onClose={() => setShowCallScript(false)}
-            />
-          )}
-
-          {/* Inline meeting form */}
-          {showMeetingForm && (
-            <MeetingForm
-              action={action}
-              setError={setError}
-              onClose={() => setShowMeetingForm(false)}
-            />
-          )}
         </div>
 
         {/* v8: post-meeting follow-up — for booked rows where the meeting happened */}
         {hasActiveScheduledMeeting && (
-          <div className="border-t border-gray-100 bg-blue-50/30 px-4 py-3">
+          <div className="border-t border-gray-100 bg-gray-50/60 px-4 py-3">
             <button
               onClick={() => setShowFollowup(true)}
-              title="Meeting happened but they need follow-up before becoming an Active Partner. Notes go back to Replies."
-              className="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              title="Meeting happened but they need follow-up before they commit. Notes show on the row in Replies."
+              className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-              🔄 Log meeting outcome — needs follow-up
+              Log meeting outcome — needs follow-up
             </button>
-            <p className="mt-1.5 text-center text-[11px] text-blue-900/80">
-              Records the meeting outcome and surfaces notes on the row in Replies.
-            </p>
           </div>
         )}
 
@@ -349,7 +282,7 @@ function NextStepPanel({
               Mark as Active Partner ★
             </button>
             <p className="mt-1.5 text-center text-[11px] text-emerald-900/80">
-              Click when you're confident they've committed to (or are) distributing.
+              Click when you&apos;re confident they&apos;ve committed to sharing with students.
             </p>
           </div>
         )}
@@ -402,49 +335,34 @@ function NextStepPanel({
           }}
         />
       )}
-      {showOfferCall && (
-        <OfferCallModal
-          organizationName={ctx.outreach.organization_name}
-          contactFirstName={primary?.name?.split(" ")[0]}
-          onCancel={() => setShowOfferCall(false)}
-          onConfirm={async () => {
-            try {
-              await action("offer_call");
-              setShowOfferCall(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Save failed");
-            }
-          }}
-        />
-      )}
     </section>
   );
 }
 
-// ── Stage guidance (the per-stage text + primary CTA) ──────────────────
+// ── Stage guidance ───────────────────────────────────────────────────────
+//
+// v8.3: drives the next-step paragraph entirely off the *pill* state
+// (replies_state / meeting_state from the server) when the row is in
+// outreach_sent / engaged. Other statuses (research / partner / closed)
+// stay status-driven because they don't have a pill substate.
 
 function StageGuidance({
   ctx,
   onSchedulePreFlight,
-  onLogCall,
-  onScheduleMeeting,
-  onOfferCall,
   action,
   setError,
 }: {
   ctx: DrawerContext;
   onSchedulePreFlight: () => void;
-  onLogCall: () => void;
-  onScheduleMeeting: () => void;
-  onOfferCall: () => void;
   action: ActionFn;
   setError: (e: string | null) => void;
 }) {
   const status = ctx.outreach.status;
   const type = ctx.outreach.stakeholder_type;
-  const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0];
-  const handleErr = (p: Promise<unknown>) => p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
+  const handleErr = (p: Promise<unknown>) =>
+    p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
 
+  // Research: prospect → researched
   if (status === "prospect") {
     const haveContact = ctx.contacts.some((c) => c.status === "active");
     const havePrograms = ctx.outreach.programs.length > 0;
@@ -453,8 +371,7 @@ function StageGuidance({
     return (
       <>
         <Guidance>
-          <strong>You're in research.</strong> Fill in the basics below, add at least one contact, then
-          tap <em>Research complete</em>. You'll review the email sequence next, then schedule it.
+          <strong>Research this stakeholder.</strong> Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.
         </Guidance>
         <ChecklistInline items={[
           { done: haveContact, label: "At least one active contact added" },
@@ -466,10 +383,10 @@ function StageGuidance({
             onClick={() => handleErr(action("mark_research_complete"))}
             disabled={!ready}
             className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
-              ready ? "bg-gray-900 hover:bg-gray-700" : "bg-gray-300 cursor-not-allowed"
+              ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
             }`}
           >
-            {ready ? "✓ Research complete — review sequence →" : "Add a contact + programs to continue"}
+            {ready ? "✓ Research complete — review email sequence" : "Add a contact + programs to continue"}
           </button>
         </div>
       </>
@@ -482,8 +399,7 @@ function StageGuidance({
     return (
       <>
         <Guidance>
-          <strong>Ready to schedule outreach.</strong> Click below to review and edit the {OUTREACH_DAYS_BY_TYPE[type].length}-email
-          sequence, then schedule. Day 0 sends immediately; later days fire automatically.
+          <strong>Ready to email.</strong> Review the {OUTREACH_DAYS_BY_TYPE[type].length}-email sequence and start it. Day 0 sends right away; later days fire automatically.
         </Guidance>
         <ChecklistInline items={[
           { done: ready, label: `Active contact with email (${eligibleEmail} found)` },
@@ -496,57 +412,85 @@ function StageGuidance({
               ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
             }`}
           >
-            {ready ? "Schedule outreach sequence →" : "Add a contact with email to continue"}
+            {ready ? "Start email sequence →" : "Add a contact with email to continue"}
           </button>
         </div>
       </>
     );
   }
 
-  if (status === "outreach_sent") {
-    return <OutreachStepList ctx={ctx} action={action} setError={setError} />;
-  }
+  // outreach_sent / engaged: drive from server-derived state.
+  if (status === "outreach_sent" || status === "engaged" || status === "meeting_scheduled") {
+    const m = ctx.meeting_state;
+    const r = ctx.replies_state;
 
-  if (status === "engaged" || status === "meeting_scheduled") {
-    return (
-      <>
+    if (m === "scheduled") {
+      return (
         <Guidance>
-          They replied — pick what to do next based on what they said. Two clear options:
+          <strong>Meeting is on the calendar.</strong>
+          {ctx.meeting_at && <> It&apos;s scheduled for {new Date(ctx.meeting_at).toLocaleString()}.</>}
+          {" "}After the meeting, click <em>Mark as Active Partner</em> if they committed, or use <em>Log meeting outcome</em> below if they need a follow-up email first.
         </Guidance>
-        <div className="flex flex-col gap-2 pt-1">
-          <button
-            onClick={onOfferCall}
-            title="Send Logan's Calendly link so they can book a 15-min chat. Use this when they want to talk."
-            className="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            📞 Offer a 15-min call (Logan's Calendly)
-          </button>
-          <p className="text-center text-[11px] text-gray-500">
-            Use the green "Mark as Active Partner" button below when they've committed to sharing with students.
-          </p>
-        </div>
-        {supportsPhoneOutreach(type) && (
-          <div className="pt-2">
-            <SecondaryButton onClick={onLogCall}>Log a phone call (no Calendly)</SecondaryButton>
-          </div>
-        )}
-      </>
-    );
+      );
+    }
+    if (m === "in_flight" || r === "wants_meeting") {
+      return (
+        <Guidance>
+          <strong>They want to meet.</strong> Coordinate the time over email. When you have a date, close this drawer and click <em>Booked it</em> on the row.
+        </Guidance>
+      );
+    }
+    if (r === "needs_followup") {
+      return (
+        <>
+          <Guidance>
+            <strong>Met — needs a follow-up.</strong> The meeting happened and they want time to think. Send a follow-up email through Gmail to keep the conversation alive. Once they commit, click <em>Mark as Active Partner</em>.
+          </Guidance>
+          {ctx.followup_notes && (
+            <p className="rounded-md bg-gray-50 px-3 py-2 text-xs italic text-gray-700">
+              From the meeting: &ldquo;{ctx.followup_notes}&rdquo;
+            </p>
+          )}
+        </>
+      );
+    }
+    if (r === "awaiting_callback") {
+      const kindText = ctx.awaiting_callback_kind === "promised"
+        ? "they promised to call back"
+        : "you left them a voicemail";
+      return (
+        <Guidance>
+          <strong>Waiting for a callback.</strong> You called and {kindText}. Watch Gmail for callback or voicemail-to-email notifications. If nothing arrives, close this drawer and click <em>Try again</em> on the row to re-queue a call.
+        </Guidance>
+      );
+    }
+    if (r === "engaged") {
+      return (
+        <Guidance>
+          <strong>They replied.</strong> Open the email in Gmail to see what they said. Then close this drawer and click <em>Open reply</em> on the row to record the next step. If they&apos;ve already committed, click <em>Mark as Active Partner</em> below.
+        </Guidance>
+      );
+    }
+    if (r === "stale") {
+      return (
+        <Guidance>
+          <strong>The email sequence ran without a reply.</strong> Try a custom re-engage email through Gmail, or close the row if it&apos;s not going anywhere.
+        </Guidance>
+      );
+    }
+    // mid_cadence (or no derived state) — show the cadence step list.
+    return <OutreachStepList ctx={ctx} action={action} setError={setError} />;
   }
 
   if (status === "active_partner") {
     const seasonal = ctx.pending_tasks.find((t) => t.task_type === "outreach_email_send");
     return (
-      <>
-        <Guidance>
-          {seasonal
-            ? `Active Partner. Next seasonal email auto-sends ${new Date(seasonal.due_at).toLocaleDateString()}.`
-            : "Active Partner. Maintain the relationship — seasonal emails are auto-queued."}
-        </Guidance>
-        <p className="text-xs text-gray-500">
-          Seasonal sends run automatically on Aug 1, Nov 15, Jan 15, and Apr 15.
-        </p>
-      </>
+      <Guidance>
+        <strong>Active Partner.</strong>{" "}
+        {seasonal
+          ? `Next seasonal email auto-sends ${new Date(seasonal.due_at).toLocaleDateString()}.`
+          : "Seasonal emails are queued automatically — no action needed."}
+      </Guidance>
     );
   }
 
@@ -555,8 +499,8 @@ function StageGuidance({
       <>
         <Guidance>
           {status === "no_response_closed"
-            ? `Closed — no response. ${ctx.outreach.reopen_at ? `Auto-reopens ${ctx.outreach.reopen_at}.` : ""}`
-            : "Closed — wrong contact. Add a new contact and re-open if you find someone reachable."}
+            ? <>Closed — no response. {ctx.outreach.reopen_at && `Auto-reopens ${ctx.outreach.reopen_at}.`}</>
+            : "Closed — wrong contact. Add a new contact below and re-open if you find someone reachable."}
         </Guidance>
         <PrimaryButton onClick={() => handleErr(action("reopen"))}>Re-open now</PrimaryButton>
       </>
@@ -566,105 +510,12 @@ function StageGuidance({
   if (status === "not_interested" || status === "do_not_contact" || status === "redirected") {
     return (
       <Guidance>
-        {STATUS_LABELS[status]}. No further outreach. Use the campus view to find related
-        stakeholders or add a new one.
+        {STATUS_LABELS[status]}. No further outreach. Use the campus view to find related stakeholders or add a new one.
       </Guidance>
     );
   }
 
   return <Guidance>No actions available in this stage.</Guidance>;
-}
-
-// ── Manual-followup banner ─────────────────────────────────────────────
-
-/**
- * If this row has a pending manual_followup task, show a banner at the
- * top of the Next Step panel that explains WHY it's queued and what
- * the admin should do. Without this banner, manual_followup tasks
- * surface as "Manual follow-up" with no context.
- */
-// ── Inline panels (call, meeting) ──────────────────────────────────────
-
-function CallLogPanel({
-  script,
-  primaryContactId,
-  action,
-  setError,
-  onClose,
-}: {
-  script: string;
-  primaryContactId: string | null;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-  onClose: () => void;
-}) {
-  const [notes, setNotes] = useState("");
-  const log = async (disposition: string) => {
-    try {
-      await action("log_call", { disposition, contact_id: primaryContactId, notes });
-      onClose();
-    } catch (e) { setError(e instanceof Error ? e.message : "Log failed"); }
-  };
-  return (
-    <div className="rounded-md border border-gray-100 bg-white p-3 text-sm">
-      <pre className="mb-3 whitespace-pre-wrap text-xs text-gray-700">{script}</pre>
-      <textarea
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        placeholder="Notes (optional)"
-        className="mb-2 w-full rounded-md border border-gray-200 px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
-        rows={2}
-      />
-      <div className="flex flex-wrap gap-2">
-        <SecondaryButton onClick={() => log("no_answer")}>No answer</SecondaryButton>
-        <SecondaryButton onClick={() => log("voicemail")}>Voicemail</SecondaryButton>
-        <PrimaryButton onClick={() => log("connected")}>Connected</PrimaryButton>
-        <DangerButton onClick={() => log("wrong_number")}>Wrong number</DangerButton>
-      </div>
-    </div>
-  );
-}
-
-function MeetingForm({
-  action,
-  setError,
-  onClose,
-}: {
-  action: ActionFn;
-  setError: (e: string | null) => void;
-  onClose: () => void;
-}) {
-  const [meetingAt, setMeetingAt] = useState("");
-  const [kind, setKind] = useState("video");
-  const [link, setLink] = useState("");
-  const [notes, setNotes] = useState("");
-  return (
-    <div className="space-y-2 rounded-md border border-gray-100 bg-white p-3">
-      <Field type="datetime-local" label="Meeting at" value={meetingAt} onChange={setMeetingAt} />
-      <Select label="Kind" value={kind} onChange={setKind} options={[
-        { value: "phone", label: "Phone" },
-        { value: "video", label: "Video" },
-        { value: "in_person", label: "In Person" },
-      ]} />
-      <Field label="Link / location" value={link} onChange={setLink} placeholder="https://meet.example.com/..." />
-      <Field label="Notes" value={notes} onChange={setNotes} />
-      <div className="flex gap-2 pt-1">
-        <PrimaryButton onClick={async () => {
-          if (!meetingAt) { setError("Meeting time required"); return; }
-          try {
-            await action("mark_meeting_scheduled", {
-              meeting_at: new Date(meetingAt).toISOString(),
-              meeting_kind: kind,
-              meeting_link: link,
-              notes,
-            });
-            onClose();
-          } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
-        }}>Save meeting</PrimaryButton>
-        <SecondaryButton onClick={onClose}>Cancel</SecondaryButton>
-      </div>
-    </div>
-  );
 }
 
 // ── Research section ───────────────────────────────────────────────────
@@ -1390,124 +1241,32 @@ function DangerZone({
   );
 }
 
-// ── Tab-context banner (v8 — informational only) ───────────────────────
+// ── Tab-context banner (v8.3) ───────────────────────────────────────────
+//
+// Drawer banners are kept ONLY for tabs where the drawer is the primary
+// action surface (Research / Partners). For Calls / Replies / Meetings
+// the row cards drive the action — the banner would just nag.
 
-/**
- * v8: tab-aware contextual hint. Action buttons live on the row cards
- * now (Replies / Meetings / Calls each have their own state-driven
- * buttons), so the drawer just sets context and surfaces custom tasks.
- */
 function TabContextBanner({
   tabContext,
-  ctx,
 }: {
   tabContext: TabContext;
-  ctx: DrawerContext;
 }) {
-  const customTask = ctx.pending_tasks.find(
-    (t) =>
-      t.task_type === "manual_followup" &&
-      (t.payload as Record<string, unknown>)?.reason === "custom",
-  );
-
-  const blurbs: Record<TabContext, string> = {
-    research: "🔍 Research mode — fill in basics below and schedule the email cadence when ready.",
-    calls: "📞 Calls mode — close this drawer and use the green dial + 'Log outcome' button on the row.",
-    replies: "📬 Inbox triage — close this drawer and use the row's state buttons to record the reply.",
-    meetings: "📅 Meeting mode — close this drawer and use the row buttons to mark scheduled or graduate to Partner.",
-    partners: "⭐ Active Partner — light-touch maintenance. Seasonal emails fire automatically.",
-    all: "",
-  };
-
-  const tone: Record<TabContext, string> = {
-    research: "border-gray-200 bg-gray-50 text-gray-700",
-    calls: "border-emerald-200 bg-emerald-50/40 text-emerald-900",
-    replies: "border-blue-200 bg-blue-50/40 text-blue-900",
-    meetings: "border-indigo-200 bg-indigo-50/40 text-indigo-900",
-    partners: "border-emerald-200 bg-emerald-50/40 text-emerald-900",
-    all: "",
-  };
-
-  const blurb = blurbs[tabContext];
-
-  return (
-    <div className="space-y-2">
-      {customTask && (
-        <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50/60 px-3 py-2 text-xs text-amber-900">
-          <span className="text-amber-500">★</span>
-          <span>
-            <strong>Custom task:</strong>{" "}
-            {String(
-              (customTask.payload as Record<string, unknown>)?.notes ??
-                "see Pending Tasks below",
-            )}
-          </span>
-        </div>
-      )}
-      {blurb && (
-        <div className={`rounded-md border px-3 py-2 text-xs ${tone[tabContext]}`}>
-          {blurb}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MarkScheduledModal({
-  onCancel,
-  onConfirm,
-}: {
-  onCancel: () => void;
-  onConfirm: (meeting_at: string | null) => Promise<void>;
-}) {
-  const [meetingAt, setMeetingAt] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white shadow-2xl">
-        <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">Meeting scheduled</h3>
-          <p className="mt-0.5 text-xs text-gray-500">
-            Optional: enter the meeting date so it shows on the row. You can leave blank.
-          </p>
-        </header>
-        <div className="px-6 py-4">
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-gray-700">Meeting date (optional)</span>
-            <input
-              type="datetime-local"
-              value={meetingAt}
-              onChange={(e) => setMeetingAt(e.target.value)}
-              className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-            />
-          </label>
-        </div>
-        <footer className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
-          <button
-            onClick={onCancel}
-            disabled={submitting}
-            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={async () => {
-              setSubmitting(true);
-              try {
-                await onConfirm(meetingAt ? new Date(meetingAt).toISOString() : null);
-              } finally {
-                setSubmitting(false);
-              }
-            }}
-            disabled={submitting}
-            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {submitting ? "Saving…" : "Mark scheduled"}
-          </button>
-        </footer>
+  if (tabContext === "research") {
+    return (
+      <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
+        Fill in the basics below, then start the email sequence when ready.
       </div>
-    </div>
-  );
+    );
+  }
+  if (tabContext === "partners") {
+    return (
+      <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
+        Active Partner. Seasonal emails fire automatically — light-touch maintenance.
+      </div>
+    );
+  }
+  return null;
 }
 
 function FollowupNotesModal({

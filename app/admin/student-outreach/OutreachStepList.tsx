@@ -239,11 +239,17 @@ function EmailStepRow({
     );
   }
 
-  // No pending task and no sent touchpoint — either skipped or not yet scheduled.
+  // No pending task and no sent touchpoint. v8.10.1: distinguish past
+  // (skipped — admin canceled, or reply paused the cadence) from future
+  // (queues on Day N — task hasn't been created yet but cadence
+  // anticipates one). Anchor on the earliest Day-0 email_sent timestamp,
+  // not on the stale ctx.outreach.cadence_day column.
+  const todayDay = computeTodayDay(ctx);
+  const isFuture = day > todayDay;
   return (
     <li className="text-xs text-gray-400">
       <span className="mr-1.5">○</span>
-      <span>Email — not scheduled</span>
+      <span>Email — {isFuture ? `queues on Day ${day}` : "skipped"}</span>
     </li>
   );
 }
@@ -286,14 +292,12 @@ function PhoneStepRow({
   }
 
   // No task in the DB for this phone step yet. v8.10: distinguish past vs.
-  // future based on today's relationship to the cadence anchor. Without an
-  // anchor we can't compute a date, so use the cadence-day number directly:
-  // future days say "queued for Day N", past days say "skipped".
+  // future based on today's relationship to the cadence anchor.
+  // v8.10.1: anchor on the earliest Day-0 email_sent timestamp (real
+  // elapsed time), not on ctx.outreach.cadence_day — that column is
+  // set to 0 on row create and never advances.
   if (!task) {
-    // Heuristic: use ctx.outreach.cadence_day as the "today" anchor.
-    // If the row's current cadence_day is past this step's day, it's
-    // skipped; otherwise queued.
-    const todayDay = ctx.outreach.cadence_day ?? 0;
+    const todayDay = computeTodayDay(ctx);
     const isFuture = day > todayDay;
     return (
       <li className="text-xs text-gray-400">
@@ -399,6 +403,28 @@ function PhoneStepRow({
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────
+
+/**
+ * Compute "today's cadence day" by anchoring to the earliest email_sent
+ * touchpoint with cadence_day=0. The student_outreach.cadence_day column
+ * is set to 0 at row creation and never advanced by the cron, so we can't
+ * trust it as a present-time pointer. Real elapsed time since Day 0 IS
+ * the cadence position.
+ *
+ * Returns 0 when no anchor exists (early-stage rows still in research).
+ */
+function computeTodayDay(ctx: DrawerContext): number {
+  let earliestDay0: number | null = null;
+  for (const t of ctx.touchpoints) {
+    if (t.touchpoint_type !== "email_sent") continue;
+    const p = (t.payload ?? {}) as Record<string, unknown>;
+    if (p.cadence_day !== 0) continue;
+    const ts = new Date(t.created_at).getTime();
+    if (earliestDay0 === null || ts < earliestDay0) earliestDay0 = ts;
+  }
+  if (earliestDay0 === null) return 0;
+  return Math.floor((Date.now() - earliestDay0) / 86_400_000);
+}
 
 function mapTasksByDay(tasks: Task[], taskType: string): Map<number, Task> {
   const out = new Map<number, Task>();

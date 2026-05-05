@@ -36,15 +36,28 @@ export default function InlineAnswerCard({
   const [mounted, setMounted] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   // Extract first name - handle names starting with (Test) or similar prefixes
+  // Also strip trailing 's (possessive) so "Effy's Homecare" becomes "Effy" not "Effy's"
   const cleanName = providerName?.replace(/^\([^)]+\)\s*/, "") || "";
-  const firstName = cleanName.split(/\s/)[0] || providerName?.split(/\s/)[0] || "them";
+  const rawFirstName = cleanName.split(/\s/)[0] || providerName?.split(/\s/)[0] || "them";
+  const firstName = rawFirstName.replace(/'s$/i, "") || rawFirstName;
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(timer);
   }, []);
+
+  // Scroll the card into view when it mounts (prevents layout shift disorientation)
+  useEffect(() => {
+    if (mounted && cardRef.current) {
+      const scrollTimer = setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 100);
+      return () => clearTimeout(scrollTimer);
+    }
+  }, [mounted]);
 
   useEffect(() => {
     if (mounted && inputRef.current && !showSuccess) {
@@ -125,6 +138,7 @@ export default function InlineAnswerCard({
 
   return (
     <div
+      ref={cardRef}
       className={`
         bg-white rounded-2xl
         shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)]

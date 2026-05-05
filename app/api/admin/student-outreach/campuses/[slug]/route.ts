@@ -53,9 +53,39 @@ export async function GET(
     statusSummary[r.status] = (statusSummary[r.status] ?? 0) + 1;
   }
 
+  // v8.6: pull approvals for every stakeholder at this campus and group
+  // by outreach_id. The Professor permission gate in the bulk modal uses
+  // this to detect whether any dept head has a granted "Email professors
+  // directly" approval before showing the import flow.
+  const stakeholderIds = ((stakeholders ?? []) as OutreachRow[]).map((s) => s.id);
+  const approvalsByOutreach: Record<
+    string,
+    Array<{ approval_for: string; status: string; resolved_at: string | null }>
+  > = {};
+  if (stakeholderIds.length > 0) {
+    const { data: approvals } = await db
+      .from("student_outreach_approvals")
+      .select("outreach_id, approval_for, status, resolved_at")
+      .in("outreach_id", stakeholderIds);
+    for (const a of (approvals ?? []) as Array<{
+      outreach_id: string;
+      approval_for: string;
+      status: string;
+      resolved_at: string | null;
+    }>) {
+      if (!approvalsByOutreach[a.outreach_id]) approvalsByOutreach[a.outreach_id] = [];
+      approvalsByOutreach[a.outreach_id].push({
+        approval_for: a.approval_for,
+        status: a.status,
+        resolved_at: a.resolved_at,
+      });
+    }
+  }
+
   return NextResponse.json({
     campus,
     stakeholders_by_type: grouped,
+    approvals_by_outreach: approvalsByOutreach,
     total: stakeholders?.length ?? 0,
     status_summary: statusSummary,
   });

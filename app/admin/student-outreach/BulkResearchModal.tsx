@@ -22,7 +22,10 @@ import {
   PROGRAMS,
   ROLES_BY_TYPE,
 } from "@/lib/student-outreach/presets";
-import type { ResearchCampusCard } from "@/lib/student-outreach/types";
+import type { OutreachRow, ResearchCampusCard } from "@/lib/student-outreach/types";
+import { BulkProfessorImportModal } from "./BulkProfessorImportModal";
+
+const PROFESSOR_APPROVAL_KEY = "Email professors directly";
 
 interface AdvisorRow {
   name: string;
@@ -60,13 +63,21 @@ const blankOrg = (): OrgDraft => ({
   officers: [blankOfficer()],
 });
 
-type TabKey = "advisors" | "dept_heads" | "student_orgs";
+type TabKey = "advisors" | "dept_heads" | "student_orgs" | "professors";
 
 const TABS: Array<{ key: TabKey; label: string }> = [
   { key: "advisors", label: "Advisors" },
   { key: "dept_heads", label: "Dept Heads" },
   { key: "student_orgs", label: "Student Orgs" },
+  { key: "professors", label: "Professors" },
 ];
+
+interface ProfessorTabData {
+  loaded: boolean;
+  deptHeads: OutreachRow[];
+  advisors: OutreachRow[];
+  grantedDeptHeads: OutreachRow[];
+}
 
 interface Props {
   campus: ResearchCampusCard;
@@ -83,11 +94,47 @@ export function BulkResearchModal({ campus, onClose, onSaved }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
+  // v8.6: Professors tab — needs a permission gate. Lazy-fetch the campus
+  // stakeholder list + approvals when the admin first opens the tab.
+  const [profData, setProfData] = useState<ProfessorTabData | null>(null);
+  const [showProfImport, setShowProfImport] = useState(false);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !submitting) onClose(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose, submitting]);
+
+  useEffect(() => {
+    if (tab !== "professors" || profData) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/student-outreach/campuses/${campus.slug}`);
+        const data = await res.json();
+        if (cancelled) return;
+        if (!res.ok) {
+          setError(data.error ?? "Failed to load campus data");
+          return;
+        }
+        const deptHeads = (data.stakeholders_by_type?.dept_head ?? []) as OutreachRow[];
+        const advisors = (data.stakeholders_by_type?.advisor ?? []) as OutreachRow[];
+        const approvals = (data.approvals_by_outreach ?? {}) as Record<
+          string,
+          Array<{ approval_for: string; status: string }>
+        >;
+        const grantedDeptHeads = deptHeads.filter((d) =>
+          (approvals[d.id] ?? []).some(
+            (a) => a.approval_for === PROFESSOR_APPROVAL_KEY && a.status === "granted",
+          ),
+        );
+        setProfData({ loaded: true, deptHeads, advisors, grantedDeptHeads });
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [tab, profData, campus.slug]);
 
   // ── Save ────────────────────────────────────────────────────────────
 
@@ -190,11 +237,21 @@ export function BulkResearchModal({ campus, onClose, onSaved }: Props) {
           {tab === "student_orgs" && (
             <StudentOrgsTab orgs={orgs} setOrgs={setOrgs} />
           )}
+          {tab === "professors" && (
+            <ProfessorsTab
+              campus={campus}
+              data={profData}
+              onSwitchToDeptHeads={() => setTab("dept_heads")}
+              onLaunchImport={() => setShowProfImport(true)}
+            />
+          )}
         </div>
 
         <footer className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
           <p className="text-xs text-gray-500">
-            {progress
+            {tab === "professors"
+              ? "Professors use a permission-gated import below."
+              : progress
               ? `Saving ${progress.done} of ${progress.total}…`
               : totalToSave === 0
               ? "No stakeholders ready yet"
@@ -206,22 +263,36 @@ export function BulkResearchModal({ campus, onClose, onSaved }: Props) {
               disabled={submitting}
               className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
-              Cancel
+              Close
             </button>
-            <button
-              onClick={save}
-              disabled={submitting || totalToSave === 0}
-              className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
-            >
-              {submitting
-                ? "Saving…"
-                : totalToSave === 0
-                ? "Save"
-                : `Save ${totalToSave}`}
-            </button>
+            {tab !== "professors" && (
+              <button
+                onClick={save}
+                disabled={submitting || totalToSave === 0}
+                className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {submitting
+                  ? "Saving…"
+                  : totalToSave === 0
+                  ? "Save"
+                  : `Save ${totalToSave}`}
+              </button>
+            )}
           </div>
         </footer>
       </div>
+
+      {showProfImport && profData && (
+        <BulkProfessorImportModal
+          parentCandidates={[...profData.grantedDeptHeads, ...profData.advisors]}
+          defaultParentId={profData.grantedDeptHeads[0]?.id}
+          onClose={() => setShowProfImport(false)}
+          onCreated={async () => {
+            setShowProfImport(false);
+            await onSaved();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -235,6 +306,17 @@ function AdvisorsTab({
   rows: AdvisorRow[];
   setRows: (r: AdvisorRow[]) => void;
 }) {
+  const onPaste = (lines: string[][]) => {
+    const newRows = lines.map<AdvisorRow>((cols) => ({
+      name: cols[0]?.trim() ?? "",
+      role: cols[1]?.trim() || "Pre-Health Advisor",
+      email: cols[2]?.trim() ?? "",
+      phone: cols[3]?.trim() ?? "",
+    }));
+    // Replace blank trailing rows; keep filled rows.
+    const filledExisting = rows.filter((r) => r.name.trim());
+    setRows([...filledExisting, ...newRows, blankAdvisor()]);
+  };
   return (
     <div className="space-y-2">
       <RowGridHeader columns={["Name", "Role", "Email", "Phone"]} />
@@ -250,12 +332,18 @@ function AdvisorsTab({
           <Cell value={row.phone} onChange={(v) => updateRow(rows, setRows, i, { ...row, phone: v })} placeholder="+1 832 467 2621" />
         </RowGrid>
       ))}
-      <button
-        onClick={() => setRows([...rows, blankAdvisor()])}
-        className="rounded-md border border-dashed border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
-      >
-        + Add row
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setRows([...rows, blankAdvisor()])}
+          className="rounded-md border border-dashed border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+        >
+          + Add row
+        </button>
+        <PasteFromSpreadsheet
+          columns={["Name", "Role", "Email", "Phone"]}
+          onAddRows={onPaste}
+        />
+      </div>
     </div>
   );
 }
@@ -269,6 +357,16 @@ function DeptHeadsTab({
   rows: DeptHeadRow[];
   setRows: (r: DeptHeadRow[]) => void;
 }) {
+  const onPaste = (lines: string[][]) => {
+    const newRows = lines.map<DeptHeadRow>((cols) => ({
+      department: cols[0]?.trim() ?? "",
+      headName: cols[1]?.trim() ?? "",
+      email: cols[2]?.trim() ?? "",
+      phone: cols[3]?.trim() ?? "",
+    }));
+    const filledExisting = rows.filter((r) => r.department.trim() || r.headName.trim());
+    setRows([...filledExisting, ...newRows, blankDeptHead()]);
+  };
   return (
     <div className="space-y-2">
       <RowGridHeader columns={["Department", "Head name", "Email", "Phone"]} />
@@ -285,12 +383,18 @@ function DeptHeadsTab({
           <Cell value={row.phone} onChange={(v) => updateRow(rows, setRows, i, { ...row, phone: v })} placeholder="+1 979 845 2721" />
         </RowGrid>
       ))}
-      <button
-        onClick={() => setRows([...rows, blankDeptHead()])}
-        className="rounded-md border border-dashed border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
-      >
-        + Add row
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setRows([...rows, blankDeptHead()])}
+          className="rounded-md border border-dashed border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+        >
+          + Add row
+        </button>
+        <PasteFromSpreadsheet
+          columns={["Department", "Head name", "Email", "Phone"]}
+          onAddRows={onPaste}
+        />
+      </div>
     </div>
   );
 }
@@ -427,6 +531,215 @@ function ProgramPicker({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+// ── Professors tab (permission gate + handoff to BulkProfessorImport) ──
+
+function ProfessorsTab({
+  campus,
+  data,
+  onSwitchToDeptHeads,
+  onLaunchImport,
+}: {
+  campus: ResearchCampusCard;
+  data: ProfessorTabData | null;
+  onSwitchToDeptHeads: () => void;
+  onLaunchImport: () => void;
+}) {
+  if (!data?.loaded) {
+    return <p className="py-6 text-center text-sm text-gray-400">Loading approvals…</p>;
+  }
+
+  // State 3 — at least one dept head with granted "Email professors directly".
+  if (data.grantedDeptHeads.length > 0) {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-md border border-emerald-200 bg-emerald-50/50 px-4 py-3 text-sm text-emerald-900">
+          <p className="font-medium">✓ You can add professors</p>
+          <p className="mt-1 text-xs">
+            {data.grantedDeptHeads.length} department head
+            {data.grantedDeptHeads.length === 1 ? " has" : "s have"} granted approval to email
+            professors at {campus.name}.
+          </p>
+        </div>
+
+        <div>
+          <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-500">
+            Approved dept heads
+          </p>
+          <ul className="space-y-1">
+            {data.grantedDeptHeads.map((d) => (
+              <li
+                key={d.id}
+                className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm"
+              >
+                <span>
+                  <span className="font-medium text-gray-900">{d.organization_name}</span>
+                  {d.department && <span className="ml-2 text-gray-500">{d.department}</span>}
+                </span>
+                <span className="text-[11px] font-medium text-emerald-700">Approved</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <button
+          onClick={onLaunchImport}
+          className="w-full rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+        >
+          Open bulk professor import →
+        </button>
+        <p className="text-center text-[11px] text-gray-500">
+          Paste names + emails to bulk-create professor rows linked to the approved dept head.
+        </p>
+      </div>
+    );
+  }
+
+  // State 1 — no dept heads at this campus yet.
+  if (data.deptHeads.length === 0) {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+          <p className="font-medium">🔒 Permission required</p>
+          <p className="mt-1 text-xs leading-relaxed">
+            You need department head approval before adding or emailing professors. Add a
+            Department Head first, then request &ldquo;Email professors directly&rdquo; permission
+            from their drawer.
+          </p>
+        </div>
+        <ol className="space-y-1.5 px-1 text-xs text-gray-700">
+          <li><strong>1.</strong> Switch to the Dept Heads tab and add a department head.</li>
+          <li><strong>2.</strong> Save and close this modal.</li>
+          <li><strong>3.</strong> Open that dept head&apos;s drawer and click &ldquo;Mark as asked&rdquo; on Email professors directly.</li>
+          <li><strong>4.</strong> Once granted, come back here to bulk-add professors.</li>
+        </ol>
+        <button
+          onClick={onSwitchToDeptHeads}
+          className="w-full rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+        >
+          Switch to Dept Heads tab →
+        </button>
+      </div>
+    );
+  }
+
+  // State 2 — dept heads exist but none have granted approval.
+  return (
+    <div className="space-y-3">
+      <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+        <p className="font-medium">🔒 Permission required</p>
+        <p className="mt-1 text-xs leading-relaxed">
+          You have {data.deptHeads.length} dept head
+          {data.deptHeads.length === 1 ? "" : "s"} at {campus.name}, but none have granted approval
+          to email professors yet.
+        </p>
+      </div>
+
+      <div>
+        <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-500">
+          Dept heads at this campus
+        </p>
+        <ul className="space-y-1">
+          {data.deptHeads.map((d) => (
+            <li
+              key={d.id}
+              className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm"
+            >
+              <span>
+                <span className="font-medium text-gray-900">{d.organization_name}</span>
+                {d.department && <span className="ml-2 text-gray-500">{d.department}</span>}
+              </span>
+              <span className="text-[11px] font-medium text-gray-500">Not approved</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <ol className="space-y-1.5 px-1 text-xs text-gray-700">
+        <li><strong>1.</strong> Close this modal.</li>
+        <li><strong>2.</strong> Open a dept head&apos;s drawer from the Stakeholders list.</li>
+        <li><strong>3.</strong> In the Permissions section, click &ldquo;Mark as asked&rdquo; on Email professors directly.</li>
+        <li><strong>4.</strong> When granted, come back here to bulk-add professors.</li>
+      </ol>
+    </div>
+  );
+}
+
+// ── Paste-from-spreadsheet helper ────────────────────────────────────────
+//
+// Excel and Google Sheets copy ranges as tab-separated values, so a paste
+// into this textarea can be split on \n + \t to reconstruct rows. Empty
+// lines are dropped.
+
+function PasteFromSpreadsheet({
+  columns,
+  onAddRows,
+}: {
+  columns: string[];
+  onAddRows: (lines: string[][]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.split("\t"))
+    .filter((cols) => cols.some((c) => c.trim()));
+
+  const reset = () => { setText(""); setOpen(false); };
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="rounded-md border border-dashed border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+        title="Paste rows copied from Excel or Google Sheets."
+      >
+        Paste from spreadsheet
+      </button>
+    );
+  }
+
+  return (
+    <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3">
+      <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-500">
+        Paste from Excel or Google Sheets
+      </p>
+      <p className="mb-2 text-[11px] text-gray-500">
+        Columns: <span className="font-medium text-gray-700">{columns.join(" | ")}</span>{" "}
+        (tab-separated, one row per line)
+      </p>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={5}
+        autoFocus
+        placeholder={"Marcus Reyes\tPre-Health Advisor\tmreyes@uh.edu\t+18324672621"}
+        className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 font-mono text-xs focus:border-gray-400 focus:outline-none"
+      />
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <p className="text-[11px] text-gray-500">
+          {lines.length === 0 ? "Paste rows above" : `${lines.length} row${lines.length === 1 ? "" : "s"} ready`}
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={reset}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => { onAddRows(lines); reset(); }}
+            disabled={lines.length === 0}
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            Add {lines.length || ""} row{lines.length === 1 ? "" : "s"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

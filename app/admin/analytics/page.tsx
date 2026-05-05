@@ -186,16 +186,6 @@ function rangeFromSearch(sp: ReturnType<typeof useSearchParams>): DateRangeValue
   return DEFAULT_RANGE;
 }
 
-function rangeToSearch(range: DateRangeValue): string {
-  const params = new URLSearchParams();
-  params.set("preset", range.preset);
-  if (range.preset === "custom") {
-    if (range.customFrom) params.set("from", range.customFrom);
-    if (range.customTo) params.set("to", range.customTo);
-  }
-  return params.toString();
-}
-
 export default function AdminAnalyticsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -203,9 +193,23 @@ export default function AdminAnalyticsPage() {
   const range = useMemo(() => rangeFromSearch(searchParams), [searchParams]);
   const setRange = useCallback(
     (next: DateRangeValue) => {
-      router.replace(`/admin/analytics?${rangeToSearch(next)}`, { scroll: false });
+      // Merge into existing params so other URL state (notably ?variant=
+      // for the Family Intake drill-in expansion) survives a date-range
+      // change. Replacing the URLSearchParams wholesale would silently
+      // collapse any open drill-in.
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("preset");
+      params.delete("from");
+      params.delete("to");
+      params.set("preset", next.preset);
+      if (next.preset === "custom") {
+        if (next.customFrom) params.set("from", next.customFrom);
+        if (next.customTo) params.set("to", next.customTo);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `/admin/analytics?${qs}` : "/admin/analytics", { scroll: false });
     },
-    [router],
+    [router, searchParams],
   );
 
   const [summary, setSummary] = useState<SummaryResponse | null>(null);

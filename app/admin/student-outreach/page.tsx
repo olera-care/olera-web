@@ -21,6 +21,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import Link from "next/link";
 import { Drawer } from "./Drawer";
 import { AddStakeholderModal } from "./AddStakeholderModal";
+import { BulkResearchModal } from "./BulkResearchModal";
 import { LogCallOutcomeModal } from "./LogCallOutcomeModal";
 import { ReplyClassifierModal } from "./ReplyClassifierModal";
 import { MarkPartnerModal } from "./MarkPartnerModal";
@@ -30,6 +31,7 @@ import {
   type DistributionEvidence,
   type DrawerContext,
   type RepliesState,
+  type ResearchCampusCard,
   type StakeholderType,
   type TabCounts,
   type TabRow,
@@ -89,11 +91,13 @@ export default function StudentOutreachPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [rows, setRows] = useState<TabRow[]>([]);
+  const [researchCampuses, setResearchCampuses] = useState<ResearchCampusCard[]>([]);
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
 
   // v8: per-row action modals (driven by row buttons, not the drawer).
   const [callOutcomeRow, setCallOutcomeRow] = useState<TabRow | null>(null);
@@ -123,6 +127,7 @@ export default function StudentOutreachPage() {
       const data = await res.json();
       setCampuses(data.campuses ?? []);
       setRows(data.rows ?? []);
+      setResearchCampuses(data.research_campuses ?? []);
       setTabCounts(data.tab_counts ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
@@ -315,7 +320,40 @@ export default function StudentOutreachPage() {
         <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
-      ) : rows.length === 0 && tab !== "replies" ? (
+      ) : tab === "research" ? (
+        <ResearchTabContent
+          rows={rows}
+          researchCampuses={researchCampuses}
+          renderRow={renderRow}
+          onContinueCampus={(c) => setBulkResearchCampus(c)}
+          onMarkResearchComplete={async (slug, name) => {
+            if (!window.confirm(`Mark research complete for ${name}? You can reopen later from the Campuses page.`)) return;
+            try {
+              const res = await fetch(`/api/admin/student-outreach/campuses/${slug}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ research_complete: true }),
+              });
+              if (!res.ok) throw new Error((await res.json()).error || "Failed to mark complete");
+              await refetch();
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Action failed");
+            }
+          }}
+          onAddCampus={async (input) => {
+            const res = await fetch(`/api/admin/student-outreach/campuses`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(input),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to add campus");
+            await refetch();
+          }}
+          onAddStakeholder={() => setShowAdd(true)}
+          tabCountsAll={tabCounts?.all ?? 0}
+        />
+      ) : rows.length === 0 ? (
         <EmptyState tab={tab} tabCounts={tabCounts} onAdd={() => setShowAdd(true)} />
       ) : tab === "replies" ? (
         <RepliesGroupedList rows={rows} renderRow={(row) => renderRow(row)} />
@@ -396,6 +434,16 @@ export default function StudentOutreachPage() {
             setShowAdd(false);
             refetch();
             setOpenOutreachId(id);
+          }}
+        />
+      )}
+      {bulkResearchCampus && (
+        <BulkResearchModal
+          campus={bulkResearchCampus}
+          onClose={() => setBulkResearchCampus(null)}
+          onSaved={async () => {
+            setBulkResearchCampus(null);
+            await refetch();
           }}
         />
       )}
@@ -1096,6 +1144,302 @@ function RepliesSection({
       )}
     </div>
   );
+}
+
+// ── Research tab content (v8.4) ─────────────────────────────────────────
+//
+// Research tab has two sections, top to bottom:
+//   1. Campus cards — one per campus where research_complete=false. Each
+//      is an entry point into the BulkResearchModal for that campus.
+//   2. Stakeholder rows — same row cards as today, one per row in
+//      prospect/researched status.
+// Inline + Add campus form sits between the two when needed.
+
+function ResearchTabContent({
+  rows,
+  researchCampuses,
+  renderRow,
+  onContinueCampus,
+  onMarkResearchComplete,
+  onAddCampus,
+  onAddStakeholder,
+  tabCountsAll,
+}: {
+  rows: TabRow[];
+  researchCampuses: ResearchCampusCard[];
+  renderRow: (row: TabRow) => ReactNode;
+  onContinueCampus: (campus: ResearchCampusCard) => void;
+  onMarkResearchComplete: (slug: string, name: string) => Promise<void>;
+  onAddCampus: (input: { name: string; slug: string; city: string; state: string }) => Promise<void>;
+  onAddStakeholder: () => void;
+  tabCountsAll: number;
+}) {
+  const showCampusSection = researchCampuses.length > 0;
+  const showStakeholderSection = rows.length > 0;
+
+  if (!showCampusSection && !showStakeholderSection) {
+    if (tabCountsAll === 0) {
+      return (
+        <div className="py-12 text-center">
+          <p className="text-sm font-medium text-gray-700">No stakeholders yet.</p>
+          <p className="mt-1 text-xs text-gray-500">
+            Add a campus below or click + Add Stakeholder to start.
+          </p>
+          <div className="mt-4 flex justify-center">
+            <AddCampusInline onSubmit={onAddCampus} />
+          </div>
+          <button
+            onClick={onAddStakeholder}
+            className="mt-3 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            + Add Stakeholder
+          </button>
+        </div>
+      );
+    }
+    return (
+      <div className="py-10 text-center">
+        <p className="text-sm font-medium text-emerald-700">✓ All caught up.</p>
+        <p className="mt-1 text-xs text-gray-500">
+          No campuses in research and no stakeholders waiting. Add a new campus below to start more research.
+        </p>
+        <div className="mt-4 flex justify-center">
+          <AddCampusInline onSubmit={onAddCampus} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {showCampusSection && (
+        <div>
+          <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Campuses in research
+          </h3>
+          <ul className="space-y-2">
+            {researchCampuses.map((c) => (
+              <li key={c.id}>
+                <ResearchCampusCardView
+                  campus={c}
+                  onContinue={() => onContinueCampus(c)}
+                  onMarkComplete={() => onMarkResearchComplete(c.slug, c.name)}
+                />
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3">
+            <AddCampusInline onSubmit={onAddCampus} />
+          </div>
+        </div>
+      )}
+
+      {showStakeholderSection && (
+        <div>
+          <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Stakeholders in research ({rows.length})
+          </h3>
+          <ul className="space-y-2">
+            {rows.map((row) => (
+              <li key={row.id}>{renderRow(row)}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {!showCampusSection && (
+        <div className="px-1">
+          <AddCampusInline onSubmit={onAddCampus} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ResearchCampusCardView({
+  campus,
+  onContinue,
+  onMarkComplete,
+}: {
+  campus: ResearchCampusCard;
+  onContinue: () => void;
+  onMarkComplete: () => void;
+}) {
+  const hasStakeholders = campus.research_stakeholder_count > 0;
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50">
+      <div className="flex items-start justify-between gap-3">
+        <button onClick={onContinue} className="min-w-0 flex-1 text-left">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <p className="truncate text-sm font-medium text-gray-900">
+              {campus.name}
+            </p>
+          </div>
+          <p className="mt-0.5 truncate text-xs text-gray-500">
+            {[campus.city, campus.state].filter(Boolean).join(", ")}
+            {hasStakeholders && ` · ${campus.research_stakeholder_count} ${campus.research_stakeholder_count === 1 ? "stakeholder" : "stakeholders"}`}
+          </p>
+          <p className="mt-0.5 text-[11px] text-gray-400">
+            {campus.last_added_at ? `Last added ${formatRelative(campus.last_added_at)}` : "Just added"}
+          </p>
+        </button>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <span className="shrink-0 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+            Research ongoing
+          </span>
+          <button
+            onClick={(e) => { e.stopPropagation(); onContinue(); }}
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+          >
+            {hasStakeholders ? "Continue →" : "Start research →"}
+          </button>
+          <CampusOverflowMenu onMarkComplete={onMarkComplete} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CampusOverflowMenu({ onMarkComplete }: { onMarkComplete: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onEsc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [open]);
+  return (
+    <div ref={ref} className="relative self-end">
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen((s) => !s); }}
+        className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+        title="More actions"
+        aria-label="More actions"
+      >
+        <span aria-hidden>⋯</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-30 mt-1 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+          <MenuItem onClick={() => { onMarkComplete(); setOpen(false); }}>
+            Mark research complete
+          </MenuItem>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AddCampusInline({
+  onSubmit,
+}: {
+  onSubmit: (input: { name: string; slug: string; city: string; state: string }) => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const reset = () => { setName(""); setCity(""); setState(""); setErr(null); };
+
+  const submit = async () => {
+    if (!name.trim()) { setErr("Campus name required"); return; }
+    setSubmitting(true);
+    setErr(null);
+    try {
+      const slug = slugify(name);
+      await onSubmit({ name: name.trim(), slug, city: city.trim(), state: state.trim() });
+      reset();
+      setOpen(false);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed to add campus");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="rounded-md border border-dashed border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50"
+      >
+        + Add campus
+      </button>
+    );
+  }
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        Add a campus
+      </p>
+      {err && <p className="mb-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">{err}</p>}
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="flex flex-col">
+          <span className="mb-1 text-[11px] font-medium text-gray-600">Campus name</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Texas A&M University"
+            autoFocus
+            className="rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="mb-1 text-[11px] font-medium text-gray-600">City</span>
+          <input
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="College Station"
+            className="rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="mb-1 text-[11px] font-medium text-gray-600">State</span>
+          <input
+            value={state}
+            onChange={(e) => setState(e.target.value.toUpperCase())}
+            maxLength={2}
+            placeholder="TX"
+            className="w-16 rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+          />
+        </label>
+        <div className="flex gap-2">
+          <button
+            onClick={submit}
+            disabled={submitting}
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {submitting ? "Adding…" : "Add"}
+          </button>
+          <button
+            onClick={() => { setOpen(false); reset(); }}
+            disabled={submitting}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-+|-+$)/g, "");
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────

@@ -144,12 +144,23 @@ export async function GET(req: NextRequest) {
     page,
     pageSize,
   });
+
+  // v8.4: Research tab gets an additional `research_campuses` array — one
+  // card per campus where research_complete=false, surfaced above the
+  // stakeholder rows as an entry-point/acceleration tool. Per-stakeholder
+  // rows are unchanged.
+  const researchCampuses =
+    tab === "research"
+      ? await fetchResearchCampuses(db, selectedCampus?.id ?? null)
+      : null;
+
   if (rowIds.length === 0) {
     return NextResponse.json({
       campuses: campusList,
       rows: [],
       total: 0,
       tab_counts: tabCounts,
+      research_campuses: researchCampuses,
     });
   }
 
@@ -166,7 +177,85 @@ export async function GET(req: NextRequest) {
     rows,
     total: rows.length,
     tab_counts: tabCounts,
+    research_campuses: researchCampuses,
   });
+}
+
+/**
+ * v8.4: campuses with research_complete=false. Returns id, slug, name,
+ * city, state, count of stakeholders still in research stage, and the
+ * most recent stakeholder created_at across all statuses (for the
+ * "Last added Xh ago" copy on the card).
+ */
+async function fetchResearchCampuses(
+  db: DB,
+  filterCampusId: string | null,
+): Promise<Array<{
+  id: string;
+  slug: string;
+  name: string;
+  state: string | null;
+  city: string | null;
+  research_stakeholder_count: number;
+  last_added_at: string | null;
+}>> {
+  let q = db
+    .from("student_outreach_campuses")
+    .select("id, slug, name, state, city")
+    .eq("is_active", true)
+    .eq("research_complete", false);
+  if (filterCampusId) q = q.eq("id", filterCampusId);
+  const { data: rows } = await q;
+  const campusRows = (rows ?? []) as Array<{
+    id: string;
+    slug: string;
+    name: string;
+    state: string | null;
+    city: string | null;
+  }>;
+  if (campusRows.length === 0) return [];
+
+  const campusIds = campusRows.map((c) => c.id);
+
+  // Single sweep: pull (campus_id, status, created_at) for all stakeholders
+  // in scope, then aggregate per campus in JS.
+  const { data: stakeholders } = await db
+    .from("student_outreach")
+    .select("campus_id, status, created_at")
+    .in("campus_id", campusIds);
+
+  const RESEARCH_STAGE = new Set<string>(["prospect", "researched"]);
+  const counts = new Map<string, number>();
+  const lastAddedAt = new Map<string, string>();
+  for (const s of (stakeholders ?? []) as Array<{
+    campus_id: string;
+    status: string;
+    created_at: string;
+  }>) {
+    if (RESEARCH_STAGE.has(s.status)) {
+      counts.set(s.campus_id, (counts.get(s.campus_id) ?? 0) + 1);
+    }
+    const cur = lastAddedAt.get(s.campus_id);
+    if (!cur || s.created_at > cur) lastAddedAt.set(s.campus_id, s.created_at);
+  }
+
+  return campusRows
+    .map((c) => ({
+      id: c.id,
+      slug: c.slug,
+      name: c.name,
+      state: c.state,
+      city: c.city,
+      research_stakeholder_count: counts.get(c.id) ?? 0,
+      last_added_at: lastAddedAt.get(c.id) ?? null,
+    }))
+    .sort((a, b) => {
+      // Most recently active first; null last_added_at sinks to the bottom.
+      const aTime = a.last_added_at ? new Date(a.last_added_at).getTime() : 0;
+      const bTime = b.last_added_at ? new Date(b.last_added_at).getTime() : 0;
+      if (aTime !== bTime) return bTime - aTime;
+      return a.name.localeCompare(b.name);
+    });
 }
 
 // ── Counts ──────────────────────────────────────────────────────────────

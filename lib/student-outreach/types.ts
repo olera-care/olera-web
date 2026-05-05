@@ -122,6 +122,7 @@ export interface Campus {
   city: string | null;
   notes: string | null;
   is_active: boolean;
+  research_complete: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -269,6 +270,23 @@ export interface TabRow extends OutreachRow {
 
 /** Legacy alias kept while cleaning up old call sites. */
 export type QueueRow = TabRow;
+
+/**
+ * v8.4 campus card shown at the top of the Research tab. Acts as a
+ * bulk-input entry point. Stakeholder rows still appear below it in the
+ * tab — campus cards don't replace the rows, they augment them.
+ */
+export interface ResearchCampusCard {
+  id: string;
+  slug: string;
+  name: string;
+  state: string | null;
+  city: string | null;
+  /** Stakeholders still in research stage (prospect + researched). */
+  research_stakeholder_count: number;
+  /** Most recent stakeholder created_at across this campus, regardless of status. */
+  last_added_at: string | null;
+}
 
 /** v7 tab counts — one number per tab in the new workflow. */
 export interface TabCounts {

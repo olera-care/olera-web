@@ -80,6 +80,7 @@ export async function PATCH(
   if (body.state !== undefined) patch.state = body.state ? String(body.state).toUpperCase() : null;
   if (body.notes !== undefined) patch.notes = body.notes ?? null;
   if (typeof body.is_active === "boolean") patch.is_active = body.is_active;
+  if (typeof body.research_complete === "boolean") patch.research_complete = body.research_complete;
 
   const db = getServiceClient();
   const { data, error } = await db

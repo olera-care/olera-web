@@ -5,7 +5,7 @@ import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { questionConfirmationEmail, questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
-import { getCategoryDisplayName } from "@/lib/types/provider";
+import { getCategoryDisplayName, PROFILE_CAT_TO_SUPABASE_CAT } from "@/lib/types/provider";
 
 /**
  * GET /api/questions?provider_id=xxx
@@ -561,15 +561,23 @@ export async function PATCH(request: NextRequest) {
           // visitors clicked "Email me these" expecting curated top-N
           // providers in their inbox — subject leads with "Top N [Category]
           // in [City]" so the inbox preview matches the in-page promise.
-          // Falls back to "providers" if category isn't display-ready
-          // (e.g., business_profiles rows with snake_case enum values).
-          // Other paths (rare, non-qa_email_capture submissions where
-          // alternatives weren't looked up) keep the original
-          // question-led subject.
-          const cleanCategory =
-            providerCategoryRaw && !providerCategoryRaw.includes("_")
-              ? getCategoryDisplayName(providerCategoryRaw)
-              : null;
+          // Two-stage category resolution mirrors the page's outreachCategoryString:
+          //   1. Snake_case enum (business_profiles.category) → display via
+          //      PROFILE_CAT_TO_SUPABASE_CAT.
+          //   2. Already display-ready (olera-providers.provider_category) →
+          //      pass through getCategoryDisplayName for simplification
+          //      (e.g., "Home Care (Non-medical)" → "Home Care").
+          // Falls back to "providers" when no category info is available.
+          let cleanCategory: string | null = null;
+          if (providerCategoryRaw) {
+            const displayReady =
+              PROFILE_CAT_TO_SUPABASE_CAT[providerCategoryRaw] ||
+              providerCategoryRaw;
+            const simplified = getCategoryDisplayName(displayReady);
+            // Avoid the "Senior Care" generic fallback when input was
+            // unknown — better to drop the category entirely.
+            if (simplified !== "Senior Care") cleanCategory = simplified;
+          }
           const subjectNoun = cleanCategory || "providers";
           const cityPhrase = providerCity ? `in ${providerCity}` : "nearby";
           const emailSubject =

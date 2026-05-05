@@ -5,7 +5,7 @@ import { Star } from "@phosphor-icons/react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { assignIntakeVariant, type IntakeVariant } from "@/lib/analytics/variant";
-import type { ProviderCardData } from "@/lib/types/provider";
+import { getCategoryDisplayName, type ProviderCardData } from "@/lib/types/provider";
 
 interface QAEntry {
   id?: string;
@@ -38,10 +38,17 @@ interface QASectionProps {
   /** Top 3 providers in the same city + category (already excludes this
    *  provider). Computed server-side via getTopProvidersByCityAndCategory.
    *  Used by the qa_email_capture arm's enrichment prompt to surface
-   *  "3 more in [City]" cards inline as preview-before-email. Pass the
-   *  same array provider page passes to AgentOutreachSlot. Empty array
-   *  is fine — fallback copy renders. */
+   *  "Top 3 [Category] in [City]" cards inline as preview-before-email.
+   *  Pass the same array provider page passes to AgentOutreachSlot. Empty
+   *  array is fine — fallback copy renders. */
   alternativeProviders?: ProviderCardData[];
+  /** Display-ready provider category, used in the qa_email_capture arm's
+   *  headline for specificity ("Top 3 Assisted Living in [City]" vs the
+   *  generic "Top 3 in [City]"). Pass the same value the provider page
+   *  passes to AgentOutreachSlot's `category` prop (i.e., the resolved
+   *  PROFILE_CAT_TO_SUPABASE_CAT lookup). null falls back gracefully to
+   *  the generic headline. */
+  providerCategory?: string | null;
 }
 
 // More menu icon component
@@ -128,6 +135,7 @@ export default function QASectionV2({
   ],
   hasBenefitsSection = false,
   alternativeProviders = [],
+  providerCategory = null,
 }: QASectionProps) {
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState("");
@@ -569,10 +577,13 @@ export default function QASectionV2({
             <>
               {alternativeProviders.length > 0 ? (
                 <div className="mt-4 pt-6 border-t border-zinc-100">
-                  {/* Headline — "Top N" implies curation, not "N more"
-                      filler. Quality signal in 3 words. */}
+                  {/* Headline — "Top N [Category] in [City]" implies curation
+                      (we ranked them), specificity (this kind of care) and
+                      relevance (where the user is). Category falls through
+                      cleanly when missing, leaving "Top N in [City]". */}
                   <h3 className="text-[20px] md:text-2xl font-semibold text-zinc-900 tracking-tight leading-tight">
                     Top {alternativeProviders.length}
+                    {providerCategory ? ` ${getCategoryDisplayName(providerCategory)}` : ""}
                     {providerCity ? ` in ${providerCity}` : " nearby"}.
                   </h3>
                   {/* Sub-line surfaces the dual-promise that's otherwise

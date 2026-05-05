@@ -758,6 +758,17 @@ async function handleRestartSequence(
   // Update email in research_data
   const researchData = { ...outreach.research_data, general_email: newEmail };
 
+  // Defensively stop any existing sequence before starting new one
+  // This is idempotent - if contact doesn't exist in Resend, it just succeeds
+  if (outreach.sequence_email) {
+    try {
+      await stopEmailSequence(outreach.sequence_email);
+    } catch (e) {
+      console.error("[restart_sequence] Failed to stop existing sequence:", e);
+      // Non-fatal - continue with restart
+    }
+  }
+
   // First update the research_data with new email
   await db
     .from("staffing_outreach")

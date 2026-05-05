@@ -27,7 +27,7 @@ const STAFFING_AUTOMATION_AUDIENCE_ID = process.env.RESEND_STAFFING_AUDIENCE_ID 
 const IS_MOCK_MODE = !STAFFING_AUTOMATION_AUDIENCE_ID;
 
 // Sender for staffing outreach emails
-const SENDER_LOGAN = "Dr. Logan DuBose <noreply@olera.care>";
+const SENDER_LOGAN = "Dr. Logan DuBose <logan@olera.care>";
 
 let resendClient: Resend | null = null;
 
@@ -224,6 +224,40 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+/**
+ * Dr. Logan's email signature with photo and credentials
+ */
+function loganSignature(): string {
+  const photoUrl = "https://olera.care/images/for-providers/team/logan.jpg";
+  const calendarUrl = "https://calendly.com/logan-dubose/olera-intro";
+
+  return `
+    <table cellpadding="0" cellspacing="0" style="margin-top:24px;border-top:1px solid #e5e7eb;padding-top:20px;">
+      <tr>
+        <td style="vertical-align:top;padding-right:16px;">
+          <img src="${photoUrl}" alt="Dr. Logan DuBose" width="100" height="100" style="border-radius:8px;display:block;" />
+        </td>
+        <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;">
+          <p style="margin:0 0 4px;font-weight:600;color:#111827;">Dr. Logan DuBose, MD, MBA</p>
+          <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
+          <p style="margin:0 0 2px;">Affiliate Faculty, <a href="https://publichealth.tamu.edu/" style="color:${BRAND_COLOR};">Texas A&amp;M School of Public Health</a></p>
+          <p style="margin:0 0 2px;">Researcher, funded by <a href="https://www.sbir.gov/" style="color:${BRAND_COLOR};">NIH SBIR Program</a></p>
+          <p style="margin:0 0 2px;">General Practitioner (GP), Licensed in VA</p>
+          <p style="margin:0 0 8px;">Co-founder, <a href="https://www.olera.care" style="color:${BRAND_COLOR};">www.olera.care</a></p>
+          <p style="margin:0 0 8px;">
+            <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};">LinkedIn</a> |
+            <a href="https://www.facebook.com/oleracare" style="color:${BRAND_COLOR};">Facebook</a> |
+            <a href="https://www.youtube.com/@oleracare" style="color:${BRAND_COLOR};">YouTube</a>
+          </p>
+          <p style="margin:0;">
+            <a href="${calendarUrl}" style="color:${BRAND_COLOR};font-weight:500;">Schedule a meeting →</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
+}
+
 function emailLayout(body: string, preheaderText?: string): string {
   const preheader = preheaderText
     ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#f9fafb;opacity:0;">${escapeHtml(preheaderText)}${"&zwnj;&nbsp;".repeat(80)}</div>`
@@ -281,7 +315,8 @@ function generateEmail1(params: {
     </ul>
     <p>Please let me know if you have any questions, would like to meet, or if there is any interest in restarting the program. If I can get your team's buy-in, then I will begin recruitment for you at ${escapeHtml(universityName)} pre-nursing and pre-medical organizations this month (and could be sending vetted candidates for summer caregiving roles ASAP)!</p>
     <p>Take care!</p>
-    <p style="margin:20px 0 0;">Best,<br/>Logan</p>
+    <p style="margin:20px 0 0;">Best,</p>
+    ${loganSignature()}
   `;
 
   return {
@@ -305,7 +340,8 @@ function generateEmail2(params: {
     <p>Just wanted to follow up in case this got buried.</p>
     <p>We're starting to connect agencies with pre-nursing students from ${escapeHtml(universityName)} who are actively looking for caregiving roles.</p>
     <p>Would it make sense to share a quick overview or schedule a brief call?</p>
-    <p style="margin:20px 0 0;">Best,<br/>Logan</p>
+    <p style="margin:20px 0 0;">Best,</p>
+    ${loganSignature()}
   `;
 
   return {

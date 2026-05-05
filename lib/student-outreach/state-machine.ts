@@ -151,9 +151,22 @@ export function tasksToCancelOnExit(stage: Status): TaskType[] {
         "outreach_followup_email",
       ];
     case "engaged":
-      return ["manual_followup"];
+      // v8.8: also cancel any lingering email/call cadence tasks. Those
+      // SHOULD have been superseded already by the action that moved the
+      // row out of outreach_sent (e.g. handleLogReply, handleFlagWantsMeeting),
+      // but this catches any edge case where a manual re-schedule left
+      // tasks in flight.
+      return [
+        "manual_followup",
+        "outreach_email_send",
+        "outreach_followup_call",
+      ];
     case "meeting_scheduled":
-      return ["meeting_held_logging"];
+      return [
+        "meeting_held_logging",
+        "outreach_email_send",
+        "outreach_followup_call",
+      ];
     case "active_partner":
       return [
         "outreach_email_send",       // v4 auto-send (seasonal)

@@ -50,8 +50,8 @@ export interface DerivedState {
  * naturally override older ones.
  *
  * "Resolution" of awaiting-callback: a more-recent (DESC: earlier in
- * scan) email_replied / call_connected without awaiting_callback /
- * note_added{reason:resume_outreach} clears the state.
+ * scan) email_replied / ig_dm_replied / contact_form_submitted /
+ * call_connected without awaiting_callback clears the state.
  */
 export function deriveStateFromTouchpoints(touchpoints: TouchpointRow[]): DerivedState {
   let meeting_state: DerivedState["meeting_state"] = "none";
@@ -111,12 +111,13 @@ export function deriveStateFromTouchpoints(touchpoints: TouchpointRow[]): Derive
       tp.touchpoint_type === "contact_form_submitted";
     const isConnectedNoCallback =
       tp.touchpoint_type === "call_connected" && !awaitingCallbackFlag;
-    const isResumeNote =
-      tp.touchpoint_type === "note_added" && reason === "resume_outreach";
+    // v8.8: removed `note_added{reason:resume_outreach}` resolver — that
+    // touchpoint is no longer generated (handleResumeOutreach was dropped
+    // along with the manual "Try again" affordance).
 
     if (isReply && last_reply_at === null) last_reply_at = tp.created_at;
 
-    if (!callbackResolved && (isReply || isConnectedNoCallback || isResumeNote)) {
+    if (!callbackResolved && (isReply || isConnectedNoCallback)) {
       callbackResolved = true;
     }
 

@@ -153,9 +153,6 @@ export async function POST(
       case "log_call":
         await handleLogCall(db, row, body, user.id);
         break;
-      case "resume_outreach":
-        await handleResumeOutreach(db, row, body, user.id);
-        break;
       case "classify_reply":
         await handleClassifyReply(db, row, body, user.id);
         break;
@@ -615,8 +612,10 @@ async function handleMarkMeetingScheduled(
       : { meeting_at: null },
   });
 
-  // v8: supersede any in-flight email cadence — the conversation has moved on.
+  // v8.8: meeting on the calendar means the conversation has moved on —
+  // stop both email and call cadences.
   await supersedePendingOutreachEmails(db, row.id, userId);
+  await supersedePendingFollowupCalls(db, row.id, userId, "meeting_scheduled");
   await touchOutreach(db, row.id, userId);
 }
 
@@ -640,8 +639,9 @@ async function handleFlagWantsMeeting(
     notes: body.notes ?? null,
     payload: { reason: "meeting_in_flight" },
   });
-  // v8: supersede any pending cadence emails — we're coordinating a meeting now.
+  // v8.8: coordinating a meeting now — stop both email and call cadences.
   await supersedePendingOutreachEmails(db, row.id, userId);
+  await supersedePendingFollowupCalls(db, row.id, userId, "wants_meeting");
   await touchOutreach(db, row.id, userId);
 }
 
@@ -851,9 +851,11 @@ async function handleLogReply(
     channel,
     notes: body.notes ?? null,
   });
-  // v8: a reply supersedes any pending email_send tasks so the cron
-  // doesn't fire after they've already replied.
+  // v8.8: an email reply supersedes BOTH pending email and call tasks.
+  // If they've replied, we don't need to keep emailing or calling — admin
+  // can still call manually, but the system shouldn't auto-prompt it.
   await supersedePendingOutreachEmails(db, row.id, userId);
+  await supersedePendingFollowupCalls(db, row.id, userId, "reply_received");
   // A reply jumps the row to engaged (cadence freezes).
   if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
     await transitionStage(db, row, "engaged", userId, body.notes ?? null);
@@ -891,12 +893,21 @@ async function supersedePendingOutreachEmails(db: DB, outreachId: string, userId
 }
 
 /**
- * v8: cancel any pending outreach_followup_call tasks for this row. Called
- * when admin logs voicemail or "they'll call back" — the row moves to
- * Replies (awaiting_callback) so we shouldn't keep prompting a call.
- * Admin's "Resume outreach" action re-queues a fresh call task.
+ * v8.8: cancel ALL pending outreach_followup_call tasks for this row.
+ * Used when the conversation has moved on and we don't need to keep
+ * calling — email reply, meeting scheduled / in flight, partner /
+ * closed transitions, "Interested" outcome, etc.
+ *
+ * Distinct from markCurrentCallTaskComplete (below), which only closes
+ * the single in-progress call (used for no_answer / voicemail /
+ * promised_callback so future scheduled calls keep firing).
  */
-async function supersedePendingFollowupCalls(db: DB, outreachId: string, userId: string) {
+async function supersedePendingFollowupCalls(
+  db: DB,
+  outreachId: string,
+  userId: string,
+  reason = "conversation_moved_on",
+) {
   const { data: cancelled } = await db
     .from("student_outreach_tasks")
     .update({
@@ -912,26 +923,71 @@ async function supersedePendingFollowupCalls(db: DB, outreachId: string, userId:
     await insertTouchpoint(db, outreachId, "task_superseded", userId, {
       payload: {
         cancelled_task_ids: cancelled.map((c) => (c as { id: string }).id),
-        reason: "awaiting_callback",
+        reason,
       },
     });
   }
 }
 
 /**
- * v8: log a phone-call outcome from the Calls-tab Log Call Outcome modal.
+ * v8.8: mark the single most-overdue pending outreach_followup_call task
+ * complete. Used when the admin logs no_answer / voicemail /
+ * promised_callback — the *current* call is done, but FUTURE scheduled
+ * call days should still fire on cadence. This is the new
+ * "natural-cadence" behavior that replaces the old supersede-all logic
+ * for those outcomes.
  *
- * Six outcomes drive different downstream effects:
- *   - no_answer            → log call_no_answer (cadence continues)
- *   - voicemail            → log call_voicemail{awaiting_callback:true},
- *                             supersede pending call task → row moves to
- *                             Replies as `awaiting_callback`
- *   - promised_callback    → log call_connected{awaiting_callback:true},
- *                             supersede pending call task → Replies tab
- *   - connected_engaged    → log call_connected, transition to engaged,
- *                             supersede pending email tasks
- *   - connected_not_interested → log call_connected, transition to not_interested
- *   - wrong_number         → log call_wrong_number, transition to wrong_contact
+ * Returns true when a task was found and marked complete.
+ */
+async function markCurrentCallTaskComplete(
+  db: DB,
+  outreachId: string,
+  userId: string,
+): Promise<boolean> {
+  const nowIso = new Date().toISOString();
+  const { data: dueRows } = await db
+    .from("student_outreach_tasks")
+    .select("id")
+    .eq("outreach_id", outreachId)
+    .eq("status", "pending")
+    .eq("task_type", "outreach_followup_call")
+    .lte("due_at", nowIso)
+    .order("due_at", { ascending: false })
+    .limit(1);
+  const due = (dueRows ?? []) as Array<{ id: string }>;
+  if (due.length === 0) return false;
+  await db
+    .from("student_outreach_tasks")
+    .update({ status: "completed", completed_at: nowIso, completed_by: userId })
+    .eq("id", due[0].id);
+  return true;
+}
+
+/**
+ * v8.8: log a phone-call outcome from the Calls-tab Log Call Outcome modal.
+ *
+ * Seven outcomes drive different downstream effects:
+ *   - no_answer            → log call_no_answer + mark CURRENT call task
+ *                             complete (future call days still fire)
+ *   - voicemail            → log call_voicemail{awaiting_callback:true} +
+ *                             mark CURRENT call task complete → row to
+ *                             Replies as awaiting_callback (kind=voicemail);
+ *                             future scheduled calls remain queued
+ *   - promised_callback    → log call_connected{awaiting_callback:true} +
+ *                             mark CURRENT call task complete → engaged;
+ *                             row to Replies awaiting_callback (kind=promised);
+ *                             future scheduled calls remain queued
+ *   - connected_engaged ("Interested") → log call_connected + mark current
+ *                             call task complete + supersede ALL future
+ *                             pending email + call tasks → engaged
+ *   - convert_to_partner   → log call_connected + mark current call task
+ *                             complete; the FE chains into MarkPartnerModal
+ *                             which then issues mark_partner with evidence
+ *   - connected_not_interested → log call_connected + transition to
+ *                             not_interested (stage transition cancels
+ *                             remaining tasks via tasksToCancelOnExit)
+ *   - wrong_number         → log call_wrong_number + transition to
+ *                             wrong_contact (same)
  *
  * Also supports the legacy `disposition` shape from OutreachStepList.
  */
@@ -958,7 +1014,7 @@ async function handleLogCall(
         outcome,
         notes: body.notes ?? null,
       });
-      // Cadence continues. If we were still researched/prospect, advance to outreach_sent.
+      await markCurrentCallTaskComplete(db, row.id, userId);
       if (row.status === "researched" || row.status === "prospect") {
         await transitionStage(db, row, "outreach_sent", userId);
       } else {
@@ -974,7 +1030,7 @@ async function handleLogCall(
         notes: body.notes ?? null,
         payload: { awaiting_callback: true },
       });
-      await supersedePendingFollowupCalls(db, row.id, userId);
+      await markCurrentCallTaskComplete(db, row.id, userId);
       if (row.status === "researched" || row.status === "prospect") {
         await transitionStage(db, row, "outreach_sent", userId);
       } else {
@@ -990,8 +1046,7 @@ async function handleLogCall(
         notes: body.notes ?? null,
         payload: { awaiting_callback: true },
       });
-      await supersedePendingFollowupCalls(db, row.id, userId);
-      // Connected — even briefly — moves us to engaged.
+      await markCurrentCallTaskComplete(db, row.id, userId);
       if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
         await transitionStage(db, row, "engaged", userId, body.notes ?? null);
       } else {
@@ -1006,13 +1061,31 @@ async function handleLogCall(
         outcome,
         notes: body.notes ?? null,
       });
+      await markCurrentCallTaskComplete(db, row.id, userId);
+      // Conversation has moved on — stop the cadence.
       await supersedePendingOutreachEmails(db, row.id, userId);
-      await supersedePendingFollowupCalls(db, row.id, userId);
+      await supersedePendingFollowupCalls(db, row.id, userId, "connected_engaged");
       if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
         await transitionStage(db, row, "engaged", userId, body.notes ?? null);
       } else {
         await touchOutreach(db, row.id, userId);
       }
+      return;
+    }
+    case "convert_to_partner": {
+      // v8.8: log the call + close the current call task only. The FE then
+      // mounts MarkPartnerModal which issues `mark_partner` with evidence
+      // — that path runs the active_partner stage transition, queues the
+      // first seasonal email, and cancels remaining tasks via
+      // tasksToCancelOnExit.
+      await insertTouchpoint(db, row.id, "call_connected", userId, {
+        contact_id: body.contact_id ?? null,
+        channel: "phone",
+        outcome,
+        notes: body.notes ?? null,
+      });
+      await markCurrentCallTaskComplete(db, row.id, userId);
+      await touchOutreach(db, row.id, userId);
       return;
     }
     case "connected_not_interested": {
@@ -1051,43 +1124,10 @@ function legacyDispositionToOutcome(disposition: string | undefined): string | n
   }
 }
 
-/**
- * v8: admin clicked "Still nothing — resume outreach" on an
- * awaiting-callback Replies row. Logs a resolver note (clears the
- * awaiting-callback state) and re-queues a follow-up call task so
- * the row reappears in the Calls tab.
- */
-async function handleResumeOutreach(
-  db: DB,
-  row: OutreachRow,
-  body: { notes?: string },
-  userId: string,
-) {
-  await insertTouchpoint(db, row.id, "note_added", userId, {
-    notes: body.notes ?? null,
-    payload: { reason: "resume_outreach" },
-  });
-  // Re-queue a fresh call task (3 days out). Skip if there's already a pending one.
-  const { data: existing } = await db
-    .from("student_outreach_tasks")
-    .select("id")
-    .eq("outreach_id", row.id)
-    .eq("status", "pending")
-    .eq("task_type", "outreach_followup_call");
-  if ((existing ?? []).length === 0) {
-    await queueTask(
-      db,
-      row.id,
-      {
-        task_type: "outreach_followup_call",
-        due_at: new Date(Date.now() + 3 * DAY_MS),
-        payload: { reason: "resumed_after_callback" },
-      },
-      userId,
-    );
-  }
-  await touchOutreach(db, row.id, userId);
-}
+// v8.8: handleResumeOutreach removed. With voicemail/promised_callback
+// only marking the *current* call task complete (not all future calls),
+// the next scheduled phone day naturally re-engages the row. Manual
+// "Try again" is no longer a needed affordance.
 
 /**
  * v8: ReplyClassifierModal callback. Maps the four user choices to
@@ -1191,12 +1231,25 @@ async function handleScheduleSequence(
     throw new Error("Sequence already scheduled — cancel or wait for it to complete first");
   }
 
+  // v8.8: only queue phone tasks when at least one active contact has a
+  // phone number. Avoids phantom rows in the Calls tab.
+  const { data: phoneContactRows } = await db
+    .from("student_outreach_contacts")
+    .select("id")
+    .eq("outreach_id", row.id)
+    .eq("status", "active")
+    .not("phone", "is", null)
+    .neq("phone", "")
+    .limit(1);
+  const hasPhone = (phoneContactRows ?? []).length > 0;
+
   // Plan + insert tasks.
   const plan = planSequence({
     outreach_id: row.id,
     stakeholder_type: row.stakeholder_type,
     email_snapshots: snapshots,
     user_id: userId,
+    has_phone: hasPhone,
   });
   const inserts = plan.map((p) => ({
     outreach_id: row.id,

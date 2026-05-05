@@ -1,21 +1,26 @@
 "use client";
 
 /**
- * LogCallOutcomeModal — v8.
+ * LogCallOutcomeModal — v8.8.
  *
- * Opens from a Calls-tab row click. The admin makes the call, then picks
- * one of six outcomes that route the row appropriately:
+ * Opens from a Calls-tab row click. Admin picks one of seven outcomes;
+ * the parent component handles the routing (see [id]/route.ts handleLogCall):
  *
- *   No answer            → cadence continues, row stays in Calls if more calls due
- *   Voicemail            → row moves to Replies as awaiting_callback
- *   Promised callback    → row moves to Replies as awaiting_callback (kind=promised)
- *   Connected — engaged  → row → engaged stage, supersedes pending emails
- *   Connected — not interested → row → not_interested
- *   Wrong number         → row → wrong_contact
+ *   No answer                 → mark current call task complete, row leaves Calls
+ *                               until next phone day
+ *   Left voicemail            → mark current call task complete, row → Replies
+ *                               as awaiting_callback (kind=voicemail)
+ *   Promised callback         → mark current call task complete, →engaged,
+ *                               row → Replies awaiting_callback (kind=promised)
+ *   Interested                → →engaged, supersede future call + email tasks
+ *   Convert to Active Partner → mark current call task complete, log
+ *                               call_connected, then chain into MarkPartnerModal
+ *                               for evidence capture
+ *   Not interested            → →not_interested (closes; cancels pending tasks)
+ *   Wrong number              → →wrong_contact (closes; cancels pending tasks)
  *
- * "Connected — booked a meeting" is intentionally omitted: from the
- * Connected — engaged state, admin clicks "They replied" → "Already
- * booked" via the standard reply-classifier flow. This keeps one path.
+ * The "Convert to Active Partner" path emits onChooseConvert instead of
+ * onSubmit so the parent can mount MarkPartnerModal next.
  */
 
 import { useState } from "react";
@@ -25,7 +30,18 @@ interface Props {
   contactName: string | null;
   contactPhone: string | null;
   onCancel: () => void;
+  /**
+   * Called for outcomes that resolve in one shot (no answer / voicemail /
+   * promised / interested / not interested / wrong number).
+   */
   onSubmit: (outcome: string, notes: string) => Promise<void>;
+  /**
+   * Called when the admin picks "Convert to Active Partner" — parent
+   * should close this modal and open MarkPartnerModal next, then on
+   * MarkPartnerModal confirm: POST log_call (outcome=convert_to_partner)
+   * AND mark_partner. Keeps evidence capture in the dedicated modal.
+   */
+  onChooseConvert: (notes: string) => void;
 }
 
 interface Outcome {
@@ -38,35 +54,40 @@ const DIDNT_REACH: Outcome[] = [
   {
     key: "no_answer",
     label: "No answer",
-    blurb: "Cadence keeps running. Next call queued automatically.",
+    blurb: "Marks this call complete. Row reappears in Calls on the next scheduled phone day.",
   },
   {
     key: "voicemail",
     label: "Left a voicemail",
-    blurb: "Row moves to Replies. Watch Gmail for the voicemail-to-email notification.",
+    blurb: "Row moves to Replies as awaiting callback. Future call days still fire on schedule.",
   },
 ];
 
 const REACHED_THEM: Outcome[] = [
   {
-    key: "connected_engaged",
-    label: "Connected — they're engaged",
-    blurb: "Stops the email cadence. Use the reply-classifier next.",
-  },
-  {
     key: "promised_callback",
     label: "Promised to call back",
-    blurb: "Row moves to Replies as awaiting callback.",
+    blurb: "Row moves to Replies as awaiting callback. Future call days still fire on schedule.",
+  },
+  {
+    key: "connected_engaged",
+    label: "Interested",
+    blurb: "Stops the email and call cadence. Use the reply-classifier next.",
+  },
+  {
+    key: "convert_to_partner",
+    label: "Convert to Active Partner ★",
+    blurb: "They committed to sharing with students — opens the partner-evidence step next.",
   },
   {
     key: "connected_not_interested",
     label: "Not interested",
-    blurb: "Closes the row.",
+    blurb: "Closes the row. Cancels remaining email and call tasks.",
   },
   {
     key: "wrong_number",
     label: "Wrong number",
-    blurb: "Marks contacts unreachable on this number.",
+    blurb: "Marks the contact unreachable on this number. Closes the row.",
   },
 ];
 
@@ -76,6 +97,7 @@ export function LogCallOutcomeModal({
   contactPhone,
   onCancel,
   onSubmit,
+  onChooseConvert,
 }: Props) {
   const [outcome, setOutcome] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
@@ -85,6 +107,12 @@ export function LogCallOutcomeModal({
   const submit = async () => {
     if (!outcome) {
       setError("Pick an outcome.");
+      return;
+    }
+    // v8.8: 'Convert to Active Partner' chains into MarkPartnerModal so
+    // evidence capture lives there; we don't run the one-shot onSubmit.
+    if (outcome === "convert_to_partner") {
+      onChooseConvert(notes.trim());
       return;
     }
     setSubmitting(true);

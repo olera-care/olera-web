@@ -47,9 +47,10 @@ export const OUTREACH_DAYS_BY_TYPE: Record<StakeholderType, OutreachDay[]> = {
   student_org: [
     {
       day: 0,
-      title: "Day 0 · intro email to officers",
+      title: "Day 0 · intro email + paired call",
       steps: [
         { id: "email", channel: "email", required: true, template: "intro" },
+        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
       ],
     },
     {
@@ -60,10 +61,24 @@ export const OUTREACH_DAYS_BY_TYPE: Record<StakeholderType, OutreachDay[]> = {
       ],
     },
     {
+      day: 5,
+      title: "Day 5 · call attempt",
+      steps: [
+        { id: "phone", channel: "phone", required: true },
+      ],
+    },
+    {
       day: 7,
       title: "Day 7 · social-proof follow-up",
       steps: [
         { id: "email", channel: "email", required: true, template: "followup_socialproof" },
+      ],
+    },
+    {
+      day: 8,
+      title: "Day 8 · call attempt",
+      steps: [
+        { id: "phone", channel: "phone", required: true },
       ],
     },
     {
@@ -107,8 +122,11 @@ export const OUTREACH_DAYS_BY_TYPE: Record<StakeholderType, OutreachDay[]> = {
   dept_head: [
     {
       day: 0,
-      title: "Day 0 · formal intro email",
-      steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
+      title: "Day 0 · formal intro email + paired call",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "intro" },
+        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
+      ],
     },
     {
       day: 5,
@@ -129,8 +147,11 @@ export const OUTREACH_DAYS_BY_TYPE: Record<StakeholderType, OutreachDay[]> = {
   professor: [
     {
       day: 0,
-      title: "Day 0 · intro email (post-permission)",
-      steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
+      title: "Day 0 · intro email + paired call (post-permission)",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "intro" },
+        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
+      ],
     },
     {
       day: 3,
@@ -139,13 +160,21 @@ export const OUTREACH_DAYS_BY_TYPE: Record<StakeholderType, OutreachDay[]> = {
     },
     {
       day: 7,
-      title: "Day 7 · email follow-up",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_socialproof" }],
+      title: "Day 7 · email follow-up + call",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "followup_socialproof" },
+        { id: "phone", channel: "phone", required: true },
+      ],
     },
     {
       day: 10,
       title: "Day 10 · final email",
       steps: [{ id: "email", channel: "email", required: true, template: "followup_final" }],
+    },
+    {
+      day: 11,
+      title: "Day 11 · call attempt",
+      steps: [{ id: "phone", channel: "phone", required: true }],
     },
   ],
 };

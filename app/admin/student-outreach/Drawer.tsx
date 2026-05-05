@@ -479,7 +479,7 @@ function StageGuidance({
         : "you left them a voicemail";
       return (
         <Guidance>
-          <strong>Waiting for a callback.</strong> You called and {kindText}. Watch Gmail for callback or voicemail-to-email notifications. If nothing arrives, close this drawer and click <em>Try again</em> on the row to re-queue a call.
+          <strong>Waiting for a callback.</strong> You called and {kindText}. Watch Gmail for callback or voicemail-to-email notifications. The next scheduled phone day will automatically re-engage this row.
         </Guidance>
       );
     }

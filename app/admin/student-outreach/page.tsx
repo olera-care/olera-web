@@ -28,6 +28,7 @@ import { MarkPartnerModal } from "./MarkPartnerModal";
 import { PRESET_UNIVERSITIES } from "@/lib/student-outreach/universities";
 import {
   STAKEHOLDER_TYPE_LABELS,
+  STATUS_LABELS,
   type Campus,
   type DistributionEvidence,
   type DrawerContext,
@@ -176,11 +177,6 @@ export default function StudentOutreachPage() {
         onLogCallOutcome={() => setCallOutcomeRow(row)}
         onClassifyReply={(source) => setClassifierRow({ row, source })}
         onMarkPartner={() => setPartnerRow(row)}
-        onResumeOutreach={async () => {
-          if (!window.confirm("Try again? Re-queues a follow-up call in 3 days.")) return;
-          try { await callAction(row.id, "resume_outreach"); }
-          catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
-        }}
         onStopOutreach={async (reason) => {
           const action = STOP_OUTREACH_ACTIONS[reason];
           const label = STOP_OUTREACH_LABELS[reason];
@@ -403,6 +399,23 @@ export default function StudentOutreachPage() {
             });
             setCallOutcomeRow(null);
           }}
+          onChooseConvert={async (notes) => {
+            // v8.8: log the call FIRST (server marks current call task
+            // complete + writes call_connected touchpoint w/o transitioning
+            // stage), then chain into MarkPartnerModal which captures
+            // evidence and runs the active_partner transition.
+            try {
+              await callAction(callOutcomeRow.id, "log_call", {
+                outcome: "convert_to_partner",
+                notes,
+              });
+              const r = callOutcomeRow;
+              setCallOutcomeRow(null);
+              setPartnerRow(r);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+            }
+          }}
         />
       )}
       {classifierRow && (
@@ -582,7 +595,6 @@ interface RowCardCallbacks {
   onLogCallOutcome: () => void;
   onClassifyReply: (source: "email_reply" | "callback") => void;
   onMarkPartner: () => void;
-  onResumeOutreach: () => Promise<void>;
   onStopOutreach: (reason: StopOutreachReason) => Promise<void>;
   onMarkScheduledFromInFlight: () => void;
   onSendFollowupEmail: () => void;
@@ -983,10 +995,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         rightActions: (
           <>
             <PrimaryAction onClick={() => cb.onClassifyReply("callback")}>Got a callback?</PrimaryAction>
-            <OverflowMenu
-              items={[{ label: "Try again", onClick: () => { void cb.onResumeOutreach(); } }]}
-              onStopOutreach={cb.onStopOutreach}
-            />
+            <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />
           </>
         ),
       };
@@ -1061,7 +1070,7 @@ function partnersSlots(row: TabRow): RowSlots {
 
 function allSlots(row: TabRow): RowSlots {
   return {
-    pills: <Pill title="Stage in the funnel.">{row.status}</Pill>,
+    pills: <Pill title="Stage in the funnel.">{STATUS_LABELS[row.status] ?? row.status}</Pill>,
     footnote: row.last_activity_at ? (
       <p className="mt-0.5 text-[11px] text-gray-400">
         Last activity {formatRelative(row.last_activity_at)}

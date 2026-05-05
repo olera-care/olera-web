@@ -39,6 +39,12 @@ export interface SequencerInput {
   /** Admin's edited (or unedited) snapshots for each email day in the cadence. */
   email_snapshots: EmailSnapshot[];
   user_id: string;
+  /**
+   * v8.8: phone tasks are only queued when at least one active contact has
+   * a phone number. Decided at schedule time by the API action; if false,
+   * planSequence skips every phone step in the cadence.
+   */
+  has_phone?: boolean;
 }
 
 export interface QueuedTask {
@@ -77,6 +83,9 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
           },
         });
       } else if (step.channel === "phone") {
+        // v8.8: skip phone tasks when no contact has a phone on file.
+        // Avoids phantom call rows in the Calls tab.
+        if (input.has_phone === false) continue;
         tasks.push({
           task_type: "outreach_followup_call",
           due_at: dueAt,

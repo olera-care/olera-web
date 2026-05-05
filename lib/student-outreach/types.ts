@@ -337,7 +337,7 @@ export const STATUS_LABELS: Record<Status | LegacyStatus, string> = {
   prospect: "Prospect",
   researched: "Researched",
   outreach_sent: "Outreach Sent",
-  engaged: "Engaged",
+  engaged: "Interested",
   meeting_scheduled: "Meeting Scheduled",
   active_partner: "Active Partner",
   not_interested: "Not Interested",

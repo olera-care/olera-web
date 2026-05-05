@@ -351,6 +351,19 @@ export default function StudentOutreachPage() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Failed to add campus");
             await refetch();
+            // v8.5: a brand-new campus has 0 stakeholders, so it won't
+            // appear as a card in the Research tab on its own. Auto-open
+            // the bulk modal so the admin can immediately add stakeholders
+            // — that's what "Add campus" implies as the next step.
+            setBulkResearchCampus({
+              id: data.campus.id,
+              slug: data.campus.slug,
+              name: data.campus.name,
+              state: data.campus.state,
+              city: data.campus.city,
+              research_stakeholder_count: 0,
+              last_added_at: null,
+            });
           }}
           onAddStakeholder={() => setShowAdd(true)}
           tabCountsAll={tabCounts?.all ?? 0}

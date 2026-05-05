@@ -265,6 +265,13 @@ async function fetchResearchCampuses(
       research_stakeholder_count: counts.get(c.id) ?? 0,
       last_added_at: lastAddedAt.get(c.id) ?? null,
     }))
+    // v8.5: only surface campuses with at least one stakeholder currently
+    // in research stage. Brand-new empty campuses (just added, never had
+    // a stakeholder) stay hidden until research is initiated. Same for
+    // campuses where every stakeholder has advanced past research — the
+    // card naturally disappears, leaving the Research tab focused on
+    // active work.
+    .filter((c) => c.research_stakeholder_count > 0)
     .sort((a, b) => {
       // Most recently active first; null last_added_at sinks to the bottom.
       const aTime = a.last_added_at ? new Date(a.last_added_at).getTime() : 0;

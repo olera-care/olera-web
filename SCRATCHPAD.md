@@ -1221,6 +1221,30 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Session Log
 
+### 2026-05-01 → 2026-05-02 — Texas expansion (293 cities) — full Atlas batch shipped
+
+**Scope:** Atlas-flagged TX batch from `map.olera.care`, 293 cities. 50 fresh (Atlas `missing` + 1 `covered` Mission Bend that DB said was empty), 243 expand (29 thin + 56 moderate + 158 covered).
+
+**Two-phase run:**
+- **Phase A (Fresh, 50 cities):** discovery → pipeline-batch `--phase all`. 1,332 active providers loaded. 1h17m + 20.4m discovery. Cost: $48.64 + $134.51 = $183.15.
+- **Phase B (Expand, 243 cities):** discovery `--force` → pipeline-batch `--force --cities="..." --phase all`. Killed mid-enrich on a false-alarm panic, resumed at `--phase enrich`. 6,260 → 9,341 active (+3,081). 2h20m discovery + 2h13m clean+load + 3h58m enrich resume. Cost: $269.02 + $29.69 + $185.23 = $483.94.
+
+**Combined: 6,316 → 10,729 statewide TX active (+4,413 net). Total spend: $667.09.** Atlas estimated $7,325 — ran ~9% of estimate.
+
+**Key numbers from the run:**
+- 1,239 trust signals confirmed senior care; 1,665 false positives soft-deleted by entity verification (wedding venues / DME / community centers)
+- 2,201 review snippets fetched; 1,877 photos resolved to permanent lh3 URLs
+- 146 expand cities with real expansion (+5 or more); 18 dedup-blocked (Atlas correctly labeled "covered"); 22 with small -delta (max -12 Fresno, all from entity-verify cleanup)
+- Top expand winners: San Antonio +74, Houston +70, Arlington +63, Dallas +62, El Paso +61, Austin +50, Amarillo +44
+
+**Notion state:** 50 fresh pages created + flipped to Complete with Done boxes. 66 individual TX expand pages reset to "Upload to Backend" mid-run, then restored to Complete. 2 "Texas Group" rollup pages also patched (172 of the 243 expand cities live in those rollups, not as individual rows — left them rolled up vs creating 172 new pages).
+
+**Slack notified:** Logan tagged in #ai-product-development for provider outreach handoff.
+
+**Mistake to remember:** mid-enrich QC reported "massive deletions" (Garland 196 → 21, etc.) and I raised a 5-alarm panic. **Bug was in my QC query** — I used `provider_id LIKE 'garland-tx-%'` while the legacy Garland providers use random-prefix IDs (`4trRGPZ-...`, `pLaafyS-...`) from an older import format. Cross-checking by `city='Garland', state='TX'` showed 217 active (not 21) — pipeline was fine. Killed and resumed pipeline lost ~30 min. **Lesson:** baseline used `city=` field, but I built the QC with `provider_id LIKE` — always match the QC pattern to the baseline pattern, OR use `city=`/`state=` as the canonical truth. Saved this as a memory.
+
+**Branch:** `fast-dijkstra` (worktree off staging). No code changes — pipeline-running session only. SCRATCHPAD update only.
+
 ### 2026-04-27 — Sweep #1 wrap (resume → execution → pipeline updates)
 
 **Resumed** the data-sweep work paused at end of 2026-04-26. TJ had paused review on the deletions + reclass-from-deletions MDs after flagging Lexie Rae's Care Home as another regex amnesia gap.

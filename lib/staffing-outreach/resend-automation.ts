@@ -122,12 +122,12 @@ export async function startEmailSequence(
       return { success: false, error: error.message };
     }
 
-    // Trigger the automation with custom data for email personalization
+    // Send custom event to trigger the automation
     // The automation is set up with a "contact.created" custom event trigger
-    if (STAFFING_AUTOMATION_ID && RESEND_API_KEY) {
+    if (RESEND_API_KEY) {
       try {
-        const triggerResponse = await fetch(
-          `https://api.resend.com/automations/${STAFFING_AUTOMATION_ID}/trigger`,
+        const eventResponse = await fetch(
+          "https://api.resend.com/events",
           {
             method: "POST",
             headers: {
@@ -135,7 +135,8 @@ export async function startEmailSequence(
               Authorization: `Bearer ${RESEND_API_KEY}`,
             },
             body: JSON.stringify({
-              to: params.email,
+              name: "contact.created",
+              email: params.email,
               data: {
                 firstName: params.providerName,
                 university_name: params.universityName,
@@ -146,15 +147,15 @@ export async function startEmailSequence(
           }
         );
 
-        if (!triggerResponse.ok) {
-          const errorText = await triggerResponse.text();
-          console.error("[resend-automation] Failed to trigger automation:", errorText);
+        if (!eventResponse.ok) {
+          const errorText = await eventResponse.text();
+          console.error("[resend-automation] Failed to send event:", errorText);
         } else {
-          console.log(`[resend-automation] Triggered automation for ${params.email}`);
+          console.log(`[resend-automation] Sent contact.created event for ${params.email}`);
         }
-      } catch (triggerErr) {
-        console.error("[resend-automation] Error triggering automation:", triggerErr);
-        // Don't fail the whole operation if trigger fails - contact was still added
+      } catch (eventErr) {
+        console.error("[resend-automation] Error sending event:", eventErr);
+        // Don't fail the whole operation if event fails - contact was still added
       }
     }
 

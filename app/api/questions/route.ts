@@ -556,16 +556,25 @@ export async function PATCH(request: NextRequest) {
           }
 
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          // Subject reflects what the user clicked. qa_email_capture
+          // visitors clicked "Send the list" expecting providers in their
+          // inbox — the subject leads with that. Other paths (rare,
+          // non-qa_email_capture submissions where alternatives weren't
+          // looked up) keep the original question-led subject.
+          const emailSubject =
+            alternatives.length > 0
+              ? `${alternatives.length} similar provider${alternatives.length === 1 ? "" : "s"}${providerCity ? ` in ${providerCity}` : " nearby"}`
+              : `Your question to ${providerName || "a provider"} on Olera`;
           const enrichEmailLogId = await reserveEmailLogId({
             to: updates.asker_email,
-            subject: `Your question to ${providerName || "a provider"} on Olera`,
+            subject: emailSubject,
             emailType: "question_confirmation",
             recipientType: "family",
           });
 
           await sendEmail({
             to: updates.asker_email,
-            subject: `Your question to ${providerName || "a provider"} on Olera`,
+            subject: emailSubject,
             html: questionConfirmationEmail({
               askerName: updates.asker_name || "there",
               providerName: providerName || "the provider",

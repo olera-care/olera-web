@@ -116,6 +116,20 @@ export function Drawer({ outreachId, tabContext = "all", onClose, onAction }: Dr
               <p className="truncate text-sm text-gray-500">
                 {ctx.campus.name} · {STAKEHOLDER_TYPE_LABELS[ctx.outreach.stakeholder_type]}
                 {ctx.outreach.department && ` · ${ctx.outreach.department}`}
+                {(() => {
+                  // v8.7.1: surface the primary contact's name in the
+                  // header subtitle for dept_head + student_org so admins
+                  // see WHO this stakeholder is (the head / president)
+                  // without scrolling into the Research section.
+                  const t = ctx.outreach.stakeholder_type;
+                  if (t !== "dept_head" && t !== "student_org") return null;
+                  const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
+                  if (!primary) return null;
+                  const display =
+                    [primary.first_name, primary.last_name].filter(Boolean).join(" ") || primary.name;
+                  if (!display) return null;
+                  return ` · ${display}`;
+                })()}
               </p>
             </div>
           ) : (

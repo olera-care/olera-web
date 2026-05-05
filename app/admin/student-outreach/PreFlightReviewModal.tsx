@@ -125,8 +125,14 @@ export function PreFlightReviewModal({
   };
 
   const previewContact = eligible[0] ?? null;
+  // v8.7.1: prefer the explicit first_name column over firstNameOf(name)
+  // — same logic the email-send pipeline uses, so the preview matches
+  // what actually gets sent.
+  const previewFirstName =
+    (previewContact?.first_name && previewContact.first_name.trim()) ||
+    firstNameOf(previewContact?.name);
   const previewVars = {
-    first_name: firstNameOf(previewContact?.name),
+    first_name: previewFirstName,
     organization_name: organizationName,
     campus_name: campusName,
     admin_first_name: "the Olera team",
@@ -161,7 +167,10 @@ export function PreFlightReviewModal({
               <p className="text-gray-700">
                 Will send to <strong>{eligible.length}</strong> active contact{eligible.length === 1 ? "" : "s"}:{" "}
                 <span className="text-gray-500">
-                  {eligible.map((c) => c.name + " (" + c.email + ")").join(" · ")}
+                  {eligible.map((c) => {
+                    const display = [c.first_name, c.last_name].filter(Boolean).join(" ") || c.name;
+                    return `${display} (${c.email})`;
+                  }).join(" · ")}
                 </span>
               </p>
             )}
@@ -230,7 +239,9 @@ export function PreFlightReviewModal({
                       <div className="rounded-md border border-gray-100 bg-gray-50 p-2 text-xs">
                         <p className="font-medium text-gray-600">Subject:</p>
                         <p className="text-gray-800">{substituteVars(s.subject, previewVars)}</p>
-                        <p className="mt-2 font-medium text-gray-600">Body (for {previewContact.name}):</p>
+                        <p className="mt-2 font-medium text-gray-600">
+                          Body (for {[previewContact.first_name, previewContact.last_name].filter(Boolean).join(" ") || previewContact.name}):
+                        </p>
                         <pre className="mt-1 whitespace-pre-wrap text-gray-800">{substituteVars(s.body, previewVars)}</pre>
                       </div>
                     )}

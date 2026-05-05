@@ -642,7 +642,12 @@ function StakeholderCard({
           </p>
           <p className="mt-0.5 truncate text-xs text-gray-500">
             {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
-            {row.primary_contact_name && ` · ${row.primary_contact_name}`}
+            {/* v8.7.1: skip primary_contact_name when it matches the
+                organization name — for advisor/professor the org_name IS
+                the person's name, so showing it twice is redundant. */}
+            {row.primary_contact_name &&
+              row.primary_contact_name !== row.organization_name &&
+              ` · ${row.primary_contact_name}`}
           </p>
           {footnote}
         </button>

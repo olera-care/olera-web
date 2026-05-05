@@ -552,6 +552,22 @@ async function handleUpdateOutreach(
   if (body.department !== undefined) patch.department = body.department || null;
   if (Array.isArray(body.programs)) patch.programs = body.programs;
   if (body.notes !== undefined) patch.notes = body.notes;
+
+  // v8.7.1: when a dept head's department changes, auto-update the
+  // organization_name to match (unless the caller explicitly passed
+  // an organization_name to override). Keeps the card title in sync
+  // with the source-of-truth field.
+  if (
+    row.stakeholder_type === "dept_head" &&
+    body.department !== undefined &&
+    typeof patch.organization_name !== "string"
+  ) {
+    const dept = (body.department ?? "").trim();
+    if (dept) {
+      patch.organization_name = `${dept} Department`;
+    }
+  }
+
   if (Object.keys(patch).length === 0) return;
   await touchOutreach(db, row.id, userId, patch);
 }
@@ -1456,6 +1472,7 @@ async function handleUpdateContact(
   }
   // v8.7: keep `name` in sync with first_name + last_name when those are
   // provided and `name` wasn't explicitly set in the same patch.
+  let derivedName: string | null = null;
   if (
     body.name === undefined &&
     (body.first_name !== undefined || body.last_name !== undefined)
@@ -1463,13 +1480,45 @@ async function handleUpdateContact(
     const first = (body.first_name ?? "").trim();
     const last = (body.last_name ?? "").trim();
     const derived = [first, last].filter(Boolean).join(" ");
-    if (derived) patch.name = derived;
+    if (derived) {
+      patch.name = derived;
+      derivedName = derived;
+    }
   }
   await db
     .from("student_outreach_contacts")
     .update(patch)
     .eq("id", body.contact_id)
     .eq("outreach_id", row.id);
+
+  // v8.7.1: when the primary contact's name changes on a single-contact
+  // type (advisor/professor), keep the stakeholder's display name in
+  // sync. Without this, renaming Marcus→Mark in the inline form leaves
+  // the card and drawer header showing the old name.
+  if (
+    (row.stakeholder_type === "advisor" || row.stakeholder_type === "professor") &&
+    (body.first_name !== undefined || body.last_name !== undefined || body.name !== undefined)
+  ) {
+    const { data: contactRow } = await db
+      .from("student_outreach_contacts")
+      .select("is_primary, name")
+      .eq("id", body.contact_id)
+      .single();
+    const isPrimary = (contactRow as { is_primary: boolean } | null)?.is_primary === true;
+    if (isPrimary) {
+      const newOrgName =
+        body.name?.trim() ||
+        derivedName ||
+        (contactRow as { name: string } | null)?.name?.trim();
+      if (newOrgName && newOrgName !== row.organization_name) {
+        await db
+          .from("student_outreach")
+          .update({ organization_name: newOrgName })
+          .eq("id", row.id);
+      }
+    }
+  }
+
   await touchOutreach(db, row.id, userId);
 }
 

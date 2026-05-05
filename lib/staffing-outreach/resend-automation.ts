@@ -122,12 +122,12 @@ export async function startEmailSequence(
       return { success: false, error: error.message };
     }
 
-    // Send custom event to trigger the automation
-    // The automation is set up with a "contact.created" custom event trigger
-    if (RESEND_API_KEY) {
+    // Trigger the automation run directly
+    // Use /automations/{id}/runs to start the sequence for this contact
+    if (STAFFING_AUTOMATION_ID && RESEND_API_KEY) {
       try {
-        const eventResponse = await fetch(
-          "https://api.resend.com/events",
+        const runResponse = await fetch(
+          `https://api.resend.com/automations/${STAFFING_AUTOMATION_ID}/runs`,
           {
             method: "POST",
             headers: {
@@ -135,8 +135,7 @@ export async function startEmailSequence(
               Authorization: `Bearer ${RESEND_API_KEY}`,
             },
             body: JSON.stringify({
-              name: "contact.created",
-              email: params.email,
+              to: params.email,
               data: {
                 firstName: params.providerName,
                 university_name: params.universityName,
@@ -147,15 +146,15 @@ export async function startEmailSequence(
           }
         );
 
-        if (!eventResponse.ok) {
-          const errorText = await eventResponse.text();
-          console.error("[resend-automation] Failed to send event:", errorText);
+        if (!runResponse.ok) {
+          const errorText = await runResponse.text();
+          console.error("[resend-automation] Failed to start automation run:", errorText);
         } else {
-          console.log(`[resend-automation] Sent contact.created event for ${params.email}`);
+          console.log(`[resend-automation] Started automation run for ${params.email}`);
         }
-      } catch (eventErr) {
-        console.error("[resend-automation] Error sending event:", eventErr);
-        // Don't fail the whole operation if event fails - contact was still added
+      } catch (runErr) {
+        console.error("[resend-automation] Error starting automation run:", runErr);
+        // Don't fail the whole operation if run fails - contact was still added
       }
     }
 

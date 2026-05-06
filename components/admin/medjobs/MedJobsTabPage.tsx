@@ -406,6 +406,36 @@ export function MedJobsTabPage({
               setError(e instanceof Error ? e.message : "Failed to start outreach");
             }
           }}
+          onStartProviderOutreachBulk={async (rowsToMaterialize) => {
+            // v9.0 Phase 7 Commit H: bulk materialize. Loops the
+            // single-row endpoint sequentially — N round trips, but
+            // typical bulk sizes are 5-20 so the latency is fine and
+            // we avoid a separate batch endpoint. Failures stop the
+            // run and surface inline; partial work is preserved
+            // server-side (idempotent endpoint).
+            try {
+              for (const p of rowsToMaterialize) {
+                const res = await fetch(
+                  "/api/admin/medjobs/provider-prospects/materialize",
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      provider_id: p.provider_id,
+                      campus_id: p.campus_id,
+                    }),
+                  },
+                );
+                if (!res.ok) {
+                  const body = await res.json().catch(() => ({}));
+                  throw new Error(body.error || "Failed to materialize");
+                }
+              }
+              await refetch();
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Bulk materialize failed");
+            }
+          }}
           tabCountsAll={tabCounts?.all ?? 0}
         />
       ) : tab === "replies" ? (

@@ -42,7 +42,14 @@ export function SiteCard({
   let ctaText: string;
   let ctaAction: () => void;
 
-  if (row.stage === "active") {
+  // v9.0 Phase 7 Commit H: active sites with pending site_tasks get
+  // their own pill so they're visually distinguishable from idle
+  // active territories.
+  if (row.stage === "active" && row.has_pending_task) {
+    pillText = "Active · pending task";
+    ctaText = "View site →";
+    ctaAction = onViewSite;
+  } else if (row.stage === "active") {
     pillText = "Active";
     ctaText = "View site →";
     ctaAction = onViewSite;
@@ -75,11 +82,18 @@ export function SiteCard({
   }
   const subtitle = subtitleParts.join(" · ") || null;
 
+  // v9.0 Phase 7 Commit H: throughput-queue footnote. Most-specific
+  // signal wins — recent stakeholder add → recency; unlocked-but-empty
+  // → urgency cue; otherwise queue age so stale rows are obvious.
   const footnote = row.last_added_at
     ? `Last added ${formatRelative(row.last_added_at)}`
     : row.client_count > 0
-      ? "Stage 2 unlocked · no stakeholders yet"
-      : "No activity yet";
+      ? row.queue_age_days != null && row.queue_age_days > 14
+        ? `Stage 2 unlocked · ${row.queue_age_days}d idle`
+        : "Stage 2 unlocked · no stakeholders yet"
+      : row.queue_age_days != null
+        ? `Added ${row.queue_age_days}d ago · no activity`
+        : "No activity yet";
 
   return (
     <MedjobsCard

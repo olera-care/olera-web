@@ -246,6 +246,11 @@ export interface CampusRow {
   client_count: number;
   stakeholder_count: number;
   last_added_at: string | null;
+  /** v9.0 Phase 7 Commit H: ≥1 pending site_task on this campus. */
+  has_pending_task?: boolean;
+  /** v9.0 Phase 7 Commit H: days since the territory was activated.
+   *  Drives the queue-age footnote on idle SiteCards. */
+  queue_age_days?: number | null;
 }
 
 /**

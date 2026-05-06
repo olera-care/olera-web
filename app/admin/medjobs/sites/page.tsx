@@ -132,6 +132,7 @@ export default function SitesPage() {
 
       {showAdd && (
         <AddSiteModal
+          existingSlugs={new Set(rows.map((r) => r.slug))}
           onClose={() => setShowAdd(false)}
           onCreated={() => {
             setShowAdd(false);

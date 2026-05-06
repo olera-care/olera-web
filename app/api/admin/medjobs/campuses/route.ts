@@ -30,21 +30,36 @@ export async function GET(_request: NextRequest) {
 
     const db = getServiceClient();
 
-    const [{ data: campuses }, { data: providers }, { data: stakeholders }] =
-      await Promise.all([
-        db
-          .from("student_outreach_campuses")
-          .select("id, slug, name, state, city, research_complete, is_active")
-          .eq("is_active", true)
-          .order("name", { ascending: true }),
-        db
-          .from("business_profiles")
-          .select("city, state, metadata")
-          .in("type", ["organization", "caregiver"]),
-        db
-          .from("student_outreach")
-          .select("campus_id, status, created_at"),
-      ]);
+    const [
+      { data: campuses },
+      { data: providers },
+      { data: stakeholders },
+      { data: pendingSiteTasks },
+    ] = await Promise.all([
+      db
+        .from("student_outreach_campuses")
+        .select("id, slug, name, state, city, research_complete, is_active, created_at")
+        .eq("is_active", true)
+        .order("name", { ascending: true }),
+      db
+        .from("business_profiles")
+        .select("city, state, metadata")
+        .in("type", ["organization", "caregiver"]),
+      db
+        .from("student_outreach")
+        .select("campus_id, status, created_at"),
+      // v9.0 Phase 7 Commit H: pending site_tasks drive the
+      // "Active with pending tasks" priority tier.
+      db
+        .from("site_tasks")
+        .select("campus_id")
+        .eq("status", "pending"),
+    ]);
+
+    const sitesWithPendingTasks = new Set<string>();
+    for (const t of (pendingSiteTasks ?? []) as Array<{ campus_id: string }>) {
+      sitesWithPendingTasks.add(t.campus_id);
+    }
 
     type ProviderLite = {
       city: string | null;
@@ -96,6 +111,7 @@ export async function GET(_request: NextRequest) {
       city: string | null;
       research_complete: boolean;
       is_active: boolean;
+      created_at: string | null;
     }>).map((c) => {
       const uni = PARTNER_UNIVERSITIES.find((u) => u.slug === c.slug);
       let clientCount = 0;
@@ -117,6 +133,15 @@ export async function GET(_request: NextRequest) {
             ? "stakeholder_prospecting"
             : "provider_prospecting";
 
+      // v9.0 Phase 7 Commit H: queue_age_days = days since the
+      // territory was activated. Used by the SiteCard footnote on
+      // idle items so stale rows are visually obvious.
+      const queueAgeDays =
+        c.created_at != null
+          ? Math.max(0, Math.floor((now - new Date(c.created_at).getTime()) / 86400_000))
+          : null;
+      const hasPendingTask = sitesWithPendingTasks.has(c.id);
+
       return {
         id: c.id,
         slug: c.slug,
@@ -128,32 +153,47 @@ export async function GET(_request: NextRequest) {
         client_count: clientCount,
         stakeholder_count: stakeholderCount,
         last_added_at: lastAddedAt,
+        // v9.0 Phase 7 Commit H: throughput-queue fields.
+        has_pending_task: hasPendingTask,
+        queue_age_days: queueAgeDays,
       };
     });
 
-    // Sort: research-needed first (Stage 2 unlocked, no stakeholders),
-    // then in-progress research, then provider_prospecting, then active.
+    // v9.0 Phase 7 Commit H: throughput-queue priority sort. Default
+    // ordering (no manual toggle) is what most directly serves
+    // operational triage:
+    //   0  Stage 2 with no stakeholders     (research needed — most urgent)
+    //   1  Stage 2 with research in flight
+    //   2  Active w/ pending site_tasks    (need admin action)
+    //   3  Active idle                      (working as intended)
+    //   4  Stage 1 (provider-prospecting)   (no clients yet)
+    // Within a tier, oldest-in-queue first so stale items rise.
     const stagePriority: Record<string, number> = {
       stakeholder_prospecting_empty: 0,
       stakeholder_prospecting_progress: 1,
-      provider_prospecting: 2,
-      active: 3,
+      active_with_tasks: 2,
+      active_idle: 3,
+      provider_prospecting: 4,
+    };
+    const tierKey = (r: (typeof rows)[number]): string => {
+      if (r.stage === "stakeholder_prospecting" && r.stakeholder_count === 0) {
+        return "stakeholder_prospecting_empty";
+      }
+      if (r.stage === "stakeholder_prospecting") {
+        return "stakeholder_prospecting_progress";
+      }
+      if (r.stage === "active") {
+        return r.has_pending_task ? "active_with_tasks" : "active_idle";
+      }
+      return r.stage; // provider_prospecting
     };
     rows.sort((a, b) => {
-      const akey =
-        a.stage === "stakeholder_prospecting" && a.stakeholder_count === 0
-          ? "stakeholder_prospecting_empty"
-          : a.stage === "stakeholder_prospecting"
-            ? "stakeholder_prospecting_progress"
-            : a.stage;
-      const bkey =
-        b.stage === "stakeholder_prospecting" && b.stakeholder_count === 0
-          ? "stakeholder_prospecting_empty"
-          : b.stage === "stakeholder_prospecting"
-            ? "stakeholder_prospecting_progress"
-            : b.stage;
-      const r = (stagePriority[akey] ?? 99) - (stagePriority[bkey] ?? 99);
-      if (r !== 0) return r;
+      const tierDelta =
+        (stagePriority[tierKey(a)] ?? 99) - (stagePriority[tierKey(b)] ?? 99);
+      if (tierDelta !== 0) return tierDelta;
+      // Within a tier: oldest queue age first (stale items rise).
+      const ageDelta = (b.queue_age_days ?? 0) - (a.queue_age_days ?? 0);
+      if (ageDelta !== 0) return ageDelta;
       return a.name.localeCompare(b.name);
     });
 

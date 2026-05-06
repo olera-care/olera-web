@@ -43,7 +43,17 @@ import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
 import { getTemplate } from "@/lib/student-outreach/templates";
 import type { EmailSnapshot } from "@/lib/student-outreach/sequencer";
 
-type TabKey = "research" | "calls" | "replies" | "meetings" | "partners" | "archive" | "all";
+type TabKey =
+  | "candidates"
+  | "prospects"
+  | "calls"
+  | "replies"
+  | "meetings"
+  | "partners"
+  | "archive"
+  | "all"
+  | "all_archived"
+  | "outbound";
 
 // v8.10.9: emojis dropped — tab styling matches the Questions page
 // (plain label + count, gray text, gray underline on active).
@@ -53,14 +63,34 @@ interface TabDef {
   tooltip: string;
 }
 
+// v8.10.33: tab row reflects the actual operational pipeline, with
+// the two leftmost tabs framing the two upstream funnels:
+//   - Candidates: students who signed up / applied (MedJobs / posted
+//     candidates). Different dataset from outreach. Currently a
+//     "Coming soon" placeholder — will wire up to the student-signup
+//     pipeline later.
+//   - Prospects: stakeholders being researched and qualified before
+//     outreach starts. Same data + cards + workflow as the previous
+//     "Research" tab — only the label and position changed.
+// Archive / All / All Archived / Outbound moved into the ⋯ menu
+// (MENU_TABS) — secondary surfaces that don't compete with the
+// primary workflow.
 const TABS: TabDef[] = [
-  { key: "research",  label: "Research",        tooltip: "New stakeholders that still need research before email outreach starts." },
-  { key: "calls",     label: "Calls",           tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
-  { key: "replies",   label: "Replies",         tooltip: "Email replies, callbacks, voicemails. Triage what they said and pick the next step." },
-  { key: "meetings",  label: "Meetings",        tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
-  { key: "partners",  label: "Partners",        tooltip: "Stakeholders sharing with students. Click Engage to work pending partner tasks (task board posting, materials, follow-ups)." },
-  { key: "archive",   label: "Archive",         tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Replies if they reply or call back later." },
-  { key: "all",       label: "All",             tooltip: "Search and filter every stakeholder across all stages." },
+  { key: "candidates", label: "Candidates",       tooltip: "Students who signed up or applied — the candidate-side pipeline. (Coming soon.)" },
+  { key: "prospects",  label: "Prospects",        tooltip: "Stakeholders being researched and qualified before outreach starts." },
+  { key: "partners",   label: "Partners",         tooltip: "Stakeholders sharing with students. Click Engage to work pending partner tasks (task board posting, materials, follow-ups)." },
+  { key: "meetings",   label: "Meetings",         tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
+  { key: "replies",    label: "Replies",          tooltip: "Email replies, callbacks, voicemails. Triage what they said and pick the next step." },
+  { key: "calls",      label: "Calls",            tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
+];
+
+// Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
+// the end of the tab row.
+const MENU_TABS: TabDef[] = [
+  { key: "archive",      label: "Archive",        tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Replies if they reply or call back later." },
+  { key: "all",          label: "All",            tooltip: "Search and filter every stakeholder across all stages." },
+  { key: "all_archived", label: "All Archived",   tooltip: "Every stakeholder closed permanently — Not interested, Wrong contact, DNC, etc. (Coming soon.)" },
+  { key: "outbound",     label: "Outbound",       tooltip: "Email + outreach activity log. Replied threads float to the top. (Coming soon.)" },
 ];
 
 const TYPE_FILTERS: Array<{ key: StakeholderType | "all"; label: string }> = [
@@ -94,7 +124,10 @@ export default function StudentOutreachPage() {
   const [campuses, setCampuses] = useState<Campus[]>([]);
   const [campusSlug, setCampusSlug] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<StakeholderType | "all">("all");
-  const [tab, setTab] = useState<TabKey>("research");
+  // v8.10.33: default to Prospects since Candidates is still a
+  // "Coming soon" placeholder (student-applicant pipeline isn't wired
+  // up yet). Switch the default once the candidates dataset lands.
+  const [tab, setTab] = useState<TabKey>("prospects");
   // v8.10.9: PulseHeader date range. KPI = student signups in range.
   const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
   const [showClosed, setShowClosed] = useState(false);
@@ -279,11 +312,20 @@ export default function StudentOutreachPage() {
             campus page is reachable from the Campuses sidebar item. */}
       </div>
 
-      {/* v8.10.9: tab styling matches the Questions page — plain label
-          + small gray count, gray underline on active. No emojis. */}
-      <div className="mb-8 flex gap-1 overflow-x-auto border-b border-gray-100">
+      {/* v8.10.33: primary tabs in workflow order. Secondary surfaces
+          (Archive / All / All Archived / Outbound) live in the ⋯ menu
+          to the right so they don't compete with the operational tabs. */}
+      <div className="mb-8 flex items-center gap-1 overflow-x-auto border-b border-gray-100">
         {TABS.map((t) => {
-          const count = tabCounts?.[t.key];
+          // v8.10.33: candidates is the student-applicant pipeline,
+          // not part of the stakeholder TabCounts. The other primary
+          // tab keys all live on TabCounts.
+          const count =
+            t.key === "candidates"
+              ? null
+              : tabCounts?.[
+                  t.key as Exclude<TabKey, "candidates" | "all_archived" | "outbound">
+                ];
           const active = t.key === tab;
           return (
             <button
@@ -305,6 +347,12 @@ export default function StudentOutreachPage() {
             </button>
           );
         })}
+        <TabOverflowMenu
+          tabs={MENU_TABS}
+          activeTab={tab}
+          onSelect={setTab}
+          tabCounts={tabCounts}
+        />
       </div>
 
       {/* v8.10.8: per-tab banners removed entirely. Calls + Meetings
@@ -331,7 +379,7 @@ export default function StudentOutreachPage() {
         <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
-      ) : tab === "research" ? (
+      ) : tab === "prospects" ? (
         <ResearchTabContent
           rows={rows}
           researchCampuses={researchCampuses}
@@ -578,13 +626,16 @@ function EmptyState({
     );
   }
   const blurbs: Record<TabKey, string> = {
-    research: "No stakeholders need research right now.",
+    candidates: "Coming soon — student-applicant pipeline.",
+    prospects: "No prospects need research right now.",
     calls: "No phone calls due. 🎉",
     replies: "No inbox triage right now. The cadence is humming along.",
     meetings: "No meetings in flight or booked.",
     partners: "No partners yet. Mark a stakeholder as Partner when they commit to sharing.",
     archive: "Archive is empty — no stale or no-response outreach yet.",
     all: "No matches.",
+    all_archived: "Coming soon.",
+    outbound: "Coming soon.",
   };
   return <p className="py-12 text-center text-sm text-gray-400">{blurbs[tab]}</p>;
 }
@@ -975,7 +1026,7 @@ function buildUniversalOverflow(
 }
 
 function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): RowSlots {
-  if (tab === "research") return researchSlots(row, cb);
+  if (tab === "prospects") return researchSlots(row, cb);
   if (tab === "calls") return callsSlots(row, cb);
   if (tab === "replies") return repliesSlots(row, cb);
   if (tab === "meetings") return meetingsSlots(row, cb);
@@ -1639,6 +1690,91 @@ function CampusOverflowMenu({ onMarkComplete }: { onMarkComplete: () => void }) 
           <MenuItem onClick={() => { onMarkComplete(); setOpen(false); }}>
             Mark research complete
           </MenuItem>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * v8.10.33: Tab-row overflow menu. Surfaces secondary views (Archive,
+ * All, All Archived, Outbound) without crowding the primary workflow
+ * tabs. Active selection from the menu shows the underline on the ⋯
+ * button so the admin still sees which view they're in.
+ */
+function TabOverflowMenu({
+  tabs,
+  activeTab,
+  onSelect,
+  tabCounts,
+}: {
+  tabs: TabDef[];
+  activeTab: TabKey;
+  onSelect: (tab: TabKey) => void;
+  tabCounts: TabCounts | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const isActive = tabs.some((t) => t.key === activeTab);
+  const activeLabel = tabs.find((t) => t.key === activeTab)?.label;
+  useEffect(() => {
+    if (!open) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [open]);
+  return (
+    <div ref={ref} className="relative ml-auto">
+      <button
+        onClick={() => setOpen((s) => !s)}
+        title="More views"
+        aria-label="More views"
+        className={`whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
+          isActive
+            ? "border-gray-900 text-gray-900"
+            : "border-transparent text-gray-400 hover:text-gray-600"
+        }`}
+      >
+        {activeLabel ?? "⋯"}
+        <span className="ml-1.5 text-xs text-gray-400">▾</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-30 mt-1 w-56 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+          {tabs.map((t) => {
+            const count =
+              t.key === "candidates" || t.key === "all_archived" || t.key === "outbound"
+                ? null
+                : tabCounts?.[
+                    t.key as Exclude<TabKey, "candidates" | "all_archived" | "outbound">
+                  ];
+            const active = t.key === activeTab;
+            return (
+              <button
+                key={t.key}
+                onClick={() => { onSelect(t.key); setOpen(false); }}
+                title={t.tooltip}
+                className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-sm ${
+                  active
+                    ? "bg-gray-50 font-medium text-gray-900"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <span>{t.label}</span>
+                {typeof count === "number" && count > 0 && (
+                  <span className="text-xs text-gray-400">{count}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

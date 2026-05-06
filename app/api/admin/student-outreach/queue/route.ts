@@ -72,7 +72,7 @@ const PARTNER_ALL: string[] = [...PARTNER_STATUSES, "agreed", "distributed"];
 type DB = ReturnType<typeof getServiceClient>;
 
 export interface TabCounts {
-  research: number;
+  prospects: number;
   calls: number;
   replies: number;
   meetings: number;
@@ -116,7 +116,14 @@ export async function GET(req: NextRequest) {
 
   const db = getServiceClient();
   const url = new URL(req.url);
-  const tab = url.searchParams.get("tab") ?? "research";
+  // v8.10.33: tab=prospects is the new label for what was previously
+  // tab=research (prospect/researched stakeholders being qualified).
+  // The server filter still keys on the same status set; the rename is
+  // purely operational language. Accept both for backward compatibility.
+  // (tab=candidates is a separate upcoming view — student applicants —
+  // currently returns no rows; UI shows a "Coming soon" placeholder.)
+  const rawTab = url.searchParams.get("tab") ?? "prospects";
+  const tab = rawTab === "research" ? "prospects" : rawTab;
   const campusSlug = url.searchParams.get("campus");
   const typeFilter = url.searchParams.get("type") as StakeholderType | null;
   const search = (url.searchParams.get("search") ?? "").trim();
@@ -161,7 +168,7 @@ export async function GET(req: NextRequest) {
   // stakeholder rows as an entry-point/acceleration tool. Per-stakeholder
   // rows are unchanged.
   let researchCampuses: Awaited<ReturnType<typeof fetchResearchCampuses>> | null = null;
-  if (tab === "research") {
+  if (tab === "prospects") {
     try {
       researchCampuses = await fetchResearchCampuses(db, selectedCampus?.id ?? null);
     } catch (e) {
@@ -301,7 +308,7 @@ async function computeTabCounts(
   db: DB,
   filters: { campusId: string | null; type: StakeholderType | null },
 ): Promise<TabCounts> {
-  const counts: TabCounts = { research: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0 };
+  const counts: TabCounts = { prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0 };
 
   // Single status scan in scope.
   let q = db.from("student_outreach").select("id, status");
@@ -316,7 +323,7 @@ async function computeTabCounts(
   let inProgressIds: string[] = [];
   for (const row of (scan ?? []) as Array<{ id: string; status: string }>) {
     counts.all++;
-    if (research.has(row.status)) counts.research++;
+    if (research.has(row.status)) counts.prospects++;
     else if (partner.has(row.status)) counts.partners++;
     else if (replies.has(row.status)) {
       counts.replies++;
@@ -424,8 +431,16 @@ async function fetchRowIdsForTab(
   const { tab, campusId, type, search, showClosed, page, pageSize } = opts;
 
   switch (tab) {
-    case "research":
+    case "prospects":
       return await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize });
+    case "candidates":
+    case "all_archived":
+    case "outbound":
+      // v8.10.33: placeholder slots — UI shows "Coming soon" so the
+      // server returns no rows for these views. Real datasets ship later.
+      // (Candidates = student-applicant pipeline; All Archived = every
+      // permanently-closed row; Outbound = email/outreach activity log.)
+      return [];
     case "partners":
       return await idsByStatus(db, PARTNER_ALL as Status[], { campusId, type, search, page, pageSize });
     case "all": {

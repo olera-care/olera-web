@@ -104,6 +104,23 @@ function DayRow({
             onOpenPartnerModal={onOpenPartnerModal}
           />
         ))}
+        {/* v8.10.33: subtle "coming soon" hints for future Day 0 channels.
+            Mail + Fax aren't queued by the cron yet; they're surfaced here
+            so admins know they'll eventually fire alongside email + phone. */}
+        {day.day === 0 && (
+          <>
+            <li className="text-xs text-gray-300">
+              <span className="mr-1.5">○</span>
+              <span>Mail</span>
+              <span className="ml-1.5 italic">— coming soon</span>
+            </li>
+            <li className="text-xs text-gray-300">
+              <span className="mr-1.5">○</span>
+              <span>Fax</span>
+              <span className="ml-1.5 italic">— coming soon</span>
+            </li>
+          </>
+        )}
       </ul>
     </li>
   );

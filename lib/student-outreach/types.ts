@@ -299,9 +299,13 @@ export interface ResearchCampusCard {
 }
 
 /** v7 tab counts — one number per tab in the new workflow.
- *  v8.10.6: archive tab added between Active Partners and All. */
+ *  v8.10.33: "prospects" is the new label for what was previously
+ *  "research" (prospect/researched stakeholders being qualified).
+ *  "candidates" is a separate upcoming tab for the student-applicant
+ *  pipeline (MedJobs / posted-candidate workflow) — different dataset,
+ *  not a rename. */
 export interface TabCounts {
-  research: number;
+  prospects: number;
   calls: number;
   replies: number;
   meetings: number;

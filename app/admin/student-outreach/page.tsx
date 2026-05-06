@@ -39,6 +39,9 @@ import {
   type TabCounts,
   type TabRow,
 } from "@/lib/student-outreach/types";
+import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
+import { getTemplate } from "@/lib/student-outreach/templates";
+import type { EmailSnapshot } from "@/lib/student-outreach/sequencer";
 
 type TabKey = "research" | "calls" | "replies" | "meetings" | "partners" | "archive" | "all";
 
@@ -346,6 +349,29 @@ export default function StudentOutreachPage() {
               await refetch();
             } catch (e) {
               setError(e instanceof Error ? e.message : "Action failed");
+            }
+          }}
+          onBulkStartOutreach={async (selectedRows) => {
+            // v8.10.31: bulk fire schedule_sequence with the default
+            // template snapshots for each row's stakeholder type +
+            // organization + campus. No per-email review — the admin
+            // already opted into bulk by selecting multiple rows.
+            const errors: string[] = [];
+            for (const row of selectedRows) {
+              try {
+                const snapshots = buildDefaultEmailSnapshots({
+                  stakeholder_type: row.stakeholder_type,
+                  organization_name: row.organization_name,
+                  campus_name: row.campus_name,
+                });
+                await callAction(row.id, "schedule_sequence", { email_snapshots: snapshots });
+              } catch (e) {
+                const msg = e instanceof Error ? e.message : "Failed";
+                errors.push(`${row.organization_name}: ${msg}`);
+              }
+            }
+            if (errors.length > 0) {
+              setError(`${errors.length} of ${selectedRows.length} failed. ${errors.slice(0, 3).join("; ")}`);
             }
           }}
           tabCountsAll={tabCounts?.all ?? 0}
@@ -1274,12 +1300,40 @@ function RepliesGroupedList({
 // /admin/student-outreach/campuses page also no longer offers manual
 // campus creation.
 
+/**
+ * v8.10.31: build the default email-template snapshots for one stakeholder.
+ * Mirrors the initialization logic in PreFlightReviewModal — same templates,
+ * same days. Used by the Research-tab bulk-start flow when admin doesn't
+ * want to review each email individually before firing.
+ */
+function buildDefaultEmailSnapshots(args: {
+  stakeholder_type: StakeholderType;
+  organization_name: string;
+  campus_name: string;
+}): EmailSnapshot[] {
+  const days = OUTREACH_DAYS_BY_TYPE[args.stakeholder_type] ?? [];
+  const out: EmailSnapshot[] = [];
+  for (const d of days) {
+    for (const step of d.steps) {
+      if (step.channel !== "email" || !step.template) continue;
+      const tpl = getTemplate(step.template, {
+        stakeholder_type: args.stakeholder_type,
+        organization_name: args.organization_name,
+        campus_name: args.campus_name,
+      });
+      out.push({ day: d.day, template: step.template, subject: tpl.subject, body: tpl.body });
+    }
+  }
+  return out;
+}
+
 function ResearchTabContent({
   rows,
   researchCampuses,
   renderRow,
   onContinueCampus,
   onMarkResearchComplete,
+  onBulkStartOutreach,
   tabCountsAll,
 }: {
   rows: TabRow[];
@@ -1287,8 +1341,53 @@ function ResearchTabContent({
   renderRow: (row: TabRow) => ReactNode;
   onContinueCampus: (campus: ResearchCampusCard) => void;
   onMarkResearchComplete: (slug: string, name: string) => Promise<void>;
+  onBulkStartOutreach: (selectedRows: TabRow[]) => Promise<void>;
   tabCountsAll: number;
 }) {
+  const [filter, setFilter] = useState<"all" | "ready">("all");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
+
+  const readyRows = useMemo(() => rows.filter((r) => r.status === "researched"), [rows]);
+  const visibleRows = filter === "ready" ? readyRows : rows;
+
+  // Drop selections that no longer match (eg. after refetch a row left the tab).
+  const visibleIds = useMemo(() => new Set(visibleRows.map((r) => r.id)), [visibleRows]);
+  const effectiveSelected = useMemo(
+    () => new Set(Array.from(selectedIds).filter((id) => visibleIds.has(id))),
+    [selectedIds, visibleIds],
+  );
+
+  const toggleRow = (id: string) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const allReadySelected =
+    readyRows.length > 0 && readyRows.every((r) => effectiveSelected.has(r.id));
+  const toggleSelectAllReady = () => {
+    if (allReadySelected) setSelectedIds(new Set());
+    else setSelectedIds(new Set(readyRows.map((r) => r.id)));
+  };
+
+  const runBulk = async () => {
+    const selected = readyRows.filter((r) => effectiveSelected.has(r.id));
+    if (selected.length === 0) return;
+    if (!window.confirm(
+      `Start outreach for ${selected.length} stakeholder${selected.length === 1 ? "" : "s"}? Day-0 emails fire immediately; later days auto-send on schedule.`,
+    )) return;
+    setBulkRunning(true);
+    try {
+      await onBulkStartOutreach(selected);
+      setSelectedIds(new Set());
+    } finally {
+      setBulkRunning(false);
+    }
+  };
+
   const showCampusSection = researchCampuses.length > 0;
   const showStakeholderSection = rows.length > 0;
 
@@ -1347,14 +1446,121 @@ function ResearchTabContent({
               Stakeholders in research ({rows.length})
             </h3>
           )}
-          <ul className="space-y-2">
-            {rows.map((row) => (
-              <li key={row.id}>{renderRow(row)}</li>
-            ))}
-          </ul>
+
+          {/* v8.10.31: filter pills + bulk-action toolbar. Toggling
+              "Ready to email" scopes the list to researched stakeholders
+              who already have a contact + programs; checkboxes appear so
+              admin can fire schedule_sequence on N rows at once with the
+              default template snapshots. */}
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <FilterPill
+              active={filter === "all"}
+              onClick={() => setFilter("all")}
+              label="All"
+              count={rows.length}
+            />
+            <FilterPill
+              active={filter === "ready"}
+              onClick={() => setFilter("ready")}
+              label="Ready to email"
+              count={readyRows.length}
+            />
+            {filter === "ready" && readyRows.length > 0 && (
+              <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-xs text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={allReadySelected}
+                  onChange={toggleSelectAllReady}
+                  className="rounded border-gray-300"
+                />
+                Select all ({readyRows.length})
+              </label>
+            )}
+          </div>
+
+          {effectiveSelected.size > 0 && (
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2">
+              <span className="text-sm font-medium text-emerald-900">
+                {effectiveSelected.size} selected
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelectedIds(new Set())}
+                  disabled={bulkRunning}
+                  className="text-xs font-medium text-emerald-900 underline hover:no-underline disabled:opacity-50"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={runBulk}
+                  disabled={bulkRunning}
+                  className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {bulkRunning
+                    ? `Starting outreach for ${effectiveSelected.size}…`
+                    : `Start outreach for ${effectiveSelected.size}`}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {visibleRows.length === 0 ? (
+            <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-400">
+              {filter === "ready"
+                ? "No stakeholders are ready to email yet."
+                : "No stakeholders in research."}
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {visibleRows.map((row) => {
+                const isReady = row.status === "researched";
+                return (
+                  <li key={row.id} className="flex items-start gap-2">
+                    {isReady && (
+                      <input
+                        type="checkbox"
+                        checked={effectiveSelected.has(row.id)}
+                        onChange={() => toggleRow(row.id)}
+                        className="mt-4 shrink-0 rounded border-gray-300"
+                        title="Select for bulk Start outreach"
+                      />
+                    )}
+                    {!isReady && <span className="w-4 shrink-0" aria-hidden />}
+                    <div className="flex-1">{renderRow(row)}</div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       )}
     </div>
+  );
+}
+
+function FilterPill({
+  active,
+  onClick,
+  label,
+  count,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count: number;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+        active
+          ? "border-gray-900 bg-gray-900 text-white"
+          : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+      }`}
+    >
+      {label}
+      <span className={`ml-1.5 ${active ? "text-white/70" : "text-gray-400"}`}>{count}</span>
+    </button>
   );
 }
 

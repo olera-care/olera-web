@@ -236,7 +236,8 @@ export default function QASectionV2({
       // The Q&A moment is peak intent — the caregiver just articulated
       // their exact worry. Pass the question text to the benefits module
       // so it can quietly bring itself into focus.
-      if (typeof window !== "undefined") {
+      // SKIP for inline_answer variant — the InlineAnswerCard owns the moment.
+      if (typeof window !== "undefined" && !isInlineAnswerVariant) {
         window.dispatchEvent(
           new CustomEvent("olera:question-submitted", {
             detail: { question: questionText.trim() },

@@ -863,23 +863,43 @@ interface RowSlots {
   headlineAccessory?: ReactNode;
 }
 
+/**
+ * v8.10.15: every card across every tab gets the same overflow menu —
+ * Make Partner + Stop Outreach are universally accessible from the ⋯
+ * top-right of any card. Per-tab additions go via `extraItems`; per-row
+ * exclusions (e.g. Make Partner on already-active partners) via
+ * `excludeMakePartner`.
+ *
+ * Stop Outreach is wired through the OverflowMenu component itself
+ * (it owns the reason-picker submenu); Make Partner is a top-level
+ * item that fires `cb.onMarkPartner`.
+ */
+function buildUniversalOverflow(
+  cb: RowCardCallbacks,
+  options: {
+    excludeMakePartner?: boolean;
+    extraItems?: OverflowItem[];
+  } = {},
+): ReactNode {
+  const items: OverflowItem[] = [];
+  if (!options.excludeMakePartner) {
+    items.push({ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" });
+  }
+  if (options.extraItems) items.push(...options.extraItems);
+  return <OverflowMenu items={items} onStopOutreach={cb.onStopOutreach} />;
+}
+
 function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): RowSlots {
   if (tab === "research") return researchSlots(row, cb);
   if (tab === "calls") return callsSlots(row, cb);
   if (tab === "replies") return repliesSlots(row, cb);
   if (tab === "meetings") return meetingsSlots(row, cb);
-  if (tab === "partners") return partnersSlots(row);
+  if (tab === "partners") return partnersSlots(row, cb);
   if (tab === "archive") return archiveSlots(row, cb);
-  return allSlots(row);
+  return allSlots(row, cb);
 }
 
 function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // v8.10.13: universal forward-progression CTA on every research card.
-  // "Review & Start Outreach" applies to every stakeholder type
-  // (student_org / advisor / dept_head / professor) AND every research
-  // state (prospect or researched). Click → drawer opens → admin
-  // finishes anything missing and starts outreach in the same flow.
-  // Single mental model: "I'm advancing this stakeholder into outreach."
   const pill =
     row.status === "researched"
       ? <Pill title="Has contact + programs — ready to start the email sequence.">Ready to email</Pill>
@@ -894,6 +914,7 @@ function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Review &amp; Start Outreach
       </PrimaryAction>
     ),
+    overflowMenu: buildUniversalOverflow(cb),
   };
 }
 
@@ -915,6 +936,7 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
       </a>
     ) : null,
     cta: <PrimaryAction onClick={cb.onLogCallOutcome}>Log call</PrimaryAction>,
+    overflowMenu: buildUniversalOverflow(cb),
   };
 }
 
@@ -942,30 +964,27 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Log reply
           </PrimaryAction>
         ),
+        overflowMenu: buildUniversalOverflow(cb),
       };
     case "engaged":
       return {
         footnote: lastActivityFootnote,
         pill: <Pill>Replied</Pill>,
         cta: <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>,
-        overflowMenu: (
-          <OverflowMenu
-            items={[{ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" }]}
-            onStopOutreach={cb.onStopOutreach}
-          />
-        ),
+        overflowMenu: buildUniversalOverflow(cb),
       };
     case "wants_meeting":
       return {
         footnote: lastActivityFootnote,
         pill: <Pill>Wants to meet</Pill>,
         cta: <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>,
-        overflowMenu: <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />,
+        overflowMenu: buildUniversalOverflow(cb),
       };
     case "booked":
       // Filtered out of Replies server-side in v8.2. Kept here for type-completeness only.
       return {
         pill: <Pill>{row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}</Pill>,
+        overflowMenu: buildUniversalOverflow(cb),
       };
     case "needs_followup":
       return {
@@ -978,12 +997,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         ) : lastActivityFootnote,
         pill: <Pill>Met — needs follow-up</Pill>,
         cta: <PrimaryAction onClick={cb.onSendFollowupEmail}>Send follow-up</PrimaryAction>,
-        overflowMenu: (
-          <OverflowMenu
-            items={[{ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" }]}
-            onStopOutreach={cb.onStopOutreach}
-          />
-        ),
+        overflowMenu: buildUniversalOverflow(cb),
       };
     case "awaiting_callback":
       return {
@@ -995,13 +1009,14 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
           </Pill>
         ),
         cta: <PrimaryAction onClick={() => cb.onClassifyReply("callback")}>Log reply</PrimaryAction>,
-        overflowMenu: <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />,
+        overflowMenu: buildUniversalOverflow(cb),
       };
     case "stale":
       // v8.10.6: stale rows live in Archive — server filters them out
       // of Replies. Kept here for type-completeness only.
       return {
         pill: <Pill>Stale{row.stale_days != null ? ` · ${row.stale_days}d` : ""}</Pill>,
+        overflowMenu: buildUniversalOverflow(cb),
       };
   }
 }
@@ -1031,7 +1046,9 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
           Make Partner ★
         </PrimaryAction>
       ),
-      overflowMenu: <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />,
+      // Make Partner is the primary CTA here; don't duplicate it in the
+      // overflow. Stop Outreach + any future extras still appear.
+      overflowMenu: buildUniversalOverflow(cb, { excludeMakePartner: true }),
     };
   }
   // in_flight
@@ -1039,13 +1056,15 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     footnote: lastActivityFootnote,
     pill: <Pill>Finding a time</Pill>,
     cta: <PrimaryAction onClick={cb.onMarkScheduledFromInFlight}>Booked it</PrimaryAction>,
-    overflowMenu: <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />,
+    overflowMenu: buildUniversalOverflow(cb),
   };
 }
 
-function partnersSlots(row: TabRow): RowSlots {
+function partnersSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   // No "Active Partner" pill — the tab name carries the meaning. Just the
-  // Next: … pill (when there's an upcoming task).
+  // Next: … pill (when there's an upcoming task). Already-active partners
+  // skip Make Partner in the overflow but keep Stop Outreach (for the
+  // rare close-out case).
   return {
     footnote: row.last_activity_at ? (
       <p className="mt-0.5 text-[11px] text-gray-400">
@@ -1057,6 +1076,7 @@ function partnersSlots(row: TabRow): RowSlots {
         {row.next_step_label}
       </Pill>
     ) : undefined,
+    overflowMenu: buildUniversalOverflow(cb, { excludeMakePartner: true }),
   };
 }
 
@@ -1093,16 +1113,16 @@ function archiveSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Log reply
       </PrimaryAction>
     ),
-    overflowMenu: (
-      <OverflowMenu
-        items={[{ label: "Log reply (callback)", onClick: () => cb.onClassifyReply("callback") }]}
-        onStopOutreach={cb.onStopOutreach}
-      />
-    ),
+    overflowMenu: buildUniversalOverflow(cb, {
+      extraItems: [{ label: "Log reply (callback)", onClick: () => cb.onClassifyReply("callback") }],
+    }),
   };
 }
 
-function allSlots(row: TabRow): RowSlots {
+function allSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
+  // Already-partner rows skip Make Partner in the overflow (no-op for
+  // them); everything else gets the universal action menu.
+  const isAlreadyPartner = row.status === "active_partner";
   return {
     footnote: row.last_activity_at ? (
       <p className="mt-0.5 text-[11px] text-gray-400">
@@ -1110,6 +1130,7 @@ function allSlots(row: TabRow): RowSlots {
       </p>
     ) : null,
     pill: <Pill title="Stage in the funnel.">{STATUS_LABELS[row.status] ?? row.status}</Pill>,
+    overflowMenu: buildUniversalOverflow(cb, { excludeMakePartner: isAlreadyPartner }),
   };
 }
 

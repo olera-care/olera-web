@@ -1,23 +1,29 @@
 "use client";
 
 /**
- * MedJobsTabPage — the shared workflow surface mounted by both the In
- * Basket page (combined dashboard with all tabs) and the dedicated
- * left-menu pages (focused single-tab view).
+ * MedJobsTabPage — the In Basket workflow surface. v9.0 Phase 5: this
+ * is now the only stop for active operational work; dedicated per-tab
+ * pages were collapsed back into smart horizontal tabs here.
  *
- * Props:
- *   initialTab  — TabKey to mount with active.
- *   lockedTab   — when true, the tab bar + ⋯ overflow menu are hidden
- *                 so the user can't switch tabs. Used by dedicated
- *                 pages that show one tab's content.
- *   title       — PulseHeader title. Defaults to "Student Outreach".
+ * Smart inbox behavior:
+ *   - Tab visible when (count > 0) OR it's the currently active tab.
+ *     This means tabs auto-hide when their queue empties, and the
+ *     active tab stays in the bar while admin is on it (so the tab
+ *     doesn't disappear under the cursor mid-action).
+ *   - Tab labels semibold + render `unread/total` when unread > 0.
+ *   - Tab order = the team's response priority (Clients first as
+ *     the highest-value relationships, Campuses last as the
+ *     territorial primitive).
+ *   - When ALL tabs are empty, render a single "all caught up" hero.
  *
- * Extracted from app/admin/student-outreach/page.tsx as part of the
- * v9.0 MedJobs reorg (Phase 1). v9.0 Phase 2 will fork the rendering
- * here on row.kind === 'provider' for the Clients tab.
+ * URL-driven tab state: the active tab is reflected in the `?tab=`
+ * search param so old dedicated-page URLs (which redirect through
+ * with ?tab=X) land on the right tab, and admins can deep-link to
+ * a tab.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import PulseHeader from "@/components/admin/PulseHeader";
 import type { DateRangeValue } from "@/components/admin/DateRangePopover";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
@@ -43,8 +49,6 @@ import type {
 // ResearchCampusCard is still used for the bulkResearchCampus modal
 // payload — Campuses tab CampusCard onAddStakeholders constructs it.
 import {
-  CHART_SERIES_OPTIONS,
-  MENU_TABS,
   STOP_OUTREACH_ACTIONS,
   STOP_OUTREACH_LABELS,
   TAB_STATS,
@@ -64,42 +68,39 @@ import { CampusCard } from "@/components/admin/medjobs/cards/CampusCard";
 import { ClientCard } from "@/components/admin/medjobs/cards/ClientCard";
 import {
   CandidateCard,
-  EmailSentCard,
-  OutboundCard,
-  SignupCard,
 } from "@/components/admin/medjobs/cards/SpecialtyCards";
-import { EmptyState } from "@/components/admin/medjobs/lists/EmptyState";
 import { RepliesGroupedList } from "@/components/admin/medjobs/lists/RepliesGroupedList";
 import { ResearchTabContent } from "@/components/admin/medjobs/lists/ResearchTabContent";
-import { TabOverflowMenu } from "@/components/admin/medjobs/TabOverflowMenu";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
 interface MedJobsTabPageProps {
   initialTab: TabKey;
-  lockedTab?: boolean;
   title?: string;
 }
 
+const VALID_TAB_KEYS: ReadonlySet<TabKey> = new Set(TABS.map((t) => t.key));
+
 export function MedJobsTabPage({
   initialTab,
-  lockedTab = false,
   title = "Student Outreach",
 }: MedJobsTabPageProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tabParam = searchParams?.get("tab");
+  const tabFromUrl =
+    tabParam && VALID_TAB_KEYS.has(tabParam as TabKey)
+      ? (tabParam as TabKey)
+      : null;
   const [campuses, setCampuses] = useState<Campus[]>([]);
   const [campusSlug, setCampusSlug] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<StakeholderType | "all">("all");
-  const [tab, setTab] = useState<TabKey>(initialTab);
-  const [chartSeries, setChartSeries] = useState<Set<string>>(new Set());
+  const [tab, setTab] = useState<TabKey>(tabFromUrl ?? initialTab);
   const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
-  const [showClosed, setShowClosed] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [rows, setRows] = useState<TabRow[]>([]);
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
   const [tabUnreadCounts, setTabUnreadCounts] = useState<TabUnreadCounts | null>(null);
-  const [emailsSentRows, setEmailsSentRows] = useState<EmailSentRow[]>([]);
-  const [signupRows, setSignupRows] = useState<SignupRow[]>([]);
-  const [outboundRows, setOutboundRows] = useState<OutboundRow[]>([]);
   const [candidateRows, setCandidateRows] = useState<CandidateRow[]>([]);
   const [clientRows, setClientRows] = useState<ClientRow[]>([]);
   const [providerProspects, setProviderProspects] = useState<ProviderProspectRow[]>([]);
@@ -133,13 +134,11 @@ export function MedJobsTabPage({
       const queueParams = new URLSearchParams();
       if (campusSlug) queueParams.set("campus", campusSlug);
       if (typeFilter !== "all") queueParams.set("type", typeFilter);
-      // For dedicated-view tabs, don't filter the queue — we just want
-      // its tabCounts. Pass tab=prospects (default) so the queue does
-      // sensible work; the rows result is ignored for those tabs.
+      // For inventory-style tabs (Candidates / Clients / Campuses) we
+      // don't need queue rows — their data comes from dedicated
+      // endpoints. Pass tab=prospects so the queue still computes
+      // unified TabCounts; ignore its row payload.
       const queueTab =
-        tab === "emails_sent" ||
-        tab === "signups" ||
-        tab === "outbound" ||
         tab === "candidates" ||
         tab === "clients" ||
         tab === "campuses"
@@ -147,7 +146,6 @@ export function MedJobsTabPage({
           : tab;
       queueParams.set("tab", queueTab);
       if (debouncedSearch) queueParams.set("search", debouncedSearch);
-      if (tab === "all" && showClosed) queueParams.set("show_closed", "true");
 
       const fetches: Array<Promise<void>> = [
         (async () => {
@@ -156,9 +154,6 @@ export function MedJobsTabPage({
           const data = await res.json();
           setCampuses(data.campuses ?? []);
           if (
-            tab !== "emails_sent" &&
-            tab !== "signups" &&
-            tab !== "outbound" &&
             tab !== "candidates" &&
             tab !== "clients" &&
             tab !== "campuses"
@@ -170,36 +165,7 @@ export function MedJobsTabPage({
         })(),
       ];
 
-      if (tab === "emails_sent") {
-        fetches.push((async () => {
-          const p = new URLSearchParams();
-          if (campusSlug) p.set("campus", campusSlug);
-          if (typeFilter !== "all") p.set("type", typeFilter);
-          const r = await fetch(`/api/admin/student-outreach/emails-sent?${p}`);
-          if (!r.ok) throw new Error((await r.json()).error || "Failed to load emails");
-          const d = await r.json();
-          setEmailsSentRows(d.rows ?? []);
-        })());
-      } else if (tab === "signups") {
-        fetches.push((async () => {
-          const p = new URLSearchParams();
-          if (campusSlug) p.set("campus", campusSlug);
-          const r = await fetch(`/api/admin/student-outreach/signups?${p}`);
-          if (!r.ok) throw new Error((await r.json()).error || "Failed to load signups");
-          const d = await r.json();
-          setSignupRows(d.rows ?? []);
-        })());
-      } else if (tab === "outbound") {
-        fetches.push((async () => {
-          const p = new URLSearchParams();
-          if (campusSlug) p.set("campus", campusSlug);
-          if (typeFilter !== "all") p.set("type", typeFilter);
-          const r = await fetch(`/api/admin/student-outreach/outbound?${p}`);
-          if (!r.ok) throw new Error((await r.json()).error || "Failed to load outbound");
-          const d = await r.json();
-          setOutboundRows(d.rows ?? []);
-        })());
-      } else if (tab === "candidates") {
+      if (tab === "candidates") {
         fetches.push((async () => {
           const p = new URLSearchParams();
           if (campusSlug) p.set("campus", campusSlug);
@@ -268,7 +234,7 @@ export function MedJobsTabPage({
     } finally {
       setLoading(false);
     }
-  }, [campusSlug, typeFilter, tab, debouncedSearch, showClosed]);
+  }, [campusSlug, typeFilter, tab, debouncedSearch]);
 
   useEffect(() => { refetch(); }, [refetch]);
 
@@ -329,37 +295,58 @@ export function MedJobsTabPage({
   );
 
   const tabStats = TAB_STATS[tab];
-  const customSeries = useMemo(
-    () => Array.from(chartSeries).join(","),
-    [chartSeries],
-  );
   const statsPath = useMemo(() => {
-    const base = "/api/admin/student-outreach/stats";
     const params = new URLSearchParams();
-    if (chartSeries.size > 0) {
-      params.set("metric", "custom");
-      params.set("series", customSeries);
-    } else {
-      params.set("metric", tabStats.metric);
-    }
+    params.set("metric", tabStats.metric);
     if (campusSlug) params.set("campus", campusSlug);
-    return `${base}?${params.toString()}`;
-  }, [tabStats.metric, campusSlug, chartSeries, customSeries]);
+    return `/api/admin/student-outreach/stats?${params.toString()}`;
+  }, [tabStats.metric, campusSlug]);
 
-  const kpiSuffix = useMemo(() => {
-    if (chartSeries.size === 0) return tabStats.label;
-    if (chartSeries.size === 1) {
-      const k = Array.from(chartSeries)[0];
-      return CHART_SERIES_OPTIONS.find((o) => o.metric === k)?.label ?? "events";
-    }
-    return `events across ${chartSeries.size} metrics`;
-  }, [chartSeries, tabStats.label]);
+  // v9.0 Phase 5: tab is visible when (count > 0) OR it's the active
+  // tab. The active-tab carve-out keeps the bar stable while admin
+  // is on a tab whose count drops to 0 mid-action — they see the
+  // "all caught up" empty state in the content area; the tab still
+  // anchors the bar until they navigate. When ALL tabs would hide,
+  // we fall back to showing the active tab so content still renders.
+  const visibleTabs = useMemo(() => {
+    return TABS.filter((t) => {
+      const total = tabCounts?.[t.key] ?? 0;
+      return total > 0 || t.key === tab;
+    });
+  }, [tabCounts, tab]);
+
+  // v9.0 Phase 5: when every primary tab has zero work, the active
+  // tab's empty state upgrades to a single celebratory hero pointing
+  // admin at Completed Tasks.
+  const isInboxEmpty = useMemo(() => {
+    if (!tabCounts) return false;
+    return TABS.every((t) => (tabCounts[t.key] ?? 0) === 0);
+  }, [tabCounts]);
+
+  // v9.0 Phase 5: when admin clicks a tab, mirror it in the URL so
+  // bookmarks land back on the right tab and the redirected old
+  // dedicated-page URLs (?tab=X) are honored on first paint.
+  const setTabAndUrl = useCallback(
+    (next: TabKey) => {
+      setTab(next);
+      const sp = new URLSearchParams(searchParams?.toString() ?? "");
+      sp.set("tab", next);
+      router.replace(`?${sp.toString()}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
+
+  // v9.0 Phase 5: keep React state in sync if the URL changes from
+  // browser navigation (back/forward).
+  useEffect(() => {
+    if (tabFromUrl && tabFromUrl !== tab) setTab(tabFromUrl);
+  }, [tabFromUrl, tab]);
 
   return (
     <div>
       <PulseHeader
         title={title}
-        kpiSuffix={kpiSuffix}
+        kpiSuffix={tabStats.label}
         statsPath={statsPath}
         range={range}
         onRangeChange={setRange}
@@ -416,83 +403,45 @@ export function MedJobsTabPage({
         </select>
       </div>
 
-      {/* v9.0: tab bar hides when lockedTab=true (dedicated pages). */}
-      {!lockedTab && (
-        <div className="mb-8 flex items-center border-b border-gray-100">
-          <div className="flex flex-1 items-center gap-1 overflow-x-auto">
-            {TABS.map((t) => {
-              const count =
-                t.key === "outbound" || t.key === "emails_sent" || t.key === "signups"
-                  ? undefined
-                  : tabCounts?.[t.key];
-              const unread =
-                t.key === "outbound" || t.key === "emails_sent" || t.key === "signups"
-                  ? 0
-                  : tabUnreadCounts?.[t.key] ?? 0;
-              const active = t.key === tab;
-              // v9.0 Phase 4: tab label bolds when unread > 0; counts
-              // render as `unread/total` so admin sees fresh-attention
-              // load at a glance. Empty unread → just the total in
-              // muted gray as before.
-              const isUnreadTab = unread > 0;
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
-                  title={t.tooltip}
-                  className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm transition-colors ${
-                    isUnreadTab ? "font-semibold" : "font-medium"
-                  } ${
-                    active
-                      ? "border-gray-900 text-gray-900"
-                      : "border-transparent text-gray-400 hover:text-gray-600"
-                  }`}
-                >
-                  {t.label}
-                  {typeof count === "number" && count > 0 && (
-                    <span
-                      className={`ml-1.5 text-xs ${
-                        isUnreadTab ? "text-gray-700" : "text-gray-400"
-                      }`}
-                    >
-                      {isUnreadTab ? `${unread}/${count}` : count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          <TabOverflowMenu
-            tabs={MENU_TABS}
-            activeTab={tab}
-            onSelect={setTab}
-            tabCounts={tabCounts}
-            chartSeries={chartSeries}
-            onToggleChartSeries={(metric) => {
-              setChartSeries((prev) => {
-                const next = new Set(prev);
-                if (next.has(metric)) next.delete(metric);
-                else next.add(metric);
-                return next;
-              });
-            }}
-            onClearChartSeries={() => setChartSeries(new Set())}
-          />
+      {/* v9.0 Phase 5: smart inbox tab bar. Tabs auto-hide when their
+          queue empties; the active tab stays visible while admin is
+          on it. ⋯ overflow menu dropped — Emails Sent / Outbound /
+          Signups / Archive moved to All Tasks as quick filters. */}
+      <div className="mb-8 flex items-center border-b border-gray-100">
+        <div className="flex flex-1 items-center gap-1 overflow-x-auto">
+          {visibleTabs.map((t) => {
+            const count = tabCounts?.[t.key] ?? 0;
+            const unread = tabUnreadCounts?.[t.key] ?? 0;
+            const active = t.key === tab;
+            const isUnreadTab = unread > 0;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTabAndUrl(t.key)}
+                title={t.tooltip}
+                className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm transition-colors ${
+                  isUnreadTab ? "font-semibold" : "font-medium"
+                } ${
+                  active
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                {t.label}
+                {count > 0 && (
+                  <span
+                    className={`ml-1.5 text-xs ${
+                      isUnreadTab ? "text-gray-700" : "text-gray-400"
+                    }`}
+                  >
+                    {isUnreadTab ? `${unread}/${count}` : count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
-      )}
-
-      {tab === "all" && (
-        <div className="mb-3 flex items-center gap-2 text-xs text-gray-600">
-          <label className="inline-flex cursor-pointer items-center gap-1.5">
-            <input
-              type="checkbox"
-              checked={showClosed}
-              onChange={(e) => setShowClosed(e.target.checked)}
-            />
-            Show closed
-          </label>
-        </div>
-      )}
+      </div>
 
       {/* List */}
       {loading ? (
@@ -567,54 +516,6 @@ export function MedJobsTabPage({
           }}
           tabCountsAll={tabCounts?.all ?? 0}
         />
-      ) : tab === "emails_sent" ? (
-        emailsSentRows.length === 0 ? (
-          <p className="py-12 text-center text-sm text-gray-400">
-            No emails sent yet — check back once outreach kicks off.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {emailsSentRows.map((r) => (
-              <li key={r.id}>
-                <EmailSentCard
-                  row={r}
-                  onOpenDrawer={() => setOpenOutreachId(r.outreach_id)}
-                />
-              </li>
-            ))}
-          </ul>
-        )
-      ) : tab === "signups" ? (
-        signupRows.length === 0 ? (
-          <p className="py-12 text-center text-sm text-gray-400">
-            No student signups in this range.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {signupRows.map((r) => (
-              <li key={r.id}>
-                <SignupCard row={r} />
-              </li>
-            ))}
-          </ul>
-        )
-      ) : tab === "outbound" ? (
-        outboundRows.length === 0 ? (
-          <p className="py-12 text-center text-sm text-gray-400">
-            No outbound activity yet.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {outboundRows.map((r) => (
-              <li key={r.outreach_id}>
-                <OutboundCard
-                  row={r}
-                  onOpenDrawer={() => setOpenOutreachId(r.outreach_id)}
-                />
-              </li>
-            ))}
-          </ul>
-        )
       ) : tab === "candidates" ? (
         candidateRows.length === 0 ? (
           <p className="py-12 text-center text-sm text-gray-400">
@@ -630,7 +531,7 @@ export function MedJobsTabPage({
           </ul>
         )
       ) : rows.length === 0 ? (
-        <EmptyState tab={tab} tabCounts={tabCounts} onAdd={() => setShowAdd(true)} />
+        <TabEmptyState tab={tab} allTabsEmpty={isInboxEmpty} />
       ) : tab === "replies" ? (
         <RepliesGroupedList rows={rows} renderRow={(row) => renderRow(row)} />
       ) : (
@@ -783,6 +684,54 @@ export function MedJobsTabPage({
         />
       )}
     </div>
+  );
+}
+
+/**
+ * v9.0 Phase 5: empty state shown when the active tab has zero rows.
+ * Upgrades to a single celebratory hero when every primary tab is at
+ * zero — points admin at Completed Tasks for what they got done today.
+ */
+function TabEmptyState({
+  tab,
+  allTabsEmpty,
+}: {
+  tab: TabKey;
+  allTabsEmpty: boolean;
+}) {
+  if (allTabsEmpty) {
+    return (
+      <div className="py-16 text-center">
+        <p className="text-base font-semibold text-emerald-700">
+          ✓ Everything caught up.
+        </p>
+        <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
+          The In Basket is clear. Head to{" "}
+          <a
+            href="/admin/medjobs/completed-tasks"
+            className="font-medium text-emerald-700 underline hover:no-underline"
+          >
+            Completed Tasks
+          </a>
+          {" "}to review what you and the team finished.
+        </p>
+      </div>
+    );
+  }
+  const blurbs: Partial<Record<TabKey, string>> = {
+    candidates: "No live candidates yet.",
+    prospects: "No prospects need research right now.",
+    calls: "No phone calls due.",
+    replies: "No inbox triage right now. The cadence is humming along.",
+    meetings: "No meetings in flight or booked.",
+    partners: "No partners yet. Mark a stakeholder as Partner when they commit to sharing.",
+    clients: "No clients yet. Providers enter the pilot when they accept T&C at first interview.",
+    campuses: "No campuses configured yet.",
+  };
+  return (
+    <p className="py-12 text-center text-sm text-gray-400">
+      {blurbs[tab] ?? "Nothing here right now."}
+    </p>
   );
 }
 

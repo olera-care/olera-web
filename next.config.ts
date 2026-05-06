@@ -159,6 +159,18 @@ const nextConfig: NextConfig = {
       // Student Outreach lives at /admin/medjobs/in-basket as the new
       // workflow entry point. Existing bookmarks redirect through.
       { source: "/admin/student-outreach", destination: "/admin/medjobs/in-basket", permanent: true },
+
+      // v9.0 Phase 5: dedicated per-tab pages collapsed back into
+      // In Basket as smart horizontal tabs. Old URLs redirect to the
+      // workflow entry with the tab pre-selected via ?tab= query.
+      { source: "/admin/medjobs/clients",    destination: "/admin/medjobs/in-basket?tab=clients",    permanent: true },
+      { source: "/admin/medjobs/candidates", destination: "/admin/medjobs/in-basket?tab=candidates", permanent: true },
+      { source: "/admin/medjobs/prospects",  destination: "/admin/medjobs/in-basket?tab=prospects",  permanent: true },
+      { source: "/admin/medjobs/partners",   destination: "/admin/medjobs/in-basket?tab=partners",   permanent: true },
+      { source: "/admin/medjobs/meetings",   destination: "/admin/medjobs/in-basket?tab=meetings",   permanent: true },
+      { source: "/admin/medjobs/replies",    destination: "/admin/medjobs/in-basket?tab=replies",    permanent: true },
+      { source: "/admin/medjobs/calls",      destination: "/admin/medjobs/in-basket?tab=calls",      permanent: true },
+      { source: "/admin/medjobs/campuses",   destination: "/admin/medjobs/in-basket?tab=campuses",   permanent: true },
     ];
   },
 

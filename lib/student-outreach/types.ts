@@ -341,6 +341,13 @@ export interface TabCounts {
   all: number;
   clients?: number;
   campuses?: number;
+  // v9.0 Phase 5: legacy menu-tab keys retained on the type so
+  // callers indexing by TabKey type-check, even though these tabs
+  // are no longer rendered in In Basket (their content moved to
+  // All Tasks as quick filters).
+  outbound?: number;
+  emails_sent?: number;
+  signups?: number;
 }
 
 /** v9.0 Phase 4: per-tab unread counts, mirroring TabCounts shape.
@@ -360,6 +367,9 @@ export interface TabUnreadCounts {
   all: number;
   clients?: number;
   campuses?: number;
+  outbound?: number;
+  emails_sent?: number;
+  signups?: number;
 }
 
 /** What the drawer needs to render every section. */

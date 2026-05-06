@@ -66,24 +66,18 @@ const navSections: NavSection[] = [
       { label: "Team", href: "/admin/team" },
     ],
   },
-  // v9.0: MedJobs is its own top-level section. In Basket is the
-  // workflow entrypoint; the eight tabs below it are dedicated focused
-  // pages for the same data, opened via the left menu instead of the
-  // horizontal tab bar inside In Basket.
+  // v9.0 Phase 5: MedJobs left nav simplifies to three operational
+  // surfaces. Workflow stages (Replies, Calls, etc.) live as smart
+  // horizontal tabs inside In Basket — they auto-hide when there's
+  // no work, so the sidebar stays clean.
   {
     label: "MedJobs",
     key: "medjobs",
     defaultOpen: true,
     items: [
       { label: "In Basket", href: "/admin/medjobs/in-basket" },
-      { label: "Clients", href: "/admin/medjobs/clients" },
-      { label: "Candidates", href: "/admin/medjobs/candidates" },
-      { label: "Prospects", href: "/admin/medjobs/prospects" },
-      { label: "Partners", href: "/admin/medjobs/partners" },
-      { label: "Meetings", href: "/admin/medjobs/meetings" },
-      { label: "Replies", href: "/admin/medjobs/replies" },
-      { label: "Calls", href: "/admin/medjobs/calls" },
-      { label: "Campuses", href: "/admin/medjobs/campuses" },
+      { label: "Completed Tasks", href: "/admin/medjobs/completed-tasks" },
+      { label: "All Tasks", href: "/admin/medjobs/all-tasks" },
     ],
   },
 ];

@@ -22,6 +22,8 @@ import { PreFlightReviewModal } from "./PreFlightReviewModal";
 import { ReplyClassifierModal } from "./ReplyClassifierModal";
 import { LogMeetingModal } from "./LogMeetingModal";
 import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
+import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
+import { StepBoardCard } from "@/components/admin/medjobs/StepBoardCard";
 import {
   PARTNER_CTA_STAGES,
   KIND_LABELS,
@@ -219,108 +221,89 @@ function StakeholderDrawer({
     [outreachId, onAction],
   );
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} aria-label="Close drawer" />
-      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-white shadow-2xl">
-        <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
-          {ctx ? (() => {
-            // v8.9: contact name leads everywhere. The displayed name is
-            // built from title + first + last when present, falling back
-            // to the legacy `name` column. Org/campus/type drop to the
-            // subline; if no contact exists yet, the org name takes the
-            // headline so the card isn't blank.
-            const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
-            const contactDisplay = primary
-              ? [primary.title, primary.first_name, primary.last_name]
-                  .filter(Boolean)
-                  .join(" ")
-                  .trim() || primary.name || null
-              : null;
-            const headline = contactDisplay || ctx.outreach.organization_name;
-            const showOrgInSubline =
-              !!contactDisplay && contactDisplay !== ctx.outreach.organization_name;
-            // v8.10.37: surface a small "★ Partner since {date}" indicator
-            // for active partners. NextStepPanel is suppressed for partners,
-            // so without this header cue the drawer wouldn't show their
-            // status anywhere prominent. Date comes from the most recent
-            // distribution_confirmed touchpoint (when they were graduated).
-            const isPartner = ctx.outreach.status === "active_partner";
-            const partnerSince = isPartner
-              ? ctx.touchpoints.find((t) => t.touchpoint_type === "distribution_confirmed")
-                  ?.created_at ?? null
-              : null;
-            return (
-              <div className="min-w-0 flex-1">
-                <h2 className="truncate text-lg font-semibold text-gray-900">{headline}</h2>
-                <p className="truncate text-sm text-gray-500">
-                  {showOrgInSubline && (
-                    <>
-                      {ctx.outreach.organization_name}
-                      {ctx.outreach.department &&
-                        ctx.outreach.department !== ctx.outreach.organization_name &&
-                        ` · ${ctx.outreach.department}`}
-                      {" · "}
-                    </>
-                  )}
-                  {ctx.campus.name} · {KIND_LABELS[ctx.outreach.kind ?? ctx.outreach.stakeholder_type]}
-                  {primary?.role && ` · ${primary.role}`}
-                </p>
-                {isPartner && (
-                  <p className="mt-1 text-xs font-medium text-emerald-700">
-                    ★ Partner
-                    {partnerSince
-                      ? ` since ${new Date(partnerSince).toLocaleDateString()}`
-                      : ""}
-                  </p>
+    <DrawerShell
+      onClose={onClose}
+      header={
+        ctx ? (() => {
+          // v8.9: contact name leads everywhere. The displayed name is
+          // built from title + first + last when present, falling back
+          // to the legacy `name` column. Org/campus/type drop to the
+          // subline; if no contact exists yet, the org name takes the
+          // headline so the card isn't blank.
+          const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
+          const contactDisplay = primary
+            ? [primary.title, primary.first_name, primary.last_name]
+                .filter(Boolean)
+                .join(" ")
+                .trim() || primary.name || null
+            : null;
+          const headline = contactDisplay || ctx.outreach.organization_name;
+          const showOrgInSubline =
+            !!contactDisplay && contactDisplay !== ctx.outreach.organization_name;
+          // v8.10.37: surface a small "★ Partner since {date}" indicator
+          // for active partners. NextStepPanel is suppressed for partners,
+          // so without this header cue the drawer wouldn't show their
+          // status anywhere prominent. Date comes from the most recent
+          // distribution_confirmed touchpoint (when they were graduated).
+          const isPartner = ctx.outreach.status === "active_partner";
+          const partnerSince = isPartner
+            ? ctx.touchpoints.find((t) => t.touchpoint_type === "distribution_confirmed")
+                ?.created_at ?? null
+            : null;
+          return (
+            <>
+              <h2 className="truncate text-lg font-semibold text-gray-900">{headline}</h2>
+              <p className="truncate text-sm text-gray-500">
+                {showOrgInSubline && (
+                  <>
+                    {ctx.outreach.organization_name}
+                    {ctx.outreach.department &&
+                      ctx.outreach.department !== ctx.outreach.organization_name &&
+                      ` · ${ctx.outreach.department}`}
+                    {" · "}
+                  </>
                 )}
-              </div>
-            );
-          })() : (
-            <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
-          )}
-          <div className="flex shrink-0 items-center gap-1">
-            {/* v9.0 Phase 4: drawer-level Mark as unread. Same semantic
-                as the row card overflow item — resets attention so the
-                row appears bold again in the tab. */}
-            <DrawerHeaderOverflow
-              onMarkUnread={async () => {
-                try {
-                  await action("mark_unread");
-                } catch (e) {
-                  setError(e instanceof Error ? e.message : "Failed to mark unread");
-                }
-              }}
-            />
-            <button
-              onClick={onClose}
-              className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-              aria-label="Close"
-            >
-              <span aria-hidden>×</span>
-            </button>
-          </div>
-        </header>
-
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {loading ? (
-            <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
-          ) : error ? (
-            <p className="py-8 text-center text-sm text-red-600">{error}</p>
-          ) : ctx ? (
-            <DrawerBody ctx={ctx} action={action} setError={setError} />
-          ) : null}
-        </div>
-      </aside>
-    </>
+                {ctx.campus.name} · {KIND_LABELS[ctx.outreach.kind ?? ctx.outreach.stakeholder_type]}
+                {primary?.role && ` · ${primary.role}`}
+              </p>
+              {isPartner && (
+                <p className="mt-1 text-xs font-medium text-emerald-700">
+                  ★ Partner
+                  {partnerSince
+                    ? ` since ${new Date(partnerSince).toLocaleDateString()}`
+                    : ""}
+                </p>
+              )}
+            </>
+          );
+        })() : (
+          <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
+        )
+      }
+      headerExtras={
+        // v9.0 Phase 4: drawer-level Mark as unread. Same semantic as
+        // the row card overflow item — resets attention so the row
+        // appears bold again in the tab.
+        <DrawerHeaderOverflow
+          onMarkUnread={async () => {
+            try {
+              await action("mark_unread");
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to mark unread");
+            }
+          }}
+        />
+      }
+    >
+      {loading ? (
+        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+      ) : error ? (
+        <p className="py-8 text-center text-sm text-red-600">{error}</p>
+      ) : ctx ? (
+        <DrawerBody ctx={ctx} action={action} setError={setError} />
+      ) : null}
+    </DrawerShell>
   );
 }
 
@@ -396,50 +379,32 @@ function ProviderDrawer({
     return () => { cancelled = true; };
   }, [providerId]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} aria-label="Close drawer" />
-      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-white shadow-2xl">
-        <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
-          {data ? (
-            <div className="min-w-0 flex-1">
-              <h2 className="truncate text-lg font-semibold text-gray-900">{data.display_name}</h2>
-              <p className="truncate text-sm text-gray-500">
-                {[data.city, data.state].filter(Boolean).join(", ") || "Provider"}
-                {data.email && ` · ${data.email}`}
-              </p>
-              <ProviderStatusLabel data={data} />
-            </div>
-          ) : (
-            <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
-          )}
-          <button
-            onClick={onClose}
-            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-            aria-label="Close"
-          >
-            <span aria-hidden>×</span>
-          </button>
-        </header>
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {loading ? (
-            <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
-          ) : error ? (
-            <p className="py-8 text-center text-sm text-red-600">{error}</p>
-          ) : data ? (
-            <ProviderManagePanel data={data} />
-          ) : null}
-        </div>
-      </aside>
-    </>
+    <DrawerShell
+      onClose={onClose}
+      header={
+        data ? (
+          <>
+            <h2 className="truncate text-lg font-semibold text-gray-900">{data.display_name}</h2>
+            <p className="truncate text-sm text-gray-500">
+              {[data.city, data.state].filter(Boolean).join(", ") || "Provider"}
+              {data.email && ` · ${data.email}`}
+            </p>
+            <ProviderStatusLabel data={data} />
+          </>
+        ) : (
+          <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
+        )
+      }
+    >
+      {loading ? (
+        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+      ) : error ? (
+        <p className="py-8 text-center text-sm text-red-600">{error}</p>
+      ) : data ? (
+        <ProviderManagePanel data={data} />
+      ) : null}
+    </DrawerShell>
   );
 }
 
@@ -676,62 +641,46 @@ function SiteDrawer({ siteId, onClose }: { siteId: string; onClose: () => void }
     return () => { cancelled = true; };
   }, [siteId]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} />
-      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-white shadow-2xl">
-        <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
-          {data ? (
-            <div className="min-w-0 flex-1">
-              <h2 className="truncate text-lg font-semibold text-gray-900">{data.name}</h2>
-              <p className="truncate text-sm text-gray-500">
-                {[data.city, data.state].filter(Boolean).join(", ") || "Site"}
-              </p>
-              <p className="mt-1 text-xs font-medium text-gray-500">
-                {data.research_complete ? "Active" : "Research in progress"}
-              </p>
-            </div>
-          ) : (
-            <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
-          )}
-          <button
-            onClick={onClose}
-            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-            aria-label="Close"
-          >
-            <span aria-hidden>×</span>
-          </button>
-        </header>
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {loading ? (
-            <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
-          ) : error ? (
-            <p className="py-8 text-center text-sm text-red-600">{error}</p>
-          ) : data ? (
-            <div className="space-y-6">
-              <EntityStepBoard kind="site" entityId={data.id} entityName={data.name} />
-              <section>
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Open in
-                </h3>
-                <a
-                  href={`/admin/student-outreach/campus/${data.slug}`}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Site management page ↗
-                </a>
-              </section>
-            </div>
-          ) : null}
+    <DrawerShell
+      onClose={onClose}
+      header={
+        data ? (
+          <>
+            <h2 className="truncate text-lg font-semibold text-gray-900">{data.name}</h2>
+            <p className="truncate text-sm text-gray-500">
+              {[data.city, data.state].filter(Boolean).join(", ") || "Site"}
+            </p>
+            <p className="mt-1 text-xs font-medium text-gray-500">
+              {data.research_complete ? "Active" : "Research in progress"}
+            </p>
+          </>
+        ) : (
+          <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
+        )
+      }
+    >
+      {loading ? (
+        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+      ) : error ? (
+        <p className="py-8 text-center text-sm text-red-600">{error}</p>
+      ) : data ? (
+        <div className="space-y-6">
+          <EntityStepBoard kind="site" entityId={data.id} entityName={data.name} />
+          <section>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Open in
+            </h3>
+            <a
+              href={`/admin/student-outreach/campus/${data.slug}`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Site management page ↗
+            </a>
+          </section>
         </div>
-      </aside>
-    </>
+      ) : null}
+    </DrawerShell>
   );
 }
 
@@ -791,65 +740,49 @@ function CandidateDrawer({
     return () => { cancelled = true; };
   }, [candidateId]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} />
-      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-white shadow-2xl">
-        <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
-          {data ? (
-            <div className="min-w-0 flex-1">
-              <h2 className="truncate text-lg font-semibold text-gray-900">{data.display_name}</h2>
-              <p className="truncate text-sm text-gray-500">
-                {[data.university, [data.city, data.state].filter(Boolean).join(", "), data.program_track]
-                  .filter(Boolean)
-                  .join(" · ") || "Candidate"}
-              </p>
-            </div>
-          ) : (
-            <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
-          )}
-          <button
-            onClick={onClose}
-            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-            aria-label="Close"
-          >
-            <span aria-hidden>×</span>
-          </button>
-        </header>
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {loading ? (
-            <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
-          ) : error ? (
-            <p className="py-8 text-center text-sm text-red-600">{error}</p>
-          ) : data ? (
-            <div className="space-y-6">
-              <EntityStepBoard
-                kind="candidate"
-                entityId={data.id}
-                entityName={data.display_name}
-              />
-              <section>
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Open in
-                </h3>
-                <a
-                  href={`/admin/medjobs/${data.id}`}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Candidate profile editor ↗
-                </a>
-              </section>
-            </div>
-          ) : null}
+    <DrawerShell
+      onClose={onClose}
+      header={
+        data ? (
+          <>
+            <h2 className="truncate text-lg font-semibold text-gray-900">{data.display_name}</h2>
+            <p className="truncate text-sm text-gray-500">
+              {[data.university, [data.city, data.state].filter(Boolean).join(", "), data.program_track]
+                .filter(Boolean)
+                .join(" · ") || "Candidate"}
+            </p>
+          </>
+        ) : (
+          <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
+        )
+      }
+    >
+      {loading ? (
+        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+      ) : error ? (
+        <p className="py-8 text-center text-sm text-red-600">{error}</p>
+      ) : data ? (
+        <div className="space-y-6">
+          <EntityStepBoard
+            kind="candidate"
+            entityId={data.id}
+            entityName={data.display_name}
+          />
+          <section>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Open in
+            </h3>
+            <a
+              href={`/admin/medjobs/${data.id}`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Candidate profile editor ↗
+            </a>
+          </section>
         </div>
-      </aside>
-    </>
+      ) : null}
+    </DrawerShell>
   );
 }
 
@@ -2321,62 +2254,12 @@ function ApprovalRow({
 // muted variant (no CTA, lighter text) so admin's operational priorities
 // lead.
 
-/**
- * v8.10.32: TaskCard — same card shape as row-card StakeholderCard
- * (white bg, gray-200 border, rounded-md, headline + subtitle + footnote
- * + pill on the left; ⋯ + CTA stacked on the right). `muted` switches to
- * a lighter chrome for passive scheduled items.
- */
-function TaskCard({
-  headline,
-  subtitle,
-  footnote,
-  pill,
-  overflow,
-  cta,
-  muted,
-}: {
-  headline: React.ReactNode;
-  subtitle?: React.ReactNode;
-  footnote?: React.ReactNode;
-  pill?: React.ReactNode;
-  overflow?: React.ReactNode;
-  cta?: React.ReactNode;
-  muted?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-lg border px-4 py-3 ${
-        muted
-          ? "border-gray-100 bg-gray-50/60"
-          : "border-gray-200 bg-white"
-      }`}
-    >
-      <div className="flex items-stretch justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className={`text-sm font-medium ${muted ? "text-gray-700" : "text-gray-900"}`}>
-            {headline}
-          </p>
-          {subtitle && (
-            <p className="mt-0.5 truncate text-xs text-gray-500">{subtitle}</p>
-          )}
-          {footnote && (
-            <p className="mt-0.5 text-[11px] text-gray-400">{footnote}</p>
-          )}
-          {pill && (
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">{pill}</div>
-          )}
-        </div>
-        {(overflow || cta) && (
-          <div className="flex shrink-0 flex-col items-end justify-between gap-2">
-            {overflow ?? <span />}
-            {cta ?? <span />}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+// v9.0 Phase 7 Commit F: TaskCard moved to StepBoardCard
+// (components/admin/medjobs/StepBoardCard.tsx) so the stakeholder
+// TaskBoardSection and the EntityStepBoard share one chrome. Local
+// alias retained so the rest of this file's call sites don't need
+// to change shape.
+const TaskCard = StepBoardCard;
 
 function TaskBoardSection({
   ctx,

@@ -24,6 +24,7 @@
  */
 
 import { useState } from "react";
+import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
 
 interface Props {
   organizationName: string;
@@ -143,57 +144,22 @@ export function LogCallOutcomeModal({
     }
   };
 
+  const subtitle = (
+    <>
+      {organizationName}
+      {contactName && ` · ${contactName}`}
+      {contactPhone && ` · ${contactPhone}`}
+    </>
+  );
+
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
-      onClick={onCancel}
-    >
-      <div
-        className="w-full max-w-lg rounded-xl bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">Log call outcome</h3>
-          <p className="mt-0.5 text-xs text-gray-500">
-            {organizationName}
-            {contactName && ` · ${contactName}`}
-            {contactPhone && ` · ${contactPhone}`}
-          </p>
-        </header>
-
-        <div className="space-y-3 px-6 py-4">
-          {error && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
-          )}
-
-          <OutcomeGroup
-            title="Didn't reach them"
-            outcomes={DIDNT_REACH}
-            selected={outcome}
-            onSelect={setOutcome}
-          />
-          <OutcomeGroup
-            title="Reached them"
-            outcomes={reachedThemFiltered}
-            selected={outcome}
-            onSelect={setOutcome}
-          />
-
-          <label className="block pt-2">
-            <span className="mb-1 block text-xs font-medium text-gray-600">
-              Notes (optional)
-            </span>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              placeholder="What was said? Any next-step context for the team."
-              className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-            />
-          </label>
-        </div>
-
-        <footer className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
+    <LogModalShell
+      title="Log call outcome"
+      subtitle={subtitle}
+      error={error}
+      onCancel={onCancel}
+      footer={
+        <>
           <button
             onClick={onCancel}
             disabled={submitting}
@@ -208,9 +174,34 @@ export function LogCallOutcomeModal({
           >
             {submitting ? "Logging…" : "Log outcome"}
           </button>
-        </footer>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <OutcomeGroup
+        title="Didn't reach them"
+        outcomes={DIDNT_REACH}
+        selected={outcome}
+        onSelect={setOutcome}
+      />
+      <OutcomeGroup
+        title="Reached them"
+        outcomes={reachedThemFiltered}
+        selected={outcome}
+        onSelect={setOutcome}
+      />
+      <label className="block pt-2">
+        <span className="mb-1 block text-xs font-medium text-gray-600">
+          Notes (optional)
+        </span>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={3}
+          placeholder="What was said? Any next-step context for the team."
+          className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
+        />
+      </label>
+    </LogModalShell>
   );
 }
 

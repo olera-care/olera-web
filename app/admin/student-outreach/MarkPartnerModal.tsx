@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from "react";
 import type { DistributionEvidence } from "@/lib/student-outreach/types";
+import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
 
 interface Props {
   organizationName: string;
@@ -36,54 +37,17 @@ export function MarkPartnerModal({ organizationName, onCancel, onConfirm }: Prop
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl">
-        <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">Mark as Partner</h3>
-          <p className="mt-0.5 text-xs text-gray-500">
-            Graduating <strong>{organizationName}</strong>. We'll log the evidence and queue the
-            first seasonal check-in.
-          </p>
-        </header>
-
-        <div className="space-y-3 px-6 py-4">
-          <p className="text-xs font-medium text-gray-700">How do you know they're distributing?</p>
-          <div className="space-y-1.5">
-            {EVIDENCE_OPTIONS.map((opt) => (
-              <label
-                key={opt.value}
-                className={`flex cursor-pointer items-start gap-2 rounded-md border p-2.5 ${
-                  evidence === opt.value ? "border-gray-900 bg-gray-50" : "border-gray-200 hover:bg-gray-50"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="evidence"
-                  className="mt-0.5"
-                  checked={evidence === opt.value}
-                  onChange={() => setEvidence(opt.value)}
-                />
-                <span className="flex-1">
-                  <span className="block text-sm font-medium text-gray-900">{opt.label}</span>
-                  <span className="block text-xs text-gray-500">{opt.hint}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-gray-600">Notes</span>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              placeholder='e.g. "Saw on @berkeleypremed IG story 5/4"'
-              className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-            />
-          </label>
-        </div>
-
-        <footer className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
+    <LogModalShell
+      title="Mark as Partner"
+      subtitle={
+        <>
+          Graduating <strong>{organizationName}</strong>. We&apos;ll log the
+          evidence and queue the first seasonal check-in.
+        </>
+      }
+      onCancel={onCancel}
+      footer={
+        <>
           <button
             onClick={onCancel}
             disabled={submitting}
@@ -105,8 +69,43 @@ export function MarkPartnerModal({ organizationName, onCancel, onConfirm }: Prop
           >
             {submitting ? "Saving…" : "Mark as Partner"}
           </button>
-        </footer>
+        </>
+      }
+    >
+      <p className="text-xs font-medium text-gray-700">How do you know they&apos;re distributing?</p>
+      <div className="space-y-1.5">
+        {EVIDENCE_OPTIONS.map((opt) => (
+          <label
+            key={opt.value}
+            className={`flex cursor-pointer items-start gap-2 rounded-md border p-2.5 ${
+              evidence === opt.value ? "border-gray-900 bg-gray-50" : "border-gray-200 hover:bg-gray-50"
+            }`}
+          >
+            <input
+              type="radio"
+              name="evidence"
+              className="mt-0.5"
+              checked={evidence === opt.value}
+              onChange={() => setEvidence(opt.value)}
+            />
+            <span className="flex-1">
+              <span className="block text-sm font-medium text-gray-900">{opt.label}</span>
+              <span className="block text-xs text-gray-500">{opt.hint}</span>
+            </span>
+          </label>
+        ))}
       </div>
-    </div>
+
+      <label className="block">
+        <span className="mb-1 block text-xs font-medium text-gray-600">Notes</span>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={3}
+          placeholder='e.g. "Saw on @berkeleypremed IG story 5/4"'
+          className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
+        />
+      </label>
+    </LogModalShell>
   );
 }

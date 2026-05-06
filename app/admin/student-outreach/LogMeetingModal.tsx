@@ -27,6 +27,7 @@
  */
 
 import { useState } from "react";
+import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
 
 export type MeetingStatus =
   | "finding_time"
@@ -103,26 +104,30 @@ export function LogMeetingModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
-      onClick={onCancel}
+    <LogModalShell
+      title={titleText}
+      subtitle={contactName ? `${contactName} · ${organizationName}` : organizationName}
+      error={error}
+      onCancel={onCancel}
+      footer={
+        <>
+          <button
+            onClick={onCancel}
+            disabled={submitting}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={submitting}
+            className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+          >
+            {submitting ? "Saving…" : submitLabel}
+          </button>
+        </>
+      }
     >
-      <div
-        className="w-full max-w-lg rounded-xl bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">{titleText}</h3>
-          <p className="mt-0.5 text-xs text-gray-500">
-            {contactName ? `${contactName} · ${organizationName}` : organizationName}
-          </p>
-        </header>
-
-        <div className="space-y-3 px-6 py-4">
-          {error && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
-          )}
-
           <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
             Before the meeting
           </p>
@@ -188,26 +193,7 @@ export function LogMeetingModal({
               className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
             />
           </label>
-        </div>
-
-        <footer className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
-          <button
-            onClick={onCancel}
-            disabled={submitting}
-            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={submit}
-            disabled={submitting}
-            className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
-          >
-            {submitting ? "Saving…" : submitLabel}
-          </button>
-        </footer>
-      </div>
-    </div>
+    </LogModalShell>
   );
 }
 

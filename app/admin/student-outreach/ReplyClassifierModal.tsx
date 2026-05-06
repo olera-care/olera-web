@@ -18,6 +18,7 @@
  */
 
 import { useState } from "react";
+import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
 
 // v8.10.8: added "not_interested" — admin's "they said no thanks" path.
 // Routes to handleClassifyReply -> not_interested transition (same as
@@ -103,33 +104,38 @@ export function ReplyClassifierModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
-      onClick={onCancel}
+    <LogModalShell
+      title={sourceLabel}
+      subtitle={organizationName}
+      error={error}
+      onCancel={onCancel}
+      footer={
+        <>
+          <button
+            onClick={onCancel}
+            disabled={submitting}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={submitting || !choice}
+            className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+          >
+            {submitting ? "Saving…" : choice === "committed" ? "Continue →" : "Save"}
+          </button>
+        </>
+      }
     >
-      <div
-        className="w-full max-w-lg rounded-xl bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">{sourceLabel}</h3>
-          <p className="mt-0.5 text-xs text-gray-500">
-            {organizationName}
-          </p>
-        </header>
+      {/* v8.10.7: short reminder before the radio options. Reinforces
+          the inbox-triage workflow — admin checks Gmail and voicemail
+          first, then comes here to pick what happened. */}
+      <p className="rounded-md bg-blue-50/60 px-3 py-2 text-xs text-blue-900">
+        Check Gmail and voicemail first, then pick what happened below.
+      </p>
 
-        <div className="space-y-2 px-6 py-4">
-          {/* v8.10.7: short reminder before the radio options. Reinforces
-              the inbox-triage workflow — admin checks Gmail and voicemail
-              first, then comes here to pick what happened. */}
-          <p className="rounded-md bg-blue-50/60 px-3 py-2 text-xs text-blue-900">
-            Check Gmail and voicemail first, then pick what happened below.
-          </p>
-          {error && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
-          )}
-
-          <div className="space-y-1.5">
+      <div className="space-y-1.5">
             <ChoiceCard
               active={choice === "keep_emailing"}
               onSelect={() => setChoice("keep_emailing")}
@@ -198,26 +204,7 @@ export function ReplyClassifierModal({
               />
             </label>
           )}
-        </div>
-
-        <footer className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
-          <button
-            onClick={onCancel}
-            disabled={submitting}
-            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={submit}
-            disabled={submitting || !choice}
-            className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
-          >
-            {submitting ? "Saving…" : choice === "committed" ? "Continue →" : "Save"}
-          </button>
-        </footer>
-      </div>
-    </div>
+    </LogModalShell>
   );
 }
 

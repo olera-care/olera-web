@@ -22,6 +22,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { AddStakeholderTaskModal } from "@/app/admin/student-outreach/AddStakeholderTaskModal";
+import { StepBoardCard } from "@/components/admin/medjobs/StepBoardCard";
 
 interface EntityTask {
   id: string;
@@ -191,46 +192,40 @@ export function EntityStepBoard({ kind, entityId, entityName, onChange }: Props)
           tasks.map((t) => {
             const text = summaryOf(t);
             return (
-              <div
+              <StepBoardCard
                 key={t.id}
-                className="rounded-lg border border-gray-200 bg-white px-4 py-3"
-              >
-                <div className="flex items-stretch justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900">{text}</p>
-                    <p className="mt-0.5 text-xs text-gray-500">Custom step</p>
-                    <p className="mt-0.5 text-[11px] text-gray-400">
-                      Added {relative(t.created_at)}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 flex-col items-end justify-between gap-2">
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => setEditing(t)}
-                        className="rounded-md px-2 py-1 text-[11px] font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
-                        title="Edit step"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (window.confirm("Delete this step?")) void patch(t.id, "cancel");
-                        }}
-                        className="rounded-md px-2 py-1 text-[11px] font-medium text-red-600 hover:bg-red-50"
-                        title="Delete step"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                headline={text}
+                subtitle="Custom step"
+                footnote={`Added ${relative(t.created_at)}`}
+                overflow={
+                  <div className="flex gap-1">
                     <button
-                      onClick={() => void patch(t.id, "complete")}
-                      className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
+                      onClick={() => setEditing(t)}
+                      className="rounded-md px-2 py-1 text-[11px] font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                      title="Edit step"
                     >
-                      Log
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (window.confirm("Delete this step?")) void patch(t.id, "cancel");
+                      }}
+                      className="rounded-md px-2 py-1 text-[11px] font-medium text-red-600 hover:bg-red-50"
+                      title="Delete step"
+                    >
+                      Delete
                     </button>
                   </div>
-                </div>
-              </div>
+                }
+                cta={
+                  <button
+                    onClick={() => void patch(t.id, "complete")}
+                    className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
+                  >
+                    Log
+                  </button>
+                }
+              />
             );
           })
         )}

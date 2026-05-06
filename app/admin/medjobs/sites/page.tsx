@@ -23,6 +23,8 @@ import { SiteCard } from "@/components/admin/medjobs/cards/SiteCard";
 import { CardOverflowMenu } from "@/components/admin/medjobs/cards/CardOverflowMenu";
 import { AddSiteModal } from "@/components/admin/medjobs/AddSiteModal";
 import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
+import PulseHeader from "@/components/admin/PulseHeader";
+import type { DateRangeValue } from "@/components/admin/DateRangePopover";
 import type { CampusRow } from "@/lib/student-outreach/tab-config";
 import type { ResearchCampusCard } from "@/lib/student-outreach/types";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
@@ -34,6 +36,7 @@ export default function SitesPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [bulkResearchSite, setBulkResearchSite] = useState<ResearchCampusCard | null>(null);
   const [openSiteId, setOpenSiteId] = useState<string | null>(null);
+  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
 
   const refetch = useCallback(async () => {
     setLoading(true);
@@ -55,22 +58,26 @@ export default function SitesPage() {
 
   return (
     <div>
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">MedJobs · Sites</h1>
-          <p className="mt-0.5 text-sm text-gray-500">
-            Activated university territories. Provider prospects in each
-            catchment surface as virtual rows in In Basket; once a provider
-            converts, student-stakeholder research unlocks.
-          </p>
-        </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-        >
-          + Add Site
-        </button>
-      </header>
+      <PulseHeader
+        title="MedJobs · Sites"
+        kpiSuffix="sites added"
+        statsPath="/api/admin/student-outreach/stats?metric=campuses"
+        range={range}
+        onRangeChange={setRange}
+        actions={
+          <button
+            onClick={() => setShowAdd(true)}
+            className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+          >
+            + Add Site
+          </button>
+        }
+      />
+      <p className="-mt-6 mb-6 text-sm text-gray-500">
+        Activated university territories. Provider prospects in each catchment
+        surface as virtual rows in In Basket; once a provider converts,
+        student-stakeholder research unlocks.
+      </p>
 
       {loading ? (
         <p className="py-12 text-center text-sm text-gray-400">Loading…</p>

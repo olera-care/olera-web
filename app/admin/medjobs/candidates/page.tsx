@@ -11,6 +11,8 @@ import { useCallback, useEffect, useState } from "react";
 import { CandidateCard } from "@/components/admin/medjobs/cards/SpecialtyCards";
 import { CardOverflowMenu } from "@/components/admin/medjobs/cards/CardOverflowMenu";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
+import PulseHeader from "@/components/admin/PulseHeader";
+import type { DateRangeValue } from "@/components/admin/DateRangePopover";
 import type { CandidateRow } from "@/lib/student-outreach/tab-config";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
@@ -18,6 +20,7 @@ export default function CandidatesPage() {
   const [rows, setRows] = useState<CandidateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
   const [openCandidateId, setOpenCandidateId] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
@@ -40,12 +43,16 @@ export default function CandidatesPage() {
 
   return (
     <div>
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">MedJobs · Candidates</h1>
-        <p className="mt-0.5 text-sm text-gray-500">
-          Live student profiles visible to providers on the job board.
-        </p>
-      </header>
+      <PulseHeader
+        title="MedJobs · Candidates"
+        kpiSuffix="live candidates"
+        statsPath="/api/admin/student-outreach/stats?metric=candidates"
+        range={range}
+        onRangeChange={setRange}
+      />
+      <p className="-mt-6 mb-6 text-sm text-gray-500">
+        Live student profiles visible to providers on the job board.
+      </p>
 
       {loading ? (
         <p className="py-12 text-center text-sm text-gray-400">Loading…</p>

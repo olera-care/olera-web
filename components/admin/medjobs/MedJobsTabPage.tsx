@@ -55,6 +55,7 @@ import { RowCard } from "@/components/admin/medjobs/cards/StakeholderCard";
 import { SiteCard } from "@/components/admin/medjobs/cards/SiteCard";
 import { ResearchTabContent } from "@/components/admin/medjobs/lists/ResearchTabContent";
 import { RepliesGroupedList } from "@/components/admin/medjobs/lists/RepliesGroupedList";
+import { InBasketHero } from "@/components/admin/medjobs/InBasketHero";
 import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
@@ -263,6 +264,12 @@ export function MedJobsTabPage({
 
   return (
     <div>
+      {/* v9.0 Phase 7 Commit D: 3-element hero — Inbox Cleared %,
+          Logs Today, Streak. Always shows regardless of active tab so
+          the operational health signal stays in view as admin moves
+          between tabs. */}
+      <InBasketHero />
+
       <PulseHeader
         title={title}
         kpiSuffix={tabStats.label}

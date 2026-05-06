@@ -16,6 +16,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import { ClientCard } from "@/components/admin/medjobs/cards/ClientCard";
 import { CardOverflowMenu } from "@/components/admin/medjobs/cards/CardOverflowMenu";
+import PulseHeader from "@/components/admin/PulseHeader";
+import type { DateRangeValue } from "@/components/admin/DateRangePopover";
 import type { ClientRow } from "@/lib/student-outreach/tab-config";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
@@ -25,6 +27,7 @@ export default function ClientsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
   const [openProviderId, setOpenProviderId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,19 +57,23 @@ export default function ClientsPage() {
 
   return (
     <div>
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">MedJobs · Clients</h1>
-        <p className="mt-0.5 text-sm text-gray-500">
-          Provider relationships in pilot or subscribed via Stripe.
-        </p>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by provider name…"
-          className="mt-4 w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
-        />
-      </header>
+      <PulseHeader
+        title="MedJobs · Clients"
+        kpiSuffix="new clients"
+        statsPath="/api/admin/student-outreach/stats?metric=clients"
+        range={range}
+        onRangeChange={setRange}
+      />
+      <p className="-mt-6 mb-4 text-sm text-gray-500">
+        Provider relationships in pilot or subscribed via Stripe.
+      </p>
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search by provider name…"
+        className="mb-6 w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+      />
 
       {loading ? (
         <p className="py-12 text-center text-sm text-gray-400">Loading…</p>

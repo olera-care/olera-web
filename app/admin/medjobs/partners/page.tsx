@@ -17,6 +17,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import { MedjobsCard } from "@/components/admin/medjobs/cards/MedjobsCard";
 import { Pill } from "@/components/admin/medjobs/cards/StakeholderCard";
+import PulseHeader from "@/components/admin/PulseHeader";
+import type { DateRangeValue } from "@/components/admin/DateRangePopover";
 import { KIND_LABELS } from "@/lib/student-outreach/types";
 import { formatRelative } from "@/lib/student-outreach/formatters";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
@@ -44,6 +46,7 @@ export default function PartnersPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
+  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -72,19 +75,23 @@ export default function PartnersPage() {
 
   return (
     <div>
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">MedJobs · Partners</h1>
-        <p className="mt-0.5 text-sm text-gray-500">
-          Active campus partnerships distributing student profiles.
-        </p>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by organization name…"
-          className="mt-4 w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
-        />
-      </header>
+      <PulseHeader
+        title="MedJobs · Partners"
+        kpiSuffix="new partners"
+        statsPath="/api/admin/student-outreach/stats?metric=partners_added"
+        range={range}
+        onRangeChange={setRange}
+      />
+      <p className="-mt-6 mb-4 text-sm text-gray-500">
+        Active campus partnerships distributing student profiles.
+      </p>
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search by organization name…"
+        className="mb-6 w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+      />
 
       {loading ? (
         <p className="py-12 text-center text-sm text-gray-400">Loading…</p>

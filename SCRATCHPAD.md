@@ -7,6 +7,36 @@
 
 ## Current Focus
 
+### 2026-05-06 (Wed) — Outreach variant reframe + measurement instrumentation (P1, on `lively-ride`, awaiting PR)
+
+The outreach arm of the 5-way intake A/B (`AgentOutreachModule`) was getting impressions and almost no engagement. TJ flagged it as a "great potential" surface that wasn't converting. Pulled the data, diagnosed three structural issues, shipped fixes for the first two on `lively-ride`. Branch has 4 commits, pushed, ready for PR.
+
+**Data pulled (Supabase live):** Outreach arm ran ~2 days at full weight before TJ darked it to 0% earlier today. 330 distinct sessions saw the module → 11 card clicks (3.3%) → 3 submits (0.9%). Target was 6%. EVERY surface on provider pages converts <1% — outreach isn't uniquely broken, but the gap to target is real.
+
+**Diagnoses, ranked:**
+
+1. **CTA competition.** Sticky bottom "Check cost" bar (`MobileStickyBottomCTA`) is always-visible on mobile after 100px scroll, more concrete copy ("What does this cost?"), thumb-reachable. Outreach module is below the fold of Q&A. Most outreach-arm sessions were converting via the sticky bar instead — but cannibalization was UNMEASURABLE because `lead_received` events didn't carry `session_id`.
+2. **Ghost impressions.** `outreach_module_impression` fired in `useEffect` on mount, not on viewport entry. Module is below Q&A so meaningful share of arm sessions never scrolled to it. Real "viewed it" denominator was probably 30-50% of mount impressions — making the conversion rate look worse than it is.
+3. **Persona mismatch.** Old copy ("Skip the phone calls" / "Have an AI agent contact the top providers") read as a service offering. TJ's persona reframe: spouse/adult-child of elder in care-decision crisis — lost, time-pressed, wary of sales pressure. Wants orientation, not concierge. "AI agent" is loaded for this audience.
+
+**What shipped (4 commits on `lively-ride`):**
+
+1. **`0a9d9476`** — Copy reframe across 6 files. New H1: "Don't know which one to trust?" New sub: "Our care team will get pricing, availability, and how to start from the top N {category} providers in {City} — in one email." CTA: "Send me the comparison." Trust line ("No phone calls. No sales pitch. Just the facts.") promoted from 11px fine print to 13px medium body. Post-submit anchors a 24-hour SLA. Old caption removed (sub does that work). Source-of-truth copy in `lib/analytics/variant-copy.ts` updated so admin preview + dial description + surface labels all match. Reframed from service-offering to guide-orientation — "our care team has vetted these and will hand you the answers."
+
+2. **`60bcfd63`** — IntersectionObserver gate for impression. Wraps the section in observer, fires `outreach_module_impression` only when ≥50% in viewport. Ref-guarded so React strict-mode double-mount can't double-count. Falls back to immediate fire when IntersectionObserver unavailable. Means the conversion-rate denominator is now "actually saw it" rather than "server rendered it" — critical for re-baselining against the 6% greenlight target.
+
+3. **`37c520e5`** — `session_id` threaded through `lead_received` events. Three insertion sites updated (`connections/create-inquiry`, `connections/request` × 2 — guest path + auth path). Frontend hook `use-connection-card.ts` sends `session_id: getOrCreateSessionId()` in all 4 fetch bodies. Server routes destructure as optional, write to metadata. Existing `lead_received` allowlist unchanged (no new event_type, no migration). Now joinable to arm impressions in `seeker_activity` for cannibalization analysis the moment the next leads land.
+
+4. **`15e77b50`** — Pre-test fix. Self-review caught: with the IntersectionObserver gate, `sessionIdRef` was only populated when impression fired (≥50% threshold). But cards sit at the top of the section, form at the bottom — a user scrolling and tapping a card before the threshold would send `outreach_card_clicked` with empty session_id. Fix: separate mount effect populates `sessionIdRef` eagerly, decoupled from impression gating.
+
+**The dial is still at outreach=0%.** Re-enabling is a separate decision. Recommended: drop qa_email_capture (49 sessions / 0 enrichments in 7d — effectively dead) and run 50/50 availability vs outreach for the cleanest read. Aim for ~600 viewport-gated impressions per arm before deciding (~5–7 days at current traffic).
+
+**Decision rule, re-baselined:** With viewport-gated impressions, the denominator means real views. The original 6% target was set against inflated mount-impression denominators. New thresholds: green ≥4%, yellow 1.5–4% (iterate, don't kill), red <1.5% (reframe wrong direction).
+
+**Resume next session here →** Open PR `lively-ride` → `staging`. Once merged + Vercel deploys, bump dial to 50/50 availability/outreach. Watch funnel daily for 5–7 days. If green, ramp outreach to 70% and queue UX layer (carousel earning its keep, drop relationship chips, address dual-CTA problem with sticky bar). The third structural diagnosis from today (CTA competition) is unfixed — we instrumented it (cannibalization is measurable now) but didn't change the UX. If the new copy doesn't move the needle, that's the next lever.
+
+---
+
 ### 2026-05-05 (Tue, evening) — Admin dial for intake A/B traffic allocation (P1, shipped on `great-jackson` branch)
 
 Replaces the hardcoded equal split with a per-arm percentage dial in `/admin/analytics`. Operator can ramp a winning arm to 100, dark a losing arm to 0, or run a 50/50 head-to-head — without a deploy. Built directly on top of PR #743's qa_email_capture work; includes the merge resolution.

@@ -2,8 +2,9 @@
  * Top providers lookup for the AgentOutreachModule (H1 demand-test surface).
  *
  * Ships visual proof for the outreach arm of the SBF intake A/B test:
- * "Have an AI agent contact the top providers in [city] for you" + 3 mini
- * cards of real providers. Cards are determined server-side and round-trip
+ * "Our care team will get pricing, availability, and how to start from the
+ * top N [category] providers in [city] — in one email" + 3 mini cards of
+ * real providers. Cards are determined server-side and round-trip
  * back to POST /api/outreach/request as `target_provider_ids` so we have
  * an audit trail of which 3 providers each request was anchored to.
  *

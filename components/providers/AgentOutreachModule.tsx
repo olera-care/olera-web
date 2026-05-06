@@ -8,11 +8,13 @@
  * → mod 4). For these visitors, BenefitsDiscoveryModule is hidden and this
  * module renders in the Q&A area instead.
  *
- * The pitch (two-line H2): outcome first ("Skip the phone calls"), mechanic
- * second ("Have an AI agent contact the top providers in [City] for you").
- * The mechanic line is intentional — it plants the seed for the broader
- * agent-callable layer (Medicaid, etc.) we want families to associate with
- * Olera. Pulsing dots + the "AI agent" phrase share the load.
+ * The pitch (two-line H2): empathic hook ("Don't know which one to trust?"),
+ * concrete deliverable second ("Our care team will get pricing, availability,
+ * and how to start from the top N [category] providers in [City] — in one
+ * email"). Reframed 2026-05-06 from service-offering ("AI agent contacts
+ * providers") to guide-orientation ("our care team has vetted these and
+ * will hand you the answers"). Targets the spouse/adult-child persona in a
+ * care-decision crisis: lost, time-pressed, wary of sales pressure.
  *
  * Spec: plans/agent-outreach-cta-workbook.md → "Olera-hosted outreach module
  * for H1". Decision rule: ≥6% email-capture rate vs 3% baseline = greenlight
@@ -116,23 +118,72 @@ export default function AgentOutreachModule({
   const [dismissed, setDismissed] = useState(false);
   const impressionFiredRef = useRef(false);
   const sessionIdRef = useRef<string>("");
+  const sectionRef = useRef<HTMLElement | null>(null);
 
-  // Fire impression once on mount. Guarded to survive React strict-mode
-  // double-mount in dev so we don't double-count.
+  // Populate sessionIdRef eagerly on mount, decoupled from impression
+  // firing. Card clicks (and form submits) read this synchronously and
+  // can happen before the IntersectionObserver crosses its threshold —
+  // cards sit at the top of the section, form at the bottom, so a user
+  // who scrolls and taps a card while the section is just entering the
+  // viewport will run the click handler before impression fires.
+  // getOrCreateSessionId is idempotent (cookie-backed); calling it both
+  // here and inside fireImpression is safe.
+  useEffect(() => {
+    sessionIdRef.current = getOrCreateSessionId();
+  }, []);
+
+  // Fire impression once the section is at least 50% in the viewport, not on
+  // mount. The module sits below the Q&A area so a meaningful share of
+  // outreach-arm sessions never scroll to it; firing on mount inflates the
+  // denominator with ghost views and makes the conversion rate look worse
+  // than it is. IntersectionObserver gives us "actually saw it" semantics.
+  // Guarded so React strict-mode's double-mount can't double-count.
   useEffect(() => {
     if (impressionFiredRef.current) return;
-    impressionFiredRef.current = true;
-    sessionIdRef.current = getOrCreateSessionId();
-    void fireSeekerEvent("outreach_module_impression", {
-      session_id: sessionIdRef.current,
-      source_provider_id: sourceProviderId,
-      source_provider_name: sourceProviderName,
-      city,
-      state,
-      category,
-      target_provider_ids: topProviders.map((p) => p.id),
-      target_provider_count: topProviders.length,
-    });
+    const node = sectionRef.current;
+    if (!node) return;
+
+    const fireImpression = () => {
+      if (impressionFiredRef.current) return;
+      impressionFiredRef.current = true;
+      // Defensive: if the eager mount effect hasn't populated this yet
+      // (shouldn't happen — that effect runs first), fall back to a
+      // direct read so the impression event always carries a session id.
+      if (!sessionIdRef.current) sessionIdRef.current = getOrCreateSessionId();
+      void fireSeekerEvent("outreach_module_impression", {
+        session_id: sessionIdRef.current,
+        source_provider_id: sourceProviderId,
+        source_provider_name: sourceProviderName,
+        city,
+        state,
+        category,
+        target_provider_ids: topProviders.map((p) => p.id),
+        target_provider_count: topProviders.length,
+      });
+    };
+
+    // SSR / unsupported-browser fallback: better to lose the gate than the
+    // event entirely. IntersectionObserver is available in every browser
+    // we support, so this branch is essentially defensive.
+    if (typeof IntersectionObserver === "undefined") {
+      fireImpression();
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+            fireImpression();
+            observer.disconnect();
+            return;
+          }
+        }
+      },
+      { threshold: 0.5 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
   }, [sourceProviderId, sourceProviderName, city, state, category, topProviders]);
 
   function handleCardClick(card: ProviderCardData) {
@@ -225,6 +276,7 @@ export default function AgentOutreachModule({
 
   return (
     <section
+      ref={sectionRef}
       id="agent-outreach"
       className="mt-8 pt-8 border-t border-slate-200"
       data-arm="outreach"
@@ -237,19 +289,15 @@ export default function AgentOutreachModule({
             </div>
             <div className="max-w-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-slate-900 leading-tight">
-                Skip the phone calls.
+                Don&apos;t know which one to trust?
               </h2>
               <p className="mt-1 text-base md:text-lg text-slate-700 leading-snug">
-                Have an AI agent contact the top providers in {city} for you.
+                Our care team will get pricing, availability, and how to start from the top {topProviders.length} {categoryLabel} {topProviders.length === 1 ? "provider" : "providers"} in {city} — in one email.
               </p>
             </div>
           </div>
 
-          <p className="mt-5 text-xs text-slate-500">
-            Top {topProviders.length} {categoryLabel} {topProviders.length === 1 ? "provider" : "providers"} in {city}, where families are actively reaching out.
-          </p>
-
-          <div className="mt-3 -mx-1 overflow-x-auto">
+          <div className="mt-5 -mx-1 overflow-x-auto">
             <ul className="flex gap-3 snap-x snap-mandatory pb-2 px-1">
               {topProviders.map((card) => (
                 <li key={card.id} className="snap-start shrink-0">
@@ -363,7 +411,7 @@ export default function AgentOutreachModule({
                     Sending
                   </>
                 ) : (
-                  "Get the answers"
+                  "Send me the comparison"
                 )}
               </button>
             </div>
@@ -372,8 +420,8 @@ export default function AgentOutreachModule({
                 {error}
               </p>
             )}
-            <p className="text-[11px] text-slate-500">
-              We'll only use your email to send back the outreach summary. No spam.
+            <p className="text-[13px] font-medium text-slate-600">
+              No phone calls. No sales pitch. Just the facts.
             </p>
           </form>
         </>
@@ -386,10 +434,10 @@ export default function AgentOutreachModule({
           </div>
           <div className="flex-1">
             <h3 className="text-lg md:text-xl font-semibold text-slate-900">
-              On it.
+              We&apos;re on it.
             </h3>
             <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-              We'll email you back with what we hear from these {topProviders.length} {categoryLabel.toLowerCase()} {topProviders.length === 1 ? "provider" : "providers"} — pricing, intake requirements, and availability.
+              You&apos;ll have pricing, availability, and next steps{topProviders.length > 1 ? ` for all ${topProviders.length}` : ""} in your inbox within 24 hours.
             </p>
             <button
               type="button"

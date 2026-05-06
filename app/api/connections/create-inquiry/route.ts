@@ -33,9 +33,10 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { providerId, message } = body as {
+    const { providerId, message, session_id: sessionId } = body as {
       providerId: string;
       message: string;
+      session_id?: string;
     };
 
     if (!providerId || !message?.trim()) {
@@ -221,6 +222,9 @@ export async function POST(request: Request) {
         connection_id: connection.id,
         source: "matches_recommendation",
         olera_provider_id: providerId,
+        // session_id makes leads joinable back to arm impressions in
+        // seeker_activity / provider_activity for cannibalization analysis.
+        session_id: sessionId || null,
       },
     });
 

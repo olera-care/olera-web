@@ -1127,7 +1127,7 @@ function BenefitsVariantSplit({
     { key: "availability" as const, label: "availability", description: "There's help paying for care in {state}." },
     { key: "loss" as const, label: "loss", description: "Most {state} families miss out on help paying for care." },
     { key: "empathic" as const, label: "empathic", description: "Care is expensive." },
-    { key: "outreach" as const, label: "outreach", description: "Have an AI agent contact the top providers for you.", isOutreach: true },
+    { key: "outreach" as const, label: "outreach", description: "Our care team gets pricing, availability, and how to start from the top providers — in one email.", isOutreach: true },
     { key: "qa_email_capture" as const, label: "qa_email_capture", description: "No SBF / no outreach. Q&A enrichment ON with comparison-providers value-promise.", isOutreach: true },
   ];
   // Legacy V2 arms only render when they have data in the window — once the

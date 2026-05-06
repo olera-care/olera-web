@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import { MedjobsCard } from "@/components/admin/medjobs/cards/MedjobsCard";
+import { CardOverflowMenu } from "@/components/admin/medjobs/cards/CardOverflowMenu";
 import { Pill } from "@/components/admin/medjobs/cards/StakeholderCard";
 import PulseHeader from "@/components/admin/PulseHeader";
 import type { DateRangeValue } from "@/components/admin/DateRangePopover";
@@ -123,6 +124,23 @@ export default function PartnersPage() {
                   onClick={() => setOpenOutreachId(r.id)}
                   hoverTitle="Open the partner drawer."
                   unread={r.viewed_at == null}
+                  overflowMenu={
+                    <CardOverflowMenu
+                      items={[
+                        {
+                          label: "Mark as unread",
+                          onClick: async () => {
+                            await fetch(`/api/admin/student-outreach/${r.id}`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ action: "mark_unread" }),
+                            });
+                            void refetch();
+                          },
+                        },
+                      ]}
+                    />
+                  }
                 />
               </li>
             );

@@ -97,13 +97,15 @@ export function StakeholderCard({
   /** v9.0 Phase 4: title bolds when unread. */
   unread?: boolean;
 }) {
-  // v9.0 Phase 2: kind-aware accent. Provider rows get an amber border
-  // so they read as a different lane from stakeholder rows even when
-  // the two appear in the same Prospects list.
-  const isProvider = row.kind === "provider";
-  const cardClass = isProvider
-    ? "cursor-pointer rounded-lg border-2 border-amber-200 bg-amber-50/30 px-4 py-3 transition-colors hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-    : "cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500";
+  // v9.0 Phase 7 Commit I: unified card chrome across all kinds. The
+  // earlier amber lane for provider rows is gone — provider vs.
+  // stakeholder is clear from the `kindLabel` in the subtitle, and a
+  // separate visual lane created two card languages (one for
+  // providers, one for everyone else) that fought each other in the
+  // Prospects list. Unread state uses the same bold-black border as
+  // MedjobsCard so the design language is one.
+  const borderClass = unread ? "border-gray-900" : "border-gray-200";
+  const cardClass = `cursor-pointer rounded-lg border ${borderClass} bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500`;
   // Subtitle label: kind label (Provider / Advisor / etc.) — fallback
   // to the legacy stakeholder_type lookup if kind is missing on older
   // rows that haven't been hydrated yet.
@@ -130,11 +132,6 @@ export function StakeholderCard({
             <p className={`truncate text-sm ${unread ? "font-semibold" : "font-medium"} text-gray-900`}>
               {row.primary_contact_name || row.organization_name}
             </p>
-            {isProvider && (
-              <span className="shrink-0 rounded bg-amber-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
-                Provider
-              </span>
-            )}
             {headlineAccessory}
           </div>
           <p className="mt-0.5 truncate text-xs text-gray-500">

@@ -406,6 +406,7 @@ export default function AdminVerificationPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
   const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+  const [revokeConfirmProvider, setRevokeConfirmProvider] = useState<Provider | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -493,7 +494,7 @@ export default function AdminVerificationPage() {
     { label: "Rejected", value: "rejected" },
   ];
 
-  async function handleAction(id: string, action: "approve" | "reject" | "unclaim") {
+  async function handleAction(id: string, action: "approve" | "reject" | "unclaim"): Promise<boolean> {
     setActionLoading(id);
     setActionError(null);
     try {
@@ -521,13 +522,16 @@ export default function AdminVerificationPage() {
         });
         // Refresh tab counts after action
         fetchCounts();
+        return true;
       } else {
         const data = await res.json().catch(() => ({}));
         setActionError(data.error || `Failed to ${action} badge. Please try again.`);
+        return false;
       }
     } catch (err) {
       console.error("Action failed:", err);
       setActionError(`Failed to ${action} badge. Please check your connection.`);
+      return false;
     } finally {
       setActionLoading(null);
     }
@@ -1115,7 +1119,7 @@ export default function AdminVerificationPage() {
                                 Details
                               </button>
                               <button
-                                onClick={() => handleAction(provider.id, "reject")}
+                                onClick={() => setRevokeConfirmProvider(provider)}
                                 disabled={actionLoading === provider.id}
                                 className="px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors whitespace-nowrap"
                               >
@@ -1200,6 +1204,52 @@ export default function AdminVerificationPage() {
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {bulkLoading ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Revoke badge confirmation (from table row action) */}
+      {revokeConfirmProvider && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Revoke verified badge?
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Remove the verified badge from <span className="font-medium">{revokeConfirmProvider.display_name}</span>?
+            </p>
+            <div className="mt-3 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2.5">
+              <p className="text-xs text-amber-800 font-medium mb-1">This will:</p>
+              <ul className="text-xs text-amber-700 space-y-0.5 list-disc list-inside">
+                <li>Remove the verified badge from their profile</li>
+                <li>Mark them as unverified to families browsing</li>
+                <li>Require them to re-verify to regain the badge</li>
+              </ul>
+            </div>
+            {actionError && (
+              <div className="mt-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">
+                {actionError}
+              </div>
+            )}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => { setRevokeConfirmProvider(null); setActionError(null); }}
+                disabled={actionLoading === revokeConfirmProvider.id}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const success = await handleAction(revokeConfirmProvider.id, "reject");
+                  if (success) setRevokeConfirmProvider(null);
+                }}
+                disabled={actionLoading === revokeConfirmProvider.id}
+                className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+              >
+                {actionLoading === revokeConfirmProvider.id ? "Revoking..." : "Revoke Badge"}
               </button>
             </div>
           </div>
@@ -1653,6 +1703,7 @@ function VerificationReviewModal({
   actionError,
 }: VerificationReviewModalProps) {
   const [showUnclaimConfirm, setShowUnclaimConfirm] = useState(false);
+  const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
   const submission = provider.metadata?.verification_submission;
 
   const formatDate = (dateString: string) => {
@@ -1750,11 +1801,11 @@ function VerificationReviewModal({
               Close
             </button>
             <button
-              onClick={onReject}
+              onClick={() => setShowRevokeConfirm(true)}
               disabled={isLoading}
               className="flex-1 px-4 py-3 bg-amber-500 text-white text-sm font-semibold rounded-xl hover:bg-amber-600 disabled:opacity-50 transition-colors"
             >
-              {isLoading ? "Processing..." : "Revoke"}
+              Revoke
             </button>
           </div>
         );
@@ -2107,6 +2158,49 @@ function VerificationReviewModal({
                 className="flex-1 px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {isLoading ? "Processing..." : "Unclaim"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Revoke Badge Confirmation Dialog */}
+      {showRevokeConfirm && (
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Revoke verified badge?
+            </h3>
+            <p className="text-sm text-gray-600 mb-3">
+              Remove the verified badge from <span className="font-medium">{provider.display_name}</span>?
+            </p>
+            <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2.5 mb-4">
+              <p className="text-xs text-amber-800 font-medium mb-1">This will:</p>
+              <ul className="text-xs text-amber-700 space-y-0.5 list-disc list-inside">
+                <li>Remove the verified badge from their profile</li>
+                <li>Mark them as unverified to families browsing</li>
+                <li>Require them to re-verify to regain the badge</li>
+              </ul>
+            </div>
+            {actionError && (
+              <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">
+                {actionError}
+              </div>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowRevokeConfirm(false)}
+                disabled={isLoading}
+                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onReject}
+                disabled={isLoading}
+                className="flex-1 px-4 py-2.5 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+              >
+                {isLoading ? "Revoking..." : "Revoke Badge"}
               </button>
             </div>
           </div>

@@ -7,6 +7,37 @@
 
 ## Current Focus
 
+### 2026-05-06 (Wed, early AM) — Production promotion + dial in live use (continuation of last night's work)
+
+Promoted the staging backlog to main via PR #745 (33 commits, 50 files, +5,225/-894). Final main SHA: `68fef731`. All three migrations (068, 069, 070) verified applied to the shared Supabase before the merge.
+
+**TJ's first real dial use, saved overnight:** `{availability:50, loss:0, empathic:0, outreach:0, qa_email_capture:50}` at version 2. Head-to-head between the SBF availability-framing arm and the qa_email_capture (no SBF / Q&A enrichment) arm. Other arms zeroed out — exactly the use case the dial was designed for ("sometimes I want two arms only").
+
+**6am follow-up — apparent leakage on dark'd arms.** TJ noticed the variant split table showed non-zero impressions on loss/empathic/outreach despite those being at 0% in the dial. Diagnosed via direct DB query:
+
+```
+                   before save    after save
+  availability         173            28
+  loss                 176            26    ← should be 0
+  empathic             202            26    ← should be 0
+  outreach             237            10    ← should be 0
+  qa_email_capture       9            46
+```
+
+Two effects, both expected:
+
+1. **Most "wrong arm" impressions are pre-dial-save data (v1, equal-split mod-5)** still in the analytics window. Aggregator doesn't know about version transitions; date-range filter is the workaround. Will age out within 24h on "Today" filter, ~1 week on default windows.
+
+2. **Small post-save in-tab leak (62 impressions over 4-5 hours)** from users whose tabs were already open when TJ saved the dial. The `useIntakeVariant` hook caches `weightsPromise` at module level for the tab's lifetime — so users with continuous tabs stay on their v1-assigned arm until they close/reopen. Bounded by tab churn; expected to drop below 10% in steady state, dilute to noise by end-of-week.
+
+**Decision: leave the cache alone** (TJ chose path 3 of 3 options I offered — "leave it" vs "refetch on visibility change" vs "TTL the cache"). Saved the trade as `feedback_intake_variant_cache_tradeoff.md` so future sessions don't re-propose tightening it.
+
+**Net:** dial works as intended. Over the course of the day, signal will favor availability+qa_email_capture by ~80-90%; by end-of-week, ~95%+. Plenty of statistical power to read a winner.
+
+**Resume next session here →** Watch the variant split on the new live allocation. If qa_email_capture clearly out-performs availability over 7-14 days, ramp via the dial (e.g. 100 to qa_email_capture to confirm at scale, or run qa_email_capture vs availability at 70/30 if signal is borderline). First formal `/weekly` measurement: Mon 5/11.
+
+---
+
 ### 2026-05-05 (Tue, evening) — Admin dial for intake A/B traffic allocation (P1, shipped on `great-jackson` branch)
 
 Replaces the hardcoded equal split with a per-arm percentage dial in `/admin/analytics`. Operator can ramp a winning arm to 100, dark a losing arm to 0, or run a 50/50 head-to-head — without a deploy. Built directly on top of PR #743's qa_email_capture work; includes the merge resolution.

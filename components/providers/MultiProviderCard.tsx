@@ -71,7 +71,6 @@ export default function MultiProviderCard({
 
   // Total sent = current provider (1) + other providers sent
   const totalSentCount = 1 + sentProviders.size;
-  const otherProvidersSentCount = sentProviders.size;
 
   // Dynamic copy based on sent count
   const buttonText = totalSentCount === 1 ? "Get reply" : `Get ${totalSentCount} replies`;
@@ -518,34 +517,78 @@ export default function MultiProviderCard({
             })}
           </div>
 
+          {/* ─── Divider ────────────────────────────────────────────────────── */}
+          <div
+            className={`
+              my-6
+              transition-all duration-500 ease-out delay-200
+              ${mounted ? "opacity-100" : "opacity-0"}
+            `}
+          >
+            <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+          </div>
+
           {/* ─── Email Capture Block ────────────────────────────────────────── */}
           <div
             className={`
-              mt-5 p-5 rounded-2xl bg-[#F5F2EB]
               transition-all duration-500 ease-out delay-200
               ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
             {isLoggedIn ? (
               /* ─── Logged-in User: Simple confirmation ─────────────────────── */
-              <div className="text-center py-1">
-                <p className="text-[15px] text-gray-800 font-medium">
-                  {totalSentCount} question{totalSentCount !== 1 ? "s" : ""} sent
-                </p>
-                <p className="text-[13px] text-gray-500 mt-1">
-                  We&apos;ll email {userEmail} when providers reply
-                </p>
+              <div className="flex items-center gap-3">
+                {currentProvider.image ? (
+                  <img
+                    src={currentProvider.image}
+                    alt={firstName}
+                    className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
+                    <span className="text-sm font-semibold text-gray-500">
+                      {firstName.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <p className="text-[16px] text-gray-900 font-medium">
+                    We&apos;ll notify you when {totalSentCount === 1 ? firstName : "they"} {totalSentCount === 1 ? "replies" : "reply"}
+                  </p>
+                  <p className="text-[13px] text-gray-500 mt-0.5">
+                    Check your email for {totalSentCount === 1 ? "their response" : `${totalSentCount} responses`}
+                  </p>
+                </div>
               </div>
             ) : (
               /* ─── Guest User: Email capture form ──────────────────────────── */
               <>
-                {/* Headline */}
-                <p className="text-[15px] text-gray-800 leading-relaxed">
-                  Add your email to <span className="font-semibold">get {firstName}&apos;s reply</span>.
-                </p>
+                {/* CTA with Avatar */}
+                <div className="flex items-center gap-3 mb-4">
+                  {currentProvider.image ? (
+                    <img
+                      src={currentProvider.image}
+                      alt={firstName}
+                      className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
+                      <span className="text-sm font-semibold text-gray-500">
+                        {firstName.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  <p className="text-[16px] text-gray-700">
+                    {totalSentCount === 1 ? (
+                      <>Hear directly from <span className="font-semibold text-gray-900">{firstName}</span>.</>
+                    ) : (
+                      <>Get replies from <span className="font-semibold text-gray-900">{totalSentCount} providers</span>.</>
+                    )}
+                  </p>
+                </div>
 
                 {/* Input + Button Row */}
-                <div className="flex flex-col sm:flex-row gap-3 mt-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1 min-w-0">
                     <input
                       ref={inputRef}
@@ -558,7 +601,7 @@ export default function MultiProviderCard({
                       onKeyDown={handleKeyDown}
                       onFocus={() => setInputFocused(true)}
                       onBlur={() => setInputFocused(false)}
-                      placeholder="you@email.com"
+                      placeholder="your email"
                       autoComplete="email"
                       disabled={isSubmitting}
                       className={`
@@ -570,8 +613,8 @@ export default function MultiProviderCard({
                         ${inputFocused
                           ? "border-primary-400 ring-2 ring-primary-100"
                           : error
-                            ? "border-red-300"
-                            : "border-gray-200"
+                            ? "border-red-300 ring-2 ring-red-50"
+                            : "border-gray-200 hover:border-gray-300"
                         }
                       `}
                     />
@@ -587,6 +630,7 @@ export default function MultiProviderCard({
                       transition-all duration-200 ease-out
                       hover:bg-primary-700 active:scale-[0.98]
                       disabled:opacity-40 disabled:cursor-not-allowed
+                      disabled:hover:bg-primary-600
                       sm:w-auto w-full
                     "
                   >
@@ -596,7 +640,7 @@ export default function MultiProviderCard({
                         Sending...
                       </span>
                     ) : (
-                      buttonText
+                      totalSentCount === 1 ? "Send their reply" : `Get ${totalSentCount} replies`
                     )}
                   </button>
                 </div>
@@ -608,9 +652,9 @@ export default function MultiProviderCard({
                   </p>
                 )}
 
-                {/* Fine print */}
-                <p className="text-[13px] text-gray-500 mt-3 leading-relaxed">
-                  {finePrint}
+                {/* Trust Line */}
+                <p className="text-[13px] text-gray-500 mt-4 leading-relaxed">
+                  {totalSentCount === 1 ? "One email. No calls." : `${totalSentCount} emails. No calls.`}
                 </p>
               </>
             )}

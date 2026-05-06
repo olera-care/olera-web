@@ -1,30 +1,38 @@
 "use client";
 
 /**
- * LogMeetingModal — v8.10.19.
+ * LogMeetingModal — v8.10.28.
  *
- * Universal Meetings-tab CTA. Replaces the previous state-specific
- * buttons ("Booked it" on in_flight rows, "Make Partner ★" on
- * scheduled rows) with a single "Log Meeting" entry point that opens
- * this modal.
+ * Universal Meetings-tab modal covering the full meeting lifecycle:
  *
- * Two outcomes:
- *   - Finding a time → flag_wants_meeting (note_added with reason
- *                      meeting_in_flight). Row appears in Meetings
- *                      as "Finding a time".
- *   - Booked         → mark_meeting_scheduled with optional date.
- *                      Row appears in Meetings as "Booked · <date>".
+ *   Before the meeting:
+ *     - Still finding a time → flag_wants_meeting (note_added,
+ *       reason="meeting_in_flight"). Card pill: "Finding a time".
+ *     - On the calendar       → mark_meeting_scheduled with optional
+ *       date. Card pill: "Booked · <date>".
  *
- * Both also accept optional follow-up notes — admin's reminders for
- * permission follow-up, materials to send, ongoing email threads, etc.
+ *   After the meeting:
+ *     - They're sharing it    → closes this modal and opens
+ *       MarkPartnerModal so admin can capture evidence + graduate
+ *       the row to active_partner. Row leaves Meetings → Partners.
+ *     - Need to email more    → mark_meeting_followup (meeting_held
+ *       outcome=needs_followup + note_added reason="post_meeting_followup").
+ *       Row leaves Meetings → Replies as needs_followup.
  *
- * Modal pre-populates with the row's current meeting state so admin
- * can update the date or notes without re-entering everything.
+ * The modal pre-populates with the row's current state so admin can
+ * tweak the date / notes without re-entering everything. The CTA
+ * label on the card flips based on whether the meeting is booked
+ * yet ("Log meeting" vs "Complete"), but the same modal handles
+ * both flows — the admin can always pick any of the four options.
  */
 
 import { useState } from "react";
 
-export type MeetingStatus = "finding_time" | "booked";
+export type MeetingStatus =
+  | "finding_time"
+  | "booked"
+  | "done_partner"
+  | "done_followup";
 
 interface Props {
   organizationName: string;
@@ -54,7 +62,29 @@ export function LogMeetingModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const notesRequired = status === "done_followup";
+  const notesPlaceholder =
+    status === "done_followup"
+      ? "What's left to do over email? (Required — so the team knows what to send next.)"
+      : status === "done_partner"
+        ? "Anything to remember? You'll add evidence on the next step."
+        : "Permission notes, materials to send, ongoing thread context — anything to remember.";
+
+  const submitLabel =
+    status === "done_partner"
+      ? "Next → mark Partner"
+      : status === "done_followup"
+        ? "Send to Replies"
+        : "Save";
+
+  const titleText =
+    initialStatus === "booked" ? "Update or complete meeting" : "Log meeting";
+
   const submit = async () => {
+    if (notesRequired && !notes.trim()) {
+      setError("Add a quick note so the team knows what to follow up on.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -82,7 +112,7 @@ export function LogMeetingModal({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">Log meeting</h3>
+          <h3 className="text-base font-semibold text-gray-900">{titleText}</h3>
           <p className="mt-0.5 text-xs text-gray-500">
             {contactName ? `${contactName} · ${organizationName}` : organizationName}
           </p>
@@ -93,18 +123,39 @@ export function LogMeetingModal({
             <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
           )}
 
+          <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+            Before the meeting
+          </p>
           <div className="space-y-1.5">
             <StatusCard
               active={status === "finding_time"}
               onSelect={() => setStatus("finding_time")}
-              label="Finding a time"
-              blurb="Coordinating over email — no date locked in yet."
+              label="Still finding a time"
+              blurb="Going back and forth over email — no date locked in yet."
             />
             <StatusCard
               active={status === "booked"}
               onSelect={() => setStatus("booked")}
-              label="Booked"
-              blurb="On the calendar (Calendly, manual invite, or already added)."
+              label="On the calendar"
+              blurb="Date is set (Calendly, manual invite, or already added)."
+            />
+          </div>
+
+          <p className="pt-2 text-[11px] font-medium uppercase tracking-wide text-gray-400">
+            After the meeting
+          </p>
+          <div className="space-y-1.5">
+            <StatusCard
+              active={status === "done_partner"}
+              onSelect={() => setStatus("done_partner")}
+              label="Done — they're sharing with students"
+              blurb="Meeting went great. They'll post, share, or hand out flyers."
+            />
+            <StatusCard
+              active={status === "done_followup"}
+              onSelect={() => setStatus("done_followup")}
+              label="Done — needs more email"
+              blurb="Meeting happened, but we still need to follow up over email."
             />
           </div>
 
@@ -127,13 +178,13 @@ export function LogMeetingModal({
 
           <label className="block pt-1">
             <span className="mb-1 block text-xs font-medium text-gray-600">
-              Follow-up notes (optional)
+              Notes {notesRequired ? <span className="text-red-600">*</span> : "(optional)"}
             </span>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              placeholder="Permission follow-up, materials to send, ongoing thread context — anything you want to remember after the meeting."
+              placeholder={notesPlaceholder}
               className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
             />
           </label>
@@ -152,7 +203,7 @@ export function LogMeetingModal({
             disabled={submitting}
             className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
           >
-            {submitting ? "Saving…" : "Save"}
+            {submitting ? "Saving…" : submitLabel}
           </button>
         </footer>
       </div>

@@ -461,12 +461,29 @@ export default function StudentOutreachPage() {
                   meeting_at: payload.meeting_at,
                   notes: payload.notes,
                 });
-              } else {
+                setLogMeetingRow(null);
+              } else if (status === "finding_time") {
                 await callAction(logMeetingRow.id, "flag_wants_meeting", {
                   notes: payload.notes,
                 });
+                setLogMeetingRow(null);
+              } else if (status === "done_followup") {
+                // v8.10.28: meeting happened, but more email is needed.
+                // mark_meeting_followup writes meeting_held + post_meeting_followup
+                // note → row leaves Meetings, lands in Replies as needs_followup.
+                await callAction(logMeetingRow.id, "mark_meeting_followup", {
+                  notes: payload.notes,
+                });
+                setLogMeetingRow(null);
+              } else if (status === "done_partner") {
+                // v8.10.28: meeting happened and they're sharing it.
+                // Close this modal and open MarkPartnerModal so the admin
+                // can pick evidence type (verbal, observed, etc.) and
+                // graduate the row to active_partner.
+                const r = logMeetingRow;
+                setLogMeetingRow(null);
+                setPartnerRow(r);
               }
-              setLogMeetingRow(null);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
               throw e;
@@ -1063,13 +1080,15 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
 }
 
 function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // v8.10.19: single "Log Meeting" CTA on every meetings card,
-  // regardless of stakeholder type or current state. Opens
-  // LogMeetingModal — admin picks "Finding a time" or "Booked",
-  // optionally adds a date + follow-up notes. Make Partner moves
-  // to the overflow (no longer the primary CTA on scheduled rows)
-  // since logging the meeting is the workflow action; partner
-  // graduation can happen after, via the universal ⋯.
+  // v8.10.28: CTA label flips based on lifecycle stage. Same modal
+  // handles every state — finding_time, booked, and the two "done"
+  // outcomes (sharing → Partner / needs more email → Replies) — but
+  // the button text matches the natural next move:
+  //   - finding_time row → "Log Meeting" (admin is still setting it up)
+  //   - booked row       → "Complete" (next move is to mark it done)
+  // The modal still lets admin pick any of the four options, so a
+  // booked row can be edited and a finding_time row can jump straight
+  // to "done" if the meeting somehow already happened.
   const lastActivityFootnote = row.last_activity_at ? (
     <p className="mt-0.5 text-[11px] text-gray-400">
       Last activity {formatRelative(row.last_activity_at)}
@@ -1083,10 +1102,11 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     ) : (
       <Pill>Finding a time</Pill>
     );
+  const ctaLabel = row.meeting_state === "scheduled" ? "Complete" : "Log Meeting";
   return {
     footnote: lastActivityFootnote,
     pill,
-    cta: <PrimaryAction onClick={cb.onLogMeeting}>Log Meeting</PrimaryAction>,
+    cta: <PrimaryAction onClick={cb.onLogMeeting}>{ctaLabel}</PrimaryAction>,
     overflowMenu: buildUniversalOverflow(cb),
   };
 }

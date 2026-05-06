@@ -34,15 +34,22 @@ UPDATE student_outreach
  WHERE kind IS NULL;
 
 -- Now make kind NOT NULL with the broadened CHECK constraint.
+-- ALTER COLUMN ... SET NOT NULL is idempotent when already NOT NULL.
 ALTER TABLE student_outreach
   ALTER COLUMN kind SET NOT NULL;
 
+-- Idempotent constraint pattern: DROP IF EXISTS then ADD. Re-running this
+-- migration is safe; the constraint will end up in the desired state.
+ALTER TABLE student_outreach
+  DROP CONSTRAINT IF EXISTS student_outreach_kind_check;
 ALTER TABLE student_outreach
   ADD CONSTRAINT student_outreach_kind_check
     CHECK (kind IN ('student_org','advisor','professor','dept_head','provider'));
 
 -- Provider rows must have a provider_business_profile_id; stakeholder rows
 -- must not. Enforced as a partial constraint so the table stays clean.
+ALTER TABLE student_outreach
+  DROP CONSTRAINT IF EXISTS student_outreach_kind_provider_link_check;
 ALTER TABLE student_outreach
   ADD CONSTRAINT student_outreach_kind_provider_link_check
     CHECK (

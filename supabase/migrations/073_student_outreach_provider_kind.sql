@@ -46,6 +46,9 @@ ALTER TABLE student_outreach
 
 -- Add a conditional CHECK: stakeholder_type stays one of the legacy
 -- values for non-provider rows; for provider rows it must be NULL.
+-- Idempotent: drop existing if present, then add.
+ALTER TABLE student_outreach
+  DROP CONSTRAINT IF EXISTS student_outreach_stakeholder_type_kind_check;
 ALTER TABLE student_outreach
   ADD CONSTRAINT student_outreach_stakeholder_type_kind_check
     CHECK (

@@ -263,7 +263,13 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     .eq("id", outreachId)
     .single();
   if (!outreach) return null;
-  const row = outreach as OutreachRow;
+  const row = outreach as OutreachRow & { stakeholder_type: StakeholderType | null };
+  // v9.0 Phase 2 Tier 3.5: kind='provider' rows have stakeholder_type
+  // NULL. Coerce to 'student_org' so the drawer's existing render paths
+  // don't trip; kind-aware surfaces read `kind` first.
+  if (row.stakeholder_type == null) {
+    row.stakeholder_type = "student_org";
+  }
 
   const [
     { data: campus },

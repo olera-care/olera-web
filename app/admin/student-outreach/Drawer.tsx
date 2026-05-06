@@ -23,7 +23,7 @@ import { ReplyClassifierModal } from "./ReplyClassifierModal";
 import { LogMeetingModal } from "./LogMeetingModal";
 import {
   PARTNER_CTA_STAGES,
-  STAKEHOLDER_TYPE_LABELS,
+  KIND_LABELS,
   STATUS_LABELS,
   type Approval,
   type ApprovalStatus,
@@ -197,7 +197,7 @@ function StakeholderDrawer({
                       {" · "}
                     </>
                   )}
-                  {ctx.campus.name} · {STAKEHOLDER_TYPE_LABELS[ctx.outreach.stakeholder_type]}
+                  {ctx.campus.name} · {KIND_LABELS[ctx.outreach.kind ?? ctx.outreach.stakeholder_type]}
                   {primary?.role && ` · ${primary.role}`}
                 </p>
                 {isPartner && (

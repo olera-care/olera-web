@@ -479,17 +479,26 @@ export function MedJobsTabPage({
           providerProspects={providerProspects}
           renderRow={renderRow}
           onContinueCampus={(c) => setBulkResearchCampus(c)}
-          onStartProviderOutreach={(p) => {
-            // v9.0 Phase 2 Tier 3: materialization endpoint lands in
-            // Tier 3.5 (needs the stakeholder_type constraint relax
-            // migration). For now, surface what's coming so admin
-            // doesn't think the click silently failed.
-            window.alert(
-              `Starting outreach for ${p.provider_name} (${p.campus_name}) is coming in v9.x.\n\n` +
-                "We're finishing the migration that lets a student_outreach row carry kind='provider' " +
-                "without a stakeholder_type. Once it ships, this button materializes the row and the " +
-                "drawer opens for cadence configuration.",
-            );
+          onStartProviderOutreach={async (p) => {
+            // v9.0 Phase 2 Tier 3.5: materialize a student_outreach row
+            // with kind='provider' and open the workflow drawer for it.
+            // The virtual prospect disappears from the catchment list
+            // (deduped by the materialize endpoint) and the materialized
+            // row appears in the stakeholder rows section with amber
+            // accent + "Provider" pill.
+            try {
+              const res = await fetch("/api/admin/medjobs/provider-prospects/materialize", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ provider_id: p.provider_id, campus_id: p.campus_id }),
+              });
+              const body = await res.json();
+              if (!res.ok) throw new Error(body.error || "Failed to materialize");
+              await refetch();
+              setOpenOutreachId(body.id);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to start outreach");
+            }
           }}
           onMarkResearchComplete={async (slug, name) => {
             if (!window.confirm(`Mark research complete for ${name}? You can reopen later from the Campuses page.`)) return;

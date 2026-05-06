@@ -22,7 +22,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
-  STAKEHOLDER_TYPE_LABELS,
+  KIND_LABELS,
   STATUS_LABELS,
   type RepliesState,
   type TabRow,
@@ -93,6 +93,18 @@ export function StakeholderCard({
   overflowMenu?: ReactNode;
   onOpenDrawer: () => void;
 }) {
+  // v9.0 Phase 2: kind-aware accent. Provider rows get an amber border
+  // so they read as a different lane from stakeholder rows even when
+  // the two appear in the same Prospects list.
+  const isProvider = row.kind === "provider";
+  const cardClass = isProvider
+    ? "cursor-pointer rounded-lg border-2 border-amber-200 bg-amber-50/30 px-4 py-3 transition-colors hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+    : "cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500";
+  // Subtitle label: kind label (Provider / Advisor / etc.) — fallback
+  // to the legacy stakeholder_type lookup if kind is missing on older
+  // rows that haven't been hydrated yet.
+  const kindLabel = KIND_LABELS[row.kind ?? row.stakeholder_type ?? "student_org"];
+
   return (
     <div
       role="button"
@@ -105,7 +117,7 @@ export function StakeholderCard({
         }
       }}
       title="Open the drawer for full context and history."
-      className="cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+      className={cardClass}
     >
       <div className="flex items-stretch justify-between gap-3">
         {/* LEFT: descriptive content stacked top-down */}
@@ -114,6 +126,11 @@ export function StakeholderCard({
             <p className="truncate text-sm font-medium text-gray-900">
               {row.primary_contact_name || row.organization_name}
             </p>
+            {isProvider && (
+              <span className="shrink-0 rounded bg-amber-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                Provider
+              </span>
+            )}
             {headlineAccessory}
           </div>
           <p className="mt-0.5 truncate text-xs text-gray-500">
@@ -125,7 +142,7 @@ export function StakeholderCard({
                 {" · "}
               </>
             )}
-            {row.campus_name} · {STAKEHOLDER_TYPE_LABELS[row.stakeholder_type]}
+            {row.campus_name} · {kindLabel}
             {row.primary_contact_role && ` · ${row.primary_contact_role}`}
           </p>
           {footnote}

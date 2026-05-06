@@ -778,7 +778,16 @@ async function hydrateRows(
     .select("*")
     .in("id", ids);
   const rowMap = new Map<string, OutreachRow>();
-  for (const r of (rowsRaw ?? []) as OutreachRow[]) rowMap.set(r.id, r);
+  for (const r of (rowsRaw ?? []) as Array<OutreachRow & { stakeholder_type: StakeholderType | null; kind?: string }>) {
+    // v9.0 Phase 2 Tier 3.5: kind='provider' rows have stakeholder_type
+    // NULL in the DB. Coerce to 'student_org' here so the type stays
+    // non-null for the drawer's hundreds of call sites; kind-aware
+    // surfaces (StakeholderCard) read `kind` before stakeholder_type.
+    if (r.stakeholder_type == null) {
+      (r as OutreachRow).stakeholder_type = "student_org";
+    }
+    rowMap.set(r.id, r as OutreachRow);
+  }
   // Preserve order from ids.
   const orderedRows = ids.map((id) => rowMap.get(id)).filter((r): r is OutreachRow => Boolean(r));
 

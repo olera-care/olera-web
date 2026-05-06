@@ -130,7 +130,20 @@ export interface Campus {
 export interface OutreachRow {
   id: string;
   campus_id: string;
+  /** v9.0: stakeholder_type is NULL in the DB for kind='provider' rows
+   *  (migration 073). The queue endpoint coerces NULL to 'student_org'
+   *  before the row reaches React, so the type stays non-null and the
+   *  hundreds of call sites in the workflow drawer don't need guards.
+   *  Kind-aware UIs (StakeholderCard, etc.) read `kind` first; the
+   *  legacy stakeholder_type is only a fallback label. */
   stakeholder_type: StakeholderType;
+  /** v9.0: polymorphic kind discriminator. Migration 072 added the
+   *  column with backfill from stakeholder_type, so legacy rows get
+   *  one of the four stakeholder kinds; v9.0 provider materialization
+   *  writes 'provider'. */
+  kind: StakeholderType | "provider";
+  /** v9.0: FK to business_profiles when kind='provider'. NULL otherwise. */
+  provider_business_profile_id: string | null;
   organization_name: string;
   department: string | null;
   programs: string[];
@@ -353,6 +366,19 @@ export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {
   advisor: "Advisor",
   professor: "Professor",
   dept_head: "Dept Head",
+};
+
+/**
+ * v9.0 Phase 2: human label for any kind (stakeholder + provider).
+ * Use this anywhere a row's kind needs to be surfaced — falls back
+ * gracefully when stakeholder_type is NULL (provider rows).
+ */
+export const KIND_LABELS: Record<StakeholderType | "provider", string> = {
+  student_org: "Student Org",
+  advisor: "Advisor",
+  professor: "Professor",
+  dept_head: "Dept Head",
+  provider: "Provider",
 };
 
 // v8.10.20: "Active Partner" → "Partner" everywhere admins see the

@@ -26,7 +26,9 @@ export async function GET() {
 /**
  * POST /api/admin/analytics/variant-weights
  *
- * Body: { weights: { availability: number, loss: number, empathic: number, outreach: number } }
+ * Body: { weights: Record<IntakeVariant, number> } where each value is
+ * a non-negative integer and the values sum to exactly 100. The valid
+ * variant keys come from INTAKE_VARIANTS in lib/analytics/variant.ts.
  *
  * Validates sum=100 + every value an integer >= 0 + every key a known
  * variant. Writes the row and bumps version atomically. The version

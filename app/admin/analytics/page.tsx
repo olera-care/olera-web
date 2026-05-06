@@ -871,16 +871,29 @@ function TrafficAllocationControl() {
 
   useEffect(() => {
     let cancelled = false;
+    // Always reach a loaded state — even on auth failure or 500 — so the
+    // form isn't a dead zone. Show error feedback so the operator knows
+    // why the inputs hold the equal-split fallback instead of the live row.
     fetch("/api/admin/analytics/variant-weights", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (cancelled || !data) return;
+      .then(async (r) => {
+        if (cancelled) return;
+        if (!r.ok) {
+          setFeedback({ kind: "err", msg: `Failed to load current allocation (${r.status}).` });
+          setLoaded(true);
+          return;
+        }
+        const data = await r.json().catch(() => null);
+        if (!data) {
+          setFeedback({ kind: "err", msg: "Failed to parse current allocation." });
+          setLoaded(true);
+          return;
+        }
         const w = (data.weights ?? {}) as Partial<Record<IntakeVariant, number>>;
-        // Mirror the server's coerceWeights semantics: missing keys
-        // mean 0%. If a new arm has been added in code but the DB row
-        // doesn't carry it yet, the dial shows the new arm at 0 (and
-        // the existing 4 arms still sum to 100). Operator deliberately
-        // turns it on by re-balancing and saving.
+        // Mirror the server's coerceWeights semantics: missing keys mean
+        // 0%. If a new arm has been added in code but the DB row doesn't
+        // carry it yet, the dial shows the new arm at 0 (and the existing
+        // arms still sum to 100). Operator deliberately turns it on by
+        // re-balancing and saving.
         const merged = Object.fromEntries(
           INTAKE_VARIANTS.map((v) => [v, typeof w[v] === "number" ? (w[v] as number) : 0]),
         ) as Record<IntakeVariant, number>;
@@ -889,7 +902,11 @@ function TrafficAllocationControl() {
         setVersion(typeof data.version === "number" ? data.version : 0);
         setLoaded(true);
       })
-      .catch(() => setLoaded(true));
+      .catch(() => {
+        if (cancelled) return;
+        setFeedback({ kind: "err", msg: "Network error loading allocation — try refreshing." });
+        setLoaded(true);
+      });
     return () => {
       cancelled = true;
     };

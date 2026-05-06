@@ -54,10 +54,11 @@ function coerceWeights(raw: unknown): Record<IntakeVariant, number> {
 }
 
 /**
- * Read the live intake weights. Falls back to the default 25/25/25/25
- * split (version 0) if the row is missing, the DB throws, or the jsonb
- * is malformed. Default version is 0 so a real row at version >= 1
- * always supersedes the fallback in any cache-coherence comparison.
+ * Read the live intake weights. Falls back to INTAKE_VARIANT_DEFAULT_WEIGHTS
+ * (equal split across the canonical arms, version 0) if the row is missing,
+ * the DB throws, or the jsonb is malformed. Default version is 0 so a real
+ * row at version >= 1 always supersedes the fallback in any cache-coherence
+ * comparison.
  */
 export async function getIntakeVariantWeights(): Promise<IntakeWeightsRecord> {
   try {
@@ -67,7 +68,14 @@ export async function getIntakeVariantWeights(): Promise<IntakeWeightsRecord> {
       .select("weights, version")
       .eq("experiment_id", INTAKE_EXPERIMENT_ID)
       .maybeSingle();
-    if (error || !data) {
+    if (error) {
+      // Log so a real outage shows up in server logs instead of silently
+      // serving defaults forever. A missing-row case (data === null with
+      // no error) is normal pre-migration and shouldn't log.
+      console.warn("[variant-weights] read returned error, serving defaults:", error.message);
+      return { weights: { ...INTAKE_VARIANT_DEFAULT_WEIGHTS }, version: 0 };
+    }
+    if (!data) {
       return { weights: { ...INTAKE_VARIANT_DEFAULT_WEIGHTS }, version: 0 };
     }
     return {
@@ -75,7 +83,7 @@ export async function getIntakeVariantWeights(): Promise<IntakeWeightsRecord> {
       version: typeof data.version === "number" ? data.version : 0,
     };
   } catch (err) {
-    console.error("[variant-weights] read failed:", err);
+    console.error("[variant-weights] read threw:", err);
     return { weights: { ...INTAKE_VARIANT_DEFAULT_WEIGHTS }, version: 0 };
   }
 }

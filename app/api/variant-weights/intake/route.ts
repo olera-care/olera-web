@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { getIntakeVariantWeights } from "@/lib/analytics/variant-weights";
 
 // Public read endpoint for the live intake variant weights. No auth —
-// the data is non-sensitive (4 percentages and a version int) and the
-// client-side variant assignment in IntakeVariantSlots needs it on
-// first paint of every provider page hit.
+// the data is non-sensitive (per-variant percentages + a version int)
+// and the client-side variant assignment in useIntakeVariant needs it
+// on first paint of every provider page hit.
 //
 // Cache-Control tuning: s-maxage=30 + stale-while-revalidate=300. Means
 // at most ~30s of staleness for a fresh viewer after TJ saves new

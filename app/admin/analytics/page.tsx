@@ -1069,6 +1069,16 @@ function TrafficAllocationControl() {
                 className="w-16 text-right tabular-nums text-base font-medium text-gray-900 bg-transparent border-b border-gray-200 focus:border-gray-900 focus:outline-none disabled:opacity-50"
               />
               <span className="text-xs text-gray-400">%</span>
+              <a
+                href={previewUrl(v)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="ml-auto text-[10px] text-gray-400 hover:text-gray-700 underline underline-offset-2"
+                title="Open the test provider page with this arm forced. Events + submissions disabled."
+              >
+                Preview ↗
+              </a>
             </div>
           </label>
         ))}
@@ -1137,6 +1147,18 @@ const DRILLABLE_VARIANTS: ReadonlySet<VariantKey> = new Set([
   "control",
   "money_loss",
 ]);
+
+// Stable test provider used as the canvas for arm previews. Hardcoded
+// because the only person clicking these links is internal product
+// staff who want a consistent baseline page across arms — a slug
+// picker would be churn for v1. Aggie Assisted Living lives in TX,
+// so the {state} interpolations in the benefits-arm copy render
+// correctly. Update if the test page is ever migrated.
+const PREVIEW_PROVIDER_SLUG = "aggie-assisted-living-college-station-tx-t66r";
+
+function previewUrl(arm: string): string {
+  return `/provider/${PREVIEW_PROVIDER_SLUG}?preview_arm=${encodeURIComponent(arm)}`;
+}
 
 function BenefitsVariantSplit({
   byVariant,
@@ -1267,6 +1289,16 @@ function BenefitsVariantSplit({
                           ›
                         </span>
                         <span>{label}</span>
+                        <a
+                          href={previewUrl(key)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="ml-1 text-[10px] text-gray-400 hover:text-gray-700 underline underline-offset-2"
+                          title="Open the test provider page with this arm forced. Events + submissions disabled."
+                        >
+                          Preview ↗
+                        </a>
                       </div>
                       <div className="text-[11px] font-normal text-gray-400 truncate max-w-[280px] pl-4">{description}</div>
                     </td>

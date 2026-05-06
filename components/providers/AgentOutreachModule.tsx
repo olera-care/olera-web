@@ -25,6 +25,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Spinner, Star } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import type { ProviderCardData } from "@/lib/types/provider";
 
 interface RecentQuestion {
@@ -59,6 +60,9 @@ async function fireSeekerEvent(
   eventType: "outreach_module_impression" | "outreach_card_clicked",
   metadata: Record<string, unknown>,
 ) {
+  // Admin preview mode: skip telemetry so inspection doesn't pollute
+  // the outreach-arm funnel. The visible UI is unchanged.
+  if (isPreviewMode()) return;
   try {
     await fetch("/api/activity/track", {
       method: "POST",
@@ -203,6 +207,14 @@ export default function AgentOutreachModule({
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (submitting || submitted) return;
+
+    // Admin preview mode: short-circuit with a friendly notice instead of
+    // submitting. Initial state + this notice is enough to evaluate copy
+    // + layout per the v1 preview spec.
+    if (isPreviewMode()) {
+      setError("Preview mode — submission disabled.");
+      return;
+    }
 
     // Honeypot: bots fill hidden fields. Pretend success and bail silently —
     // never reveal the filter to the bot population.

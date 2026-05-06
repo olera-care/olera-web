@@ -4,6 +4,8 @@
 //
 // Errors are swallowed — analytics must never block the UX.
 
+import { isPreviewMode } from "./preview-mode";
+
 export type BenefitsStepEvent =
   | "benefits_entry_viewed"
   | "benefits_step_viewed"
@@ -32,6 +34,9 @@ export interface TrackBenefitsEventPayload {
 }
 
 export function trackBenefitsEvent(payload: TrackBenefitsEventPayload): void {
+  // Admin preview mode: skip all benefits-funnel events so admin
+  // inspection of an arm doesn't pollute the A/B funnel.
+  if (isPreviewMode()) return;
   try {
     fetch("/api/benefits/track-step", {
       method: "POST",

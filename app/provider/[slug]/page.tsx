@@ -13,6 +13,7 @@ import CompactProviderCard from "@/components/providers/CompactProviderCard";
 import SaveButton from "@/components/providers/SaveButton";
 import CareServicesList from "@/components/providers/CareServicesList";
 import QASectionV2 from "@/components/providers/QASectionV2";
+import PreviewModeBanner from "@/components/providers/PreviewModeBanner";
 import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
@@ -706,6 +707,7 @@ export default async function ProviderPage({
   return (
     <div className="min-h-screen pb-20 md:pb-0">
       <ViewTracker providerId={slug} />
+      <PreviewModeBanner />
 
       {/* Structured data */}
       <script

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Star } from "@phosphor-icons/react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import { useIntakeVariant } from "@/hooks/use-intake-variant";
 import { getCategoryDisplayName, type ProviderCardData } from "@/lib/types/provider";
 
@@ -168,6 +169,9 @@ export default function QASectionV2({
   useEffect(() => {
     if (variant !== "qa_email_capture" || variantImpressionFiredRef.current) return;
     variantImpressionFiredRef.current = true;
+    // Admin preview mode: skip the impression so inspection doesn't pollute
+    // the qa_email_capture funnel. variant is still set, so the UI renders.
+    if (isPreviewMode()) return;
     const sid = getOrCreateSessionId();
     void fetch("/api/activity/track", {
       method: "POST",
@@ -230,6 +234,12 @@ export default function QASectionV2({
   // Submit question — fires immediately for both auth and guest
   const submitQuestion = useCallback(async (questionText: string, suggestionIndex?: number) => {
     if (!questionText.trim()) return;
+
+    // Admin preview mode: silent no-op. The page's PreviewModeBanner
+    // already tells the operator submissions are disabled — re-stating it
+    // via an error toast would conflict with "Something went wrong" which
+    // implies system failure, not intentional preview behavior.
+    if (isPreviewMode()) return;
 
     setSubmitting(true);
     setSubmitStatus("idle");
@@ -306,6 +316,8 @@ export default function QASectionV2({
   // Enrich anonymous question with email (optional, post-submit)
   const handleEnrich = async () => {
     if (!enrichQuestionId) return;
+    // Admin preview mode: silent no-op (matches submitQuestion behavior).
+    if (isPreviewMode()) return;
     setGuestError("");
 
     // Honeypot

@@ -14,7 +14,7 @@
  * professors get the minimal flow.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MarkPartnerModal } from "./MarkPartnerModal";
 import { AddStakeholderTaskModal } from "./AddStakeholderTaskModal";
 import { OutreachStepList } from "./OutreachStepList";
@@ -204,15 +204,11 @@ function DrawerBody({
         <NextStepPanel ctx={ctx} action={action} setError={setError} />
       )}
       <JobBoardTaskSection ctx={ctx} action={action} setError={setError} />
-      {/* v8.10.7: in research stages, Close out is tucked under More
-          details so it doesn't compete visually with the primary
-          "Research complete" CTA. Outside research it stays at top
-          level — admins use stop reasons actively across Replies,
-          Calls, Meetings. */}
-      {!isResearch && (
-        <DangerZone ctx={ctx} action={action} setError={setError} />
-      )}
 
+      {/* v8.10.27: Close out (DangerZone) lives inside More details
+          for ALL stages now. Stop reasons are operational escape
+          hatches — should never compete visually with the primary
+          workflow card. Available one click away when needed. */}
       <div>
         <button
           onClick={() => setShowMore((s) => !s)}
@@ -223,9 +219,7 @@ function DrawerBody({
         </button>
         {showMore && (
           <div className="mt-4 space-y-6">
-            {isResearch && (
-              <DangerZone ctx={ctx} action={action} setError={setError} />
-            )}
+            <DangerZone ctx={ctx} action={action} setError={setError} />
             {/* Research stages render ResearchSection at the top via
                 ResearchModePanel — don't duplicate it inside More details. */}
             {!isResearch && (
@@ -1050,11 +1044,14 @@ function AddContactInline({
   );
 }
 
-// ── Job board task (v8.7) ──────────────────────────────────────────────
+// ── Task Board card (v8.10.27) ─────────────────────────────────────────
 //
-// When this stakeholder granted "Post on university job board", a
-// partner_share_update task is queued (deduped by campus). Render an
-// action card with a Gmail composer link + Mark posted button.
+// When this stakeholder granted "Post on university task board", a
+// partner_share_update task is queued (deduped by campus). Renders a
+// task card matching the standard layout — text on the left, ⋯
+// overflow top-right, primary CTA bottom-right. The previous emerald-
+// tinted card with an "Open Gmail composer" link is gone; admins use
+// the page-level Open Gmail link in the header to compose.
 
 function JobBoardTaskSection({
   ctx,
@@ -1075,39 +1072,92 @@ function JobBoardTaskSection({
   const handleErr = (p: Promise<unknown>) =>
     p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
 
-  const subject = encodeURIComponent(
-    `Olera — clinical experience opportunity for ${ctx.campus.name} pre-health students`,
-  );
-  const composerUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
-
   return (
     <section>
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
         Task Board
       </h3>
-      <div className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/40 p-4 text-sm text-emerald-950">
-        <p>
-          <strong>Permission granted.</strong> Post Olera&apos;s clinical-experience listing to{" "}
-          {ctx.campus.name}&apos;s task board, then click <em>Mark posted</em> below.
-        </p>
-        <div className="flex flex-wrap gap-2 pt-1">
-          <a
-            href={composerUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
-          >
-            Open Gmail composer ↗
-          </a>
-          <button
-            onClick={() => handleErr(action("mark_job_board_posted"))}
-            className="rounded-md border border-emerald-300 bg-white px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-50"
-          >
-            Mark posted
-          </button>
+      <div className="rounded-md border border-gray-200 bg-white px-4 py-3">
+        <div className="flex items-stretch justify-between gap-3">
+          <div className="min-w-0 flex-1 text-sm text-gray-800">
+            Post Olera&apos;s clinical-experience listing to {ctx.campus.name}&apos;s task board, then mark it posted.
+          </div>
+          <div className="flex shrink-0 flex-col items-end justify-between gap-2">
+            <TaskOverflow
+              items={[
+                {
+                  label: "Delete task",
+                  onClick: () =>
+                    handleErr(action("cancel_task", { task_id: task.id })),
+                  tone: "danger",
+                },
+              ]}
+            />
+            <button
+              onClick={() => handleErr(action("mark_job_board_posted"))}
+              className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+            >
+              Mark posted
+            </button>
+          </div>
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * Small inline overflow menu for task cards. Mirrors the universal
+ * OverflowMenu pattern from page.tsx (top-right ⋯ → dropdown). Closes
+ * on outside click. Items support a "danger" tone for destructive
+ * actions like Delete.
+ */
+function TaskOverflow({
+  items,
+}: {
+  items: Array<{ label: string; onClick: () => void; tone?: "default" | "danger" }>;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [open]);
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((s) => !s)}
+        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+        title="More actions"
+        aria-label="More actions"
+      >
+        <span className="text-base leading-none">⋯</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-10 mt-1 min-w-[140px] overflow-hidden rounded-md border border-gray-100 bg-white shadow-lg">
+          {items.map((item) => (
+            <button
+              key={item.label}
+              onClick={() => {
+                item.onClick();
+                setOpen(false);
+              }}
+              className={`block w-full px-3 py-1.5 text-left text-xs font-medium ${
+                item.tone === "danger"
+                  ? "text-red-700 hover:bg-red-50"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1526,6 +1576,11 @@ function TasksSection({
   setError: (e: string | null) => void;
 }) {
   const [showAdd, setShowAdd] = useState(false);
+  // editingTask: when set, opens the AddStakeholderTaskModal pre-populated
+  // with the task's text. On save, cancels the old task and queues a new
+  // one — atomic from the admin's perspective. No new server action
+  // needed; reuses cancel_task + queue_manual_task.
+  const [editingTask, setEditingTask] = useState<{ id: string; text: string } | null>(null);
   const customTasks = useMemo(
     () =>
       ctx.pending_tasks.filter(
@@ -1551,38 +1606,55 @@ function TasksSection({
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
         Tasks
       </h3>
-      <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-4">
+      <div className="space-y-2">
         {customTasks.length === 0 ? (
-          <p className="text-xs text-gray-400">No tasks. Add one to remind yourself of a follow-up.</p>
+          <p className="rounded-md border border-gray-200 bg-white px-4 py-3 text-xs text-gray-400">
+            No tasks. Add one to remind yourself of a follow-up.
+          </p>
         ) : (
-          <ul className="space-y-1.5">
-            {customTasks.map((t) => {
-              const text = String(
-                (t.payload as Record<string, unknown> | null)?.notes ??
-                  (t.payload as Record<string, unknown> | null)?.description ??
-                  "(no description)",
-              );
-              return (
-                <li
-                  key={t.id}
-                  className="flex items-start justify-between gap-3 rounded-md border border-gray-100 bg-gray-50/60 px-3 py-2 text-sm"
-                >
-                  <span className="min-w-0 flex-1 text-gray-800">{text}</span>
-                  <button
-                    onClick={() => handleErr(action("complete_task", { task_id: t.id }))}
-                    className="shrink-0 rounded border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-700 hover:bg-gray-50"
-                    title="Mark this task done."
-                  >
-                    Done
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          customTasks.map((t) => {
+            const text = String(
+              (t.payload as Record<string, unknown> | null)?.notes ??
+                (t.payload as Record<string, unknown> | null)?.description ??
+                "(no description)",
+            );
+            return (
+              <div
+                key={t.id}
+                className="rounded-md border border-gray-200 bg-white px-4 py-3"
+              >
+                <div className="flex items-stretch justify-between gap-3">
+                  <div className="min-w-0 flex-1 text-sm text-gray-800">{text}</div>
+                  <div className="flex shrink-0 flex-col items-end justify-between gap-2">
+                    <TaskOverflow
+                      items={[
+                        {
+                          label: "Edit task",
+                          onClick: () => setEditingTask({ id: t.id, text }),
+                        },
+                        {
+                          label: "Delete task",
+                          onClick: () =>
+                            handleErr(action("cancel_task", { task_id: t.id })),
+                          tone: "danger",
+                        },
+                      ]}
+                    />
+                    <button
+                      onClick={() => handleErr(action("complete_task", { task_id: t.id }))}
+                      className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
         )}
         <button
           onClick={() => setShowAdd(true)}
-          className="rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+          className="w-full rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
         >
           + Add task
         </button>
@@ -1600,6 +1672,26 @@ function TasksSection({
               notes: text,
             });
             setShowAdd(false);
+          }}
+        />
+      )}
+      {editingTask && (
+        <AddStakeholderTaskModal
+          organizationName={ctx.outreach.organization_name}
+          contactName={contactDisplay}
+          initialText={editingTask.text}
+          onCancel={() => setEditingTask(null)}
+          onSubmit={async (text) => {
+            // Cancel-then-create. New task gets a new ID; history shows
+            // the cancellation + the new queue. For MVP this is fine —
+            // admins typically edit shortly after creating.
+            await action("cancel_task", { task_id: editingTask.id });
+            await action("queue_manual_task", {
+              task_type: "manual_followup",
+              due_at: new Date().toISOString(),
+              notes: text,
+            });
+            setEditingTask(null);
           }}
         />
       )}

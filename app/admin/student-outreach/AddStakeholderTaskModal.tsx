@@ -21,6 +21,10 @@ import { useState } from "react";
 interface Props {
   organizationName: string;
   contactName: string | null;
+  /** When set, the modal opens in edit mode pre-populated with this
+   *  text. The header title flips from "Add task" to "Edit task" and
+   *  the submit button reads "Save" instead of "Add task". */
+  initialText?: string;
   onCancel: () => void;
   onSubmit: (text: string) => Promise<void>;
 }
@@ -28,10 +32,12 @@ interface Props {
 export function AddStakeholderTaskModal({
   organizationName,
   contactName,
+  initialText,
   onCancel,
   onSubmit,
 }: Props) {
-  const [text, setText] = useState("");
+  const [text, setText] = useState(initialText ?? "");
+  const isEditing = initialText != null;
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +66,7 @@ export function AddStakeholderTaskModal({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">Add task</h3>
+          <h3 className="text-base font-semibold text-gray-900">{isEditing ? "Edit task" : "Add task"}</h3>
           <p className="mt-0.5 text-xs text-gray-500">
             {contactName ? `${contactName} · ${organizationName}` : organizationName}
           </p>
@@ -93,7 +99,7 @@ export function AddStakeholderTaskModal({
             disabled={submitting || !text.trim()}
             className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            {submitting ? "Saving…" : "Add task"}
+            {submitting ? "Saving…" : isEditing ? "Save" : "Add task"}
           </button>
         </footer>
       </div>

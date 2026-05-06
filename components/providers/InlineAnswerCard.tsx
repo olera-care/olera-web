@@ -232,7 +232,7 @@ export default function InlineAnswerCard({
            Main Card — Question → Context → Answer → Action
            ═══════════════════════════════════════════════════════════════ */
         <div className="p-6">
-          {/* ─── Question Block ─────────────────────────────────────────── */}
+          {/* ─── Question Block — plain text, the user knows what they asked ─── */}
           <div
             className={`
               transition-all duration-500 ease-out delay-75
@@ -240,8 +240,8 @@ export default function InlineAnswerCard({
             `}
           >
             <div className="flex items-start justify-between gap-3">
-              <p className="font-display italic text-[16px] text-gray-800 leading-relaxed flex-1">
-                &ldquo;{question}&rdquo;
+              <p className="text-[16px] text-gray-800 leading-relaxed flex-1">
+                {question}
               </p>
               {questionSent && (
                 <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 tracking-wide uppercase">
@@ -251,30 +251,21 @@ export default function InlineAnswerCard({
             </div>
           </div>
 
-          {/* ─── Context Label ──────────────────────────────────────────── */}
+          {/* ─── Answer Block — italicized with quotes, the valuable content ─── */}
           <div
             className={`
-              mt-3
+              mt-4
               transition-all duration-500 ease-out delay-100
               ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
-            <p className="flex items-center gap-2 text-[13px] text-gray-500">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0" />
+            {/* Context label — tighter to answer */}
+            <p className="text-[12px] text-gray-500 uppercase tracking-wide mb-1.5">
               {contextLabel}
             </p>
-          </div>
-
-          {/* ─── Answer Block ───────────────────────────────────────────── */}
-          <div
-            className={`
-              mt-4
-              transition-all duration-500 ease-out delay-150
-              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
-            `}
-          >
-            <p className="text-[17px] text-gray-900 font-medium leading-[1.6]">
-              {answer}
+            {/* Answer in quotes, italic, feels like a direct response */}
+            <p className="font-display italic text-[17px] text-gray-900 leading-[1.6]">
+              &ldquo;{answer}&rdquo;
             </p>
           </div>
 

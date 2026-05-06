@@ -169,6 +169,25 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Send Slack alert for Q&A variant conversions
+      if (event_type === "inline_answer_converted" || event_type === "multi_provider_converted") {
+        try {
+          const { sendSlackAlert, slackVariantConverted } = await import("@/lib/slack");
+          const meta = (metadata as Record<string, unknown>) || {};
+          const alert = slackVariantConverted({
+            variant: event_type === "inline_answer_converted" ? "inline_answer" : "multi_provider",
+            email: (meta.email as string) || "unknown",
+            providerName: (meta.provider_name as string) || related_provider_id,
+            questionText: meta.question_text as string | undefined,
+            sentCount: typeof meta.sent_count === "number" ? meta.sent_count : undefined,
+            providerSlug: related_provider_id,
+          });
+          await sendSlackAlert(alert.text, alert.blocks);
+        } catch {
+          // Non-critical — activity already logged
+        }
+      }
+
       return NextResponse.json({ success: true });
     }
 

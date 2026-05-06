@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Star } from "@phosphor-icons/react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
-import { assignIntakeVariant, type IntakeVariant } from "@/lib/analytics/variant";
+import { useIntakeVariant } from "@/hooks/use-intake-variant";
 import { getCategoryDisplayName, type ProviderCardData } from "@/lib/types/provider";
 
 interface QAEntry {
@@ -156,31 +156,31 @@ export default function QASectionV2({
   const [enriching, setEnriching] = useState(false);
 
   // ─── Intake variant detection (5-arm A/B since 2026-05-05) ───────────────
-  // Client-side because session ID lives in localStorage. SSR renders without
-  // variant knowledge (variant === null), then post-mount we resolve it. The
-  // qa_email_capture arm overrides hasBenefitsSection to false (forces
-  // enrichment on) AND fires an impression event for funnel comparison.
-  const [variant, setVariant] = useState<IntakeVariant | null>(null);
+  // Reads from the shared useIntakeVariant hook so this component agrees with
+  // IntakeVariantSlots (and any future caller) on which arm a session is in
+  // — single source of truth for the dial-controlled allocation. Returns
+  // null until the weights fetch resolves; SSR renders without variant
+  // knowledge, post-mount the assignment lands. The qa_email_capture arm
+  // overrides hasBenefitsSection to false (forces enrichment on) AND fires
+  // an impression event for funnel comparison.
+  const variant = useIntakeVariant();
   const variantImpressionFiredRef = useRef(false);
   useEffect(() => {
+    if (variant !== "qa_email_capture" || variantImpressionFiredRef.current) return;
+    variantImpressionFiredRef.current = true;
     const sid = getOrCreateSessionId();
-    const v = assignIntakeVariant(sid);
-    setVariant(v);
-    if (v === "qa_email_capture" && !variantImpressionFiredRef.current) {
-      variantImpressionFiredRef.current = true;
-      void fetch("/api/activity/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          actor_type: "family",
-          event_type: "qa_email_capture_impression",
-          related_provider_id: providerId,
-          metadata: { session_id: sid, variant: "qa_email_capture" },
-        }),
-        keepalive: true,
-      }).catch(() => {});
-    }
-  }, [providerId]);
+    void fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "family",
+        event_type: "qa_email_capture_impression",
+        related_provider_id: providerId,
+        metadata: { session_id: sid, variant: "qa_email_capture" },
+      }),
+      keepalive: true,
+    }).catch(() => {});
+  }, [variant, providerId]);
 
   // Effective hasBenefitsSection: true qa_email_capture overrides the prop.
   // Pre-mount (variant === null) we trust the prop so SSR matches.

@@ -88,3 +88,23 @@ export function variantSurfaceLabel(variant: IntakeVariant): string {
       return "Q&A email capture (no SBF)";
   }
 }
+
+// One-line description of what each arm puts in front of a visitor.
+// Used as the small sublabel under the variant name in the traffic-
+// allocation dial. Adding a new arm requires extending the switch;
+// TypeScript will flag a missing case because the input is typed as
+// IntakeVariant (the union derived from INTAKE_VARIANTS).
+export function variantSubLabel(variant: IntakeVariant): string {
+  switch (variant) {
+    case "availability":
+      return "Benefits — positive framing";
+    case "loss":
+      return "Benefits — loss framing";
+    case "empathic":
+      return "Benefits — shared-truth framing";
+    case "outreach":
+      return "Agent contacts top providers";
+    case "qa_email_capture":
+      return "Q&A enrichment, no SBF";
+  }
+}

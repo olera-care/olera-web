@@ -77,7 +77,7 @@ interface TabDef {
 // (MENU_TABS) — secondary surfaces that don't compete with the
 // primary workflow.
 const TABS: TabDef[] = [
-  { key: "candidates", label: "Candidates",       tooltip: "Students who signed up or applied — the candidate-side pipeline. (Coming soon.)" },
+  { key: "candidates", label: "Candidates",       tooltip: "Live student profiles visible to providers on the job board (active + application complete). Subset of all signups." },
   { key: "prospects",  label: "Prospects",        tooltip: "Stakeholders being researched and qualified before outreach starts." },
   { key: "partners",   label: "Partners",         tooltip: "Stakeholders sharing with students. Click Engage to work pending partner tasks (task board posting, materials, follow-ups)." },
   { key: "meetings",   label: "Meetings",         tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
@@ -90,7 +90,10 @@ const TABS: TabDef[] = [
 // (drives the kpiSuffix shown in the header). Switching tabs swaps
 // the top viewport so it reflects the operational area below it.
 const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
-  candidates:  { metric: "signups",          label: "student signups"      },
+  // v8.10.42: Candidates ⊂ Signups. Candidates = LIVE provider-facing
+  // student profiles (is_active + application_completed). Signups =
+  // every student in the funnel (broader acquisition volume).
+  candidates:  { metric: "candidates",       label: "live candidates"      },
   prospects:   { metric: "prospects_added",  label: "prospects qualified"  },
   partners:    { metric: "partners_added",   label: "new partners"         },
   meetings:    { metric: "meetings_held",    label: "meetings held"        },
@@ -115,7 +118,7 @@ const MENU_TABS: TabDef[] = [
   { key: "all",         label: "All",          tooltip: "Search and filter every stakeholder across all stages." },
   { key: "emails_sent", label: "Emails Sent",  tooltip: "All email-send touchpoints across stakeholders. (Coming soon.)" },
   { key: "outbound",    label: "Outbound",     tooltip: "Aggregated outbound activity log — emails, IG DMs, contact-form sends. Replied threads float to the top. (Coming soon.)" },
-  { key: "signups",     label: "Signups",      tooltip: "Student signups / applicants. (Coming soon.)" },
+  { key: "signups",     label: "Signups",      tooltip: "Every student who entered the funnel — broader acquisition volume (live + incomplete profiles). Candidates ⊂ Signups." },
   { key: "archive",     label: "Archive",      tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Replies if they reply or call back later." },
 ];
 
@@ -144,6 +147,20 @@ interface SignupRow {
   full_name: string;
   university: string | null;
   email: string | null;
+  signed_up_at: string;
+}
+
+interface CandidateRow {
+  id: string;
+  slug: string | null;
+  display_name: string;
+  city: string | null;
+  state: string | null;
+  university: string | null;
+  program_track: string | null;
+  profile_completeness: number | null;
+  has_video: boolean;
+  certifications_count: number;
   signed_up_at: string;
 }
 
@@ -209,6 +226,7 @@ export default function StudentOutreachPage() {
   const [emailsSentRows, setEmailsSentRows] = useState<EmailSentRow[]>([]);
   const [signupRows, setSignupRows] = useState<SignupRow[]>([]);
   const [outboundRows, setOutboundRows] = useState<OutboundRow[]>([]);
+  const [candidateRows, setCandidateRows] = useState<CandidateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
@@ -248,7 +266,10 @@ export default function StudentOutreachPage() {
       // its tabCounts. Pass tab=prospects (default) so the queue does
       // sensible work; the rows result is ignored for those tabs.
       const queueTab =
-        tab === "emails_sent" || tab === "signups" || tab === "outbound"
+        tab === "emails_sent" ||
+        tab === "signups" ||
+        tab === "outbound" ||
+        tab === "candidates"
           ? "prospects"
           : tab;
       queueParams.set("tab", queueTab);
@@ -261,7 +282,12 @@ export default function StudentOutreachPage() {
           if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
           const data = await res.json();
           setCampuses(data.campuses ?? []);
-          if (tab !== "emails_sent" && tab !== "signups" && tab !== "outbound") {
+          if (
+            tab !== "emails_sent" &&
+            tab !== "signups" &&
+            tab !== "outbound" &&
+            tab !== "candidates"
+          ) {
             setRows(data.rows ?? []);
             setResearchCampuses(data.research_campuses ?? []);
           }
@@ -297,6 +323,15 @@ export default function StudentOutreachPage() {
           if (!r.ok) throw new Error((await r.json()).error || "Failed to load outbound");
           const d = await r.json();
           setOutboundRows(d.rows ?? []);
+        })());
+      } else if (tab === "candidates") {
+        fetches.push((async () => {
+          const p = new URLSearchParams();
+          if (campusSlug) p.set("campus", campusSlug);
+          const r = await fetch(`/api/admin/student-outreach/candidates?${p}`);
+          if (!r.ok) throw new Error((await r.json()).error || "Failed to load candidates");
+          const d = await r.json();
+          setCandidateRows(d.rows ?? []);
         })());
       }
 
@@ -459,15 +494,13 @@ export default function StudentOutreachPage() {
       <div className="mb-8 flex items-center border-b border-gray-100">
         <div className="flex flex-1 items-center gap-1 overflow-x-auto">
           {TABS.map((t) => {
-            // v8.10.33: candidates is the student-applicant pipeline,
-            // not part of the stakeholder TabCounts. The other primary
-            // tab keys all live on TabCounts.
-            const count =
-              t.key === "candidates"
-                ? null
-                : tabCounts?.[
-                    t.key as Exclude<TabKey, "candidates" | "outbound" | "emails_sent" | "signups">
-                  ];
+            // v8.10.42: candidates lives on TabCounts now (live profile
+            // count, separate from the stakeholder funnel). Outbound /
+            // emails_sent / signups don't have queue-style counts;
+            // those views run their own count internally.
+            const count = tabCounts?.[
+              t.key as Exclude<TabKey, "outbound" | "emails_sent" | "signups">
+            ];
             const active = t.key === tab;
             return (
               <button
@@ -611,6 +644,20 @@ export default function StudentOutreachPage() {
                   row={r}
                   onOpenDrawer={() => setOpenOutreachId(r.outreach_id)}
                 />
+              </li>
+            ))}
+          </ul>
+        )
+      ) : tab === "candidates" ? (
+        candidateRows.length === 0 ? (
+          <p className="py-12 text-center text-sm text-gray-400">
+            No live candidates in this range yet.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {candidateRows.map((r) => (
+              <li key={r.id}>
+                <CandidateCard row={r} />
               </li>
             ))}
           </ul>
@@ -817,7 +864,7 @@ function EmptyState({
     );
   }
   const blurbs: Record<TabKey, string> = {
-    candidates: "Coming soon — student-applicant pipeline.",
+    candidates: "No live candidates yet.",
     prospects: "No prospects need research right now.",
     calls: "No phone calls due. 🎉",
     replies: "No inbox triage right now. The cadence is humming along.",
@@ -1892,6 +1939,86 @@ function SignupCard({ row }: { row: SignupRow }) {
 }
 
 /**
+ * v8.10.42: row card for the Candidates tab — LIVE provider-facing
+ * student profiles (Candidates ⊂ Signups). Marketplace-supply feel:
+ * leads with the candidate's display name + university, surfaces
+ * program track + location + readiness signals (video, certifications,
+ * profile completeness) as pills so admin can scan the live supply.
+ *
+ * Click opens the admin-side student profile editor.
+ */
+function CandidateCard({ row }: { row: CandidateRow }) {
+  const subtitleParts = [
+    row.university,
+    [row.city, row.state].filter(Boolean).join(", ") || null,
+    row.program_track,
+  ].filter(Boolean);
+
+  const pills: React.ReactNode[] = [];
+  if (typeof row.profile_completeness === "number") {
+    pills.push(
+      <span
+        key="completeness"
+        className={`rounded px-2 py-0.5 text-xs font-medium ${
+          row.profile_completeness >= 80
+            ? "bg-emerald-100 text-emerald-900"
+            : row.profile_completeness >= 50
+              ? "bg-amber-100 text-amber-900"
+              : "bg-gray-100 text-gray-700"
+        }`}
+      >
+        {row.profile_completeness}% complete
+      </span>,
+    );
+  }
+  if (row.has_video) {
+    pills.push(
+      <span
+        key="video"
+        className="rounded bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-900"
+      >
+        Video intro
+      </span>,
+    );
+  }
+  if (row.certifications_count > 0) {
+    pills.push(
+      <span
+        key="certs"
+        className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-900"
+      >
+        {row.certifications_count} cert{row.certifications_count === 1 ? "" : "s"}
+      </span>,
+    );
+  }
+
+  return (
+    <a
+      href={`/admin/medjobs/${row.id}`}
+      title="Open candidate profile."
+      className="block cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+    >
+      <div className="flex items-stretch justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-gray-900">{row.display_name}</p>
+          {subtitleParts.length > 0 && (
+            <p className="mt-0.5 truncate text-xs text-gray-500">
+              {subtitleParts.join(" · ")}
+            </p>
+          )}
+          <p className="mt-0.5 text-[11px] text-gray-400">
+            Live since {formatRelative(row.signed_up_at)}
+          </p>
+          {pills.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">{pills}</div>
+          )}
+        </div>
+      </div>
+    </a>
+  );
+}
+
+/**
  * v8.10.40: row card for the Outbound menu view. Gmail-inbox feel —
  * threads with a pending reply float to the top (sorted server-side)
  * and get a strong "Reply" pill so the admin can scan the queue and
@@ -2150,13 +2277,12 @@ function TabOverflowMenu({
         <div className="absolute right-0 top-full z-30 mt-1 w-56 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
           {tabs.map((t) => {
             const count =
-              t.key === "candidates" ||
               t.key === "outbound" ||
               t.key === "emails_sent" ||
               t.key === "signups"
                 ? null
                 : tabCounts?.[
-                    t.key as Exclude<TabKey, "candidates" | "outbound" | "emails_sent" | "signups">
+                    t.key as Exclude<TabKey, "outbound" | "emails_sent" | "signups">
                   ];
             const active = t.key === activeTab;
             return (

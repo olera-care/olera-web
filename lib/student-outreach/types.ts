@@ -301,10 +301,10 @@ export interface ResearchCampusCard {
 /** v7 tab counts — one number per tab in the new workflow.
  *  v8.10.33: "prospects" is the new label for what was previously
  *  "research" (prospect/researched stakeholders being qualified).
- *  "candidates" is a separate upcoming tab for the student-applicant
- *  pipeline (MedJobs / posted-candidate workflow) — different dataset,
- *  not a rename. */
+ *  v8.10.42: "candidates" added — count of LIVE candidate profiles
+ *  visible to providers on the job board (Candidates ⊂ Signups). */
 export interface TabCounts {
+  candidates: number;
   prospects: number;
   calls: number;
   replies: number;

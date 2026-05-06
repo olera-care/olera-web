@@ -72,6 +72,7 @@ const PARTNER_ALL: string[] = [...PARTNER_STATUSES, "agreed", "distributed"];
 type DB = ReturnType<typeof getServiceClient>;
 
 export interface TabCounts {
+  candidates: number;
   prospects: number;
   calls: number;
   replies: number;
@@ -307,7 +308,7 @@ async function computeTabCounts(
   db: DB,
   filters: { campusId: string | null; type: StakeholderType | null },
 ): Promise<TabCounts> {
-  const counts: TabCounts = { prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0 };
+  const counts: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0 };
 
   // Single status scan in scope.
   let q = db.from("student_outreach").select("id, status");
@@ -366,6 +367,46 @@ async function computeTabCounts(
     counts.meetings = meetings;
     counts.replies = Math.max(0, counts.replies - scheduled - stale);
     counts.archive += stale;
+  }
+
+  // v8.10.42: Candidates = LIVE student profiles visible to providers
+  // on the job board. Subset of Signups (Candidates ⊂ Signups). Filter
+  // matches /api/medjobs/candidates: type=student + is_active=true +
+  // metadata.application_completed=true. Campus filter narrows by
+  // metadata.university name match.
+  let candidateCampusName: string | null = null;
+  if (filters.campusId) {
+    const { data: campus } = await db
+      .from("student_outreach_campuses")
+      .select("name")
+      .eq("id", filters.campusId)
+      .single();
+    candidateCampusName = (campus as { name: string } | null)?.name ?? null;
+  }
+  if (candidateCampusName) {
+    // Campus filter active — fetch metadata so we can match university
+    // case-insensitively in JS (JSONB ilike is awkward in PostgREST).
+    const { data: profiles } = await db
+      .from("business_profiles")
+      .select("metadata")
+      .eq("type", "student")
+      .eq("is_active", true)
+      .contains("metadata", { application_completed: true });
+    const lower = candidateCampusName.toLowerCase();
+    counts.candidates = (
+      (profiles ?? []) as Array<{ metadata: Record<string, unknown> | null }>
+    ).filter((p) => {
+      const u = typeof p.metadata?.university === "string" ? p.metadata.university : null;
+      return u !== null && u.toLowerCase() === lower;
+    }).length;
+  } else {
+    const { count: candidatesCount } = await db
+      .from("business_profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("type", "student")
+      .eq("is_active", true)
+      .contains("metadata", { application_completed: true });
+    counts.candidates = candidatesCount ?? 0;
   }
 
   return counts;

@@ -117,8 +117,11 @@ export async function GET(request: NextRequest) {
     let timestamps: Date[];
     if (metric === "funnel") {
       // v8.10.41: multi-series stacked-funnel response. Used by the
-      // All tab so admin sees signups → prospects → replies → meetings
-      // → partners on one chart and reads the funnel shape over time.
+      // All tab so admin sees signups → candidates → prospects → replies
+      // → meetings → partners on one chart and reads the funnel shape
+      // over time.
+      // v8.10.42: Candidates added between Signups and Prospects to
+      // surface the supply-side narrowing (Candidates ⊂ Signups).
       return await buildFunnelResponse(db, {
         from,
         to,
@@ -129,7 +132,18 @@ export async function GET(request: NextRequest) {
       });
     }
     if (metric === "signups") {
-      timestamps = await fetchSignupTimestamps(db, queryStart, to, campusName);
+      // v8.10.42: signups counts every student that entered the funnel
+      // — the broader acquisition number, includes incomplete profiles.
+      timestamps = await fetchSignupTimestamps(db, queryStart, to, campusName, {
+        liveOnly: false,
+      });
+    } else if (metric === "candidates") {
+      // v8.10.42: candidates = signups that are LIVE on the provider-
+      // facing job board. Subset filter: is_active=true AND
+      // metadata.application_completed=true. Same shape as signups.
+      timestamps = await fetchSignupTimestamps(db, queryStart, to, campusName, {
+        liveOnly: true,
+      });
     } else if (metric === "prospects_added") {
       timestamps = await fetchProspectsAddedTimestamps(db, queryStart, to, campusId);
     } else if (TOUCHPOINT_METRICS[metric]) {
@@ -180,7 +194,13 @@ async function fetchSignupTimestamps(
   queryStart: Date | null,
   to: Date,
   campusName: string | null,
+  opts: { liveOnly?: boolean } = {},
 ): Promise<Date[]> {
+  // v8.10.42: liveOnly = true narrows to "Candidates" — students whose
+  // profiles are publicly visible to providers on the job board. The
+  // canonical filter matches /api/medjobs/candidates: is_active=true
+  // AND metadata.application_completed=true. Without liveOnly, returns
+  // the broader signups set (every student who entered the funnel).
   let q = db
     .from("business_profiles")
     .select("created_at, metadata")
@@ -189,6 +209,9 @@ async function fetchSignupTimestamps(
     .limit(50000);
   if (queryStart) q = q.gte("created_at", queryStart.toISOString());
   if (to) q = q.lt("created_at", to.toISOString());
+  if (opts.liveOnly) {
+    q = q.eq("is_active", true).contains("metadata", { application_completed: true });
+  }
   const { data: rows } = await q;
 
   const lowerName = campusName?.toLowerCase() ?? null;
@@ -275,9 +298,13 @@ async function buildFunnelResponse(
 ): Promise<NextResponse> {
   const { from, to, priorFrom, queryStart, campusName, campusId } = opts;
 
-  // Five series, fired in parallel.
-  const [signups, prospects, replies, meetings, partners] = await Promise.all([
-    fetchSignupTimestamps(db, queryStart, to, campusName),
+  // Six series, fired in parallel. v8.10.42: Candidates added as a
+  // separate line — Candidates ⊂ Signups (live profiles only). Both
+  // shown so admin sees the supply-side conversion (signups → live
+  // candidates) alongside the demand-side stakeholder funnel.
+  const [signups, candidates, prospects, replies, meetings, partners] = await Promise.all([
+    fetchSignupTimestamps(db, queryStart, to, campusName, { liveOnly: false }),
+    fetchSignupTimestamps(db, queryStart, to, campusName, { liveOnly: true }),
     fetchProspectsAddedTimestamps(db, queryStart, to, campusId),
     fetchTouchpointTimestamps(db, TOUCHPOINT_METRICS.replies, queryStart, to, campusId),
     fetchTouchpointTimestamps(db, TOUCHPOINT_METRICS.meetings_held, queryStart, to, campusId),
@@ -288,11 +315,12 @@ async function buildFunnelResponse(
   const inPrior = (t: Date) => !!priorFrom && !!from && t >= priorFrom && t < from;
 
   const named: Array<{ name: string; color: string; timestamps: Date[] }> = [
-    { name: "Signups",   color: "#10b981", timestamps: signups   }, // emerald-500
-    { name: "Prospects", color: "#3b82f6", timestamps: prospects }, // blue-500
-    { name: "Replies",   color: "#f59e0b", timestamps: replies   }, // amber-500
-    { name: "Meetings",  color: "#8b5cf6", timestamps: meetings  }, // violet-500
-    { name: "Partners",  color: "#ef4444", timestamps: partners  }, // red-500
+    { name: "Signups",    color: "#94a3b8", timestamps: signups    }, // slate-400 (broader funnel — muted)
+    { name: "Candidates", color: "#10b981", timestamps: candidates }, // emerald-500 (live supply)
+    { name: "Prospects",  color: "#3b82f6", timestamps: prospects  }, // blue-500
+    { name: "Replies",    color: "#f59e0b", timestamps: replies    }, // amber-500
+    { name: "Meetings",   color: "#8b5cf6", timestamps: meetings   }, // violet-500
+    { name: "Partners",   color: "#ef4444", timestamps: partners   }, // red-500
   ];
 
   // KPI total = sum of all current-range counts. Delta vs prior window

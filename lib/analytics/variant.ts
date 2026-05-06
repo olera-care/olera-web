@@ -16,7 +16,7 @@
 //   availability     — "There's help paying for care in {state}."   (benefits, positive)
 //   loss             — "Most {state} families miss out on help…"     (benefits, loss)
 //   empathic         — "Care is expensive."                          (benefits, shared-truth)
-//   outreach         — "Have an AI agent contact the top providers." (H1 demand test)
+//   outreach         — "Don't know which one to trust?" (H1 demand test, care-team framing)
 //   qa_email_capture — Q&A enrichment ON, SBF / outreach OFF.        (qa-first email capture)
 //
 // Page-level routing decides which surface renders. BenefitsDiscoveryModule,

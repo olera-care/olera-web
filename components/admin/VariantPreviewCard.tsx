@@ -110,7 +110,7 @@ export default function VariantPreviewCard({ variant }: { variant: IntakeVariant
           disabled
           className="mt-4 w-full rounded-lg bg-gray-900 text-white text-sm font-medium py-2.5 cursor-not-allowed opacity-90"
         >
-          Have an AI agent contact them →
+          Send me the comparison →
         </button>
         <p className="text-[11px] text-gray-400 mt-3 italic">
           Renders on the Q&A surface, not the embedded form.

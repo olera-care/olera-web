@@ -741,6 +741,9 @@ export default function VerificationMethodModal({
 
   // Subtitle only for method screens (not picker - that has custom header)
   const getSubtitle = () => {
+    if (screen === "linkedin-screenshots") {
+      return "Phone screenshots work great. Large images are compressed automatically.";
+    }
     return null;
   };
 
@@ -1465,41 +1468,44 @@ function LinkedInScreenshotsScreen({
 
   return (
     <div className="py-4">
-      {/* Instructions */}
-      <p className="text-sm text-gray-500 mb-6">
-        Upload two screenshots from your LinkedIn profile to verify your connection to <span className="font-medium text-gray-700">{businessName}</span>.
-      </p>
-
       {/* Screenshot 1: Profile Header */}
       <div className="mb-5">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center">1</span>
-          <span className="text-sm font-medium text-gray-700">LinkedIn profile header</span>
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center shrink-0">1</span>
+          <div>
+            <span className="text-sm font-medium text-gray-700">LinkedIn profile header</span>
+            <span className="text-xs text-gray-400 ml-2">Your name and photo</span>
+          </div>
         </div>
-        <p className="text-xs text-gray-400 mb-2 ml-8">Shows your name and photo</p>
-        <ScreenshotUpload
-          id="linkedin-header"
-          file={headerFile}
-          preview={headerPreview}
-          onSelect={onHeaderSelect}
-          placeholder="Profile header screenshot"
-        />
+        <div className="mt-2">
+          <ScreenshotUpload
+            id="linkedin-header"
+            file={headerFile}
+            preview={headerPreview}
+            onSelect={onHeaderSelect}
+            placeholder="Profile header screenshot"
+          />
+        </div>
       </div>
 
       {/* Screenshot 2: Experience Section */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center">2</span>
-          <span className="text-sm font-medium text-gray-700">LinkedIn experience section</span>
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center shrink-0">2</span>
+          <div>
+            <span className="text-sm font-medium text-gray-700">LinkedIn experience section</span>
+            <span className="text-xs text-gray-400 ml-2">Your role at {businessName}</span>
+          </div>
         </div>
-        <p className="text-xs text-gray-400 mb-2 ml-8">Shows your role at {businessName}</p>
-        <ScreenshotUpload
-          id="linkedin-experience"
-          file={experienceFile}
-          preview={experiencePreview}
-          onSelect={onExperienceSelect}
-          placeholder="Experience section screenshot"
-        />
+        <div className="mt-2">
+          <ScreenshotUpload
+            id="linkedin-experience"
+            file={experienceFile}
+            preview={experiencePreview}
+            onSelect={onExperienceSelect}
+            placeholder="Experience section screenshot"
+          />
+        </div>
       </div>
 
       {/* Error */}

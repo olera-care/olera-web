@@ -234,18 +234,30 @@ async function fetchTouchpointTimestamps(
   to: Date,
   campusId: string | null,
 ): Promise<Date[]> {
-  // Inner-join on student_outreach so we can scope by campus_id.
+  // v8.10.43: don't use the embedded inner-join (`student_outreach!inner(...)`).
+  // PostgREST silently returns no rows when it can't resolve the FK, which is
+  // exactly what was happening here — every touchpoint metric returned 0.
+  // Match the pattern used everywhere else in this codebase: scope to a
+  // pre-fetched outreach_id set when a campus filter is active, otherwise
+  // run a flat query on touchpoints alone.
+  const outreachIds = await campusOutreachIds(db, campusId);
+  if (outreachIds === null) return []; // campus filter active but yielded zero ids
+
   let q = db
     .from("student_outreach_touchpoints")
-    .select("created_at, student_outreach!inner(campus_id)")
+    .select("created_at")
     .in("touchpoint_type", touchpointTypes)
     .order("created_at", { ascending: true })
     .limit(50000);
   if (queryStart) q = q.gte("created_at", queryStart.toISOString());
   if (to) q = q.lt("created_at", to.toISOString());
-  if (campusId) q = q.eq("student_outreach.campus_id", campusId);
+  if (outreachIds) q = q.in("outreach_id", outreachIds);
 
-  const { data: rows } = await q;
+  const { data: rows, error } = await q;
+  if (error) {
+    console.error("touchpoint stats fetch failed:", error);
+    return [];
+  }
   return ((rows ?? []) as Array<{ created_at: string }>).map((r) => new Date(r.created_at));
 }
 
@@ -257,17 +269,24 @@ async function fetchProspectsAddedTimestamps(
 ): Promise<Date[]> {
   // Stage changes have payload { from, to }; we want transitions to
   // "researched" — the moment a prospect is qualified.
+  const outreachIds = await campusOutreachIds(db, campusId);
+  if (outreachIds === null) return [];
+
   let q = db
     .from("student_outreach_touchpoints")
-    .select("created_at, payload, student_outreach!inner(campus_id)")
+    .select("created_at, payload")
     .eq("touchpoint_type", "stage_change")
     .order("created_at", { ascending: true })
     .limit(50000);
   if (queryStart) q = q.gte("created_at", queryStart.toISOString());
   if (to) q = q.lt("created_at", to.toISOString());
-  if (campusId) q = q.eq("student_outreach.campus_id", campusId);
+  if (outreachIds) q = q.in("outreach_id", outreachIds);
 
-  const { data: rows } = await q;
+  const { data: rows, error } = await q;
+  if (error) {
+    console.error("prospects_added stats fetch failed:", error);
+    return [];
+  }
   return (
     (rows ?? []) as Array<{
       created_at: string;
@@ -276,6 +295,30 @@ async function fetchProspectsAddedTimestamps(
   )
     .filter((r) => (r.payload as { to?: string } | null)?.to === "researched")
     .map((r) => new Date(r.created_at));
+}
+
+/**
+ * Resolve a campus filter to a list of outreach_ids. Returns:
+ *   - null (filter set but no matching rows — caller returns empty)
+ *   - undefined (no filter — caller skips the .in() narrowing)
+ *   - string[] (filter set, here are the matching ids)
+ */
+async function campusOutreachIds(
+  db: DB,
+  campusId: string | null,
+): Promise<string[] | null | undefined> {
+  if (!campusId) return undefined;
+  const { data, error } = await db
+    .from("student_outreach")
+    .select("id")
+    .eq("campus_id", campusId);
+  if (error) {
+    console.error("campusOutreachIds:", error);
+    return null;
+  }
+  const ids = ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
+  if (ids.length === 0) return null;
+  return ids;
 }
 
 /**

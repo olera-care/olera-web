@@ -46,15 +46,13 @@ const CLOSED_STATUSES = [
   "wrong_contact",
 ];
 
-const REPLIES_STATUSES = [
-  "engaged",
-  "wants_meeting",
-  "needs_followup",
-  "awaiting_callback",
-];
-
+// DB-level statuses (matches the canonical sets in the queue endpoint).
+// Derived states (wants_meeting, needs_followup, awaiting_callback) live
+// in touchpoint payloads, not status — so the bucket here keys off
+// outreach_sent + engaged, then meeting state is teased apart from
+// touchpoints below.
+const REPLIES_STATUSES = ["outreach_sent", "engaged"];
 const RESEARCH_STATUSES = ["prospect", "researched"];
-
 const PARTNER_STATUSES = ["active_partner"];
 
 interface CountEntry {

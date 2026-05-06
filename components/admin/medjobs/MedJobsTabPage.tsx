@@ -346,8 +346,12 @@ export function MedJobsTabPage({
       </div>
 
       {/* Per-tab list rendering. Each tab is a workflow category;
-          smart-hide already removed empty ones from the bar. */}
-      {loading ? (
+          smart-hide already removed empty ones from the bar.
+          v9.0 Phase 7 Commit M: only show "Loading…" on the first
+          fetch (rows.length === 0). Background refetches keep the
+          existing list visible so the page doesn't flash on every
+          drawer open / action. */}
+      {loading && rows.length === 0 ? (
         <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>

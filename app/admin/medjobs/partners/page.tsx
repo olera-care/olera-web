@@ -94,7 +94,9 @@ export default function PartnersPage() {
         className="mb-6 w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
       />
 
-      {loading ? (
+      {/* v9.0 Phase 7 Commit M: keep rows rendered during background
+          refetches; "Loading…" only on first load. */}
+      {loading && rows.length === 0 ? (
         <p className="py-12 text-center text-sm text-gray-400">Loading…</p>
       ) : error ? (
         <p className="py-12 text-center text-sm text-red-600">{error}</p>

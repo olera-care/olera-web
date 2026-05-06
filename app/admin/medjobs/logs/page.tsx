@@ -185,7 +185,9 @@ export default function LogsPage() {
         </div>
       </div>
 
-      {loading ? (
+      {/* v9.0 Phase 7 Commit M: keep rows rendered during background
+          refetches; "Loading…" only on first load. */}
+      {loading && rows.length === 0 ? (
         <p className="py-12 text-center text-sm text-gray-400">Loading…</p>
       ) : error ? (
         <p className="py-12 text-center text-sm text-red-600">{error}</p>

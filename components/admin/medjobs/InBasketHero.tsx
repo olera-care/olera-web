@@ -88,8 +88,8 @@ export function InBasketHero() {
       <Tile
         label="Streak"
         value={stats ? streakLabel(stats.streak_days) : loading ? "…" : "—"}
-        sub="Consecutive business days hitting your log goal."
-        title="Mon–Fri days with at least one logged step. Weekends are skipped, not streak-breaking."
+        sub="Consecutive business days hitting your log goal (target: 50/day)."
+        title="Mon–Fri days with at least one logged step. Weekends are skipped, not streak-breaking. The 50/day target is directional for now — the streak counts any business day with at least one log."
       />
     </div>
   );

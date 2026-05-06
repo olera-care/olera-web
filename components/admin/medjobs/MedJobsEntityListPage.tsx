@@ -223,7 +223,10 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
         />
       </div>
 
-      {loading ? (
+      {/* v9.0 Phase 7 Commit M: keep rows rendered during background
+          refetches so the page doesn't flash. "Loading…" only shows on
+          the first load (rows.length === 0). */}
+      {loading && rows.length === 0 ? (
         <p className="py-12 text-center text-sm text-gray-400">Loading…</p>
       ) : error ? (
         <p className="py-12 text-center text-sm text-red-600">{error}</p>

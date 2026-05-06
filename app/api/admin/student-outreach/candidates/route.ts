@@ -24,9 +24,13 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  *   - certifications_count (length of metadata.certifications array)
  *
  * Optional query params:
- *   - campus    campus slug; narrows by university name match
- *   - state     two-letter state code
- *   - limit     default 100, max 500
+ *   - campus              campus slug; narrows by university name match
+ *   - state               two-letter state code
+ *   - limit               default 100, max 500
+ *   - with_pending_task   true → narrow to candidates with ≥1 pending
+ *                         business_profile_task (kind='candidate'). Used
+ *                         by the In Basket Candidates tab so the rendered
+ *                         list matches the task-driven count.
  */
 
 export async function GET(req: NextRequest) {
@@ -40,8 +44,29 @@ export async function GET(req: NextRequest) {
   const stateFilter = url.searchParams.get("state");
   const limitRaw = parseInt(url.searchParams.get("limit") ?? "100", 10);
   const limit = Math.min(Math.max(1, isNaN(limitRaw) ? 100 : limitRaw), 500);
+  const withPendingTask = url.searchParams.get("with_pending_task") === "true";
 
   const db = getServiceClient();
+
+  // v9.0 Phase 7 Commit N: when with_pending_task=true, narrow to
+  // business_profiles that have ≥1 pending business_profile_task of
+  // kind='candidate'. Drives the In Basket Candidates tab.
+  let candidatesWithPendingTask: Set<string> | null = null;
+  if (withPendingTask) {
+    const { data: tasks } = await db
+      .from("business_profile_tasks")
+      .select("business_profile_id")
+      .eq("status", "pending")
+      .eq("kind", "candidate");
+    candidatesWithPendingTask = new Set(
+      ((tasks ?? []) as Array<{ business_profile_id: string }>).map(
+        (t) => t.business_profile_id,
+      ),
+    );
+    if (candidatesWithPendingTask.size === 0) {
+      return NextResponse.json({ rows: [] });
+    }
+  }
 
   let campusName: string | null = null;
   if (campusSlug) {
@@ -82,6 +107,7 @@ export async function GET(req: NextRequest) {
     created_at: string;
   }>)
     .filter((p) => {
+      if (candidatesWithPendingTask && !candidatesWithPendingTask.has(p.id)) return false;
       if (!lowerCampus) return true;
       const u =
         typeof p.metadata?.university === "string" ? (p.metadata.university as string) : null;

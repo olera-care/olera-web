@@ -43,11 +43,16 @@ import {
   TABS,
   TYPE_FILTERS,
   type CampusRow,
+  type CandidateRow,
+  type ClientRow,
   type ProviderProspectRow,
   type TabKey,
 } from "@/lib/student-outreach/tab-config";
 import { RowCard } from "@/components/admin/medjobs/cards/StakeholderCard";
 import { SiteCard } from "@/components/admin/medjobs/cards/SiteCard";
+import { ClientCard } from "@/components/admin/medjobs/cards/ClientCard";
+import { CandidateCard } from "@/components/admin/medjobs/cards/SpecialtyCards";
+import { CardOverflowMenu } from "@/components/admin/medjobs/cards/CardOverflowMenu";
 import { ResearchTabContent } from "@/components/admin/medjobs/lists/ResearchTabContent";
 import { RepliesGroupedList } from "@/components/admin/medjobs/lists/RepliesGroupedList";
 import { InBasketHero } from "@/components/admin/medjobs/InBasketHero";
@@ -85,9 +90,19 @@ export function MedJobsTabPage({
   const [providerProspects, setProviderProspects] = useState<ProviderProspectRow[]>([]);
   const [researchCampuses, setResearchCampuses] = useState<ResearchCampusCard[]>([]);
   const [campusBanners, setCampusBanners] = useState<CampusRow[]>([]);
+  // v9.0 Phase 7 Commit N: entity rows for the In Basket tabs that key
+  // off business_profile_tasks / site_tasks rather than student_outreach.
+  // The queue endpoint can't hydrate these (the tabs are entity-driven,
+  // not stakeholder-driven), so each tab side-fetches its own list
+  // narrowed to entities with pending operational work.
+  const [clientRows, setClientRows] = useState<ClientRow[]>([]);
+  const [candidateRows, setCandidateRows] = useState<CandidateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
+  const [openProviderId, setOpenProviderId] = useState<string | null>(null);
+  const [openCandidateId, setOpenCandidateId] = useState<string | null>(null);
+  const [openSiteId, setOpenSiteId] = useState<string | null>(null);
   const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
 
   const [callOutcomeRow, setCallOutcomeRow] = useState<TabRow | null>(null);
@@ -141,16 +156,18 @@ export function MedJobsTabPage({
         const r = await fetch(`/api/admin/medjobs/campuses`);
         if (r.ok) {
           const d = await r.json();
-          // v9.0 Phase 7: Sites tab inside In Basket shows ONLY
-          // Stage-2-unlocked sites with no stakeholders yet — the
-          // research-needed prompts. The full site inventory lives
-          // on /admin/medjobs/sites (Sites page).
+          // v9.0 Phase 7 Commit N: In Basket Sites tab surfaces sites
+          // with active operational work — either Stage-2-unlocked
+          // research-needed prompts OR sites with a pending
+          // site_task. The full inventory lives on /admin/medjobs/
+          // sites.
           const all = (d.rows ?? []) as CampusRow[];
           setCampusBanners(
             all.filter(
               (c) =>
-                c.stage === "stakeholder_prospecting" &&
-                c.stakeholder_count === 0,
+                (c.stage === "stakeholder_prospecting" &&
+                  c.stakeholder_count === 0) ||
+                c.has_pending_task === true,
             ),
           );
         } else {
@@ -158,6 +175,41 @@ export function MedJobsTabPage({
         }
       } else {
         setCampusBanners([]);
+      }
+
+      // v9.0 Phase 7 Commit N: side-fetch entity rows for the
+      // task-driven In Basket tabs (clients / candidates). The queue
+      // endpoint can't hydrate them — clients are business_profiles
+      // and candidates are student business_profiles, not
+      // student_outreach rows. The dedicated entity endpoints accept
+      // ?with_pending_task=true to narrow the result to the In Basket
+      // subset.
+      if (tab === "clients") {
+        const r = await fetch(
+          `/api/admin/medjobs/clients?with_pending_task=true`,
+        );
+        if (r.ok) {
+          const d = await r.json();
+          setClientRows((d.rows ?? []) as ClientRow[]);
+        } else {
+          setClientRows([]);
+        }
+      } else {
+        setClientRows([]);
+      }
+
+      if (tab === "candidates") {
+        const r = await fetch(
+          `/api/admin/student-outreach/candidates?with_pending_task=true`,
+        );
+        if (r.ok) {
+          const d = await r.json();
+          setCandidateRows((d.rows ?? []) as CandidateRow[]);
+        } else {
+          setCandidateRows([]);
+        }
+      } else {
+        setCandidateRows([]);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
@@ -400,18 +452,17 @@ export function MedJobsTabPage({
           <RepliesGroupedList rows={rows} renderRow={(row) => renderRow(row)} />
         )
       ) : tab === "sites" ? (
-        // v9.0 Phase 7: Sites tab inside In Basket shows only
-        // research-needed prompts (Stage 2 unlocked, 0 stakeholders).
-        // The full site inventory lives on /admin/medjobs/sites.
+        // v9.0 Phase 7 Commit N: In Basket Sites tab surfaces sites
+        // with active operational work — research-needed prompts OR
+        // sites with a pending site_task. Click opens the SiteDrawer
+        // for the Step Board.
         campusBanners.length === 0 ? (
           <p className="py-12 text-center text-sm text-gray-400">
-            No sites need stakeholder research right now.
+            No sites need attention right now.
           </p>
         ) : (
           <ul className="space-y-2">
             {campusBanners.map((c) => {
-              // Build a ResearchCampusCard payload for the
-              // BulkResearchModal trigger from the queue's campus row.
               const matching = researchCampuses.find((r) => r.id === c.id);
               return (
                 <li key={c.id}>
@@ -429,13 +480,64 @@ export function MedJobsTabPage({
                       };
                       setBulkResearchCampus(payload);
                     }}
-                    onViewSite={() => {
-                      window.location.href = `/admin/student-outreach/campus/${c.slug}`;
-                    }}
+                    onViewSite={() => setOpenSiteId(c.id)}
                   />
                 </li>
               );
             })}
+          </ul>
+        )
+      ) : tab === "clients" ? (
+        // v9.0 Phase 7 Commit N: In Basket Clients tab renders provider
+        // clients with at least one pending business_profile_task
+        // (kind=client). Click opens the ProviderDrawer (Step Board).
+        clientRows.length === 0 ? (
+          <p className="py-12 text-center text-sm text-gray-400">
+            No clients with pending steps right now.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {clientRows.map((r) => (
+              <li key={r.id}>
+                <ClientCard
+                  row={r}
+                  onManage={() => setOpenProviderId(r.id)}
+                />
+              </li>
+            ))}
+          </ul>
+        )
+      ) : tab === "candidates" ? (
+        // v9.0 Phase 7 Commit N: In Basket Candidates tab renders
+        // student profiles with at least one pending
+        // business_profile_task (kind=candidate). Click opens the
+        // CandidateDrawer (Step Board).
+        candidateRows.length === 0 ? (
+          <p className="py-12 text-center text-sm text-gray-400">
+            No candidates with pending steps right now.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {candidateRows.map((r) => (
+              <li key={r.id}>
+                <CandidateCard
+                  row={r}
+                  onOpen={() => setOpenCandidateId(r.id)}
+                  overflowMenu={
+                    <CardOverflowMenu
+                      items={[
+                        {
+                          label: "Open profile editor",
+                          onClick: () => {
+                            window.location.href = `/admin/medjobs/${r.id}`;
+                          },
+                        },
+                      ]}
+                    />
+                  }
+                />
+              </li>
+            ))}
           </ul>
         )
       ) : rows.length === 0 ? (
@@ -469,6 +571,38 @@ export function MedJobsTabPage({
             void refetch();
           }}
           onAction={handleDrawerAction}
+        />
+      )}
+
+      {/* v9.0 Phase 7 Commit N: entity drawers for the In Basket
+          Clients / Candidates / Sites tabs. Each closes back to a
+          refetch so the EntityStepBoard's task completions reflect
+          immediately in the In Basket. */}
+      {openProviderId && (
+        <Drawer
+          providerId={openProviderId}
+          onClose={() => {
+            setOpenProviderId(null);
+            void refetch();
+          }}
+        />
+      )}
+      {openCandidateId && (
+        <Drawer
+          candidateId={openCandidateId}
+          onClose={() => {
+            setOpenCandidateId(null);
+            void refetch();
+          }}
+        />
+      )}
+      {openSiteId && (
+        <Drawer
+          siteId={openSiteId}
+          onClose={() => {
+            setOpenSiteId(null);
+            void refetch();
+          }}
         />
       )}
 

@@ -19,8 +19,13 @@ import {
  * client UI defaults to filtering them out.
  *
  * Query params:
- *   include_expired=true  → include pilot_expired rows in response
- *   search=<string>       → filter by display_name
+ *   include_expired=true     → include pilot_expired rows in response
+ *   search=<string>          → filter by display_name
+ *   with_pending_task=true   → narrow to clients with ≥1 pending
+ *                              business_profile_task (kind='client').
+ *                              Used by the In Basket Clients tab so it
+ *                              renders only entities with active
+ *                              operational work.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -33,8 +38,31 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const includeExpired = searchParams.get("include_expired") === "true";
     const search = searchParams.get("search")?.trim() || "";
+    const withPendingTask = searchParams.get("with_pending_task") === "true";
 
     const db = getServiceClient();
+
+    // v9.0 Phase 7 Commit N: when with_pending_task=true, narrow to
+    // business_profiles that have ≥1 pending business_profile_task of
+    // kind='client'. Used by the In Basket Clients tab so the rendered
+    // list matches the task-driven count.
+    let clientsWithPendingTask: Set<string> | null = null;
+    if (withPendingTask) {
+      const { data: tasks } = await db
+        .from("business_profile_tasks")
+        .select("business_profile_id")
+        .eq("status", "pending")
+        .eq("kind", "client");
+      clientsWithPendingTask = new Set(
+        ((tasks ?? []) as Array<{ business_profile_id: string }>).map(
+          (t) => t.business_profile_id,
+        ),
+      );
+      // Empty set → no rows match; short-circuit.
+      if (clientsWithPendingTask.size === 0) {
+        return NextResponse.json({ rows: [], total: 0 });
+      }
+    }
 
     // Provider profiles: organization (agency) or caregiver. Filter by
     // metadata fields server-side using the JSONB ?-operator-equivalent.
@@ -79,6 +107,10 @@ export async function GET(request: NextRequest) {
     };
 
     const rows = ((data ?? []) as ProviderRow[])
+      .filter((row) => {
+        if (clientsWithPendingTask && !clientsWithPendingTask.has(row.id)) return false;
+        return true;
+      })
       .map((row) => {
         const status = getClientStatus(row.metadata);
         return {

@@ -283,7 +283,7 @@ export async function POST(req: Request) {
     (async () => {
       try {
         const subject = providerName
-          ? `We'll notify you when ${providerName} responds`
+          ? `Welcome to Olera — ${providerName} will respond soon`
           : "Welcome to Olera";
 
         const emailLogId = await reserveEmailLogId({
@@ -304,26 +304,34 @@ export async function POST(req: Request) {
     Hi ${displayName},
   </p>
 
-  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px; color: #111827;">
-    ${providerName
-      ? `Your question has been sent to <strong>${providerName}</strong>. We'll email you when they respond.`
-      : "Thanks for signing up with Olera."
-    }
+  <p style="font-size: 20px; line-height: 1.4; margin: 0 0 8px; color: #111827; font-weight: 600;">
+    Welcome to Olera!
   </p>
+
+  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 20px; color: #6b7280;">
+    Your account is ready. Here's what's happening:
+  </p>
+
+  ${providerName ? `
+  <div style="background: #f0fdfa; border-radius: 12px; padding: 16px; margin: 0 0 20px; border-left: 4px solid #199087;">
+    <p style="font-size: 14px; color: #199087; margin: 0 0 4px; font-weight: 600;">Question sent to ${providerName}</p>
+    <p style="font-size: 14px; color: #6b7280; margin: 0;">We'll email you when they respond — most reply within 24 hours.</p>
+  </div>
+  ` : ""}
 
   ${questionText ? `
   <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin: 0 0 24px;">
-    <p style="font-size: 14px; color: #6b7280; margin: 0 0 8px;">Your question:</p>
+    <p style="font-size: 13px; color: #6b7280; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.5px;">Your question</p>
     <p style="font-size: 15px; color: #111827; margin: 0; font-style: italic;">"${questionText}"</p>
   </div>
   ` : ""}
 
   <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px; color: #111827;">
-    In the meantime, you can explore care options and benefits programs that may help your family.
+    While you wait, explore more providers or check if you qualify for benefits that can help cover care costs.
   </p>
 
-  <a href="${portalUrl}" style="display: inline-block; background: #111827; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
-    View your saved providers →
+  <a href="${portalUrl}" style="display: inline-block; background: #199087; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
+    Go to my portal →
   </a>
 
   <p style="font-size: 12px; color: #9ca3af; margin: 40px 0 0; line-height: 1.6; border-top: 1px solid #f3f4f6; padding-top: 20px;">

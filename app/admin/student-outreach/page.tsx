@@ -19,6 +19,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import PulseHeader from "@/components/admin/PulseHeader";
+import type { DateRangeValue } from "@/components/admin/DateRangePopover";
 import { Drawer } from "./Drawer";
 import { AddStakeholderModal } from "./AddStakeholderModal";
 import { BulkResearchModal } from "./BulkResearchModal";
@@ -41,21 +43,22 @@ import {
 
 type TabKey = "research" | "calls" | "replies" | "meetings" | "partners" | "archive" | "all";
 
+// v8.10.9: emojis dropped — tab styling matches the Questions page
+// (plain label + count, gray text, gray underline on active).
 interface TabDef {
   key: TabKey;
-  emoji: string;
   label: string;
   tooltip: string;
 }
 
 const TABS: TabDef[] = [
-  { key: "research",  emoji: "🔍", label: "Research",        tooltip: "New stakeholders that still need research before email outreach starts." },
-  { key: "calls",     emoji: "📞", label: "Calls",           tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
-  { key: "replies",   emoji: "📬", label: "Replies",         tooltip: "Email replies, callbacks, voicemails. Triage what they said and pick the next step." },
-  { key: "meetings",  emoji: "📅", label: "Meetings",        tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
-  { key: "partners",  emoji: "⭐", label: "Active Partners", tooltip: "Stakeholders sharing with students. Mostly automated seasonal emails." },
-  { key: "archive",   emoji: "📦", label: "Archive",         tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Replies if they reply or call back later." },
-  { key: "all",       emoji: "🔎", label: "All",             tooltip: "Search and filter every stakeholder across all stages." },
+  { key: "research",  label: "Research",        tooltip: "New stakeholders that still need research before email outreach starts." },
+  { key: "calls",     label: "Calls",           tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
+  { key: "replies",   label: "Replies",         tooltip: "Email replies, callbacks, voicemails. Triage what they said and pick the next step." },
+  { key: "meetings",  label: "Meetings",        tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
+  { key: "partners",  label: "Active Partners", tooltip: "Stakeholders sharing with students. Mostly automated seasonal emails." },
+  { key: "archive",   label: "Archive",         tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Replies if they reply or call back later." },
+  { key: "all",       label: "All",             tooltip: "Search and filter every stakeholder across all stages." },
 ];
 
 const TYPE_FILTERS: Array<{ key: StakeholderType | "all"; label: string }> = [
@@ -90,6 +93,8 @@ export default function StudentOutreachPage() {
   const [campusSlug, setCampusSlug] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<StakeholderType | "all">("all");
   const [tab, setTab] = useState<TabKey>("research");
+  // v8.10.9: PulseHeader date range. KPI = student signups in range.
+  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
   const [showClosed, setShowClosed] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -196,37 +201,43 @@ export default function StudentOutreachPage() {
     [tab, callAction],
   );
 
+  // v8.10.9: PulseHeader stats are scoped to the active campus filter
+  // — when admin selects "Texas A&M University", the KPI + chart
+  // narrow to signups whose metadata.university matches that campus.
+  const statsPath = useMemo(() => {
+    const base = "/api/admin/student-outreach/stats";
+    return campusSlug ? `${base}?campus=${encodeURIComponent(campusSlug)}` : base;
+  }, [campusSlug]);
+
   return (
     <div>
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Student Outreach</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Reach pre-health students through campus advisors, dept heads, and student orgs.
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-3">
-          {/* v8.10.8: Open Gmail demoted to a plain text link — visually
-              quieter so the primary action ("+ Add Stakeholder") leads.
-              Campuses moved to the left admin sidebar. */}
-          <a
-            href="https://mail.google.com/mail/u/0/#inbox"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Open Gmail in a new tab to triage replies, callbacks, and voicemails."
-            className="text-sm font-medium text-emerald-700 underline hover:no-underline"
-          >
-            Open Gmail ↗
-          </a>
-          <button
-            onClick={() => setShowAdd(true)}
-            title="Add a new advisor, dept head, or student org for a campus."
-            className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-          >
-            + Add Stakeholder
-          </button>
-        </div>
-      </div>
+      <PulseHeader
+        title="Student Outreach"
+        kpiSuffix="student signups"
+        statsPath={statsPath}
+        range={range}
+        onRangeChange={setRange}
+        actions={
+          <>
+            <a
+              href="https://mail.google.com/mail/u/0/#inbox"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open Gmail in a new tab to triage replies, callbacks, and voicemails."
+              className="text-sm font-medium text-emerald-700 underline hover:no-underline"
+            >
+              Open Gmail ↗
+            </a>
+            <button
+              onClick={() => setShowAdd(true)}
+              title="Add a new advisor, dept head, or student org for a campus."
+              className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+            >
+              + Add Stakeholder
+            </button>
+          </>
+        }
+      />
 
       {/* v8.10.8: search + filters condensed into one horizontal row above
           the tabs. Search takes the available flex; campus + type are
@@ -270,8 +281,9 @@ export default function StudentOutreachPage() {
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="mb-4 flex gap-1 overflow-x-auto border-b border-gray-100">
+      {/* v8.10.9: tab styling matches the Questions page — plain label
+          + small gray count, gray underline on active. No emojis. */}
+      <div className="mb-8 flex gap-1 overflow-x-auto border-b border-gray-100">
         {TABS.map((t) => {
           const count = tabCounts?.[t.key];
           const active = t.key === tab;
@@ -280,16 +292,15 @@ export default function StudentOutreachPage() {
               key={t.key}
               onClick={() => setTab(t.key)}
               title={t.tooltip}
-              className={`whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+              className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
                 active
                   ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  : "border-transparent text-gray-400 hover:text-gray-600"
               }`}
             >
-              <span className="mr-1.5" aria-hidden>{t.emoji}</span>
               {t.label}
-              {typeof count === "number" && (
-                <span className={`ml-1.5 text-xs ${active ? "text-gray-500" : "text-gray-400"}`}>
+              {typeof count === "number" && count > 0 && (
+                <span className="ml-1.5 text-xs text-gray-400">
                   {count}
                 </span>
               )}

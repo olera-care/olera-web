@@ -25,12 +25,17 @@ export default function PulseHeader({
   statsPath,
   range,
   onRangeChange,
+  actions,
 }: {
   title: string;
   kpiSuffix: string;
   statsPath: string;
   range: DateRangeValue;
   onRangeChange: (next: DateRangeValue) => void;
+  /** Optional inline actions rendered between the title and the date
+   *  picker. Used for page-level CTAs like "Add Stakeholder" or
+   *  "Open Gmail" without adding a competing top-right block. */
+  actions?: React.ReactNode;
 }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,7 +67,10 @@ export default function PulseHeader({
     <div className="mb-8">
       <div className="flex items-center justify-between gap-4 mb-5">
         <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">{title}</h1>
-        <DateRangePopover value={range} onChange={onRangeChange} />
+        <div className="flex shrink-0 items-center gap-3">
+          {actions}
+          <DateRangePopover value={range} onChange={onRangeChange} />
+        </div>
       </div>
 
       <div className="rounded-2xl border border-gray-100 bg-white px-6 pt-6 pb-5">

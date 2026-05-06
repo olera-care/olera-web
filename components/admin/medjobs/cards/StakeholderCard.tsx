@@ -43,23 +43,77 @@ import type {
 
 // ── RowCard ──────────────────────────────────────────────────────────────
 
+interface RowCardExtras {
+  /** v9.0 Phase 7 Commit K: when true, the per-tab primary CTA is
+   *  suppressed (e.g. closed/done rows on dedicated entity pages —
+   *  they're history, not action surfaces). The ellipsis still
+   *  renders, with onReopen prepended when provided. */
+  ctaSuppressed?: boolean;
+  /** v9.0 Phase 7 Commit K: optional Reopen handler. When present,
+   *  surfaces as a "Reopen" item at the top of the row overflow. */
+  onReopen?: () => Promise<void> | void;
+}
+
 export function RowCard({
   tab,
   row,
+  ctaSuppressed,
+  onReopen,
   ...cb
-}: { tab: TabKey; row: TabRow } & RowCardCallbacks) {
+}: { tab: TabKey; row: TabRow } & RowCardCallbacks & RowCardExtras) {
   const slots = buildRowSlots(tab, row, cb);
+  // v9.0 Phase 7 Commit K: Reopen prepended to the overflow menu on
+  // closed rows. The slot builders' overflow already includes Mark
+  // as unread / Stop outreach / etc.; we wrap it to add Reopen at
+  // the top without rebuilding the menu shape.
+  const overflow =
+    onReopen != null ? (
+      <ReopenWrappedOverflow inner={slots.overflowMenu} onReopen={onReopen} />
+    ) : (
+      slots.overflowMenu
+    );
   return (
     <StakeholderCard
       row={row}
       pill={slots.pill}
       footnote={slots.footnote}
       headlineAccessory={slots.headlineAccessory}
-      cta={slots.cta}
-      overflowMenu={slots.overflowMenu}
+      cta={ctaSuppressed ? undefined : slots.cta}
+      overflowMenu={overflow}
       onOpenDrawer={cb.onOpenDrawer}
       unread={row.viewed_at == null}
     />
+  );
+}
+
+/**
+ * v9.0 Phase 7 Commit K: thin wrapper that renders a Reopen button
+ * inline next to the per-tab overflow menu. Keeping it as a separate
+ * inline button (rather than injecting into the OverflowMenu items
+ * list) avoids reaching into the OverflowMenu's internal item shape
+ * and keeps the affordance unambiguous on closed rows.
+ */
+function ReopenWrappedOverflow({
+  inner,
+  onReopen,
+}: {
+  inner: ReactNode;
+  onReopen: () => Promise<void> | void;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          void onReopen();
+        }}
+        title="Reopen this row — moves it back into active workflow."
+        className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-50"
+      >
+        Reopen
+      </button>
+      {inner}
+    </div>
   );
 }
 

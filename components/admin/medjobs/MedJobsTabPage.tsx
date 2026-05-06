@@ -52,7 +52,7 @@ import { ResearchTabContent } from "@/components/admin/medjobs/lists/ResearchTab
 import { RepliesGroupedList } from "@/components/admin/medjobs/lists/RepliesGroupedList";
 import { InBasketHero } from "@/components/admin/medjobs/InBasketHero";
 import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
-import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
+import { useMedJobsRefresh, refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 
 interface MedJobsTabPageProps {
   initialTab: TabKey;
@@ -186,6 +186,9 @@ export function MedJobsTabPage({
         throw new Error(e || "Action failed");
       }
       await refetch();
+      // v9.0 Phase 7 Commit K: fan-out so the sidebar fractions +
+      // hero counts update live alongside this page's refetch.
+      refreshMedJobs();
     },
     [refetch],
   );

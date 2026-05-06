@@ -24,6 +24,7 @@ import { LogMeetingModal } from "./LogMeetingModal";
 import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { StepBoardCard } from "@/components/admin/medjobs/StepBoardCard";
+import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import {
   PARTNER_CTA_STAGES,
   KIND_LABELS,
@@ -197,12 +198,24 @@ function StakeholderDrawer({
   // a failed mark_read shouldn't disrupt the drawer experience. The
   // server is idempotent (only updates if viewed_at IS NULL) so this
   // is safe to call on every mount.
+  //
+  // v9.0 Phase 7 Commit K: after mark_read lands, fire the global
+  // refresh so the In Basket hero (Queued counts) + sidebar
+  // fractions reflect the new read state in real time without
+  // waiting for the next user action.
   useEffect(() => {
-    fetch(`/api/admin/student-outreach/${outreachId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "mark_read" }),
-    }).catch(() => { /* non-critical */ });
+    void (async () => {
+      try {
+        await fetch(`/api/admin/student-outreach/${outreachId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "mark_read" }),
+        });
+        refreshMedJobs();
+      } catch {
+        /* non-critical */
+      }
+    })();
   }, [outreachId]);
 
   const action: ActionFn = useCallback(

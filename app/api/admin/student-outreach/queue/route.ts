@@ -619,40 +619,63 @@ async function fetchRowIdsForTab(
 ): Promise<string[]> {
   const { tab, campusId, type, search, showClosed, page, pageSize } = opts;
 
+  // v9.0 Phase 7 Commit K: when showClosed is true, dedicated entity
+  // pages get the active rows for this tab plus closed-status history
+  // so admins can see completed/archived items inline. Active rows
+  // come back first via the per-tab fetcher; closed rows are appended
+  // as a second query so they sort below active in the rendered list.
   switch (tab) {
-    case "prospects":
-      return await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize });
+    case "prospects": {
+      const active = await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize });
+      if (!showClosed) return active;
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      return [...active, ...closed];
+    }
     case "candidates":
     case "outbound":
     case "emails_sent":
     case "signups":
       // v8.10.33 / v8.10.37: placeholder slots — UI shows "Coming soon"
       // so the server returns no rows for these views. Real datasets ship
-      // later, each with its own query strategy:
-      //   - Candidates    = student-applicant pipeline (different table)
-      //   - Outbound      = aggregated email/outreach activity log,
-      //                     replied threads sorted to the top
-      //   - Emails Sent   = email_sent touchpoints across stakeholders
-      //   - Signups       = student-signup touchpoints / business_profiles
+      // later, each with its own query strategy.
       return [];
-    case "partners":
+    case "partners": {
       // v9.0 Phase 6.5: In Basket Partners tab surfaces only active
-      // partners (kind != 'provider') with a pending task — custom
-      // step, follow-up, seasonal check-in, etc. Partners without
-      // open tasks live in the Stakeholders → Partners reference page.
+      // partners (kind != 'provider') with a pending task. The
+      // dedicated Partners entity page shows full inventory including
+      // closed partners — handled separately via /api/admin/medjobs/
+      // partners. The queue endpoint stays task-driven.
       return await idsByPartnersWithTasks(db, { campusId, type, search, page, pageSize });
+    }
     case "all": {
       const inc = showClosed
         ? [...RESEARCH_STATUSES, ...REPLIES_STATUSES, ...PARTNER_ALL, ...CLOSED_STATUSES]
         : [...RESEARCH_STATUSES, ...REPLIES_STATUSES, ...PARTNER_ALL];
       return await idsByStatus(db, inc as Status[], { campusId, type, search, page, pageSize });
     }
-    case "replies":
-      return await idsByStatus(db, REPLIES_STATUSES, { campusId, type, search, page, pageSize });
-    case "calls":
-      return await idsByCallsDue(db, { campusId, type, search, page, pageSize });
-    case "meetings":
-      return await idsByMeetings(db, { campusId, type, search, page, pageSize });
+    case "replies": {
+      const active = await idsByStatus(db, REPLIES_STATUSES, { campusId, type, search, page, pageSize });
+      if (!showClosed) return active;
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      return [...active, ...closed];
+    }
+    case "calls": {
+      // Calls is task-driven (rows with a pending phone task). The
+      // dedicated entity page also includes recently-logged-call
+      // touchpoints — but the queue endpoint stays focused on the
+      // due-task view. Closed history on Calls means rows whose
+      // outreach already closed; we append them when showClosed.
+      const active = await idsByCallsDue(db, { campusId, type, search, page, pageSize });
+      if (!showClosed) return active;
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      return [...active, ...closed];
+    }
+    case "meetings": {
+      const active = await idsByMeetings(db, { campusId, type, search, page, pageSize });
+      if (!showClosed) return active;
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      return [...active, ...closed];
+    }
     case "archive":
       return await idsByArchive(db, { campusId, type, search, page, pageSize });
     default:
@@ -1033,17 +1056,12 @@ async function hydrateRows(
     };
   });
 
-  // v9.0 Phase 7 Commit J: unread-first sort. Within whatever tab-
-  // specific order the per-tab fetcher returned (last_edited_at,
-  // due_at, etc.), unread rows rise to the top so admins always see
-  // attention-needing items first. Stable sort preserves the
-  // existing intra-bucket ordering.
-  tabRows.sort((a, b) => {
-    const aUnread = a.viewed_at == null ? 0 : 1;
-    const bUnread = b.viewed_at == null ? 0 : 1;
-    return aUnread - bUnread;
-  });
-
+  // v9.0 Phase 7 Commit K: cards sort by most-recently-queued (the
+  // existing per-tab order — last_edited_at desc, due_at asc, etc.).
+  // Unread state is purely visual (bold label + fraction); it does
+  // not change queue position. The Commit J unread-first sort was
+  // reverted because it pulled cards out of recency order, which
+  // hurt operational predictability.
   return tabRows;
 }
 

@@ -1,31 +1,40 @@
 "use client";
 
 /**
- * v9.0 Phase 7 Commit J: In Basket hero panel.
+ * v9.0 Phase 7 Commit K: In Basket hero panel.
  *
  * Three-element KPI strip rendered above the In Basket tab bar.
- * Always shows the same three KPIs regardless of active tab:
- *   - Queued Logs   → total active queue size with an unread/read
- *                     breakdown sub-line
- *   - Logs Today    → distinct operational steps logged today
- *   - Streak        → consecutive business days (Mon-Fri) with ≥1 log
+ * Always shows the same three KPIs regardless of active tab; updates
+ * live as admins work the queue (drawer mark_read, log actions, and
+ * task completions all fire the shared refresh signal).
  *
- * Powered by /api/admin/medjobs/in-basket-stats. Refetches when the
- * parent triggers useMedJobsRefresh; otherwise idle.
+ *   Queued                — total active unfinished operational
+ *                            workload across all entity types, with
+ *                            an unread/read sub-line.
+ *   Logs Completed Today  — distinct steps logged today, with a
+ *                            sub-breakdown by type (calls / meetings
+ *                            / replies / etc.).
+ *   Streak                — consecutive business days with ≥1 log,
+ *                            with a one-line description of the rule.
  *
- * Operational philosophy: surface queue health, not inbox-zero. The
- * earlier "In Basket Cleared %" framed work as elimination; "Queued
- * Logs" frames it as a continuous backlog where steady throughput
- * matters more than zeroing out.
+ * Powered by /api/admin/medjobs/in-basket-stats (single round-trip
+ * for all three).
  */
 
 import { useCallback, useEffect, useState } from "react";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
 interface InBasketStats {
-  queued_logs_unread: number;
-  queued_logs_read: number;
+  queued_unread: number;
+  queued_read: number;
   logs_today: number;
+  logs_today_breakdown: {
+    calls: number;
+    emails: number;
+    meetings: number;
+    replies: number;
+    other: number;
+  };
   streak_days: number;
 }
 
@@ -55,30 +64,32 @@ export function InBasketHero() {
   }, [refetch]);
   useMedJobsRefresh(refetch);
 
-  const queuedTotal = stats
-    ? stats.queued_logs_unread + stats.queued_logs_read
-    : null;
+  const queuedTotal = stats ? stats.queued_unread + stats.queued_read : null;
   const queuedSub = stats
-    ? `${stats.queued_logs_unread} unread · ${stats.queued_logs_read} read`
+    ? `${stats.queued_unread} unread · ${stats.queued_read} read`
     : null;
+
+  const logsBreakdownSub = stats ? formatLogBreakdown(stats.logs_today_breakdown) : null;
 
   return (
     <div className="mb-4 grid grid-cols-3 gap-3">
       <Tile
-        label="Queued logs"
+        label="Queued"
         value={queuedTotal != null ? String(queuedTotal) : loading ? "…" : "—"}
         sub={queuedSub ?? undefined}
-        title="Active items still in the queue. Unread items lead, then read-but-undone — work top-down."
+        title="Total active unfinished operational workload across all entity types — student outreach, partner relationships, entity tasks. Unread items get bold treatment in their lists; queue position is recency, not urgency."
       />
       <Tile
-        label="Logs today"
+        label="Logs completed today"
         value={stats ? String(stats.logs_today) : loading ? "…" : "—"}
-        title="Touchpoints + custom-step completions logged so far today."
+        sub={logsBreakdownSub ?? undefined}
+        title="Touchpoints + custom-step completions logged so far today. Breakdown shows where the work landed."
       />
       <Tile
         label="Streak"
         value={stats ? streakLabel(stats.streak_days) : loading ? "…" : "—"}
-        title="Consecutive business days (Mon-Fri) with at least one logged step. Weekends are skipped, not breaking."
+        sub="Consecutive business days hitting your log goal."
+        title="Mon–Fri days with at least one logged step. Weekends are skipped, not streak-breaking."
       />
     </div>
   );
@@ -88,6 +99,19 @@ function streakLabel(days: number): string {
   if (days <= 0) return "—";
   if (days === 1) return "1 day";
   return `${days} days`;
+}
+
+function formatLogBreakdown(b: InBasketStats["logs_today_breakdown"]): string | null {
+  // Show only non-zero buckets, in a fixed canonical order so the
+  // line reads consistently across days.
+  const parts: string[] = [];
+  if (b.calls > 0) parts.push(`${b.calls} call${b.calls === 1 ? "" : "s"}`);
+  if (b.meetings > 0) parts.push(`${b.meetings} meeting${b.meetings === 1 ? "" : "s"}`);
+  if (b.replies > 0) parts.push(`${b.replies} repl${b.replies === 1 ? "y" : "ies"}`);
+  if (b.emails > 0) parts.push(`${b.emails} email${b.emails === 1 ? "" : "s"}`);
+  if (b.other > 0) parts.push(`${b.other} other`);
+  if (parts.length === 0) return null;
+  return parts.join(" · ");
 }
 
 function Tile({

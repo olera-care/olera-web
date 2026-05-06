@@ -2,36 +2,50 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 /**
- * v9.0 Phase 7 Commit J: In Basket hero stats.
+ * v9.0 Phase 7 Commit K: In Basket hero stats.
  *
  * Three KPIs powering the In Basket hero panel:
- *   - queued_logs_unread / queued_logs_read: active items still in
- *     queue, split by unread state. Replaces the previous
- *     in_basket_cleared_pct — percent-cleared framed the system as
- *     inbox-zero work, but the operational philosophy is queue
- *     health, not elimination. "Queued Logs" frames the same data
- *     as a continuous backlog (unread first, then read-but-undone).
+ *   - queued_unread / queued_read: active items still in queue,
+ *     split by unread state. The hero shows the sum + an
+ *     unread/read sub-line. Includes student_outreach in active
+ *     statuses + pending entity tasks (business_profile_tasks +
+ *     site_tasks) so the total reflects all active operational work
+ *     across visible/non-smart-hidden tabs.
  *   - logs_today: count of touchpoints + entity-task completions
- *     logged today.
- *   - streak_days: consecutive business days (Mon-Fri) ending today,
- *     where each day has ≥1 log. Option A — weekends skipped, not
+ *     logged today, plus a per-type breakdown (calls / emails /
+ *     meetings / replies / other).
+ *   - streak_days: consecutive business days (Mon-Fri) ending
+ *     today, where each day has ≥1 log. Weekends are skipped, not
  *     streak-breaking.
  *
- * Single endpoint, returns all three in one call so the hero doesn't
- * need to coordinate multiple fetches.
+ * Single endpoint — one round-trip serves the whole hero.
  */
 
 const STREAK_LOOKBACK_DAYS = 60;
 
-// Active student_outreach statuses — the rows that count as "in the
-// queue". Closed states (no_response_closed, not_interested,
-// do_not_contact, wrong_contact) are out of the active inbox.
 const CLOSED_STATUSES = [
   "no_response_closed",
   "not_interested",
   "do_not_contact",
   "wrong_contact",
 ];
+
+// Touchpoint type → hero breakdown bucket. Anything not mapped falls
+// into "other" so the bucket count always sums to logs_today.
+const TYPE_BUCKET: Record<string, "calls" | "emails" | "meetings" | "replies"> = {
+  call_no_answer: "calls",
+  call_voicemail: "calls",
+  call_connected: "calls",
+  call_wrong_number: "calls",
+  email_sent: "emails",
+  email_replied: "replies",
+  ig_dm_sent: "emails",
+  ig_dm_replied: "replies",
+  meeting_scheduled: "meetings",
+  meeting_held: "meetings",
+  meeting_no_show: "meetings",
+  meeting_rescheduled: "meetings",
+};
 
 function startOfDayUTC(d: Date): Date {
   const x = new Date(d);
@@ -61,14 +75,16 @@ export async function GET(_req: NextRequest) {
   const lookbackStart = new Date(todayStart.getTime() - STREAK_LOOKBACK_DAYS * 86400_000);
 
   const [
-    { data: touchpointDates },
+    { data: touchpointsForStreak },
     { data: bpTaskDates },
     { data: siteTaskDates },
     { data: activeOutreach },
+    { count: pendingBpTasks },
+    { count: pendingSiteTasks },
   ] = await Promise.all([
     db
       .from("student_outreach_touchpoints")
-      .select("created_at")
+      .select("touchpoint_type, created_at")
       .gte("created_at", lookbackStart.toISOString())
       .order("created_at", { ascending: false })
       .limit(5000),
@@ -84,48 +100,66 @@ export async function GET(_req: NextRequest) {
       .eq("status", "completed")
       .gte("completed_at", lookbackStart.toISOString())
       .limit(5000),
-    // Active In Basket queue: student_outreach rows not in a closed
-    // state. Pull viewed_at so we can split unread vs. read.
     db
       .from("student_outreach")
       .select("viewed_at")
       .not("status", "in", `(${CLOSED_STATUSES.map((s) => `"${s}"`).join(",")})`),
+    // Pending entity tasks count toward Queued (read bucket — entity
+    // tasks don't have viewed_at; they're always task-driven, not
+    // notification-driven).
+    db
+      .from("business_profile_tasks")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+    db
+      .from("site_tasks")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
   ]);
 
-  // Queued Logs: split by unread state.
+  // Queued: unread vs read split. Stakeholder rows split on viewed_at;
+  // entity tasks all roll into the read bucket (no notification model).
   let queuedUnread = 0;
   let queuedRead = 0;
   for (const row of (activeOutreach ?? []) as Array<{ viewed_at: string | null }>) {
     if (row.viewed_at == null) queuedUnread += 1;
     else queuedRead += 1;
   }
+  queuedRead += (pendingBpTasks ?? 0) + (pendingSiteTasks ?? 0);
 
-  // Build a set of UTC dates with at least one log.
+  // Logs today + breakdown.
   const datesWithLogs = new Set<string>();
   let logsToday = 0;
+  const breakdown = { calls: 0, emails: 0, meetings: 0, replies: 0, other: 0 };
   const todayKey = dateKey(todayStart);
 
-  const noteDate = (iso: string | null) => {
+  const noteDate = (iso: string | null, bucket?: keyof typeof breakdown) => {
     if (!iso) return;
     const d = new Date(iso);
     if (isNaN(d.getTime())) return;
     const k = dateKey(startOfDayUTC(d));
     datesWithLogs.add(k);
-    if (k === todayKey) logsToday += 1;
+    if (k === todayKey) {
+      logsToday += 1;
+      if (bucket) breakdown[bucket] += 1;
+    }
   };
 
-  for (const row of (touchpointDates ?? []) as Array<{ created_at: string }>) {
-    noteDate(row.created_at);
+  for (const row of (touchpointsForStreak ?? []) as Array<{
+    touchpoint_type: string;
+    created_at: string;
+  }>) {
+    const bucket = TYPE_BUCKET[row.touchpoint_type] ?? "other";
+    noteDate(row.created_at, bucket);
   }
   for (const row of (bpTaskDates ?? []) as Array<{ completed_at: string | null }>) {
-    noteDate(row.completed_at);
+    noteDate(row.completed_at, "other");
   }
   for (const row of (siteTaskDates ?? []) as Array<{ completed_at: string | null }>) {
-    noteDate(row.completed_at);
+    noteDate(row.completed_at, "other");
   }
 
-  // Streak: walk back from today. Skip weekends. Stop at first
-  // business day with no log. Today only counts if it has a log.
+  // Streak.
   let streakDays = 0;
   let cursor = new Date(todayStart);
   if (!datesWithLogs.has(todayKey) && !isWeekend(cursor)) {
@@ -145,9 +179,10 @@ export async function GET(_req: NextRequest) {
   }
 
   return NextResponse.json({
-    queued_logs_unread: queuedUnread,
-    queued_logs_read: queuedRead,
+    queued_unread: queuedUnread,
+    queued_read: queuedRead,
     logs_today: logsToday,
+    logs_today_breakdown: breakdown,
     streak_days: streakDays,
   });
 }

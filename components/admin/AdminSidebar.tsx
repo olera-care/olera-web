@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AdminUser } from "@/lib/types";
+import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
 interface AdminSidebarProps {
   adminUser: AdminUser;
@@ -62,26 +63,69 @@ const navSections: NavSection[] = [
       { label: "Analytics", href: "/admin/analytics" },
       { label: "Benefits", href: "/admin/benefits" },
       { label: "Content", href: "/admin/content" },
-      { label: "Staffing Outreach", href: "/admin/staffing-outreach" },
+      // v9.0 Phase 7 Commit K: Staffing Outreach retired — its
+      // operational concerns are fully covered by the MedJobs
+      // section below (sites, prospects, partners, etc.). Hidden
+      // here to avoid redundancy + conceptual overlap; the legacy
+      // /admin/staffing-outreach route still resolves for any
+      // bookmarks during transition.
       { label: "Team", href: "/admin/team" },
     ],
   },
 ];
 
-// v9.0 Phase 7: MedJobs left nav simplifies to six flat operational
-// surfaces. No dropdowns. Each is a peer top-level link. Site
-// (formerly "Campus") becomes a top-level entry; Add Site moves to
-// the Sites page itself as a primary action.
+// v9.0 Phase 7 Commit K: MedJobs left nav expands to ten flat
+// operational surfaces, ordered as a directional priority view:
+//   In Basket             — the smart priority workspace (active work)
+//   Sites · Prospects     — territorial + funnel-feeder backlogs
+//   Clients · Partners ·
+//   Candidates            — relationship surfaces
+//   Replies · Meetings ·
+//   Calls                 — workflow-stage queues
+//   Logs                  — historical / analytics layer
+//
+// Each entity page is a full operational repository — admins can
+// work outside the In Basket if preferred. The In Basket emphasizes
+// active work; the dedicated pages show full inventory including
+// closed/completed history.
+//
+// All 10 items expose an unread/total fraction sourced from
+// /api/admin/medjobs/sidebar-counts. Labels + fractions bold when
+// unread > 0, mirroring the In Basket tab-bar pattern.
 const STAKEHOLDERS_KEY = "stakeholders";
 
 const medjobsItems: NavItem[] = [
   { label: "In Basket",  href: "/admin/medjobs/in-basket" },
   { label: "Sites",      href: "/admin/medjobs/sites" },
+  { label: "Prospects",  href: "/admin/medjobs/prospects" },
   { label: "Clients",    href: "/admin/medjobs/clients" },
-  { label: "Candidates", href: "/admin/medjobs/candidates" },
   { label: "Partners",   href: "/admin/medjobs/partners" },
+  { label: "Candidates", href: "/admin/medjobs/candidates" },
+  { label: "Replies",    href: "/admin/medjobs/replies" },
+  { label: "Meetings",   href: "/admin/medjobs/meetings" },
+  { label: "Calls",      href: "/admin/medjobs/calls" },
   { label: "Logs",       href: "/admin/medjobs/logs" },
 ];
+
+/** Map nav-item href → sidebar-counts response key. */
+const COUNTS_KEY: Record<string, string | null> = {
+  "/admin/medjobs/in-basket":  "in_basket",
+  "/admin/medjobs/sites":      "sites",
+  "/admin/medjobs/prospects":  "prospects",
+  "/admin/medjobs/clients":    "clients",
+  "/admin/medjobs/partners":   "partners",
+  "/admin/medjobs/candidates": "candidates",
+  "/admin/medjobs/replies":    "replies",
+  "/admin/medjobs/meetings":   "meetings",
+  "/admin/medjobs/calls":      "calls",
+  "/admin/medjobs/logs":       null,
+};
+
+interface CountEntry {
+  unread: number;
+  total: number;
+}
+type SidebarCounts = Record<string, CountEntry | undefined>;
 
 // Retained for backwards-compat with auto-expand logic; will be cleared
 // in a follow-up. The current sidebar implementation uses this set
@@ -172,6 +216,25 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
     return initial;
   });
 
+  // v9.0 Phase 7 Commit K: per-item unread/total fractions. Fetched
+  // once on mount and on every MedJobs refresh signal so the
+  // sidebar stays live as admins work the queue. Failure is silent
+  // — the fraction just doesn't render until the next successful
+  // fetch.
+  const [sidebarCounts, setSidebarCounts] = useState<SidebarCounts | null>(null);
+  const refetchCounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/medjobs/sidebar-counts");
+      if (!res.ok) return;
+      const data = (await res.json()) as { counts: SidebarCounts };
+      setSidebarCounts(data.counts ?? null);
+    } catch {
+      /* non-critical */
+    }
+  }, []);
+  useEffect(() => { void refetchCounts(); }, [refetchCounts]);
+  useMedJobsRefresh(refetchCounts);
+
   // Hydrate from localStorage after mount
   useEffect(() => {
     try {
@@ -260,9 +323,10 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
             );
           })}
 
-          {/* v9.0 Phase 7: MedJobs section — six flat items, no
-              sub-groups, no action buttons. Add Site lives on the
-              Sites page itself as a primary action. */}
+          {/* v9.0 Phase 7 Commit K: MedJobs section — ten flat
+              operational surfaces with per-item unread/total
+              fractions. Labels + fractions bold when unread > 0
+              (same pattern as the In Basket tab bar). */}
           <div key="medjobs" className="mt-1">
             <button
               onClick={() => toggle("medjobs")}
@@ -274,20 +338,47 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
 
             {medjobsOpen && (
               <div className="mt-0.5 space-y-px">
-                {medjobsItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={[
-                      "block pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
-                      isActive(item.href)
-                        ? "text-gray-900 font-medium bg-gray-100"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-                    ].join(" ")}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                {medjobsItems.map((item) => {
+                  const active = isActive(item.href);
+                  const countsKey = COUNTS_KEY[item.href];
+                  const entry = countsKey ? sidebarCounts?.[countsKey] : undefined;
+                  const hasUnread = !!entry && entry.unread > 0;
+                  const fraction = entry
+                    ? hasUnread
+                      ? `${entry.unread}/${entry.total}`
+                      : entry.total > 0
+                        ? String(entry.total)
+                        : null
+                    : null;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={[
+                        "flex items-center justify-between pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                        active
+                          ? hasUnread
+                            ? "bg-gray-100 font-semibold text-gray-900"
+                            : "bg-gray-100 font-medium text-gray-900"
+                          : hasUnread
+                            ? "font-semibold text-gray-900 hover:bg-gray-50"
+                            : "font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                      ].join(" ")}
+                    >
+                      <span>{item.label}</span>
+                      {fraction != null && (
+                        <span
+                          className={[
+                            "ml-2 text-[11px] tabular-nums",
+                            hasUnread ? "font-semibold text-gray-900" : "text-gray-400",
+                          ].join(" ")}
+                        >
+                          {fraction}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>

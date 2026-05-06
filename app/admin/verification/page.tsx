@@ -967,23 +967,32 @@ export default function AdminVerificationPage() {
                             // - Legacy: No verification method recorded
                             <div className="flex items-center gap-2">
                               <Badge variant="verified">Verified</Badge>
-                              {provider.verification_state === "not_required" || provider.claim_trust_level === "high" ? (
-                                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium whitespace-nowrap">
-                                  High Trust
-                                </span>
-                              ) : provider.metadata?.verification_method === "admin_approval" ? (
-                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">
-                                  Admin
-                                </span>
-                              ) : provider.metadata?.auto_verified || provider.metadata?.verification_method ? (
-                                <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded font-medium whitespace-nowrap">
-                                  Self-Verified
-                                </span>
-                              ) : (
-                                <span className="text-xs bg-gray-50 text-gray-500 px-2 py-0.5 rounded font-medium border border-gray-200">
-                                  Legacy
-                                </span>
-                              )}
+                              <div className="flex flex-col">
+                                {provider.verification_state === "not_required" || provider.claim_trust_level === "high" ? (
+                                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium whitespace-nowrap">
+                                    High Trust
+                                  </span>
+                                ) : provider.metadata?.verification_method === "admin_approval" ? (
+                                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">
+                                    Admin
+                                  </span>
+                                ) : provider.metadata?.auto_verified || provider.metadata?.verification_method ? (
+                                  <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded font-medium whitespace-nowrap">
+                                    Self-Verified
+                                  </span>
+                                ) : (
+                                  <span className="text-xs bg-gray-50 text-gray-500 px-2 py-0.5 rounded font-medium border border-gray-200">
+                                    Legacy
+                                  </span>
+                                )}
+                                {/* Show verification method helper when badge is not already "Admin" */}
+                                {provider.metadata?.verification_method === "admin_approval" &&
+                                  (provider.verification_state === "not_required" || provider.claim_trust_level === "high") && (
+                                  <span className="text-[11px] text-gray-400 mt-0.5">
+                                    Admin verified
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           ) : (
                             <Badge variant="rejected">Badge Rejected</Badge>

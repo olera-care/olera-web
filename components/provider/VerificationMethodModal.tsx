@@ -544,30 +544,63 @@ export default function VerificationMethodModal({
     setError(null);
 
     try {
-      // Read both files as base64
-      const readFile = (file: File): Promise<string> =>
+      // Compress and read image file as base64
+      // Resizes large images and compresses to JPEG to stay under Vercel's 4.5MB limit
+      const compressAndReadFile = (file: File, maxWidth = 1600, quality = 0.8): Promise<{ data: string; type: string }> =>
         new Promise((resolve, reject) => {
+          const img = new Image();
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          if (!ctx) {
+            reject(new Error("Could not process image. Please try a different file."));
+            return;
+          }
+
+          img.onload = () => {
+            // Calculate new dimensions (preserve aspect ratio)
+            let { width, height } = img;
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            // Fill with white background (JPEG doesn't support transparency)
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Convert to JPEG with compression
+            const dataUrl = canvas.toDataURL("image/jpeg", quality);
+            const base64Data = dataUrl.split(",")[1];
+            resolve({ data: base64Data, type: "image/jpeg" });
+          };
+
+          img.onerror = () => reject(new Error("Failed to load image"));
+
+          // Read file as data URL to load into image
           const reader = new FileReader();
           reader.onload = () => {
-            const result = reader.result as string;
-            const base64Data = result.split(",")[1];
-            resolve(base64Data);
+            img.src = reader.result as string;
           };
           reader.onerror = () => reject(new Error("Failed to read file"));
           reader.readAsDataURL(file);
         });
 
-      const [headerData, experienceData] = await Promise.all([
-        readFile(linkedinHeaderFile),
-        readFile(linkedinExperienceFile),
+      const [headerResult, experienceResult] = await Promise.all([
+        compressAndReadFile(linkedinHeaderFile),
+        compressAndReadFile(linkedinExperienceFile),
       ]);
 
       setIsProcessingFile(false);
       await handleSubmit("linkedin", linkedinUrl.trim(), undefined, undefined, {
-        headerData,
-        headerType: linkedinHeaderFile.type,
-        experienceData,
-        experienceType: linkedinExperienceFile.type,
+        headerData: headerResult.data,
+        headerType: headerResult.type,
+        experienceData: experienceResult.data,
+        experienceType: experienceResult.type,
       });
     } catch (err) {
       setIsProcessingFile(false);
@@ -587,19 +620,69 @@ export default function VerificationMethodModal({
     setError(null);
 
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          const base64Data = result.split(",")[1];
-          resolve(base64Data);
-        };
-        reader.onerror = () => reject(new Error("Failed to read file"));
-        reader.readAsDataURL(documentFile);
-      });
+      let base64: string;
+      let fileType = documentFile.type;
+
+      // For images, compress before uploading
+      if (documentFile.type.startsWith("image/")) {
+        const result = await new Promise<{ data: string; type: string }>((resolve, reject) => {
+          const img = new Image();
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          if (!ctx) {
+            reject(new Error("Could not process image. Please try a different file."));
+            return;
+          }
+
+          img.onload = () => {
+            // Resize if larger than 1600px
+            let { width, height } = img;
+            const maxWidth = 1600;
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            // Fill with white background (JPEG doesn't support transparency)
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+            resolve({ data: dataUrl.split(",")[1], type: "image/jpeg" });
+          };
+
+          img.onerror = () => reject(new Error("Failed to load image"));
+
+          const reader = new FileReader();
+          reader.onload = () => {
+            img.src = reader.result as string;
+          };
+          reader.onerror = () => reject(new Error("Failed to read file"));
+          reader.readAsDataURL(documentFile);
+        });
+
+        base64 = result.data;
+        fileType = result.type;
+      } else {
+        // For PDFs, read as-is
+        base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            resolve(result.split(",")[1]);
+          };
+          reader.onerror = () => reject(new Error("Failed to read file"));
+          reader.readAsDataURL(documentFile);
+        });
+      }
 
       setIsProcessingFile(false);
-      await handleSubmit("document", documentFile.name, base64, documentFile.type);
+      await handleSubmit("document", documentFile.name, base64, fileType);
     } catch (err) {
       setIsProcessingFile(false);
       setError(err instanceof Error ? err.message : "Failed to process file");

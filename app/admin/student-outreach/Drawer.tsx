@@ -203,7 +203,9 @@ function DrawerBody({
       ) : (
         <NextStepPanel ctx={ctx} action={action} setError={setError} />
       )}
-      <JobBoardTaskSection ctx={ctx} action={action} setError={setError} />
+      {/* v8.10.29: Job-board task no longer rendered as its own card.
+          It now appears in the unified Tasks section inside More details
+          alongside custom tasks + scheduled cadence items. */}
 
       {/* v8.10.27: Close out (DangerZone) lives inside More details
           for ALL stages now. Stop reasons are operational escape
@@ -426,31 +428,31 @@ function NextStepPanel({
           />
         </div>
 
-        {/* v8: post-meeting follow-up — for booked rows where the meeting happened */}
-        {hasActiveScheduledMeeting && (
-          <div className="border-t border-gray-100 bg-gray-50/60 px-4 py-3">
-            <button
-              onClick={() => setShowFollowup(true)}
-              title="Meeting happened but they need follow-up before they commit. Notes show on the row in Replies."
-              className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Log meeting outcome — needs follow-up
-            </button>
-          </div>
-        )}
-
-        {/* Always-visible Mark-as-Partner graduation */}
-        {partnerCtaVisible && (
-          <div className="border-t border-gray-100 bg-emerald-50/30 px-4 py-3">
-            <button
-              onClick={() => setShowPartner(true)}
-              className="w-full rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
-              Mark as Partner ★
-            </button>
-            <p className="mt-1.5 text-center text-[11px] text-emerald-900/80">
-              Click when you&apos;re confident they&apos;ve committed to sharing with students.
-            </p>
+        {/* v8.10.29: post-meeting "needs follow-up" + Mark as Partner are
+            now secondary actions — the StateCard above carries the primary
+            CTA that matches the row's current state. These stay visible
+            so the admin can always log a follow-up or graduate when ready,
+            but they no longer compete with the state-specific action. */}
+        {(hasActiveScheduledMeeting || partnerCtaVisible) && (
+          <div className="flex flex-wrap gap-2 border-t border-gray-100 bg-gray-50/60 px-4 py-3">
+            {hasActiveScheduledMeeting && (
+              <button
+                onClick={() => setShowFollowup(true)}
+                title="Meeting happened but they need follow-up before they commit. Notes show on the row in Replies."
+                className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Log meeting — needs follow-up
+              </button>
+            )}
+            {partnerCtaVisible && (
+              <button
+                onClick={() => setShowPartner(true)}
+                title="Click when you're confident they've committed to sharing with students."
+                className="rounded-md border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+              >
+                Mark as Partner ★
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -608,57 +610,90 @@ function StageGuidance({
       (t) => t.task_type === "outreach_followup_call" && new Date(t.due_at).getTime() <= now,
     );
 
+    // v8.10.29: state-driven contextual cards. Each state gets a short
+    // 1-line subtext + a primary CTA that matches the actual next move
+    // (open Gmail, etc.). The universal "Mark as Partner ★" still
+    // anchors the bottom of NextStepPanel for graduation when ready.
+    const primaryEmail =
+      ctx.contacts.find((c) => c.status === "active" && c.email)?.email ??
+      ctx.contacts.find((c) => c.email)?.email ??
+      null;
+    const composeFollowup = (subjectPrefix: string) => {
+      const subject = encodeURIComponent(`${subjectPrefix} — ${ctx.outreach.organization_name}`);
+      const to = primaryEmail ? encodeURIComponent(primaryEmail) : "";
+      const url = `https://mail.google.com/mail/?view=cm&fs=1${to ? `&to=${to}` : ""}&su=${subject}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+    };
+
     let banner: React.ReactNode = null;
     if (m === "scheduled") {
       banner = (
-        <Guidance>
-          <strong>Meeting is on the calendar.</strong>
-          {ctx.meeting_at && <> It&apos;s scheduled for {new Date(ctx.meeting_at).toLocaleString()}.</>}
-          {" "}After the meeting, click <em>Mark as Partner</em> if they committed, or use <em>Log meeting outcome</em> below if they need a follow-up email first.
-        </Guidance>
+        <StateCard
+          title="Meeting is on the calendar."
+          subtext={
+            ctx.meeting_at
+              ? `Set for ${new Date(ctx.meeting_at).toLocaleString()}.`
+              : "After it happens, log how it went."
+          }
+        />
       );
     } else if (hasOverdueCall) {
       // Single source of truth: the call card. Drop competing banners.
       banner = null;
     } else if (m === "in_flight" || r === "wants_meeting") {
       banner = (
-        <Guidance>
-          <strong>They want to meet.</strong> Coordinate the time over email. When you have a date, close this drawer and click <em>Booked it</em> on the row.
-        </Guidance>
+        <StateCard
+          title="They want to meet."
+          subtext="Send a few times over email."
+          primaryCta={{
+            label: "Open Gmail",
+            onClick: () => composeFollowup("Times to chat"),
+          }}
+        />
       );
     } else if (r === "needs_followup") {
       banner = (
-        <>
-          <Guidance>
-            <strong>Met — needs a follow-up.</strong> The meeting happened and they want time to think. Send a follow-up email through Gmail to keep the conversation alive. Once they commit, click <em>Mark as Partner</em>.
-          </Guidance>
-          {ctx.followup_notes && (
-            <p className="rounded-md bg-gray-50 px-3 py-2 text-xs italic text-gray-700">
-              From the meeting: &ldquo;{ctx.followup_notes}&rdquo;
-            </p>
-          )}
-        </>
+        <StateCard
+          title="Met — needs follow-up."
+          subtext="Send a check-in email."
+          notes={ctx.followup_notes}
+          primaryCta={{
+            label: "Send follow-up email",
+            onClick: () => composeFollowup("Following up"),
+          }}
+        />
       );
     } else if (r === "awaiting_callback") {
       const kindText = ctx.awaiting_callback_kind === "promised"
-        ? "they promised to call back"
-        : "you left them a voicemail";
+        ? "They said they'd call back."
+        : "You left a voicemail.";
       banner = (
-        <Guidance>
-          <strong>Waiting for a callback.</strong> You called and {kindText}. Watch Gmail for callback or voicemail-to-email notifications. The next scheduled phone day will automatically re-engage this row.
-        </Guidance>
+        <StateCard
+          title="Waiting on a call back."
+          subtext={`${kindText} The next call day will re-engage them.`}
+        />
       );
     } else if (r === "engaged") {
       banner = (
-        <Guidance>
-          <strong>They replied.</strong> Open the email in Gmail to see what they said. Then close this drawer and click <em>Open reply</em> on the row to record the next step. If they&apos;ve already committed, click <em>Mark as Partner</em> below.
-        </Guidance>
+        <StateCard
+          title="They replied."
+          subtext="Read it in Gmail, then log what they said."
+          primaryCta={{
+            label: "Open Gmail",
+            onClick: () => composeFollowup("Re"),
+          }}
+        />
       );
     } else if (r === "stale") {
       banner = (
-        <Guidance>
-          <strong>Email cadence has stalled.</strong> Send a custom re-engage email through Gmail, or close the row if it&apos;s not going anywhere.
-        </Guidance>
+        <StateCard
+          title="Cadence stalled."
+          subtext="Send a custom re-engage email, or close the row if it's not moving."
+          primaryCta={{
+            label: "Open Gmail",
+            onClick: () => composeFollowup("Quick check-in"),
+          }}
+        />
       );
     }
 
@@ -1041,68 +1076,6 @@ function AddContactInline({
         } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
       }}>Add contact</PrimaryButton>
     </div>
-  );
-}
-
-// ── Task Board card (v8.10.27) ─────────────────────────────────────────
-//
-// When this stakeholder granted "Post on university task board", a
-// partner_share_update task is queued (deduped by campus). Renders a
-// task card matching the standard layout — text on the left, ⋯
-// overflow top-right, primary CTA bottom-right. The previous emerald-
-// tinted card with an "Open Gmail composer" link is gone; admins use
-// the page-level Open Gmail link in the header to compose.
-
-function JobBoardTaskSection({
-  ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
-  const task = ctx.pending_tasks.find(
-    (t) =>
-      t.task_type === "partner_share_update" &&
-      (t.payload as Record<string, unknown> | null)?.reason === "job_board_post",
-  );
-  if (!task) return null;
-
-  const handleErr = (p: Promise<unknown>) =>
-    p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
-
-  return (
-    <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Task Board
-      </h3>
-      <div className="rounded-md border border-gray-200 bg-white px-4 py-3">
-        <div className="flex items-stretch justify-between gap-3">
-          <div className="min-w-0 flex-1 text-sm text-gray-800">
-            Post Olera&apos;s clinical-experience listing to {ctx.campus.name}&apos;s task board, then mark it posted.
-          </div>
-          <div className="flex shrink-0 flex-col items-end justify-between gap-2">
-            <TaskOverflow
-              items={[
-                {
-                  label: "Delete task",
-                  onClick: () =>
-                    handleErr(action("cancel_task", { task_id: task.id })),
-                  tone: "danger",
-                },
-              ]}
-            />
-            <button
-              onClick={() => handleErr(action("mark_job_board_posted"))}
-              className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
-            >
-              Mark posted
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -1581,14 +1554,27 @@ function TasksSection({
   // one — atomic from the admin's perspective. No new server action
   // needed; reuses cancel_task + queue_manual_task.
   const [editingTask, setEditingTask] = useState<{ id: string; text: string } | null>(null);
-  const customTasks = useMemo(
+  // v8.10.29: Tasks is now the unified view of every pending task on
+  // this stakeholder. We split into "actionable" (custom + job-board
+  // posts) and "scheduled" (auto-cadence emails + calls + seasonal).
+  // The previous separate JobBoardTaskSection card is gone — its task
+  // shows up here under the actionable group.
+  const actionable = useMemo(
     () =>
-      ctx.pending_tasks.filter(
-        (t) =>
-          t.task_type === "manual_followup" &&
-          (t.payload as Record<string, unknown> | null)?.reason === "custom",
-      ),
+      ctx.pending_tasks.filter((t) => {
+        const reason = (t.payload as Record<string, unknown> | null)?.reason;
+        if (t.task_type === "manual_followup" && reason === "custom") return true;
+        if (t.task_type === "partner_share_update" && reason === "job_board_post") return true;
+        return false;
+      }),
     [ctx.pending_tasks],
+  );
+  const scheduled = useMemo(
+    () =>
+      ctx.pending_tasks
+        .filter((t) => !actionable.includes(t))
+        .sort((a, b) => a.due_at.localeCompare(b.due_at)),
+    [ctx.pending_tasks, actionable],
   );
   const handleErr = (p: Promise<unknown>) =>
     p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
@@ -1601,56 +1587,96 @@ function TasksSection({
         .trim() || primary.name || null
     : null;
 
+  const renderActionable = (t: Task) => {
+    const reason = (t.payload as Record<string, unknown> | null)?.reason;
+    if (t.task_type === "partner_share_update" && reason === "job_board_post") {
+      return (
+        <div key={t.id} className="rounded-md border border-emerald-200 bg-emerald-50/40 px-4 py-3">
+          <div className="flex items-stretch justify-between gap-3">
+            <div className="min-w-0 flex-1 text-sm text-gray-800">
+              Post Olera&apos;s clinical-experience listing to {ctx.campus.name}&apos;s task board, then mark it posted.
+            </div>
+            <div className="flex shrink-0 flex-col items-end justify-between gap-2">
+              <TaskOverflow
+                items={[
+                  {
+                    label: "Delete task",
+                    onClick: () => handleErr(action("cancel_task", { task_id: t.id })),
+                    tone: "danger",
+                  },
+                ]}
+              />
+              <button
+                onClick={() => handleErr(action("mark_job_board_posted"))}
+                className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+              >
+                Mark posted
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    // Custom (manual_followup / reason=custom)
+    const text = String(
+      (t.payload as Record<string, unknown> | null)?.notes ??
+        (t.payload as Record<string, unknown> | null)?.description ??
+        "(no description)",
+    );
+    return (
+      <div key={t.id} className="rounded-md border border-gray-200 bg-white px-4 py-3">
+        <div className="flex items-stretch justify-between gap-3">
+          <div className="min-w-0 flex-1 text-sm text-gray-800">{text}</div>
+          <div className="flex shrink-0 flex-col items-end justify-between gap-2">
+            <TaskOverflow
+              items={[
+                { label: "Edit task", onClick: () => setEditingTask({ id: t.id, text }) },
+                {
+                  label: "Delete task",
+                  onClick: () => handleErr(action("cancel_task", { task_id: t.id })),
+                  tone: "danger",
+                },
+              ]}
+            />
+            <button
+              onClick={() => handleErr(action("complete_task", { task_id: t.id }))}
+              className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <section>
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
         Tasks
       </h3>
       <div className="space-y-2">
-        {customTasks.length === 0 ? (
+        {actionable.length === 0 && scheduled.length === 0 ? (
           <p className="rounded-md border border-gray-200 bg-white px-4 py-3 text-xs text-gray-400">
             No tasks. Add one to remind yourself of a follow-up.
           </p>
         ) : (
-          customTasks.map((t) => {
-            const text = String(
-              (t.payload as Record<string, unknown> | null)?.notes ??
-                (t.payload as Record<string, unknown> | null)?.description ??
-                "(no description)",
-            );
-            return (
-              <div
-                key={t.id}
-                className="rounded-md border border-gray-200 bg-white px-4 py-3"
-              >
-                <div className="flex items-stretch justify-between gap-3">
-                  <div className="min-w-0 flex-1 text-sm text-gray-800">{text}</div>
-                  <div className="flex shrink-0 flex-col items-end justify-between gap-2">
-                    <TaskOverflow
-                      items={[
-                        {
-                          label: "Edit task",
-                          onClick: () => setEditingTask({ id: t.id, text }),
-                        },
-                        {
-                          label: "Delete task",
-                          onClick: () =>
-                            handleErr(action("cancel_task", { task_id: t.id })),
-                          tone: "danger",
-                        },
-                      ]}
-                    />
-                    <button
-                      onClick={() => handleErr(action("complete_task", { task_id: t.id }))}
-                      className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
-                    >
-                      Done
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })
+          <>
+            {actionable.map(renderActionable)}
+            {scheduled.length > 0 && (
+              <ul className="space-y-1 rounded-md border border-gray-100 bg-gray-50/60 px-3 py-2">
+                {scheduled.map((t) => (
+                  <li key={t.id} className="flex items-center justify-between gap-2 text-xs text-gray-600">
+                    <span>
+                      <span className="mr-1.5 text-gray-400">⏳</span>
+                      {scheduledTaskLabel(t)}
+                    </span>
+                    <span className="text-gray-400">{formatDueAt(t.due_at)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         )}
         <button
           onClick={() => setShowAdd(true)}
@@ -1697,6 +1723,64 @@ function TasksSection({
       )}
     </section>
   );
+}
+
+/**
+ * v8.10.29: Human label for a scheduled (non-actionable) pending task.
+ * Renders as a passive ⏳ row inside Tasks. We intentionally don't expose
+ * actions here — auto-cadence emails are managed via OutreachStepList,
+ * calls via the Calls tab, seasonals via the cron.
+ */
+function scheduledTaskLabel(t: Task): string {
+  const payload = (t.payload ?? {}) as Record<string, unknown>;
+  switch (t.task_type) {
+    case "outreach_email_send": {
+      const day = typeof payload.day === "number" ? payload.day : null;
+      if (day === -1) {
+        const season = typeof payload.season === "string" ? payload.season : null;
+        return season ? `Seasonal email · ${season}` : "Seasonal email";
+      }
+      return day !== null ? `Cadence email · Day ${day}` : "Outreach email";
+    }
+    case "outreach_followup_call":
+      return typeof payload.day === "number"
+        ? `Follow-up call · Day ${payload.day}`
+        : "Follow-up call";
+    case "partner_seasonal_checkin":
+      return "Seasonal check-in";
+    case "partner_event_coordination":
+      return "Event coordination";
+    case "partner_share_update":
+      return "Share update";
+    case "yearly_leadership_recheck":
+      return "Yearly leadership re-check";
+    case "approval_request_followup":
+      return "Approval follow-up";
+    case "manual_followup":
+      return typeof payload.notes === "string" ? String(payload.notes) : "Follow-up";
+    default:
+      return t.task_type.replaceAll("_", " ");
+  }
+}
+
+function formatDueAt(iso: string): string {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (Math.abs(ms) < 60_000) return "now";
+  const mins = Math.round(ms / 60_000);
+  if (mins < 0) {
+    const past = Math.abs(mins);
+    if (past < 60) return `${past}m overdue`;
+    const hr = Math.round(past / 60);
+    if (hr < 24) return `${hr}h overdue`;
+    const d = Math.round(hr / 24);
+    return `${d}d overdue`;
+  }
+  if (mins < 60) return `in ${mins}m`;
+  const hr = Math.round(mins / 60);
+  if (hr < 24) return `in ${hr}h`;
+  const d = Math.round(hr / 24);
+  if (d < 14) return `in ${d}d`;
+  return new Date(iso).toLocaleDateString();
 }
 
 // ── History (with narration) ───────────────────────────────────────────
@@ -1870,6 +1954,45 @@ function FollowupNotesModal({
 
 function Guidance({ children }: { children: React.ReactNode }) {
   return <p className="text-sm text-gray-700 leading-relaxed">{children}</p>;
+}
+
+/**
+ * v8.10.29: state-driven contextual card. Short title + 1-line subtext +
+ * (optional) prominent meeting note quote + (optional) primary CTA that
+ * matches the actual next move for this state.
+ */
+function StateCard({
+  title,
+  subtext,
+  notes,
+  primaryCta,
+}: {
+  title: string;
+  subtext: string;
+  notes?: string | null;
+  primaryCta?: { label: string; onClick: () => void };
+}) {
+  return (
+    <div className="space-y-2">
+      <div>
+        <p className="text-sm font-semibold text-gray-900">{title}</p>
+        <p className="text-sm text-gray-600">{subtext}</p>
+      </div>
+      {notes && (
+        <p className="rounded-md bg-gray-50 px-3 py-2 text-xs italic text-gray-700">
+          From the meeting: &ldquo;{notes}&rdquo;
+        </p>
+      )}
+      {primaryCta && (
+        <button
+          onClick={primaryCta.onClick}
+          className="w-full rounded-md bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-700"
+        >
+          {primaryCta.label}
+        </button>
+      )}
+    </div>
+  );
 }
 
 function ChecklistInline({ items }: { items: Array<{ done: boolean; label: string }> }) {

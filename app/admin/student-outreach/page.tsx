@@ -96,7 +96,12 @@ const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
   candidates:  { metric: "candidates",       label: "live candidates"      },
   prospects:   { metric: "prospects_added",  label: "prospects qualified"  },
   partners:    { metric: "partners_added",   label: "new partners"         },
-  meetings:    { metric: "meetings_held",    label: "meetings held"        },
+  // v8.10.44: Meetings tab uses the broader "meetings_activity" metric
+  // (scheduled + held + no-show + rescheduled). The narrow "meetings_held"
+  // metric only fires when a meeting completes — early in the cadence
+  // most meetings are still booked-but-not-held, so the chart was
+  // reading empty. Broader metric matches what the row list shows.
+  meetings:    { metric: "meetings_activity", label: "meetings"            },
   replies:     { metric: "replies",          label: "replies received"     },
   calls:       { metric: "calls_made",       label: "calls made"           },
   archive:     { metric: "activity",         label: "outreach actions"     },

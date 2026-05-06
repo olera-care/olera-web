@@ -44,7 +44,19 @@ type DB = ReturnType<typeof getServiceClient>;
 const TOUCHPOINT_METRICS: Record<string, string[]> = {
   prospects_added: [], // resolved separately — needs payload filter
   partners_added: ["distribution_confirmed"],
+  // v8.10.44: "meetings_held" is the conversion event (used by the
+  // funnel chart). The Meetings tab's chart wants broader meeting
+  // activity — scheduled, held, no-show, rescheduled — so admins see
+  // booked-but-not-yet-held meetings on the chart too. Without this
+  // distinction the Meetings chart read empty whenever no meetings
+  // had completed yet, even with 4 meetings on the calendar.
   meetings_held: ["meeting_held"],
+  meetings_activity: [
+    "meeting_scheduled",
+    "meeting_held",
+    "meeting_no_show",
+    "meeting_rescheduled",
+  ],
   replies: ["email_replied", "ig_dm_replied"],
   calls_made: ["call_no_answer", "call_voicemail", "call_connected", "call_wrong_number"],
   emails_sent: ["email_sent"],

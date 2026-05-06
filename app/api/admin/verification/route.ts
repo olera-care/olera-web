@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
@@ -390,6 +390,77 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ providers: providersWithData, total: filtered.length });
   } catch (err) {
     console.error("Admin badge requests error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/admin/verification
+ *
+ * Bulk delete providers from verification lists.
+ * Body: { ids: string[] }
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { ids } = body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: "ids array is required" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Fetch names before deleting for audit
+    const { data: toDelete } = await db
+      .from("business_profiles")
+      .select("id, display_name")
+      .in("id", ids);
+
+    const { error: deleteError, count } = await db
+      .from("business_profiles")
+      .delete({ count: "exact" })
+      .in("id", ids)
+      .in("type", ["organization", "caregiver"]);
+
+    if (deleteError) {
+      console.error("Bulk verification delete error:", deleteError);
+      return NextResponse.json({ error: "Failed to delete providers" }, { status: 500 });
+    }
+
+    // Clear active_profile_id for accounts that referenced deleted profiles
+    await db
+      .from("accounts")
+      .update({ active_profile_id: null, updated_at: new Date().toISOString() })
+      .in("active_profile_id", ids);
+
+    // Log audit action
+    await logAuditAction({
+      adminUserId: adminUser.id,
+      action: "bulk_delete_providers",
+      targetType: "business_profile",
+      targetId: "bulk",
+      details: {
+        ids,
+        names: toDelete?.map((p) => p.display_name) || [],
+        count: count ?? ids.length,
+        source: "verification",
+      },
+    });
+
+    return NextResponse.json({ success: true, deleted: count ?? ids.length });
+  } catch (err) {
+    console.error("Bulk verification delete error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

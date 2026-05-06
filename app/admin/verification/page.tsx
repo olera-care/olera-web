@@ -403,6 +403,9 @@ export default function AdminVerificationPage() {
     rejected: 0,
   });
   const [moveModalProvider, setMoveModalProvider] = useState<Provider | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -477,6 +480,8 @@ export default function AdminVerificationPage() {
   }, [filter, page, search, stateFilter, trustFilter]);
 
   useEffect(() => {
+    // Clear selections when provider list changes (page, filter, search, etc.)
+    setSelectedIds(new Set());
     fetchProviders();
   }, [fetchProviders]);
 
@@ -508,6 +513,12 @@ export default function AdminVerificationPage() {
         });
         setTotal((prev) => prev - 1);
         setSelectedProvider(null);
+        // Remove from selection if it was selected
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
         // Refresh tab counts after action
         fetchCounts();
       } else {
@@ -541,6 +552,12 @@ export default function AdminVerificationPage() {
         });
         setTotal((prev) => prev - 1);
         setMoveModalProvider(null);
+        // Remove from selection if it was selected
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
         fetchCounts();
       } else {
         const data = await res.json().catch(() => ({}));
@@ -551,6 +568,50 @@ export default function AdminVerificationPage() {
       setActionError("Failed to move provider. Please check your connection.");
     } finally {
       setActionLoading(null);
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === providers.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(providers.map((p) => p.id)));
+    }
+  };
+
+  async function handleBulkDelete() {
+    if (selectedIds.size === 0) return;
+    setBulkLoading(true);
+    setActionError(null);
+
+    try {
+      const res = await fetch("/api/admin/verification", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setActionError(data.error || "Failed to delete providers.");
+        return;
+      }
+      setSelectedIds(new Set());
+      setConfirmBulkDelete(false);
+      fetchProviders();
+      fetchCounts();
+    } catch {
+      setActionError("Network error during delete.");
+    } finally {
+      setBulkLoading(false);
     }
   }
 
@@ -704,6 +765,28 @@ export default function AdminVerificationPage() {
         )}
       </div>
 
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <span className="text-sm font-medium text-gray-800">
+            {selectedIds.size} selected
+          </span>
+          <button
+            onClick={() => setConfirmBulkDelete(true)}
+            disabled={bulkLoading}
+            className="px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+          >
+            Delete selected
+          </button>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
           {error}
@@ -775,6 +858,14 @@ export default function AdminVerificationPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="w-10 px-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={providers.length > 0 && selectedIds.size === providers.length}
+                      onChange={toggleSelectAll}
+                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                  </th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Provider</th>
                   {filter === "pending" && (
                     <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Submitter</th>
@@ -796,7 +887,15 @@ export default function AdminVerificationPage() {
                 {providers.map((provider) => {
                   const submission = getVerificationSubmission(provider);
                   return (
-                    <tr key={provider.id} className="hover:bg-gray-50">
+                    <tr key={provider.id} className={`hover:bg-gray-50 ${selectedIds.has(provider.id) ? "bg-primary-50" : ""}`}>
+                      <td className="w-10 px-3 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(provider.id)}
+                          onChange={() => toggleSelect(provider.id)}
+                          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        />
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           {provider.image_url ? (
@@ -1066,6 +1165,36 @@ export default function AdminVerificationPage() {
           onMove={(reason, note) => handleMoveToInProgress(moveModalProvider.id, reason, note)}
           isLoading={actionLoading === moveModalProvider.id}
         />
+      )}
+
+      {/* Bulk delete confirmation */}
+      {confirmBulkDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Delete {selectedIds.size} provider{selectedIds.size === 1 ? "" : "s"}
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              This will permanently delete the selected provider profiles. This cannot be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmBulkDelete(false)}
+                disabled={bulkLoading}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkLoading}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {bulkLoading ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -152,7 +152,9 @@ export async function GET(req: NextRequest) {
     : null;
 
   // Counts for all tabs (one efficient pass + a few small queries).
-  const tabCounts = await computeTabCounts(db, {
+  // v9.0 Phase 4: also returns per-tab unread counts mirroring the
+  // shape, so the UI can render `Label unread/total`.
+  const { counts: tabCounts, unread: tabUnreadCounts } = await computeTabCounts(db, {
     campusId: selectedCampus?.id ?? null,
     type: typeFilter,
   });
@@ -189,6 +191,7 @@ export async function GET(req: NextRequest) {
       rows: [],
       total: 0,
       tab_counts: tabCounts,
+      tab_unread_counts: tabUnreadCounts,
       research_campuses: researchCampuses,
     });
   }
@@ -209,6 +212,7 @@ export async function GET(req: NextRequest) {
     rows,
     total: rows.length,
     tab_counts: tabCounts,
+    tab_unread_counts: tabUnreadCounts,
     research_campuses: researchCampuses,
   });
 }
@@ -377,11 +381,13 @@ async function fetchResearchCampuses(
 async function computeTabCounts(
   db: DB,
   filters: { campusId: string | null; type: StakeholderType | null },
-): Promise<TabCounts> {
+): Promise<{ counts: TabCounts; unread: TabCounts }> {
   const counts: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
+  const unread: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
 
-  // Single status scan in scope.
-  let q = db.from("student_outreach").select("id, status");
+  // Single status scan in scope. v9.0 Phase 4: also pull viewed_at so
+  // we can split totals into unread/total per tab in one pass.
+  let q = db.from("student_outreach").select("id, status, viewed_at");
   if (filters.campusId) q = q.eq("campus_id", filters.campusId);
   if (filters.type) q = q.eq("stakeholder_type", filters.type);
   const { data: scan } = await q;
@@ -391,18 +397,27 @@ async function computeTabCounts(
   const partner = new Set<string>(PARTNER_ALL);
 
   let inProgressIds: string[] = [];
-  for (const row of (scan ?? []) as Array<{ id: string; status: string }>) {
+  const unreadIds = new Set<string>();
+  for (const row of (scan ?? []) as Array<{ id: string; status: string; viewed_at: string | null }>) {
+    const isUnread = row.viewed_at == null;
+    if (isUnread) unreadIds.add(row.id);
     counts.all++;
-    if (research.has(row.status)) counts.prospects++;
-    else if (partner.has(row.status)) counts.partners++;
-    else if (replies.has(row.status)) {
+    if (isUnread) unread.all++;
+    if (research.has(row.status)) {
+      counts.prospects++;
+      if (isUnread) unread.prospects++;
+    } else if (partner.has(row.status)) {
+      counts.partners++;
+      if (isUnread) unread.partners++;
+    } else if (replies.has(row.status)) {
       counts.replies++;
+      if (isUnread) unread.replies++;
       inProgressIds.push(row.id);
     }
-    // v8.10.6: no_response_closed rows count for Archive (the other
-    // closed states — not_interested / DNC / wrong_contact / redirected
-    // — stay in All only as terminal historical records).
-    if (row.status === "no_response_closed") counts.archive++;
+    if (row.status === "no_response_closed") {
+      counts.archive++;
+      if (isUnread) unread.archive++;
+    }
   }
 
   // Calls count: distinct outreach_id with a pending call task due now.
@@ -425,6 +440,8 @@ async function computeTabCounts(
     callSet.add(t.outreach_id);
   }
   counts.calls = callSet.size;
+  // v9.0 Phase 4: unread call rows = subset of callSet that are unread.
+  for (const id of callSet) if (unreadIds.has(id)) unread.calls++;
 
   // Meetings count: among in-progress rows, those whose most-recent
   // meeting-related touchpoint is in_flight or scheduled. Also: rows
@@ -433,10 +450,21 @@ async function computeTabCounts(
   // v8.10.6: stale-derived rows are dropped from Replies and added to
   // Archive — same rebalancing pattern as scheduled meetings.
   if (inProgressIds.length > 0) {
-    const { meetings, scheduled, stale } = await countMeetingsAmongRows(db, inProgressIds);
+    const { meetings, scheduled, stale, meetingIds, scheduledIds, staleIds } =
+      await countMeetingsAmongRows(db, inProgressIds);
     counts.meetings = meetings;
     counts.replies = Math.max(0, counts.replies - scheduled - stale);
     counts.archive += stale;
+    // v9.0 Phase 4: rebalance unread the same way the totals were
+    // rebalanced — meeting + scheduled + stale rows pull out of replies.
+    for (const id of meetingIds) if (unreadIds.has(id)) unread.meetings++;
+    for (const id of scheduledIds) if (unreadIds.has(id)) unread.replies = Math.max(0, unread.replies - 1);
+    for (const id of staleIds) {
+      if (unreadIds.has(id)) {
+        unread.replies = Math.max(0, unread.replies - 1);
+        unread.archive++;
+      }
+    }
   }
 
   // v8.10.42: Candidates = LIVE student profiles visible to providers
@@ -511,7 +539,7 @@ async function computeTabCounts(
 
   counts.campuses = campusCount ?? 0;
 
-  return counts;
+  return { counts, unread };
 }
 
 /**
@@ -525,10 +553,15 @@ async function computeTabCounts(
 async function countMeetingsAmongRows(
   db: DB,
   ids: string[],
-): Promise<{ meetings: number; scheduled: number; stale: number }> {
+): Promise<{
+  meetings: number;
+  scheduled: number;
+  stale: number;
+  meetingIds: string[];
+  scheduledIds: string[];
+  staleIds: string[];
+}> {
   const tpsByRow = await fetchTouchpointsByRow(db, ids);
-  // Pending email tasks per row — needed for stale derivation (a row with
-  // a pending email task isn't "stale", just mid-cadence).
   const { data: pendingEmailRows } = await db
     .from("student_outreach_tasks")
     .select("outreach_id")
@@ -541,19 +574,26 @@ async function countMeetingsAmongRows(
   let meetings = 0;
   let scheduled = 0;
   let stale = 0;
+  const meetingIds: string[] = [];
+  const scheduledIds: string[] = [];
+  const staleIds: string[] = [];
   for (const id of ids) {
     const state = deriveStateFromTouchpoints(tpsByRow.get(id) ?? []);
     if (state.meeting_state === "scheduled") {
       meetings++;
+      meetingIds.push(id);
       scheduled++;
+      scheduledIds.push(id);
     } else if (state.meeting_state === "in_flight") {
       meetings++;
+      meetingIds.push(id);
     }
     if (deriveRepliesState(state, hasPendingEmail.has(id)) === "stale") {
       stale++;
+      staleIds.push(id);
     }
   }
-  return { meetings, scheduled, stale };
+  return { meetings, scheduled, stale, meetingIds, scheduledIds, staleIds };
 }
 
 // ── Per-tab row ID fetchers ─────────────────────────────────────────────

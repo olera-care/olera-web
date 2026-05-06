@@ -288,6 +288,8 @@ export interface RowCardCallbacks {
   onStopOutreach: (reason: StopOutreachReason) => Promise<void>;
   onLogMeeting: () => void;
   onSendFollowupEmail: () => void;
+  /** v9.0 Phase 4: reset attention. Wired to mark_unread action. */
+  onMarkUnread: () => Promise<void>;
 }
 
 export interface RowSlots {

@@ -58,6 +58,7 @@ export function RowCard({
       cta={slots.cta}
       overflowMenu={slots.overflowMenu}
       onOpenDrawer={cb.onOpenDrawer}
+      unread={row.viewed_at == null}
     />
   );
 }
@@ -84,6 +85,7 @@ export function StakeholderCard({
   cta,
   overflowMenu,
   onOpenDrawer,
+  unread,
 }: {
   row: TabRow;
   pill?: ReactNode;
@@ -92,6 +94,8 @@ export function StakeholderCard({
   cta?: ReactNode;
   overflowMenu?: ReactNode;
   onOpenDrawer: () => void;
+  /** v9.0 Phase 4: title bolds when unread. */
+  unread?: boolean;
 }) {
   // v9.0 Phase 2: kind-aware accent. Provider rows get an amber border
   // so they read as a different lane from stakeholder rows even when
@@ -123,7 +127,7 @@ export function StakeholderCard({
         {/* LEFT: descriptive content stacked top-down */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-medium text-gray-900">
+            <p className={`truncate text-sm ${unread ? "font-semibold" : "font-medium"} text-gray-900`}>
               {row.primary_contact_name || row.organization_name}
             </p>
             {isProvider && (
@@ -411,6 +415,11 @@ export function buildUniversalOverflow(
     items.push({ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" });
   }
   if (options.extraItems) items.push(...options.extraItems);
+  // v9.0 Phase 4: every row gets a Mark as unread action so admins
+  // can reset attention if they opened it by accident or want a
+  // teammate to pick it up. Lives at the bottom of the menu so
+  // accidental clicks are unlikely.
+  items.push({ label: "Mark as unread", onClick: () => void cb.onMarkUnread() });
   return <OverflowMenu items={items} onStopOutreach={cb.onStopOutreach} />;
 }
 

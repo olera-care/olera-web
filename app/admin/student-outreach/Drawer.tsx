@@ -97,6 +97,54 @@ export function Drawer(props: DrawerProps) {
   );
 }
 
+/**
+ * v9.0 Phase 4: tiny drawer-header overflow menu carrying admin
+ * actions that aren't tied to any specific row card slot. Currently
+ * just Mark as unread; future drawer-level actions land here.
+ */
+function DrawerHeaderOverflow({ onMarkUnread }: { onMarkUnread: () => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onEsc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [open]);
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((s) => !s)}
+        className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+        title="More actions"
+        aria-label="More actions"
+      >
+        <span aria-hidden>⋯</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-30 mt-1 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+          <button
+            onClick={() => {
+              setOpen(false);
+              void onMarkUnread();
+            }}
+            className="block w-full px-3 py-1.5 text-left text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Mark as unread
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StakeholderDrawer({
   outreachId,
   onClose,
@@ -127,6 +175,18 @@ function StakeholderDrawer({
       }
     })();
     return () => { cancelled = true; };
+  }, [outreachId]);
+
+  // v9.0 Phase 4: mark the row read on drawer mount. Fire-and-forget;
+  // a failed mark_read shouldn't disrupt the drawer experience. The
+  // server is idempotent (only updates if viewed_at IS NULL) so this
+  // is safe to call on every mount.
+  useEffect(() => {
+    fetch(`/api/admin/student-outreach/${outreachId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "mark_read" }),
+    }).catch(() => { /* non-critical */ });
   }, [outreachId]);
 
   const action: ActionFn = useCallback(
@@ -213,13 +273,27 @@ function StakeholderDrawer({
           })() : (
             <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
           )}
-          <button
-            onClick={onClose}
-            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-            aria-label="Close"
-          >
-            <span aria-hidden>×</span>
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            {/* v9.0 Phase 4: drawer-level Mark as unread. Same semantic
+                as the row card overflow item — resets attention so the
+                row appears bold again in the tab. */}
+            <DrawerHeaderOverflow
+              onMarkUnread={async () => {
+                try {
+                  await action("mark_unread");
+                } catch (e) {
+                  setError(e instanceof Error ? e.message : "Failed to mark unread");
+                }
+              }}
+            />
+            <button
+              onClick={onClose}
+              className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              aria-label="Close"
+            >
+              <span aria-hidden>×</span>
+            </button>
+          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto px-6 py-4">

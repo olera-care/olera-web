@@ -145,6 +145,10 @@ export interface OutreachRow {
   /** v9.0: FK to business_profiles when kind='provider'. NULL otherwise. */
   provider_business_profile_id: string | null;
   organization_name: string;
+  /** v9.0 Phase 4: per-row read state. NULL = unread (renders bold).
+   *  Set when the workflow drawer mounts; cleared by mark_unread or
+   *  by any new touchpoint via insertTouchpoint. */
+  viewed_at: string | null;
   department: string | null;
   programs: string[];
   status: Status;
@@ -327,6 +331,25 @@ export interface ResearchCampusCard {
  *  responses don't break before Phase 2 wires up real counts. The In
  *  Basket page treats undefined as 0. */
 export interface TabCounts {
+  candidates: number;
+  prospects: number;
+  calls: number;
+  replies: number;
+  meetings: number;
+  partners: number;
+  archive: number;
+  all: number;
+  clients?: number;
+  campuses?: number;
+}
+
+/** v9.0 Phase 4: per-tab unread counts, mirroring TabCounts shape.
+ *  unread = rows in that tab where viewed_at IS NULL. Tab labels
+ *  render as `Label unread/total` and bold when unread > 0. Only
+ *  populated for tabs backed by student_outreach (Prospects /
+ *  Replies / Meetings / Calls / Partners / All / Archive); other
+ *  tabs (Clients / Candidates / Campuses) report 0. */
+export interface TabUnreadCounts {
   candidates: number;
   prospects: number;
   calls: number;

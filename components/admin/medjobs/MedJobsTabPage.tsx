@@ -38,6 +38,7 @@ import type {
   StakeholderType,
   TabCounts,
   TabRow,
+  TabUnreadCounts,
 } from "@/lib/student-outreach/types";
 // ResearchCampusCard is still used for the bulkResearchCampus modal
 // payload — Campuses tab CampusCard onAddStakeholders constructs it.
@@ -58,7 +59,6 @@ import {
   type SignupRow,
   type TabKey,
 } from "@/lib/student-outreach/tab-config";
-import { buildDefaultEmailSnapshots } from "@/lib/student-outreach/email-snapshot";
 import { RowCard } from "@/components/admin/medjobs/cards/StakeholderCard";
 import { CampusCard } from "@/components/admin/medjobs/cards/CampusCard";
 import { ClientCard } from "@/components/admin/medjobs/cards/ClientCard";
@@ -96,6 +96,7 @@ export function MedJobsTabPage({
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [rows, setRows] = useState<TabRow[]>([]);
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
+  const [tabUnreadCounts, setTabUnreadCounts] = useState<TabUnreadCounts | null>(null);
   const [emailsSentRows, setEmailsSentRows] = useState<EmailSentRow[]>([]);
   const [signupRows, setSignupRows] = useState<SignupRow[]>([]);
   const [outboundRows, setOutboundRows] = useState<OutboundRow[]>([]);
@@ -165,6 +166,7 @@ export function MedJobsTabPage({
             setRows(data.rows ?? []);
           }
           setTabCounts(data.tab_counts ?? null);
+          setTabUnreadCounts(data.tab_unread_counts ?? null);
         })(),
       ];
 
@@ -317,6 +319,10 @@ export function MedJobsTabPage({
           const url = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
           window.open(url, "_blank", "noopener,noreferrer");
         }}
+        onMarkUnread={async () => {
+          try { await callAction(row.id, "mark_unread"); }
+          catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
+        }}
       />
     ),
     [tab, callAction],
@@ -419,13 +425,24 @@ export function MedJobsTabPage({
                 t.key === "outbound" || t.key === "emails_sent" || t.key === "signups"
                   ? undefined
                   : tabCounts?.[t.key];
+              const unread =
+                t.key === "outbound" || t.key === "emails_sent" || t.key === "signups"
+                  ? 0
+                  : tabUnreadCounts?.[t.key] ?? 0;
               const active = t.key === tab;
+              // v9.0 Phase 4: tab label bolds when unread > 0; counts
+              // render as `unread/total` so admin sees fresh-attention
+              // load at a glance. Empty unread → just the total in
+              // muted gray as before.
+              const isUnreadTab = unread > 0;
               return (
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
                   title={t.tooltip}
-                  className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                  className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm transition-colors ${
+                    isUnreadTab ? "font-semibold" : "font-medium"
+                  } ${
                     active
                       ? "border-gray-900 text-gray-900"
                       : "border-transparent text-gray-400 hover:text-gray-600"
@@ -433,7 +450,13 @@ export function MedJobsTabPage({
                 >
                   {t.label}
                   {typeof count === "number" && count > 0 && (
-                    <span className="ml-1.5 text-xs text-gray-400">{count}</span>
+                    <span
+                      className={`ml-1.5 text-xs ${
+                        isUnreadTab ? "text-gray-700" : "text-gray-400"
+                      }`}
+                    >
+                      {isUnreadTab ? `${unread}/${count}` : count}
+                    </span>
                   )}
                 </button>
               );
@@ -540,25 +563,6 @@ export function MedJobsTabPage({
               setOpenOutreachId(body.id);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Failed to start outreach");
-            }
-          }}
-          onBulkStartOutreach={async (selectedRows) => {
-            const errors: string[] = [];
-            for (const row of selectedRows) {
-              try {
-                const snapshots = buildDefaultEmailSnapshots({
-                  stakeholder_type: row.stakeholder_type,
-                  organization_name: row.organization_name,
-                  campus_name: row.campus_name,
-                });
-                await callAction(row.id, "schedule_sequence", { email_snapshots: snapshots });
-              } catch (e) {
-                const msg = e instanceof Error ? e.message : "Failed";
-                errors.push(`${row.organization_name}: ${msg}`);
-              }
-            }
-            if (errors.length > 0) {
-              setError(`${errors.length} of ${selectedRows.length} failed. ${errors.slice(0, 3).join("; ")}`);
             }
           }}
           tabCountsAll={tabCounts?.all ?? 0}

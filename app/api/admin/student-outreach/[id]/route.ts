@@ -240,6 +240,26 @@ export async function POST(
         await handleMarkEngagedBulk(db, body, user.id);
         break;
 
+      // ── v9.0 Phase 4: read state ─────────────────────────────────
+      // mark_read is fired by the workflow drawer on first mount per
+      // outreach id. mark_unread is fired from the row overflow menu
+      // or the drawer overflow menu to reset attention. Both write
+      // viewed_at directly with no touchpoint — we don't want every
+      // drawer open polluting History.
+      case "mark_read":
+        await db
+          .from("student_outreach")
+          .update({ viewed_at: new Date().toISOString(), last_edited_by: user.id })
+          .eq("id", row.id)
+          .is("viewed_at", null);
+        break;
+      case "mark_unread":
+        await db
+          .from("student_outreach")
+          .update({ viewed_at: null, last_edited_by: user.id })
+          .eq("id", row.id);
+        break;
+
       default:
         return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
     }
@@ -429,6 +449,16 @@ async function insertTouchpoint(
     payload: fields.payload ?? {},
     created_by: createdBy,
   });
+
+  // v9.0 Phase 4: every new touchpoint resets the row to unread, so
+  // admins see the row freshly bolded after a state change (stage
+  // transition, reply received, call logged, etc.). The drawer will
+  // re-mark it read on next open. mark_read / mark_unread actions
+  // don't write touchpoints, so this doesn't fight them.
+  await db
+    .from("student_outreach")
+    .update({ viewed_at: null })
+    .eq("id", outreachId);
 }
 
 async function touchOutreach(

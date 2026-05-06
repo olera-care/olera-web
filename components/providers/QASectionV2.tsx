@@ -742,6 +742,7 @@ export default function QASectionV2({
                         isSubmitting={inlineSubmitting}
                         isSuccess={inlineSuccess}
                         questionSent={submitStatus === "success"}
+                        userEmail={user?.email}
                       />
                     )}
                   </div>

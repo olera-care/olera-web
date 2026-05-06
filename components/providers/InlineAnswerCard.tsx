@@ -17,6 +17,8 @@ interface InlineAnswerCardProps {
   isSubmitting?: boolean;
   isSuccess?: boolean;
   questionSent?: boolean;
+  /** If provided, user is logged in — skip email capture and show confirmation */
+  userEmail?: string;
 }
 
 export default function InlineAnswerCard({
@@ -32,7 +34,9 @@ export default function InlineAnswerCard({
   isSubmitting = false,
   isSuccess = false,
   questionSent = false,
+  userEmail,
 }: InlineAnswerCardProps) {
+  const isLoggedIn = Boolean(userEmail);
   const answer = getTemplateAnswer(question);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -271,110 +275,140 @@ export default function InlineAnswerCard({
             <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
           </div>
 
-          {/* ─── Email Capture Block ────────────────────────────────────── */}
+          {/* ─── Email Capture Block (or Logged-in Confirmation) ─────────── */}
           <div
             className={`
               transition-all duration-500 ease-out delay-200
               ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
-            {/* CTA with Avatar */}
-            <div className="flex items-center gap-3 mb-4">
-              {providerImage ? (
-                <img
-                  src={providerImage}
-                  alt={firstName}
-                  className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
-                  <span className="text-sm font-semibold text-gray-500">
-                    {firstName.charAt(0)}
-                  </span>
-                </div>
-              )}
-              <p className="text-[16px] text-gray-700">
-                Hear directly from <span className="font-semibold text-gray-900">{firstName}</span>.
-              </p>
-            </div>
-
-            {/* Input + Button Row — stacks on mobile */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1 min-w-0">
-                <input
-                  ref={inputRef}
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setError("");
-                  }}
-                  onKeyDown={handleKeyDown}
-                  onFocus={() => setInputFocused(true)}
-                  onBlur={() => setInputFocused(false)}
-                  placeholder="your email"
-                  autoComplete="email"
-                  disabled={isSubmitting}
-                  className={`
-                    w-full px-4 py-3
-                    text-[15px] text-gray-900 placeholder-gray-400
-                    bg-white border rounded-xl
-                    transition-all duration-200 ease-out
-                    focus:outline-none disabled:opacity-50
-                    ${inputFocused
-                      ? "border-primary-400 ring-2 ring-primary-100"
-                      : error
-                        ? "border-red-300 ring-2 ring-red-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }
-                  `}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={isSubmitting || !email.trim()}
-                className={`
-                  shrink-0 px-5 py-3
-                  text-[15px] font-semibold text-white
-                  bg-primary-600 rounded-xl
-                  transition-all duration-200 ease-out
-                  hover:bg-primary-700 active:scale-[0.98]
-                  disabled:opacity-40 disabled:cursor-not-allowed
-                  disabled:hover:bg-primary-600
-                  sm:w-auto w-full
-                `}
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Sending...
-                  </span>
+            {isLoggedIn ? (
+              /* ─── Logged-in User: Simple confirmation ─────────────────────── */
+              <div className="flex items-center gap-3">
+                {providerImage ? (
+                  <img
+                    src={providerImage}
+                    alt={firstName}
+                    className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
+                  />
                 ) : (
-                  "Send their reply"
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
+                    <span className="text-sm font-semibold text-gray-500">
+                      {firstName.charAt(0)}
+                    </span>
+                  </div>
                 )}
-              </button>
-            </div>
+                <div>
+                  <p className="text-[16px] text-gray-900 font-medium">
+                    We&apos;ll notify you when {firstName} replies
+                  </p>
+                  <p className="text-[13px] text-gray-500 mt-0.5">
+                    Your question has been sent
+                  </p>
+                </div>
+              </div>
+            ) : (
+              /* ─── Guest User: Email capture form ──────────────────────────── */
+              <>
+                {/* CTA with Avatar */}
+                <div className="flex items-center gap-3 mb-4">
+                  {providerImage ? (
+                    <img
+                      src={providerImage}
+                      alt={firstName}
+                      className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
+                      <span className="text-sm font-semibold text-gray-500">
+                        {firstName.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  <p className="text-[16px] text-gray-700">
+                    Hear directly from <span className="font-semibold text-gray-900">{firstName}</span>.
+                  </p>
+                </div>
 
-            {/* Error Message */}
-            {error && (
-              <p className="text-[13px] text-red-600 mt-2 font-medium">
-                {error}
-              </p>
+                {/* Input + Button Row — stacks on mobile */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1 min-w-0">
+                    <input
+                      ref={inputRef}
+                      type="email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setError("");
+                      }}
+                      onKeyDown={handleKeyDown}
+                      onFocus={() => setInputFocused(true)}
+                      onBlur={() => setInputFocused(false)}
+                      placeholder="your email"
+                      autoComplete="email"
+                      disabled={isSubmitting}
+                      className={`
+                        w-full px-4 py-3
+                        text-[15px] text-gray-900 placeholder-gray-400
+                        bg-white border rounded-xl
+                        transition-all duration-200 ease-out
+                        focus:outline-none disabled:opacity-50
+                        ${inputFocused
+                          ? "border-primary-400 ring-2 ring-primary-100"
+                          : error
+                            ? "border-red-300 ring-2 ring-red-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }
+                      `}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || !email.trim()}
+                    className={`
+                      shrink-0 px-5 py-3
+                      text-[15px] font-semibold text-white
+                      bg-primary-600 rounded-xl
+                      transition-all duration-200 ease-out
+                      hover:bg-primary-700 active:scale-[0.98]
+                      disabled:opacity-40 disabled:cursor-not-allowed
+                      disabled:hover:bg-primary-600
+                      sm:w-auto w-full
+                    `}
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Sending...
+                      </span>
+                    ) : (
+                      "Send their reply"
+                    )}
+                  </button>
+                </div>
+
+                {/* Error Message */}
+                {error && (
+                  <p className="text-[13px] text-red-600 mt-2 font-medium">
+                    {error}
+                  </p>
+                )}
+
+                {/* Trust Line + Save Fallback */}
+                <p className="text-[13px] text-gray-500 mt-4 leading-relaxed">
+                  One email. No calls. Or{" "}
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="font-medium text-gray-700 underline underline-offset-2 decoration-gray-300 hover:text-gray-900 hover:decoration-gray-500 transition-colors"
+                  >
+                    save for later
+                  </button>
+                  {" "}— no email needed.
+                </p>
+              </>
             )}
-
-            {/* Trust Line + Save Fallback */}
-            <p className="text-[13px] text-gray-500 mt-4 leading-relaxed">
-              One email. No calls. Or{" "}
-              <button
-                type="button"
-                onClick={handleSave}
-                className="font-medium text-gray-700 underline underline-offset-2 decoration-gray-300 hover:text-gray-900 hover:decoration-gray-500 transition-colors"
-              >
-                save for later
-              </button>
-              {" "}— no email needed.
-            </p>
           </div>
         </div>
       )}

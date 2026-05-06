@@ -143,6 +143,20 @@ interface SignupRow {
   signed_up_at: string;
 }
 
+interface OutboundRow {
+  outreach_id: string;
+  organization_name: string;
+  stakeholder_type: StakeholderType;
+  campus_name: string;
+  primary_contact_name: string | null;
+  latest_outbound_at: string;
+  latest_outbound_channel: string;
+  latest_reply_at: string | null;
+  latest_reply_channel: string | null;
+  has_pending_reply: boolean;
+  outbound_count: number;
+}
+
 const TYPE_FILTERS: Array<{ key: StakeholderType | "all"; label: string }> = [
   { key: "all", label: "All types" },
   { key: "student_org", label: "Student Orgs" },
@@ -190,6 +204,7 @@ export default function StudentOutreachPage() {
   // stakeholder shape. Populated by tab-specific endpoints.
   const [emailsSentRows, setEmailsSentRows] = useState<EmailSentRow[]>([]);
   const [signupRows, setSignupRows] = useState<SignupRow[]>([]);
+  const [outboundRows, setOutboundRows] = useState<OutboundRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
@@ -229,7 +244,9 @@ export default function StudentOutreachPage() {
       // its tabCounts. Pass tab=prospects (default) so the queue does
       // sensible work; the rows result is ignored for those tabs.
       const queueTab =
-        tab === "emails_sent" || tab === "signups" ? "prospects" : tab;
+        tab === "emails_sent" || tab === "signups" || tab === "outbound"
+          ? "prospects"
+          : tab;
       queueParams.set("tab", queueTab);
       if (debouncedSearch) queueParams.set("search", debouncedSearch);
       if (tab === "all" && showClosed) queueParams.set("show_closed", "true");
@@ -240,7 +257,7 @@ export default function StudentOutreachPage() {
           if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
           const data = await res.json();
           setCampuses(data.campuses ?? []);
-          if (tab !== "emails_sent" && tab !== "signups") {
+          if (tab !== "emails_sent" && tab !== "signups" && tab !== "outbound") {
             setRows(data.rows ?? []);
             setResearchCampuses(data.research_campuses ?? []);
           }
@@ -266,6 +283,16 @@ export default function StudentOutreachPage() {
           if (!r.ok) throw new Error((await r.json()).error || "Failed to load signups");
           const d = await r.json();
           setSignupRows(d.rows ?? []);
+        })());
+      } else if (tab === "outbound") {
+        fetches.push((async () => {
+          const p = new URLSearchParams();
+          if (campusSlug) p.set("campus", campusSlug);
+          if (typeFilter !== "all") p.set("type", typeFilter);
+          const r = await fetch(`/api/admin/student-outreach/outbound?${p}`);
+          if (!r.ok) throw new Error((await r.json()).error || "Failed to load outbound");
+          const d = await r.json();
+          setOutboundRows(d.rows ?? []);
         })());
       }
 
@@ -563,6 +590,23 @@ export default function StudentOutreachPage() {
             {signupRows.map((r) => (
               <li key={r.id}>
                 <SignupCard row={r} />
+              </li>
+            ))}
+          </ul>
+        )
+      ) : tab === "outbound" ? (
+        outboundRows.length === 0 ? (
+          <p className="py-12 text-center text-sm text-gray-400">
+            No outbound activity yet.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {outboundRows.map((r) => (
+              <li key={r.outreach_id}>
+                <OutboundCard
+                  row={r}
+                  onOpenDrawer={() => setOpenOutreachId(r.outreach_id)}
+                />
               </li>
             ))}
           </ul>
@@ -1841,6 +1885,91 @@ function SignupCard({ row }: { row: SignupRow }) {
       </div>
     </div>
   );
+}
+
+/**
+ * v8.10.40: row card for the Outbound menu view. Gmail-inbox feel —
+ * threads with a pending reply float to the top (sorted server-side)
+ * and get a strong "Reply" pill so the admin can scan the queue and
+ * pick the conversations that need attention. Click opens the
+ * stakeholder drawer where the full reply history + Log reply CTA
+ * live.
+ */
+function OutboundCard({
+  row,
+  onOpenDrawer,
+}: {
+  row: OutboundRow;
+  onOpenDrawer: () => void;
+}) {
+  const headline = row.primary_contact_name || row.organization_name;
+  const subtitle = [
+    row.organization_name !== headline ? row.organization_name : null,
+    row.campus_name,
+    STAKEHOLDER_TYPE_LABELS[row.stakeholder_type],
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const channelLabel = humanChannel(row.latest_outbound_channel);
+  const sendCountLabel =
+    row.outbound_count === 1 ? "1 message" : `${row.outbound_count} messages`;
+
+  const footnote = row.has_pending_reply
+    ? `Reply ${formatRelative(row.latest_reply_at!)} · last ${channelLabel} ${formatRelative(row.latest_outbound_at)}`
+    : `Last ${channelLabel} ${formatRelative(row.latest_outbound_at)} · ${sendCountLabel}`;
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onOpenDrawer}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpenDrawer();
+        }
+      }}
+      title="Open the stakeholder drawer for full thread + Log reply."
+      className={`cursor-pointer rounded-lg border bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+        row.has_pending_reply ? "border-emerald-200" : "border-gray-200"
+      }`}
+    >
+      <div className="flex items-stretch justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p
+            className={`truncate text-sm ${
+              row.has_pending_reply ? "font-semibold text-gray-900" : "font-medium text-gray-900"
+            }`}
+          >
+            {headline}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-gray-500">{subtitle}</p>
+          <p className="mt-0.5 text-[11px] text-gray-400">{footnote}</p>
+          {row.has_pending_reply && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-900">
+                Reply waiting
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function humanChannel(channel: string): string {
+  switch (channel) {
+    case "email":
+      return "email";
+    case "ig_dm":
+      return "IG DM";
+    case "contact_form":
+      return "contact form";
+    default:
+      return channel;
+  }
 }
 
 function FilterPill({

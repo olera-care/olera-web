@@ -20,8 +20,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import PulseHeader from "@/components/admin/PulseHeader";
-import type { DateRangeValue } from "@/components/admin/DateRangePopover";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import { AddStakeholderModal } from "@/app/admin/student-outreach/AddStakeholderModal";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
@@ -44,7 +42,6 @@ import type {
 import {
   STOP_OUTREACH_ACTIONS,
   STOP_OUTREACH_LABELS,
-  TAB_STATS,
   TABS,
   TYPE_FILTERS,
   type CampusRow,
@@ -82,7 +79,6 @@ export function MedJobsTabPage({
   const [campusSlug, setCampusSlug] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<StakeholderType | "all">("all");
   const [tab, setTab] = useState<TabKey>(tabFromUrl ?? initialTab);
-  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [rows, setRows] = useState<TabRow[]>([]);
@@ -228,14 +224,6 @@ export function MedJobsTabPage({
     [tab, callAction],
   );
 
-  const tabStats = TAB_STATS[tab];
-  const statsPath = useMemo(() => {
-    const params = new URLSearchParams();
-    params.set("metric", tabStats.metric);
-    if (campusSlug) params.set("campus", campusSlug);
-    return `/api/admin/student-outreach/stats?${params.toString()}`;
-  }, [tabStats.metric, campusSlug]);
-
   const visibleTabs = useMemo(() => {
     return TABS.filter((t) => {
       const total = tabCounts?.[t.key] ?? 0;
@@ -264,39 +252,36 @@ export function MedJobsTabPage({
 
   return (
     <div>
-      {/* v9.0 Phase 7 Commit D: 3-element hero — Inbox Cleared %,
-          Logs Today, Streak. Always shows regardless of active tab so
-          the operational health signal stays in view as admin moves
-          between tabs. */}
-      <InBasketHero />
+      {/* v9.0 Phase 7 Commit E: In Basket is operational, calm, and
+          throughput-oriented — no charts. Plain header (title +
+          actions) → 3-element hero (cleared % / logs today / streak)
+          → search/filter → tab bar → list. The configurable
+          time-series chart lives on the Logs page (analytics layer). */}
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <a
+            href="https://mail.google.com/mail/u/0/#inbox"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open Gmail in a new tab to triage replies, callbacks, and voicemails."
+            className="text-sm font-medium text-emerald-700 underline hover:no-underline"
+          >
+            Open Gmail ↗
+          </a>
+          <button
+            onClick={() => setShowAdd(true)}
+            title="Add a new advisor, dept head, or student org for a site."
+            className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+          >
+            + Add Stakeholder
+          </button>
+        </div>
+      </header>
 
-      <PulseHeader
-        title={title}
-        kpiSuffix={tabStats.label}
-        statsPath={statsPath}
-        range={range}
-        onRangeChange={setRange}
-        actions={
-          <>
-            <a
-              href="https://mail.google.com/mail/u/0/#inbox"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Open Gmail in a new tab to triage replies, callbacks, and voicemails."
-              className="text-sm font-medium text-emerald-700 underline hover:no-underline"
-            >
-              Open Gmail ↗
-            </a>
-            <button
-              onClick={() => setShowAdd(true)}
-              title="Add a new advisor, dept head, or student org for a site."
-              className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-            >
-              + Add Stakeholder
-            </button>
-          </>
-        }
-      />
+      <InBasketHero />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <input
@@ -347,18 +332,28 @@ export function MedJobsTabPage({
                 onClick={() => setTabAndUrl(t.key)}
                 title={t.tooltip}
                 className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm transition-colors ${
-                  isUnreadTab ? "font-semibold" : "font-medium"
-                } ${
-                  active
-                    ? "border-gray-900 text-gray-900"
-                    : "border-transparent text-gray-400 hover:text-gray-600"
+                  // v9.0 Phase 7 Commit E: bold the tab label AND the
+                  // fraction together when unread > 0. Inactive unread
+                  // tabs also darken so the bold actually pops against
+                  // the muted gray-400 default — bold alone on light
+                  // text barely renders. Read tabs stay font-medium +
+                  // gray-400 to keep the inactive zone calm.
+                  isUnreadTab
+                    ? active
+                      ? "border-gray-900 font-semibold text-gray-900"
+                      : "border-transparent font-semibold text-gray-900 hover:text-gray-700"
+                    : active
+                      ? "border-gray-900 font-medium text-gray-900"
+                      : "border-transparent font-medium text-gray-400 hover:text-gray-600"
                 }`}
               >
                 {t.label}
                 {count > 0 && (
                   <span
-                    className={`ml-1.5 text-xs ${
-                      isUnreadTab ? "text-gray-700" : "text-gray-400"
+                    className={`ml-1.5 text-xs tabular-nums ${
+                      isUnreadTab
+                        ? "font-semibold text-gray-900"
+                        : "text-gray-400"
                     }`}
                   >
                     {isUnreadTab ? `${unread}/${count}` : count}

@@ -1,49 +1,55 @@
 "use client";
 
 /**
- * v9.0 Phase 7: Logs page. Chronological touchpoint feed of completed
- * operational actions — the "what we got done" surface.
+ * v9.0 Phase 7 Commit E: Logs page — analytics + history + charting
+ * surface for MedJobs.
  *
- * Renamed from "Completed Work" → "Logs" to align with the universal
- * "Log" CTA across cards. The internal API endpoint
- * (/api/admin/medjobs/completed-work) keeps its existing name.
+ * The In Basket stays operational/calm/throughput-oriented (no charts);
+ * Logs is the analytics layer. PulseHeader at the top (single metric
+ * default, with a multi-series picker for funnel comparisons), then
+ * the touchpoint feed below as the searchable history.
  *
- * Date range filter at top. Click any card to open the source row's
- * drawer for full context.
+ * Chart metric defaults to "activity" — the catch-all touchpoint count.
+ * Multi-series picker (CHART_SERIES_OPTIONS) lets admin compose a
+ * chart with multiple metrics on one X-axis (signups vs candidates vs
+ * partners, etc.). When ≥1 series is checked, the chart switches to
+ * a multi-line `metric=custom&series=…` view.
+ *
+ * Internal API (/api/admin/medjobs/completed-work) keeps its name —
+ * UI rename is "Completed Work" → "Logs" only.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import {
   CompletedTaskCard,
   type CompletedTaskRow,
 } from "@/components/admin/medjobs/cards/CompletedTaskCard";
+import PulseHeader from "@/components/admin/PulseHeader";
+import type { DateRangeValue } from "@/components/admin/DateRangePopover";
+import { resolveRange } from "@/components/admin/DateRangePopover";
+import { CHART_SERIES_OPTIONS } from "@/lib/student-outreach/tab-config";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
-
-const RANGE_OPTIONS = [
-  { key: "7d",  label: "Last 7 days",   days: 7 },
-  { key: "30d", label: "Last 30 days",  days: 30 },
-  { key: "90d", label: "Last 90 days",  days: 90 },
-] as const;
-
-type RangeKey = (typeof RANGE_OPTIONS)[number]["key"];
 
 export default function LogsPage() {
   const [rows, setRows] = useState<CompletedTaskRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rangeKey, setRangeKey] = useState<RangeKey>("30d");
+  const [range, setRange] = useState<DateRangeValue>({
+    preset: "30d",
+    customFrom: "",
+    customTo: "",
+  });
+  const [chartSeries, setChartSeries] = useState<Set<string>>(new Set());
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const days = RANGE_OPTIONS.find((r) => r.key === rangeKey)?.days ?? 30;
-      const from = new Date();
-      from.setDate(from.getDate() - days);
+      const { from } = resolveRange(range);
       const params = new URLSearchParams();
-      params.set("from", from.toISOString());
+      if (from) params.set("from", from);
       params.set("limit", "100");
       const res = await fetch(`/api/admin/medjobs/completed-work?${params}`);
       if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
@@ -54,39 +60,59 @@ export default function LogsPage() {
     } finally {
       setLoading(false);
     }
-  }, [rangeKey]);
+  }, [range]);
 
-  useEffect(() => { refetch(); }, [refetch]);
+  useEffect(() => {
+    void refetch();
+  }, [refetch]);
   useMedJobsRefresh(refetch);
+
+  // Chart metric: default = activity (all touchpoints). When the user
+  // picks ≥1 metric in the multi-series picker, switch to the custom
+  // breakdown view that the /stats endpoint serves.
+  const statsPath = useMemo(() => {
+    if (chartSeries.size === 0) {
+      return "/api/admin/student-outreach/stats?metric=activity";
+    }
+    const series = Array.from(chartSeries).join(",");
+    return `/api/admin/student-outreach/stats?metric=custom&series=${encodeURIComponent(series)}`;
+  }, [chartSeries]);
+
+  const kpiSuffix =
+    chartSeries.size === 0
+      ? "logged events"
+      : chartSeries.size === 1
+        ? `${labelFor(Array.from(chartSeries)[0])} events`
+        : `events (${chartSeries.size} metrics)`;
 
   return (
     <div>
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">MedJobs · Logs</h1>
-          <p className="mt-0.5 text-sm text-gray-500">
-            Every logged action across MedJobs. Click any row to open it for context.
-          </p>
-        </div>
-        <div className="flex gap-1">
-          {RANGE_OPTIONS.map((opt) => {
-            const active = rangeKey === opt.key;
-            return (
-              <button
-                key={opt.key}
-                onClick={() => setRangeKey(opt.key)}
-                className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-                  active
-                    ? "bg-gray-900 font-medium text-white"
-                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                }`}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
-      </header>
+      <PulseHeader
+        title="MedJobs · Logs"
+        kpiSuffix={kpiSuffix}
+        statsPath={statsPath}
+        range={range}
+        onRangeChange={setRange}
+      />
+
+      {/* Multi-series picker. Compose a custom chart by checking N
+          metrics; clear to fall back to the single-metric default. */}
+      <ChartSeriesPicker
+        selected={chartSeries}
+        onToggle={(metric) =>
+          setChartSeries((prev) => {
+            const next = new Set(prev);
+            if (next.has(metric)) next.delete(metric);
+            else next.add(metric);
+            return next;
+          })
+        }
+        onClear={() => setChartSeries(new Set())}
+      />
+
+      <p className="-mt-2 mb-4 text-sm text-gray-500">
+        Every logged action across MedJobs. Click any row to open it for context.
+      </p>
 
       {loading ? (
         <p className="py-12 text-center text-sm text-gray-400">Loading…</p>
@@ -113,9 +139,67 @@ export default function LogsPage() {
         <Drawer
           outreachId={openOutreachId}
           onClose={() => setOpenOutreachId(null)}
-          onAction={() => { void refetch(); }}
+          onAction={() => {
+            void refetch();
+          }}
         />
       )}
+    </div>
+  );
+}
+
+function labelFor(metric: string): string {
+  const opt = CHART_SERIES_OPTIONS.find((o) => o.metric === metric);
+  return opt?.label ?? metric;
+}
+
+function ChartSeriesPicker({
+  selected,
+  onToggle,
+  onClear,
+}: {
+  selected: Set<string>;
+  onToggle: (metric: string) => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="mb-4 rounded-lg border border-gray-200 bg-white px-4 py-3">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          Compare metrics
+        </span>
+        {selected.size > 0 && (
+          <button
+            onClick={onClear}
+            className="text-[11px] font-medium text-gray-500 hover:text-gray-900"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {CHART_SERIES_OPTIONS.map((opt) => {
+          const checked = selected.has(opt.metric);
+          return (
+            <button
+              key={opt.metric}
+              onClick={() => onToggle(opt.metric)}
+              className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs transition-colors ${
+                checked
+                  ? "border-gray-900 bg-gray-900 text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <span
+                className="h-2 w-2 shrink-0 rounded-full"
+                style={{ backgroundColor: opt.color }}
+                aria-hidden
+              />
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

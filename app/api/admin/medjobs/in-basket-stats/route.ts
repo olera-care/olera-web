@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 /**
- * v9.0 Phase 7 Commit D: In Basket hero stats.
+ * v9.0 Phase 7 Commit E: In Basket hero stats.
  *
  * Three KPIs powering the In Basket hero panel:
- *   - inbox_cleared_pct: of all the operational work that came through
- *     today, what % has been logged. Formula:
- *       cleared_today / (cleared_today + remaining_inbox)
+ *   - in_basket_cleared_pct: of all the operational work that came
+ *     through today, what % has been logged. Formula:
+ *       cleared_today / (cleared_today + remaining_in_basket)
  *     where cleared_today = touchpoint + entity-task completions today
- *     and remaining_inbox = current pending count across In Basket tabs.
+ *     and remaining_in_basket = current pending count across In Basket
+ *     tabs.
  *   - logs_today: count of touchpoints + entity-task completions today.
  *   - streak_days: consecutive business days (Mon-Fri) ending today,
  *     where each day has ≥1 log. Option A — weekends are skipped, not
@@ -17,6 +18,11 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  *
  * Single endpoint, returns all three in one call so the hero doesn't
  * need to coordinate three fetches.
+ *
+ * Endpoint name uses "in-basket" to match the UI surface name (the
+ * v9.0 Phase 7 Commit E rename of "Inbox" → "In Basket"). Gmail's
+ * inbox is a different surface and the prior "/inbox-stats" path
+ * created semantic drift.
  */
 
 const STREAK_LOOKBACK_DAYS = 60;
@@ -76,7 +82,7 @@ export async function GET(_req: NextRequest) {
       .eq("status", "completed")
       .gte("completed_at", lookbackStart.toISOString())
       .limit(5000),
-    // Approximate "remaining inbox": rows still un-archived. The
+    // Approximate "remaining In Basket": rows still un-archived. The
     // queue endpoint computes per-tab counts; here we just want the
     // denominator size for the cleared %, and total pending entity
     // tasks. Not perfect, but close enough for the hero KPI.
@@ -140,13 +146,14 @@ export async function GET(_req: NextRequest) {
     }
   }
 
-  // Cleared %: cleared_today / (cleared_today + inbox_size).
-  const inboxSize = (openOutreachCount ?? 0) + (pendingBpTasks ?? 0) + (pendingSiteTasks ?? 0);
-  const denom = logsToday + inboxSize;
+  // Cleared %: cleared_today / (cleared_today + in_basket_size).
+  const inBasketSize =
+    (openOutreachCount ?? 0) + (pendingBpTasks ?? 0) + (pendingSiteTasks ?? 0);
+  const denom = logsToday + inBasketSize;
   const clearedPct = denom > 0 ? Math.round((logsToday / denom) * 100) : 0;
 
   return NextResponse.json({
-    inbox_cleared_pct: clearedPct,
+    in_basket_cleared_pct: clearedPct,
     logs_today: logsToday,
     streak_days: streakDays,
   });

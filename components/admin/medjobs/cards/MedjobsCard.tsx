@@ -61,8 +61,12 @@ export function MedjobsCard({
   href,
   unread,
 }: MedjobsCardProps) {
-  const baseClass =
-    "rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500";
+  // v9.0 Phase 7 Commit E: unread cards get a Gmail-style left rail
+  // (3px emerald) in addition to the bolded title. Read cards have a
+  // matching transparent rail so the card body width stays stable
+  // when the rail toggles on/off — no layout shift on read.
+  const railClass = unread ? "border-l-[3px] border-l-emerald-500" : "border-l-[3px] border-l-transparent";
+  const baseClass = `rounded-lg border border-gray-200 ${railClass} bg-white px-4 py-3 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500`;
   const interactiveClass =
     onClick || href ? `${baseClass} cursor-pointer hover:bg-gray-50` : baseClass;
   const titleWeight = unread ? "font-semibold" : "font-medium";

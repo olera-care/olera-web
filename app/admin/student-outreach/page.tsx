@@ -348,7 +348,6 @@ export default function StudentOutreachPage() {
               setError(e instanceof Error ? e.message : "Action failed");
             }
           }}
-          onAddStakeholder={() => setShowAdd(true)}
           tabCountsAll={tabCounts?.all ?? 0}
         />
       ) : rows.length === 0 ? (
@@ -1320,7 +1319,6 @@ function ResearchTabContent({
   renderRow,
   onContinueCampus,
   onMarkResearchComplete,
-  onAddStakeholder,
   tabCountsAll,
 }: {
   rows: TabRow[];
@@ -1328,35 +1326,30 @@ function ResearchTabContent({
   renderRow: (row: TabRow) => ReactNode;
   onContinueCampus: (campus: ResearchCampusCard) => void;
   onMarkResearchComplete: (slug: string, name: string) => Promise<void>;
-  onAddStakeholder: () => void;
   tabCountsAll: number;
 }) {
   const showCampusSection = researchCampuses.length > 0;
   const showStakeholderSection = rows.length > 0;
 
+  // v8.10.22: empty-state CTA points at Staffing Outreach. Campuses
+  // enter Student Outreach only when a provider partner there is
+  // linked to a university. Manual campus creation isn't offered
+  // anywhere; admins onboard a provider first and the campus follows.
   if (!showCampusSection && !showStakeholderSection) {
-    if (tabCountsAll === 0) {
-      return (
-        <div className="py-12 text-center">
-          <p className="text-sm font-medium text-gray-700">No stakeholders yet.</p>
-          <p className="mt-1 text-xs text-gray-500">
-            Click + Add Stakeholder to start researching one. Campuses flow in automatically when a Staffing Outreach provider becomes an Active Partner.
-          </p>
-          <button
-            onClick={onAddStakeholder}
-            className="mt-4 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            + Add Stakeholder
-          </button>
-        </div>
-      );
-    }
+    const headline = tabCountsAll === 0 ? "Nothing here yet." : "✓ All caught up.";
+    const headlineColor = tabCountsAll === 0 ? "text-gray-700" : "text-emerald-700";
     return (
-      <div className="py-10 text-center">
-        <p className="text-sm font-medium text-emerald-700">✓ All caught up.</p>
+      <div className="py-12 text-center">
+        <p className={`text-sm font-medium ${headlineColor}`}>{headline}</p>
         <p className="mt-1 text-xs text-gray-500">
-          No campuses in research and no stakeholders waiting.
+          Add a provider partner near a school to start student outreach.
         </p>
+        <a
+          href="/admin/staffing-outreach"
+          className="mt-4 inline-block rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Open Staffing Outreach →
+        </a>
       </div>
     );
   }

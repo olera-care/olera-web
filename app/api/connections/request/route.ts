@@ -50,6 +50,11 @@ interface GuestConnectionParams {
     urgency: string | null;
     additionalNotes?: string;
   };
+  /** Anonymous session id from the client. Threaded into the lead_received
+   *  event so we can join leads back to outreach/SBF arm impressions for
+   *  cannibalization analysis. Optional because legacy callers don't send
+   *  it; null is a valid value in metadata. */
+  sessionId?: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   admin: any;
 }
@@ -62,6 +67,7 @@ async function handleGuestConnection({
   providerName,
   providerSlug,
   intentData,
+  sessionId,
   admin,
 }: GuestConnectionParams) {
   // Validate email format
@@ -739,6 +745,9 @@ async function handleGuestConnection({
       timeline: intentData.urgency || null,
       guest: true,
       raw_provider_id: providerId,
+      // session_id makes leads joinable back to arm impressions in
+      // seeker_activity / provider_activity for cannibalization analysis.
+      session_id: sessionId || null,
     },
   });
 
@@ -1111,6 +1120,7 @@ export async function POST(request: Request) {
       guestEmail,
       formData,
       website, // Honeypot field
+      session_id: sessionId,
     } = body as {
       providerId: string;
       providerName: string;
@@ -1126,6 +1136,7 @@ export async function POST(request: Request) {
       guestEmail?: string;
       formData?: { fullName?: string; phone?: string; message?: string };
       website?: string; // Honeypot
+      session_id?: string;
     };
 
     if (!providerId || !providerName) {
@@ -1157,6 +1168,7 @@ export async function POST(request: Request) {
         providerName,
         providerSlug,
         intentData,
+        sessionId,
         admin,
       });
     }
@@ -1612,6 +1624,9 @@ export async function POST(request: Request) {
         timeline: intentData?.urgency || null,
         guest: false,
         raw_provider_id: providerId,
+        // session_id makes leads joinable back to arm impressions in
+        // seeker_activity / provider_activity for cannibalization analysis.
+        session_id: sessionId || null,
       },
     });
 

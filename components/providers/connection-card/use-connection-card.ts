@@ -6,6 +6,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
+import { getOrCreateSessionId } from "@/lib/analytics/session";
 import {
   mapProviderCareTypes,
   RECIPIENT_FROM_PROFILE,
@@ -284,6 +285,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
           providerName,
           providerSlug,
           intentData: intent,
+          session_id: getOrCreateSessionId(),
         }),
       });
 
@@ -423,6 +425,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
           intentData,
           guest: true,
           guestEmail: email,
+          session_id: getOrCreateSessionId(),
         }),
       });
 
@@ -558,6 +561,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
               phone: "",
               message: "",
             },
+            session_id: getOrCreateSessionId(),
           }),
         });
 
@@ -592,6 +596,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
               phone: "",
               message: "",
             },
+            session_id: getOrCreateSessionId(),
           }),
         });
 

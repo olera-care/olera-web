@@ -334,13 +334,14 @@ export async function POST(request: NextRequest) {
         // Fallback: public profile URL (if magic link fails)
         let dashboardUrl = `${siteUrl}/provider/${profile.slug || profileId}`;
 
-        // Generate magic link for auto sign-in
+        // Generate magic link for auto sign-in (same pattern as /api/medjobs/apply)
+        // Redirect directly to /provider, not through /auth/magic-link (which has /welcome redirect logic)
         try {
           const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
             type: "magiclink",
             email: claimerEmail,
             options: {
-              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent("/provider")}`,
+              redirectTo: `${siteUrl}/provider`,
             },
           });
           if (!linkError && linkData?.properties?.action_link) {

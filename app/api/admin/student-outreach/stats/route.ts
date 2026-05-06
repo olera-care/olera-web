@@ -143,6 +143,31 @@ export async function GET(request: NextRequest) {
         campusId,
       });
     }
+    if (metric === "custom") {
+      // v8.10.47: custom multi-series response. Powers the ⋯ menu's
+      // chart-series picker — admin checks N categories, server returns
+      // a breakdown[] with one named series per requested metric.
+      const seriesParam = (searchParams.get("series") ?? "").split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (seriesParam.length === 0) {
+        return NextResponse.json({
+          total: 0,
+          delta: null,
+          bucket: "day",
+          series: [],
+          breakdown: [],
+        });
+      }
+      return await buildCustomBreakdownResponse(db, seriesParam, {
+        from,
+        to,
+        priorFrom,
+        queryStart,
+        campusName,
+        campusId,
+      });
+    }
     if (metric === "signups") {
       // v8.10.42: signups counts every student that entered the funnel
       // — the broader acquisition number, includes incomplete profiles.
@@ -334,6 +359,27 @@ async function campusOutreachIds(
 }
 
 /**
+ * v8.10.47: per-metric color + label registry. Source of truth for
+ * how each metric renders in multi-line charts (the funnel breakdown
+ * + the custom-series picker). Keep colors stable across views so
+ * "Signups" reads as the same line whether admin is on All or
+ * customizing via the ⋯ menu.
+ */
+const METRIC_REGISTRY: Record<string, { name: string; color: string }> = {
+  signups:           { name: "Signups",     color: "#94a3b8" }, // slate-400 (broader funnel)
+  candidates:        { name: "Candidates",  color: "#10b981" }, // emerald-500 (live supply)
+  prospects_added:   { name: "Prospects",   color: "#3b82f6" }, // blue-500
+  replies:           { name: "Replies",     color: "#f59e0b" }, // amber-500
+  meetings_held:     { name: "Meetings",    color: "#8b5cf6" }, // violet-500 (conversion event)
+  meetings_activity: { name: "Meetings",    color: "#8b5cf6" }, // violet-500 (broader activity)
+  partners_added:    { name: "Partners",    color: "#ef4444" }, // red-500
+  calls_made:        { name: "Calls",       color: "#0ea5e9" }, // sky-500
+  emails_sent:       { name: "Emails",      color: "#14b8a6" }, // teal-500
+  outbound:          { name: "Outbound",    color: "#6366f1" }, // indigo-500
+  activity:          { name: "Activity",    color: "#6b7280" }, // gray-500 (broad)
+};
+
+/**
  * v8.10.41: build the multi-series funnel response. Five series
  * (Signups → Prospects → Replies → Meetings → Partners) so the All
  * tab's chart reads as a funnel-over-time. All five share one bucket
@@ -415,6 +461,93 @@ async function buildFunnelResponse(
     bucket,
     // Empty `series` for backward compat with single-line consumers; the
     // breakdown drives the multi-line chart.
+    series: [],
+    breakdown,
+  });
+}
+
+/**
+ * v8.10.47: build a custom multi-series response for an arbitrary set
+ * of metrics. The ⋯-menu's chart-series picker checks N categories,
+ * the page calls /stats?metric=custom&series=signups,replies,calls_made,…
+ * and we return a breakdown[] with one named series per requested
+ * metric — exact same shape as the funnel response so MultiChart
+ * renders it identically. Unknown metric names are skipped silently.
+ */
+async function buildCustomBreakdownResponse(
+  db: DB,
+  metricNames: string[],
+  opts: {
+    from: Date | null;
+    to: Date;
+    priorFrom: Date | null;
+    queryStart: Date | null;
+    campusName: string | null;
+    campusId: string | null;
+  },
+): Promise<NextResponse> {
+  const { from, to, priorFrom, queryStart, campusName, campusId } = opts;
+
+  // Resolve each requested metric to a fetcher promise.
+  const requests = metricNames.flatMap((m) => {
+    const meta = METRIC_REGISTRY[m];
+    if (!meta) return []; // skip unknown metrics
+    let fetcher: Promise<Date[]>;
+    if (m === "signups") {
+      fetcher = fetchSignupTimestamps(db, queryStart, to, campusName, { liveOnly: false });
+    } else if (m === "candidates") {
+      fetcher = fetchSignupTimestamps(db, queryStart, to, campusName, { liveOnly: true });
+    } else if (m === "prospects_added") {
+      fetcher = fetchProspectsAddedTimestamps(db, queryStart, to, campusId);
+    } else if (TOUCHPOINT_METRICS[m]) {
+      fetcher = fetchTouchpointTimestamps(db, TOUCHPOINT_METRICS[m], queryStart, to, campusId);
+    } else {
+      return [];
+    }
+    return [{ key: m, meta, fetcher }];
+  });
+
+  const resolved = await Promise.all(requests.map((r) => r.fetcher));
+  const named = requests.map((r, i) => ({
+    name: r.meta.name,
+    color: r.meta.color,
+    timestamps: resolved[i],
+  }));
+
+  const inRange = (t: Date) => (from ? t >= from : true) && (to ? t < to : true);
+  const inPrior = (t: Date) => !!priorFrom && !!from && t >= priorFrom && t < from;
+
+  let kpiCurrent = 0;
+  let kpiPrior = 0;
+  for (const s of named) {
+    for (const t of s.timestamps) {
+      if (inRange(t)) kpiCurrent++;
+      else if (inPrior(t)) kpiPrior++;
+    }
+  }
+  let delta: number | null = null;
+  if (from) {
+    if (kpiPrior === 0) delta = kpiCurrent > 0 ? 100 : 0;
+    else delta = Math.round(((kpiCurrent - kpiPrior) / kpiPrior) * 100);
+  }
+
+  const allInRange = named.flatMap((s) => s.timestamps.filter(inRange));
+  const now = to ?? new Date();
+  const bucket: Bucket = from
+    ? resolveBucket(from, to)
+    : resolveBucket(allInRange[0] ?? now, now);
+  const seriesStart = from ?? allInRange[0] ?? now;
+
+  const breakdown = named.map((s) => ({
+    name: s.name,
+    color: s.color,
+    series: buildSeries(s.timestamps.filter(inRange), seriesStart, to, bucket),
+  }));
+
+  return NextResponse.json({
+    total: kpiCurrent,
+    delta,
+    bucket,
     series: [],
     breakdown,
   });

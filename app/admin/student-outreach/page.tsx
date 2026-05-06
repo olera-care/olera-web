@@ -115,6 +115,31 @@ const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
   signups:     { metric: "signups",          label: "student signups"      },
 };
 
+// v8.10.47: chart-series picker options. The ⋯ menu lets admin compose
+// a custom multi-line chart by checking N of these. Each option maps
+// to a server metric + display label + stable color (matches the
+// METRIC_REGISTRY in /stats so the same line color follows a category
+// across views). Order = how they read in the menu.
+const CHART_SERIES_OPTIONS: Array<{
+  metric: string;
+  label: string;
+  color: string;
+  /** Optional: associated tab key, used to surface the right count
+   *  next to the checkbox from existing tabCounts. */
+  countKey?: keyof TabCounts;
+}> = [
+  { metric: "signups",          label: "Signups",     color: "#94a3b8" },
+  { metric: "candidates",       label: "Candidates",  color: "#10b981", countKey: "candidates" },
+  { metric: "prospects_added",  label: "Prospects",   color: "#3b82f6", countKey: "prospects" },
+  { metric: "replies",          label: "Replies",     color: "#f59e0b", countKey: "replies" },
+  { metric: "meetings_activity", label: "Meetings",   color: "#8b5cf6", countKey: "meetings" },
+  { metric: "partners_added",   label: "Partners",    color: "#ef4444", countKey: "partners" },
+  { metric: "calls_made",       label: "Calls",       color: "#0ea5e9", countKey: "calls" },
+  { metric: "emails_sent",      label: "Emails Sent", color: "#14b8a6" },
+  { metric: "outbound",         label: "Outbound",    color: "#6366f1" },
+  { metric: "activity",         label: "All activity",color: "#6b7280", countKey: "archive" },
+];
+
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
 // the end of the tab row. Each menu view is a hidden top-level tab that
 // behaves the same as primary tabs (data viewport + filters + cards) —
@@ -218,6 +243,11 @@ export default function StudentOutreachPage() {
   // "Coming soon" placeholder (student-applicant pipeline isn't wired
   // up yet). Switch the default once the candidates dataset lands.
   const [tab, setTab] = useState<TabKey>("prospects");
+  // v8.10.47: when admin checks boxes in the ⋯ chart-series picker, the
+  // chart switches to a custom multi-line view of the selected metrics.
+  // Empty set = chart shows the active tab's default metric (existing
+  // per-tab telemetry).
+  const [chartSeries, setChartSeries] = useState<Set<string>>(new Set());
   // v8.10.9: PulseHeader date range. KPI = student signups in range.
   const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
   const [showClosed, setShowClosed] = useState(false);
@@ -410,19 +440,45 @@ export default function StudentOutreachPage() {
   // series to that campus's stakeholders (or signups, by university
   // name match).
   const tabStats = TAB_STATS[tab];
+  const customSeries = useMemo(
+    () => Array.from(chartSeries).join(","),
+    [chartSeries],
+  );
   const statsPath = useMemo(() => {
     const base = "/api/admin/student-outreach/stats";
     const params = new URLSearchParams();
-    params.set("metric", tabStats.metric);
+    // v8.10.47: when admin has checked any boxes in the ⋯ chart-series
+    // picker, override the tab's default metric with a custom multi-line
+    // chart of the selected categories. Empty selection falls back to
+    // the active tab's metric (existing per-tab telemetry).
+    if (chartSeries.size > 0) {
+      params.set("metric", "custom");
+      params.set("series", customSeries);
+    } else {
+      params.set("metric", tabStats.metric);
+    }
     if (campusSlug) params.set("campus", campusSlug);
     return `${base}?${params.toString()}`;
-  }, [tabStats.metric, campusSlug]);
+  }, [tabStats.metric, campusSlug, chartSeries, customSeries]);
+
+  // v8.10.47: when the chart is in custom mode, the KPI label varies
+  // with selection. Show the count of compared metrics so the headline
+  // stays meaningful instead of leaking the active-tab label that no
+  // longer reflects what's drawn.
+  const kpiSuffix = useMemo(() => {
+    if (chartSeries.size === 0) return tabStats.label;
+    if (chartSeries.size === 1) {
+      const k = Array.from(chartSeries)[0];
+      return CHART_SERIES_OPTIONS.find((o) => o.metric === k)?.label ?? "events";
+    }
+    return `events across ${chartSeries.size} metrics`;
+  }, [chartSeries, tabStats.label]);
 
   return (
     <div>
       <PulseHeader
         title="Student Outreach"
-        kpiSuffix={tabStats.label}
+        kpiSuffix={kpiSuffix}
         statsPath={statsPath}
         range={range}
         onRangeChange={setRange}
@@ -533,6 +589,16 @@ export default function StudentOutreachPage() {
           activeTab={tab}
           onSelect={setTab}
           tabCounts={tabCounts}
+          chartSeries={chartSeries}
+          onToggleChartSeries={(metric) => {
+            setChartSeries((prev) => {
+              const next = new Set(prev);
+              if (next.has(metric)) next.delete(metric);
+              else next.add(metric);
+              return next;
+            });
+          }}
+          onClearChartSeries={() => setChartSeries(new Set())}
         />
       </div>
 
@@ -2222,29 +2288,43 @@ function CampusOverflowMenu({ onMarkComplete }: { onMarkComplete: () => void }) 
 }
 
 /**
- * v8.10.33: Tab-row overflow menu. Surfaces secondary views (Archive,
- * All, Emails Sent, Outbound, Signups) without crowding the primary
- * workflow tabs.
- * v8.10.37: button always shows the ⋯ glyph (no longer substitutes the
- * active item label) — admin learns "click the ⋯ to see secondary
- * views" and that affordance stays stable. Active selection still
- * highlights via underline + a subtle dot beside ⋯ so admin sees
- * "I'm in a menu view" without the trigger morphing.
+ * v8.10.33 / v8.10.47: Tab-row overflow menu — now also a custom-chart
+ * series picker. The dropdown has two sections:
+ *
+ *   Compare in chart — checkboxes per metric. Selecting one or more
+ *     overrides the active tab's default chart with a multi-line
+ *     view of the selected categories. Empty selection = chart
+ *     reverts to the active tab's metric.
+ *
+ *   Open view       — navigation rows for hidden tabs (Archive, All,
+ *     Emails Sent, Outbound, Signups) so admin can still reach those
+ *     row lists without crowding the primary tab row.
+ *
+ * The ⋯ button shows a small dot beside the glyph when the menu's
+ * affecting state (chart series selected OR hidden view active) so
+ * admin sees "I've configured something here" at a glance.
  */
 function TabOverflowMenu({
   tabs,
   activeTab,
   onSelect,
   tabCounts,
+  chartSeries,
+  onToggleChartSeries,
+  onClearChartSeries,
 }: {
   tabs: TabDef[];
   activeTab: TabKey;
   onSelect: (tab: TabKey) => void;
   tabCounts: TabCounts | null;
+  chartSeries: Set<string>;
+  onToggleChartSeries: (metric: string) => void;
+  onClearChartSeries: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const isActive = tabs.some((t) => t.key === activeTab);
+  const navIsActive = tabs.some((t) => t.key === activeTab);
+  const indicatorDot = navIsActive || chartSeries.size > 0;
   useEffect(() => {
     if (!open) return;
     const onClickOutside = (e: MouseEvent) => {
@@ -2264,50 +2344,106 @@ function TabOverflowMenu({
     <div ref={ref} className="relative shrink-0">
       <button
         onClick={() => setOpen((s) => !s)}
-        title="More views"
-        aria-label="More views"
+        title="Compare metrics in chart, or open a hidden view"
+        aria-label="Chart and views"
         aria-expanded={open}
         className={`flex items-center whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-          isActive
+          navIsActive
             ? "border-gray-900 text-gray-900"
             : "border-transparent text-gray-400 hover:text-gray-600"
         }`}
       >
         <span aria-hidden className="text-base leading-none">⋯</span>
-        {isActive && (
+        {indicatorDot && (
           <span className="ml-1.5 h-1.5 w-1.5 rounded-full bg-gray-900" aria-hidden />
         )}
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-30 mt-1 w-56 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
-          {tabs.map((t) => {
-            const count =
-              t.key === "outbound" ||
-              t.key === "emails_sent" ||
-              t.key === "signups"
-                ? null
-                : tabCounts?.[
-                    t.key as Exclude<TabKey, "outbound" | "emails_sent" | "signups">
-                  ];
-            const active = t.key === activeTab;
-            return (
+        <div className="absolute right-0 top-full z-30 mt-1 w-72 rounded-md border border-gray-200 bg-white py-2 shadow-lg">
+          {/* ── Chart series picker (top) ──────────────────────────── */}
+          <div className="flex items-center justify-between px-3 pb-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              Compare in chart
+            </span>
+            {chartSeries.size > 0 && (
               <button
-                key={t.key}
-                onClick={() => { onSelect(t.key); setOpen(false); }}
-                title={t.tooltip}
-                className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-sm ${
-                  active
-                    ? "bg-gray-50 font-medium text-gray-900"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
+                onClick={onClearChartSeries}
+                className="text-[11px] font-medium text-gray-500 hover:text-gray-900"
               >
-                <span>{t.label}</span>
-                {typeof count === "number" && count > 0 && (
-                  <span className="text-xs text-gray-400">{count}</span>
-                )}
+                Clear
               </button>
-            );
-          })}
+            )}
+          </div>
+          <div className="space-y-0.5 px-1 pb-2">
+            {CHART_SERIES_OPTIONS.map((opt) => {
+              const checked = chartSeries.has(opt.metric);
+              const count =
+                opt.countKey && tabCounts
+                  ? tabCounts[opt.countKey] ?? null
+                  : null;
+              return (
+                <label
+                  key={opt.metric}
+                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-gray-50"
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => onToggleChartSeries(opt.metric)}
+                    className="h-3.5 w-3.5 rounded border-gray-300"
+                  />
+                  <span
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: opt.color }}
+                    aria-hidden
+                  />
+                  <span className="flex-1 text-gray-700">{opt.label}</span>
+                  {typeof count === "number" && count > 0 && (
+                    <span className="text-xs tabular-nums text-gray-400">{count}</span>
+                  )}
+                </label>
+              );
+            })}
+          </div>
+
+          {/* ── Open-view navigation (bottom) ──────────────────────── */}
+          <div className="border-t border-gray-100 pt-1.5">
+            <div className="px-3 pb-1.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                Open view
+              </span>
+            </div>
+            <div className="space-y-0.5 px-1 pb-1">
+              {tabs.map((t) => {
+                const count =
+                  t.key === "outbound" ||
+                  t.key === "emails_sent" ||
+                  t.key === "signups"
+                    ? null
+                    : tabCounts?.[
+                        t.key as Exclude<TabKey, "outbound" | "emails_sent" | "signups">
+                      ];
+                const active = t.key === activeTab;
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => { onSelect(t.key); setOpen(false); }}
+                    title={t.tooltip}
+                    className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm ${
+                      active
+                        ? "bg-gray-50 font-medium text-gray-900"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span>{t.label}</span>
+                    {typeof count === "number" && count > 0 && (
+                      <span className="text-xs tabular-nums text-gray-400">{count}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
     </div>

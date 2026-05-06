@@ -38,7 +38,7 @@ export async function GET(_request: NextRequest) {
     ] = await Promise.all([
       db
         .from("student_outreach_campuses")
-        .select("id, slug, name, state, city, research_complete, is_active, created_at")
+        .select("id, slug, name, state, city, research_complete, is_active, created_at, viewed_at")
         .eq("is_active", true)
         .order("name", { ascending: true }),
       db
@@ -50,15 +50,25 @@ export async function GET(_request: NextRequest) {
         .select("campus_id, status, created_at"),
       // v9.0 Phase 7 Commit H: pending site_tasks drive the
       // "Active with pending tasks" priority tier.
+      // Commit O: also pull task created_at so the row's `unread`
+      // flag can be computed against the campus's viewed_at.
       db
         .from("site_tasks")
-        .select("campus_id")
+        .select("campus_id, created_at")
         .eq("status", "pending"),
     ]);
 
     const sitesWithPendingTasks = new Set<string>();
-    for (const t of (pendingSiteTasks ?? []) as Array<{ campus_id: string }>) {
+    const latestPendingTaskByCampus = new Map<string, string>();
+    for (const t of (pendingSiteTasks ?? []) as Array<{
+      campus_id: string;
+      created_at: string;
+    }>) {
       sitesWithPendingTasks.add(t.campus_id);
+      const cur = latestPendingTaskByCampus.get(t.campus_id);
+      if (!cur || t.created_at > cur) {
+        latestPendingTaskByCampus.set(t.campus_id, t.created_at);
+      }
     }
 
     type ProviderLite = {
@@ -112,6 +122,7 @@ export async function GET(_request: NextRequest) {
       research_complete: boolean;
       is_active: boolean;
       created_at: string | null;
+      viewed_at: string | null;
     }>).map((c) => {
       const uni = PARTNER_UNIVERSITIES.find((u) => u.slug === c.slug);
       let clientCount = 0;
@@ -141,6 +152,13 @@ export async function GET(_request: NextRequest) {
           ? Math.max(0, Math.floor((now - new Date(c.created_at).getTime()) / 86400_000))
           : null;
       const hasPendingTask = sitesWithPendingTasks.has(c.id);
+      // v9.0 Phase 7 Commit O: unread = there's a pending site_task
+      // created after admin's last view (or admin never viewed).
+      // Same shape as the unread model on student_outreach + business_profiles.
+      const latestTaskCreated = latestPendingTaskByCampus.get(c.id) ?? null;
+      const unread =
+        latestTaskCreated != null &&
+        (!c.viewed_at || latestTaskCreated > c.viewed_at);
 
       return {
         id: c.id,
@@ -156,6 +174,8 @@ export async function GET(_request: NextRequest) {
         // v9.0 Phase 7 Commit H: throughput-queue fields.
         has_pending_task: hasPendingTask,
         queue_age_days: queueAgeDays,
+        // v9.0 Phase 7 Commit O: unified unread flag.
+        unread,
       };
     });
 

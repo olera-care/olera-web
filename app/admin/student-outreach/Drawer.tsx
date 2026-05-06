@@ -392,6 +392,24 @@ function ProviderDrawer({
     return () => { cancelled = true; };
   }, [providerId]);
 
+  // v9.0 Phase 7 Commit O: mark the client read on drawer mount —
+  // mirrors the StakeholderDrawer's mark_read effect. Fire the
+  // global refresh so In Basket + sidebar fractions update live.
+  useEffect(() => {
+    void (async () => {
+      try {
+        await fetch("/api/admin/medjobs/mark-entity-read", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind: "client", id: providerId, action: "read" }),
+        });
+        refreshMedJobs();
+      } catch {
+        /* non-critical */
+      }
+    })();
+  }, [providerId]);
+
   return (
     <DrawerShell
       onClose={onClose}
@@ -654,6 +672,22 @@ function SiteDrawer({ siteId, onClose }: { siteId: string; onClose: () => void }
     return () => { cancelled = true; };
   }, [siteId]);
 
+  // v9.0 Phase 7 Commit O: mark site read on mount.
+  useEffect(() => {
+    void (async () => {
+      try {
+        await fetch("/api/admin/medjobs/mark-entity-read", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind: "site", id: siteId, action: "read" }),
+        });
+        refreshMedJobs();
+      } catch {
+        /* non-critical */
+      }
+    })();
+  }, [siteId]);
+
   return (
     <DrawerShell
       onClose={onClose}
@@ -751,6 +785,22 @@ function CandidateDrawer({
       }
     })();
     return () => { cancelled = true; };
+  }, [candidateId]);
+
+  // v9.0 Phase 7 Commit O: mark candidate read on mount.
+  useEffect(() => {
+    void (async () => {
+      try {
+        await fetch("/api/admin/medjobs/mark-entity-read", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind: "candidate", id: candidateId, action: "read" }),
+        });
+        refreshMedJobs();
+      } catch {
+        /* non-critical */
+      }
+    })();
   }, [candidateId]);
 
   return (

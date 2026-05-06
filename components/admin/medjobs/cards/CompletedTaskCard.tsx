@@ -16,6 +16,9 @@ import { Pill } from "./StakeholderCard";
 
 export interface CompletedTaskRow {
   id: string;
+  /** Stakeholder source: outreach_id. For entity-task sources
+   *  (client/candidate/site), this is "" — use source_kind +
+   *  source_id for routing. */
   outreach_id: string;
   touchpoint_type: string;
   channel: string | null;
@@ -27,6 +30,14 @@ export interface CompletedTaskRow {
   kind: string;
   stakeholder_type: string | null;
   campus_name: string | null;
+  /** v9.0 Phase 7 Commit O: Logs feed unification. Identifies which
+   *  surface logged this completion so the Logs page can route the
+   *  drawer click to the right mode. Defaults to "stakeholder" for
+   *  legacy touchpoint rows. */
+  source_kind?: "stakeholder" | "client" | "candidate" | "site";
+  /** Entity id for drawer routing (matches source_kind). Stakeholder
+   *  rows fall back to outreach_id. */
+  source_id?: string;
 }
 
 export function CompletedTaskCard({
@@ -121,6 +132,15 @@ function describeTouchpoint(row: CompletedTaskRow): {
     }
     case "note_added":
       return { verb: "Note added", pillText: null };
+    // v9.0 Phase 7 Commit O: synthetic types for entity-task completions
+    // (business_profile_tasks + site_tasks). Surfaced in the unified
+    // Logs feed alongside stakeholder touchpoints.
+    case "task_completed_client":
+      return { verb: "Client step logged", pillText: null };
+    case "task_completed_candidate":
+      return { verb: "Candidate step logged", pillText: null };
+    case "task_completed_site":
+      return { verb: "Site step logged", pillText: null };
     default:
       return { verb: row.touchpoint_type.replace(/_/g, " "), pillText: null };
   }

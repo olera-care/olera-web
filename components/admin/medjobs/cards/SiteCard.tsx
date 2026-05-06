@@ -119,6 +119,7 @@ export function SiteCard({
       overflowMenu={overflowMenu}
       onClick={ctaAction}
       hoverTitle="Open site operational view."
+      unread={row.unread === true}
     />
   );
 }

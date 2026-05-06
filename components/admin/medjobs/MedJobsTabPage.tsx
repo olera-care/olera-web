@@ -226,6 +226,25 @@ export function MedJobsTabPage({
     [refetch],
   );
 
+  // v9.0 Phase 7 Commit O: shared mark-as-unread helper for entity-task
+  // entities. POSTs to the unified mark-entity-read endpoint with
+  // action='unread' so the entity's viewed_at clears, surfacing it as
+  // unread again across the In Basket + sidebar.
+  const markEntityUnread = useCallback(
+    async (kind: "client" | "candidate" | "site", id: string) => {
+      try {
+        await fetch("/api/admin/medjobs/mark-entity-read", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind, id, action: "unread" }),
+        });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to mark unread");
+      }
+    },
+    [],
+  );
+
   const callAction = useCallback(
     async (outreachId: string, action: string, payload: Record<string, unknown> = {}) => {
       const res = await fetch(`/api/admin/student-outreach/${outreachId}`, {
@@ -481,6 +500,20 @@ export function MedJobsTabPage({
                       setBulkResearchCampus(payload);
                     }}
                     onViewSite={() => setOpenSiteId(c.id)}
+                    overflowMenu={
+                      <CardOverflowMenu
+                        items={[
+                          {
+                            label: "Mark as unread",
+                            onClick: async () => {
+                              await markEntityUnread("site", c.id);
+                              await refetch();
+                              refreshMedJobs();
+                            },
+                          },
+                        ]}
+                      />
+                    }
                   />
                 </li>
               );
@@ -491,6 +524,8 @@ export function MedJobsTabPage({
         // v9.0 Phase 7 Commit N: In Basket Clients tab renders provider
         // clients with at least one pending business_profile_task
         // (kind=client). Click opens the ProviderDrawer (Step Board).
+        // Commit O: cards inherit row.unread; overflow includes
+        // Mark as unread parity with stakeholder cards.
         clientRows.length === 0 ? (
           <p className="py-12 text-center text-sm text-gray-400">
             No clients with pending steps right now.
@@ -502,16 +537,26 @@ export function MedJobsTabPage({
                 <ClientCard
                   row={r}
                   onManage={() => setOpenProviderId(r.id)}
+                  overflowMenu={
+                    <CardOverflowMenu
+                      items={[
+                        {
+                          label: "Mark as unread",
+                          onClick: async () => {
+                            await markEntityUnread("client", r.id);
+                            await refetch();
+                            refreshMedJobs();
+                          },
+                        },
+                      ]}
+                    />
+                  }
                 />
               </li>
             ))}
           </ul>
         )
       ) : tab === "candidates" ? (
-        // v9.0 Phase 7 Commit N: In Basket Candidates tab renders
-        // student profiles with at least one pending
-        // business_profile_task (kind=candidate). Click opens the
-        // CandidateDrawer (Step Board).
         candidateRows.length === 0 ? (
           <p className="py-12 text-center text-sm text-gray-400">
             No candidates with pending steps right now.
@@ -526,6 +571,14 @@ export function MedJobsTabPage({
                   overflowMenu={
                     <CardOverflowMenu
                       items={[
+                        {
+                          label: "Mark as unread",
+                          onClick: async () => {
+                            await markEntityUnread("candidate", r.id);
+                            await refetch();
+                            refreshMedJobs();
+                          },
+                        },
                         {
                           label: "Open profile editor",
                           onClick: () => {

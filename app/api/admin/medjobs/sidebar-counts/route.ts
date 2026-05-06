@@ -2,41 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 /**
- * v9.0 Phase 7 Commit L: sidebar fraction counts.
+ * v9.0 Phase 7 Commit O: sidebar fraction counts.
  *
  * Returns per-entity { unread, total } powering the MedJobs sidebar
  * fractions. One endpoint, one round-trip, fired on sidebar mount +
  * every refreshMedJobs() invalidation.
  *
- * Counting model — universal across entities:
- *   numerator   (unread)  = active operational rows for this entity
- *                            with viewed_at IS NULL
- *   denominator (total)   = active operational rows for this entity
- *                            (read + unread)
+ * Counting model — one universal rule across every entity:
+ *   numerator   (unread)  = active rows for this entity that have a
+ *                            pending operational signal (task /
+ *                            touchpoint / state) created after the
+ *                            entity's last viewed_at — OR the entity
+ *                            was never viewed and has any signal at all
+ *   denominator (total)   = active rows for this entity (inventory
+ *                            scope on the sidebar; task-driven scope
+ *                            inside the In Basket horizontal tabs)
  *
- * Per-entity definitions of "active operational rows":
- *   in_basket   active student_outreach (not closed) + pending entity
- *               tasks. Denominator matches the In Basket hero
- *               "Queued" tile.
- *   sites       active student_outreach_campuses. No notification
- *               model — unread is always 0.
- *   prospects   student_outreach in RESEARCH_STATUSES.
- *   clients     business_profiles in pilot or subscribed. No
- *               notification model.
- *   partners    student_outreach in active_partner status, kind !=
- *               'provider'.
- *   candidates  live student profiles. No notification model.
- *   replies     student_outreach in REPLIES_STATUSES.
- *   meetings    student_outreach with a meeting_scheduled touchpoint
- *               that hasn't been superseded by a later meeting_held.
- *   calls       distinct student_outreach with a pending phone task
- *               due now.
+ * Storage:
+ *   stakeholder  student_outreach.viewed_at column
+ *   site         student_outreach_campuses.viewed_at column (mig 076)
+ *   client /
+ *   candidate    business_profiles.metadata.admin_viewed_at
  *
- * Note on entity-only surfaces (sites / clients / candidates):
- * these don't have a viewed_at notification stream the way
- * student_outreach does, so unread is always 0 and the sidebar
- * renders the plain count (no fraction). The fraction only pops
- * when an entity has a real unread/read split.
+ * The mark-entity-read endpoint hides the storage difference.
  */
 
 const CLOSED_STATUSES = [
@@ -46,11 +34,6 @@ const CLOSED_STATUSES = [
   "wrong_contact",
 ];
 
-// DB-level statuses (matches the canonical sets in the queue endpoint).
-// Derived states (wants_meeting, needs_followup, awaiting_callback) live
-// in touchpoint payloads, not status — so the bucket here keys off
-// outreach_sent + engaged, then meeting state is teased apart from
-// touchpoints below.
 const REPLIES_STATUSES = ["outreach_sent", "engaged"];
 const RESEARCH_STATUSES = ["prospect", "researched"];
 const PARTNER_STATUSES = ["active_partner"];
@@ -58,6 +41,20 @@ const PARTNER_STATUSES = ["active_partner"];
 interface CountEntry {
   unread: number;
   total: number;
+}
+
+/**
+ * v9.0 Phase 7 Commit O: shared unread predicate for entity-task
+ * entities. An entity is unread when it has any pending task created
+ * after its viewed_at — OR was never viewed and has a pending task.
+ */
+function isEntityUnread(
+  viewedAt: string | null,
+  latestTaskCreatedAt: string | null,
+): boolean {
+  if (!latestTaskCreatedAt) return false;
+  if (!viewedAt) return true;
+  return latestTaskCreatedAt > viewedAt;
 }
 
 export async function GET(_req: NextRequest) {
@@ -68,61 +65,55 @@ export async function GET(_req: NextRequest) {
 
   const db = getServiceClient();
 
-  // Single-pass scan of all active student_outreach rows with their
-  // viewed_at + status. Everything else is computed against this set
-  // in JS, plus a few small auxiliary queries.
   const [
     { data: outreachRows },
     { data: callTasks },
     { data: meetingTouchpoints },
-    { count: pendingBpTasks },
-    { count: pendingSiteTasks },
-    { count: sitesCount },
-    { count: clientsCount },
-    { count: candidatesCount },
+    { data: pendingBpTasks },
+    { data: pendingSiteTasks },
+    { data: campusRows },
+    { data: clientProfiles },
+    { data: candidateProfiles },
   ] = await Promise.all([
     db.from("student_outreach").select("id, status, viewed_at, kind"),
-    // Pending phone tasks due now → distinct outreach_ids = Calls
-    // active set.
     db
       .from("student_outreach_tasks")
       .select("outreach_id")
       .eq("status", "pending")
       .eq("task_type", "outreach_followup_call")
       .lte("due_at", new Date().toISOString()),
-    // Meeting touchpoints in a recent window so we can derive which
-    // rows have an active meeting (scheduled but not yet held). 90
-    // days is generous; meetings older than that are stale.
     db
       .from("student_outreach_touchpoints")
       .select("outreach_id, touchpoint_type, created_at")
       .in("touchpoint_type", ["meeting_scheduled", "meeting_held"])
-      .gte(
-        "created_at",
-        new Date(Date.now() - 90 * 86400_000).toISOString(),
-      )
+      .gte("created_at", new Date(Date.now() - 90 * 86400_000).toISOString())
       .order("created_at", { ascending: false })
       .limit(5000),
+    // v9.0 Phase 7 Commit O: pull task data (not just count) so we
+    // can compute unread per entity by comparing task.created_at to
+    // entity.viewed_at.
     db
       .from("business_profile_tasks")
-      .select("id", { count: "exact", head: true })
+      .select("business_profile_id, kind, created_at")
       .eq("status", "pending"),
     db
       .from("site_tasks")
-      .select("id", { count: "exact", head: true })
+      .select("campus_id, created_at")
       .eq("status", "pending"),
     db
       .from("student_outreach_campuses")
-      .select("id", { count: "exact", head: true })
+      .select("id, viewed_at, is_active")
       .eq("is_active", true),
+    // Active clients (T&C-accepted providers) with metadata so we
+    // can read admin_viewed_at.
     db
       .from("business_profiles")
-      .select("id", { count: "exact", head: true })
+      .select("id, metadata")
       .in("type", ["organization", "caregiver"])
       .not("metadata->>interview_terms_accepted_at", "is", null),
     db
       .from("business_profiles")
-      .select("id", { count: "exact", head: true })
+      .select("id, metadata")
       .eq("type", "student")
       .eq("is_active", true)
       .contains("metadata", { application_completed: true }),
@@ -138,11 +129,7 @@ export async function GET(_req: NextRequest) {
   const isUnread = (r: { viewed_at: string | null }) => r.viewed_at == null;
   const isClosed = (s: string) => CLOSED_STATUSES.includes(s);
 
-  // Meetings: scheduled but not yet held. Walk the recent meeting
-  // touchpoints; remember the last touchpoint per outreach_id; if it's
-  // meeting_scheduled (not meeting_held), that row has an active
-  // meeting. Touchpoints come back created_at desc so the first hit
-  // per outreach_id is the latest.
+  // ── Stakeholder-side derived sets (Meetings / Calls) ──
   const latestMeetingTouchpoint = new Map<string, string>();
   for (const t of (meetingTouchpoints ?? []) as Array<{
     outreach_id: string;
@@ -156,26 +143,47 @@ export async function GET(_req: NextRequest) {
   for (const [id, type] of latestMeetingTouchpoint.entries()) {
     if (type === "meeting_scheduled") meetingActiveIds.add(id);
   }
-
-  // Calls: distinct outreach_ids from pending phone tasks.
   const callActiveIds = new Set<string>();
   for (const t of (callTasks ?? []) as Array<{ outreach_id: string }>) {
     callActiveIds.add(t.outreach_id);
   }
 
+  // ── Entity-task unread maps (per-entity latest pending task) ──
+  const latestClientTaskByProfile = new Map<string, string>();
+  const latestCandidateTaskByProfile = new Map<string, string>();
+  for (const t of (pendingBpTasks ?? []) as Array<{
+    business_profile_id: string;
+    kind: string;
+    created_at: string;
+  }>) {
+    const map =
+      t.kind === "client" ? latestClientTaskByProfile : latestCandidateTaskByProfile;
+    const cur = map.get(t.business_profile_id);
+    if (!cur || t.created_at > cur) map.set(t.business_profile_id, t.created_at);
+  }
+
+  const latestSiteTaskByCampus = new Map<string, string>();
+  for (const t of (pendingSiteTasks ?? []) as Array<{
+    campus_id: string;
+    created_at: string;
+  }>) {
+    const cur = latestSiteTaskByCampus.get(t.campus_id);
+    if (!cur || t.created_at > cur) latestSiteTaskByCampus.set(t.campus_id, t.created_at);
+  }
+
   const counts: Record<string, CountEntry> = {
     in_basket: { unread: 0, total: 0 },
-    sites: { unread: 0, total: sitesCount ?? 0 },
+    sites: { unread: 0, total: 0 },
     prospects: { unread: 0, total: 0 },
-    clients: { unread: 0, total: clientsCount ?? 0 },
+    clients: { unread: 0, total: 0 },
     partners: { unread: 0, total: 0 },
-    candidates: { unread: 0, total: candidatesCount ?? 0 },
+    candidates: { unread: 0, total: 0 },
     replies: { unread: 0, total: 0 },
     meetings: { unread: 0, total: 0 },
     calls: { unread: 0, total: 0 },
   };
 
-  // Walk active student_outreach rows once and bucket per entity.
+  // Stakeholder buckets (existing logic).
   for (const r of rows) {
     if (isClosed(r.status)) continue;
     counts.in_basket.total += 1;
@@ -193,9 +201,6 @@ export async function GET(_req: NextRequest) {
     }
   }
 
-  // Meetings + Calls: derived sets join back to the active row map for
-  // viewed_at. Rows that have closed since the touchpoint/task fell
-  // into the set are excluded so closed rows don't pollute counts.
   for (const id of meetingActiveIds) {
     const r = rowMap.get(id);
     if (!r || isClosed(r.status)) continue;
@@ -209,9 +214,55 @@ export async function GET(_req: NextRequest) {
     if (isUnread(r)) counts.calls.unread += 1;
   }
 
+  // ── Sites (inventory + per-site unread) ──
+  for (const c of (campusRows ?? []) as Array<{
+    id: string;
+    viewed_at: string | null;
+    is_active: boolean;
+  }>) {
+    counts.sites.total += 1;
+    const latestTaskCreated = latestSiteTaskByCampus.get(c.id) ?? null;
+    if (isEntityUnread(c.viewed_at, latestTaskCreated)) {
+      counts.sites.unread += 1;
+    }
+  }
+
+  // ── Clients (inventory + per-profile unread via metadata.admin_viewed_at) ──
+  for (const p of (clientProfiles ?? []) as Array<{
+    id: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    counts.clients.total += 1;
+    const adminViewedAt =
+      typeof p.metadata?.admin_viewed_at === "string"
+        ? (p.metadata.admin_viewed_at as string)
+        : null;
+    const latestTaskCreated = latestClientTaskByProfile.get(p.id) ?? null;
+    if (isEntityUnread(adminViewedAt, latestTaskCreated)) {
+      counts.clients.unread += 1;
+    }
+  }
+
+  // ── Candidates (inventory + per-profile unread) ──
+  for (const p of (candidateProfiles ?? []) as Array<{
+    id: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    counts.candidates.total += 1;
+    const adminViewedAt =
+      typeof p.metadata?.admin_viewed_at === "string"
+        ? (p.metadata.admin_viewed_at as string)
+        : null;
+    const latestTaskCreated = latestCandidateTaskByProfile.get(p.id) ?? null;
+    if (isEntityUnread(adminViewedAt, latestTaskCreated)) {
+      counts.candidates.unread += 1;
+    }
+  }
+
   // In Basket includes pending entity tasks in its denominator (matches
   // the hero's "Queued" semantics).
-  counts.in_basket.total += (pendingBpTasks ?? 0) + (pendingSiteTasks ?? 0);
+  counts.in_basket.total +=
+    (pendingBpTasks?.length ?? 0) + (pendingSiteTasks?.length ?? 0);
 
   return NextResponse.json({ counts });
 }

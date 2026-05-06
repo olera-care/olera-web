@@ -228,6 +228,11 @@ export interface CandidateRow {
   has_video: boolean;
   certifications_count: number;
   signed_up_at: string;
+  /** v9.0 Phase 7 Commit O: unified unread flag — true when there's a
+   *  pending business_profile_task created after metadata.admin_viewed_at.
+   *  Only meaningful in the In Basket subset (with_pending_task=true);
+   *  inventory views default to false. */
+  unread?: boolean;
 }
 
 /**
@@ -251,6 +256,9 @@ export interface CampusRow {
   /** v9.0 Phase 7 Commit H: days since the territory was activated.
    *  Drives the queue-age footnote on idle SiteCards. */
   queue_age_days?: number | null;
+  /** v9.0 Phase 7 Commit O: unified unread flag — true when there's
+   *  a pending site_task created after the campus's viewed_at. */
+  unread?: boolean;
 }
 
 /**
@@ -301,6 +309,9 @@ export interface ClientRow {
   pilot_started_at: string | null;
   pilot_ends_at: string | null;
   days_remaining_in_pilot: number | null;
+  /** v9.0 Phase 7 Commit O: unified unread flag — true when there's
+   *  a pending business_profile_task created after metadata.admin_viewed_at. */
+  unread?: boolean;
 }
 
 export interface OutboundRow {

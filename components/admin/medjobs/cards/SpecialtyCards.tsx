@@ -185,6 +185,7 @@ export function CandidateCard({
       href={onOpen ? undefined : `/admin/medjobs/${row.id}`}
       onClick={onOpen}
       hoverTitle={onOpen ? "Open candidate drawer." : "Open candidate profile."}
+      unread={row.unread === true}
     />
   );
 }

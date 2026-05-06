@@ -495,56 +495,145 @@ async function computeTabCounts(
     }
   }
 
-  // v9.0 Phase 7 Commit B: In Basket Clients/Candidates/Sites tabs are
-  // task-driven (Option B polymorphic tasks). Each tab's badge counts
-  // distinct entities with at least one pending task in the matching
-  // table. The dedicated /admin/medjobs/{clients,candidates,sites}
-  // pages still show full inventory; only the In Basket badge here is
-  // task-filtered (so the tab smart-hides when there's no pending work).
-  //
-  // Unread is intentionally 0 on these tabs — there's no viewed_at on
-  // business_profile_tasks/site_tasks yet. Tab labels render as plain
-  // counts (not the bolded `unread/total` fraction).
-  const [{ data: clientTaskRows }, { data: candidateTaskRows }, { data: siteTaskRows }] =
-    await Promise.all([
-      db
-        .from("business_profile_tasks")
-        .select("business_profile_id")
-        .eq("status", "pending")
-        .eq("kind", "client"),
-      db
-        .from("business_profile_tasks")
-        .select("business_profile_id")
-        .eq("status", "pending")
-        .eq("kind", "candidate"),
-      db
-        .from("site_tasks")
-        .select("campus_id")
-        .eq("status", "pending"),
-    ]);
+  // v9.0 Phase 7 Commit O: In Basket Clients/Candidates/Sites tab
+  // counts. Total = distinct entities with ≥1 pending task. Unread =
+  // subset whose latest pending task was created after the entity's
+  // last viewed_at (or never viewed). Same predicate as
+  // sidebar-counts so the two surfaces stay aligned.
+  const [
+    { data: clientTaskRows },
+    { data: candidateTaskRows },
+    { data: siteTaskRows },
+  ] = await Promise.all([
+    db
+      .from("business_profile_tasks")
+      .select("business_profile_id, created_at")
+      .eq("status", "pending")
+      .eq("kind", "client"),
+    db
+      .from("business_profile_tasks")
+      .select("business_profile_id, created_at")
+      .eq("status", "pending")
+      .eq("kind", "candidate"),
+    db
+      .from("site_tasks")
+      .select("campus_id, created_at")
+      .eq("status", "pending"),
+  ]);
 
-  const clientSet = new Set<string>();
-  for (const r of (clientTaskRows ?? []) as Array<{ business_profile_id: string }>) {
-    clientSet.add(r.business_profile_id);
+  const latestClientTaskByProfile = new Map<string, string>();
+  for (const r of (clientTaskRows ?? []) as Array<{
+    business_profile_id: string;
+    created_at: string;
+  }>) {
+    const cur = latestClientTaskByProfile.get(r.business_profile_id);
+    if (!cur || r.created_at > cur)
+      latestClientTaskByProfile.set(r.business_profile_id, r.created_at);
   }
-  counts.clients = clientSet.size;
 
-  const candidateSet = new Set<string>();
-  for (const r of (candidateTaskRows ?? []) as Array<{ business_profile_id: string }>) {
-    candidateSet.add(r.business_profile_id);
+  const latestCandidateTaskByProfile = new Map<string, string>();
+  for (const r of (candidateTaskRows ?? []) as Array<{
+    business_profile_id: string;
+    created_at: string;
+  }>) {
+    const cur = latestCandidateTaskByProfile.get(r.business_profile_id);
+    if (!cur || r.created_at > cur)
+      latestCandidateTaskByProfile.set(r.business_profile_id, r.created_at);
   }
-  // Override the inventory-based candidates count above. The In Basket
-  // tab is task-driven; the dedicated Candidates page still uses the
-  // inventory count via /api/admin/student-outreach/candidates.
-  counts.candidates = candidateSet.size;
 
-  const siteSet = new Set<string>();
-  for (const r of (siteTaskRows ?? []) as Array<{ campus_id: string }>) {
-    siteSet.add(r.campus_id);
+  const latestSiteTaskByCampus = new Map<string, string>();
+  for (const r of (siteTaskRows ?? []) as Array<{
+    campus_id: string;
+    created_at: string;
+  }>) {
+    const cur = latestSiteTaskByCampus.get(r.campus_id);
+    if (!cur || r.created_at > cur)
+      latestSiteTaskByCampus.set(r.campus_id, r.created_at);
   }
-  counts.sites = siteSet.size;
+
+  // Fetch entity viewed_at for the entities-with-tasks subset to
+  // compute unread.
+  const clientIds = Array.from(latestClientTaskByProfile.keys());
+  const candidateIds = Array.from(latestCandidateTaskByProfile.keys());
+  const siteIds = Array.from(latestSiteTaskByCampus.keys());
+
+  const [
+    { data: clientProfiles },
+    { data: candidateProfiles },
+    { data: campusViews },
+  ] = await Promise.all([
+    clientIds.length > 0
+      ? db.from("business_profiles").select("id, metadata").in("id", clientIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; metadata: Record<string, unknown> | null }> }),
+    candidateIds.length > 0
+      ? db.from("business_profiles").select("id, metadata").in("id", candidateIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; metadata: Record<string, unknown> | null }> }),
+    siteIds.length > 0
+      ? db
+          .from("student_outreach_campuses")
+          .select("id, viewed_at")
+          .in("id", siteIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; viewed_at: string | null }> }),
+  ]);
+
+  const clientViewedAt = new Map<string, string | null>();
+  for (const p of (clientProfiles ?? []) as Array<{
+    id: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    const v = p.metadata?.admin_viewed_at;
+    clientViewedAt.set(p.id, typeof v === "string" ? v : null);
+  }
+
+  const candidateViewedAt = new Map<string, string | null>();
+  for (const p of (candidateProfiles ?? []) as Array<{
+    id: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    const v = p.metadata?.admin_viewed_at;
+    candidateViewedAt.set(p.id, typeof v === "string" ? v : null);
+  }
+
+  const siteViewedAt = new Map<string, string | null>();
+  for (const c of (campusViews ?? []) as Array<{ id: string; viewed_at: string | null }>) {
+    siteViewedAt.set(c.id, c.viewed_at);
+  }
+
+  // entityUnread predicate: latest pending task created after viewed_at,
+  // or viewed_at is null. Mirrors sidebar-counts.isEntityUnread.
+  const entityUnread = (
+    viewed: string | null | undefined,
+    latestTask: string | null,
+  ): boolean => {
+    if (!latestTask) return false;
+    if (!viewed) return true;
+    return latestTask > viewed;
+  };
+
+  let clientUnread = 0;
+  for (const [id, latest] of latestClientTaskByProfile.entries()) {
+    if (entityUnread(clientViewedAt.get(id) ?? null, latest)) clientUnread += 1;
+  }
+  let candidateUnread = 0;
+  for (const [id, latest] of latestCandidateTaskByProfile.entries()) {
+    if (entityUnread(candidateViewedAt.get(id) ?? null, latest)) candidateUnread += 1;
+  }
+  let siteUnread = 0;
+  for (const [id, latest] of latestSiteTaskByCampus.entries()) {
+    if (entityUnread(siteViewedAt.get(id) ?? null, latest)) siteUnread += 1;
+  }
+
+  counts.clients = latestClientTaskByProfile.size;
+  unread.clients = clientUnread;
+
+  counts.candidates = latestCandidateTaskByProfile.size;
+  unread.candidates = candidateUnread;
+
+  counts.sites = latestSiteTaskByCampus.size;
+  unread.sites = siteUnread;
   // Legacy 'campuses' alias retained for queue-endpoint defenders.
-  counts.campuses = siteSet.size;
+  counts.campuses = counts.sites;
+  unread.campuses = siteUnread;
 
   return { counts, unread };
 }

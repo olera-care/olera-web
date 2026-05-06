@@ -42,26 +42,30 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // v9.0 Phase 7 Commit N: when with_pending_task=true, narrow to
-    // business_profiles that have ≥1 pending business_profile_task of
-    // kind='client'. Used by the In Basket Clients tab so the rendered
-    // list matches the task-driven count.
-    let clientsWithPendingTask: Set<string> | null = null;
-    if (withPendingTask) {
-      const { data: tasks } = await db
-        .from("business_profile_tasks")
-        .select("business_profile_id")
-        .eq("status", "pending")
-        .eq("kind", "client");
-      clientsWithPendingTask = new Set(
-        ((tasks ?? []) as Array<{ business_profile_id: string }>).map(
-          (t) => t.business_profile_id,
-        ),
-      );
-      // Empty set → no rows match; short-circuit.
-      if (clientsWithPendingTask.size === 0) {
-        return NextResponse.json({ rows: [], total: 0 });
+    // v9.0 Phase 7 Commit O: always pull pending task data so every
+    // row gets its `unread` flag (compared against
+    // metadata.admin_viewed_at). When with_pending_task=true, also
+    // narrow the result to clients with ≥1 pending task — used by
+    // the In Basket Clients tab.
+    const { data: pendingTasks } = await db
+      .from("business_profile_tasks")
+      .select("business_profile_id, created_at")
+      .eq("status", "pending")
+      .eq("kind", "client");
+    const latestPendingTaskByProfile = new Map<string, string>();
+    const clientsWithPendingTask = new Set<string>();
+    for (const t of (pendingTasks ?? []) as Array<{
+      business_profile_id: string;
+      created_at: string;
+    }>) {
+      clientsWithPendingTask.add(t.business_profile_id);
+      const cur = latestPendingTaskByProfile.get(t.business_profile_id);
+      if (!cur || t.created_at > cur) {
+        latestPendingTaskByProfile.set(t.business_profile_id, t.created_at);
       }
+    }
+    if (withPendingTask && clientsWithPendingTask.size === 0) {
+      return NextResponse.json({ rows: [], total: 0 });
     }
 
     // Provider profiles: organization (agency) or caregiver. Filter by
@@ -108,11 +112,23 @@ export async function GET(request: NextRequest) {
 
     const rows = ((data ?? []) as ProviderRow[])
       .filter((row) => {
-        if (clientsWithPendingTask && !clientsWithPendingTask.has(row.id)) return false;
+        if (withPendingTask && !clientsWithPendingTask.has(row.id)) return false;
         return true;
       })
       .map((row) => {
         const status = getClientStatus(row.metadata);
+        // v9.0 Phase 7 Commit O: unread = there's a pending task
+        // created after admin's last view (or admin never viewed).
+        // Only meaningful when we've fetched pending-task data; for
+        // the inventory view (no with_pending_task filter) the flag
+        // defaults to false.
+        const adminViewedAtRaw = (row.metadata as Record<string, unknown> | null)
+          ?.admin_viewed_at;
+        const adminViewedAt = typeof adminViewedAtRaw === "string" ? adminViewedAtRaw : null;
+        const latestTaskCreated = latestPendingTaskByProfile.get(row.id) ?? null;
+        const unread =
+          latestTaskCreated != null &&
+          (!adminViewedAt || latestTaskCreated > adminViewedAt);
         return {
           id: row.id,
           display_name: row.display_name || "(unnamed provider)",
@@ -136,6 +152,7 @@ export async function GET(request: NextRequest) {
           pilot_started_at: status.pilotStartedAt?.toISOString() ?? null,
           pilot_ends_at: status.pilotEndsAt?.toISOString() ?? null,
           days_remaining_in_pilot: status.daysRemainingInPilot,
+          unread,
         };
       })
       .filter((row) => {

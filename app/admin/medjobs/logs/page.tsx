@@ -61,6 +61,11 @@ export default function LogsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
+  // v9.0 Phase 7 Commit O: Logs feed is unified — entity-task
+  // completions can also surface here. Each gets its own drawer mode.
+  const [openProviderId, setOpenProviderId] = useState<string | null>(null);
+  const [openCandidateId, setOpenCandidateId] = useState<string | null>(null);
+  const [openSiteId, setOpenSiteId] = useState<string | null>(null);
 
   // Debounce search input — small list size, no need for tight typing.
   useEffect(() => {
@@ -203,7 +208,25 @@ export default function LogsPage() {
             <li key={r.id}>
               <CompletedTaskCard
                 row={r}
-                onOpenDrawer={() => setOpenOutreachId(r.outreach_id)}
+                onOpenDrawer={() => {
+                  // v9.0 Phase 7 Commit O: route to the right drawer
+                  // mode by source_kind. Stakeholder is the default
+                  // for legacy touchpoint rows that pre-date the
+                  // unified feed.
+                  switch (r.source_kind) {
+                    case "client":
+                      if (r.source_id) setOpenProviderId(r.source_id);
+                      break;
+                    case "candidate":
+                      if (r.source_id) setOpenCandidateId(r.source_id);
+                      break;
+                    case "site":
+                      if (r.source_id) setOpenSiteId(r.source_id);
+                      break;
+                    default:
+                      setOpenOutreachId(r.outreach_id);
+                  }
+                }}
               />
             </li>
           ))}
@@ -215,6 +238,33 @@ export default function LogsPage() {
           outreachId={openOutreachId}
           onClose={() => setOpenOutreachId(null)}
           onAction={() => {
+            void refetch();
+          }}
+        />
+      )}
+      {openProviderId && (
+        <Drawer
+          providerId={openProviderId}
+          onClose={() => {
+            setOpenProviderId(null);
+            void refetch();
+          }}
+        />
+      )}
+      {openCandidateId && (
+        <Drawer
+          candidateId={openCandidateId}
+          onClose={() => {
+            setOpenCandidateId(null);
+            void refetch();
+          }}
+        />
+      )}
+      {openSiteId && (
+        <Drawer
+          siteId={openSiteId}
+          onClose={() => {
+            setOpenSiteId(null);
             void refetch();
           }}
         />

@@ -52,20 +52,28 @@ export async function GET(req: NextRequest) {
   // business_profiles that have ≥1 pending business_profile_task of
   // kind='candidate'. Drives the In Basket Candidates tab.
   let candidatesWithPendingTask: Set<string> | null = null;
-  if (withPendingTask) {
-    const { data: tasks } = await db
-      .from("business_profile_tasks")
-      .select("business_profile_id")
-      .eq("status", "pending")
-      .eq("kind", "candidate");
-    candidatesWithPendingTask = new Set(
-      ((tasks ?? []) as Array<{ business_profile_id: string }>).map(
-        (t) => t.business_profile_id,
-      ),
-    );
-    if (candidatesWithPendingTask.size === 0) {
-      return NextResponse.json({ rows: [] });
+  // v9.0 Phase 7 Commit O: always pull pending task data so every
+  // row gets its `unread` flag. When with_pending_task=true, narrow
+  // to candidates with ≥1 pending task.
+  const { data: pendingTasks } = await db
+    .from("business_profile_tasks")
+    .select("business_profile_id, created_at")
+    .eq("status", "pending")
+    .eq("kind", "candidate");
+  const latestPendingTaskByProfile = new Map<string, string>();
+  candidatesWithPendingTask = new Set();
+  for (const t of (pendingTasks ?? []) as Array<{
+    business_profile_id: string;
+    created_at: string;
+  }>) {
+    candidatesWithPendingTask.add(t.business_profile_id);
+    const cur = latestPendingTaskByProfile.get(t.business_profile_id);
+    if (!cur || t.created_at > cur) {
+      latestPendingTaskByProfile.set(t.business_profile_id, t.created_at);
     }
+  }
+  if (withPendingTask && candidatesWithPendingTask.size === 0) {
+    return NextResponse.json({ rows: [] });
   }
 
   let campusName: string | null = null;
@@ -107,7 +115,7 @@ export async function GET(req: NextRequest) {
     created_at: string;
   }>)
     .filter((p) => {
-      if (candidatesWithPendingTask && !candidatesWithPendingTask.has(p.id)) return false;
+      if (withPendingTask && !candidatesWithPendingTask.has(p.id)) return false;
       if (!lowerCampus) return true;
       const u =
         typeof p.metadata?.university === "string" ? (p.metadata.university as string) : null;
@@ -119,6 +127,14 @@ export async function GET(req: NextRequest) {
       const certifications = Array.isArray(meta.certifications)
         ? (meta.certifications as unknown[])
         : [];
+      // v9.0 Phase 7 Commit O: unread = pending task created after
+      // admin's last view (or admin never viewed).
+      const adminViewedAtRaw = meta.admin_viewed_at;
+      const adminViewedAt = typeof adminViewedAtRaw === "string" ? adminViewedAtRaw : null;
+      const latestTaskCreated = latestPendingTaskByProfile.get(p.id) ?? null;
+      const unread =
+        latestTaskCreated != null &&
+        (!adminViewedAt || latestTaskCreated > adminViewedAt);
       return {
         id: p.id,
         slug: p.slug,
@@ -135,6 +151,7 @@ export async function GET(req: NextRequest) {
         has_video: typeof meta.video_intro_url === "string" && meta.video_intro_url.length > 0,
         certifications_count: certifications.length,
         signed_up_at: p.created_at,
+        unread,
       };
     });
 

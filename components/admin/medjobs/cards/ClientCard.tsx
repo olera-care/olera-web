@@ -66,6 +66,7 @@ export function ClientCard({
       overflowMenu={overflowMenu}
       onClick={onManage}
       hoverTitle="Open the management drawer for this client."
+      unread={row.unread === true}
     />
   );
 }

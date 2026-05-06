@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * v9.0 Phase 5: Completed Tasks page. Chronological touchpoint feed
+ * v9.0 Phase 6: Completed Work page. Chronological touchpoint feed
  * of completed operational actions. The "what we got done" surface.
  *
  * Date range filter at top. Click any card to open the source row's
@@ -41,7 +41,7 @@ export default function CompletedTasksPage() {
       const params = new URLSearchParams();
       params.set("from", from.toISOString());
       params.set("limit", "100");
-      const res = await fetch(`/api/admin/medjobs/completed-tasks?${params}`);
+      const res = await fetch(`/api/admin/medjobs/completed-work?${params}`);
       if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
       const data = await res.json();
       setRows(data.rows ?? []);
@@ -59,7 +59,7 @@ export default function CompletedTasksPage() {
     <div>
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">MedJobs · Completed Tasks</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">MedJobs · Completed Work</h1>
           <p className="mt-0.5 text-sm text-gray-500">
             What you and the team finished. Click any row to open it for context.
           </p>

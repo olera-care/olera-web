@@ -38,7 +38,9 @@ export function EmptyState({
     );
   }
   const blurbs: Record<TabKey, string> = {
-    clients: "Coming in v9.x — provider clients (trial + Stripe) land here in Phase 2.",
+    unread: "✓ Inbox zero — nothing unread.",
+    undone: "✓ All caught up — no aging tasks.",
+    clients: "No clients yet.",
     candidates: "No live candidates yet.",
     prospects: "No prospects need research right now.",
     calls: "No phone calls due. 🎉",

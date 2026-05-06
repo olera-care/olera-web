@@ -18,6 +18,11 @@ import type { StakeholderType, TabCounts, TabRow } from "./types";
  * net-new). For Phase 0 the keys mirror the legacy v8.10 surface.
  */
 export type TabKey =
+  // v9.0 Phase 6: state-based In Basket tabs
+  | "unread"
+  | "undone"
+  // Legacy entity-keyed tabs — kept on the union for the queue endpoint
+  // and other historical call sites; not rendered in the new In Basket.
   | "clients"
   | "candidates"
   | "prospects"
@@ -52,15 +57,11 @@ export interface TabDef {
 // Partners), with Campuses as the territorial primitive at the end.
 // Clients + Campuses are scaffolded in v9.0 Phase 1 with placeholder
 // content; their full data model + drawer fork lands in Phase 2.
+// v9.0 Phase 6: In Basket tabs are state-based. Tab visibility hides
+// when count = 0 (smart-hide); active tab stays in the bar mid-session.
 export const TABS: TabDef[] = [
-  { key: "clients",    label: "Clients",          tooltip: "Provider clients — agencies in trial or with an active subscription. (Coming in v9.x — Phase 2 wires the data model.)" },
-  { key: "candidates", label: "Candidates",       tooltip: "Live student profiles visible to providers on the job board (active + application complete). Subset of all signups." },
-  { key: "prospects",  label: "Prospects",        tooltip: "Stakeholders being researched and qualified before outreach starts. v9.0 Phase 2 will fold provider prospects into this tab too." },
-  { key: "partners",   label: "Partners",         tooltip: "Stakeholders sharing with students. Click Engage to work pending partner tasks (task board posting, materials, follow-ups)." },
-  { key: "meetings",   label: "Meetings",         tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
-  { key: "replies",    label: "Replies",          tooltip: "Email replies, callbacks, voicemails. Triage what they said and pick the next step." },
-  { key: "calls",      label: "Calls",            tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
-  { key: "campuses",   label: "Campuses",         tooltip: "Universities and their catchment areas — the operational primitive. Provider prospecting kicks off here; student-stakeholder prospecting unlocks after the first client converts in a campus's catchment." },
+  { key: "unread",     label: "Unread",   tooltip: "Newly surfaced rows you haven't opened. Bolded in the list." },
+  { key: "undone",     label: "Undone",   tooltip: "Rows you've opened but haven't acted on yet. The aging-debt pile." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
@@ -79,9 +80,13 @@ export const MENU_TABS: TabDef[] = [
 // metric (drives the time series fetched from /stats) and a label
 // (drives the kpiSuffix shown in the header).
 export const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
-  // v9.0 Phase 2 Tier 3.6: real time-series metrics now wired in
-  // /stats. clients = T&C-acceptance timestamps; campuses = creation
-  // timestamps.
+  // v9.0 Phase 6: In Basket state-based tabs share the broad activity
+  // metric — the chart shows operational momentum across the unified
+  // feed. Per-tab metrics for Unread vs Undone aren't useful (they're
+  // derived states, not source data).
+  unread:      { metric: "activity",         label: "operational events"   },
+  undone:      { metric: "activity",         label: "operational events"   },
+  // Phase 2 metrics still wired for legacy callers / Stakeholders pages.
   clients:     { metric: "clients",          label: "new clients"          },
   campuses:    { metric: "campuses",         label: "campuses assigned"    },
   // v8.10.42: Candidates ⊂ Signups. Candidates = LIVE provider-facing

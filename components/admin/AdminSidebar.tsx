@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AdminUser } from "@/lib/types";
+import { AddCampusModal } from "@/components/admin/medjobs/AddCampusModal";
 
 interface AdminSidebarProps {
   adminUser: AdminUser;
@@ -66,20 +67,18 @@ const navSections: NavSection[] = [
       { label: "Team", href: "/admin/team" },
     ],
   },
-  // v9.0 Phase 5: MedJobs left nav simplifies to three operational
-  // surfaces. Workflow stages (Replies, Calls, etc.) live as smart
-  // horizontal tabs inside In Basket — they auto-hide when there's
-  // no work, so the sidebar stays clean.
-  {
-    label: "MedJobs",
-    key: "medjobs",
-    defaultOpen: true,
-    items: [
-      { label: "In Basket", href: "/admin/medjobs/in-basket" },
-      { label: "Completed Tasks", href: "/admin/medjobs/completed-tasks" },
-      { label: "All Tasks", href: "/admin/medjobs/all-tasks" },
-    ],
-  },
+];
+
+// v9.0 Phase 6: MedJobs section is hand-rendered (not config-driven)
+// because it has nested structure (Stakeholders sub-group with three
+// children + Add Campus action button). The flat-config navSections
+// pattern doesn't model this cleanly; explicit JSX is simpler.
+const STAKEHOLDERS_KEY = "stakeholders";
+
+const stakeholdersChildren: NavItem[] = [
+  { label: "Clients",    href: "/admin/medjobs/clients" },
+  { label: "Candidates", href: "/admin/medjobs/candidates" },
+  { label: "Partners",   href: "/admin/medjobs/partners" },
 ];
 
 // Mobile: 5 daily-use items with icons
@@ -154,13 +153,19 @@ function Chevron({ open }: { open: boolean }) {
 
 export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   const pathname = usePathname();
+  const [showAddCampus, setShowAddCampus] = useState(false);
 
-  // Initialize collapsed state — sections without defaultOpen start collapsed
+  // v9.0 Phase 6: medjobs section + stakeholders sub-group track
+  // their open/closed state separately. medjobs defaults open;
+  // stakeholders defaults open too (admin probably wants to see
+  // Clients / Candidates / Partners at a glance).
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     for (const s of navSections) {
       initial[s.key] = !s.defaultOpen;
     }
+    initial.medjobs = false;
+    initial[STAKEHOLDERS_KEY] = false;
     return initial;
   });
 
@@ -187,6 +192,17 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   const activeSectionKey = navSections.find((s) =>
     s.items.some((item) => isActive(item.href))
   )?.key;
+
+  // v9.0 Phase 6: medjobs + stakeholders open state. Both auto-expand
+  // when a child route is active so the active page is always visible.
+  const medjobsHasActive =
+    isActive("/admin/medjobs/in-basket") ||
+    isActive("/admin/medjobs/completed-work") ||
+    stakeholdersChildren.some((c) => isActive(c.href));
+  const medjobsOpen = !collapsed.medjobs || medjobsHasActive;
+  const stakeholdersHasActive = stakeholdersChildren.some((c) => isActive(c.href));
+  const stakeholdersOpen =
+    !collapsed[STAKEHOLDERS_KEY] || stakeholdersHasActive;
 
   return (
     <>
@@ -244,6 +260,80 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
               </div>
             );
           })}
+
+          {/* v9.0 Phase 6: MedJobs section — three top-level entries +
+              Stakeholders sub-group + Add Campus action button. */}
+          <div key="medjobs" className="mt-1">
+            <button
+              onClick={() => toggle("medjobs")}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors duration-100"
+            >
+              MedJobs
+              <Chevron open={medjobsOpen} />
+            </button>
+
+            {medjobsOpen && (
+              <div className="mt-0.5 space-y-px">
+                <Link
+                  href="/admin/medjobs/in-basket"
+                  className={[
+                    "block pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                    isActive("/admin/medjobs/in-basket")
+                      ? "text-gray-900 font-medium bg-gray-100"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                  ].join(" ")}
+                >
+                  In Basket
+                </Link>
+                <Link
+                  href="/admin/medjobs/completed-work"
+                  className={[
+                    "block pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                    isActive("/admin/medjobs/completed-work")
+                      ? "text-gray-900 font-medium bg-gray-100"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                  ].join(" ")}
+                >
+                  Completed Work
+                </Link>
+
+                {/* Stakeholders sub-group */}
+                <button
+                  onClick={() => toggle(STAKEHOLDERS_KEY)}
+                  className="w-full flex items-center justify-between pl-5 pr-2.5 py-1.5 rounded-md text-[13px] text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-100"
+                >
+                  Stakeholders
+                  <Chevron open={stakeholdersOpen} />
+                </button>
+                {stakeholdersOpen && (
+                  <div className="space-y-px">
+                    {stakeholdersChildren.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={[
+                          "block pl-9 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                          isActive(item.href)
+                            ? "text-gray-900 font-medium bg-gray-100"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                        ].join(" ")}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                    {/* Add Campus action button — kicks off the campus
+                        cascade (Stage 1 catchment surfacing). */}
+                    <button
+                      onClick={() => setShowAddCampus(true)}
+                      className="block w-full text-left pl-9 pr-2.5 py-1.5 rounded-md text-[13px] text-emerald-700 hover:text-emerald-900 hover:bg-emerald-50 transition-colors duration-100"
+                    >
+                      + Add Campus
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className="border-t border-gray-100 px-3 py-3">
@@ -282,6 +372,21 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
           })}
         </div>
       </nav>
+
+      {showAddCampus && (
+        <AddCampusModal
+          onClose={() => setShowAddCampus(false)}
+          onCreated={(slug, name) => {
+            setShowAddCampus(false);
+            // Refresh the page so the new campus surfaces in the
+            // Campuses tab inside In Basket. Soft refresh — preserves
+            // current route. Window.location preserves URL state.
+            if (typeof window !== "undefined") window.location.reload();
+            void slug;
+            void name;
+          }}
+        />
+      )}
     </>
   );
 }

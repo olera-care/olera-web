@@ -11,5 +11,5 @@ import { MedJobsTabPage } from "@/components/admin/medjobs/MedJobsTabPage";
  * v9.0 Phase 1: replaces /admin/student-outreach as the workflow entry.
  */
 export default function MedJobsInBasketPage() {
-  return <MedJobsTabPage initialTab="prospects" title="MedJobs · In Basket" />;
+  return <MedJobsTabPage initialTab="unread" title="MedJobs · In Basket" />;
 }

@@ -1,0 +1,135 @@
+"use client";
+
+/**
+ * v9.0 Phase 6: Partners page. Campus stakeholders in active_partner
+ * status — advisors, dept heads, professors, student orgs that are
+ * distributing student profiles to their members.
+ *
+ * Reference + relationship-management surface. Tasks for individual
+ * partners (e.g., seasonal check-in due) appear in In Basket
+ * separately.
+ *
+ * Excludes kind='provider' rows. Provider partners (historical or
+ * paying) live in the Clients surface, not here.
+ */
+
+import { useCallback, useEffect, useState } from "react";
+import { Drawer } from "@/app/admin/student-outreach/Drawer";
+import { MedjobsCard } from "@/components/admin/medjobs/cards/MedjobsCard";
+import { Pill } from "@/components/admin/medjobs/cards/StakeholderCard";
+import { KIND_LABELS } from "@/lib/student-outreach/types";
+import { formatRelative } from "@/lib/student-outreach/formatters";
+import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
+
+interface PartnerRow {
+  id: string;
+  organization_name: string;
+  department: string | null;
+  kind: string;
+  stakeholder_type: string | null;
+  campus_name: string | null;
+  viewed_at: string | null;
+  last_edited_at: string;
+  distribution_evidence: string | null;
+  distribution_evidence_notes: string | null;
+  primary_contact_name: string | null;
+  primary_contact_role: string | null;
+  primary_contact_email: string | null;
+}
+
+export default function PartnersPage() {
+  const [rows, setRows] = useState<PartnerRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      const r = await fetch(`/api/admin/medjobs/partners?${params}`);
+      if (!r.ok) throw new Error((await r.json()).error || "Failed to load partners");
+      const d = await r.json();
+      setRows(d.rows ?? []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load");
+    } finally {
+      setLoading(false);
+    }
+  }, [debouncedSearch]);
+
+  useEffect(() => { refetch(); }, [refetch]);
+  useMedJobsRefresh(refetch);
+
+  return (
+    <div>
+      <header className="mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900">MedJobs · Partners</h1>
+        <p className="mt-0.5 text-sm text-gray-500">
+          Active campus partnerships distributing student profiles.
+        </p>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by organization name…"
+          className="mt-4 w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+        />
+      </header>
+
+      {loading ? (
+        <p className="py-12 text-center text-sm text-gray-400">Loading…</p>
+      ) : error ? (
+        <p className="py-12 text-center text-sm text-red-600">{error}</p>
+      ) : rows.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-12 text-center text-sm text-gray-400">
+          No active partners yet. Mark a stakeholder as Partner once they commit to sharing.
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {rows.map((r) => {
+            const kindLabel =
+              KIND_LABELS[(r.kind as keyof typeof KIND_LABELS) ?? "student_org"] ?? r.kind;
+            const subtitle = [
+              r.campus_name,
+              kindLabel,
+              r.primary_contact_role,
+            ]
+              .filter(Boolean)
+              .join(" · ");
+            return (
+              <li key={r.id}>
+                <MedjobsCard
+                  title={r.primary_contact_name ?? r.organization_name}
+                  subtitle={subtitle || null}
+                  footnote={`Last activity ${formatRelative(r.last_edited_at)}`}
+                  pill={<Pill>★ Active partner</Pill>}
+                  onClick={() => setOpenOutreachId(r.id)}
+                  hoverTitle="Open the partner drawer."
+                  unread={r.viewed_at == null}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {openOutreachId && (
+        <Drawer
+          outreachId={openOutreachId}
+          onClose={() => setOpenOutreachId(null)}
+          onAction={() => { void refetch(); }}
+        />
+      )}
+    </div>
+  );
+}

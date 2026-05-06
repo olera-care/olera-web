@@ -445,7 +445,7 @@ function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         onClick={cb.onOpenDrawer}
         title="Open the drawer to review research + email cadence, then start outreach."
       >
-        Start Outreach
+        Log
       </PrimaryAction>
     ),
     overflowMenu: buildUniversalOverflow(cb),
@@ -469,7 +469,14 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         📞 {row.primary_contact_phone}
       </a>
     ) : null,
-    cta: <PrimaryAction onClick={cb.onLogCallOutcome}>Log call</PrimaryAction>,
+    cta: (
+      <PrimaryAction
+        onClick={cb.onLogCallOutcome}
+        title="Log the outcome of this phone call."
+      >
+        Log
+      </PrimaryAction>
+    ),
     overflowMenu: buildUniversalOverflow(cb),
   };
 }
@@ -493,7 +500,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             onClick={() => cb.onClassifyReply("email_reply")}
             title="Saw a reply in Gmail? Click to record what they said."
           >
-            Log reply
+            Log
           </PrimaryAction>
         ),
         overflowMenu: buildUniversalOverflow(cb),
@@ -502,14 +509,28 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
       return {
         footnote: lastActivityFootnote,
         pill: <Pill>Replied</Pill>,
-        cta: <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>,
+        cta: (
+          <PrimaryAction
+            onClick={() => cb.onClassifyReply("email_reply")}
+            title="Log the reply contents and pick the next step."
+          >
+            Log
+          </PrimaryAction>
+        ),
         overflowMenu: buildUniversalOverflow(cb),
       };
     case "wants_meeting":
       return {
         footnote: lastActivityFootnote,
         pill: <Pill>Wants to meet</Pill>,
-        cta: <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>,
+        cta: (
+          <PrimaryAction
+            onClick={() => cb.onClassifyReply("email_reply")}
+            title="Log the reply contents and book or coordinate the meeting."
+          >
+            Log
+          </PrimaryAction>
+        ),
         overflowMenu: buildUniversalOverflow(cb),
       };
     case "booked":
@@ -523,7 +544,14 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
           <ExpandableNote text={row.followup_notes} />
         ) : lastActivityFootnote,
         pill: <Pill>Met — needs follow-up</Pill>,
-        cta: <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>,
+        cta: (
+          <PrimaryAction
+            onClick={() => cb.onClassifyReply("email_reply")}
+            title="Log the follow-up reply or schedule the next step."
+          >
+            Log
+          </PrimaryAction>
+        ),
         overflowMenu: buildUniversalOverflow(cb),
       };
     case "awaiting_callback":
@@ -535,7 +563,14 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             {row.awaiting_callback_at ? ` · ${formatShortRelative(row.awaiting_callback_at)}` : ""}
           </Pill>
         ),
-        cta: <PrimaryAction onClick={() => cb.onClassifyReply("callback")}>Log reply</PrimaryAction>,
+        cta: (
+          <PrimaryAction
+            onClick={() => cb.onClassifyReply("callback")}
+            title="Log the callback or voicemail outcome."
+          >
+            Log
+          </PrimaryAction>
+        ),
         overflowMenu: buildUniversalOverflow(cb),
       };
     case "stale":
@@ -568,7 +603,14 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   return {
     footnote: lastActivityFootnote,
     pill,
-    cta: <PrimaryAction onClick={cb.onLogMeeting}>Log Meeting</PrimaryAction>,
+    cta: (
+      <PrimaryAction
+        onClick={cb.onLogMeeting}
+        title="Log the meeting status — finding a time, booked, done, or follow-up needed."
+      >
+        Log
+      </PrimaryAction>
+    ),
     overflowMenu: buildUniversalOverflow(cb),
   };
 }
@@ -583,9 +625,9 @@ function partnersSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     cta: (
       <PrimaryAction
         onClick={cb.onOpenDrawer}
-        title="Open the drawer to work pending partner tasks (task board posting, materials, follow-ups)."
+        title="Open the drawer to log the next partner step (task board posting, materials, follow-ups)."
       >
-        Engage
+        Log
       </PrimaryAction>
     ),
     overflowMenu: buildUniversalOverflow(cb, { excludeMakePartner: true }),
@@ -613,11 +655,11 @@ function archiveSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         onClick={() => cb.onClassifyReply("email_reply")}
         title="They replied or called back. Log it to re-route this row to Replies."
       >
-        Log reply
+        Log
       </PrimaryAction>
     ),
     overflowMenu: buildUniversalOverflow(cb, {
-      extraItems: [{ label: "Log reply (callback)", onClick: () => cb.onClassifyReply("callback") }],
+      extraItems: [{ label: "Log callback", onClick: () => cb.onClassifyReply("callback") }],
     }),
   };
 }

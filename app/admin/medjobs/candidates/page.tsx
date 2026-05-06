@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CandidateCard } from "@/components/admin/medjobs/cards/SpecialtyCards";
+import { CardOverflowMenu } from "@/components/admin/medjobs/cards/CardOverflowMenu";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import type { CandidateRow } from "@/lib/student-outreach/tab-config";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
@@ -58,7 +59,26 @@ export default function CandidatesPage() {
         <ul className="space-y-2">
           {rows.map((r) => (
             <li key={r.id}>
-              <CandidateCard row={r} onOpen={() => setOpenCandidateId(r.id)} />
+              <CandidateCard
+                row={r}
+                onOpen={() => setOpenCandidateId(r.id)}
+                overflowMenu={
+                  <CardOverflowMenu
+                    items={[
+                      {
+                        label: "Open profile editor",
+                        onClick: () => {
+                          window.location.href = `/admin/medjobs/${r.id}`;
+                        },
+                      },
+                      {
+                        label: "Add custom step",
+                        onClick: () => setOpenCandidateId(r.id),
+                      },
+                    ]}
+                  />
+                }
+              />
             </li>
           ))}
         </ul>

@@ -144,9 +144,11 @@ export function SignupCard({ row }: { row: SignupRow }) {
 export function CandidateCard({
   row,
   onOpen,
+  overflowMenu,
 }: {
   row: CandidateRow;
   onOpen?: () => void;
+  overflowMenu?: React.ReactNode;
 }) {
   const subtitle = [
     row.university,
@@ -179,6 +181,7 @@ export function CandidateCard({
       subtitle={subtitle}
       footnote={`Live since ${formatRelative(row.signed_up_at)}`}
       pill={pill}
+      overflowMenu={overflowMenu}
       href={onOpen ? undefined : `/admin/medjobs/${row.id}`}
       onClick={onOpen}
       hoverTitle={onOpen ? "Open candidate drawer." : "Open candidate profile."}

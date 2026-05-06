@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import { ClientCard } from "@/components/admin/medjobs/cards/ClientCard";
+import { CardOverflowMenu } from "@/components/admin/medjobs/cards/CardOverflowMenu";
 import type { ClientRow } from "@/lib/student-outreach/tab-config";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
@@ -79,7 +80,44 @@ export default function ClientsPage() {
         <ul className="space-y-2">
           {rows.map((r) => (
             <li key={r.id}>
-              <ClientCard row={r} onManage={() => setOpenProviderId(r.id)} />
+              <ClientCard
+                row={r}
+                onManage={() => setOpenProviderId(r.id)}
+                overflowMenu={
+                  <CardOverflowMenu
+                    items={[
+                      ...(r.stripe_customer_id
+                        ? [
+                            {
+                              label: "View in Stripe",
+                              onClick: () => {
+                                window.open(
+                                  `https://dashboard.stripe.com/customers/${r.stripe_customer_id}`,
+                                  "_blank",
+                                  "noopener,noreferrer",
+                                );
+                              },
+                            },
+                          ]
+                        : []),
+                      ...(r.slug
+                        ? [
+                            {
+                              label: "View public profile",
+                              onClick: () => {
+                                window.open(`/${r.slug}`, "_blank", "noopener,noreferrer");
+                              },
+                            },
+                          ]
+                        : []),
+                      {
+                        label: "Add custom step",
+                        onClick: () => setOpenProviderId(r.id),
+                      },
+                    ]}
+                  />
+                }
+              />
             </li>
           ))}
         </ul>

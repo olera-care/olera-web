@@ -20,6 +20,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import { SiteCard } from "@/components/admin/medjobs/cards/SiteCard";
+import { CardOverflowMenu } from "@/components/admin/medjobs/cards/CardOverflowMenu";
 import { AddSiteModal } from "@/components/admin/medjobs/AddSiteModal";
 import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
 import type { CampusRow } from "@/lib/student-outreach/tab-config";
@@ -100,6 +101,22 @@ export default function SitesPage() {
                   })
                 }
                 onViewSite={() => setOpenSiteId(r.id)}
+                overflowMenu={
+                  <CardOverflowMenu
+                    items={[
+                      {
+                        label: "Open management page",
+                        onClick: () => {
+                          window.location.href = `/admin/student-outreach/campus/${r.slug}`;
+                        },
+                      },
+                      {
+                        label: "Add custom step",
+                        onClick: () => setOpenSiteId(r.id),
+                      },
+                    ]}
+                  />
+                }
               />
             </li>
           ))}

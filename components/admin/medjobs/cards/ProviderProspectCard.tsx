@@ -22,9 +22,11 @@ import { Pill } from "./StakeholderCard";
 export function ProviderProspectCard({
   row,
   onStartOutreach,
+  overflowMenu,
 }: {
   row: ProviderProspectRow;
   onStartOutreach: () => void;
+  overflowMenu?: React.ReactNode;
 }) {
   const subtitle = [
     [row.city, row.state].filter(Boolean).join(", ") || null,
@@ -45,11 +47,13 @@ export function ProviderProspectCard({
             e.stopPropagation();
             onStartOutreach();
           }}
+          title="Materialize this provider into outreach and log the first step."
           className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
         >
-          Start outreach
+          Log
         </button>
       }
+      overflowMenu={overflowMenu}
       onClick={onStartOutreach}
       hoverTitle="Materialize this provider into outreach."
     />

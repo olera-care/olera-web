@@ -1431,7 +1431,7 @@ function StageGuidance({
               ? `Set for ${new Date(ctx.meeting_at).toLocaleString()}.`
               : "After it happens, log how it went."
           }
-          primaryCta={{ label: "Log meeting", onClick: onLogMeeting }}
+          primaryCta={{ label: "Log", onClick: onLogMeeting }}
         />
       );
     } else if (hasOverdueCall) {
@@ -1442,7 +1442,7 @@ function StageGuidance({
         <StateCard
           title="They want to meet."
           subtext="Send times over email, then log what was set."
-          primaryCta={{ label: "Log meeting", onClick: onLogMeeting }}
+          primaryCta={{ label: "Log", onClick: onLogMeeting }}
         />
       );
     } else if (r === "needs_followup") {
@@ -1451,7 +1451,7 @@ function StageGuidance({
           title="Met — needs follow-up."
           subtext="Send a check-in email, then log what they say."
           notes={ctx.followup_notes}
-          primaryCta={{ label: "Log reply", onClick: onLogReply }}
+          primaryCta={{ label: "Log", onClick: onLogReply }}
         />
       );
     } else if (r === "awaiting_callback") {
@@ -1462,7 +1462,7 @@ function StageGuidance({
         <StateCard
           title="Waiting on a call back."
           subtext={`${kindText} If they call or write back, log it.`}
-          primaryCta={{ label: "Log reply", onClick: onLogReply }}
+          primaryCta={{ label: "Log", onClick: onLogReply }}
         />
       );
     } else if (r === "engaged") {
@@ -1470,7 +1470,7 @@ function StageGuidance({
         <StateCard
           title="They replied."
           subtext="Read it in Gmail, then log what they said."
-          primaryCta={{ label: "Log reply", onClick: onLogReply }}
+          primaryCta={{ label: "Log", onClick: onLogReply }}
         />
       );
     } else if (r === "stale") {
@@ -1478,7 +1478,7 @@ function StageGuidance({
         <StateCard
           title="Cadence stalled."
           subtext="Send a custom re-engage email, or close the row if it's not moving."
-          primaryCta={{ label: "Log reply", onClick: onLogReply }}
+          primaryCta={{ label: "Log", onClick: onLogReply }}
         />
       );
     }

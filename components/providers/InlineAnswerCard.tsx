@@ -188,7 +188,7 @@ export default function InlineAnswerCard({
     >
       {showSuccess ? (
         /* ═══════════════════════════════════════════════════════════════
-           Success State — Polished confirmation with brand colors
+           Success State — Polished confirmation with provider avatar
            ═══════════════════════════════════════════════════════════════ */
         <button
           type="button"
@@ -200,11 +200,21 @@ export default function InlineAnswerCard({
             ${showSuccess ? "opacity-100 scale-100" : "opacity-0 scale-95"}
           `}
         >
-          {/* Celebratory checkmark icon */}
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-500 shadow-lg shadow-primary-200 mb-4">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-            </svg>
+          {/* Provider avatar */}
+          <div className="mb-4">
+            {providerImage ? (
+              <img
+                src={providerImage}
+                alt={firstName}
+                className="w-16 h-16 rounded-full object-cover ring-[3px] ring-primary-100 shadow-lg mx-auto"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center ring-[3px] ring-primary-100 shadow-lg mx-auto">
+                <span className="text-2xl font-semibold text-primary-700">
+                  {firstName.charAt(0)}
+                </span>
+              </div>
+            )}
           </div>
           <p className="text-[19px] font-semibold text-gray-900">
             {firstName} will reply soon

@@ -115,6 +115,34 @@ const MENU_TABS: TabDef[] = [
   { key: "archive",     label: "Archive",      tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Replies if they reply or call back later." },
 ];
 
+// v8.10.39: lightweight row shapes for the Emails Sent + Signups views.
+// These tabs query dedicated endpoints (not /queue) and render their
+// own card variants — same chrome as StakeholderCard but different
+// content because the underlying unit isn't a stakeholder row.
+interface EmailSentRow {
+  id: string;
+  outreach_id: string;
+  sent_at: string;
+  recipient_name: string | null;
+  recipient_email: string | null;
+  cadence_day: number | null;
+  template: string | null;
+  success: boolean;
+  has_reply: boolean;
+  organization_name: string;
+  stakeholder_type: StakeholderType;
+  campus_name: string;
+  primary_contact_name: string | null;
+}
+
+interface SignupRow {
+  id: string;
+  full_name: string;
+  university: string | null;
+  email: string | null;
+  signed_up_at: string;
+}
+
 const TYPE_FILTERS: Array<{ key: StakeholderType | "all"; label: string }> = [
   { key: "all", label: "All types" },
   { key: "student_org", label: "Student Orgs" },
@@ -158,6 +186,10 @@ export default function StudentOutreachPage() {
   const [rows, setRows] = useState<TabRow[]>([]);
   const [researchCampuses, setResearchCampuses] = useState<ResearchCampusCard[]>([]);
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
+  // v8.10.39: dedicated row sets for the menu views that don't share the
+  // stakeholder shape. Populated by tab-specific endpoints.
+  const [emailsSentRows, setEmailsSentRows] = useState<EmailSentRow[]>([]);
+  const [signupRows, setSignupRows] = useState<SignupRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
@@ -185,19 +217,59 @@ export default function StudentOutreachPage() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
-      if (campusSlug) params.set("campus", campusSlug);
-      if (typeFilter !== "all") params.set("type", typeFilter);
-      if (tab) params.set("tab", tab);
-      if (debouncedSearch) params.set("search", debouncedSearch);
-      if (tab === "all" && showClosed) params.set("show_closed", "true");
-      const res = await fetch(`/api/admin/student-outreach/queue?${params}`);
-      if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
-      const data = await res.json();
-      setCampuses(data.campuses ?? []);
-      setRows(data.rows ?? []);
-      setResearchCampuses(data.research_campuses ?? []);
-      setTabCounts(data.tab_counts ?? null);
+      // v8.10.39: emails_sent + signups are dedicated views — they don't
+      // share the stakeholder row shape, so they hit dedicated endpoints
+      // and populate their own row sets. The queue is still fetched for
+      // tabCounts so the tab-row counts stay accurate while the menu
+      // views are open.
+      const queueParams = new URLSearchParams();
+      if (campusSlug) queueParams.set("campus", campusSlug);
+      if (typeFilter !== "all") queueParams.set("type", typeFilter);
+      // For dedicated-view tabs, don't filter the queue — we just want
+      // its tabCounts. Pass tab=prospects (default) so the queue does
+      // sensible work; the rows result is ignored for those tabs.
+      const queueTab =
+        tab === "emails_sent" || tab === "signups" ? "prospects" : tab;
+      queueParams.set("tab", queueTab);
+      if (debouncedSearch) queueParams.set("search", debouncedSearch);
+      if (tab === "all" && showClosed) queueParams.set("show_closed", "true");
+
+      const fetches: Array<Promise<void>> = [
+        (async () => {
+          const res = await fetch(`/api/admin/student-outreach/queue?${queueParams}`);
+          if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
+          const data = await res.json();
+          setCampuses(data.campuses ?? []);
+          if (tab !== "emails_sent" && tab !== "signups") {
+            setRows(data.rows ?? []);
+            setResearchCampuses(data.research_campuses ?? []);
+          }
+          setTabCounts(data.tab_counts ?? null);
+        })(),
+      ];
+
+      if (tab === "emails_sent") {
+        fetches.push((async () => {
+          const p = new URLSearchParams();
+          if (campusSlug) p.set("campus", campusSlug);
+          if (typeFilter !== "all") p.set("type", typeFilter);
+          const r = await fetch(`/api/admin/student-outreach/emails-sent?${p}`);
+          if (!r.ok) throw new Error((await r.json()).error || "Failed to load emails");
+          const d = await r.json();
+          setEmailsSentRows(d.rows ?? []);
+        })());
+      } else if (tab === "signups") {
+        fetches.push((async () => {
+          const p = new URLSearchParams();
+          if (campusSlug) p.set("campus", campusSlug);
+          const r = await fetch(`/api/admin/student-outreach/signups?${p}`);
+          if (!r.ok) throw new Error((await r.json()).error || "Failed to load signups");
+          const d = await r.json();
+          setSignupRows(d.rows ?? []);
+        })());
+      }
+
+      await Promise.all(fetches);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -464,6 +536,37 @@ export default function StudentOutreachPage() {
           }}
           tabCountsAll={tabCounts?.all ?? 0}
         />
+      ) : tab === "emails_sent" ? (
+        emailsSentRows.length === 0 ? (
+          <p className="py-12 text-center text-sm text-gray-400">
+            No emails sent yet — check back once outreach kicks off.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {emailsSentRows.map((r) => (
+              <li key={r.id}>
+                <EmailSentCard
+                  row={r}
+                  onOpenDrawer={() => setOpenOutreachId(r.outreach_id)}
+                />
+              </li>
+            ))}
+          </ul>
+        )
+      ) : tab === "signups" ? (
+        signupRows.length === 0 ? (
+          <p className="py-12 text-center text-sm text-gray-400">
+            No student signups in this range.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {signupRows.map((r) => (
+              <li key={r.id}>
+                <SignupCard row={r} />
+              </li>
+            ))}
+          </ul>
+        )
       ) : rows.length === 0 ? (
         <EmptyState tab={tab} tabCounts={tabCounts} onAdd={() => setShowAdd(true)} />
       ) : tab === "replies" ? (
@@ -1632,6 +1735,114 @@ function ResearchTabContent({
  * filled dark chip; the count is a tabular numeral inset on the
  * right of the label.
  */
+/**
+ * v8.10.39: row card for the Emails Sent menu view. Same chrome as
+ * StakeholderCard (white bg, gray-200 border, rounded-lg, ⋯-style top
+ * spacing) but the headline is the recipient and the subtitle carries
+ * the org + campus + template. Click opens the underlying stakeholder
+ * drawer so admin can see the full context of the email's outreach.
+ *
+ * Pill rules:
+ *   - Replied   → emerald, "Replied" (any subsequent email_replied)
+ *   - Failed    → amber, "Send failed"
+ *   - else      → no pill (sent, awaiting reply or not applicable)
+ */
+function EmailSentCard({
+  row,
+  onOpenDrawer,
+}: {
+  row: EmailSentRow;
+  onOpenDrawer: () => void;
+}) {
+  const headline = row.recipient_name
+    ? row.recipient_name
+    : row.recipient_email ?? row.primary_contact_name ?? row.organization_name;
+  const subtitleParts: string[] = [
+    row.organization_name,
+    row.campus_name,
+    STAKEHOLDER_TYPE_LABELS[row.stakeholder_type],
+  ];
+  if (row.recipient_email && row.recipient_name) subtitleParts.push(row.recipient_email);
+  const templateLabel = row.template
+    ? row.template.replace(/_/g, " ")
+    : null;
+  const dayLabel = row.cadence_day !== null ? `Day ${row.cadence_day}` : null;
+  const footnoteParts: string[] = [];
+  if (templateLabel) footnoteParts.push(templateLabel);
+  if (dayLabel) footnoteParts.push(dayLabel);
+  footnoteParts.push(`Sent ${formatRelative(row.sent_at)}`);
+
+  let pill: React.ReactNode = null;
+  if (row.has_reply) {
+    pill = (
+      <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-900">
+        Replied
+      </span>
+    );
+  } else if (!row.success) {
+    pill = (
+      <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
+        Send failed
+      </span>
+    );
+  }
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onOpenDrawer}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpenDrawer();
+        }
+      }}
+      title="Open the stakeholder drawer for full context."
+      className="cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+    >
+      <div className="flex items-stretch justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-gray-900">{headline}</p>
+          <p className="mt-0.5 truncate text-xs text-gray-500">
+            {subtitleParts.join(" · ")}
+          </p>
+          <p className="mt-0.5 text-[11px] text-gray-400">
+            {footnoteParts.join(" · ")}
+          </p>
+          {pill && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">{pill}</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * v8.10.39: row card for the Signups menu view. Passive informational
+ * row — no CTA, no overflow. Lists raw student business_profiles with
+ * the university they associated themselves with at signup time.
+ */
+function SignupCard({ row }: { row: SignupRow }) {
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
+      <div className="flex items-stretch justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-gray-900">{row.full_name}</p>
+          <p className="mt-0.5 truncate text-xs text-gray-500">
+            {row.university ?? "(no university listed)"}
+            {row.email && ` · ${row.email}`}
+          </p>
+          <p className="mt-0.5 text-[11px] text-gray-400">
+            Signed up {formatRelative(row.signed_up_at)}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FilterPill({
   active,
   onClick,

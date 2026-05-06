@@ -266,7 +266,7 @@ export default function AdminAnalyticsPage() {
       <CollapsibleSection
         title={rangeLabel(range)}
         storageKey="windowed"
-        defaultCollapsed={false}
+        defaultCollapsed={true}
         loading={loading && !!summary}
       >
         <WindowedCard summary={summary} loading={loading} range={range} />
@@ -281,13 +281,14 @@ export default function AdminAnalyticsPage() {
         <QaFunnelCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
-      {/* Family Intake is the daily-driver experiment surface — open by
-          default. forceOpen ensures a ?variant=... drill-in URL keeps the
-          section visible even if the operator had collapsed it. */}
+      {/* Every section starts collapsed; the operator opens what they
+          want and the choice persists across reloads. forceOpen still
+          pins Family Intake open when a ?variant=... drill-in URL is
+          present, so deep links never land on a closed section. */}
       <CollapsibleSection
         title="Family Intake"
         storageKey="benefitsFunnel"
-        defaultCollapsed={false}
+        defaultCollapsed={true}
         forceOpen={!!searchParams.get("variant")}
         loading={loading && !!summary}
       >

@@ -7,6 +7,34 @@
 
 ## Current Focus
 
+### 2026-05-05 (Tue, evening) — Admin dial for intake A/B traffic allocation (P1, shipped on `great-jackson` branch)
+
+Replaces the hardcoded equal split with a per-arm percentage dial in `/admin/analytics`. Operator can ramp a winning arm to 100, dark a losing arm to 0, or run a 50/50 head-to-head — without a deploy. Built directly on top of PR #743's qa_email_capture work; includes the merge resolution.
+
+**The motivation (why now):** Now that there are 5 arms in flight and the data is starting to point somewhere (qa_email_capture is the early candidate per the same-day session), TJ asked for a way to control allocation without touching code. "Sometimes I want two arms only, sometimes one, sometimes all five."
+
+**What shipped (2 commits on `great-jackson`):**
+
+1. **`6c951623`** — Add admin dial. New `experiment_weights` table (migration 070, RLS-on, service-role-only). Public read at `/api/variant-weights/intake` is CDN-cached (s-maxage=30) so weight changes propagate within ~30s. Admin GET/POST at `/api/admin/analytics/variant-weights`. Saving bumps a `version` int that's namespaced into the variant assignment hash (`djb2(sessionId + ":v" + version)`), so a save reshuffles returning sessions in one cut instead of grandfathering them. UI is a card at the top of Family Intake — 5 arm-cards in an auto-fit grid (handles future N>5 cleanly), live "Sum: X / 100" badge, Save button gated on dirty + sum=100, Reset to equal split, Discard changes, error feedback, version display.
+
+2. **`debca38e`** — Pre-test fix. Admin GET fetch chain returned null on `r.ok=false` then early-returned without setting `loaded=true` — a 401/403/500 left the form in a permanent disabled state with no error visible. Fixed: every failure path now lands at loaded+errorFeedback. Plus three stale-comment refreshes (4-arm/25-25-25-25 references from before the qa_email_capture merge).
+
+**Architectural decision worth remembering:** Built a shared `useIntakeVariant()` hook at `hooks/use-intake-variant.ts` so both `IntakeVariantSlots` (SBF/outreach surface) and `QASectionV2` (qa_email_capture surface) read from one source of truth. Without this consolidation, the dial would have controlled 4 of 5 surfaces only — `QASectionV2` was calling `assignIntakeVariant` directly with the equal-split mod-5, and would have stayed on equal-split even after the dial darked an arm. **Single client-side authority for variant assignment is now an invariant** — any future caller of "which arm is this session in?" must use this hook.
+
+**Variant set is now expansion-proof:** `INTAKE_VARIANTS as const` is the single source of truth; `IntakeVariant` derives from it via `(typeof ...)[number]`; the validation, assignment, default-weights, and admin UI all iterate the array. Adding an arm = one append + a `variantSurfaceLabel` + `variantSubLabel` case + an `INTAKE_VARIANT_DEFAULT_WEIGHTS` entry. TypeScript flags all three as missing if you skip them.
+
+**Migration 070 seeds at 20/20/20/20/20** — matches the live qa_email_capture-era equal split, so applying it is a net no-op for traffic. Only effect: the dial becomes editable.
+
+**Merge resolution (with PR #743):** Resolved 4 file conflicts cleanly. Renamed my migration 069 → 070 (theirs took 069). Updated `BenefitsArmGate` to hide for both `outreach` AND `qa_email_capture`. Updated `INTAKE_VARIANT_DEFAULT_WEIGHTS` to include the 5th arm at 20. Refactored `QASectionV2` from local `assignIntakeVariant` call to the shared hook.
+
+**TJ tested live:** Set `25/25/25/25/0` (qa_email_capture darked out, others bumped to 25 each) — sum stayed at 100, Save worked, version bumped. Confirmed the "zero an arm without removing the code path" use case.
+
+**RLS handled in the migration file** — `ALTER TABLE experiment_weights ENABLE ROW LEVEL SECURITY;` with zero policies. Anon/authenticated keys blocked entirely. Service role bypasses RLS, which is the only legitimate access path for this config table.
+
+**Resume next session here →** Open the PR to staging, run TJ through the test plan one more time on the Vercel preview, then merge → staging → main. Watch the dial in production for 7-14 days alongside the qa_email_capture experiment; if qa_email_capture wins, ramp it via the dial (100/0/0/0/0 or 50/50 against a control) instead of a code revert. First formal `/weekly` measurement window: Mon 5/11.
+
+---
+
 ### 2026-05-05 (Tue) — qa_email_capture: 5th arm of SBF intake A/B (P1, shipped on PR #743)
 
 Day-long session that started as a `/product-led-growth` daily run, surfaced the structural conversion problem on provider pages, and ended shipping a new A/B arm to test the fix.

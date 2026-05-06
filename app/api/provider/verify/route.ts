@@ -331,6 +331,27 @@ export async function POST(request: NextRequest) {
       if (claimerEmail) {
         const recipientName = claimerName || (currentMetadata.verification_submission as Record<string, unknown>)?.name as string || "there";
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+        // Fallback: public profile URL (if magic link fails)
+        let dashboardUrl = `${siteUrl}/provider/${profile.slug || profileId}`;
+
+        // Generate magic link for auto sign-in
+        // Include ?next=/provider so AuthProvider knows the destination
+        try {
+          const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+            type: "magiclink",
+            email: claimerEmail,
+            options: {
+              redirectTo: `${siteUrl}/provider?next=/provider`,
+            },
+          });
+          if (!linkError && linkData?.properties?.action_link) {
+            dashboardUrl = linkData.properties.action_link;
+          }
+        } catch (linkErr) {
+          console.error("[verify] Failed to generate magic link:", linkErr);
+          // Continue with fallback URL (public profile)
+        }
+
         try {
           await sendEmail({
             to: claimerEmail,
@@ -338,7 +359,7 @@ export async function POST(request: NextRequest) {
             html: verificationApprovedEmail({
               providerName: profile.display_name || "your organization",
               recipientName,
-              dashboardUrl: `${siteUrl}/provider`,
+              dashboardUrl,
               autoApproved: true,
             }),
             emailType: "verification_approved",

@@ -120,6 +120,18 @@ export default function AgentOutreachModule({
   const sessionIdRef = useRef<string>("");
   const sectionRef = useRef<HTMLElement | null>(null);
 
+  // Populate sessionIdRef eagerly on mount, decoupled from impression
+  // firing. Card clicks (and form submits) read this synchronously and
+  // can happen before the IntersectionObserver crosses its threshold —
+  // cards sit at the top of the section, form at the bottom, so a user
+  // who scrolls and taps a card while the section is just entering the
+  // viewport will run the click handler before impression fires.
+  // getOrCreateSessionId is idempotent (cookie-backed); calling it both
+  // here and inside fireImpression is safe.
+  useEffect(() => {
+    sessionIdRef.current = getOrCreateSessionId();
+  }, []);
+
   // Fire impression once the section is at least 50% in the viewport, not on
   // mount. The module sits below the Q&A area so a meaningful share of
   // outreach-arm sessions never scroll to it; firing on mount inflates the
@@ -134,7 +146,10 @@ export default function AgentOutreachModule({
     const fireImpression = () => {
       if (impressionFiredRef.current) return;
       impressionFiredRef.current = true;
-      sessionIdRef.current = getOrCreateSessionId();
+      // Defensive: if the eager mount effect hasn't populated this yet
+      // (shouldn't happen — that effect runs first), fall back to a
+      // direct read so the impression event always carries a session id.
+      if (!sessionIdRef.current) sessionIdRef.current = getOrCreateSessionId();
       void fireSeekerEvent("outreach_module_impression", {
         session_id: sessionIdRef.current,
         source_provider_id: sourceProviderId,

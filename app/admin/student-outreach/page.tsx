@@ -864,7 +864,7 @@ interface RowSlots {
 }
 
 function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): RowSlots {
-  if (tab === "research") return researchSlots(row);
+  if (tab === "research") return researchSlots(row, cb);
   if (tab === "calls") return callsSlots(row, cb);
   if (tab === "replies") return repliesSlots(row, cb);
   if (tab === "meetings") return meetingsSlots(row, cb);
@@ -873,14 +873,27 @@ function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): RowSlots
   return allSlots(row);
 }
 
-function researchSlots(row: TabRow): RowSlots {
-  if (row.status === "researched") {
-    return {
-      pill: <Pill title="Has contact + programs — start the email sequence next.">Ready to email</Pill>,
-    };
-  }
+function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
+  // v8.10.13: universal forward-progression CTA on every research card.
+  // "Review & Start Outreach" applies to every stakeholder type
+  // (student_org / advisor / dept_head / professor) AND every research
+  // state (prospect or researched). Click → drawer opens → admin
+  // finishes anything missing and starts outreach in the same flow.
+  // Single mental model: "I'm advancing this stakeholder into outreach."
+  const pill =
+    row.status === "researched"
+      ? <Pill title="Has contact + programs — ready to start the email sequence.">Ready to email</Pill>
+      : <Pill title="Add a contact and programs in the drawer, then start outreach.">Needs contact</Pill>;
   return {
-    pill: <Pill title="Add a contact and programs to start the email sequence.">Needs contact</Pill>,
+    pill,
+    cta: (
+      <PrimaryAction
+        onClick={cb.onOpenDrawer}
+        title="Open the drawer to review research + email cadence, then start outreach."
+      >
+        Review &amp; Start Outreach
+      </PrimaryAction>
+    ),
   };
 }
 
@@ -1113,24 +1126,40 @@ interface RepliesGroups {
   checkInbox: TabRow[];
 }
 
+// v8.10.14: Needs Attention is sorted by conversion urgency.
+//   1. needs_followup — warmest relationship, met in person, most
+//      likely to convert. Human continuity matters most.
+//   2. wants_meeting — high intent, awaiting scheduling.
+//   3. engaged       — replied, but lower urgency / may just want info.
+// Within each priority bucket, rows stay in their original order
+// (which is last_edited_at desc from the queue route).
+const NEEDS_ATTENTION_PRIORITY: Record<string, number> = {
+  needs_followup: 0,
+  wants_meeting: 1,
+  engaged: 2,
+};
+
 function groupRepliesRows(rows: TabRow[]): RepliesGroups {
   const needsAttention: TabRow[] = [];
   const checkInbox: TabRow[] = [];
   for (const row of rows) {
     const s = row.replies_state;
-    // Admin must act on these — reply landed, meeting wants coordinating,
-    // or post-meeting follow-up needed.
     if (s === "engaged" || s === "wants_meeting" || s === "needs_followup") {
       needsAttention.push(row);
     } else {
-      // mid_cadence + awaiting_callback. Cadence still running OR we
-      // left a voicemail / they promised a callback. Either way, the
-      // next event is external — admin's job is to monitor Gmail and
-      // voicemail and come back here to log when something arrives.
-      // (booked is filtered server-side; stale is in Archive now.)
+      // mid_cadence + awaiting_callback. Next event is external (Gmail
+      // or voicemail). Admin monitors and logs when something arrives.
+      // (booked filtered server-side; stale lives in Archive.)
       checkInbox.push(row);
     }
   }
+  // Stable sort by priority. Default to a number larger than any known
+  // priority so unknown states sort to the bottom rather than crashing.
+  needsAttention.sort((a, b) => {
+    const pa = NEEDS_ATTENTION_PRIORITY[a.replies_state ?? ""] ?? 99;
+    const pb = NEEDS_ATTENTION_PRIORITY[b.replies_state ?? ""] ?? 99;
+    return pa - pb;
+  });
   return { needsAttention, checkInbox };
 }
 

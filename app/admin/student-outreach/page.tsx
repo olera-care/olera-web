@@ -1177,54 +1177,38 @@ function allSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   };
 }
 
-// ── Replies grouping (v8.10.6) ──────────────────────────────────────────
+// ── Replies list (v8.10.24) ─────────────────────────────────────────────
 //
-// Two soft sections: "Needs attention" (admin must act on a logged
-// event) and "Check inbox for updates" (next event likely arrives in
-// Gmail/voicemail — admin should monitor outside the panel and come
-// back to log). Both default-open. Stale rows now live in Archive
-// (filtered server-side).
+// One unified inbox. Section headers + section subtitle dropped. All
+// rows render in a single flat list, sorted by priority so high-touch
+// items naturally surface to the top:
+//   1. Met — needs follow-up   (warmest, met in person)
+//   2. Wants to meet            (high intent, awaiting scheduling)
+//   3. Replied                  (responded to email, lower urgency)
+//   4. Awaiting callback        (voicemail / promised callback)
+//   5. Mid-cadence              (passive monitoring, no event yet)
+// Within each tier, the underlying queue order (last_edited_at desc)
+// is preserved.
+//
+// Open Gmail still lives in the page-level top-right header — the
+// previous "Check inbox for updates" subtitle was redundant with it.
 
-interface RepliesGroups {
-  needsAttention: TabRow[];
-  checkInbox: TabRow[];
-}
-
-// v8.10.14: Needs Attention is sorted by conversion urgency.
-//   1. needs_followup — warmest relationship, met in person, most
-//      likely to convert. Human continuity matters most.
-//   2. wants_meeting — high intent, awaiting scheduling.
-//   3. engaged       — replied, but lower urgency / may just want info.
-// Within each priority bucket, rows stay in their original order
-// (which is last_edited_at desc from the queue route).
-const NEEDS_ATTENTION_PRIORITY: Record<string, number> = {
+const REPLIES_PRIORITY: Record<string, number> = {
   needs_followup: 0,
   wants_meeting: 1,
   engaged: 2,
+  awaiting_callback: 3,
+  mid_cadence: 4,
 };
 
-function groupRepliesRows(rows: TabRow[]): RepliesGroups {
-  const needsAttention: TabRow[] = [];
-  const checkInbox: TabRow[] = [];
-  for (const row of rows) {
-    const s = row.replies_state;
-    if (s === "engaged" || s === "wants_meeting" || s === "needs_followup") {
-      needsAttention.push(row);
-    } else {
-      // mid_cadence + awaiting_callback. Next event is external (Gmail
-      // or voicemail). Admin monitors and logs when something arrives.
-      // (booked filtered server-side; stale lives in Archive.)
-      checkInbox.push(row);
-    }
-  }
-  // Stable sort by priority. Default to a number larger than any known
-  // priority so unknown states sort to the bottom rather than crashing.
-  needsAttention.sort((a, b) => {
-    const pa = NEEDS_ATTENTION_PRIORITY[a.replies_state ?? ""] ?? 99;
-    const pb = NEEDS_ATTENTION_PRIORITY[b.replies_state ?? ""] ?? 99;
+function sortRepliesRows(rows: TabRow[]): TabRow[] {
+  const sorted = [...rows];
+  sorted.sort((a, b) => {
+    const pa = REPLIES_PRIORITY[a.replies_state ?? ""] ?? 99;
+    const pb = REPLIES_PRIORITY[b.replies_state ?? ""] ?? 99;
     return pa - pb;
   });
-  return { needsAttention, checkInbox };
+  return sorted;
 }
 
 function RepliesGroupedList({
@@ -1234,86 +1218,14 @@ function RepliesGroupedList({
   rows: TabRow[];
   renderRow: (row: TabRow) => ReactNode;
 }) {
-  const groups = useMemo(() => groupRepliesRows(rows), [rows]);
+  const sorted = useMemo(() => sortRepliesRows(rows), [rows]);
+  if (sorted.length === 0) return null;
   return (
-    <div className="space-y-4">
-      <RepliesSection
-        title="Needs attention"
-        rows={groups.needsAttention}
-        renderRow={renderRow}
-        defaultOpen
-        showWhenEmpty
-      />
-      <RepliesSection
-        title="Check inbox for updates"
-        subtitle={
-          <>
-            They might have written back or left a voicemail.{" "}
-            <a
-              href="https://mail.google.com/mail/u/0/#inbox"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-emerald-700 underline hover:no-underline"
-            >
-              Open Gmail
-            </a>
-            , then come back to log it.
-          </>
-        }
-        rows={groups.checkInbox}
-        renderRow={renderRow}
-        defaultOpen
-        showWhenEmpty={false}
-      />
-    </div>
-  );
-}
-
-function RepliesSection({
-  title,
-  subtitle,
-  rows,
-  renderRow,
-  defaultOpen,
-  showWhenEmpty,
-}: {
-  title: string;
-  /** v8.10.6: optional helper line under the section header. Used by
-   *  "Check inbox for updates" to remind admins to monitor Gmail.
-   *  v8.10.7: accepts ReactNode so we can inline a live Open Gmail link. */
-  subtitle?: ReactNode;
-  rows: TabRow[];
-  renderRow: (row: TabRow) => ReactNode;
-  defaultOpen: boolean;
-  showWhenEmpty: boolean;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  const count = rows.length;
-  if (count === 0 && !showWhenEmpty) return null;
-  return (
-    <div>
-      <button
-        onClick={() => setOpen((s) => !s)}
-        className="flex w-full items-center gap-2 rounded-md px-1 py-1 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50"
-      >
-        <span className="w-3 text-gray-400" aria-hidden>{count === 0 ? "" : open ? "▾" : "▸"}</span>
-        <span>{title}</span>
-        <span className="text-gray-400">({count})</span>
-        {count === 0 && (
-          <span className="ml-2 text-xs font-medium text-emerald-700">✓ All caught up.</span>
-        )}
-      </button>
-      {subtitle && open && count > 0 && (
-        <p className="mt-0.5 px-4 text-xs text-gray-500">{subtitle}</p>
-      )}
-      {open && count > 0 && (
-        <ul className="mt-2 space-y-2">
-          {rows.map((row) => (
-            <li key={row.id}>{renderRow(row)}</li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <ul className="space-y-2">
+      {sorted.map((row) => (
+        <li key={row.id}>{renderRow(row)}</li>
+      ))}
+    </ul>
   );
 }
 

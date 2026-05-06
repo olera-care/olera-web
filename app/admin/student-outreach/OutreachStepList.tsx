@@ -26,13 +26,9 @@ interface Props {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (e: string | null) => void;
-  /** v8.10: PhoneStepRow's "Convert to Active Partner" outcome chains
-   *  into MarkPartnerModal — owned by NextStepPanel above. We bubble up
-   *  via this callback after logging the call. */
-  onOpenPartnerModal?: () => void;
 }
 
-export function OutreachStepList({ ctx, action, setError, onOpenPartnerModal }: Props) {
+export function OutreachStepList({ ctx, action, setError }: Props) {
   const days = OUTREACH_DAYS_BY_TYPE[ctx.outreach.stakeholder_type] ?? [];
 
   // Group: per cadence day, the email task (if any) + phone task (if any).
@@ -63,7 +59,6 @@ export function OutreachStepList({ ctx, action, setError, onOpenPartnerModal }: 
             phoneTask={phoneTaskByDay.get(day.day) ?? null}
             action={action}
             setError={setError}
-            onOpenPartnerModal={onOpenPartnerModal}
           />
         ))}
       </ol>
@@ -78,7 +73,6 @@ function DayRow({
   phoneTask,
   action,
   setError,
-  onOpenPartnerModal,
 }: {
   day: OutreachDay;
   ctx: DrawerContext;
@@ -86,7 +80,6 @@ function DayRow({
   phoneTask: Task | null;
   action: ActionFn;
   setError: (e: string | null) => void;
-  onOpenPartnerModal?: () => void;
 }) {
   return (
     <li className="rounded-md border border-gray-200 bg-white p-3">
@@ -101,7 +94,6 @@ function DayRow({
             ctx={ctx}
             action={action}
             setError={setError}
-            onOpenPartnerModal={onOpenPartnerModal}
           />
         ))}
         {/* v8.10.33: subtle "coming soon" hints for future Day 0 channels.
@@ -133,7 +125,6 @@ function StepRow({
   ctx,
   action,
   setError,
-  onOpenPartnerModal,
 }: {
   day: number;
   step: OutreachStep;
@@ -141,13 +132,12 @@ function StepRow({
   ctx: DrawerContext;
   action: ActionFn;
   setError: (e: string | null) => void;
-  onOpenPartnerModal?: () => void;
 }) {
   if (step.channel === "email") {
     return <EmailStepRow day={day} task={task} ctx={ctx} action={action} setError={setError} />;
   }
   if (step.channel === "phone") {
-    return <PhoneStepRow day={day} task={task} ctx={ctx} action={action} setError={setError} onOpenPartnerModal={onOpenPartnerModal} />;
+    return <PhoneStepRow day={day} task={task} ctx={ctx} action={action} setError={setError} />;
   }
   return null;
 }
@@ -279,14 +269,12 @@ function PhoneStepRow({
   ctx,
   action,
   setError,
-  onOpenPartnerModal,
 }: {
   day: number;
   task: Task | null;
   ctx: DrawerContext;
   action: ActionFn;
   setError: (e: string | null) => void;
-  onOpenPartnerModal?: () => void;
 }) {
   const [showScript, setShowScript] = useState(false);
   const [showLogModal, setShowLogModal] = useState(false);
@@ -392,7 +380,7 @@ function PhoneStepRow({
             contactName={primary.name}
             contactPhone={primary.phone}
             onCancel={() => setShowLogModal(false)}
-            onSubmit={async (outcome, notes) => {
+            onSubmit={async (outcome, notes, partner) => {
               await handleErr(
                 action("log_call", {
                   outcome,
@@ -401,19 +389,10 @@ function PhoneStepRow({
                   cadence_day: day,
                 }),
               );
+              if (partner) {
+                await handleErr(action("mark_partner", { ...partner }));
+              }
               setShowLogModal(false);
-            }}
-            onChooseConvert={async (notes) => {
-              await handleErr(
-                action("log_call", {
-                  outcome: "convert_to_partner",
-                  notes,
-                  contact_id: primary.id,
-                  cadence_day: day,
-                }),
-              );
-              setShowLogModal(false);
-              onOpenPartnerModal?.();
             }}
           />
         )}

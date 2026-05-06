@@ -1,30 +1,38 @@
 "use client";
 
 /**
- * LogCallOutcomeModal — v8.8.
+ * v9.0 Phase 7 Commit G: LogCallOutcomeModal.
  *
  * Opens from a Calls-tab row click. Admin picks one of seven outcomes;
- * the parent component handles the routing (see [id]/route.ts handleLogCall):
+ * the parent handles routing (see [id]/route.ts handleLogCall):
  *
- *   No answer                 → mark current call task complete, row leaves Calls
- *                               until next phone day
- *   Left voicemail            → mark current call task complete, row → Replies
- *                               as awaiting_callback (kind=voicemail)
- *   Promised callback         → mark current call task complete, →engaged,
- *                               row → Replies awaiting_callback (kind=promised)
- *   Interested                → →engaged, supersede future call + email tasks
- *   Convert to Active Partner → mark current call task complete, log
- *                               call_connected, then chain into MarkPartnerModal
- *                               for evidence capture
- *   Not interested            → →not_interested (closes; cancels pending tasks)
- *   Wrong number              → →wrong_contact (closes; cancels pending tasks)
+ *   No answer            → mark call task complete, row leaves Calls until
+ *                          next phone day
+ *   Left voicemail       → mark call task complete, row → Replies as
+ *                          awaiting_callback (kind=voicemail)
+ *   Promised callback    → mark call task complete, →engaged, row →
+ *                          Replies awaiting_callback (kind=promised)
+ *   Interested           → →engaged, supersede future call + email tasks
+ *   Mark as Partner ★    → expands inline with PartnerEvidencePanel; submit
+ *                          fires log_call(outcome=convert_to_partner) THEN
+ *                          mark_partner with the evidence payload. Replaces
+ *                          the previous chained MarkPartnerModal flow.
+ *   Not interested       → →not_interested (closes; cancels pending tasks)
+ *   Wrong number         → →wrong_contact (closes; cancels pending tasks)
  *
- * The "Convert to Active Partner" path emits onChooseConvert instead of
- * onSubmit so the parent can mount MarkPartnerModal next.
+ * The partner branch is fully self-contained — onSubmit gains an
+ * optional partner-evidence payload that the parent passes through to
+ * the mark_partner action after the log_call action lands.
  */
 
 import { useState } from "react";
 import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
+import {
+  PartnerEvidencePanel,
+  DEFAULT_PARTNER_EVIDENCE,
+  type PartnerEvidence,
+} from "@/components/admin/medjobs/PartnerEvidencePanel";
+import type { DistributionEvidence } from "@/lib/student-outreach/types";
 
 interface Props {
   organizationName: string;
@@ -32,24 +40,23 @@ interface Props {
   contactPhone: string | null;
   /**
    * v9.0 Phase 2 Tier 3.6: row kind. When 'provider', the
-   * "Convert to Partner ★" outcome is hidden — providers convert
-   * to Clients via the T&C/Stripe signal, not via admin click.
-   * Defaults to stakeholder.
+   * "Mark as Partner ★" outcome is hidden — providers convert to
+   * Clients via the T&C/Stripe signal, not via admin click. Defaults
+   * to stakeholder.
    */
   rowKind?: "provider" | "stakeholder";
   onCancel: () => void;
   /**
-   * Called for outcomes that resolve in one shot (no answer / voicemail /
-   * promised / interested / not interested / wrong number).
+   * Called on submit. When the admin picked the partner outcome,
+   * `partner` carries the evidence payload — parent should fire
+   * mark_partner immediately after log_call so both lands in one
+   * user-facing action.
    */
-  onSubmit: (outcome: string, notes: string) => Promise<void>;
-  /**
-   * Called when the admin picks "Convert to Active Partner" — parent
-   * should close this modal and open MarkPartnerModal next, then on
-   * MarkPartnerModal confirm: POST log_call (outcome=convert_to_partner)
-   * AND mark_partner. Keeps evidence capture in the dedicated modal.
-   */
-  onChooseConvert: (notes: string) => void;
+  onSubmit: (
+    outcome: string,
+    notes: string,
+    partner?: PartnerEvidence,
+  ) => Promise<void>;
 }
 
 interface Outcome {
@@ -84,8 +91,8 @@ const REACHED_THEM: Outcome[] = [
   },
   {
     key: "convert_to_partner",
-    label: "Convert to Partner ★",
-    blurb: "They committed to sharing with students — opens the partner-evidence step next.",
+    label: "Mark as Partner ★",
+    blurb: "They committed to sharing with students. Capture the evidence below.",
   },
   {
     key: "connected_not_interested",
@@ -106,37 +113,35 @@ export function LogCallOutcomeModal({
   rowKind = "stakeholder",
   onCancel,
   onSubmit,
-  onChooseConvert,
 }: Props) {
-  // v9.0 Phase 2 Tier 3.6: filter out the convert-to-partner outcome
-  // for provider rows. The rest of the call outcomes apply to both
-  // kinds — admin still records no_answer / voicemail / connected /
-  // promised_callback / connected_not_interested / wrong_number for
-  // a provider call the same way.
+  // v9.0 Phase 2 Tier 3.6: filter out the partner outcome for provider
+  // rows. The rest of the call outcomes apply to both kinds.
   const reachedThemFiltered =
     rowKind === "provider"
       ? REACHED_THEM.filter((o) => o.key !== "convert_to_partner")
       : REACHED_THEM;
   const [outcome, setOutcome] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
+  const [evidence, setEvidence] = useState<DistributionEvidence>(DEFAULT_PARTNER_EVIDENCE);
+  const [evidenceNotes, setEvidenceNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isPartner = outcome === "convert_to_partner";
 
   const submit = async () => {
     if (!outcome) {
       setError("Pick an outcome.");
       return;
     }
-    // v8.8: 'Convert to Active Partner' chains into MarkPartnerModal so
-    // evidence capture lives there; we don't run the one-shot onSubmit.
-    if (outcome === "convert_to_partner") {
-      onChooseConvert(notes.trim());
-      return;
-    }
     setSubmitting(true);
     setError(null);
     try {
-      await onSubmit(outcome, notes.trim());
+      await onSubmit(
+        outcome,
+        notes.trim(),
+        isPartner ? { evidence, evidence_notes: evidenceNotes.trim() } : undefined,
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
     } finally {
@@ -170,9 +175,19 @@ export function LogCallOutcomeModal({
           <button
             onClick={submit}
             disabled={submitting || !outcome}
-            className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+            className={`rounded-md px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 ${
+              isPartner
+                ? "bg-emerald-600 hover:bg-emerald-700"
+                : "bg-gray-900 hover:bg-gray-700"
+            }`}
           >
-            {submitting ? "Logging…" : "Log outcome"}
+            {submitting
+              ? isPartner
+                ? "Saving…"
+                : "Logging…"
+              : isPartner
+                ? "Mark as Partner"
+                : "Log outcome"}
           </button>
         </>
       }
@@ -201,6 +216,14 @@ export function LogCallOutcomeModal({
           className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
         />
       </label>
+      {isPartner && (
+        <PartnerEvidencePanel
+          evidence={evidence}
+          notes={evidenceNotes}
+          onEvidenceChange={setEvidence}
+          onNotesChange={setEvidenceNotes}
+        />
+      )}
     </LogModalShell>
   );
 }

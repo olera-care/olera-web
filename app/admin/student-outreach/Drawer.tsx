@@ -1117,7 +1117,6 @@ function NextStepPanel({
           <StageGuidance
             ctx={ctx}
             onSchedulePreFlight={() => setShowPreFlight(true)}
-            onOpenPartnerModal={() => setShowPartner(true)}
             onLogReply={() => setShowLogReply(true)}
             onLogMeeting={() => setShowLogMeeting(true)}
             action={action}
@@ -1167,7 +1166,7 @@ function NextStepPanel({
           onCancel={() => setShowPartner(false)}
           onConfirm={async (payload) => {
             try {
-              await action("mark_partner", payload);
+              await action("mark_partner", { ...payload });
               setShowPartner(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
@@ -1180,22 +1179,21 @@ function NextStepPanel({
           organizationName={ctx.outreach.organization_name}
           source="email_reply"
           onCancel={() => setShowLogReply(false)}
-          onSubmit={async (classification, payload) => {
+          onSubmit={async (classification, payload, partner) => {
             try {
               await action("classify_reply", {
                 classification,
                 notes: payload.notes,
                 meeting_at: payload.meeting_at,
               });
+              if (partner) {
+                await action("mark_partner", { ...partner });
+              }
               setShowLogReply(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
               throw e;
             }
-          }}
-          onChooseCommitted={() => {
-            setShowLogReply(false);
-            setShowPartner(true);
           }}
         />
       )}
@@ -1206,24 +1204,23 @@ function NextStepPanel({
           initialStatus={meetingInitialStatus}
           initialMeetingAt={meetingInitialAt}
           onCancel={() => setShowLogMeeting(false)}
-          onSubmit={async (mstatus, payload) => {
+          onSubmit={async (mstatus, payload, partner) => {
             try {
               if (mstatus === "booked") {
                 await action("mark_meeting_scheduled", {
                   meeting_at: payload.meeting_at,
                   notes: payload.notes,
                 });
-                setShowLogMeeting(false);
               } else if (mstatus === "finding_time") {
                 await action("flag_wants_meeting", { notes: payload.notes });
-                setShowLogMeeting(false);
               } else if (mstatus === "done_followup") {
                 await action("mark_meeting_followup", { notes: payload.notes });
-                setShowLogMeeting(false);
-              } else if (mstatus === "done_partner") {
-                setShowLogMeeting(false);
-                setShowPartner(true);
+              } else if (mstatus === "done_partner" && partner) {
+                // v9.0 Phase 7 Commit G: done_partner is now a direct
+                // mark_partner — no chained MarkPartnerModal here either.
+                await action("mark_partner", { ...partner });
               }
+              setShowLogMeeting(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
               throw e;
@@ -1245,7 +1242,6 @@ function NextStepPanel({
 function StageGuidance({
   ctx,
   onSchedulePreFlight,
-  onOpenPartnerModal,
   onLogReply,
   onLogMeeting,
   action,
@@ -1253,7 +1249,6 @@ function StageGuidance({
 }: {
   ctx: DrawerContext;
   onSchedulePreFlight: () => void;
-  onOpenPartnerModal?: () => void;
   onLogReply: () => void;
   onLogMeeting: () => void;
   action: ActionFn;
@@ -1421,7 +1416,7 @@ function StageGuidance({
     return (
       <>
         {banner}
-        <OutreachStepList ctx={ctx} action={action} setError={setError} onOpenPartnerModal={onOpenPartnerModal} />
+        <OutreachStepList ctx={ctx} action={action} setError={setError} />
       </>
     );
   }

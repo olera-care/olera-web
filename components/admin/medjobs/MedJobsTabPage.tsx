@@ -31,7 +31,6 @@ import {
 } from "@/app/admin/student-outreach/LogMeetingModal";
 import type {
   Campus,
-  DistributionEvidence,
   DrawerContext,
   ResearchCampusCard,
   StakeholderType,
@@ -487,22 +486,16 @@ export function MedJobsTabPage({
           contactPhone={callOutcomeRow.primary_contact_phone}
           rowKind={callOutcomeRow.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setCallOutcomeRow(null)}
-          onSubmit={async (outcome, notes) => {
+          onSubmit={async (outcome, notes, partner) => {
+            // v9.0 Phase 7 Commit G: partner branch is now self-contained
+            // — log_call lands first, then mark_partner with the evidence
+            // payload. Two POSTs back to back; the previous chained
+            // MarkPartnerModal flow is gone.
             await callAction(callOutcomeRow.id, "log_call", { outcome, notes });
-            setCallOutcomeRow(null);
-          }}
-          onChooseConvert={async (notes) => {
-            try {
-              await callAction(callOutcomeRow.id, "log_call", {
-                outcome: "convert_to_partner",
-                notes,
-              });
-              const r = callOutcomeRow;
-              setCallOutcomeRow(null);
-              setPartnerRow(r);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Save failed");
+            if (partner) {
+              await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
             }
+            setCallOutcomeRow(null);
           }}
         />
       )}
@@ -512,18 +505,16 @@ export function MedJobsTabPage({
           source={classifierRow.source}
           rowKind={classifierRow.row.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setClassifierRow(null)}
-          onSubmit={async (classification, payload) => {
+          onSubmit={async (classification, payload, partner) => {
             await callAction(classifierRow.row.id, "classify_reply", {
               classification,
               notes: payload.notes,
               meeting_at: payload.meeting_at,
             });
+            if (partner) {
+              await callAction(classifierRow.row.id, "mark_partner", { ...partner });
+            }
             setClassifierRow(null);
-          }}
-          onChooseCommitted={() => {
-            const r = classifierRow.row;
-            setClassifierRow(null);
-            setPartnerRow(r);
           }}
         />
       )}
@@ -531,9 +522,9 @@ export function MedJobsTabPage({
         <MarkPartnerModal
           organizationName={partnerRow.organization_name}
           onCancel={() => setPartnerRow(null)}
-          onConfirm={async (payload: { evidence: DistributionEvidence; evidence_notes: string }) => {
+          onConfirm={async (payload) => {
             try {
-              await callAction(partnerRow.id, "mark_partner", payload);
+              await callAction(partnerRow.id, "mark_partner", { ...payload });
               setPartnerRow(null);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
@@ -554,29 +545,28 @@ export function MedJobsTabPage({
               : undefined
           }
           onCancel={() => setLogMeetingRow(null)}
-          onSubmit={async (status: MeetingStatus, payload) => {
+          onSubmit={async (status: MeetingStatus, payload, partner) => {
             try {
               if (status === "booked") {
                 await callAction(logMeetingRow.id, "mark_meeting_scheduled", {
                   meeting_at: payload.meeting_at,
                   notes: payload.notes,
                 });
-                setLogMeetingRow(null);
               } else if (status === "finding_time") {
                 await callAction(logMeetingRow.id, "flag_wants_meeting", {
                   notes: payload.notes,
                 });
-                setLogMeetingRow(null);
               } else if (status === "done_followup") {
                 await callAction(logMeetingRow.id, "mark_meeting_followup", {
                   notes: payload.notes,
                 });
-                setLogMeetingRow(null);
-              } else if (status === "done_partner") {
-                const r = logMeetingRow;
-                setLogMeetingRow(null);
-                setPartnerRow(r);
+              } else if (status === "done_partner" && partner) {
+                // v9.0 Phase 7 Commit G: done_partner is now a direct
+                // mark_partner; no chained MarkPartnerModal. The meeting
+                // log itself is implicit in the partner conversion.
+                await callAction(logMeetingRow.id, "mark_partner", { ...partner });
               }
+              setLogMeetingRow(null);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
               throw e;

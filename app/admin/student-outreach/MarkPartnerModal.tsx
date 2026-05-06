@@ -1,39 +1,45 @@
 "use client";
 
 /**
- * Mark-as-Partner graduation modal.
+ * v9.0 Phase 7 Commit G: Mark-as-Partner standalone modal.
  *
- * Captures evidence type + notes and submits as `mark_partner` action.
- * Visible from `engaged` and `meeting_scheduled` stages (and from More
- * menu for evidence-based jumps from earlier stages).
+ * One of four entry points to the partner-conversion flow. The other
+ * three (LogCall / ReplyClassifier / LogMeeting) embed
+ * PartnerEvidencePanel inline below their primary picker so the
+ * partner branch lives in the same modal as the operational log.
+ *
+ * This modal is the standalone path — opened by the "Make Partner ★"
+ * overflow item when admin wants to convert a stakeholder without
+ * an accompanying call/reply/meeting log. Same panel, same submit
+ * verb ("Mark as Partner"), no chained second modal.
  */
 
 import { useEffect, useState } from "react";
-import type { DistributionEvidence } from "@/lib/student-outreach/types";
 import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
+import {
+  PartnerEvidencePanel,
+  DEFAULT_PARTNER_EVIDENCE,
+  type PartnerEvidence,
+} from "@/components/admin/medjobs/PartnerEvidencePanel";
+import type { DistributionEvidence } from "@/lib/student-outreach/types";
 
 interface Props {
   organizationName: string;
   onCancel: () => void;
-  onConfirm: (payload: { evidence: DistributionEvidence; evidence_notes: string }) => void | Promise<void>;
+  onConfirm: (payload: PartnerEvidence) => void | Promise<void>;
 }
 
-const EVIDENCE_OPTIONS: Array<{ value: DistributionEvidence; label: string; hint: string }> = [
-  { value: "explicit_email", label: "They explicitly said yes — in writing", hint: "Email reply or written confirmation" },
-  { value: "explicit_verbal", label: "They explicitly said yes — verbally", hint: "Call, voicemail, meeting" },
-  { value: "observed_external", label: "I observed them sharing externally", hint: "IG story, listserv thread, dept newsletter" },
-  { value: "self_reported", label: "They told me they shared it", hint: "After-the-fact confirmation" },
-];
-
 export function MarkPartnerModal({ organizationName, onCancel, onConfirm }: Props) {
-  const [evidence, setEvidence] = useState<DistributionEvidence>("explicit_verbal");
+  const [evidence, setEvidence] = useState<DistributionEvidence>(DEFAULT_PARTNER_EVIDENCE);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, []);
 
   return (
@@ -72,40 +78,12 @@ export function MarkPartnerModal({ organizationName, onCancel, onConfirm }: Prop
         </>
       }
     >
-      <p className="text-xs font-medium text-gray-700">How do you know they&apos;re distributing?</p>
-      <div className="space-y-1.5">
-        {EVIDENCE_OPTIONS.map((opt) => (
-          <label
-            key={opt.value}
-            className={`flex cursor-pointer items-start gap-2 rounded-md border p-2.5 ${
-              evidence === opt.value ? "border-gray-900 bg-gray-50" : "border-gray-200 hover:bg-gray-50"
-            }`}
-          >
-            <input
-              type="radio"
-              name="evidence"
-              className="mt-0.5"
-              checked={evidence === opt.value}
-              onChange={() => setEvidence(opt.value)}
-            />
-            <span className="flex-1">
-              <span className="block text-sm font-medium text-gray-900">{opt.label}</span>
-              <span className="block text-xs text-gray-500">{opt.hint}</span>
-            </span>
-          </label>
-        ))}
-      </div>
-
-      <label className="block">
-        <span className="mb-1 block text-xs font-medium text-gray-600">Notes</span>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={3}
-          placeholder='e.g. "Saw on @berkeleypremed IG story 5/4"'
-          className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-        />
-      </label>
+      <PartnerEvidencePanel
+        evidence={evidence}
+        notes={notes}
+        onEvidenceChange={setEvidence}
+        onNotesChange={setNotes}
+      />
     </LogModalShell>
   );
 }

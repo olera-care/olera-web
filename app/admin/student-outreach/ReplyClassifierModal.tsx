@@ -1,29 +1,35 @@
 "use client";
 
 /**
- * ReplyClassifierModal — v8.
+ * v9.0 Phase 7 Commit G: ReplyClassifierModal.
  *
- * Single triage modal shared by:
- *   - Replies tab "They replied" button on a mid_cadence row
- *   - Replies tab "Got a callback" button on an awaiting_callback row
- *
- * Four classifications drive different downstream actions:
+ * Single triage modal shared by Replies-tab "They replied" and "Got
+ * callback" actions. Five classifications drive different downstream
+ * actions:
  *   keep_emailing   → log_email_replied (engaged + supersede emails)
  *   wants_meeting   → flag_wants_meeting (note_added meeting_in_flight)
  *   already_booked  → mark_meeting_scheduled with optional date input
- *   committed       → mark_partner with evidence
+ *   committed       → expands inline with PartnerEvidencePanel; submit
+ *                     fires classify_reply(committed) AND mark_partner
+ *                     in one user action.
+ *   not_interested  → close row + stop cadence
  *
- * For "already_booked" the modal grows a datetime input. For "committed"
- * we hand off to the existing MarkPartnerModal flow via onChooseCommitted.
+ * For "already_booked" the modal grows a datetime input. For
+ * "committed" the partner-evidence panel inlines below the choices —
+ * one modal, one submit. The previous chained MarkPartnerModal flow
+ * is gone.
  */
 
 import { useState } from "react";
 import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
+import {
+  PartnerEvidencePanel,
+  DEFAULT_PARTNER_EVIDENCE,
+  type PartnerEvidence,
+} from "@/components/admin/medjobs/PartnerEvidencePanel";
+import type { DistributionEvidence } from "@/lib/student-outreach/types";
 
 // v8.10.8: added "not_interested" — admin's "they said no thanks" path.
-// Routes to handleClassifyReply -> not_interested transition (same as
-// the Stop Outreach overflow's Not interested option, but reachable
-// inline from the same Log Reply modal).
 export type ReplyClassification =
   | "keep_emailing"
   | "wants_meeting"
@@ -36,24 +42,24 @@ interface Props {
   /** Banner copy varies between email-reply and got-callback contexts. */
   source: "email_reply" | "callback";
   /**
-   * v9.0 Phase 2 Tier 3.6: row kind. When 'provider', the "They're
-   * sharing with students" outcome (which graduates a stakeholder to
-   * Partner) is hidden — providers convert to Clients via T&C/Stripe
-   * signal, not via admin classification. Defaults to stakeholder.
+   * v9.0 Phase 2 Tier 3.6: row kind. When 'provider', the "Mark as
+   * Partner" outcome is hidden — providers convert to Clients via
+   * T&C/Stripe signal, not via admin classification. Defaults to
+   * stakeholder.
    */
   rowKind?: "provider" | "stakeholder";
   onCancel: () => void;
   /**
-   * Called for keep_emailing | wants_meeting | already_booked |
-   * not_interested. The `committed` path is dispatched via
-   * onChooseCommitted so the parent can mount its own MarkPartnerModal
-   * flow with evidence capture.
+   * Called on submit. When the admin picked the partner outcome,
+   * `partner` carries the evidence payload — parent should fire
+   * mark_partner immediately after classify_reply so both lands in
+   * one user-facing action.
    */
   onSubmit: (
-    classification: Exclude<ReplyClassification, "committed">,
+    classification: ReplyClassification,
     payload: { notes: string; meeting_at?: string | null },
+    partner?: PartnerEvidence,
   ) => Promise<void>;
-  onChooseCommitted: () => void;
 }
 
 export function ReplyClassifierModal({
@@ -62,12 +68,13 @@ export function ReplyClassifierModal({
   rowKind = "stakeholder",
   onCancel,
   onSubmit,
-  onChooseCommitted,
 }: Props) {
   const isProvider = rowKind === "provider";
   const [choice, setChoice] = useState<ReplyClassification | null>(null);
   const [notes, setNotes] = useState("");
   const [meetingAt, setMeetingAt] = useState("");
+  const [evidence, setEvidence] = useState<DistributionEvidence>(DEFAULT_PARTNER_EVIDENCE);
+  const [evidenceNotes, setEvidenceNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,24 +85,29 @@ export function ReplyClassifierModal({
   const sourceLabel = "What did they say?";
   void source;
 
+  const isPartner = choice === "committed";
+
   const submit = async () => {
     if (!choice) {
       setError("Pick what they said.");
       return;
     }
-    if (choice === "committed") {
-      onChooseCommitted();
-      return;
-    }
     setSubmitting(true);
     setError(null);
     try {
-      await onSubmit(choice, {
-        notes: notes.trim(),
-        meeting_at: choice === "already_booked" && meetingAt
-          ? new Date(meetingAt).toISOString()
-          : null,
-      });
+      await onSubmit(
+        choice,
+        {
+          notes: notes.trim(),
+          meeting_at:
+            choice === "already_booked" && meetingAt
+              ? new Date(meetingAt).toISOString()
+              : null,
+        },
+        isPartner
+          ? { evidence, evidence_notes: evidenceNotes.trim() }
+          : undefined,
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
     } finally {
@@ -121,9 +133,13 @@ export function ReplyClassifierModal({
           <button
             onClick={submit}
             disabled={submitting || !choice}
-            className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+            className={`rounded-md px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 ${
+              isPartner
+                ? "bg-emerald-600 hover:bg-emerald-700"
+                : "bg-gray-900 hover:bg-gray-700"
+            }`}
           >
-            {submitting ? "Saving…" : choice === "committed" ? "Continue →" : "Save"}
+            {submitting ? "Saving…" : isPartner ? "Mark as Partner" : "Save"}
           </button>
         </>
       }
@@ -161,8 +177,8 @@ export function ReplyClassifierModal({
               <ChoiceCard
                 active={choice === "committed"}
                 onSelect={() => setChoice("committed")}
-                label="They're sharing with students"
-                blurb="They committed. Row becomes a Partner; we'll capture evidence and queue seasonal check-ins."
+                label="Mark as Partner ★"
+                blurb="They committed to sharing with students. Capture the evidence below."
                 tone="ok"
               />
             )}
@@ -192,17 +208,24 @@ export function ReplyClassifierModal({
             </label>
           )}
 
-          {choice !== "committed" && (
-            <label className="block pt-2">
-              <span className="mb-1 block text-xs font-medium text-gray-600">Notes (optional)</span>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={2}
-                placeholder="What did they say? Any context for next steps."
-                className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-              />
-            </label>
+          <label className="block pt-2">
+            <span className="mb-1 block text-xs font-medium text-gray-600">Notes (optional)</span>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              placeholder="What did they say? Any context for next steps."
+              className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          </label>
+
+          {isPartner && (
+            <PartnerEvidencePanel
+              evidence={evidence}
+              notes={evidenceNotes}
+              onEvidenceChange={setEvidence}
+              onNotesChange={setEvidenceNotes}
+            />
           )}
     </LogModalShell>
   );

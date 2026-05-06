@@ -911,7 +911,7 @@ function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         onClick={cb.onOpenDrawer}
         title="Open the drawer to review research + email cadence, then start outreach."
       >
-        Review &amp; Start Outreach
+        Start Outreach
       </PrimaryAction>
     ),
     overflowMenu: buildUniversalOverflow(cb),

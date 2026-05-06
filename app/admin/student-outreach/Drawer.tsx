@@ -243,6 +243,16 @@ function StakeholderDrawer({
  * status, T&C acceptance, and Stripe linkage. Acknowledgement records
  * + admin actions (extend trial, mark churned) land in subsequent v9.x.
  */
+interface ProviderInterview {
+  id: string;
+  status: string;
+  type: string;
+  proposed_time: string;
+  confirmed_time: string | null;
+  created_at: string;
+  student: { id: string; display_name: string | null } | null;
+}
+
 interface ProviderDrawerData {
   id: string;
   display_name: string;
@@ -262,6 +272,10 @@ interface ProviderDrawerData {
   pilot_started_at: string | null;
   pilot_ends_at: string | null;
   days_remaining_in_pilot: number | null;
+  // v9.0 Phase 2 Tier 3.7: interview history.
+  first_interview: ProviderInterview | null;
+  recent_interviews: ProviderInterview[];
+  total_interviews: number;
 }
 
 function ProviderDrawer({
@@ -376,7 +390,6 @@ function ProviderManagePanel({ data }: { data: ProviderDrawerData }) {
           Pilot status
         </h3>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
-          <Row label="T&C accepted" value={formatTimestamp(data.interview_terms_accepted_at)} />
           <Row label="Pilot started" value={formatTimestamp(data.pilot_started_at)} />
           <Row label="Pilot ends" value={formatTimestamp(data.pilot_ends_at)} />
           <Row
@@ -389,7 +402,42 @@ function ProviderManagePanel({ data }: { data: ProviderDrawerData }) {
                   : "Expired"
             }
           />
+          <Row label="Interviews scheduled" value={`${data.total_interviews}`} />
         </dl>
+      </section>
+
+      {/* v9.0 Phase 2 Tier 3.7: Acknowledgement record. The pilot starts
+          when a provider accepts T&C at first interview scheduling —
+          this section surfaces the proof. */}
+      <section>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Acknowledgement
+        </h3>
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
+          {data.interview_terms_accepted_at ? (
+            <>
+              <p className="font-medium text-gray-900">Terms &amp; conditions accepted</p>
+              <p className="mt-0.5 text-xs text-gray-500">
+                {formatTimestamp(data.interview_terms_accepted_at)} · captured at first interview scheduling
+              </p>
+              {data.first_interview && (
+                <p className="mt-2 rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-700">
+                  Linked to interview with{" "}
+                  <span className="font-medium">
+                    {data.first_interview.student?.display_name ?? "(student profile)"}
+                  </span>
+                  {" — "}
+                  proposed for {formatTimestamp(data.first_interview.proposed_time)} ({data.first_interview.type}).
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-gray-500">
+              No acknowledgement on file. T&amp;C is captured the first time the provider schedules
+              an interview through the public scheduler.
+            </p>
+          )}
+        </div>
       </section>
 
       {/* Subscription */}
@@ -401,7 +449,6 @@ function ProviderManagePanel({ data }: { data: ProviderDrawerData }) {
           <Row label="Status" value={data.subscription_active ? "Active" : "Not subscribed"} />
           <Row label="Customer ID" value={data.stripe_customer_id ?? "—"} mono />
           <Row label="Subscription ID" value={data.subscription_id ?? "—"} mono />
-          <Row label="Interviews scheduled" value={`${data.credits_used}`} />
         </dl>
         {stripeUrl && (
           <a
@@ -414,6 +461,39 @@ function ProviderManagePanel({ data }: { data: ProviderDrawerData }) {
           </a>
         )}
       </section>
+
+      {/* v9.0 Phase 2 Tier 3.7: recent interviews. Gives admin
+          pilot-utilization context — are they actively scheduling? */}
+      {data.recent_interviews.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Recent interviews ({data.total_interviews} total)
+          </h3>
+          <ul className="divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white text-sm">
+            {data.recent_interviews.map((iv) => (
+              <li key={iv.id} className="px-4 py-2.5">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="truncate font-medium text-gray-900">
+                    {iv.student?.display_name ?? "(student profile)"}
+                  </span>
+                  <span className="shrink-0 text-xs text-gray-400">
+                    {formatTimestamp(iv.proposed_time)}
+                  </span>
+                </div>
+                <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-500">
+                  <InterviewStatusPill status={iv.status} />
+                  <span>{iv.type}</span>
+                  {iv.confirmed_time && (
+                    <span className="text-emerald-700">
+                      Confirmed {formatTimestamp(iv.confirmed_time)}
+                    </span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Profile */}
       <section>
@@ -438,6 +518,24 @@ function ProviderManagePanel({ data }: { data: ProviderDrawerData }) {
         )}
       </section>
     </div>
+  );
+}
+
+function InterviewStatusPill({ status }: { status: string }) {
+  const cls =
+    status === "completed"
+      ? "bg-emerald-100 text-emerald-900"
+      : status === "confirmed"
+        ? "bg-blue-100 text-blue-900"
+        : status === "proposed"
+          ? "bg-amber-100 text-amber-900"
+          : status === "cancelled" || status === "no_show"
+            ? "bg-red-100 text-red-900"
+            : "bg-gray-100 text-gray-700";
+  return (
+    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${cls}`}>
+      {status}
+    </span>
   );
 }
 

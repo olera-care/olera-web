@@ -401,8 +401,8 @@ export default function MultiProviderCard({
             <div
               className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-primary-50/60 border-primary-100"
             >
-              {/* Checkbox — checked (circular, Apple/Airbnb style) */}
-              <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center shrink-0 shadow-sm">
+              {/* Checkbox — checked (rounded square for multi-select) */}
+              <div className="w-6 h-6 rounded-lg bg-primary-500 flex items-center justify-center shrink-0 shadow-sm">
                 <Check size={14} weight="bold" className="text-white" />
               </div>
 
@@ -462,10 +462,10 @@ export default function MultiProviderCard({
                     ${isSending ? "opacity-80 scale-[0.99]" : ""}
                   `}
                 >
-                  {/* Checkbox (circular, Apple/Airbnb style) */}
+                  {/* Checkbox (rounded square for multi-select) */}
                   <div
                     className={`
-                      w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all duration-200
+                      w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200
                       ${isSent
                         ? "bg-primary-500 shadow-sm"
                         : "border-2 border-gray-300"

@@ -51,6 +51,13 @@ const PAGE_SIZE_DEFAULT = 50;
 
 const RESEARCH_STATUSES: Status[] = ["prospect", "researched"];
 const REPLIES_STATUSES: Status[] = ["outreach_sent", "engaged"];
+// v8.10.6: Archive contains stakeholders where outreach completed without
+// engagement, plus active outreach_sent rows that have gone "stale" by
+// derivation (cadence still running but no reply for STALE_DAYS+ days).
+// Terminal states (not_interested, do_not_contact, wrong_contact,
+// redirected) are NOT archived — they stay in All only as historical
+// records.
+const ARCHIVE_STATUSES: Status[] = ["no_response_closed"];
 const PARTNER_STATUSES: Status[] = ["active_partner"];
 const CLOSED_STATUSES: Status[] = [
   "not_interested",
@@ -70,6 +77,7 @@ export interface TabCounts {
   replies: number;
   meetings: number;
   partners: number;
+  archive: number;
   all: number;
 }
 
@@ -177,8 +185,11 @@ export async function GET(req: NextRequest) {
   let rows = await hydrateRows(db, rowIds, tab, campusMap);
 
   // v8.2: booked rows live only in Meetings tab. Filter out of Replies.
+  // v8.10.6: stale rows live in Archive tab. Filter out of Replies too.
   if (tab === "replies") {
-    rows = rows.filter((r) => r.replies_state !== "booked");
+    rows = rows.filter(
+      (r) => r.replies_state !== "booked" && r.replies_state !== "stale",
+    );
   }
 
   return NextResponse.json({
@@ -290,7 +301,7 @@ async function computeTabCounts(
   db: DB,
   filters: { campusId: string | null; type: StakeholderType | null },
 ): Promise<TabCounts> {
-  const counts: TabCounts = { research: 0, calls: 0, replies: 0, meetings: 0, partners: 0, all: 0 };
+  const counts: TabCounts = { research: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0 };
 
   // Single status scan in scope.
   let q = db.from("student_outreach").select("id, status");
@@ -311,6 +322,10 @@ async function computeTabCounts(
       counts.replies++;
       inProgressIds.push(row.id);
     }
+    // v8.10.6: no_response_closed rows count for Archive (the other
+    // closed states — not_interested / DNC / wrong_contact / redirected
+    // — stay in All only as terminal historical records).
+    if (row.status === "no_response_closed") counts.archive++;
   }
 
   // Calls count: distinct outreach_id with a pending call task due now.
@@ -338,28 +353,45 @@ async function computeTabCounts(
   // meeting-related touchpoint is in_flight or scheduled. Also: rows
   // with state=scheduled are dropped from the Replies tab in v8.2, so
   // we subtract them from the replies count here.
+  // v8.10.6: stale-derived rows are dropped from Replies and added to
+  // Archive — same rebalancing pattern as scheduled meetings.
   if (inProgressIds.length > 0) {
-    const { meetings, scheduled } = await countMeetingsAmongRows(db, inProgressIds);
+    const { meetings, scheduled, stale } = await countMeetingsAmongRows(db, inProgressIds);
     counts.meetings = meetings;
-    counts.replies = Math.max(0, counts.replies - scheduled);
+    counts.replies = Math.max(0, counts.replies - scheduled - stale);
+    counts.archive += stale;
   }
 
   return counts;
 }
 
 /**
- * For each row, derive meeting state and return:
+ * For each row, derive meeting + replies state and return:
  *   - meetings: in_flight + scheduled (Meetings-tab membership count)
  *   - scheduled: scheduled-only (subtracted from Replies count, since
  *                booked rows live only in Meetings now)
+ *   - stale: rows whose derived replies-state is "stale" (subtracted
+ *            from Replies count, added to Archive count in v8.10.6)
  */
 async function countMeetingsAmongRows(
   db: DB,
   ids: string[],
-): Promise<{ meetings: number; scheduled: number }> {
+): Promise<{ meetings: number; scheduled: number; stale: number }> {
   const tpsByRow = await fetchTouchpointsByRow(db, ids);
+  // Pending email tasks per row — needed for stale derivation (a row with
+  // a pending email task isn't "stale", just mid-cadence).
+  const { data: pendingEmailRows } = await db
+    .from("student_outreach_tasks")
+    .select("outreach_id")
+    .eq("status", "pending")
+    .eq("task_type", "outreach_email_send")
+    .in("outreach_id", ids);
+  const hasPendingEmail = new Set<string>(
+    ((pendingEmailRows ?? []) as Array<{ outreach_id: string }>).map((r) => r.outreach_id),
+  );
   let meetings = 0;
   let scheduled = 0;
+  let stale = 0;
   for (const id of ids) {
     const state = deriveStateFromTouchpoints(tpsByRow.get(id) ?? []);
     if (state.meeting_state === "scheduled") {
@@ -368,8 +400,11 @@ async function countMeetingsAmongRows(
     } else if (state.meeting_state === "in_flight") {
       meetings++;
     }
+    if (deriveRepliesState(state, hasPendingEmail.has(id)) === "stale") {
+      stale++;
+    }
   }
-  return { meetings, scheduled };
+  return { meetings, scheduled, stale };
 }
 
 // ── Per-tab row ID fetchers ─────────────────────────────────────────────
@@ -405,9 +440,74 @@ async function fetchRowIdsForTab(
       return await idsByCallsDue(db, { campusId, type, search, page, pageSize });
     case "meetings":
       return await idsByMeetings(db, { campusId, type, search, page, pageSize });
+    case "archive":
+      return await idsByArchive(db, { campusId, type, search, page, pageSize });
     default:
       return [];
   }
+}
+
+/**
+ * Archive: stakeholders where outreach completed without engagement.
+ * Two sources:
+ *   1. Rows already at status `no_response_closed` — cron's
+ *      end-of-cadence sweep flipped them.
+ *   2. Active `outreach_sent` rows whose derived replies-state is
+ *      "stale" (cadence still running but past STALE_DAYS with no
+ *      reply) — these belong in Archive UX-side until the cron
+ *      sweep formally closes them.
+ *
+ * Terminal states (not_interested / DNC / wrong_contact / redirected)
+ * are deliberately NOT included — they live in All only as historical
+ * records.
+ */
+async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
+  // First: status-closed rows.
+  let closedQ = db
+    .from("student_outreach")
+    .select("id")
+    .in("status", ARCHIVE_STATUSES)
+    .order("last_edited_at", { ascending: false });
+  if (opts.campusId) closedQ = closedQ.eq("campus_id", opts.campusId);
+  if (opts.type) closedQ = closedQ.eq("stakeholder_type", opts.type);
+  if (opts.search) closedQ = closedQ.ilike("organization_name", `%${opts.search}%`);
+  const { data: closedData } = await closedQ;
+  const closedIds = ((closedData ?? []) as Array<{ id: string }>).map((r) => r.id);
+
+  // Then: outreach_sent rows that derive to stale.
+  let activeQ = db
+    .from("student_outreach")
+    .select("id")
+    .eq("status", "outreach_sent")
+    .order("last_edited_at", { ascending: false });
+  if (opts.campusId) activeQ = activeQ.eq("campus_id", opts.campusId);
+  if (opts.type) activeQ = activeQ.eq("stakeholder_type", opts.type);
+  if (opts.search) activeQ = activeQ.ilike("organization_name", `%${opts.search}%`);
+  const { data: activeData } = await activeQ;
+  const activeIds = ((activeData ?? []) as Array<{ id: string }>).map((r) => r.id);
+
+  // Filter active to stale-derived only. Reuse countMeetingsAmongRows'
+  // touchpoint fetch + replies-state derivation, but inline a smaller
+  // version to skip the meetings counting work.
+  const tpsByRow = await fetchTouchpointsByRow(db, activeIds);
+  const { data: pendingEmailRows } = await db
+    .from("student_outreach_tasks")
+    .select("outreach_id")
+    .eq("status", "pending")
+    .eq("task_type", "outreach_email_send")
+    .in("outreach_id", activeIds);
+  const hasPendingEmail = new Set<string>(
+    ((pendingEmailRows ?? []) as Array<{ outreach_id: string }>).map((r) => r.outreach_id),
+  );
+  const staleIds = activeIds.filter((id) => {
+    const state = deriveStateFromTouchpoints(tpsByRow.get(id) ?? []);
+    return deriveRepliesState(state, hasPendingEmail.has(id)) === "stale";
+  });
+
+  // Merge and paginate.
+  const all = [...closedIds, ...staleIds];
+  const start = opts.page * opts.pageSize;
+  return all.slice(start, start + opts.pageSize);
 }
 
 interface QueryOpts {
@@ -639,8 +739,11 @@ async function hydrateRows(
     const primary = primaryByOutreach.get(row.id) ?? null;
     const state = stateByOutreach.get(row.id)!;
     const camp = campusMap.get(row.campus_id);
+    // v8.10.6: archive tab also gets a derived replies-state so card
+    // can render "Stale · Xd cold" for outreach_sent rows that landed
+    // here via stale derivation.
     const repliesState =
-      tab === "replies"
+      tab === "replies" || tab === "archive"
         ? deriveRepliesState(state, hasPendingEmail.has(row.id))
         : null;
     const earliestTask = earliestTaskByOutreach.get(row.id) ?? null;
@@ -654,7 +757,7 @@ async function hydrateRows(
       has_custom_task: customTaskByOutreach.has(row.id),
       custom_task_summary: customTaskByOutreach.get(row.id) ?? null,
       stale_days:
-        tab === "replies"
+        tab === "replies" || tab === "archive"
           ? computeStaleDays(state.last_email_sent_at, state.last_reply_at)
           : null,
       meeting_state: state.meeting_state,

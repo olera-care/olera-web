@@ -857,7 +857,22 @@ async function handleLogReply(
   await supersedePendingOutreachEmails(db, row.id, userId);
   await supersedePendingFollowupCalls(db, row.id, userId, "reply_received");
   // A reply jumps the row to engaged (cadence freezes).
-  if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
+  // v8.10.6: no_response_closed (archived) rows also re-enter engaged
+  // when a reply lands — admin's "Log reply" CTA from the Archive tab
+  // pulls the stakeholder back into active Replies. reopen_at is
+  // cleared so they don't auto-reopen later via the cron sweep.
+  if (
+    row.status === "outreach_sent" ||
+    row.status === "researched" ||
+    row.status === "prospect" ||
+    row.status === "no_response_closed"
+  ) {
+    if (row.status === "no_response_closed") {
+      await db
+        .from("student_outreach")
+        .update({ reopen_at: null })
+        .eq("id", row.id);
+    }
     await transitionStage(db, row, "engaged", userId, body.notes ?? null);
   } else {
     await touchOutreach(db, row.id, userId);

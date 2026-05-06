@@ -39,7 +39,7 @@ import {
   type TabRow,
 } from "@/lib/student-outreach/types";
 
-type TabKey = "research" | "calls" | "replies" | "meetings" | "partners" | "all";
+type TabKey = "research" | "calls" | "replies" | "meetings" | "partners" | "archive" | "all";
 
 interface TabDef {
   key: TabKey;
@@ -54,6 +54,7 @@ const TABS: TabDef[] = [
   { key: "replies",   emoji: "📬", label: "Replies",         tooltip: "Email replies, callbacks, voicemails. Triage what they said and pick the next step." },
   { key: "meetings",  emoji: "📅", label: "Meetings",        tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
   { key: "partners",  emoji: "⭐", label: "Active Partners", tooltip: "Stakeholders sharing with students. Mostly automated seasonal emails." },
+  { key: "archive",   emoji: "📦", label: "Archive",         tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Replies if they reply or call back later." },
   { key: "all",       emoji: "🔎", label: "All",             tooltip: "Search and filter every stakeholder across all stages." },
 ];
 
@@ -570,6 +571,7 @@ function EmptyState({
     replies: "No inbox triage right now. The cadence is humming along.",
     meetings: "No meetings in flight or booked.",
     partners: "No active partners yet. Mark a stakeholder as Active Partner when they commit to sharing.",
+    archive: "Archive is empty — no stale or no-response outreach yet.",
     all: "No matches.",
   };
   return <p className="py-12 text-center text-sm text-gray-400">{blurbs[tab]}</p>;
@@ -884,6 +886,7 @@ function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): RowSlots
   if (tab === "replies") return repliesSlots(row, cb);
   if (tab === "meetings") return meetingsSlots(row, cb);
   if (tab === "partners") return partnersSlots(row);
+  if (tab === "archive") return archiveSlots(row, cb);
   return allSlots(row);
 }
 
@@ -930,10 +933,14 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
 }
 
 function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
+  // v8.10.6: standardized CTA vocabulary. Three verbs total:
+  //   - Log reply       (email reply / mid-cadence / wants meeting)
+  //   - Log callback    (voicemail or promised-callback states)
+  //   - Send follow-up  (post-meeting follow-up only)
+  // Each card has exactly one primary CTA matching its state.
   const state: RepliesState = row.replies_state ?? "mid_cadence";
   switch (state) {
     case "mid_cadence":
-      // No pill — absence is the signal. Single conditional CTA.
       return {
         pills: null,
         footnote: row.last_activity_at ? (
@@ -944,9 +951,9 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         rightActions: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}
-            title="Saw a reply in Gmail? Click to log what they said."
+            title="Saw a reply in Gmail? Click to record what they said."
           >
-            Saw a reply?
+            Log reply
           </PrimaryAction>
         ),
       };
@@ -960,7 +967,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         ) : null,
         rightActions: (
           <>
-            <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Open reply</PrimaryAction>
+            <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>
             <OverflowMenu
               items={[{ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" }]}
               onStopOutreach={cb.onStopOutreach}
@@ -971,14 +978,11 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     case "wants_meeting":
       return {
         pills: <Pill>Wants to meet</Pill>,
-        footnote: <p className="mt-0.5 text-[11px] text-gray-500">Coordinate the time, then mark booked.</p>,
+        footnote: <p className="mt-0.5 text-[11px] text-gray-500">Coordinate the time, then log the booking.</p>,
         rightActions: (
           <>
-            <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Booked it</PrimaryAction>
-            <OverflowMenu
-              items={[{ label: "Open reply", onClick: () => cb.onClassifyReply("email_reply") }]}
-              onStopOutreach={cb.onStopOutreach}
-            />
+            <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>
+            <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />
           </>
         ),
       };
@@ -1000,7 +1004,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         ) : null,
         rightActions: (
           <>
-            <PrimaryAction onClick={cb.onSendFollowupEmail}>Send email</PrimaryAction>
+            <PrimaryAction onClick={cb.onSendFollowupEmail}>Send follow-up</PrimaryAction>
             <OverflowMenu
               items={[{ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" }]}
               onStopOutreach={cb.onStopOutreach}
@@ -1016,26 +1020,23 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             {row.awaiting_callback_at ? ` · ${formatShortRelative(row.awaiting_callback_at)}` : ""}
           </Pill>
         ),
-        footnote: <p className="mt-0.5 text-[11px] text-gray-500">Watch Gmail for callback or voicemail emails.</p>,
+        footnote: <p className="mt-0.5 text-[11px] text-gray-500">Watch Gmail and voicemail for the callback.</p>,
         rightActions: (
           <>
-            <PrimaryAction onClick={() => cb.onClassifyReply("callback")}>Got a callback?</PrimaryAction>
+            <PrimaryAction onClick={() => cb.onClassifyReply("callback")}>Log callback</PrimaryAction>
             <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />
           </>
         ),
       };
     case "stale":
+      // v8.10.6: stale rows now live in Archive. This branch is kept
+      // for type-completeness — server filters them out of Replies.
       return {
         pills: (
-          <Pill>No reply{row.stale_days != null ? ` · ${row.stale_days}d` : ""}</Pill>
+          <Pill>Stale{row.stale_days != null ? ` · ${row.stale_days}d` : ""}</Pill>
         ),
         footnote: null,
-        rightActions: (
-          <>
-            <PrimaryAction onClick={cb.onSendFollowupEmail}>Send email</PrimaryAction>
-            <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />
-          </>
-        ),
+        rightActions: null,
       };
   }
 }
@@ -1093,6 +1094,48 @@ function partnersSlots(row: TabRow): RowSlots {
   };
 }
 
+function archiveSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
+  // v8.10.6: Archive holds two kinds of rows:
+  //   - status=no_response_closed: cron's end-of-cadence sweep flipped them.
+  //     Pill: "No response · Xd cold".
+  //   - status=outreach_sent + replies_state=stale: cadence still running
+  //     but past STALE_DAYS without a reply. Pill: "Stale · Xd cold".
+  // CTA: "Log reply" — handleLogReply flips no_response_closed back to
+  // engaged + clears reopen_at, so the row jumps to Replies on the next
+  // refresh. Admin uses this when an unprompted email or late callback
+  // lands. "Log callback" is in the overflow for voicemail-style updates.
+  const isClosed = row.status === "no_response_closed";
+  const pillLabel = isClosed
+    ? `No response${row.stale_days != null ? ` · ${row.stale_days}d cold` : ""}`
+    : `Stale${row.stale_days != null ? ` · ${row.stale_days}d cold` : ""}`;
+  return {
+    pills: (
+      <Pill title="Cadence ran without engagement. Logging a reply or callback re-routes them to Replies.">
+        {pillLabel}
+      </Pill>
+    ),
+    footnote: row.last_activity_at ? (
+      <p className="mt-0.5 text-[11px] text-gray-400">
+        Last activity {formatRelative(row.last_activity_at)}
+      </p>
+    ) : null,
+    rightActions: (
+      <>
+        <PrimaryAction
+          onClick={() => cb.onClassifyReply("email_reply")}
+          title="They replied or called back. Log it to re-route this row to Replies."
+        >
+          Log reply
+        </PrimaryAction>
+        <OverflowMenu
+          items={[{ label: "Log callback", onClick: () => cb.onClassifyReply("callback") }]}
+          onStopOutreach={cb.onStopOutreach}
+        />
+      </>
+    ),
+  };
+}
+
 function allSlots(row: TabRow): RowSlots {
   return {
     pills: <Pill title="Stage in the funnel.">{STATUS_LABELS[row.status] ?? row.status}</Pill>,
@@ -1105,32 +1148,38 @@ function allSlots(row: TabRow): RowSlots {
   };
 }
 
-// ── Replies grouping (v8.2) ──────────────────────────────────────────────
+// ── Replies grouping (v8.10.6) ──────────────────────────────────────────
 //
-// Three sections by urgency. Default-open: Needs attention only.
+// Two soft sections: "Needs attention" (admin must act on a logged
+// event) and "Check inbox for updates" (next event likely arrives in
+// Gmail/voicemail — admin should monitor outside the panel and come
+// back to log). Both default-open. Stale rows now live in Archive
+// (filtered server-side).
 
 interface RepliesGroups {
   needsAttention: TabRow[];
-  waiting: TabRow[];
-  stale: TabRow[];
+  checkInbox: TabRow[];
 }
 
 function groupRepliesRows(rows: TabRow[]): RepliesGroups {
   const needsAttention: TabRow[] = [];
-  const waiting: TabRow[] = [];
-  const stale: TabRow[] = [];
+  const checkInbox: TabRow[] = [];
   for (const row of rows) {
     const s = row.replies_state;
-    if (s === "engaged" || s === "needs_followup" || s === "awaiting_callback") {
+    // Admin must act on these — reply landed, meeting wants coordinating,
+    // or post-meeting follow-up needed.
+    if (s === "engaged" || s === "wants_meeting" || s === "needs_followup") {
       needsAttention.push(row);
-    } else if (s === "stale") {
-      stale.push(row);
     } else {
-      // mid_cadence, wants_meeting (booked is filtered server-side)
-      waiting.push(row);
+      // mid_cadence + awaiting_callback. Cadence still running OR we
+      // left a voicemail / they promised a callback. Either way, the
+      // next event is external — admin's job is to monitor Gmail and
+      // voicemail and come back here to log when something arrives.
+      // (booked is filtered server-side; stale is in Archive now.)
+      checkInbox.push(row);
     }
   }
-  return { needsAttention, waiting, stale };
+  return { needsAttention, checkInbox };
 }
 
 function RepliesGroupedList({
@@ -1151,17 +1200,11 @@ function RepliesGroupedList({
         showWhenEmpty
       />
       <RepliesSection
-        title="Waiting"
-        rows={groups.waiting}
+        title="Check inbox for updates"
+        subtitle="These stakeholders may have responses waiting in Gmail or voicemail. Open Gmail, see if anything came in, then come back here to log it."
+        rows={groups.checkInbox}
         renderRow={renderRow}
-        defaultOpen={false}
-        showWhenEmpty={false}
-      />
-      <RepliesSection
-        title="Stale"
-        rows={groups.stale}
-        renderRow={renderRow}
-        defaultOpen={false}
+        defaultOpen
         showWhenEmpty={false}
       />
     </div>
@@ -1170,12 +1213,16 @@ function RepliesGroupedList({
 
 function RepliesSection({
   title,
+  subtitle,
   rows,
   renderRow,
   defaultOpen,
   showWhenEmpty,
 }: {
   title: string;
+  /** v8.10.6: optional helper line under the section header. Used by
+   *  "Check inbox for updates" to remind admins to monitor Gmail. */
+  subtitle?: string;
   rows: TabRow[];
   renderRow: (row: TabRow) => ReactNode;
   defaultOpen: boolean;
@@ -1197,6 +1244,9 @@ function RepliesSection({
           <span className="ml-2 text-xs font-medium text-emerald-700">✓ All caught up.</span>
         )}
       </button>
+      {subtitle && open && count > 0 && (
+        <p className="mt-0.5 px-4 text-xs text-gray-500">{subtitle}</p>
+      )}
       {open && count > 0 && (
         <ul className="mt-2 space-y-2">
           {rows.map((row) => (

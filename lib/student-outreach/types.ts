@@ -298,13 +298,15 @@ export interface ResearchCampusCard {
   last_added_at: string | null;
 }
 
-/** v7 tab counts — one number per tab in the new workflow. */
+/** v7 tab counts — one number per tab in the new workflow.
+ *  v8.10.6: archive tab added between Active Partners and All. */
 export interface TabCounts {
   research: number;
   calls: number;
   replies: number;
   meetings: number;
   partners: number;
+  archive: number;
   all: number;
 }
 

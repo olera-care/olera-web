@@ -43,7 +43,7 @@ import {
 } from "@/lib/student-outreach/presets";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 
-type TabContext = "research" | "calls" | "replies" | "meetings" | "partners" | "all";
+type TabContext = "research" | "calls" | "replies" | "meetings" | "partners" | "archive" | "all";
 
 interface DrawerProps {
   outreachId: string;

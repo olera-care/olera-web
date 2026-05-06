@@ -172,17 +172,10 @@ const nextConfig: NextConfig = {
       // /api/admin/medjobs/campuses endpoint keep their existing names).
       { source: "/admin/medjobs/campuses",   destination: "/admin/medjobs/sites", permanent: true },
 
-      // Phase 5 left in legacy entity-keyed redirects; Phase 6 turns
-      // Clients / Candidates / Partners back into real pages, so the
-      // redirect for those is no longer needed (next.js routes the
-      // real pages first). The remaining entity-keyed In Basket
-      // sub-tabs (prospects / meetings / replies / calls) collapse to
-      // In Basket itself — no per-tab URLs since the new tabs are
-      // state-driven (?tab= via the In Basket page).
-      { source: "/admin/medjobs/prospects",  destination: "/admin/medjobs/in-basket", permanent: true },
-      { source: "/admin/medjobs/meetings",   destination: "/admin/medjobs/in-basket", permanent: true },
-      { source: "/admin/medjobs/replies",    destination: "/admin/medjobs/in-basket", permanent: true },
-      { source: "/admin/medjobs/calls",      destination: "/admin/medjobs/in-basket", permanent: true },
+      // v9.0 Phase 7 Commit K: Prospects / Meetings / Replies / Calls
+      // exist as dedicated entity pages. The Phase 6 redirects that
+      // pointed them at /in-basket are removed — next.js now routes
+      // straight to the real pages.
     ];
   },
 

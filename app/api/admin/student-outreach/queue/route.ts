@@ -70,14 +70,6 @@ const CLOSED_STATUSES: Status[] = [
 // Legacy active-partner values (pre-migration 065); still surface in Partners.
 const PARTNER_ALL: string[] = [...PARTNER_STATUSES, "agreed", "distributed"];
 
-// v9.0 Phase 6: In Basket "active triage" — rows in non-terminal,
-// non-active-partner status. Active partners live in the Stakeholders
-// section (their tasks-table tasks may bring them back here later, but
-// they're not in the default unified feed).
-const IN_BASKET_STATUSES: Status[] = [
-  ...RESEARCH_STATUSES,
-  ...REPLIES_STATUSES,
-];
 
 type DB = ReturnType<typeof getServiceClient>;
 
@@ -622,14 +614,6 @@ async function fetchRowIdsForTab(
   const { tab, campusId, type, search, showClosed, page, pageSize } = opts;
 
   switch (tab) {
-    // v9.0 Phase 6: state-based unified In Basket tabs. Both pull
-    // rows in non-terminal, non-active-partner status (the operational
-    // queue) and split by viewed_at: NULL = unread (bold), set = undone
-    // (read but not yet acted on).
-    case "unread":
-      return await idsByStatusAndViewed(db, IN_BASKET_STATUSES, true, { campusId, type, search, page, pageSize });
-    case "undone":
-      return await idsByStatusAndViewed(db, IN_BASKET_STATUSES, false, { campusId, type, search, page, pageSize });
     case "prospects":
       return await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize });
     case "candidates":
@@ -755,36 +739,6 @@ async function idsByStatus(
   return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
 }
 
-/**
- * v9.0 Phase 6: rows in status × viewed_at split. Powers the In Basket
- * Unread (viewed_at IS NULL) and Undone (viewed_at IS NOT NULL) tabs.
- * Sort:
- *   - Unread by last_edited_at desc (newest first — recent triage)
- *   - Undone by last_edited_at asc (oldest debt first — aging concern)
- */
-async function idsByStatusAndViewed(
-  db: DB,
-  statuses: Status[],
-  unread: boolean,
-  opts: QueryOpts,
-): Promise<string[]> {
-  let q = db
-    .from("student_outreach")
-    .select("id")
-    .in("status", statuses)
-    .order("last_edited_at", { ascending: !unread })
-    .range(opts.page * opts.pageSize, opts.page * opts.pageSize + opts.pageSize - 1);
-  if (unread) {
-    q = q.is("viewed_at", null);
-  } else {
-    q = q.not("viewed_at", "is", null);
-  }
-  if (opts.campusId) q = q.eq("campus_id", opts.campusId);
-  if (opts.type) q = q.eq("stakeholder_type", opts.type);
-  if (opts.search) q = q.ilike("organization_name", `%${opts.search}%`);
-  const { data } = await q;
-  return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
-}
 
 async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
   let q = db

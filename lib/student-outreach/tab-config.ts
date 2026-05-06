@@ -57,11 +57,24 @@ export interface TabDef {
 // Partners), with Campuses as the territorial primitive at the end.
 // Clients + Campuses are scaffolded in v9.0 Phase 1 with placeholder
 // content; their full data model + drawer fork lands in Phase 2.
-// v9.0 Phase 6: In Basket tabs are state-based. Tab visibility hides
-// when count = 0 (smart-hide); active tab stays in the bar mid-session.
+// v9.0 Phase 6.5: In Basket tabs are entity-keyed (workflow categories)
+// with smart-hide based on whether the category has active work. The
+// state model (unread / undone) drives bolding + fractions on each
+// tab, not the tab axis itself.
+//
+//   "Prospects 2/7"  ← bolded; 2 unread, 7 active total
+//   "Calls 5"        ← unbolded; all read but undone, 5 in queue
+//   (Meetings hidden ← 0 active work)
+//
+// Categories surface in In Basket only when they have active work
+// (unread + undone, excluding completed which moves to Completed Work).
+// Completed rows move out of In Basket; they don't pad the tab counts.
 export const TABS: TabDef[] = [
-  { key: "unread",     label: "Unread",   tooltip: "Newly surfaced rows you haven't opened. Bolded in the list." },
-  { key: "undone",     label: "Undone",   tooltip: "Rows you've opened but haven't acted on yet. The aging-debt pile." },
+  { key: "prospects",  label: "Prospects",  tooltip: "Stakeholders being researched + provider prospects in catchment." },
+  { key: "calls",      label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
+  { key: "replies",    label: "Replies",    tooltip: "Email replies, callbacks, voicemails. Triage and pick the next step." },
+  { key: "meetings",   label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
+  { key: "campuses",   label: "Campuses",   tooltip: "Campuses with Stage 2 unlocked but no stakeholders in research yet." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
@@ -80,13 +93,13 @@ export const MENU_TABS: TabDef[] = [
 // metric (drives the time series fetched from /stats) and a label
 // (drives the kpiSuffix shown in the header).
 export const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
-  // v9.0 Phase 6: In Basket state-based tabs share the broad activity
-  // metric — the chart shows operational momentum across the unified
-  // feed. Per-tab metrics for Unread vs Undone aren't useful (they're
-  // derived states, not source data).
+  // v9.0 Phase 6.5: state keys retained on the union for backwards
+  // compat but never rendered as tabs. Both fall back to the broad
+  // 'activity' metric.
   unread:      { metric: "activity",         label: "operational events"   },
   undone:      { metric: "activity",         label: "operational events"   },
-  // Phase 2 metrics still wired for legacy callers / Stakeholders pages.
+  // Stakeholders-page metrics — still used by their dedicated PulseHeader
+  // when those pages are surfaced.
   clients:     { metric: "clients",          label: "new clients"          },
   campuses:    { metric: "campuses",         label: "campuses assigned"    },
   // v8.10.42: Candidates ⊂ Signups. Candidates = LIVE provider-facing

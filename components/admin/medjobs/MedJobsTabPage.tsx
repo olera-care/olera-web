@@ -31,8 +31,10 @@ import type {
   Campus,
   DistributionEvidence,
   DrawerContext,
+  ResearchCampusCard,
   StakeholderType,
   TabCounts,
+  TabUnreadCounts,
   TabRow,
 } from "@/lib/student-outreach/types";
 import {
@@ -41,11 +43,15 @@ import {
   TAB_STATS,
   TABS,
   TYPE_FILTERS,
+  type CampusRow,
   type ProviderProspectRow,
   type TabKey,
 } from "@/lib/student-outreach/tab-config";
 import { RowCard } from "@/components/admin/medjobs/cards/StakeholderCard";
-import { ProviderProspectCard } from "@/components/admin/medjobs/cards/ProviderProspectCard";
+import { CampusCard } from "@/components/admin/medjobs/cards/CampusCard";
+import { ResearchTabContent } from "@/components/admin/medjobs/lists/ResearchTabContent";
+import { RepliesGroupedList } from "@/components/admin/medjobs/lists/RepliesGroupedList";
+import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
 interface MedJobsTabPageProps {
@@ -76,11 +82,15 @@ export function MedJobsTabPage({
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [rows, setRows] = useState<TabRow[]>([]);
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
+  const [tabUnreadCounts, setTabUnreadCounts] = useState<TabUnreadCounts | null>(null);
   const [providerProspects, setProviderProspects] = useState<ProviderProspectRow[]>([]);
+  const [researchCampuses, setResearchCampuses] = useState<ResearchCampusCard[]>([]);
+  const [campusBanners, setCampusBanners] = useState<CampusRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
 
   const [callOutcomeRow, setCallOutcomeRow] = useState<TabRow | null>(null);
   const [classifierRow, setClassifierRow] = useState<{
@@ -111,10 +121,11 @@ export function MedJobsTabPage({
       setCampuses(data.campuses ?? []);
       setRows(data.rows ?? []);
       setTabCounts(data.tab_counts ?? null);
+      setTabUnreadCounts(data.tab_unread_counts ?? null);
+      setResearchCampuses(data.research_campuses ?? []);
 
-      // v9.0 Phase 6: virtual provider prospects always surface in the
-      // Unread tab as fresh-attention items. Fetched in parallel; cheap.
-      if (tab === "unread") {
+      // Per-tab side fetches.
+      if (tab === "prospects") {
         const p = new URLSearchParams();
         if (campusSlug) p.set("campus", campusSlug);
         const r = await fetch(`/api/admin/medjobs/provider-prospects?${p}`);
@@ -126,6 +137,29 @@ export function MedJobsTabPage({
         }
       } else {
         setProviderProspects([]);
+      }
+
+      if (tab === "campuses") {
+        const r = await fetch(`/api/admin/medjobs/campuses`);
+        if (r.ok) {
+          const d = await r.json();
+          // v9.0 Phase 6.5: Campuses tab inside In Basket shows ONLY
+          // Stage-2-unlocked campuses with no stakeholders yet — the
+          // research-needed prompts. The full campus inventory lives
+          // in the Add Campus flow / Stakeholders cascade.
+          const all = (d.rows ?? []) as CampusRow[];
+          setCampusBanners(
+            all.filter(
+              (c) =>
+                c.stage === "stakeholder_prospecting" &&
+                c.stakeholder_count === 0,
+            ),
+          );
+        } else {
+          setCampusBanners([]);
+        }
+      } else {
+        setCampusBanners([]);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
@@ -284,13 +318,18 @@ export function MedJobsTabPage({
         </select>
       </div>
 
-      {/* v9.0 Phase 6: state-based tab bar — Unread / Undone. */}
+      {/* v9.0 Phase 6.5: entity-keyed tab bar with smart-hide. Tab is
+          visible when (count > 0) OR it's the active tab. Bolded +
+          fraction `unread/total` when unread > 0; muted + plain count
+          otherwise. Completed rows leave the tab on status transition,
+          so counts only reflect active work. */}
       <div className="mb-8 flex items-center border-b border-gray-100">
         <div className="flex flex-1 items-center gap-1 overflow-x-auto">
           {visibleTabs.map((t) => {
             const count = tabCounts?.[t.key] ?? 0;
+            const unread = tabUnreadCounts?.[t.key] ?? 0;
             const active = t.key === tab;
-            const isUnreadTab = t.key === "unread" && count > 0;
+            const isUnreadTab = unread > 0;
             return (
               <button
                 key={t.key}
@@ -311,7 +350,7 @@ export function MedJobsTabPage({
                       isUnreadTab ? "text-gray-700" : "text-gray-400"
                     }`}
                   >
-                    {count}
+                    {isUnreadTab ? `${unread}/${count}` : count}
                   </span>
                 )}
               </button>
@@ -320,12 +359,13 @@ export function MedJobsTabPage({
         </div>
       </div>
 
-      {/* List */}
+      {/* Per-tab list rendering. Each tab is a workflow category;
+          smart-hide already removed empty ones from the bar. */}
       {loading ? (
         <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
-      ) : isInboxEmpty && providerProspects.length === 0 ? (
+      ) : isInboxEmpty ? (
         <div className="py-16 text-center">
           <p className="text-base font-semibold text-emerald-700">
             ✓ Everything caught up.
@@ -341,33 +381,83 @@ export function MedJobsTabPage({
             {" "}to review what you and the team finished.
           </p>
         </div>
+      ) : tab === "prospects" ? (
+        <ResearchTabContent
+          rows={rows}
+          providerProspects={providerProspects}
+          renderRow={renderRow}
+          onStartProviderOutreach={async (p) => {
+            try {
+              const res = await fetch("/api/admin/medjobs/provider-prospects/materialize", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ provider_id: p.provider_id, campus_id: p.campus_id }),
+              });
+              const body = await res.json();
+              if (!res.ok) throw new Error(body.error || "Failed to materialize");
+              await refetch();
+              setOpenOutreachId(body.id);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to start outreach");
+            }
+          }}
+          tabCountsAll={tabCounts?.all ?? 0}
+        />
+      ) : tab === "replies" ? (
+        rows.length === 0 ? (
+          <p className="py-12 text-center text-sm text-gray-400">No inbox triage right now.</p>
+        ) : (
+          <RepliesGroupedList rows={rows} renderRow={(row) => renderRow(row)} />
+        )
+      ) : tab === "campuses" ? (
+        // v9.0 Phase 6.5: Campuses tab inside In Basket shows only
+        // research-needed prompts (Stage 2 unlocked, 0 stakeholders).
+        // The full campus inventory is reachable via Add Campus.
+        campusBanners.length === 0 ? (
+          <p className="py-12 text-center text-sm text-gray-400">
+            No campuses need stakeholder research right now.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {campusBanners.map((c) => {
+              // Build a ResearchCampusCard payload for the
+              // BulkResearchModal trigger from the queue's campus row.
+              const matching = researchCampuses.find((r) => r.id === c.id);
+              return (
+                <li key={c.id}>
+                  <CampusCard
+                    row={c}
+                    onAddStakeholders={() => {
+                      const payload = matching ?? {
+                        id: c.id,
+                        slug: c.slug,
+                        name: c.name,
+                        state: c.state,
+                        city: c.city,
+                        research_stakeholder_count: c.stakeholder_count,
+                        last_added_at: c.last_added_at,
+                      };
+                      setBulkResearchCampus(payload);
+                    }}
+                    onViewCampus={() => {
+                      window.location.href = `/admin/student-outreach/campus/${c.slug}`;
+                    }}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        )
+      ) : rows.length === 0 ? (
+        <p className="py-12 text-center text-sm text-gray-400">
+          {tab === "calls"
+            ? "No phone calls due. 🎉"
+            : tab === "meetings"
+            ? "No meetings in flight or booked."
+            : "Nothing here right now."}
+        </p>
       ) : (
         <ul className="space-y-2">
-          {/* v9.0 Phase 6: virtual provider prospects flow into the
-              Unread tab — they're inherently new (no viewed_at on a
-              non-existent row) until materialized. */}
-          {providerProspects.map((p) => (
-            <li key={p.id}>
-              <ProviderProspectCard
-                row={p}
-                onStartOutreach={async () => {
-                  try {
-                    const res = await fetch("/api/admin/medjobs/provider-prospects/materialize", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ provider_id: p.provider_id, campus_id: p.campus_id }),
-                    });
-                    const body = await res.json();
-                    if (!res.ok) throw new Error(body.error || "Failed to materialize");
-                    await refetch();
-                    setOpenOutreachId(body.id);
-                  } catch (e) {
-                    setError(e instanceof Error ? e.message : "Failed to start outreach");
-                  }
-                }}
-              />
-            </li>
-          ))}
           {rows.map((row) => (
             <li key={row.id}>{renderRow(row)}</li>
           ))}
@@ -496,6 +586,16 @@ export function MedJobsTabPage({
             setShowAdd(false);
             refetch();
             setOpenOutreachId(id);
+          }}
+        />
+      )}
+      {bulkResearchCampus && (
+        <BulkResearchModal
+          campus={bulkResearchCampus}
+          onClose={() => setBulkResearchCampus(null)}
+          onSaved={async () => {
+            setBulkResearchCampus(null);
+            await refetch();
           }}
         />
       )}

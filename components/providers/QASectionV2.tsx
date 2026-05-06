@@ -461,7 +461,11 @@ export default function QASectionV2({
     }
   }, [expandedQuestion]);
 
-  const handleMultiProviderEmailSubmit = useCallback(async (email: string) => {
+  const handleMultiProviderEmailSubmit = useCallback(async (
+    email: string,
+    sentProviderIds: string[],
+    sentCount: number
+  ) => {
     if (!expandedQuestion) return;
 
     setInlineSubmitting(true);
@@ -477,6 +481,9 @@ export default function QASectionV2({
           providerName,
           questionText: expandedQuestion,
           sessionId: getOrCreateSessionId(),
+          // Include all providers contacted for multi_provider variant
+          sentProviderIds,
+          sentCount,
         }),
       });
 
@@ -485,7 +492,7 @@ export default function QASectionV2({
         throw new Error(data.error || "Something went wrong. Please try again.");
       }
 
-      // Track conversion (fire-and-forget)
+      // Track conversion with full provider data
       fetch("/api/activity/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -498,6 +505,8 @@ export default function QASectionV2({
             question_text: expandedQuestion,
             email,
             variant: "multi_provider",
+            sent_count: sentCount,
+            sent_provider_ids: sentProviderIds,
           },
         }),
         keepalive: true,

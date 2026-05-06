@@ -21,7 +21,7 @@ interface MultiProviderCardProps {
   currentProvider: CurrentProviderData;
   similarProviders: SimilarProviderForMulti[];
   onProviderSelect: (providerId: string, providerName: string) => Promise<void>;
-  onEmailSubmit: (email: string) => Promise<void>;
+  onEmailSubmit: (email: string, sentProviderIds: string[], sentCount: number) => Promise<void>;
   onSaveAll: (providerIds: string[]) => void;
   onCollapse: () => void;
   isSubmitting?: boolean;
@@ -194,7 +194,9 @@ export default function MultiProviderCard({
       return;
     }
     try {
-      await onEmailSubmit(email.trim().toLowerCase());
+      // Include current provider + all sent similar providers
+      const allSentProviderIds = [currentProvider.id, ...Array.from(sentProviders)];
+      await onEmailSubmit(email.trim().toLowerCase(), allSentProviderIds, totalSentCount);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong. Please try again.";

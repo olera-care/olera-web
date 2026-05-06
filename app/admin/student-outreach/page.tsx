@@ -27,6 +27,7 @@ import { BulkResearchModal } from "./BulkResearchModal";
 import { LogCallOutcomeModal } from "./LogCallOutcomeModal";
 import { ReplyClassifierModal } from "./ReplyClassifierModal";
 import { MarkPartnerModal } from "./MarkPartnerModal";
+import { LogMeetingModal, type MeetingStatus } from "./LogMeetingModal";
 import {
   STAKEHOLDER_TYPE_LABELS,
   STATUS_LABELS,
@@ -113,6 +114,10 @@ export default function StudentOutreachPage() {
     source: "email_reply" | "callback";
   } | null>(null);
   const [partnerRow, setPartnerRow] = useState<TabRow | null>(null);
+  // v8.10.19: universal Meetings-tab modal. Replaces the previous
+  // state-specific "Booked it" + "Make Partner ★" CTAs with a single
+  // "Log Meeting" entry point.
+  const [logMeetingRow, setLogMeetingRow] = useState<TabRow | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -189,7 +194,7 @@ export default function StudentOutreachPage() {
           try { await callAction(row.id, action); }
           catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
         }}
-        onMarkScheduledFromInFlight={() => setClassifierRow({ row, source: "email_reply" })}
+        onLogMeeting={() => setLogMeetingRow(row)}
         onSendFollowupEmail={() => {
           const subject = encodeURIComponent(`Following up — ${row.organization_name}`);
           const url = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
@@ -442,6 +447,43 @@ export default function StudentOutreachPage() {
           }}
         />
       )}
+      {logMeetingRow && (
+        <LogMeetingModal
+          organizationName={logMeetingRow.organization_name}
+          contactName={logMeetingRow.primary_contact_name}
+          initialStatus={
+            logMeetingRow.meeting_state === "scheduled" ? "booked" : "finding_time"
+          }
+          initialMeetingAt={
+            // datetime-local expects YYYY-MM-DDTHH:mm in LOCAL time. The
+            // server stores ISO UTC, so trim the seconds + Z and feed
+            // the rest. The browser interprets this as local time —
+            // matches the picker's display format.
+            logMeetingRow.meeting_at
+              ? logMeetingRow.meeting_at.slice(0, 16)
+              : undefined
+          }
+          onCancel={() => setLogMeetingRow(null)}
+          onSubmit={async (status: MeetingStatus, payload) => {
+            try {
+              if (status === "booked") {
+                await callAction(logMeetingRow.id, "mark_meeting_scheduled", {
+                  meeting_at: payload.meeting_at,
+                  notes: payload.notes,
+                });
+              } else {
+                await callAction(logMeetingRow.id, "flag_wants_meeting", {
+                  notes: payload.notes,
+                });
+              }
+              setLogMeetingRow(null);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+              throw e;
+            }
+          }}
+        />
+      )}
 
       {showAdd && (
         <AddStakeholderModal
@@ -534,7 +576,7 @@ interface RowCardCallbacks {
   onClassifyReply: (source: "email_reply" | "callback") => void;
   onMarkPartner: () => void;
   onStopOutreach: (reason: StopOutreachReason) => Promise<void>;
-  onMarkScheduledFromInFlight: () => void;
+  onLogMeeting: () => void;
   onSendFollowupEmail: () => void;
 }
 
@@ -1002,40 +1044,30 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
 }
 
 function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // v8.10.12: instructional nudge "Coordinate over email, then mark
-  // booked" removed from in_flight cards. The pill ("Finding a time")
-  // + the "Booked it" CTA already convey the workflow.
+  // v8.10.19: single "Log Meeting" CTA on every meetings card,
+  // regardless of stakeholder type or current state. Opens
+  // LogMeetingModal — admin picks "Finding a time" or "Booked",
+  // optionally adds a date + follow-up notes. Make Partner moves
+  // to the overflow (no longer the primary CTA on scheduled rows)
+  // since logging the meeting is the workflow action; partner
+  // graduation can happen after, via the universal ⋯.
   const lastActivityFootnote = row.last_activity_at ? (
     <p className="mt-0.5 text-[11px] text-gray-400">
       Last activity {formatRelative(row.last_activity_at)}
     </p>
   ) : null;
-  if (row.meeting_state === "scheduled") {
-    return {
-      footnote: lastActivityFootnote,
-      pill: (
-        <Pill title="Meeting is on the calendar.">
-          {row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}
-        </Pill>
-      ),
-      cta: (
-        <PrimaryAction
-          onClick={cb.onMarkPartner}
-          title="Meeting happened and they committed — graduate to Active Partner."
-        >
-          Make Partner ★
-        </PrimaryAction>
-      ),
-      // Make Partner is the primary CTA here; don't duplicate it in the
-      // overflow. Stop Outreach + any future extras still appear.
-      overflowMenu: buildUniversalOverflow(cb, { excludeMakePartner: true }),
-    };
-  }
-  // in_flight
+  const pill =
+    row.meeting_state === "scheduled" ? (
+      <Pill title="Meeting is on the calendar.">
+        {row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}
+      </Pill>
+    ) : (
+      <Pill>Finding a time</Pill>
+    );
   return {
     footnote: lastActivityFootnote,
-    pill: <Pill>Finding a time</Pill>,
-    cta: <PrimaryAction onClick={cb.onMarkScheduledFromInFlight}>Booked it</PrimaryAction>,
+    pill,
+    cta: <PrimaryAction onClick={cb.onLogMeeting}>Log Meeting</PrimaryAction>,
     overflowMenu: buildUniversalOverflow(cb),
   };
 }

@@ -588,39 +588,53 @@ export default function MultiProviderCard({
             `}
           >
             {isLoggedIn ? (
-              /* ─── Logged-in User: Simple confirmation ─────────────────────── */
-              <div className="flex items-center gap-3">
-                {currentProvider.image ? (
-                  <img
-                    src={currentProvider.image}
-                    alt={firstName}
-                    className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
-                    <span className="text-sm font-semibold text-gray-500">
-                      {firstName.charAt(0)}
-                    </span>
+              /* ─── Logged-in User: Simple confirmation + save option ─────────── */
+              <div>
+                <div className="flex items-center gap-3">
+                  {currentProvider.image && !failedImages.has(currentProvider.id) ? (
+                    <img
+                      src={currentProvider.image}
+                      alt={firstName}
+                      onError={() => handleImageError(currentProvider.id)}
+                      className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
+                      <span className="text-sm font-semibold text-gray-500">
+                        {firstName.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-[16px] text-gray-900 font-medium">
+                      We&apos;ll notify you when {totalSentCount === 1 ? firstName : "they"} {totalSentCount === 1 ? "replies" : "reply"}
+                    </p>
+                    <p className="text-[13px] text-gray-500 mt-0.5">
+                      Check your email for {totalSentCount === 1 ? "their response" : `${totalSentCount} responses`}
+                    </p>
                   </div>
-                )}
-                <div>
-                  <p className="text-[16px] text-gray-900 font-medium">
-                    We&apos;ll notify you when {totalSentCount === 1 ? firstName : "they"} {totalSentCount === 1 ? "replies" : "reply"}
-                  </p>
-                  <p className="text-[13px] text-gray-500 mt-0.5">
-                    Check your email for {totalSentCount === 1 ? "their response" : `${totalSentCount} responses`}
-                  </p>
                 </div>
+                {/* Save option for logged-in users */}
+                <p className="text-[13px] text-gray-500 mt-4">
+                  <button
+                    type="button"
+                    onClick={handleSaveAll}
+                    className="font-medium text-primary-600 hover:text-primary-700 underline underline-offset-2"
+                  >
+                    Save {totalSentCount === 1 ? "this provider" : `all ${totalSentCount} providers`}
+                  </button>{" "}for later.
+                </p>
               </div>
             ) : (
               /* ─── Guest User: Email capture form ──────────────────────────── */
               <>
                 {/* CTA with Avatar */}
                 <div className="flex items-center gap-3 mb-4">
-                  {currentProvider.image ? (
+                  {currentProvider.image && !failedImages.has(currentProvider.id) ? (
                     <img
                       src={currentProvider.image}
                       alt={firstName}
+                      onError={() => handleImageError(currentProvider.id)}
                       className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
                     />
                   ) : (
@@ -692,7 +706,7 @@ export default function MultiProviderCard({
                         Sending...
                       </span>
                     ) : (
-                      totalSentCount === 1 ? "Send their reply" : `Get ${totalSentCount} replies`
+                      totalSentCount === 1 ? "Get reply" : `Get ${totalSentCount} replies`
                     )}
                   </button>
                 </div>

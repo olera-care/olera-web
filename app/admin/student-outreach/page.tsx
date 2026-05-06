@@ -1498,12 +1498,14 @@ function ResearchTabContent({
             </h3>
           )}
 
-          {/* v8.10.31: filter pills + bulk-action toolbar. Toggling
-              "Ready to email" scopes the list to researched stakeholders
-              who already have a contact + programs; checkboxes appear so
-              admin can fire schedule_sequence on N rows at once with the
-              default template snapshots. */}
-          <div className="mb-2 flex flex-wrap items-center gap-2">
+          {/* v8.10.34: filter row aligned to the card grid. Pills use
+              the same chip language as buttons (rounded-md, no chunky
+              border) — segmented-control feel, so "All / Ready to email"
+              read as compact filter chips rather than free-floating
+              badges. The Select-all label snaps to the right via
+              ml-auto. Vertical rhythm anchors to mb-3 above the cards
+              so the pills sit close to what they filter. */}
+          <div className="mb-3 flex flex-wrap items-center gap-1 px-1">
             <FilterPill
               active={filter === "all"}
               onClick={() => setFilter("all")}
@@ -1517,28 +1519,28 @@ function ResearchTabContent({
               count={readyRows.length}
             />
             {filter === "ready" && readyRows.length > 0 && (
-              <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-xs text-gray-600">
+              <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 px-2 text-xs font-medium text-gray-500 hover:text-gray-700">
                 <input
                   type="checkbox"
                   checked={allReadySelected}
                   onChange={toggleSelectAllReady}
-                  className="rounded border-gray-300"
+                  className="h-3.5 w-3.5 rounded border-gray-300"
                 />
-                Select all ({readyRows.length})
+                Select all
               </label>
             )}
           </div>
 
           {effectiveSelected.size > 0 && (
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
               <span className="text-sm font-medium text-emerald-900">
                 {effectiveSelected.size} selected
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => setSelectedIds(new Set())}
                   disabled={bulkRunning}
-                  className="text-xs font-medium text-emerald-900 underline hover:no-underline disabled:opacity-50"
+                  className="text-sm font-medium text-emerald-900 underline-offset-2 hover:underline disabled:opacity-50"
                 >
                   Clear
                 </button>
@@ -1548,7 +1550,7 @@ function ResearchTabContent({
                   className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
                 >
                   {bulkRunning
-                    ? `Starting outreach for ${effectiveSelected.size}…`
+                    ? "Starting…"
                     : `Start outreach for ${effectiveSelected.size}`}
                 </button>
               </div>
@@ -1556,7 +1558,7 @@ function ResearchTabContent({
           )}
 
           {visibleRows.length === 0 ? (
-            <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-400">
+            <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-400">
               {filter === "ready"
                 ? "No stakeholders are ready to email yet."
                 : "No stakeholders in research."}
@@ -1589,6 +1591,14 @@ function ResearchTabContent({
   );
 }
 
+/**
+ * v8.10.34: FilterPill — segmented-control chip. Same border-radius
+ * (rounded-md) as buttons elsewhere, no chunky bordered chrome when
+ * inactive (just hover bg) so the pill row sits quietly above the
+ * cards instead of competing with them. Active state is a sharp
+ * filled dark chip; the count is a tabular numeral inset on the
+ * right of the label.
+ */
 function FilterPill({
   active,
   onClick,
@@ -1603,14 +1613,20 @@ function FilterPill({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+      className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
         active
-          ? "border-gray-900 bg-gray-900 text-white"
-          : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+          ? "bg-gray-900 text-white"
+          : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
       }`}
     >
-      {label}
-      <span className={`ml-1.5 ${active ? "text-white/70" : "text-gray-400"}`}>{count}</span>
+      <span>{label}</span>
+      <span
+        className={`text-xs tabular-nums ${
+          active ? "text-white/70" : "text-gray-400"
+        }`}
+      >
+        {count}
+      </span>
     </button>
   );
 }

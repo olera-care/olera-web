@@ -38,6 +38,7 @@ import {
   type DerivedState,
   type TouchpointRow,
 } from "@/lib/student-outreach/state-derivation";
+import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import type {
   AwaitingCallbackKind,
   Campus,
@@ -229,6 +230,9 @@ async function fetchResearchCampuses(
   city: string | null;
   research_stakeholder_count: number;
   last_added_at: string | null;
+  // v9.0 Phase 2: catchment-derived state + client count.
+  stage: "provider_prospecting" | "stakeholder_prospecting" | "active";
+  client_count: number;
 }>> {
   let q = db
     .from("student_outreach_campuses")
@@ -280,25 +284,87 @@ async function fetchResearchCampuses(
     if (!cur || s.created_at > cur) lastAddedAt.set(s.campus_id, s.created_at);
   }
 
+  // v9.0 Phase 2: pull all organization/caregiver providers once with
+  // their metadata so we can derive each campus's stage from its
+  // catchment without N round-trips. Providers count is small
+  // (hundreds), so a single in-memory join is efficient.
+  const { data: providers } = await db
+    .from("business_profiles")
+    .select("city, state, metadata")
+    .in("type", ["organization", "caregiver"]);
+
+  // Index providers by lowercase city|state for O(1) catchment lookups.
+  type ProviderLite = {
+    city: string | null;
+    state: string | null;
+    metadata: Record<string, unknown> | null;
+  };
+  const providerIndex = new Map<string, ProviderLite[]>();
+  for (const p of (providers ?? []) as ProviderLite[]) {
+    if (!p.city || !p.state) continue;
+    const key = `${p.city.toLowerCase()}|${p.state}`;
+    if (!providerIndex.has(key)) providerIndex.set(key, []);
+    providerIndex.get(key)!.push(p);
+  }
+
+  const PILOT_MS = 90 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const isClientMeta = (m: Record<string, unknown> | null): boolean => {
+    if (!m) return false;
+    if (m.medjobs_subscription_active === true) return true;
+    const accepted = m.interview_terms_accepted_at;
+    if (typeof accepted !== "string") return false;
+    const t = new Date(accepted).getTime();
+    return !isNaN(t) && now - t < PILOT_MS;
+  };
+
   return campusRows
-    .map((c) => ({
-      id: c.id,
-      slug: c.slug,
-      name: c.name,
-      state: c.state,
-      city: c.city,
-      research_stakeholder_count: counts.get(c.id) ?? 0,
-      last_added_at: lastAddedAt.get(c.id) ?? null,
-    }))
-    // v8.5: only surface campuses with at least one stakeholder currently
-    // in research stage. Brand-new empty campuses (just added, never had
-    // a stakeholder) stay hidden until research is initiated. Same for
-    // campuses where every stakeholder has advanced past research — the
-    // card naturally disappears, leaving the Research tab focused on
-    // active work.
-    .filter((c) => c.research_stakeholder_count > 0)
+    .map((c) => {
+      const uni = PARTNER_UNIVERSITIES.find((u) => u.slug === c.slug);
+      let clientCount = 0;
+      if (uni) {
+        for (const cc of uni.catchment) {
+          const key = `${cc.city.toLowerCase()}|${cc.state}`;
+          const list = providerIndex.get(key) ?? [];
+          for (const p of list) if (isClientMeta(p.metadata)) clientCount += 1;
+        }
+      }
+      const stakeholderCount = counts.get(c.id) ?? 0;
+      // research_complete=false (filter above), so stage is either
+      // provider_prospecting (no clients yet) or stakeholder_prospecting
+      // (≥1 client in catchment).
+      const stage: "provider_prospecting" | "stakeholder_prospecting" =
+        clientCount > 0 ? "stakeholder_prospecting" : "provider_prospecting";
+
+      return {
+        id: c.id,
+        slug: c.slug,
+        name: c.name,
+        state: c.state,
+        city: c.city,
+        research_stakeholder_count: stakeholderCount,
+        last_added_at: lastAddedAt.get(c.id) ?? null,
+        stage,
+        client_count: clientCount,
+      };
+    })
+    // v9.0 Phase 2: surface a campus card if it has stakeholders in
+    // research OR if Stage 2 has unlocked (≥1 client) — the latter
+    // becomes the "Campus research needed" banner. v8.5's "must have
+    // ≥1 stakeholder" filter is preserved for provider_prospecting
+    // campuses since those don't have a Stage 2 banner yet.
+    .filter(
+      (c) =>
+        c.research_stakeholder_count > 0 ||
+        c.stage === "stakeholder_prospecting",
+    )
     .sort((a, b) => {
-      // Most recently active first; null last_added_at sinks to the bottom.
+      // v9.0 Phase 2: stakeholder_prospecting (Stage 2 unlocked) cards
+      // bubble to the top — they're the prompt admin needs to act on.
+      const aPriority = a.stage === "stakeholder_prospecting" && a.research_stakeholder_count === 0 ? 0 : 1;
+      const bPriority = b.stage === "stakeholder_prospecting" && b.research_stakeholder_count === 0 ? 0 : 1;
+      if (aPriority !== bPriority) return aPriority - bPriority;
+      // Within tier: most recently active first.
       const aTime = a.last_added_at ? new Date(a.last_added_at).getTime() : 0;
       const bTime = b.last_added_at ? new Date(b.last_added_at).getTime() : 0;
       if (aTime !== bTime) return bTime - aTime;

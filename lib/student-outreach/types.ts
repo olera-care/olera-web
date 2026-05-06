@@ -296,6 +296,13 @@ export interface ResearchCampusCard {
   research_stakeholder_count: number;
   /** Most recent stakeholder created_at across this campus, regardless of status. */
   last_added_at: string | null;
+  /** v9.0 Phase 2: optional campus stage. Populated when the queue
+   *  computes catchment-derived state. UI surfaces a special banner
+   *  variant when stage='stakeholder_prospecting' to prompt research. */
+  stage?: "provider_prospecting" | "stakeholder_prospecting" | "active";
+  /** v9.0 Phase 2: count of clients currently in the campus's catchment.
+   *  Used to label the research-needed banner. */
+  client_count?: number;
 }
 
 /** v7 tab counts — one number per tab in the new workflow.

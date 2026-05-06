@@ -227,6 +227,51 @@ function ResearchCampusCardView({
   onMarkComplete: () => void;
 }) {
   const hasStakeholders = campus.research_stakeholder_count > 0;
+  // v9.0 Phase 2: campus has reached Stage 2 (≥1 client in catchment)
+  // but no stakeholders are in research yet — fire the dedicated
+  // "Campus research needed" banner styling so admin sees it as a
+  // prompt to act, not as ongoing work.
+  const isResearchNeeded =
+    campus.stage === "stakeholder_prospecting" && !hasStakeholders;
+
+  if (isResearchNeeded) {
+    return (
+      <div className="rounded-lg border-2 border-violet-200 bg-violet-50 px-4 py-3 transition-colors hover:bg-violet-100">
+        <div className="flex items-start justify-between gap-3">
+          <button onClick={onContinue} className="min-w-0 flex-1 text-left">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="rounded bg-violet-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-900">
+                Campus research needed
+              </span>
+              <p className="truncate text-sm font-medium text-gray-900">
+                {campus.name}
+              </p>
+            </div>
+            <p className="mt-0.5 truncate text-xs text-violet-900">
+              {campus.client_count
+                ? `${campus.client_count} ${campus.client_count === 1 ? "client" : "clients"} in catchment`
+                : "Stage 2 unlocked"}
+              {" · Add student orgs, advisors, dept heads, professors."}
+            </p>
+            <p className="mt-0.5 text-[11px] text-violet-700">
+              {[campus.city, campus.state].filter(Boolean).join(", ") || "—"}
+            </p>
+          </button>
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            <button
+              onClick={(e) => { e.stopPropagation(); onContinue(); }}
+              className="rounded-md bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-800"
+            >
+              Add stakeholders →
+            </button>
+            <CampusOverflowMenu onMarkComplete={onMarkComplete} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Existing card variant (research ongoing, with stakeholders).
   return (
     <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50">
       <div className="flex items-start justify-between gap-3">
@@ -239,6 +284,7 @@ function ResearchCampusCardView({
           <p className="mt-0.5 truncate text-xs text-gray-500">
             {[campus.city, campus.state].filter(Boolean).join(", ")}
             {hasStakeholders && ` · ${campus.research_stakeholder_count} ${campus.research_stakeholder_count === 1 ? "stakeholder" : "stakeholders"}`}
+            {campus.client_count != null && campus.client_count > 0 && ` · ${campus.client_count} ${campus.client_count === 1 ? "client" : "clients"} in catchment`}
           </p>
           <p className="mt-0.5 text-[11px] text-gray-400">
             {campus.last_added_at ? `Last added ${formatRelative(campus.last_added_at)}` : "Just added"}

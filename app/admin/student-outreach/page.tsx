@@ -85,6 +85,24 @@ const TABS: TabDef[] = [
   { key: "calls",      label: "Calls",            tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
 ];
 
+// v8.10.38: per-tab PulseHeader metric. Each tab points at a server
+// metric (drives the time series fetched from /stats) and a label
+// (drives the kpiSuffix shown in the header). Switching tabs swaps
+// the top viewport so it reflects the operational area below it.
+const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
+  candidates:  { metric: "signups",          label: "student signups"      },
+  prospects:   { metric: "prospects_added",  label: "prospects qualified"  },
+  partners:    { metric: "partners_added",   label: "new partners"         },
+  meetings:    { metric: "meetings_held",    label: "meetings held"        },
+  replies:     { metric: "replies",          label: "replies received"     },
+  calls:       { metric: "calls_made",       label: "calls made"           },
+  archive:     { metric: "activity",         label: "outreach actions"     },
+  all:         { metric: "activity",         label: "outreach actions"     },
+  outbound:    { metric: "outbound",         label: "outbound messages"    },
+  emails_sent: { metric: "emails_sent",      label: "emails sent"          },
+  signups:     { metric: "signups",          label: "student signups"      },
+};
+
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
 // the end of the tab row. Each menu view is a hidden top-level tab that
 // behaves the same as primary tabs (data viewport + filters + cards) —
@@ -240,19 +258,28 @@ export default function StudentOutreachPage() {
     [tab, callAction],
   );
 
-  // v8.10.9: PulseHeader stats are scoped to the active campus filter
-  // — when admin selects "Texas A&M University", the KPI + chart
-  // narrow to signups whose metadata.university matches that campus.
+  // v8.10.38: PulseHeader stats are now per-tab. Each tab maps to a
+  // server-side metric (signups / prospects_added / partners_added /
+  // meetings_held / replies / calls_made / emails_sent / outbound /
+  // activity) and a human label. Switching tabs re-fetches the chart
+  // so the top viewport reflects the operational area below it.
+  // Campus filter still applies to every metric — narrows the time
+  // series to that campus's stakeholders (or signups, by university
+  // name match).
+  const tabStats = TAB_STATS[tab];
   const statsPath = useMemo(() => {
     const base = "/api/admin/student-outreach/stats";
-    return campusSlug ? `${base}?campus=${encodeURIComponent(campusSlug)}` : base;
-  }, [campusSlug]);
+    const params = new URLSearchParams();
+    params.set("metric", tabStats.metric);
+    if (campusSlug) params.set("campus", campusSlug);
+    return `${base}?${params.toString()}`;
+  }, [tabStats.metric, campusSlug]);
 
   return (
     <div>
       <PulseHeader
         title="Student Outreach"
-        kpiSuffix="student signups"
+        kpiSuffix={tabStats.label}
         statsPath={statsPath}
         range={range}
         onRangeChange={setRange}

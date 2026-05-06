@@ -5,25 +5,75 @@ import { buildSeries, resolveBucket, type Bucket } from "@/lib/admin-stats";
 /**
  * GET /api/admin/student-outreach/stats
  *
- * Returns stats for the PulseHeader on the Student Outreach page. Same
- * shape as /api/admin/questions/stats but the metric is incoming
- * student signups (not an action queue).
+ * Returns time-series data for the PulseHeader on the Student Outreach
+ * page. The `metric` query param picks which dataset to count; each tab
+ * passes its own metric so the top-of-page chart updates as admin
+ * navigates.
  *
- *   - `total` / `delta`: count of student signups in range, vs prior
- *     window of equal length.
- *   - `series`: signups per bucket (day / week / month) for the chart.
+ * Supported metrics (`metric` query param, default `signups`):
  *
- * Source: `business_profiles` rows where `type='student'`. Each student
- * record carries `metadata.university` (text) — when admin filters the
- * Student Outreach page to a specific campus, the stats query narrows
- * to signups whose university name matches the campus's name.
+ *   signups          — student business_profiles (created_at)
+ *   prospects_added  — stage_changed touchpoints whose new_status =
+ *                      researched (qualified prospects)
+ *   partners_added   — distribution_confirmed touchpoints (graduations)
+ *   meetings_held    — meeting_held touchpoints
+ *   replies          — email_replied + ig_dm_replied touchpoints
+ *   calls_made       — call_no_answer + call_voicemail + call_connected
+ *                      + call_wrong_number touchpoints
+ *   emails_sent      — email_sent touchpoints
+ *   outbound         — emails_sent + ig_dm_sent + contact_form_submitted
+ *   activity         — every touchpoint type (broad funnel — the All tab)
+ *
+ * Common shape:
+ *   - `total` / `delta`: count in range, vs prior window of equal length.
+ *   - `series`: per-bucket count for the chart.
+ *   - `bucket`: hour | day | week | month (auto-resolved).
  *
  * Query params:
- *   - `date_from` (ISO, inclusive). Omit for all-time.
- *   - `date_to`   (ISO, exclusive).
- *   - `campus`    optional campus slug — narrows to students at that
- *                 university (matched by case-insensitive name).
+ *   - `metric`    string (see above; default "signups")
+ *   - `date_from` ISO, inclusive. Omit for all-time.
+ *   - `date_to`   ISO, exclusive.
+ *   - `campus`    optional campus slug. For signups, narrows by
+ *                 metadata.university match. For all touchpoint
+ *                 metrics, narrows by the underlying outreach row's
+ *                 campus_id.
  */
+
+type DB = ReturnType<typeof getServiceClient>;
+
+const TOUCHPOINT_METRICS: Record<string, string[]> = {
+  prospects_added: [], // resolved separately — needs payload filter
+  partners_added: ["distribution_confirmed"],
+  meetings_held: ["meeting_held"],
+  replies: ["email_replied", "ig_dm_replied"],
+  calls_made: ["call_no_answer", "call_voicemail", "call_connected", "call_wrong_number"],
+  emails_sent: ["email_sent"],
+  outbound: ["email_sent", "ig_dm_sent", "contact_form_submitted"],
+  activity: [
+    "email_sent",
+    "email_replied",
+    "email_bounced",
+    "call_no_answer",
+    "call_voicemail",
+    "call_connected",
+    "call_wrong_number",
+    "ig_dm_sent",
+    "ig_dm_replied",
+    "contact_form_submitted",
+    "meeting_scheduled",
+    "meeting_held",
+    "meeting_no_show",
+    "meeting_rescheduled",
+    "distribution_confirmed",
+    "approval_requested",
+    "approval_granted",
+    "approval_denied",
+    "approval_expired",
+    "stage_change",
+    "note_added",
+  ],
+};
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthUser();
@@ -32,6 +82,7 @@ export async function GET(request: NextRequest) {
     if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
     const { searchParams } = new URL(request.url);
+    const metric = searchParams.get("metric") ?? "signups";
     const dateFrom = searchParams.get("date_from");
     const dateTo = searchParams.get("date_to");
     const campusSlug = searchParams.get("campus");
@@ -44,59 +95,49 @@ export async function GET(request: NextRequest) {
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
     const queryStart = priorFrom ?? from ?? null;
 
-    // Resolve campus slug → name for the metadata.university match.
+    // Resolve campus filter once. For signups: needs the campus name to
+    // match metadata.university. For touchpoint metrics: needs the
+    // campus_id to filter the joined outreach rows.
     let campusName: string | null = null;
+    let campusId: string | null = null;
     if (campusSlug) {
       const { data: campus } = await db
         .from("student_outreach_campuses")
-        .select("name")
+        .select("id, name")
         .eq("slug", campusSlug)
         .single();
-      campusName = (campus as { name: string } | null)?.name ?? null;
-      // Unknown slug → return zero counts. Don't pretend the filter
-      // matched everything.
-      if (!campusName) {
+      const c = campus as { id: string; name: string } | null;
+      if (!c) {
         return NextResponse.json({ total: 0, delta: 0, series: [], bucket: "day" });
       }
+      campusName = c.name;
+      campusId = c.id;
     }
 
-    let q = db
-      .from("business_profiles")
-      .select("created_at, metadata")
-      .eq("type", "student")
-      .order("created_at", { ascending: true })
-      .limit(50000);
-    if (queryStart) q = q.gte("created_at", queryStart.toISOString());
-    if (dateTo) q = q.lt("created_at", dateTo);
-
-    const { data: rows, error } = await q;
-    if (error) {
-      console.error("Admin student-outreach stats error:", error);
-      return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
+    let timestamps: Date[];
+    if (metric === "signups") {
+      timestamps = await fetchSignupTimestamps(db, queryStart, to, campusName);
+    } else if (metric === "prospects_added") {
+      timestamps = await fetchProspectsAddedTimestamps(db, queryStart, to, campusId);
+    } else if (TOUCHPOINT_METRICS[metric]) {
+      timestamps = await fetchTouchpointTimestamps(
+        db,
+        TOUCHPOINT_METRICS[metric],
+        queryStart,
+        to,
+        campusId,
+      );
+    } else {
+      return NextResponse.json({ error: `Unknown metric: ${metric}` }, { status: 400 });
     }
 
-    const allRows = rows ?? [];
-
-    // Filter by university name (case-insensitive) when a campus is set.
-    // Doing this in JS keeps the SQL simple — the metadata->>'university'
-    // ilike pattern is harder to express portably, and the student table
-    // is small (50k cap above).
-    const lowerName = campusName?.toLowerCase() ?? null;
-    const matchesCampus = (r: (typeof allRows)[number]) => {
-      if (!lowerName) return true;
-      const meta = r.metadata as Record<string, unknown> | null | undefined;
-      const u = typeof meta?.university === "string" ? meta.university : null;
-      return u !== null && u.toLowerCase() === lowerName;
-    };
-
-    const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t < to : true);
+    // KPI counts and series
+    const inRange = (t: Date) => (from ? t >= from : true) && (to ? t < to : true);
     const inPrior = (t: Date) => !!priorFrom && !!from && t >= priorFrom && t < from;
 
     let kpiCurrent = 0;
     let kpiPrior = 0;
-    for (const r of allRows) {
-      if (!matchesCampus(r)) continue;
-      const t = new Date(r.created_at);
+    for (const t of timestamps) {
       if (inRange(t)) kpiCurrent++;
       else if (inPrior(t)) kpiPrior++;
     }
@@ -107,10 +148,7 @@ export async function GET(request: NextRequest) {
       else delta = Math.round(((kpiCurrent - kpiPrior) / kpiPrior) * 100);
     }
 
-    const seriesTimestamps = allRows
-      .filter(matchesCampus)
-      .map((r) => new Date(r.created_at))
-      .filter(inRange);
+    const seriesTimestamps = timestamps.filter(inRange);
     const bucket: Bucket = from
       ? resolveBucket(from, to)
       : resolveBucket(seriesTimestamps[0] ?? now, now);
@@ -122,4 +160,84 @@ export async function GET(request: NextRequest) {
     console.error("Admin student-outreach stats fatal:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+}
+
+async function fetchSignupTimestamps(
+  db: DB,
+  queryStart: Date | null,
+  to: Date,
+  campusName: string | null,
+): Promise<Date[]> {
+  let q = db
+    .from("business_profiles")
+    .select("created_at, metadata")
+    .eq("type", "student")
+    .order("created_at", { ascending: true })
+    .limit(50000);
+  if (queryStart) q = q.gte("created_at", queryStart.toISOString());
+  if (to) q = q.lt("created_at", to.toISOString());
+  const { data: rows } = await q;
+
+  const lowerName = campusName?.toLowerCase() ?? null;
+  return ((rows ?? []) as Array<{ created_at: string; metadata: Record<string, unknown> | null }>)
+    .filter((r) => {
+      if (!lowerName) return true;
+      const u =
+        typeof r.metadata?.university === "string"
+          ? (r.metadata.university as string)
+          : null;
+      return u !== null && u.toLowerCase() === lowerName;
+    })
+    .map((r) => new Date(r.created_at));
+}
+
+async function fetchTouchpointTimestamps(
+  db: DB,
+  touchpointTypes: string[],
+  queryStart: Date | null,
+  to: Date,
+  campusId: string | null,
+): Promise<Date[]> {
+  // Inner-join on student_outreach so we can scope by campus_id.
+  let q = db
+    .from("student_outreach_touchpoints")
+    .select("created_at, student_outreach!inner(campus_id)")
+    .in("touchpoint_type", touchpointTypes)
+    .order("created_at", { ascending: true })
+    .limit(50000);
+  if (queryStart) q = q.gte("created_at", queryStart.toISOString());
+  if (to) q = q.lt("created_at", to.toISOString());
+  if (campusId) q = q.eq("student_outreach.campus_id", campusId);
+
+  const { data: rows } = await q;
+  return ((rows ?? []) as Array<{ created_at: string }>).map((r) => new Date(r.created_at));
+}
+
+async function fetchProspectsAddedTimestamps(
+  db: DB,
+  queryStart: Date | null,
+  to: Date,
+  campusId: string | null,
+): Promise<Date[]> {
+  // Stage changes have payload { from, to }; we want transitions to
+  // "researched" — the moment a prospect is qualified.
+  let q = db
+    .from("student_outreach_touchpoints")
+    .select("created_at, payload, student_outreach!inner(campus_id)")
+    .eq("touchpoint_type", "stage_change")
+    .order("created_at", { ascending: true })
+    .limit(50000);
+  if (queryStart) q = q.gte("created_at", queryStart.toISOString());
+  if (to) q = q.lt("created_at", to.toISOString());
+  if (campusId) q = q.eq("student_outreach.campus_id", campusId);
+
+  const { data: rows } = await q;
+  return (
+    (rows ?? []) as Array<{
+      created_at: string;
+      payload: Record<string, unknown> | null;
+    }>
+  )
+    .filter((r) => (r.payload as { to?: string } | null)?.to === "researched")
+    .map((r) => new Date(r.created_at));
 }

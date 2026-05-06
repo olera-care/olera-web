@@ -32,7 +32,7 @@ async function fetchCount(url: string, key = "count"): Promise<number> {
 
 export default function AdminOverviewPage() {
   // Each stat loads independently — no more Promise.all blocking
-  const [pendingProviders, setPendingProviders] = useState<number | null>(null);
+  const [unverifiedClaims, setUnverifiedClaims] = useState<number | null>(null);
   const [totalInquiries, setTotalInquiries] = useState<number | null>(null);
   const [needsEmail, setNeedsEmail] = useState<number | null>(null);
   const [questionsNeedEmail, setQuestionsNeedEmail] = useState<number | null>(null);
@@ -45,9 +45,10 @@ export default function AdminOverviewPage() {
 
   useEffect(() => {
     // Fire all fetches independently — each card updates on its own
-    fetchCount("/api/admin/providers?status=pending&count_only=true")
-      .then(setPendingProviders)
-      .catch(() => { setPendingProviders(0); setError("Some data failed to load."); });
+    fetch("/api/admin/verification?counts_only=true")
+      .then((r) => r.ok ? r.json() : Promise.reject(new Error("verification counts failed")))
+      .then((d) => setUnverifiedClaims(d?.counts?.unverified_claims ?? 0))
+      .catch(() => { setUnverifiedClaims(0); setError("Some data failed to load."); });
 
     fetchCount("/api/admin/leads?count_only=true")
       .then(setTotalInquiries)
@@ -81,7 +82,7 @@ export default function AdminOverviewPage() {
   }, []);
 
   const primaryCards: StatCard[] = [
-    { label: "Pending Providers", value: pendingProviders, subtitle: "Awaiting review", href: "/admin/providers" },
+    { label: "Unverified Claims", value: unverifiedClaims, subtitle: "Claimed, not yet verified", href: "/admin/verification" },
     { label: "Total Inquiries", value: totalInquiries, subtitle: "All connections", href: "/admin/leads" },
     { label: "Needs Email", value: needsEmail, subtitle: "Leads awaiting email", href: "/admin/leads?tab=needs_email", isWarning: true },
     { label: "Q&A Needs Email", value: questionsNeedEmail, subtitle: "Questions blocked", href: "/admin/questions", isWarning: true },

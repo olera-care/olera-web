@@ -41,6 +41,7 @@ import {
   getCategoryDescription,
   getCategoryServices,
   getSimilarProviders,
+  getSimilarProvidersForMulti,
   getSuggestedQuestions,
 } from "@/lib/provider-utils";
 
@@ -382,8 +383,8 @@ export default async function ProviderPage({
   const outreachCategoryString = profile.category ? PROFILE_CAT_TO_SUPABASE_CAT[profile.category] : null;
   const canFetchOutreachCandidates = !!(profile.city && profile.state && outreachCategoryString);
 
-  // --- Parallel data fetching (claim state, similar providers, Q&A, reviews, outreach candidates) ---
-  const [claimResult, similarProviders, qaResult, outreachCandidates] = await Promise.all([
+  // --- Parallel data fetching (claim state, similar providers, Q&A, reviews, outreach candidates, multi-provider candidates) ---
+  const [claimResult, similarProviders, qaResult, outreachCandidates, multiProviderCandidates] = await Promise.all([
     // 1. Actual claim state (iOS data always says "unclaimed")
     profile.source_provider_id
       ? (async () => {
@@ -445,6 +446,19 @@ export default async function ProviderPage({
           limit: 3,
         }).catch(() => [])
       : Promise.resolve([]),
+
+    // 5. Multi-provider arm candidates (similar providers with distance for comparison UX)
+    getSimilarProvidersForMulti(
+      profile.category,
+      profile.source_provider_id || profile.id,
+      profile.city,
+      profile.state,
+      profile.lat ?? null,
+      profile.lng ?? null,
+      null, // lowerPrice - not used for filtering currently
+      null, // upperPrice - not used for filtering currently
+      3
+    ).catch(() => []),
   ]);
 
   let actualClaimState = profile.claim_state;
@@ -753,7 +767,7 @@ export default async function ProviderPage({
               />
               <MobileGalleryActionBar
                 provider={{
-                  providerId: profile.id,
+                  providerId: profile.slug,
                   slug: profile.slug,
                   name: profile.display_name,
                   location: locationStr,
@@ -783,7 +797,7 @@ export default async function ProviderPage({
                 <div className="hidden md:block">
                   <SaveButton
                     provider={{
-                      providerId: profile.id,
+                      providerId: profile.slug,
                       slug: profile.slug,
                       name: profile.display_name,
                       location: locationStr,
@@ -1010,6 +1024,10 @@ export default async function ProviderPage({
                   providerSlug={profile.slug}
                   providerLocation={profile.city && profile.state ? `${profile.city}, ${profile.state}` : ""}
                   providerCareTypes={profile.care_types || []}
+                  providerRating={rating}
+                  providerPriceRange={priceRange ?? undefined}
+                  providerCity={profile.city ?? undefined}
+                  providerState={profile.state ?? undefined}
                   questions={answeredQuestions.map((q) => ({
                     id: q.id,
                     question: q.question,
@@ -1019,10 +1037,11 @@ export default async function ProviderPage({
                   }))}
                   suggestedQuestions={getSuggestedQuestions(profile.category)}
                   hasBenefitsData={hasBenefitsData && !!benefitsData}
+                  similarProvidersForMulti={multiProviderCandidates}
                 />
 
-                {/* Outreach arm of the 5-way intake A/B. Slot itself renders
-                    null for the 80% not in the outreach arm, so no wrapping div
+                {/* Outreach arm of the 6-way intake A/B. Slot itself renders
+                    null for the ~83% not in the outreach arm, so no wrapping div
                     here — it would leave a phantom mt-6 gap. The module owns
                     its own top margin. See IntakeVariantSlots.tsx. */}
                 {canFetchOutreachCandidates && outreachCandidates.length > 0 && (
@@ -1039,9 +1058,9 @@ export default async function ProviderPage({
 
               {/* ── Benefits Discovery ── */}
               {/* Wrapped in BenefitsArmGate so the section disappears for the
-                  40% of visitors in the outreach or inline_answer arms of the
-                  5-way intake A/B. The 60% in the 3 benefits arms see the
-                  existing module unchanged (with its internal mod-3 copy A/B). */}
+                  50% of visitors in the outreach, inline_answer, or multi_provider
+                  arms of the 6-way intake A/B. The 50% in the 3 benefits arms see
+                  the existing module unchanged (with its internal mod-3 copy A/B). */}
               {hasBenefitsData && benefitsData && (
                 <BenefitsArmGate>
                   <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">

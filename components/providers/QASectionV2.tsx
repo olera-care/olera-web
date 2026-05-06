@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders, type SaveProviderData } from "@/hooks/use-saved-providers";
 import InlineAnswerCard from "@/components/providers/InlineAnswerCard";
+import MultiProviderCard from "@/components/providers/MultiProviderCard";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import type { IntakeVariant } from "@/lib/analytics/variant";
+import type { SimilarProviderForMulti } from "@/lib/provider-utils";
 
 interface QAEntry {
   id?: string;
@@ -25,6 +27,10 @@ interface QASectionProps {
   providerSlug?: string;
   providerLocation?: string;
   providerCareTypes?: string[];
+  providerRating?: number;
+  providerPriceRange?: string;
+  providerCity?: string;
+  providerState?: string;
   questions?: QAEntry[];
   suggestedQuestions?: string[];
   // When true, the page has a benefits discovery module below Q&A.
@@ -35,7 +41,10 @@ interface QASectionProps {
   hasBenefitsSection?: boolean;
   // Variant for A/B test — determines which experience to render.
   // "inline_answer" variant shows expanded answer + email capture inline.
+  // "multi_provider" variant shows click-to-send multi-provider comparison.
   variant?: IntakeVariant;
+  // Similar providers for multi_provider variant
+  similarProvidersForMulti?: SimilarProviderForMulti[];
 }
 
 // More menu icon component
@@ -115,6 +124,10 @@ export default function QASectionV2({
   providerSlug,
   providerLocation = "",
   providerCareTypes = [],
+  providerRating,
+  providerPriceRange,
+  providerCity,
+  providerState,
   questions: initialQuestions = [],
   suggestedQuestions = [
     "What services do you provide?",
@@ -124,6 +137,7 @@ export default function QASectionV2({
   ],
   hasBenefitsSection = false,
   variant,
+  similarProvidersForMulti = [],
 }: QASectionProps) {
   const { user, openAuth } = useAuth();
   const { toggleSave } = useSavedProviders();
@@ -149,6 +163,7 @@ export default function QASectionV2({
   const [inlineSubmitting, setInlineSubmitting] = useState(false);
   const [inlineSuccess, setInlineSuccess] = useState(false);
   const isInlineAnswerVariant = variant === "inline_answer";
+  const isMultiProviderVariant = variant === "multi_provider";
 
   // Edit question state
   const [editingQuestion, setEditingQuestion] = useState<QAEntry | null>(null);
@@ -223,7 +238,8 @@ export default function QASectionV2({
         // SKIP when:
         //   - Page has a benefits module (spotlight handoff owns the moment)
         //   - Inline answer variant (InlineAnswerCard handles email capture)
-        if (!user && data.question.id && !hasBenefitsSection && !isInlineAnswerVariant) {
+        //   - Multi-provider variant (MultiProviderCard handles email capture)
+        if (!user && data.question.id && !hasBenefitsSection && !isInlineAnswerVariant && !isMultiProviderVariant) {
           setEnrichQuestionId(data.question.id);
           setShowEnrichment(true);
         }
@@ -236,8 +252,8 @@ export default function QASectionV2({
       // The Q&A moment is peak intent — the caregiver just articulated
       // their exact worry. Pass the question text to the benefits module
       // so it can quietly bring itself into focus.
-      // SKIP for inline_answer variant — the InlineAnswerCard owns the moment.
-      if (typeof window !== "undefined" && !isInlineAnswerVariant) {
+      // SKIP for inline_answer and multi_provider variants — they own the moment.
+      if (typeof window !== "undefined" && !isInlineAnswerVariant && !isMultiProviderVariant) {
         window.dispatchEvent(
           new CustomEvent("olera:question-submitted", {
             detail: { question: questionText.trim() },
@@ -258,7 +274,7 @@ export default function QASectionV2({
     } finally {
       setSubmitting(false);
     }
-  }, [providerId, user, honeypot, hasBenefitsSection, isInlineAnswerVariant]);
+  }, [providerId, user, honeypot, hasBenefitsSection, isInlineAnswerVariant, isMultiProviderVariant]);
 
   // Handle submit from chat bar
   const handleChatSubmit = () => {
@@ -408,6 +424,133 @@ export default function QASectionV2({
     setInlineSuccess(false);
   }, []);
 
+  // ─── Multi-Provider Variant Handlers ────────────────────────────────────────
+
+  const handleMultiProviderQuestionTap = useCallback(async (questionText: string, index: number) => {
+    if (!isMultiProviderVariant) return;
+
+    // Accordion: collapse current if tapping the same question
+    if (expandedQuestion === questionText) {
+      setExpandedQuestion(null);
+      return;
+    }
+
+    // Submit the question to the current provider (existing behavior)
+    submitQuestion(questionText, index);
+
+    // Expand the multi-provider card
+    setExpandedQuestion(questionText);
+    setInlineSuccess(false);
+  }, [isMultiProviderVariant, expandedQuestion, submitQuestion]);
+
+  const handleMultiProviderSelect = useCallback(async (targetProviderId: string, targetProviderName: string) => {
+    if (!expandedQuestion) return;
+
+    // Submit question to the selected provider
+    const res = await fetch("/api/questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        provider_id: targetProviderId,
+        question: expandedQuestion.trim(),
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to send question");
+    }
+  }, [expandedQuestion]);
+
+  const handleMultiProviderEmailSubmit = useCallback(async (email: string) => {
+    if (!expandedQuestion) return;
+
+    setInlineSubmitting(true);
+
+    try {
+      // Capture email via dedicated inline-answer endpoint (handles user creation + welcome email)
+      const captureRes = await fetch("/api/inline-answer/capture-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          providerId,
+          providerName,
+          questionText: expandedQuestion,
+          sessionId: getOrCreateSessionId(),
+        }),
+      });
+
+      if (!captureRes.ok) {
+        const data = await captureRes.json();
+        throw new Error(data.error || "Something went wrong. Please try again.");
+      }
+
+      // Track conversion (fire-and-forget)
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          event_type: "multi_provider_converted",
+          related_provider_id: providerId,
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            question_text: expandedQuestion,
+            email,
+            variant: "multi_provider",
+          },
+        }),
+        keepalive: true,
+      }).catch(() => {});
+
+      setInlineSuccess(true);
+    } catch (err) {
+      throw err;
+    } finally {
+      setInlineSubmitting(false);
+    }
+  }, [expandedQuestion, providerId, providerName]);
+
+  const handleMultiProviderSaveAll = useCallback((providerIds: string[]) => {
+    // Save all sent providers
+    for (const pid of providerIds) {
+      // Find provider data for each ID
+      const provider = pid === providerId
+        ? {
+            providerId,
+            slug: providerSlug || providerId,
+            name: providerName,
+            location: providerLocation,
+            careTypes: providerCareTypes,
+            image: providerImage || null,
+            rating: providerRating,
+          }
+        : similarProvidersForMulti.find((p) => p.id === pid);
+
+      if (provider) {
+        const saveData: SaveProviderData = pid === providerId
+          ? (provider as SaveProviderData)
+          : {
+              providerId: (provider as SimilarProviderForMulti).id,
+              slug: (provider as SimilarProviderForMulti).slug,
+              name: (provider as SimilarProviderForMulti).name,
+              location: [(provider as SimilarProviderForMulti).city, (provider as SimilarProviderForMulti).state].filter(Boolean).join(", "),
+              careTypes: providerCareTypes, // Use current provider's care types as fallback
+              image: (provider as SimilarProviderForMulti).image,
+              rating: (provider as SimilarProviderForMulti).rating ?? undefined,
+            };
+        toggleSave(saveData);
+      }
+    }
+    // Collapse the card after saving
+    setExpandedQuestion(null);
+  }, [providerId, providerSlug, providerName, providerLocation, providerCareTypes, providerImage, providerRating, similarProvidersForMulti, toggleSave]);
+
+  const handleMultiProviderCollapse = useCallback(() => {
+    setExpandedQuestion(null);
+    setInlineSuccess(false);
+  }, []);
+
   const handleEditSubmit = async () => {
     if (!editingQuestion?.id || !editValue.trim() || editSubmitting) return;
 
@@ -456,9 +599,9 @@ export default function QASectionV2({
   const answeredCount = questions.filter((q) => q.status === "answered" || q.answer).length;
 
   // Determine if we're in post-submit state (success or enrichment)
-  // For inline_answer variant, the InlineAnswerCard handles everything inline,
+  // For inline_answer and multi_provider variants, they handle everything inline,
   // so we never show the old post-submit enrichment UI.
-  const isPostSubmit = !isInlineAnswerVariant && (submitStatus === "success" || showEnrichment);
+  const isPostSubmit = !isInlineAnswerVariant && !isMultiProviderVariant && (submitStatus === "success" || showEnrichment);
 
   return (
     <div>
@@ -693,8 +836,10 @@ export default function QASectionV2({
             <div className="space-y-2 mb-4">
               {suggestedQuestions.map((q, i) => {
                 const isTapped = tappedIndex === i;
-                const isExpanded = isInlineAnswerVariant && expandedQuestion === q;
-                const isOtherExpanded = isInlineAnswerVariant && expandedQuestion && expandedQuestion !== q;
+                const isInlineExpanded = isInlineAnswerVariant && expandedQuestion === q;
+                const isMultiExpanded = isMultiProviderVariant && expandedQuestion === q;
+                const isExpanded = isInlineExpanded || isMultiExpanded;
+                const isOtherExpanded = (isInlineAnswerVariant || isMultiProviderVariant) && expandedQuestion && expandedQuestion !== q;
 
                 return (
                   <div key={i}>
@@ -704,6 +849,8 @@ export default function QASectionV2({
                         if (submitting) return;
                         if (isInlineAnswerVariant) {
                           handleInlineQuestionTap(q, i);
+                        } else if (isMultiProviderVariant) {
+                          handleMultiProviderQuestionTap(q, i);
                         } else {
                           submitQuestion(q, i);
                         }
@@ -728,7 +875,7 @@ export default function QASectionV2({
                     </button>
 
                     {/* Inline Answer Card (inline_answer variant only) */}
-                    {isExpanded && (
+                    {isInlineExpanded && (
                       <InlineAnswerCard
                         question={q}
                         providerName={providerName}
@@ -739,6 +886,32 @@ export default function QASectionV2({
                         onEmailSubmit={handleInlineEmailSubmit}
                         onSave={handleInlineSave}
                         onCollapse={handleInlineCollapse}
+                        isSubmitting={inlineSubmitting}
+                        isSuccess={inlineSuccess}
+                        questionSent={submitStatus === "success"}
+                        userEmail={user?.email}
+                      />
+                    )}
+
+                    {/* Multi-Provider Card (multi_provider variant only) */}
+                    {isMultiExpanded && (
+                      <MultiProviderCard
+                        question={q}
+                        currentProvider={{
+                          id: providerId,
+                          slug: providerSlug || providerId,
+                          name: providerName,
+                          image: providerImage,
+                          priceRange: providerPriceRange,
+                          rating: providerRating,
+                          city: providerCity,
+                          state: providerState,
+                        }}
+                        similarProviders={similarProvidersForMulti}
+                        onProviderSelect={handleMultiProviderSelect}
+                        onEmailSubmit={handleMultiProviderEmailSubmit}
+                        onSaveAll={handleMultiProviderSaveAll}
+                        onCollapse={handleMultiProviderCollapse}
                         isSubmitting={inlineSubmitting}
                         isSuccess={inlineSuccess}
                         questionSent={submitStatus === "success"}

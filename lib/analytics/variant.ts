@@ -5,21 +5,23 @@
 //
 // Hash: djb2. Cheap, no dep, well-distributed for short strings like UUIDs.
 //
-// ─── 5-arm IntakeVariant (canonical, since 2026-05-05) ──────────────────────
-// Adds "inline_answer" arm to the existing 4-arm A/B. The 20% in the
-// inline_answer arm see an inline Q&A experience: when tapping a suggested
-// question, it expands with a template answer + email capture, without
-// leaving the page. Tests inline conversion vs the benefits module handoff.
+// ─── 6-arm IntakeVariant (canonical, since 2026-05-06) ──────────────────────
+// Adds "multi_provider" arm to the existing 5-arm A/B. The ~17% in the
+// multi_provider arm see a click-to-send multi-provider comparison flow:
+// when tapping a suggested question, card expands showing similar providers
+// they can also send the question to. No template answer — the value prop
+// is "compare REAL answers from REAL providers."
 //
-//   availability   — "There's help paying for care in {state}." (benefits, positive)
-//   loss           — "Most {state} families miss out on help…"   (benefits, loss)
-//   empathic       — "Care is expensive."                        (benefits, shared-truth)
-//   outreach       — "Have an AI agent contact the top providers." (H1 demand test)
-//   inline_answer  — Inline Q&A answer expansion with email capture (H2 inline UX test)
+//   availability    — "There's help paying for care in {state}." (benefits, positive)
+//   loss            — "Most {state} families miss out on help…"   (benefits, loss)
+//   empathic        — "Care is expensive."                        (benefits, shared-truth)
+//   outreach        — "Have an AI agent contact the top providers." (H1 demand test)
+//   inline_answer   — Inline Q&A answer expansion with email capture (H2 inline UX test)
+//   multi_provider  — Click-to-send multi-provider comparison (H3 comparison UX test)
 //
-// Mod 5 → 0/1/2/3/4 mapped to availability/loss/empathic/outreach/inline_answer.
+// Mod 6 → 0/1/2/3/4/5 mapped to availability/loss/empathic/outreach/inline_answer/multi_provider.
 // Page-level routing decides which module to render; BenefitsDiscoveryModule,
-// AgentOutreachModule, and the inline Q&A experience are mutually exclusive.
+// AgentOutreachModule, inline Q&A, and multi_provider are mutually exclusive.
 //
 // ─── 3-arm BenefitsVariant (legacy, kept for in-flight V3 caller) ───────────
 // BenefitsDiscoveryModule still assigns its own variant via assignBenefitsVariant
@@ -36,14 +38,14 @@
 // Live copy strings + per-variant performance tracked in Notion:
 //   https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d
 
-export type IntakeVariant = "availability" | "loss" | "empathic" | "outreach" | "inline_answer";
+export type IntakeVariant = "availability" | "loss" | "empathic" | "outreach" | "inline_answer" | "multi_provider";
 
-/** Narrow alias for the 3 benefits-copy arms. Excludes the outreach arm and
- *  inline_answer arm because the BenefitsDiscoveryModule never legitimately
+/** Narrow alias for the 3 benefits-copy arms. Excludes the outreach, inline_answer,
+ *  and multi_provider arms because the BenefitsDiscoveryModule never legitimately
  *  renders for them. */
-export type BenefitsVariant = Exclude<IntakeVariant, "outreach" | "inline_answer">;
+export type BenefitsVariant = Exclude<IntakeVariant, "outreach" | "inline_answer" | "multi_provider">;
 
-const INTAKE_VARIANTS: IntakeVariant[] = ["availability", "loss", "empathic", "outreach", "inline_answer"];
+const INTAKE_VARIANTS: IntakeVariant[] = ["availability", "loss", "empathic", "outreach", "inline_answer", "multi_provider"];
 const BENEFITS_VARIANTS: BenefitsVariant[] = ["availability", "loss", "empathic"];
 
 function djb2(str: string): number {
@@ -55,11 +57,11 @@ function djb2(str: string): number {
   return hash >>> 0; // coerce to unsigned 32-bit
 }
 
-/** Canonical 5-arm assignment. Use this at the page-level routing point to
- *  choose between BenefitsDiscoveryModule, AgentOutreachModule, and the
- *  inline Q&A answer experience. */
+/** Canonical 6-arm assignment. Use this at the page-level routing point to
+ *  choose between BenefitsDiscoveryModule, AgentOutreachModule, inline Q&A,
+ *  and multi-provider comparison experiences. */
 export function assignIntakeVariant(sessionId: string): IntakeVariant {
-  return INTAKE_VARIANTS[djb2(sessionId) % 5];
+  return INTAKE_VARIANTS[djb2(sessionId) % 6];
 }
 
 /** Legacy 3-arm assignment — kept for BenefitsDiscoveryModule's in-component

@@ -1,0 +1,643 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { Check, HourglassMedium, Heart } from "@phosphor-icons/react";
+import { getOrCreateSessionId } from "@/lib/analytics/session";
+import type { SimilarProviderForMulti } from "@/lib/provider-utils";
+
+interface CurrentProviderData {
+  id: string;
+  slug: string;
+  name: string;
+  image?: string;
+  priceRange?: string;
+  rating?: number;
+  city?: string;
+  state?: string;
+}
+
+interface MultiProviderCardProps {
+  question: string;
+  currentProvider: CurrentProviderData;
+  similarProviders: SimilarProviderForMulti[];
+  onProviderSelect: (providerId: string, providerName: string) => Promise<void>;
+  onEmailSubmit: (email: string) => Promise<void>;
+  onSaveAll: (providerIds: string[]) => void;
+  onCollapse: () => void;
+  isSubmitting?: boolean;
+  isSuccess?: boolean;
+  /** True when the initial question to current provider was sent */
+  questionSent?: boolean;
+  /** If provided, user is logged in — skip email capture and show confirmation */
+  userEmail?: string;
+}
+
+export default function MultiProviderCard({
+  question,
+  currentProvider,
+  similarProviders,
+  onProviderSelect,
+  onEmailSubmit,
+  onSaveAll,
+  onCollapse,
+  isSubmitting = false,
+  isSuccess = false,
+  questionSent = false,
+  userEmail,
+}: MultiProviderCardProps) {
+  const isLoggedIn = Boolean(userEmail);
+
+  // Current provider is already sent
+  const [sentProviders, setSentProviders] = useState<Set<string>>(
+    new Set([currentProvider.id])
+  );
+  const [sendingProvider, setSendingProvider] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [inputFocused, setInputFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const expandTrackedRef = useRef(false);
+  const collapseScheduledRef = useRef(false);
+
+  // Extract first name from provider name
+  const getFirstName = (name: string) => {
+    const cleanName = name?.replace(/^\([^)]+\)\s*/, "") || "";
+    const rawFirstName = cleanName.split(/\s/)[0] || name?.split(/\s/)[0] || "them";
+    return rawFirstName.replace(/'s$/i, "") || rawFirstName;
+  };
+
+  const firstName = getFirstName(currentProvider.name);
+  const sentCount = sentProviders.size;
+
+  // All providers (current + similar) for display
+  const allProviders = [
+    {
+      id: currentProvider.id,
+      slug: currentProvider.slug,
+      name: currentProvider.name,
+      image: currentProvider.image || null,
+      rating: currentProvider.rating || null,
+      priceRange: currentProvider.priceRange || null,
+      city: currentProvider.city || null,
+      state: currentProvider.state || null,
+      distanceMiles: null,
+      isCurrentPage: true,
+    },
+    ...similarProviders.map((p) => ({ ...p, isCurrentPage: false })),
+  ];
+
+  // Dynamic copy based on sent count
+  const buttonText = sentCount === 1 ? "Get reply" : `Get ${sentCount} replies`;
+
+  const finePrint =
+    sentCount === 1
+      ? `We'll email you as ${firstName} responds. No calls.`
+      : "We'll email replies as they come in. No calls.";
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Scroll the card into view when it mounts
+  useEffect(() => {
+    if (mounted && cardRef.current) {
+      const scrollTimer = setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 100);
+      return () => clearTimeout(scrollTimer);
+    }
+  }, [mounted]);
+
+  // Auto-focus input on desktop only
+  useEffect(() => {
+    if (mounted && inputRef.current && !showSuccess && !isLoggedIn) {
+      const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+      if (isDesktop) {
+        const focusTimer = setTimeout(() => {
+          inputRef.current?.focus();
+        }, 600);
+        return () => clearTimeout(focusTimer);
+      }
+    }
+  }, [mounted, showSuccess, isLoggedIn]);
+
+  // Track expansion — deduplicated via ref
+  useEffect(() => {
+    if (expandTrackedRef.current) return;
+    expandTrackedRef.current = true;
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "anonymous",
+        event_type: "multi_provider_expanded",
+        related_provider_id: currentProvider.id,
+        session_id: getOrCreateSessionId(),
+        metadata: {
+          question_text: question,
+          similar_count: similarProviders.length,
+          variant: "multi_provider",
+        },
+      }),
+      keepalive: true,
+    }).catch(() => {});
+  }, [currentProvider.id, question, similarProviders.length]);
+
+  // Auto-collapse after success
+  useEffect(() => {
+    if (isSuccess && !showSuccess) {
+      setShowSuccess(true);
+      const timer = setTimeout(() => {
+        onCollapse();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, showSuccess, onCollapse]);
+
+  // Auto-collapse for logged-in users after they've seen the confirmation
+  // Use ref to schedule once — prevents effect cleanup from clearing the timer
+  useEffect(() => {
+    if (isLoggedIn && mounted && questionSent && !collapseScheduledRef.current) {
+      collapseScheduledRef.current = true;
+      setTimeout(() => {
+        onCollapse();
+      }, 5000);
+    }
+  }, [isLoggedIn, mounted, questionSent, onCollapse]);
+
+  const handleProviderClick = async (providerId: string, providerName: string) => {
+    if (sentProviders.has(providerId) || sendingProvider) return;
+
+    setSendingProvider(providerId);
+
+    try {
+      await onProviderSelect(providerId, providerName);
+      setSentProviders((prev) => new Set([...prev, providerId]));
+
+      // Track analytics
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          event_type: "multi_provider_question_sent",
+          related_provider_id: providerId,
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            question_text: question,
+            sent_count: sentProviders.size + 1,
+            variant: "multi_provider",
+          },
+        }),
+        keepalive: true,
+      }).catch(() => {});
+    } finally {
+      setSendingProvider(null);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setError("");
+    if (!email.trim()) {
+      setError("Please enter your email");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setError("Please enter a valid email");
+      return;
+    }
+    try {
+      await onEmailSubmit(email.trim().toLowerCase());
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(message);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !isSubmitting) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  const handleSaveAll = () => {
+    const sentIds = Array.from(sentProviders);
+    onSaveAll(sentIds);
+    // Track analytics
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "anonymous",
+        event_type: "multi_provider_save_all",
+        related_provider_id: currentProvider.id,
+        session_id: getOrCreateSessionId(),
+        metadata: {
+          saved_count: sentIds.length,
+          provider_ids: sentIds,
+          variant: "multi_provider",
+        },
+      }),
+      keepalive: true,
+    }).catch(() => {});
+  };
+
+  // Build sent provider list for success state
+  const sentProvidersList = allProviders.filter((p) => sentProviders.has(p.id));
+
+  return (
+    <div
+      ref={cardRef}
+      className={`
+        bg-white rounded-2xl
+        ring-1 ring-inset ring-primary-200 hover:ring-primary-300
+        shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)]
+        overflow-hidden
+        transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
+        ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"}
+      `}
+    >
+      {showSuccess ? (
+        /* ═══════════════════════════════════════════════════════════════
+           Success State — Multi-provider confirmation (Premium feel)
+           ═══════════════════════════════════════════════════════════════ */
+        <div className="p-6">
+          {/* Celebratory Header */}
+          <div className="text-center mb-5">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 shadow-lg shadow-emerald-200 mb-3">
+              <Check size={24} weight="bold" className="text-white" />
+            </div>
+            <h3 className="text-[19px] font-semibold text-gray-900">
+              You&apos;ll get {sentCount} {sentCount === 1 ? "reply" : "replies"}
+            </h3>
+            <p className="text-[14px] text-gray-500 mt-1 leading-relaxed">
+              We&apos;ll email <span className="font-medium text-gray-700">{userEmail || email}</span> as each provider responds.
+              <br className="hidden sm:block" />
+              Most reply within 24 hours.
+            </p>
+          </div>
+
+          {/* Provider list with avatars featuring checkmark badges */}
+          <div className="bg-gray-50/80 rounded-xl p-3 space-y-2">
+            {sentProvidersList.map((provider, idx) => (
+              <div
+                key={provider.id}
+                className={`
+                  flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white
+                  border border-gray-100 shadow-sm
+                  transition-all duration-300 ease-out
+                  ${mounted ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"}
+                `}
+                style={{ transitionDelay: `${idx * 75}ms` }}
+              >
+                {/* Avatar with success checkmark badge */}
+                <div className="relative shrink-0">
+                  {provider.image ? (
+                    <img
+                      src={provider.image}
+                      alt={provider.name}
+                      className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center ring-2 ring-white shadow-sm">
+                      <span className="text-sm font-semibold text-primary-700">
+                        {provider.name.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  {/* Checkmark badge overlay */}
+                  <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-white shadow-sm">
+                    <Check size={12} weight="bold" className="text-white" />
+                  </div>
+                </div>
+
+                {/* Provider info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[15px] font-medium text-gray-900 truncate">
+                    {provider.name}
+                  </p>
+                  <div className="flex items-center gap-1.5 text-[12px] text-gray-500">
+                    {provider.rating && (
+                      <>
+                        <span className="text-amber-400">★</span>
+                        <span>{provider.rating.toFixed(1)}</span>
+                        <span className="text-gray-300">·</span>
+                      </>
+                    )}
+                    {provider.city && <span>{provider.city}</span>}
+                  </div>
+                </div>
+
+                {/* Awaiting status with animated hourglass */}
+                <div className="shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-50 border border-amber-100">
+                  <HourglassMedium size={14} weight="fill" className="text-amber-500 animate-pulse" />
+                  <span className="text-[11px] font-medium text-amber-700 uppercase tracking-wide">
+                    Pending
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Save all CTA — styled button */}
+          <div className="mt-5 text-center">
+            <button
+              type="button"
+              onClick={handleSaveAll}
+              className="
+                inline-flex items-center gap-2 px-4 py-2.5
+                text-[14px] font-medium text-gray-700
+                bg-white rounded-xl border border-gray-200
+                shadow-sm hover:shadow hover:border-gray-300
+                transition-all duration-200 ease-out
+                active:scale-[0.98]
+              "
+            >
+              <Heart size={16} weight="regular" className="text-gray-400" />
+              Save all {sentCount} providers
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* ═══════════════════════════════════════════════════════════════
+           Main Card — Question → Provider List → Email Capture
+           ═══════════════════════════════════════════════════════════════ */
+        <div className="p-6">
+          {/* ─── Question Block — with decorative quote mark ────────────── */}
+          <div
+            className={`
+              relative pl-4 border-l-2 border-primary-200
+              transition-all duration-500 ease-out delay-75
+              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+            `}
+          >
+            <p className="font-display italic text-[17px] text-gray-800 leading-relaxed">
+              &ldquo;{question}&rdquo;
+            </p>
+          </div>
+
+          {/* ─── Instruction Text — with subtle icon ────────────────────── */}
+          <div
+            className={`
+              mt-4 flex items-start gap-2
+              transition-all duration-500 ease-out delay-100
+              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+            `}
+          >
+            <svg className="w-4 h-4 text-primary-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+            </svg>
+            <p className="text-[14px] text-gray-600 leading-relaxed">
+              <span className="font-medium text-gray-700">Compare real answers.</span>
+              {" "}Tap providers below to ask the same question — see how they respond.
+            </p>
+          </div>
+
+          {/* ─── Provider List ──────────────────────────────────────────── */}
+          <div
+            className={`
+              mt-4 space-y-2
+              transition-all duration-500 ease-out delay-150
+              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+            `}
+          >
+            {allProviders.map((provider, idx) => {
+              const isSent = sentProviders.has(provider.id);
+              const isSending = sendingProvider === provider.id;
+              const isCurrentPage = "isCurrentPage" in provider && provider.isCurrentPage;
+
+              return (
+                <button
+                  key={provider.id}
+                  type="button"
+                  onClick={() => handleProviderClick(provider.id, provider.name)}
+                  disabled={isSent || isSending}
+                  className={`
+                    group w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl border
+                    transition-all duration-200 ease-out
+                    ${isSent
+                      ? "bg-emerald-50/60 border-emerald-100 cursor-default"
+                      : "bg-white border-gray-200 hover:border-primary-300 hover:bg-primary-50/30 hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)] cursor-pointer active:scale-[0.995]"
+                    }
+                    ${isSending ? "opacity-80 scale-[0.99]" : ""}
+                  `}
+                  style={{ transitionDelay: isSending ? "0ms" : `${idx * 30}ms` }}
+                >
+                  {/* Checkbox — larger, more prominent */}
+                  <div
+                    className={`
+                      w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-all duration-200
+                      ${isSent
+                        ? "bg-emerald-500 border-0 shadow-sm"
+                        : "border-2 border-gray-300 group-hover:border-primary-400"
+                      }
+                    `}
+                  >
+                    {isSent && (
+                      <Check size={14} weight="bold" className="text-white" />
+                    )}
+                    {isSending && (
+                      <span className="w-3.5 h-3.5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+                    )}
+                  </div>
+
+                  {/* Avatar — slightly larger */}
+                  {provider.image ? (
+                    <img
+                      src={provider.image}
+                      alt={provider.name}
+                      className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
+                      <span className="text-sm font-semibold text-primary-700">
+                        {provider.name.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Provider info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-[15px] truncate ${isCurrentPage ? "font-semibold text-gray-900" : "font-medium text-gray-800"}`}>
+                        {provider.name}
+                      </span>
+                      {isCurrentPage && (
+                        <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary-100 text-primary-700 uppercase tracking-wider">
+                          This page
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[13px] text-gray-500 mt-0.5">
+                      {provider.rating && (
+                        <>
+                          <span className="text-amber-400">★</span>
+                          <span className="font-medium">{provider.rating.toFixed(1)}</span>
+                          <span className="text-gray-300">·</span>
+                        </>
+                      )}
+                      {provider.distanceMiles != null ? (
+                        <span>{provider.distanceMiles.toFixed(1)} mi</span>
+                      ) : provider.city ? (
+                        <span>{provider.city}</span>
+                      ) : null}
+                      {provider.priceRange && (
+                        <>
+                          <span className="text-gray-300">·</span>
+                          <span className={isCurrentPage ? "font-medium text-gray-700" : ""}>{provider.priceRange}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Sent status badge — more prominent */}
+                  {isSent && (
+                    <span className="shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-100 text-[12px] text-emerald-700 font-semibold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Sent
+                    </span>
+                  )}
+
+                  {/* Hover hint for unsent */}
+                  {!isSent && !isSending && (
+                    <span className="shrink-0 text-[12px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      Tap to ask
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ─── Email Capture Block ────────────────────────────────────── */}
+          <div
+            className={`
+              mt-5 p-5 rounded-2xl
+              bg-gradient-to-br from-[#FAF8F5] to-[#F5F2EB]
+              border border-[#E8E4DC]
+              shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]
+              transition-all duration-500 ease-out delay-200
+              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+            `}
+          >
+            {isLoggedIn ? (
+              /* ─── Logged-in User: Confirmation with visual polish ─────────── */
+              <div className="text-center py-2">
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-100 mb-3">
+                  <Check size={20} weight="bold" className="text-emerald-600" />
+                </div>
+                <p className="text-[16px] text-gray-900 font-semibold">
+                  {sentCount} question{sentCount !== 1 ? "s" : ""} sent
+                </p>
+                <p className="text-[14px] text-gray-500 mt-1">
+                  We&apos;ll email <span className="font-medium text-gray-700">{userEmail}</span> when providers reply
+                </p>
+              </div>
+            ) : (
+              /* ─── Guest User: Email capture form ──────────────────────────── */
+              <>
+                {/* Dynamic headline with emphasis */}
+                <p className="text-[16px] text-gray-900 font-semibold leading-relaxed">
+                  {sentCount === 1 ? (
+                    <>Add your email to get <span className="text-primary-600">{firstName}&apos;s</span> reply.</>
+                  ) : (
+                    <>
+                      <span className="text-primary-600">{sentCount} questions sent.</span>
+                      {" "}Add your email to get all replies — side by side.
+                    </>
+                  )}
+                </p>
+
+                {/* Input + Button Row */}
+                <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                  <div className="flex-1 min-w-0">
+                    <input
+                      ref={inputRef}
+                      type="email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setError("");
+                      }}
+                      onKeyDown={handleKeyDown}
+                      onFocus={() => setInputFocused(true)}
+                      onBlur={() => setInputFocused(false)}
+                      placeholder="you@email.com"
+                      autoComplete="email"
+                      disabled={isSubmitting}
+                      className={`
+                        w-full px-4 py-3.5
+                        text-[15px] text-gray-900 placeholder-gray-400
+                        bg-white border-2 rounded-xl
+                        shadow-sm
+                        transition-all duration-200 ease-out
+                        focus:outline-none disabled:opacity-50
+                        ${inputFocused
+                          ? "border-primary-500 ring-4 ring-primary-100 shadow-md"
+                          : error
+                            ? "border-red-300 ring-2 ring-red-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }
+                      `}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || !email.trim()}
+                    className={`
+                      shrink-0 px-6 py-3.5
+                      text-[15px] font-semibold text-white
+                      bg-gradient-to-b from-primary-500 to-primary-600
+                      rounded-xl shadow-md shadow-primary-200
+                      transition-all duration-200 ease-out
+                      hover:from-primary-600 hover:to-primary-700 hover:shadow-lg hover:shadow-primary-300
+                      active:scale-[0.98] active:shadow-sm
+                      disabled:opacity-40 disabled:cursor-not-allowed
+                      disabled:hover:from-primary-500 disabled:hover:to-primary-600 disabled:hover:shadow-md
+                      sm:w-auto w-full
+                    `}
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Sending...
+                      </span>
+                    ) : (
+                      buttonText
+                    )}
+                  </button>
+                </div>
+
+                {/* Error Message */}
+                {error && (
+                  <p className="text-[13px] text-red-600 mt-2.5 font-medium flex items-center gap-1.5">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    {error}
+                  </p>
+                )}
+
+                {/* Fine print — softer, more reassuring */}
+                <p className="text-[13px] text-gray-500 mt-3.5 leading-relaxed flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                  </svg>
+                  {finePrint}
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

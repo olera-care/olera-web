@@ -41,7 +41,6 @@ import {
   getCategoryDescription,
   getCategoryServices,
   getSimilarProviders,
-  getSimilarProvidersForMulti,
   getSuggestedQuestions,
 } from "@/lib/provider-utils";
 
@@ -383,8 +382,8 @@ export default async function ProviderPage({
   const outreachCategoryString = profile.category ? PROFILE_CAT_TO_SUPABASE_CAT[profile.category] : null;
   const canFetchOutreachCandidates = !!(profile.city && profile.state && outreachCategoryString);
 
-  // --- Parallel data fetching (claim state, similar providers, Q&A, reviews, outreach candidates, multi-provider candidates) ---
-  const [claimResult, similarProviders, qaResult, outreachCandidates, multiProviderCandidates] = await Promise.all([
+  // --- Parallel data fetching (claim state, similar providers, Q&A, reviews, outreach candidates) ---
+  const [claimResult, similarProviders, qaResult, outreachCandidates] = await Promise.all([
     // 1. Actual claim state (iOS data always says "unclaimed")
     profile.source_provider_id
       ? (async () => {
@@ -403,6 +402,7 @@ export default async function ProviderPage({
       : Promise.resolve(null),
 
     // 2. Similar providers (state-filtered, with global fallback)
+    // Also reused for multi_provider variant (mapped inline at render time)
     getSimilarProviders(profile.category, profile.source_provider_id || profile.id, profile.state, 3),
 
     // 3. Q&A pairs + review count
@@ -446,19 +446,6 @@ export default async function ProviderPage({
           limit: 3,
         }).catch(() => [])
       : Promise.resolve([]),
-
-    // 5. Multi-provider arm candidates (similar providers with distance for comparison UX)
-    getSimilarProvidersForMulti(
-      profile.category,
-      profile.source_provider_id || profile.id,
-      profile.city,
-      profile.state,
-      profile.lat ?? null,
-      profile.lng ?? null,
-      null, // lowerPrice - not used for filtering currently
-      null, // upperPrice - not used for filtering currently
-      3
-    ).catch(() => []),
   ]);
 
   let actualClaimState = profile.claim_state;

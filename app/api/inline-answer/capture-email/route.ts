@@ -24,6 +24,10 @@ interface CaptureEmailPayload {
   providerName?: string;
   questionText?: string;
   sessionId?: string;
+  /** For multi_provider variant: IDs of all providers contacted */
+  sentProviderIds?: string[];
+  /** For multi_provider variant: total number of providers contacted */
+  sentCount?: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,7 +46,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const { email, providerId, providerName, questionText, sessionId } = payload;
+  const { email, providerId, providerName, questionText, sessionId, sentProviderIds, sentCount } = payload;
 
   // Validate email
   if (!email) {
@@ -232,6 +236,19 @@ export async function POST(req: Request) {
       .is("email", null);
   } else {
     const slug = await generateUniqueSlugFromName(db, displayName);
+    // Build signup context metadata
+    const signupContext: Record<string, unknown> = {
+      provider_id: providerId,
+      provider_name: providerName,
+      question_text: questionText,
+    };
+    // Include multi-provider data if present (from multi_provider variant)
+    if (sentProviderIds && sentProviderIds.length > 0) {
+      signupContext.sent_provider_ids = sentProviderIds;
+      signupContext.sent_count = sentCount || sentProviderIds.length;
+      signupContext.variant = "multi_provider";
+    }
+
     const { data: newProfile, error: createErr } = await db
       .from("business_profiles")
       .insert({
@@ -242,13 +259,9 @@ export async function POST(req: Request) {
         email: normalizedEmail,
         claim_state: "claimed",
         verification_state: "unverified",
-        source: "inline_answer",
+        source: sentProviderIds ? "multi_provider" : "inline_answer",
         metadata: {
-          signup_context: {
-            provider_id: providerId,
-            provider_name: providerName,
-            question_text: questionText,
-          },
+          signup_context: signupContext,
         },
       })
       .select("id")

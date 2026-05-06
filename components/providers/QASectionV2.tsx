@@ -140,7 +140,7 @@ export default function QASectionV2({
   similarProvidersForMulti = [],
 }: QASectionProps) {
   const { user, openAuth } = useAuth();
-  const { toggleSave } = useSavedProviders();
+  const { toggleSave, isSaved } = useSavedProviders();
   const [inputValue, setInputValue] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const [questions, setQuestions] = useState<QAEntry[]>(initialQuestions);
@@ -521,8 +521,11 @@ export default function QASectionV2({
   }, [expandedQuestion, providerId, providerName]);
 
   const handleMultiProviderSaveAll = useCallback((providerIds: string[]) => {
-    // Save all sent providers
+    // Save all sent providers (only if not already saved)
     for (const pid of providerIds) {
+      // Skip if already saved (avoid toggling OFF)
+      if (isSaved(pid)) continue;
+
       // Find provider data for each ID
       const provider = pid === providerId
         ? {
@@ -553,7 +556,7 @@ export default function QASectionV2({
     }
     // Collapse the card after saving
     setExpandedQuestion(null);
-  }, [providerId, providerSlug, providerName, providerLocation, providerCareTypes, providerImage, providerRating, similarProvidersForMulti, toggleSave]);
+  }, [providerId, providerSlug, providerName, providerLocation, providerCareTypes, providerImage, providerRating, similarProvidersForMulti, toggleSave, isSaved]);
 
   const handleMultiProviderCollapse = useCallback(() => {
     setExpandedQuestion(null);

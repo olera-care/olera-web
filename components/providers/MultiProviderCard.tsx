@@ -50,6 +50,7 @@ export default function MultiProviderCard({
   // Track which OTHER providers have been sent (current provider is already sent)
   const [sentProviders, setSentProviders] = useState<Set<string>>(new Set());
   const [sendingProvider, setSendingProvider] = useState<string | null>(null);
+  const [failedProvider, setFailedProvider] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
@@ -154,6 +155,8 @@ export default function MultiProviderCard({
   const handleProviderClick = async (providerId: string, providerName: string) => {
     if (sentProviders.has(providerId) || sendingProvider) return;
 
+    // Clear any previous failure state
+    setFailedProvider(null);
     setSendingProvider(providerId);
 
     try {
@@ -177,6 +180,11 @@ export default function MultiProviderCard({
         }),
         keepalive: true,
       }).catch(() => {});
+    } catch {
+      // Show error state for this provider
+      setFailedProvider(providerId);
+      // Auto-clear error after 3 seconds
+      setTimeout(() => setFailedProvider(null), 3000);
     } finally {
       setSendingProvider(null);
     }
@@ -406,6 +414,21 @@ export default function MultiProviderCard({
                 <Check size={14} weight="bold" className="text-white" />
               </div>
 
+              {/* Provider avatar */}
+              {currentProvider.image ? (
+                <img
+                  src={currentProvider.image}
+                  alt={currentProvider.name}
+                  className="w-9 h-9 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
+                  <span className="text-sm font-semibold text-primary-700">
+                    {currentProvider.name.charAt(0)}
+                  </span>
+                </div>
+              )}
+
               {/* Provider info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -445,6 +468,7 @@ export default function MultiProviderCard({
             {similarProviders.map((provider, idx) => {
               const isSent = sentProviders.has(provider.id);
               const isSending = sendingProvider === provider.id;
+              const isFailed = failedProvider === provider.id;
 
               return (
                 <button
@@ -457,7 +481,9 @@ export default function MultiProviderCard({
                     transition-all duration-200 ease-out
                     ${isSent
                       ? "bg-primary-50/60 border-primary-100 cursor-default"
-                      : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm cursor-pointer active:scale-[0.995]"
+                      : isFailed
+                        ? "bg-red-50/60 border-red-200 cursor-pointer"
+                        : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm cursor-pointer active:scale-[0.995]"
                     }
                     ${isSending ? "opacity-80 scale-[0.99]" : ""}
                   `}
@@ -468,7 +494,7 @@ export default function MultiProviderCard({
                       w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200
                       ${isSent
                         ? "bg-primary-500 shadow-sm"
-                        : "border-2 border-gray-300"
+                        : "border-2 border-gray-300 group-hover:border-primary-400"
                       }
                     `}
                   >
@@ -479,6 +505,21 @@ export default function MultiProviderCard({
                       <span className="w-3.5 h-3.5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
                     )}
                   </div>
+
+                  {/* Provider avatar */}
+                  {provider.image ? (
+                    <img
+                      src={provider.image}
+                      alt={provider.name}
+                      className="w-9 h-9 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
+                      <span className="text-sm font-semibold text-gray-500">
+                        {provider.name.charAt(0)}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Provider info */}
                   <div className="flex-1 min-w-0">
@@ -507,11 +548,16 @@ export default function MultiProviderCard({
                     </div>
                   </div>
 
-                  {/* Sent status badge */}
+                  {/* Status badge */}
                   {isSent && (
                     <span className="shrink-0 flex items-center gap-1.5 text-[13px] text-primary-600 font-medium">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
                       Sent
+                    </span>
+                  )}
+                  {isFailed && (
+                    <span className="shrink-0 flex items-center gap-1.5 text-[12px] text-red-600 font-medium">
+                      Failed · tap to retry
                     </span>
                   )}
                 </button>

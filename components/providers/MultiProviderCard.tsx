@@ -47,10 +47,8 @@ export default function MultiProviderCard({
 }: MultiProviderCardProps) {
   const isLoggedIn = Boolean(userEmail);
 
-  // Current provider is already sent
-  const [sentProviders, setSentProviders] = useState<Set<string>>(
-    new Set([currentProvider.id])
-  );
+  // Track which OTHER providers have been sent (current provider is already sent)
+  const [sentProviders, setSentProviders] = useState<Set<string>>(new Set());
   const [sendingProvider, setSendingProvider] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -70,32 +68,21 @@ export default function MultiProviderCard({
   };
 
   const firstName = getFirstName(currentProvider.name);
-  const sentCount = sentProviders.size;
 
-  // All providers (current + similar) for display
-  const allProviders = [
-    {
-      id: currentProvider.id,
-      slug: currentProvider.slug,
-      name: currentProvider.name,
-      image: currentProvider.image || null,
-      rating: currentProvider.rating || null,
-      priceRange: currentProvider.priceRange || null,
-      city: currentProvider.city || null,
-      state: currentProvider.state || null,
-      distanceMiles: null,
-      isCurrentPage: true,
-    },
-    ...similarProviders.map((p) => ({ ...p, isCurrentPage: false })),
-  ];
+  // Total sent = current provider (1) + other providers sent
+  const totalSentCount = 1 + sentProviders.size;
+  const otherProvidersSentCount = sentProviders.size;
 
   // Dynamic copy based on sent count
-  const buttonText = sentCount === 1 ? "Get reply" : `Get ${sentCount} replies`;
+  const buttonText = totalSentCount === 1 ? "Get reply" : `Get ${totalSentCount} replies`;
 
   const finePrint =
-    sentCount === 1
+    totalSentCount === 1
       ? `We'll email you as ${firstName} responds. No calls.`
       : "We'll email replies as they come in. No calls.";
+
+  // Has similar providers to show?
+  const hasSimilarProviders = similarProviders.length > 0;
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 50);
@@ -159,7 +146,6 @@ export default function MultiProviderCard({
   }, [isSuccess, showSuccess, onCollapse]);
 
   // Auto-collapse for logged-in users after they've seen the confirmation
-  // Use ref to schedule once — prevents effect cleanup from clearing the timer
   useEffect(() => {
     if (isLoggedIn && mounted && questionSent && !collapseScheduledRef.current) {
       collapseScheduledRef.current = true;
@@ -189,7 +175,7 @@ export default function MultiProviderCard({
           session_id: getOrCreateSessionId(),
           metadata: {
             question_text: question,
-            sent_count: sentProviders.size + 1,
+            sent_count: sentProviders.size + 2, // current + this + previous others
             variant: "multi_provider",
           },
         }),
@@ -228,8 +214,9 @@ export default function MultiProviderCard({
   };
 
   const handleSaveAll = () => {
-    const sentIds = Array.from(sentProviders);
-    onSaveAll(sentIds);
+    // Include current provider + all sent similar providers
+    const allSentIds = [currentProvider.id, ...Array.from(sentProviders)];
+    onSaveAll(allSentIds);
     // Track analytics
     fetch("/api/activity/track", {
       method: "POST",
@@ -240,8 +227,8 @@ export default function MultiProviderCard({
         related_provider_id: currentProvider.id,
         session_id: getOrCreateSessionId(),
         metadata: {
-          saved_count: sentIds.length,
-          provider_ids: sentIds,
+          saved_count: allSentIds.length,
+          provider_ids: allSentIds,
           variant: "multi_provider",
         },
       }),
@@ -249,8 +236,17 @@ export default function MultiProviderCard({
     }).catch(() => {});
   };
 
-  // Build sent provider list for success state
-  const sentProvidersList = allProviders.filter((p) => sentProviders.has(p.id));
+  // Build sent provider list for success state (current + sent similar providers)
+  const sentProvidersList = [
+    {
+      id: currentProvider.id,
+      name: currentProvider.name,
+      image: currentProvider.image || null,
+      rating: currentProvider.rating || null,
+      city: currentProvider.city || null,
+    },
+    ...similarProviders.filter((p) => sentProviders.has(p.id)),
+  ];
 
   return (
     <div
@@ -275,7 +271,7 @@ export default function MultiProviderCard({
               <Check size={24} weight="bold" className="text-white" />
             </div>
             <h3 className="text-[19px] font-semibold text-gray-900">
-              You&apos;ll get {sentCount} {sentCount === 1 ? "reply" : "replies"}
+              You&apos;ll get {totalSentCount} {totalSentCount === 1 ? "reply" : "replies"}
             </h3>
             <p className="text-[14px] text-gray-500 mt-1 leading-relaxed">
               We&apos;ll email <span className="font-medium text-gray-700">{userEmail || email}</span> as each provider responds.
@@ -361,161 +357,167 @@ export default function MultiProviderCard({
               "
             >
               <Heart size={16} weight="regular" className="text-gray-400" />
-              Save all {sentCount} providers
+              Save all {totalSentCount} providers
             </button>
           </div>
         </div>
       ) : (
         /* ═══════════════════════════════════════════════════════════════
-           Main Card — Question → Provider List → Email Capture
+           Main Card — Confirmation → Other Providers → Email Capture
            ═══════════════════════════════════════════════════════════════ */
         <div className="p-6">
-          {/* ─── Question Block — plain text with quotes ────────────────── */}
+          {/* ─── Question ─────────────────────────────────────────────────── */}
           <div
             className={`
               transition-all duration-500 ease-out delay-75
               ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
-            <p className="text-[16px] text-gray-800 leading-relaxed">
+            <p className="font-display italic text-[16px] text-gray-700 leading-relaxed">
               &ldquo;{question}&rdquo;
             </p>
           </div>
 
-          {/* ─── Instruction Text — with subtle icon ────────────────────── */}
+          {/* ─── Confirmation Banner — Question sent to current provider ──── */}
           <div
             className={`
-              mt-4 flex items-start gap-2
+              mt-4 flex items-center gap-3 px-4 py-3 rounded-xl
+              bg-emerald-50 border border-emerald-100
               transition-all duration-500 ease-out delay-100
               ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
-            <svg className="w-4 h-4 text-primary-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-            </svg>
-            <p className="text-[14px] text-gray-600 leading-relaxed">
-              <span className="font-medium text-gray-700">Compare real answers.</span>
-              {" "}Tap providers below to ask the same question — see how they respond.
+            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+              <Check size={14} weight="bold" className="text-white" />
+            </div>
+            <p className="text-[15px] text-gray-800">
+              Your question was sent to <span className="font-semibold">{currentProvider.name}</span>.
             </p>
           </div>
 
-          {/* ─── Provider List ──────────────────────────────────────────── */}
-          <div
-            className={`
-              mt-4 space-y-2
-              transition-all duration-500 ease-out delay-150
-              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
-            `}
-          >
-            {allProviders.map((provider, idx) => {
-              const isSent = sentProviders.has(provider.id);
-              const isSending = sendingProvider === provider.id;
-              const isCurrentPage = "isCurrentPage" in provider && provider.isCurrentPage;
+          {/* ─── Other Providers Section ──────────────────────────────────── */}
+          {hasSimilarProviders && (
+            <div
+              className={`
+                mt-5
+                transition-all duration-500 ease-out delay-150
+                ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
+              `}
+            >
+              {/* Prompt */}
+              <p className="text-[15px] text-gray-700 mb-3">
+                Want this question answered by{" "}
+                <span className="font-semibold text-gray-900">
+                  more providers in {firstName}&apos;s price range
+                </span>
+                ?
+              </p>
 
-              return (
-                <button
-                  key={provider.id}
-                  type="button"
-                  onClick={() => handleProviderClick(provider.id, provider.name)}
-                  disabled={isSent || isSending}
-                  className={`
-                    group w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl border
-                    transition-all duration-200 ease-out
-                    ${isSent
-                      ? "bg-emerald-50/60 border-emerald-100 cursor-default"
-                      : "bg-white border-gray-200 hover:border-primary-300 hover:bg-primary-50/30 hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)] cursor-pointer active:scale-[0.995]"
-                    }
-                    ${isSending ? "opacity-80 scale-[0.99]" : ""}
-                  `}
-                  style={{ transitionDelay: isSending ? "0ms" : `${idx * 30}ms` }}
-                >
-                  {/* Checkbox — larger, more prominent */}
-                  <div
-                    className={`
-                      w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-all duration-200
-                      ${isSent
-                        ? "bg-emerald-500 border-0 shadow-sm"
-                        : "border-2 border-gray-300 group-hover:border-primary-400"
-                      }
-                    `}
-                  >
-                    {isSent && (
-                      <Check size={14} weight="bold" className="text-white" />
-                    )}
-                    {isSending && (
-                      <span className="w-3.5 h-3.5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-                    )}
-                  </div>
+              {/* Other providers list */}
+              <div className="space-y-2">
+                {similarProviders.map((provider, idx) => {
+                  const isSent = sentProviders.has(provider.id);
+                  const isSending = sendingProvider === provider.id;
 
-                  {/* Avatar — slightly larger */}
-                  {provider.image ? (
-                    <img
-                      src={provider.image}
-                      alt={provider.name}
-                      className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
-                      <span className="text-sm font-semibold text-primary-700">
-                        {provider.name.charAt(0)}
-                      </span>
-                    </div>
-                  )}
+                  return (
+                    <button
+                      key={provider.id}
+                      type="button"
+                      onClick={() => handleProviderClick(provider.id, provider.name)}
+                      disabled={isSent || isSending}
+                      className={`
+                        group w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl border
+                        transition-all duration-200 ease-out
+                        ${isSent
+                          ? "bg-emerald-50/60 border-emerald-100 cursor-default"
+                          : "bg-white border-gray-200 hover:border-primary-300 hover:bg-primary-50/30 hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)] cursor-pointer active:scale-[0.995]"
+                        }
+                        ${isSending ? "opacity-80 scale-[0.99]" : ""}
+                      `}
+                      style={{ transitionDelay: isSending ? "0ms" : `${idx * 30}ms` }}
+                    >
+                      {/* Checkbox */}
+                      <div
+                        className={`
+                          w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-all duration-200
+                          ${isSent
+                            ? "bg-emerald-500 border-0 shadow-sm"
+                            : "border-2 border-gray-300 group-hover:border-primary-400"
+                          }
+                        `}
+                      >
+                        {isSent && (
+                          <Check size={14} weight="bold" className="text-white" />
+                        )}
+                        {isSending && (
+                          <span className="w-3.5 h-3.5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+                        )}
+                      </div>
 
-                  {/* Provider info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`text-[15px] truncate ${isCurrentPage ? "font-semibold text-gray-900" : "font-medium text-gray-800"}`}>
-                        {provider.name}
-                      </span>
-                      {isCurrentPage && (
-                        <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary-100 text-primary-700 uppercase tracking-wider">
-                          This page
+                      {/* Avatar */}
+                      {provider.image ? (
+                        <img
+                          src={provider.image}
+                          alt={provider.name}
+                          className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
+                          <span className="text-sm font-semibold text-primary-700">
+                            {provider.name.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Provider info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[15px] font-medium text-gray-800 truncate">
+                          {provider.name}
+                        </p>
+                        <div className="flex items-center gap-1.5 text-[13px] text-gray-500 mt-0.5">
+                          {provider.rating && (
+                            <>
+                              <span className="text-amber-400">★</span>
+                              <span className="font-medium">{provider.rating.toFixed(1)}</span>
+                              <span className="text-gray-300">·</span>
+                            </>
+                          )}
+                          {provider.distanceMiles != null ? (
+                            <span>{provider.distanceMiles.toFixed(1)} mi away</span>
+                          ) : provider.city ? (
+                            <span>{provider.city}</span>
+                          ) : null}
+                          {provider.priceRange && (
+                            <>
+                              <span className="text-gray-300">·</span>
+                              <span>{provider.priceRange}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Sent status badge */}
+                      {isSent && (
+                        <span className="shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-100 text-[12px] text-emerald-700 font-semibold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Sent
                         </span>
                       )}
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[13px] text-gray-500 mt-0.5">
-                      {provider.rating && (
-                        <>
-                          <span className="text-amber-400">★</span>
-                          <span className="font-medium">{provider.rating.toFixed(1)}</span>
-                          <span className="text-gray-300">·</span>
-                        </>
+
+                      {/* Hover hint for unsent */}
+                      {!isSent && !isSending && (
+                        <span className="shrink-0 text-[12px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          Tap to ask
+                        </span>
                       )}
-                      {provider.distanceMiles != null ? (
-                        <span>{provider.distanceMiles.toFixed(1)} mi</span>
-                      ) : provider.city ? (
-                        <span>{provider.city}</span>
-                      ) : null}
-                      {provider.priceRange && (
-                        <>
-                          <span className="text-gray-300">·</span>
-                          <span className={isCurrentPage ? "font-medium text-gray-700" : ""}>{provider.priceRange}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-                  {/* Sent status badge — more prominent */}
-                  {isSent && (
-                    <span className="shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-100 text-[12px] text-emerald-700 font-semibold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Sent
-                    </span>
-                  )}
-
-                  {/* Hover hint for unsent */}
-                  {!isSent && !isSending && (
-                    <span className="shrink-0 text-[12px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      Tap to ask
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* ─── Email Capture Block ────────────────────────────────────── */}
+          {/* ─── Email Capture Block ────────────────────────────────────────── */}
           <div
             className={`
               mt-5 p-5 rounded-2xl
@@ -533,7 +535,7 @@ export default function MultiProviderCard({
                   <Check size={20} weight="bold" className="text-emerald-600" />
                 </div>
                 <p className="text-[16px] text-gray-900 font-semibold">
-                  {sentCount} question{sentCount !== 1 ? "s" : ""} sent
+                  {totalSentCount} question{totalSentCount !== 1 ? "s" : ""} sent
                 </p>
                 <p className="text-[14px] text-gray-500 mt-1">
                   We&apos;ll email <span className="font-medium text-gray-700">{userEmail}</span> when providers reply
@@ -544,11 +546,11 @@ export default function MultiProviderCard({
               <>
                 {/* Dynamic headline with emphasis */}
                 <p className="text-[16px] text-gray-900 font-semibold leading-relaxed">
-                  {sentCount === 1 ? (
+                  {totalSentCount === 1 ? (
                     <>Add your email to get <span className="text-primary-600">{firstName}&apos;s</span> reply.</>
                   ) : (
                     <>
-                      <span className="text-primary-600">{sentCount} questions sent.</span>
+                      <span className="text-primary-600">{totalSentCount} questions sent.</span>
                       {" "}Add your email to get all replies — side by side.
                     </>
                   )}

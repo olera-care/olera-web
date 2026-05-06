@@ -356,14 +356,15 @@ export async function PATCH(
             // Fallback: public profile URL (if magic link fails)
             let dashboardUrl = `${siteUrl}/provider/${profile.slug || id}`;
 
-            // Generate magic link for auto sign-in (same pattern as /api/medjobs/apply)
-            // Redirect directly to /provider, not through /auth/magic-link (which has /welcome redirect logic)
+            // Generate magic link for auto sign-in
+            // Include ?next=/provider so AuthProvider knows the destination
+            // (AuthProvider defaults to /portal/inbox without this param)
             try {
               const { data: linkData, error: linkError } = await db.auth.admin.generateLink({
                 type: "magiclink",
                 email: providerEmail,
                 options: {
-                  redirectTo: `${siteUrl}/provider`,
+                  redirectTo: `${siteUrl}/provider?next=/provider`,
                 },
               });
               if (!linkError && linkData?.properties?.action_link) {

@@ -392,8 +392,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
               // Determine final destination
               // New user (onboarding_completed=false) + no deferred action → /welcome
+              // EXCEPT for provider routes - providers don't need family onboarding
               const hasDeferredAction = !!getDeferredAction()?.action;
-              const finalDestination = (isNewUser && !hasDeferredAction)
+              const isProviderRoute = redirectTo.startsWith("/provider");
+              const finalDestination = (isNewUser && !hasDeferredAction && !isProviderRoute)
                 ? `/welcome?next=${encodeURIComponent(redirectTo)}`
                 : redirectTo;
 

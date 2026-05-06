@@ -55,6 +55,11 @@ const ANONYMOUS_EVENT_TYPES = [
   "inline_answer_expanded",
   "inline_answer_converted",
   "inline_answer_saved",
+  // multi_provider variant A/B test events
+  "multi_provider_expanded",
+  "multi_provider_question_sent",
+  "multi_provider_converted",
+  "multi_provider_save_all",
 ] as const;
 
 function getServiceDb() {

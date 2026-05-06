@@ -70,12 +70,16 @@ export default function InlineAnswerCard({
     }
   }, [mounted]);
 
+  // Auto-focus input on desktop only (mobile keyboard would obscure the answer)
   useEffect(() => {
     if (mounted && inputRef.current && !showSuccess) {
-      const focusTimer = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 500);
-      return () => clearTimeout(focusTimer);
+      const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+      if (isDesktop) {
+        const focusTimer = setTimeout(() => {
+          inputRef.current?.focus();
+        }, 600);
+        return () => clearTimeout(focusTimer);
+      }
     }
   }, [mounted, showSuccess]);
 
@@ -151,7 +155,7 @@ export default function InlineAnswerCard({
       ref={cardRef}
       className={`
         bg-white rounded-2xl
-        ring-1 ring-inset ring-emerald-200
+        ring-1 ring-inset ring-primary-200
         shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)]
         overflow-hidden
         transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
@@ -232,7 +236,7 @@ export default function InlineAnswerCard({
             `}
           >
             <p className="flex items-center gap-2 text-[13px] text-gray-500">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0" />
               {contextLabel}
             </p>
           </div>
@@ -264,7 +268,7 @@ export default function InlineAnswerCard({
           {/* ─── Email Capture Block ────────────────────────────────────── */}
           <div
             className={`
-              transition-all duration-500 ease-out delay-250
+              transition-all duration-500 ease-out delay-200
               ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
@@ -288,8 +292,8 @@ export default function InlineAnswerCard({
               </p>
             </div>
 
-            {/* Input + Button Row */}
-            <div className="flex gap-3">
+            {/* Input + Button Row — stacks on mobile */}
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1 min-w-0">
                 <input
                   ref={inputRef}
@@ -302,7 +306,7 @@ export default function InlineAnswerCard({
                   onKeyDown={handleKeyDown}
                   onFocus={() => setInputFocused(true)}
                   onBlur={() => setInputFocused(false)}
-                  placeholder="you@email.com — we'll send their reply"
+                  placeholder="your email"
                   autoComplete="email"
                   disabled={isSubmitting}
                   className={`
@@ -312,7 +316,7 @@ export default function InlineAnswerCard({
                     transition-all duration-200 ease-out
                     focus:outline-none disabled:opacity-50
                     ${inputFocused
-                      ? "border-emerald-400 ring-2 ring-emerald-100"
+                      ? "border-primary-400 ring-2 ring-primary-100"
                       : error
                         ? "border-red-300 ring-2 ring-red-50"
                         : "border-gray-200 hover:border-gray-300"
@@ -327,15 +331,16 @@ export default function InlineAnswerCard({
                 className={`
                   shrink-0 px-5 py-3
                   text-[15px] font-semibold text-white
-                  bg-emerald-600 rounded-xl
+                  bg-primary-600 rounded-xl
                   transition-all duration-200 ease-out
-                  hover:bg-emerald-700 active:scale-[0.98]
+                  hover:bg-primary-700 active:scale-[0.98]
                   disabled:opacity-40 disabled:cursor-not-allowed
-                  disabled:hover:bg-emerald-600
+                  disabled:hover:bg-primary-600
+                  sm:w-auto w-full
                 `}
               >
                 {isSubmitting ? (
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center justify-center gap-2">
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     Sending...
                   </span>

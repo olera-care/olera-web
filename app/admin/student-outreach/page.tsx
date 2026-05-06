@@ -707,6 +707,41 @@ function Pill({
   );
 }
 
+/**
+ * v8.10.23: long notes on cards truncate to a character limit and
+ * expose a "See more" toggle — clicking inline-expands the full text
+ * without opening the drawer. Keeps card heights consistent and
+ * scannable while preserving access to the full quote.
+ *
+ * The toggle uses stopPropagation so clicking it doesn't bubble to
+ * the card's drawer-open handler.
+ */
+function ExpandableNote({ text, limit = 100 }: { text: string; limit?: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const needsTruncation = text.length > limit;
+  const display = expanded || !needsTruncation ? text : text.slice(0, limit).trimEnd();
+  return (
+    <p className="mt-0.5 text-[11px] italic text-gray-700">
+      &quot;{display}
+      {!expanded && needsTruncation && "…"}&quot;
+      {needsTruncation && (
+        <>
+          {" "}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((s) => !s);
+            }}
+            className="not-italic text-emerald-700 underline hover:no-underline"
+          >
+            {expanded ? "See less" : "See more"}
+          </button>
+        </>
+      )}
+    </p>
+  );
+}
+
 // ── Buttons (single tone — emerald primary) ──────────────────────────────
 
 function PrimaryAction({
@@ -994,18 +1029,12 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         overflowMenu: buildUniversalOverflow(cb),
       };
     case "needs_followup":
-      // v8.10.17: unified CTA across every Needs Attention state.
-      // "Log reply" opens ReplyClassifierModal — same workflow as the
-      // engaged + wants_meeting cards. Admin sends their custom
-      // follow-up email through Gmail manually, then logs the reply
-      // when it lands.
+      // v8.10.17: unified CTA. v8.10.23: notes truncate at 100 chars
+      // with a "See more" inline expander so card heights stay
+      // consistent.
       return {
-        // followup notes quote stays — informational context, not a nudge.
         footnote: row.followup_notes ? (
-          <p className="mt-0.5 text-[11px] italic text-gray-700">
-            &quot;{row.followup_notes.slice(0, 160)}
-            {row.followup_notes.length > 160 ? "…" : ""}&quot;
-          </p>
+          <ExpandableNote text={row.followup_notes} />
         ) : lastActivityFootnote,
         pill: <Pill>Met — needs follow-up</Pill>,
         cta: <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>,

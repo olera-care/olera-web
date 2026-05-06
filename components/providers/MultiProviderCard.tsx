@@ -56,10 +56,17 @@ export default function MultiProviderCard({
   const [showSuccess, setShowSuccess] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
+  // Track which images failed to load (show fallback)
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const expandTrackedRef = useRef(false);
   const collapseScheduledRef = useRef(false);
+
+  // Handle image load errors — show fallback
+  const handleImageError = (providerId: string) => {
+    setFailedImages(prev => new Set([...prev, providerId]));
+  };
 
   // Extract first name from provider name
   const getFirstName = (name: string) => {
@@ -301,10 +308,11 @@ export default function MultiProviderCard({
               >
                 {/* Avatar with success checkmark badge */}
                 <div className="relative shrink-0">
-                  {provider.image ? (
+                  {provider.image && !failedImages.has(provider.id) ? (
                     <img
                       src={provider.image}
                       alt={provider.name}
+                      onError={() => handleImageError(provider.id)}
                       className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
                     />
                   ) : (
@@ -387,13 +395,13 @@ export default function MultiProviderCard({
           {/* ─── Instruction ──────────────────────────────────────────────── */}
           <div
             className={`
-              mt-3
+              mt-4
               transition-all duration-500 ease-out delay-100
               ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
-            <p className="text-[15px] text-gray-700 leading-relaxed">
-              Tap to ask the same question to others — <span className="font-semibold text-gray-900">compare answers side by side.</span>
+            <p className="text-[14px] text-gray-600">
+              Tap to ask the same question to others — <span className="font-semibold">compare answers side by side.</span>
             </p>
           </div>
 
@@ -415,10 +423,11 @@ export default function MultiProviderCard({
               </div>
 
               {/* Provider avatar */}
-              {currentProvider.image ? (
+              {currentProvider.image && !failedImages.has(currentProvider.id) ? (
                 <img
                   src={currentProvider.image}
                   alt={currentProvider.name}
+                  onError={() => handleImageError(currentProvider.id)}
                   className="w-9 h-9 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
                 />
               ) : (
@@ -507,10 +516,11 @@ export default function MultiProviderCard({
                   </div>
 
                   {/* Provider avatar */}
-                  {provider.image ? (
+                  {provider.image && !failedImages.has(provider.id) ? (
                     <img
                       src={provider.image}
                       alt={provider.name}
+                      onError={() => handleImageError(provider.id)}
                       className="w-9 h-9 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
                     />
                   ) : (
@@ -549,36 +559,30 @@ export default function MultiProviderCard({
                   </div>
 
                   {/* Status badge */}
-                  {isSent && (
+                  {isSent ? (
                     <span className="shrink-0 flex items-center gap-1.5 text-[13px] text-primary-600 font-medium">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
                       Sent
                     </span>
-                  )}
-                  {isFailed && (
+                  ) : isFailed ? (
                     <span className="shrink-0 flex items-center gap-1.5 text-[12px] text-red-600 font-medium">
                       Failed · tap to retry
                     </span>
-                  )}
+                  ) : !isSending ? (
+                    /* Hover hint for unchecked providers */
+                    <span className="shrink-0 text-[12px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                      Tap to ask
+                    </span>
+                  ) : null}
                 </button>
               );
             })}
           </div>
 
-          {/* ─── Divider ────────────────────────────────────────────────────── */}
-          <div
-            className={`
-              my-6
-              transition-all duration-500 ease-out delay-200
-              ${mounted ? "opacity-100" : "opacity-0"}
-            `}
-          >
-            <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-          </div>
-
           {/* ─── Email Capture Block ────────────────────────────────────────── */}
           <div
             className={`
+              mt-6 pt-5 border-t border-gray-100
               transition-all duration-500 ease-out delay-200
               ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}

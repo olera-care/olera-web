@@ -324,7 +324,7 @@ function AdvisorsTab({
     <div className="space-y-2">
       <RowGridHeader columns={["First", "Last", "Role", "Email", "Phone"]} />
       {rows.map((row, i) => (
-        <RowGrid5 key={i} onRemove={rows.length > 1 ? () => setRows(rows.filter((_, j) => j !== i)) : undefined}>
+        <RowGrid5 key={i} variant="with-role" onRemove={rows.length > 1 ? () => setRows(rows.filter((_, j) => j !== i)) : undefined}>
           <Cell value={row.firstName} onChange={(v) => updateRow(rows, setRows, i, { ...row, firstName: v })} placeholder="Marcus" />
           <Cell value={row.lastName} onChange={(v) => updateRow(rows, setRows, i, { ...row, lastName: v })} placeholder="Reyes" />
           <SelectCell
@@ -376,7 +376,7 @@ function DeptHeadsTab({
     <div className="space-y-2">
       <RowGridHeader columns={["Department", "First", "Last", "Email", "Phone"]} />
       {rows.map((row, i) => (
-        <RowGrid5 key={i} onRemove={rows.length > 1 ? () => setRows(rows.filter((_, j) => j !== i)) : undefined}>
+        <RowGrid5 key={i} variant="with-department" onRemove={rows.length > 1 ? () => setRows(rows.filter((_, j) => j !== i)) : undefined}>
           <SelectCell
             value={row.department}
             onChange={(v) => updateRow(rows, setRows, i, { ...row, department: v })}
@@ -455,6 +455,7 @@ function StudentOrgsTab({
           {org.officers.map((off, j) => (
             <RowGrid5
               key={j}
+              variant="with-role"
               onRemove={
                 org.officers.length > 1
                   ? () => updateOrg(i, { ...org, officers: org.officers.filter((_, k) => k !== j) })
@@ -778,10 +779,24 @@ function PasteFromSpreadsheet({
 
 // ── Row primitives ───────────────────────────────────────────────────────
 
+// v8.10.4: native <select> chevrons reserve ~16-20px on the right.
+// "Pre-Health Advisor" is wider than the equal-share grid-cols-5 cell,
+// so the role text used to truncate AND the chevron got clipped.
+// Custom column templates per layout fix it: Role/Department get the
+// width they need, Email gets the remaining flex space.
+const COLS_WITH_ROLE = "grid-cols-[80px_80px_160px_minmax(0,1fr)_140px]";
+const COLS_WITH_DEPT = "grid-cols-[140px_80px_80px_minmax(0,1fr)_140px]";
+
+function pickColsClass(columns: string[]): string {
+  if (columns.length !== 5) return "grid-cols-4";
+  if (columns.includes("Role")) return COLS_WITH_ROLE;
+  if (columns.includes("Department")) return COLS_WITH_DEPT;
+  return "grid-cols-5";
+}
+
 function RowGridHeader({ columns }: { columns: string[] }) {
-  const colsClass = columns.length === 5 ? "grid-cols-5" : "grid-cols-4";
   return (
-    <div className={`grid gap-2 px-1 pb-1 ${colsClass}`}>
+    <div className={`grid gap-2 px-1 pb-1 ${pickColsClass(columns)}`}>
       {columns.map((c) => (
         <p key={c} className="text-[10px] font-medium uppercase tracking-wide text-gray-400">
           {c}
@@ -793,14 +808,18 @@ function RowGridHeader({ columns }: { columns: string[] }) {
 
 function RowGrid5({
   children,
+  variant,
   onRemove,
 }: {
   children: ReactNode;
+  /** Drives column widths to match the corresponding RowGridHeader. */
+  variant: "with-role" | "with-department";
   onRemove?: () => void;
 }) {
+  const cols = variant === "with-department" ? COLS_WITH_DEPT : COLS_WITH_ROLE;
   return (
     <div className="flex items-center gap-2">
-      <div className="grid flex-1 grid-cols-5 gap-2">{children}</div>
+      <div className={`grid flex-1 gap-2 ${cols}`}>{children}</div>
       <button
         onClick={onRemove}
         disabled={!onRemove}

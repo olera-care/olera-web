@@ -81,8 +81,6 @@ export function PreFlightReviewModal({
     return result;
   });
 
-  const phoneDays = days.filter((d) => d.steps.some((s) => s.channel === "phone")).map((d) => d.day);
-
   const [openIdx, setOpenIdx] = useState<number | null>(0);
   const [previewIdx, setPreviewIdx] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -151,10 +149,9 @@ export function PreFlightReviewModal({
       <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl">
         <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Schedule outreach sequence</h3>
+            <h3 className="text-base font-semibold text-gray-900">Confirm and Schedule Outreach Sequence</h3>
             <p className="mt-0.5 text-xs text-gray-500">
-              Review the cadence, edit any email if you'd like, then schedule. Day 0 sends
-              immediately; later days fire automatically.
+              Check the info and start the email outreach.
             </p>
           </div>
           <button onClick={onCancel} className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100" aria-label="Close">
@@ -184,12 +181,9 @@ export function PreFlightReviewModal({
             )}
           </div>
 
-          {/* Phone-call notice */}
-          {phoneDays.length > 0 && (
-            <div className="rounded-md bg-blue-50/60 px-3 py-2 text-xs text-blue-900">
-              📞 Phone call task{phoneDays.length === 1 ? "" : "s"} will be queued for Day{phoneDays.length === 1 ? "" : "s"} {phoneDays.join(", ")} — those need manual action when due.
-            </div>
-          )}
+          {/* v8.10.4: phone-call task nudge removed. The Calls tab is the
+              dedicated surface for phone work; this modal is focused on
+              confirming research + starting the email outreach only. */}
 
           {/* Email cards */}
           {snapshots.map((s, idx) => {
@@ -259,8 +253,29 @@ export function PreFlightReviewModal({
             );
           })}
 
+          {/* v8.10.4: clickable flyer preview. URL comes from
+              NEXT_PUBLIC_STUDENT_OUTREACH_FLYER_URL — same Supabase
+              storage object that the server-side STUDENT_OUTREACH_FLYER_URL
+              attaches to every send. Set both to the same URL in env so
+              what admins preview matches what stakeholders receive. */}
           <p className="rounded-md bg-blue-50 px-3 py-2 text-xs text-blue-900">
-            📎 The Olera flyer (PDF) is attached automatically to every send.
+            📎{" "}
+            {process.env.NEXT_PUBLIC_STUDENT_OUTREACH_FLYER_URL ? (
+              <>
+                <a
+                  href={process.env.NEXT_PUBLIC_STUDENT_OUTREACH_FLYER_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:no-underline"
+                  title="Open the flyer in a new tab to preview what stakeholders receive."
+                >
+                  The Olera flyer (PDF)
+                </a>{" "}
+                is attached automatically to every send.
+              </>
+            ) : (
+              <>The Olera flyer (PDF) is attached automatically to every send.</>
+            )}
           </p>
         </div>
 

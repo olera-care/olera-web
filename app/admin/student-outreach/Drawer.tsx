@@ -184,16 +184,22 @@ function DrawerBody({
   action: ActionFn;
   setError: (e: string | null) => void;
 }) {
-  // v8.3: auto-expand More details when this is a Research-stage row,
-  // since the research form IS the primary task there.
-  const [showMore, setShowMore] = useState(
-    ctx.outreach.status === "prospect" || ctx.outreach.status === "researched",
-  );
+  // v8.10.4: research stages are a different mode entirely. The research
+  // form IS the next step, so it leads the drawer (no NextStepPanel),
+  // and More details collapses by default to History (+ Permissions for
+  // dept_head, since the email-professors approval gates research).
+  const isResearch =
+    ctx.outreach.status === "prospect" || ctx.outreach.status === "researched";
+  const [showMore, setShowMore] = useState(false);
   return (
     <div className="space-y-6">
       <RelationshipBanner ctx={ctx} />
       <TabContextBanner tabContext={tabContext} />
-      <NextStepPanel ctx={ctx} action={action} setError={setError} />
+      {isResearch ? (
+        <ResearchModePanel ctx={ctx} action={action} setError={setError} />
+      ) : (
+        <NextStepPanel ctx={ctx} action={action} setError={setError} />
+      )}
       <JobBoardTaskSection ctx={ctx} action={action} setError={setError} />
       <DangerZone ctx={ctx} action={action} setError={setError} />
 
@@ -207,7 +213,11 @@ function DrawerBody({
         </button>
         {showMore && (
           <div className="mt-4 space-y-6">
-            <ResearchSection ctx={ctx} action={action} setError={setError} />
+            {/* Research stages render ResearchSection at the top via
+                ResearchModePanel — don't duplicate it inside More details. */}
+            {!isResearch && (
+              <ResearchSection ctx={ctx} action={action} setError={setError} />
+            )}
             {/* v8.7: Contacts section only for student orgs (multi-officer).
                 Single-contact types render the primary contact inline in
                 ResearchSection to avoid a redundant section. */}
@@ -244,6 +254,114 @@ function RelationshipBanner({ ctx }: { ctx: DrawerContext }) {
     <div className="rounded-md bg-amber-50/60 px-3 py-2 text-xs text-amber-900">
       {items.join(" · ")}
     </div>
+  );
+}
+
+// ── Research mode panel (v8.10.4) ───────────────────────────────────────
+//
+// Replaces NextStepPanel for prospect / researched stages. Renders the
+// ResearchSection input form WITH orientation paragraph + checklist +
+// CTA inside a single card — admin sees one cohesive workflow instead
+// of an orientation card plus a separately-collapsed input form. CTA
+// changes by status: prospect → "Research complete", researched →
+// opens PreFlightReviewModal.
+
+function ResearchModePanel({
+  ctx,
+  action,
+  setError,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (e: string | null) => void;
+}) {
+  const status = ctx.outreach.status;
+  const type = ctx.outreach.stakeholder_type;
+  const [showPreFlight, setShowPreFlight] = useState(false);
+
+  const handleErr = (p: Promise<unknown>) =>
+    p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
+
+  // Readiness gating per stage.
+  const haveContact = ctx.contacts.some((c) => c.status === "active");
+  const havePrograms = ctx.outreach.programs.length > 0;
+  const haveDept = type === "dept_head" ? Boolean(ctx.outreach.department) : true;
+  const eligibleEmail = ctx.contacts.filter(
+    (c) => c.status === "active" && c.email,
+  ).length;
+
+  const isProspect = status === "prospect";
+  const ready = isProspect ? haveContact && havePrograms && haveDept : eligibleEmail > 0;
+
+  const orientation = isProspect ? (
+    <>
+      <strong>Research this stakeholder.</strong> Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.
+    </>
+  ) : (
+    <>
+      <strong>Ready to email.</strong> Review the {OUTREACH_DAYS_BY_TYPE[type].length}-step email sequence and start it. Day 0 sends right away; later days fire automatically.
+    </>
+  );
+
+  const checklist = isProspect
+    ? [
+        { done: haveContact, label: "At least one active contact added" },
+        { done: havePrograms, label: "Programs selected" },
+        ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
+      ]
+    : [{ done: eligibleEmail > 0, label: `Active contact with email (${eligibleEmail} found)` }];
+
+  const ctaLabel = isProspect
+    ? ready
+      ? "✓ Research complete — review email sequence"
+      : "Add a contact + programs to continue"
+    : ready
+      ? "Start email sequence →"
+      : "Add a contact with email to continue";
+
+  const onCtaClick = isProspect
+    ? () => handleErr(action("mark_research_complete"))
+    : () => setShowPreFlight(true);
+
+  const cta = (
+    <button
+      onClick={onCtaClick}
+      disabled={!ready}
+      className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
+        ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
+      }`}
+    >
+      {ctaLabel}
+    </button>
+  );
+
+  return (
+    <>
+      <ResearchSection
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        research={{ orientation, checklist, cta }}
+      />
+      {showPreFlight && (
+        <PreFlightReviewModal
+          stakeholderType={type}
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          contacts={ctx.contacts}
+          onCancel={() => setShowPreFlight(false)}
+          onSubmit={async (snapshots) => {
+            try {
+              await action("schedule_sequence", { email_snapshots: snapshots });
+              setShowPreFlight(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Schedule failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+    </>
   );
 }
 
@@ -575,10 +693,20 @@ function ResearchSection({
   ctx,
   action,
   setError,
+  /** v8.10.4: when in research stages we hoist this section to the top
+   *  of the drawer and render orientation + checklist + CTA inside the
+   *  same card. Outside research stages this stays a plain input form
+   *  inside More details. */
+  research,
 }: {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (e: string | null) => void;
+  research?: {
+    orientation: React.ReactNode;
+    checklist: Array<{ done: boolean; label: string }>;
+    cta: React.ReactNode;
+  };
 }) {
   const r = ctx.outreach.research_data;
   const type = ctx.outreach.stakeholder_type;
@@ -671,6 +799,9 @@ function ResearchSection({
         Research
       </h3>
       <div className="space-y-3 rounded-lg border border-gray-200 bg-white p-4">
+        {research?.orientation && (
+          <Guidance>{research.orientation}</Guidance>
+        )}
         {showOrgName && (
           <Field label="Organization name" value={orgName} onChange={setOrgName} onBlur={saveOutreach} />
         )}
@@ -737,6 +868,13 @@ function ResearchSection({
         )}
 
         <Field label="Research notes" value={notes} onChange={setNotes} onBlur={saveResearch} multiline />
+
+        {research && (
+          <>
+            <ChecklistInline items={research.checklist} />
+            <div className="pt-1">{research.cta}</div>
+          </>
+        )}
       </div>
     </section>
   );
@@ -987,9 +1125,22 @@ const JOB_BOARD_PERMISSION: PermissionKind = {
   tooltip: "When granted, a 'Post to job board' task is queued (one per campus, deduped if multiple grant).",
 };
 
-function permissionKindsFor(type: StakeholderType): PermissionKind[] {
-  if (type === "dept_head") return [PROFESSOR_PERMISSION, JOB_BOARD_PERMISSION];
-  if (type === "advisor") return [JOB_BOARD_PERMISSION];
+function permissionKindsFor(
+  type: StakeholderType,
+  status: Status,
+): PermissionKind[] {
+  // v8.10.4: at research stages (prospect / researched), only show
+  // permissions that GATE the research flow itself. Job-board permission
+  // is only meaningful once they're an active partner, so hide it from
+  // research drawers entirely. Email-professors permission for dept_head
+  // stays — it gates the Bulk Professor Import flow during research.
+  const isResearch = status === "prospect" || status === "researched";
+  if (type === "dept_head") {
+    return isResearch ? [PROFESSOR_PERMISSION] : [PROFESSOR_PERMISSION, JOB_BOARD_PERMISSION];
+  }
+  if (type === "advisor") {
+    return isResearch ? [] : [JOB_BOARD_PERMISSION];
+  }
   return [];
 }
 
@@ -1007,7 +1158,7 @@ function ApprovalsSection({
   const [showOther, setShowOther] = useState(false);
   const [showBulkProf, setShowBulkProf] = useState(false);
 
-  const kinds = permissionKindsFor(ctx.outreach.stakeholder_type);
+  const kinds = permissionKindsFor(ctx.outreach.stakeholder_type, ctx.outreach.status);
 
   // Look up each permission's current status from approvals.
   const findApproval = (approval_for: string) =>

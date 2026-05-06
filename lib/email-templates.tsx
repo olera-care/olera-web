@@ -358,9 +358,12 @@ export function verificationDecisionEmail(opts: {
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verification needs attention</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       We were unable to verify the identity documents submitted for <strong>${opts.providerName}</strong>.
-      This may be due to unclear images or mismatched information. Please resubmit your documents or reach out for help.
+      This may be due to unclear images or mismatched information.
     </p>
-    <div>${button("Contact support", "mailto:support@olera.care")}</div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Please sign in to resubmit your verification, or reply to this email if you need help.
+    </p>
+    <div style="text-align:center;">${button("Resubmit Verification", opts.dashboardUrl)}</div>
   `);
 }
 

@@ -326,17 +326,31 @@ export function claimDecisionEmail(opts: {
 /** Email to provider when their identity verification is approved or rejected */
 export function verificationDecisionEmail(opts: {
   providerName: string;
+  recipientName: string;
   approved: boolean;
-  listingUrl: string;
+  dashboardUrl: string;
 }): string {
   if (opts.approved) {
     return layout(`
-      <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is now verified!</h1>
-      <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Great news — <strong>${opts.providerName}</strong> has been verified on Olera.
-        Your profile now displays a verified badge, helping families trust your listing.
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+        <tr><td align="center">
+          <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#ecfdf5;border-radius:50%;">
+            <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">✓</td></tr>
+          </table>
+        </td></tr>
+      </table>
+      <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">You're verified</h1>
+      <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;text-align:center;">
+        ${opts.recipientName}, your connection to <strong>${opts.providerName}</strong> has been verified. You now have full access to your dashboard.
       </p>
-      <div>${button("View your profile", opts.listingUrl)}</div>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">With verification complete, you can:</p>
+      <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
+        <li>Edit your listing with photos & pricing</li>
+        <li>Respond to family inquiries</li>
+        <li>Hire caregivers</li>
+        <li>View your profile analytics</li>
+      </ul>
+      <div style="text-align:center;">${button("Go to Dashboard", opts.dashboardUrl)}</div>
     `);
   }
 
@@ -1226,10 +1240,10 @@ export function verificationApprovedEmail(opts: {
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">With verification complete, you can:</p>
     <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
+      <li>Edit your listing with photos & pricing</li>
       <li>Respond to family inquiries</li>
+      <li>Hire caregivers</li>
       <li>View your profile analytics</li>
-      <li>Update your listing information</li>
-      <li>Manage your team members</li>
     </ul>
     <div style="text-align:center;">${button("Go to Dashboard", opts.dashboardUrl)}</div>
   `);

@@ -352,7 +352,31 @@ export async function PATCH(
           const { data: authUser } = await db.auth.admin.getUserById(account.user_id);
           const providerEmail = authUser?.user?.email;
           if (providerEmail) {
-            const listingUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/${profile.slug || id}`;
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+            // Fallback: public profile URL (if magic link fails)
+            let dashboardUrl = `${siteUrl}/provider/${profile.slug || id}`;
+
+            // Generate magic link for auto sign-in (same pattern as /api/connections/message)
+            try {
+              const { data: linkData, error: linkError } = await db.auth.admin.generateLink({
+                type: "magiclink",
+                email: providerEmail,
+                options: {
+                  redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent("/provider")}`,
+                },
+              });
+              if (!linkError && linkData?.properties?.action_link) {
+                dashboardUrl = linkData.properties.action_link;
+              }
+            } catch (linkErr) {
+              console.error("[admin/verification] Failed to generate magic link:", linkErr);
+              // Continue with fallback URL (public profile)
+            }
+
+            // Try to get recipient name from auth user metadata, fall back to "there"
+            const recipientName = (authUser?.user?.user_metadata?.full_name as string) ||
+              (authUser?.user?.user_metadata?.name as string) ||
+              "there";
             await sendEmail({
               to: providerEmail,
               subject: action === "approve"
@@ -360,8 +384,9 @@ export async function PATCH(
                 : "Your Olera verification needs attention",
               html: verificationDecisionEmail({
                 providerName: profile.display_name || "Your organization",
+                recipientName,
                 approved: action === "approve",
-                listingUrl,
+                dashboardUrl,
               }),
               emailType: "verification_decision",
               recipientType: "provider",

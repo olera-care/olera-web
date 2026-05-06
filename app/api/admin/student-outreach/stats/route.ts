@@ -115,6 +115,19 @@ export async function GET(request: NextRequest) {
     }
 
     let timestamps: Date[];
+    if (metric === "funnel") {
+      // v8.10.41: multi-series stacked-funnel response. Used by the
+      // All tab so admin sees signups → prospects → replies → meetings
+      // → partners on one chart and reads the funnel shape over time.
+      return await buildFunnelResponse(db, {
+        from,
+        to,
+        priorFrom,
+        queryStart,
+        campusName,
+        campusId,
+      });
+    }
     if (metric === "signups") {
       timestamps = await fetchSignupTimestamps(db, queryStart, to, campusName);
     } else if (metric === "prospects_added") {
@@ -240,4 +253,86 @@ async function fetchProspectsAddedTimestamps(
   )
     .filter((r) => (r.payload as { to?: string } | null)?.to === "researched")
     .map((r) => new Date(r.created_at));
+}
+
+/**
+ * v8.10.41: build the multi-series funnel response. Five series
+ * (Signups → Prospects → Replies → Meetings → Partners) so the All
+ * tab's chart reads as a funnel-over-time. All five share one bucket
+ * grid + one Y-axis so the relative shapes are comparable. Headline
+ * total is the sum across all series in range.
+ */
+async function buildFunnelResponse(
+  db: DB,
+  opts: {
+    from: Date | null;
+    to: Date;
+    priorFrom: Date | null;
+    queryStart: Date | null;
+    campusName: string | null;
+    campusId: string | null;
+  },
+): Promise<NextResponse> {
+  const { from, to, priorFrom, queryStart, campusName, campusId } = opts;
+
+  // Five series, fired in parallel.
+  const [signups, prospects, replies, meetings, partners] = await Promise.all([
+    fetchSignupTimestamps(db, queryStart, to, campusName),
+    fetchProspectsAddedTimestamps(db, queryStart, to, campusId),
+    fetchTouchpointTimestamps(db, TOUCHPOINT_METRICS.replies, queryStart, to, campusId),
+    fetchTouchpointTimestamps(db, TOUCHPOINT_METRICS.meetings_held, queryStart, to, campusId),
+    fetchTouchpointTimestamps(db, TOUCHPOINT_METRICS.partners_added, queryStart, to, campusId),
+  ]);
+
+  const inRange = (t: Date) => (from ? t >= from : true) && (to ? t < to : true);
+  const inPrior = (t: Date) => !!priorFrom && !!from && t >= priorFrom && t < from;
+
+  const named: Array<{ name: string; color: string; timestamps: Date[] }> = [
+    { name: "Signups",   color: "#10b981", timestamps: signups   }, // emerald-500
+    { name: "Prospects", color: "#3b82f6", timestamps: prospects }, // blue-500
+    { name: "Replies",   color: "#f59e0b", timestamps: replies   }, // amber-500
+    { name: "Meetings",  color: "#8b5cf6", timestamps: meetings  }, // violet-500
+    { name: "Partners",  color: "#ef4444", timestamps: partners  }, // red-500
+  ];
+
+  // KPI total = sum of all current-range counts. Delta vs prior window
+  // computed against the same sum.
+  let kpiCurrent = 0;
+  let kpiPrior = 0;
+  for (const s of named) {
+    for (const t of s.timestamps) {
+      if (inRange(t)) kpiCurrent++;
+      else if (inPrior(t)) kpiPrior++;
+    }
+  }
+  let delta: number | null = null;
+  if (from) {
+    if (kpiPrior === 0) delta = kpiCurrent > 0 ? 100 : 0;
+    else delta = Math.round(((kpiCurrent - kpiPrior) / kpiPrior) * 100);
+  }
+
+  // Bucket choice based on the visible window (matches single-metric
+  // behavior). Each series shares the same bucket grid for clean axes.
+  const allInRange = named.flatMap((s) => s.timestamps.filter(inRange));
+  const now = to ?? new Date();
+  const bucket: Bucket = from
+    ? resolveBucket(from, to)
+    : resolveBucket(allInRange[0] ?? now, now);
+  const seriesStart = from ?? allInRange[0] ?? now;
+
+  const breakdown = named.map((s) => ({
+    name: s.name,
+    color: s.color,
+    series: buildSeries(s.timestamps.filter(inRange), seriesStart, to, bucket),
+  }));
+
+  return NextResponse.json({
+    total: kpiCurrent,
+    delta,
+    bucket,
+    // Empty `series` for backward compat with single-line consumers; the
+    // breakdown drives the multi-line chart.
+    series: [],
+    breakdown,
+  });
 }

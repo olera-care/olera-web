@@ -97,7 +97,11 @@ const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
   replies:     { metric: "replies",          label: "replies received"     },
   calls:       { metric: "calls_made",       label: "calls made"           },
   archive:     { metric: "activity",         label: "outreach actions"     },
-  all:         { metric: "activity",         label: "outreach actions"     },
+  // v8.10.41: All-tab uses the multi-series funnel metric. KPI shows
+  // total funnel events across signups → prospects → replies →
+  // meetings → partners; the chart renders one colored line per stage
+  // so admin can read the funnel shape over time.
+  all:         { metric: "funnel",           label: "funnel events"        },
   outbound:    { metric: "outbound",         label: "outbound messages"    },
   emails_sent: { metric: "emails_sent",      label: "emails sent"          },
   signups:     { metric: "signups",          label: "student signups"      },

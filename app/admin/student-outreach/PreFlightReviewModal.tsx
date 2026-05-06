@@ -149,9 +149,9 @@ export function PreFlightReviewModal({
       <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl">
         <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Confirm and Schedule Outreach Sequence</h3>
+            <h3 className="text-base font-semibold text-gray-900">Confirm outreach plan</h3>
             <p className="mt-0.5 text-xs text-gray-500">
-              Check the info and start the email outreach.
+              First email goes out now. Follow-ups send themselves; calls land in the Calls tab; replies show up in Replies.
             </p>
           </div>
           <button onClick={onCancel} className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100" aria-label="Close">
@@ -281,7 +281,7 @@ export function PreFlightReviewModal({
 
         <footer className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
           <p className="text-xs text-gray-500">
-            {snapshots.length} email{snapshots.length === 1 ? "" : "s"} will be scheduled
+            {snapshots.length} email{snapshots.length === 1 ? "" : "s"} ready
           </p>
           <div className="flex gap-2">
             <button
@@ -296,7 +296,7 @@ export function PreFlightReviewModal({
               disabled={submitting || eligible.length === 0}
               className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
             >
-              {submitting ? "Scheduling…" : "Schedule sequence"}
+              {submitting ? "Starting…" : "Start outreach"}
             </button>
           </div>
         </footer>

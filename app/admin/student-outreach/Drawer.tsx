@@ -250,14 +250,14 @@ function DrawerBody({
 // ── Relationship banner ─────────────────────────────────────────────────
 
 function RelationshipBanner({ ctx }: { ctx: DrawerContext }) {
+  // v8.10.25: dropped the "Permission via <Dept> (Outreach Sent)" line.
+  // It was verbose and not operationally useful — admins never need
+  // to know the parent dept's status while researching the professor.
+  // Referred-from / redirected-to / snoozed-until still surface here
+  // since those affect the row's working context.
   const items: string[] = [];
   if (ctx.referred_from) items.push(`Referred from ${ctx.referred_from.organization_name}`);
   if (ctx.redirected_to) items.push(`Redirected to ${ctx.redirected_to.organization_name}`);
-  if (ctx.permission_dependency) {
-    items.push(
-      `Permission via ${ctx.permission_dependency.organization_name} (${STATUS_LABELS[ctx.permission_dependency.status]})`,
-    );
-  }
   if (ctx.outreach.snoozed_until && new Date(ctx.outreach.snoozed_until) > new Date()) {
     items.push(`Snoozed until ${new Date(ctx.outreach.snoozed_until).toLocaleDateString()}`);
   }
@@ -309,7 +309,9 @@ function ResearchModePanel({
   const orientation = isProspect ? (
     <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
   ) : (
-    <>Review the {OUTREACH_DAYS_BY_TYPE[type].length}-step email sequence below. Day 0 sends right away; later days fire automatically.</>
+    <>
+      Confirm the plan below, then start outreach. The first email goes out right away. Follow-ups send automatically; calls show up in the Calls tab on their day; replies show up in Replies.
+    </>
   );
 
   const checklist = isProspect

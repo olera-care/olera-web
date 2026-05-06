@@ -58,7 +58,18 @@ export default function PulseHeader({
     const params = new URLSearchParams();
     if (from) params.set("date_from", from);
     if (to) params.set("date_to", to);
-    fetch(`${statsPath}?${params}`)
+    // v8.10.46: statsPath may already include a `?metric=…&campus=…`
+    // query string (per-tab metric was introduced in v8.10.38). Append
+    // the date params with `&` in that case — naively concatenating
+    // `?` produced a malformed URL where the second `?` got swallowed
+    // into the previous param's value, the server returned 400, and
+    // every per-tab chart silently rendered empty. URL.searchParams
+    // would be cleaner long-term, but it requires absolute URLs which
+    // varies across server/client contexts; this delimiter check is
+    // the smallest safe fix.
+    const sep = statsPath.includes("?") ? "&" : "?";
+    const url = params.toString().length > 0 ? `${statsPath}${sep}${params}` : statsPath;
+    fetch(url)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!cancelled) setStats(data);

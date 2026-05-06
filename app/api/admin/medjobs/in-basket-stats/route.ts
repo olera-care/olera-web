@@ -2,30 +2,36 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 /**
- * v9.0 Phase 7 Commit E: In Basket hero stats.
+ * v9.0 Phase 7 Commit J: In Basket hero stats.
  *
  * Three KPIs powering the In Basket hero panel:
- *   - in_basket_cleared_pct: of all the operational work that came
- *     through today, what % has been logged. Formula:
- *       cleared_today / (cleared_today + remaining_in_basket)
- *     where cleared_today = touchpoint + entity-task completions today
- *     and remaining_in_basket = current pending count across In Basket
- *     tabs.
- *   - logs_today: count of touchpoints + entity-task completions today.
+ *   - queued_logs_unread / queued_logs_read: active items still in
+ *     queue, split by unread state. Replaces the previous
+ *     in_basket_cleared_pct — percent-cleared framed the system as
+ *     inbox-zero work, but the operational philosophy is queue
+ *     health, not elimination. "Queued Logs" frames the same data
+ *     as a continuous backlog (unread first, then read-but-undone).
+ *   - logs_today: count of touchpoints + entity-task completions
+ *     logged today.
  *   - streak_days: consecutive business days (Mon-Fri) ending today,
- *     where each day has ≥1 log. Option A — weekends are skipped, not
+ *     where each day has ≥1 log. Option A — weekends skipped, not
  *     streak-breaking.
  *
  * Single endpoint, returns all three in one call so the hero doesn't
- * need to coordinate three fetches.
- *
- * Endpoint name uses "in-basket" to match the UI surface name (the
- * v9.0 Phase 7 Commit E rename of "Inbox" → "In Basket"). Gmail's
- * inbox is a different surface and the prior "/inbox-stats" path
- * created semantic drift.
+ * need to coordinate multiple fetches.
  */
 
 const STREAK_LOOKBACK_DAYS = 60;
+
+// Active student_outreach statuses — the rows that count as "in the
+// queue". Closed states (no_response_closed, not_interested,
+// do_not_contact, wrong_contact) are out of the active inbox.
+const CLOSED_STATUSES = [
+  "no_response_closed",
+  "not_interested",
+  "do_not_contact",
+  "wrong_contact",
+];
 
 function startOfDayUTC(d: Date): Date {
   const x = new Date(d);
@@ -54,15 +60,11 @@ export async function GET(_req: NextRequest) {
   const todayStart = startOfDayUTC(now);
   const lookbackStart = new Date(todayStart.getTime() - STREAK_LOOKBACK_DAYS * 86400_000);
 
-  // Lookback log dates: union of touchpoints + entity-task completions
-  // within the streak window. Group by UTC date in JS — small enough.
   const [
     { data: touchpointDates },
     { data: bpTaskDates },
     { data: siteTaskDates },
-    { count: openOutreachCount },
-    { count: pendingBpTasks },
-    { count: pendingSiteTasks },
+    { data: activeOutreach },
   ] = await Promise.all([
     db
       .from("student_outreach_touchpoints")
@@ -82,23 +84,21 @@ export async function GET(_req: NextRequest) {
       .eq("status", "completed")
       .gte("completed_at", lookbackStart.toISOString())
       .limit(5000),
-    // Approximate "remaining In Basket": rows still un-archived. The
-    // queue endpoint computes per-tab counts; here we just want the
-    // denominator size for the cleared %, and total pending entity
-    // tasks. Not perfect, but close enough for the hero KPI.
+    // Active In Basket queue: student_outreach rows not in a closed
+    // state. Pull viewed_at so we can split unread vs. read.
     db
       .from("student_outreach")
-      .select("id", { count: "exact", head: true })
-      .not("status", "in", '("no_response_closed","not_interested","do_not_contact","wrong_contact")'),
-    db
-      .from("business_profile_tasks")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending"),
-    db
-      .from("site_tasks")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending"),
+      .select("viewed_at")
+      .not("status", "in", `(${CLOSED_STATUSES.map((s) => `"${s}"`).join(",")})`),
   ]);
+
+  // Queued Logs: split by unread state.
+  let queuedUnread = 0;
+  let queuedRead = 0;
+  for (const row of (activeOutreach ?? []) as Array<{ viewed_at: string | null }>) {
+    if (row.viewed_at == null) queuedUnread += 1;
+    else queuedRead += 1;
+  }
 
   // Build a set of UTC dates with at least one log.
   const datesWithLogs = new Set<string>();
@@ -128,8 +128,6 @@ export async function GET(_req: NextRequest) {
   // business day with no log. Today only counts if it has a log.
   let streakDays = 0;
   let cursor = new Date(todayStart);
-  // Today contributes only if there's a log today. If not, the streak
-  // is whatever the previous business day's run is.
   if (!datesWithLogs.has(todayKey) && !isWeekend(cursor)) {
     cursor = new Date(cursor.getTime() - 86400_000);
   }
@@ -146,14 +144,9 @@ export async function GET(_req: NextRequest) {
     }
   }
 
-  // Cleared %: cleared_today / (cleared_today + in_basket_size).
-  const inBasketSize =
-    (openOutreachCount ?? 0) + (pendingBpTasks ?? 0) + (pendingSiteTasks ?? 0);
-  const denom = logsToday + inBasketSize;
-  const clearedPct = denom > 0 ? Math.round((logsToday / denom) * 100) : 0;
-
   return NextResponse.json({
-    in_basket_cleared_pct: clearedPct,
+    queued_logs_unread: queuedUnread,
+    queued_logs_read: queuedRead,
     logs_today: logsToday,
     streak_days: streakDays,
   });

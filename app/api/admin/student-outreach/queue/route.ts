@@ -1033,6 +1033,17 @@ async function hydrateRows(
     };
   });
 
+  // v9.0 Phase 7 Commit J: unread-first sort. Within whatever tab-
+  // specific order the per-tab fetcher returned (last_edited_at,
+  // due_at, etc.), unread rows rise to the top so admins always see
+  // attention-needing items first. Stable sort preserves the
+  // existing intra-bucket ordering.
+  tabRows.sort((a, b) => {
+    const aUnread = a.viewed_at == null ? 0 : 1;
+    const bUnread = b.viewed_at == null ? 0 : 1;
+    return aUnread - bUnread;
+  });
+
   return tabRows;
 }
 

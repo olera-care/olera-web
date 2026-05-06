@@ -21,7 +21,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
-import { AddStakeholderModal } from "@/app/admin/student-outreach/AddStakeholderModal";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
 import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
 import { MarkPartnerModal } from "@/app/admin/student-outreach/MarkPartnerModal";
@@ -89,7 +88,6 @@ export function MedJobsTabPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
-  const [showAdd, setShowAdd] = useState(false);
   const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
 
   const [callOutcomeRow, setCallOutcomeRow] = useState<TabRow | null>(null);
@@ -251,33 +249,13 @@ export function MedJobsTabPage({
 
   return (
     <div>
-      {/* v9.0 Phase 7 Commit E: In Basket is operational, calm, and
-          throughput-oriented — no charts. Plain header (title +
-          actions) → 3-element hero (cleared % / logs today / streak)
-          → search/filter → tab bar → list. The configurable
-          time-series chart lives on the Logs page (analytics layer). */}
-      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <a
-            href="https://mail.google.com/mail/u/0/#inbox"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Open Gmail in a new tab to triage replies, callbacks, and voicemails."
-            className="text-sm font-medium text-emerald-700 underline hover:no-underline"
-          >
-            Open Gmail ↗
-          </a>
-          <button
-            onClick={() => setShowAdd(true)}
-            title="Add a new advisor, dept head, or student org for a site."
-            className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-          >
-            + Add Stakeholder
-          </button>
-        </div>
+      {/* v9.0 Phase 7 Commit J: In Basket is queue-focused — title +
+          hero, no top-page action buttons. Open Gmail + Add
+          Stakeholder were noise on a calm operational surface; they
+          live on more contextual surfaces (the Sites page hosts
+          stakeholder additions per-site). */}
+      <header className="mb-4">
+        <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
       </header>
 
       <InBasketHero />
@@ -474,7 +452,15 @@ export function MedJobsTabPage({
       {openOutreachId && (
         <Drawer
           outreachId={openOutreachId}
-          onClose={() => setOpenOutreachId(null)}
+          onClose={() => {
+            // v9.0 Phase 7 Commit J: refetch on close so the
+            // mark_read fired during the drawer's lifetime is
+            // reflected in the list — bolding clears + tab fractions
+            // update without admin needing to take an explicit
+            // action.
+            setOpenOutreachId(null);
+            void refetch();
+          }}
           onAction={handleDrawerAction}
         />
       )}
@@ -575,18 +561,6 @@ export function MedJobsTabPage({
         />
       )}
 
-      {showAdd && (
-        <AddStakeholderModal
-          campuses={campuses}
-          defaultCampusSlug={campusSlug || undefined}
-          onClose={() => setShowAdd(false)}
-          onCreated={(id) => {
-            setShowAdd(false);
-            refetch();
-            setOpenOutreachId(id);
-          }}
-        />
-      )}
       {bulkResearchCampus && (
         <BulkResearchModal
           campus={bulkResearchCampus}

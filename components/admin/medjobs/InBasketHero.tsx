@@ -1,28 +1,30 @@
 "use client";
 
 /**
- * v9.0 Phase 7 Commit E: In Basket hero panel.
+ * v9.0 Phase 7 Commit J: In Basket hero panel.
  *
- * Three-element KPI strip rendered above the In Basket search/filter
- * row. Always shows the same three KPIs regardless of active tab:
- *   - In Basket Cleared %  → today's log count vs. remaining queue size
- *   - Logs Today           → distinct operational steps logged today
- *   - Streak               → consecutive business days (Mon-Fri) with ≥1 log
+ * Three-element KPI strip rendered above the In Basket tab bar.
+ * Always shows the same three KPIs regardless of active tab:
+ *   - Queued Logs   → total active queue size with an unread/read
+ *                     breakdown sub-line
+ *   - Logs Today    → distinct operational steps logged today
+ *   - Streak        → consecutive business days (Mon-Fri) with ≥1 log
  *
  * Powered by /api/admin/medjobs/in-basket-stats. Refetches when the
  * parent triggers useMedJobsRefresh; otherwise idle.
  *
- * Operational philosophy: the hero surfaces queue health, not
- * inbox-zero. The 100% target is intentionally unattainable on a
- * busy day — the goal is sustainable throughput, not clearing all
- * work.
+ * Operational philosophy: surface queue health, not inbox-zero. The
+ * earlier "In Basket Cleared %" framed work as elimination; "Queued
+ * Logs" frames it as a continuous backlog where steady throughput
+ * matters more than zeroing out.
  */
 
 import { useCallback, useEffect, useState } from "react";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
 interface InBasketStats {
-  in_basket_cleared_pct: number;
+  queued_logs_unread: number;
+  queued_logs_read: number;
   logs_today: number;
   streak_days: number;
 }
@@ -48,15 +50,25 @@ export function InBasketHero() {
     }
   }, []);
 
-  useEffect(() => { void refetch(); }, [refetch]);
+  useEffect(() => {
+    void refetch();
+  }, [refetch]);
   useMedJobsRefresh(refetch);
+
+  const queuedTotal = stats
+    ? stats.queued_logs_unread + stats.queued_logs_read
+    : null;
+  const queuedSub = stats
+    ? `${stats.queued_logs_unread} unread · ${stats.queued_logs_read} read`
+    : null;
 
   return (
     <div className="mb-4 grid grid-cols-3 gap-3">
       <Tile
-        label="In Basket cleared"
-        value={stats ? `${stats.in_basket_cleared_pct}%` : loading ? "…" : "—"}
-        title="Of all the operational work that came through today, how much has been logged."
+        label="Queued logs"
+        value={queuedTotal != null ? String(queuedTotal) : loading ? "…" : "—"}
+        sub={queuedSub ?? undefined}
+        title="Active items still in the queue. Unread items lead, then read-but-undone — work top-down."
       />
       <Tile
         label="Logs today"
@@ -81,10 +93,12 @@ function streakLabel(days: number): string {
 function Tile({
   label,
   value,
+  sub,
   title,
 }: {
   label: string;
   value: string;
+  sub?: string;
   title: string;
 }) {
   return (
@@ -96,6 +110,7 @@ function Tile({
         {label}
       </p>
       <p className="mt-1 text-2xl font-semibold text-gray-900">{value}</p>
+      {sub && <p className="mt-0.5 text-[11px] text-gray-500">{sub}</p>}
     </div>
   );
 }

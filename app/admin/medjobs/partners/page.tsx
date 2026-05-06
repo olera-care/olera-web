@@ -151,7 +151,13 @@ export default function PartnersPage() {
       {openOutreachId && (
         <Drawer
           outreachId={openOutreachId}
-          onClose={() => setOpenOutreachId(null)}
+          onClose={() => {
+            // v9.0 Phase 7 Commit J: refetch on close so mark_read
+            // (fired automatically when the drawer mounts) is
+            // reflected in the list — card bolding clears.
+            setOpenOutreachId(null);
+            void refetch();
+          }}
           onAction={() => { void refetch(); }}
         />
       )}

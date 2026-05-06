@@ -116,6 +116,14 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    // v9.0 Phase 7 Commit J: unread-first sort. Within the
+    // last_edited_at order, unread rows rise to the top.
+    enriched.sort((a, b) => {
+      const aUnread = a.viewed_at == null ? 0 : 1;
+      const bUnread = b.viewed_at == null ? 0 : 1;
+      return aUnread - bUnread;
+    });
+
     return NextResponse.json({ rows: enriched, total: enriched.length });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Internal error";

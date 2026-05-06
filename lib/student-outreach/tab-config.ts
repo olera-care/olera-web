@@ -73,23 +73,26 @@ export interface TabDef {
 // Categories surface in In Basket only when they have active work
 // (unread + undone, excluding completed which moves to the Logs page).
 // Completed rows move out of In Basket; they don't pad the tab counts.
-// v9.0 Phase 7: tab order = team's response priority. Clients first
-// (highest-value relationships), then supply-side and workflow stages,
-// Sites at the end (territorial primitive). Smart-hide hides empty
-// tabs; the active tab anchors the bar.
+// v9.0 Phase 7 Commit J: tab order is hot-first, cold-last. Hot queues
+// (Replies / Meetings / Calls) demand same-day responsiveness and
+// lead the bar. Warm entities (Partners / Candidates / Clients) come
+// next — they get pending tasks but on a slower cadence. Cold
+// backlogs (Prospects / Sites) are scalable throughput queues —
+// admins work them when hot queues are empty, not before. The bar
+// reads left-to-right by operational urgency.
 //
 // Clients + Candidates show only when their entity-task tables (added
-// in Commit B) have pending tasks for those entities — until then,
-// they're always smart-hidden.
+// in Commit B) have pending tasks; smart-hide tucks them away
+// otherwise.
 export const TABS: TabDef[] = [
-  { key: "clients",    label: "Clients",    tooltip: "Provider clients with a pending task — onboarding, trial check-in, follow-up." },
-  { key: "candidates", label: "Candidates", tooltip: "Live candidates with a pending review or action." },
-  { key: "prospects",  label: "Prospects",  tooltip: "Stakeholders being researched + provider prospects in catchment." },
-  { key: "partners",   label: "Partners",   tooltip: "Active partners with a pending custom task. Smart-hidden when no partners have open tasks." },
-  { key: "meetings",   label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
   { key: "replies",    label: "Replies",    tooltip: "Email replies, callbacks, voicemails. Triage and pick the next step." },
+  { key: "meetings",   label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
   { key: "calls",      label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
-  { key: "sites",      label: "Sites",      tooltip: "Sites needing research or with a pending site-level task." },
+  { key: "partners",   label: "Partners",   tooltip: "Active partners with a pending custom task. Smart-hidden when no partners have open tasks." },
+  { key: "candidates", label: "Candidates", tooltip: "Live candidates with a pending review or action." },
+  { key: "clients",    label: "Clients",    tooltip: "Provider clients with a pending task — onboarding, trial check-in, follow-up." },
+  { key: "prospects",  label: "Prospects",  tooltip: "Stakeholders being researched + provider prospects in catchment. Cold backlog — work after hot queues clear." },
+  { key: "sites",      label: "Sites",      tooltip: "Sites needing research or with a pending site-level task. Cold backlog." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at

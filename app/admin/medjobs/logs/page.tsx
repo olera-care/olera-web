@@ -31,6 +31,22 @@ import { resolveRange } from "@/components/admin/DateRangePopover";
 import { CHART_SERIES_OPTIONS } from "@/lib/student-outreach/tab-config";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
+// v9.0 Phase 7 Commit J: lightweight client-side filters. The
+// completed-work endpoint already returns up to 100 rows narrowed by
+// date — search + type filter narrow further without a server
+// round-trip. Heavier filters (campus, kind) can move server-side
+// when the dataset grows.
+type TypeFilter = "all" | "calls" | "emails" | "meetings" | "replies" | "notes";
+
+const TYPE_FILTERS: Array<{ key: TypeFilter; label: string; types: ReadonlySet<string> }> = [
+  { key: "all",      label: "All",      types: new Set() },
+  { key: "calls",    label: "Calls",    types: new Set(["call_no_answer", "call_voicemail", "call_connected", "call_wrong_number"]) },
+  { key: "emails",   label: "Emails",   types: new Set(["email_sent"]) },
+  { key: "meetings", label: "Meetings", types: new Set(["meeting_scheduled", "meeting_held", "meeting_no_show", "meeting_rescheduled"]) },
+  { key: "replies",  label: "Replies",  types: new Set(["email_replied", "ig_dm_replied"]) },
+  { key: "notes",    label: "Notes",    types: new Set(["note_added"]) },
+];
+
 export default function LogsPage() {
   const [rows, setRows] = useState<CompletedTaskRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +57,16 @@ export default function LogsPage() {
     customTo: "",
   });
   const [chartSeries, setChartSeries] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
+
+  // Debounce search input — small list size, no need for tight typing.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim().toLowerCase()), 200);
+    return () => clearTimeout(t);
+  }, [search]);
 
   const refetch = useCallback(async () => {
     setLoading(true);
@@ -85,6 +110,20 @@ export default function LogsPage() {
         ? `${labelFor(Array.from(chartSeries)[0])} events`
         : `events (${chartSeries.size} metrics)`;
 
+  const filteredRows = useMemo(() => {
+    const typeSet = TYPE_FILTERS.find((f) => f.key === typeFilter)?.types;
+    return rows.filter((r) => {
+      if (typeSet && typeSet.size > 0 && !typeSet.has(r.touchpoint_type)) {
+        return false;
+      }
+      if (debouncedSearch) {
+        const hay = (r.organization_name || "").toLowerCase();
+        if (!hay.includes(debouncedSearch)) return false;
+      }
+      return true;
+    });
+  }, [rows, typeFilter, debouncedSearch]);
+
   return (
     <div>
       <PulseHeader
@@ -110,21 +149,55 @@ export default function LogsPage() {
         onClear={() => setChartSeries(new Set())}
       />
 
-      <p className="-mt-2 mb-4 text-sm text-gray-500">
+      <p className="-mt-2 mb-3 text-sm text-gray-500">
         Every logged action across MedJobs. Click any row to open it for context.
       </p>
+
+      {/* Filter / search bar. Search by organization name; type pills
+          narrow to a single channel (calls / emails / meetings /
+          replies / notes). All client-side over the already-paginated
+          rows. */}
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by organization name…"
+          className="min-w-[220px] flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+        />
+        <div className="flex gap-1 rounded-md border border-gray-200 bg-white p-0.5">
+          {TYPE_FILTERS.map((f) => {
+            const active = typeFilter === f.key;
+            return (
+              <button
+                key={f.key}
+                onClick={() => setTypeFilter(f.key)}
+                className={`rounded px-2.5 py-1 text-xs transition-colors ${
+                  active
+                    ? "bg-gray-900 font-semibold text-white"
+                    : "font-medium text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {f.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {loading ? (
         <p className="py-12 text-center text-sm text-gray-400">Loading…</p>
       ) : error ? (
         <p className="py-12 text-center text-sm text-red-600">{error}</p>
-      ) : rows.length === 0 ? (
+      ) : filteredRows.length === 0 ? (
         <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-12 text-center text-sm text-gray-400">
-          Nothing completed in this range yet.
+          {rows.length === 0
+            ? "Nothing completed in this range yet."
+            : "No matches for the current filter."}
         </p>
       ) : (
         <ul className="space-y-2">
-          {rows.map((r) => (
+          {filteredRows.map((r) => (
             <li key={r.id}>
               <CompletedTaskCard
                 row={r}

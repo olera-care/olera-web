@@ -3,19 +3,22 @@
 /**
  * v9.0 Phase 7: SiteCard — first-class operational card for the Sites
  * surface. Standard MedjobsCard chrome + single-tone slate pill
- * carrying the stage. Renamed from CampusCard as part of the v9.0
- * "Site" terminology pass — the underlying DB table is still
- * `student_outreach_campuses`; only the user-facing copy says "site".
+ * carrying the stage. The DB table is still
+ * `student_outreach_campuses`; UI says "site".
  *
- * Stage-driven content:
- *   provider_prospecting (no clients yet):
- *     pill "Prospecting providers" · CTA "View site →"
- *   stakeholder_prospecting AND stakeholder_count = 0:
- *     pill "Research needed" · CTA "Add stakeholders →"
- *   stakeholder_prospecting AND stakeholder_count > 0:
- *     pill "Researching stakeholders" · CTA "Continue →"
- *   active (research_complete = true):
- *     pill "Active" · CTA "View site →"
+ * Stage-driven pill content (CTA is universally "Log" — the modal /
+ * drawer determines what action is logged):
+ *   provider_prospecting     → "Prospecting providers"
+ *   stakeholder_prospecting w/ 0 stakeholders → "Research needed"
+ *   stakeholder_prospecting w/ ≥1 stakeholder → "Researching stakeholders"
+ *   active                   → "Active"
+ *   active w/ pending tasks  → "Active · pending task"
+ *
+ * The CTA hover tooltip carries per-stage context so admins know what
+ * the modal will do (open the drawer to add stakeholders, view the
+ * site, work the pending task, etc.). Verb consistency over
+ * descriptive labels — every emerald button means the same thing:
+ * open the place where you log this step.
  */
 
 import { formatRelative } from "@/lib/student-outreach/formatters";
@@ -39,31 +42,31 @@ export function SiteCard({
   const hasStakeholders = row.stakeholder_count > 0;
 
   let pillText: string;
-  let ctaText: string;
+  let ctaTitle: string;
   let ctaAction: () => void;
 
-  // v9.0 Phase 7 Commit H: active sites with pending site_tasks get
-  // their own pill so they're visually distinguishable from idle
-  // active territories.
+  // v9.0 Phase 7 Commit J: CTA verb is universal "Log" — the pill
+  // carries the operational stage; the tooltip carries per-stage
+  // context.
   if (row.stage === "active" && row.has_pending_task) {
     pillText = "Active · pending task";
-    ctaText = "View site →";
+    ctaTitle = "Open the site drawer to work the pending task.";
     ctaAction = onViewSite;
   } else if (row.stage === "active") {
     pillText = "Active";
-    ctaText = "View site →";
+    ctaTitle = "Open the site drawer to log a follow-up step.";
     ctaAction = onViewSite;
   } else if (isResearchNeeded) {
     pillText = "Research needed";
-    ctaText = "Add stakeholders →";
+    ctaTitle = "Add stakeholders to this site so partner-prospect research can begin.";
     ctaAction = onAddStakeholders;
   } else if (row.stage === "stakeholder_prospecting") {
     pillText = "Researching stakeholders";
-    ctaText = "Continue →";
+    ctaTitle = "Continue adding stakeholders for this site.";
     ctaAction = onAddStakeholders;
   } else {
     pillText = "Prospecting providers";
-    ctaText = "View site →";
+    ctaTitle = "Open the site drawer to log a follow-up step.";
     ctaAction = onViewSite;
   }
 
@@ -107,9 +110,10 @@ export function SiteCard({
             e.stopPropagation();
             ctaAction();
           }}
+          title={ctaTitle}
           className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
         >
-          {ctaText}
+          Log
         </button>
       }
       overflowMenu={overflowMenu}

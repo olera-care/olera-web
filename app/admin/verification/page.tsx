@@ -537,14 +537,14 @@ export default function AdminVerificationPage() {
     }
   }
 
-  async function handleMoveToInProgress(id: string, reason: string, note?: string) {
+  async function handleMoveToInProgress(id: string, reason: string) {
     setActionLoading(id);
     setActionError(null);
     try {
       const res = await fetch(`/api/admin/verification/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "move_to_in_progress", reason, note }),
+        body: JSON.stringify({ action: "move_to_in_progress", reason }),
       });
       if (res.ok) {
         setProviders((prev) => {
@@ -884,7 +884,7 @@ export default function AdminVerificationPage() {
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
                     {filter === "pending" ? "Submitted" : filter === "unverified_claims" ? "Claimed" : filter === "in_progress" ? "Moved" : "Updated"}
                   </th>
-                  <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
+                  <th className="text-right px-8 py-3 text-sm font-medium text-gray-500">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -1037,7 +1037,7 @@ export default function AdminVerificationPage() {
                           </p>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-8 py-4 text-right">
                         <div className="flex flex-nowrap gap-2 justify-end">
                           {filter === "unverified_claims" && (
                             <>
@@ -1175,7 +1175,7 @@ export default function AdminVerificationPage() {
         <MoveToInProgressModal
           provider={moveModalProvider}
           onClose={() => { setMoveModalProvider(null); setActionError(null); }}
-          onMove={(reason, note) => handleMoveToInProgress(moveModalProvider.id, reason, note)}
+          onMove={(reason) => handleMoveToInProgress(moveModalProvider.id, reason)}
           isLoading={actionLoading === moveModalProvider.id}
         />
       )}
@@ -1273,12 +1273,12 @@ function hasVerificationAttempts(provider: Provider): boolean {
 
 // ── Outreach Badge ──
 
-const OUTREACH_REASON_LABELS: Record<string, { label: string; icon: string; color: string }> = {
-  left_voicemail: { label: "Left voicemail", icon: "📞", color: "bg-blue-50 text-blue-700" },
-  sent_email: { label: "Sent email", icon: "✉️", color: "bg-purple-50 text-purple-700" },
-  requested_verification: { label: "Requested verification", icon: "🔐", color: "bg-teal-50 text-teal-700" },
-  under_investigation: { label: "Under investigation", icon: "🔍", color: "bg-amber-50 text-amber-700" },
-  other: { label: "Other", icon: "📝", color: "bg-gray-100 text-gray-700" },
+const OUTREACH_REASON_LABELS: Record<string, { label: string; color: string }> = {
+  left_voicemail: { label: "Left voicemail", color: "bg-blue-50 text-blue-700" },
+  sent_email: { label: "Sent email", color: "bg-purple-50 text-purple-700" },
+  requested_verification: { label: "Requested verification", color: "bg-teal-50 text-teal-700" },
+  under_investigation: { label: "Under investigation", color: "bg-amber-50 text-amber-700" },
+  other: { label: "Other", color: "bg-gray-100 text-gray-700" },
 };
 
 function OutreachBadge({ outreachLog }: { outreachLog?: OutreachLogEntry[] }) {
@@ -1290,8 +1290,7 @@ function OutreachBadge({ outreachLog }: { outreachLog?: OutreachLogEntry[] }) {
 
   return (
     <div className="space-y-1">
-      <span className={`inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-lg ${reasonInfo.color}`}>
-        <span>{reasonInfo.icon}</span>
+      <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg ${reasonInfo.color}`}>
         {reasonInfo.label}
       </span>
       {latest.note && (
@@ -1308,25 +1307,24 @@ function OutreachBadge({ outreachLog }: { outreachLog?: OutreachLogEntry[] }) {
 interface MoveToInProgressModalProps {
   provider: Provider;
   onClose: () => void;
-  onMove: (reason: string, note?: string) => void;
+  onMove: (reason: string) => void;
   isLoading: boolean;
 }
 
 function MoveToInProgressModal({ provider, onClose, onMove, isLoading }: MoveToInProgressModalProps) {
   const [selectedReason, setSelectedReason] = useState<string>("");
-  const [note, setNote] = useState("");
 
   const reasons = [
     { value: "left_voicemail", label: "Left voicemail", description: "Called but no answer, left a message" },
     { value: "sent_email", label: "Sent email", description: "Sent manual verification email" },
     { value: "requested_verification", label: "Provider will verify", description: "Asked them to complete verification flow" },
     { value: "under_investigation", label: "Under investigation", description: "Suspicious activity, needs review" },
-    { value: "other", label: "Other", description: "Different reason (add note below)" },
+    { value: "other", label: "Other", description: "Different reason" },
   ];
 
   const handleSubmit = () => {
     if (!selectedReason) return;
-    onMove(selectedReason, note.trim() || undefined);
+    onMove(selectedReason);
   };
 
   return (
@@ -1411,19 +1409,6 @@ function MoveToInProgressModal({ provider, onClose, onMove, isLoading }: MoveToI
         </div>
       </div>
 
-      {/* Optional Note */}
-      <div>
-        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
-          Additional note <span className="font-normal">(optional)</span>
-        </p>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Add any details about your outreach attempt..."
-          rows={3}
-          className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-100 focus:border-amber-400 resize-none placeholder:text-gray-400"
-        />
-      </div>
     </Modal>
   );
 }
@@ -1665,8 +1650,7 @@ function OutreachLogSection({ outreachLog }: { outreachLog?: OutreachLogEntry[] 
             <div key={index} className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{reasonInfo.icon}</span>
-                  <span className="text-sm font-semibold text-gray-900">{reasonInfo.label}</span>
+                  <span className={`text-sm font-semibold px-2 py-0.5 rounded ${reasonInfo.color}`}>{reasonInfo.label}</span>
                 </div>
                 <span className="text-xs text-gray-400">
                   {formatDateTime(entry.at)}

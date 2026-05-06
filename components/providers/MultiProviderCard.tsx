@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Check, HourglassMedium, Heart } from "@phosphor-icons/react";
+import { Check, Star } from "@phosphor-icons/react";
+import Link from "next/link";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import type { SimilarProviderForMulti } from "@/lib/provider-utils";
 
@@ -32,6 +33,8 @@ interface MultiProviderCardProps {
   userEmail?: string;
 }
 
+type CardState = "card_stack" | "email_capture" | "success";
+
 export default function MultiProviderCard({
   question,
   currentProvider,
@@ -40,33 +43,33 @@ export default function MultiProviderCard({
   onEmailSubmit,
   onSaveAll,
   onCollapse,
-  isSubmitting = false,
-  isSuccess = false,
-  questionSent = false,
+  // isSubmitting: managed internally, parent prop ignored
+  isSuccess: externalSuccess = false,
+  // questionSent: not used in card stack flow
   userEmail,
 }: MultiProviderCardProps) {
   const isLoggedIn = Boolean(userEmail);
 
-  // Track which OTHER providers have been sent (current provider is already sent)
-  const [sentProviders, setSentProviders] = useState<Set<string>>(new Set());
-  const [sendingProvider, setSendingProvider] = useState<string | null>(null);
-  const [failedProvider, setFailedProvider] = useState<string | null>(null);
+  // State machine
+  const [cardState, setCardState] = useState<CardState>("card_stack");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [askedProviders, setAskedProviders] = useState<SimilarProviderForMulti[]>([]);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationDirection, setAnimationDirection] = useState<"left" | "right" | null>(null);
   const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [inputFocused, setInputFocused] = useState(false);
-  // Track which images failed to load (show fallback)
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
-  const inputRef = useRef<HTMLInputElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const expandTrackedRef = useRef(false);
-  const collapseScheduledRef = useRef(false);
 
-  // Handle image load errors — show fallback
-  const handleImageError = (providerId: string) => {
-    setFailedImages(prev => new Set([...prev, providerId]));
-  };
+  const cardRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const expandTrackedRef = useRef(false);
+
+  // Derived state
+  const currentCard = similarProviders[currentIndex];
+  const isLastCard = currentIndex >= similarProviders.length - 1;
+  const totalAsked = 1 + askedProviders.length; // 1 = original provider
 
   // Extract first name from provider name
   const getFirstName = (name: string) => {
@@ -77,23 +80,34 @@ export default function MultiProviderCard({
 
   const firstName = getFirstName(currentProvider.name);
 
-  // Total sent = current provider (1) + other providers sent
-  const totalSentCount = 1 + sentProviders.size;
+  // Handle image load errors
+  const handleImageError = (providerId: string) => {
+    setFailedImages((prev) => new Set([...prev, providerId]));
+  };
 
-  // Dynamic copy based on sent count
-  const buttonText = totalSentCount === 1 ? "Get reply" : `Get ${totalSentCount} replies`;
+  // Track analytics helper
+  const trackActivity = (eventType: string, metadata: Record<string, unknown>) => {
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "anonymous",
+        event_type: eventType,
+        related_provider_id: currentProvider.id,
+        session_id: getOrCreateSessionId(),
+        metadata: { ...metadata, variant: "multi_provider" },
+      }),
+      keepalive: true,
+    }).catch(() => {});
+  };
 
-  const finePrint =
-    totalSentCount === 1
-      ? `We'll email you as ${firstName} responds. No calls.`
-      : "We'll email replies as they come in. No calls.";
-
+  // Mount animation
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(timer);
   }, []);
 
-  // Scroll the card into view when it mounts
+  // Scroll into view on mount
   useEffect(() => {
     if (mounted && cardRef.current) {
       const scrollTimer = setTimeout(() => {
@@ -103,162 +117,213 @@ export default function MultiProviderCard({
     }
   }, [mounted]);
 
-  // Auto-focus input on desktop only
-  useEffect(() => {
-    if (mounted && inputRef.current && !showSuccess && !isLoggedIn) {
-      const isDesktop = window.matchMedia("(min-width: 768px)").matches;
-      if (isDesktop) {
-        const focusTimer = setTimeout(() => {
-          inputRef.current?.focus();
-        }, 600);
-        return () => clearTimeout(focusTimer);
-      }
-    }
-  }, [mounted, showSuccess, isLoggedIn]);
-
-  // Track expansion — deduplicated via ref
+  // Track expansion
   useEffect(() => {
     if (expandTrackedRef.current) return;
     expandTrackedRef.current = true;
-    fetch("/api/activity/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        actor_type: "anonymous",
-        event_type: "multi_provider_expanded",
-        related_provider_id: currentProvider.id,
-        session_id: getOrCreateSessionId(),
-        metadata: {
-          question_text: question,
-          similar_count: similarProviders.length,
-          variant: "multi_provider",
-        },
-      }),
-      keepalive: true,
-    }).catch(() => {});
-  }, [currentProvider.id, question, similarProviders.length]);
+    trackActivity("multi_provider_card_shown", {
+      question_text: question,
+      similar_count: similarProviders.length,
+    });
+  }, []);
 
-  // Auto-collapse after success
+  // Auto-focus input on email capture state (desktop only)
   useEffect(() => {
-    if (isSuccess && !showSuccess) {
-      setShowSuccess(true);
-      const timer = setTimeout(() => {
-        onCollapse();
-      }, 5000);
+    if (cardState === "email_capture" && inputRef.current && !isLoggedIn) {
+      const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+      if (isDesktop) {
+        const focusTimer = setTimeout(() => inputRef.current?.focus(), 300);
+        return () => clearTimeout(focusTimer);
+      }
+    }
+  }, [cardState, isLoggedIn]);
+
+  // Handle external success (from parent component)
+  useEffect(() => {
+    if (externalSuccess && cardState !== "success") {
+      setCardState("success");
+    }
+  }, [externalSuccess, cardState]);
+
+  // Auto-collapse after success state OR for logged-in users in email_capture
+  useEffect(() => {
+    // Guest users: collapse after success state
+    // Logged-in users: collapse after email_capture (they see confirmation there)
+    const shouldCollapse =
+      cardState === "success" || (cardState === "email_capture" && isLoggedIn);
+
+    if (shouldCollapse) {
+      const timer = setTimeout(() => onCollapse(), 5000);
       return () => clearTimeout(timer);
     }
-  }, [isSuccess, showSuccess, onCollapse]);
+  }, [cardState, isLoggedIn, onCollapse]);
 
-  // Auto-collapse for logged-in users after they've seen the confirmation
+  // Handle edge case: no similar providers
   useEffect(() => {
-    if (isLoggedIn && mounted && questionSent && !collapseScheduledRef.current) {
-      collapseScheduledRef.current = true;
-      setTimeout(() => {
-        onCollapse();
-      }, 5000);
+    if (similarProviders.length === 0 && cardState === "card_stack") {
+      // Skip directly to email capture if no similar providers
+      setCardState("email_capture");
     }
-  }, [isLoggedIn, mounted, questionSent, onCollapse]);
+  }, [similarProviders.length, cardState]);
 
-  const handleProviderClick = async (providerId: string, providerName: string) => {
-    if (sentProviders.has(providerId) || sendingProvider) return;
+  const handleSkip = () => {
+    if (isAnimating || !currentCard) return;
+    setIsAnimating(true);
+    setAnimationDirection("left");
 
-    // Clear any previous failure state
-    setFailedProvider(null);
-    setSendingProvider(providerId);
+    trackActivity("multi_provider_skipped", {
+      provider_id: currentCard.id,
+      position: currentIndex,
+    });
 
-    try {
-      await onProviderSelect(providerId, providerName);
-      setSentProviders((prev) => new Set([...prev, providerId]));
-
-      // Track analytics
-      fetch("/api/activity/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          actor_type: "anonymous",
-          event_type: "multi_provider_question_sent",
-          related_provider_id: providerId,
-          session_id: getOrCreateSessionId(),
-          metadata: {
-            question_text: question,
-            sent_count: sentProviders.size + 2, // current + this + previous others
-            variant: "multi_provider",
-          },
-        }),
-        keepalive: true,
-      }).catch(() => {});
-    } catch {
-      // Show error state for this provider
-      setFailedProvider(providerId);
-      // Auto-clear error after 3 seconds
-      setTimeout(() => setFailedProvider(null), 3000);
-    } finally {
-      setSendingProvider(null);
-    }
+    setTimeout(() => {
+      if (isLastCard || currentIndex >= similarProviders.length - 1) {
+        setCardState("email_capture");
+      } else {
+        setCurrentIndex((prev) => prev + 1);
+      }
+      setAnimationDirection(null);
+      setIsAnimating(false);
+    }, 300);
   };
 
-  const handleSubmit = async () => {
-    setError("");
-    if (!email.trim()) {
-      setError("Please enter your email");
-      return;
+  const handleAsk = async () => {
+    if (isAnimating || !currentCard) return;
+    setIsAnimating(true);
+    setAnimationDirection("right");
+
+    try {
+      // Send question immediately (existing API)
+      await onProviderSelect(currentCard.id, currentCard.name);
+
+      // Add to asked list
+      setAskedProviders((prev) => [...prev, currentCard]);
+
+      trackActivity("multi_provider_asked", {
+        provider_id: currentCard.id,
+        position: currentIndex,
+        sent_count: askedProviders.length + 2, // current + this + original
+      });
+    } catch {
+      // On failure, still move to next card but don't add to asked list
     }
+
+    setTimeout(() => {
+      if (isLastCard || currentIndex >= similarProviders.length - 1) {
+        setCardState("email_capture");
+      } else {
+        setCurrentIndex((prev) => prev + 1);
+      }
+      setAnimationDirection(null);
+      setIsAnimating(false);
+    }, 300);
+  };
+
+  const handleEmailSubmit = async () => {
+    if (!email.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    setEmailError(null);
+
+    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
-      setError("Please enter a valid email");
+      setEmailError("Please enter a valid email address.");
+      setIsSubmitting(false);
       return;
     }
+
+    const allSentProviderIds = [currentProvider.id, ...askedProviders.map((p) => p.id)];
+
     try {
-      // Include current provider + all sent similar providers
-      const allSentProviderIds = [currentProvider.id, ...Array.from(sentProviders)];
-      await onEmailSubmit(email.trim().toLowerCase(), allSentProviderIds, totalSentCount);
+      await onEmailSubmit(email.trim().toLowerCase(), allSentProviderIds, allSentProviderIds.length);
+      // Note: Analytics tracking happens in QASectionV2's handleMultiProviderEmailSubmit
+      setCardState("success");
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Something went wrong. Please try again.";
-      setError(message);
+      // API returns user-friendly error messages, just display them
+      const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setEmailError(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !isSubmitting) {
       e.preventDefault();
-      handleSubmit();
+      handleEmailSubmit();
     }
   };
 
   const handleSaveAll = () => {
-    // Include current provider + all sent similar providers
-    const allSentIds = [currentProvider.id, ...Array.from(sentProviders)];
+    const allSentIds = [currentProvider.id, ...askedProviders.map((p) => p.id)];
     onSaveAll(allSentIds);
-    // Track analytics
-    fetch("/api/activity/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        actor_type: "anonymous",
-        event_type: "multi_provider_save_all",
-        related_provider_id: currentProvider.id,
-        session_id: getOrCreateSessionId(),
-        metadata: {
-          saved_count: allSentIds.length,
-          provider_ids: allSentIds,
-          variant: "multi_provider",
-        },
-      }),
-      keepalive: true,
-    }).catch(() => {});
+    trackActivity("multi_provider_save_all", {
+      saved_count: allSentIds.length,
+      provider_ids: allSentIds,
+    });
   };
 
-  // Build sent provider list for success state (current + sent similar providers)
-  const sentProvidersList = [
+  // Build provider avatar component
+  const ProviderAvatar = ({
+    provider,
+    size = "md",
+    className = "",
+    style,
+  }: {
+    provider: { id: string; name: string; image?: string | null };
+    size?: "sm" | "md" | "lg";
+    className?: string;
+    style?: React.CSSProperties;
+  }) => {
+    const sizeClasses = {
+      sm: "w-8 h-8 text-xs",
+      md: "w-10 h-10 text-sm",
+      lg: "w-12 h-12 text-base",
+    };
+
+    if (provider.image && !failedImages.has(provider.id)) {
+      return (
+        <img
+          src={provider.image}
+          alt={provider.name}
+          onError={() => handleImageError(provider.id)}
+          className={`${sizeClasses[size]} rounded-full object-cover ring-2 ring-white shadow-sm ${className}`}
+          style={style}
+        />
+      );
+    }
+    return (
+      <div
+        className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center ring-2 ring-white shadow-sm ${className}`}
+        style={style}
+      >
+        <span className="font-semibold text-primary-700">{provider.name.charAt(0)}</span>
+      </div>
+    );
+  };
+
+  // Truncate question for display
+  const truncateQuestion = (q: string, maxLength: number = 40) => {
+    if (q.length <= maxLength) return q;
+    return q.slice(0, maxLength).trim() + "…";
+  };
+
+  // Browse URL for success state
+  const city = currentProvider.city || "nearby";
+  const browseUrl = `/browse/${encodeURIComponent(city.toLowerCase())}`;
+
+  // All providers who were sent questions (for email capture and success states)
+  const allSentProviders = [
     {
       id: currentProvider.id,
       name: currentProvider.name,
       image: currentProvider.image || null,
-      rating: currentProvider.rating || null,
-      city: currentProvider.city || null,
     },
-    ...similarProviders.filter((p) => sentProviders.has(p.id)),
+    ...askedProviders.map((p) => ({
+      id: p.id,
+      name: p.name,
+      image: p.image,
+    })),
   ];
 
   return (
@@ -273,466 +338,343 @@ export default function MultiProviderCard({
         ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"}
       `}
     >
-      {showSuccess ? (
-        /* ═══════════════════════════════════════════════════════════════
-           Success State — Multi-provider confirmation (Premium feel)
-           ═══════════════════════════════════════════════════════════════ */
+      {/* ═══════════════════════════════════════════════════════════════
+          STATE 1: CARD STACK — Swipe through similar providers
+          ═══════════════════════════════════════════════════════════════ */}
+      {cardState === "card_stack" && similarProviders.length > 0 && (
         <div className="p-6">
-          {/* Celebratory Header */}
-          <div className="text-center mb-5">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-500 shadow-lg shadow-primary-200 mb-3">
-              <Check size={24} weight="bold" className="text-white" />
-            </div>
-            <h3 className="text-[19px] font-semibold text-gray-900">
-              You&apos;ll get {totalSentCount} {totalSentCount === 1 ? "reply" : "replies"}
-            </h3>
-            <p className="text-[14px] text-gray-500 mt-1 leading-relaxed">
-              We&apos;ll email <span className="font-medium text-gray-700">{userEmail || email}</span> as each provider responds.
-              <br className="hidden sm:block" />
-              Most reply within 24 hours.
-            </p>
-          </div>
-
-          {/* Provider list with avatars featuring checkmark badges */}
-          <div className="bg-gray-50/80 rounded-xl p-3 space-y-2">
-            {sentProvidersList.map((provider, idx) => (
-              <div
-                key={provider.id}
-                className={`
-                  flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white
-                  border border-gray-100 shadow-sm
-                  transition-all duration-300 ease-out
-                  ${mounted ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"}
-                `}
-                style={{ transitionDelay: `${idx * 75}ms` }}
-              >
-                {/* Avatar with success checkmark badge */}
-                <div className="relative shrink-0">
-                  {provider.image && !failedImages.has(provider.id) ? (
-                    <img
-                      src={provider.image}
-                      alt={provider.name}
-                      onError={() => handleImageError(provider.id)}
-                      className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center ring-2 ring-white shadow-sm">
-                      <span className="text-sm font-semibold text-primary-700">
-                        {provider.name.charAt(0)}
-                      </span>
-                    </div>
-                  )}
-                  {/* Checkmark badge overlay */}
-                  <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center ring-2 ring-white shadow-sm">
-                    <Check size={12} weight="bold" className="text-white" />
-                  </div>
-                </div>
-
-                {/* Provider info */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-medium text-gray-900 truncate">
-                    {provider.name}
-                  </p>
-                  <div className="flex items-center gap-1.5 text-[12px] text-gray-500">
-                    {provider.rating && (
-                      <>
-                        <span className="text-amber-400">★</span>
-                        <span>{provider.rating.toFixed(1)}</span>
-                        <span className="text-gray-300">·</span>
-                      </>
-                    )}
-                    {provider.city && <span>{provider.city}</span>}
-                  </div>
-                </div>
-
-                {/* Awaiting status with animated hourglass */}
-                <div className="shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-50 border border-amber-100">
-                  <HourglassMedium size={14} weight="fill" className="text-amber-500 animate-pulse" />
-                  <span className="text-[11px] font-medium text-amber-700 uppercase tracking-wide">
-                    Pending
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Save all CTA — styled button */}
-          <div className="mt-5 text-center">
-            <button
-              type="button"
-              onClick={handleSaveAll}
-              className="
-                inline-flex items-center gap-2 px-4 py-2.5
-                text-[14px] font-medium text-gray-700
-                bg-white rounded-xl border border-gray-200
-                shadow-sm hover:shadow hover:border-gray-300
-                transition-all duration-200 ease-out
-                active:scale-[0.98]
-              "
-            >
-              <Heart size={16} weight="regular" className="text-gray-400" />
-              Save all {totalSentCount} providers
-            </button>
-          </div>
-        </div>
-      ) : (
-        /* ═══════════════════════════════════════════════════════════════
-           Main Card — Question → Provider List → Email Capture
-           ═══════════════════════════════════════════════════════════════ */
-        <div className="p-6">
-          {/* ─── Question ─────────────────────────────────────────────────── */}
-          <div
-            className={`
-              transition-all duration-500 ease-out delay-75
-              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
-            `}
-          >
-            <p className="font-display italic text-[16px] text-gray-800 leading-relaxed">
-              &ldquo;{question}&rdquo;
-            </p>
-          </div>
-
-          {/* ─── Instruction ──────────────────────────────────────────────── */}
-          <div
-            className={`
-              mt-4
-              transition-all duration-500 ease-out delay-100
-              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
-            `}
-          >
-            <p className="text-[14px] text-gray-600">
-              Tap to ask the same question to others — <span className="font-semibold">compare answers side by side.</span>
-            </p>
-          </div>
-
-          {/* ─── Unified Provider List (current + similar) ────────────────── */}
-          <div
-            className={`
-              mt-4 space-y-2
-              transition-all duration-500 ease-out delay-150
-              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
-            `}
-          >
-            {/* Current provider — already sent */}
-            <div
-              className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-primary-50/60 border-primary-100"
-            >
-              {/* Checkbox — checked (rounded square for multi-select) */}
-              <div className="w-6 h-6 rounded-lg bg-primary-500 flex items-center justify-center shrink-0 shadow-sm">
-                <Check size={14} weight="bold" className="text-white" />
-              </div>
-
-              {/* Provider avatar */}
-              {currentProvider.image && !failedImages.has(currentProvider.id) ? (
-                <img
-                  src={currentProvider.image}
-                  alt={currentProvider.name}
-                  onError={() => handleImageError(currentProvider.id)}
-                  className="w-9 h-9 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
-                />
-              ) : (
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
-                  <span className="text-sm font-semibold text-primary-700">
-                    {currentProvider.name.charAt(0)}
-                  </span>
-                </div>
-              )}
-
-              {/* Provider info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-[15px] font-semibold text-gray-900 truncate">
-                    {currentProvider.name}
-                  </p>
-                  <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-primary-100 text-primary-700 uppercase tracking-wide">
-                    This page
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 text-[13px] text-gray-500 mt-0.5">
-                  {currentProvider.rating && (
-                    <>
-                      <span className="text-amber-400">★</span>
-                      <span className="font-medium">{currentProvider.rating.toFixed(1)}</span>
-                      <span className="text-gray-300">·</span>
-                    </>
-                  )}
-                  {currentProvider.city && <span>{currentProvider.city}</span>}
-                  {currentProvider.priceRange && (
-                    <>
-                      <span className="text-gray-300">·</span>
-                      <span className="font-medium">{currentProvider.priceRange}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Sent status */}
-              <span className="shrink-0 flex items-center gap-1.5 text-[13px] text-primary-600 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
-                Sent
+          {/* Context pill */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 border border-primary-100">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-primary-700">
+                You asked {firstName}&apos;s
               </span>
-            </div>
-
-            {/* Similar providers — can tap to send */}
-            {similarProviders.map((provider, idx) => {
-              const isSent = sentProviders.has(provider.id);
-              const isSending = sendingProvider === provider.id;
-              const isFailed = failedProvider === provider.id;
-
-              return (
-                <button
-                  key={provider.id}
-                  type="button"
-                  onClick={() => handleProviderClick(provider.id, provider.name)}
-                  disabled={isSent || isSending}
-                  className={`
-                    group w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl border
-                    transition-all duration-200 ease-out
-                    ${isSent
-                      ? "bg-primary-50/60 border-primary-100 cursor-default"
-                      : isFailed
-                        ? "bg-red-50/60 border-red-200 cursor-pointer"
-                        : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm cursor-pointer active:scale-[0.995]"
-                    }
-                    ${isSending ? "opacity-80 scale-[0.99]" : ""}
-                  `}
-                >
-                  {/* Checkbox (rounded square for multi-select) */}
-                  <div
-                    className={`
-                      w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200
-                      ${isSent
-                        ? "bg-primary-500 shadow-sm"
-                        : "border-2 border-gray-300 group-hover:border-primary-400"
-                      }
-                    `}
-                  >
-                    {isSent && (
-                      <Check size={14} weight="bold" className="text-white" />
-                    )}
-                    {isSending && (
-                      <span className="w-3.5 h-3.5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-                    )}
-                  </div>
-
-                  {/* Provider avatar */}
-                  {provider.image && !failedImages.has(provider.id) ? (
-                    <img
-                      src={provider.image}
-                      alt={provider.name}
-                      onError={() => handleImageError(provider.id)}
-                      className="w-9 h-9 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
-                    />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
-                      <span className="text-sm font-semibold text-gray-500">
-                        {provider.name.charAt(0)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Provider info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[15px] font-semibold text-gray-900 truncate">
-                      {provider.name}
-                    </p>
-                    <div className="flex items-center gap-1.5 text-[13px] text-gray-500 mt-0.5">
-                      {provider.rating && (
-                        <>
-                          <span className="text-amber-400">★</span>
-                          <span>{provider.rating.toFixed(1)}</span>
-                          <span className="text-gray-300">·</span>
-                        </>
-                      )}
-                      {provider.distanceMiles != null ? (
-                        <span>{provider.distanceMiles.toFixed(1)} mi</span>
-                      ) : provider.city ? (
-                        <span>{provider.city}</span>
-                      ) : null}
-                      {provider.priceRange && (
-                        <>
-                          <span className="text-gray-300">·</span>
-                          <span className="font-medium">{provider.priceRange}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Status badge */}
-                  {isSent ? (
-                    <span className="shrink-0 flex items-center gap-1.5 text-[13px] text-primary-600 font-medium">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
-                      Sent
-                    </span>
-                  ) : isFailed ? (
-                    <span className="shrink-0 flex items-center gap-1.5 text-[12px] text-red-600 font-medium">
-                      Failed · tap to retry
-                    </span>
-                  ) : !isSending ? (
-                    /* Hover hint for unchecked providers */
-                    <span className="shrink-0 text-[12px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                      Tap to ask
-                    </span>
-                  ) : null}
-                </button>
-              );
-            })}
+              <span className="mx-1.5 text-gray-300">·</span>
+              <span className="text-[11px] italic text-gray-500 truncate max-w-[180px]">
+                &ldquo;{truncateQuestion(question)}&rdquo;
+              </span>
+            </span>
           </div>
 
-          {/* ─── Email Capture Block ────────────────────────────────────────── */}
-          <div
-            className={`
-              mt-6 pt-5 border-t border-gray-100
-              transition-all duration-500 ease-out delay-200
-              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
-            `}
-          >
-            {isLoggedIn ? (
-              /* ─── Logged-in User: Simple confirmation + save option ─────────── */
-              <div>
-                <div className="flex items-center gap-3">
-                  {currentProvider.image && !failedImages.has(currentProvider.id) ? (
-                    <img
-                      src={currentProvider.image}
-                      alt={firstName}
-                      onError={() => handleImageError(currentProvider.id)}
-                      className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
-                      <span className="text-sm font-semibold text-gray-500">
-                        {firstName.charAt(0)}
-                      </span>
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-[16px] text-gray-900 font-medium">
-                      We&apos;ll notify you when {totalSentCount === 1 ? firstName : "they"} {totalSentCount === 1 ? "replies" : "reply"}
-                    </p>
-                    <p className="text-[13px] text-gray-500 mt-0.5">
-                      Check your email for {totalSentCount === 1 ? "their response" : `${totalSentCount} responses`}
+          {/* Headline */}
+          <div className="mb-5">
+            <h3 className="font-display text-xl text-gray-900 leading-tight">
+              Ask <span className="font-bold">more providers</span> the same question?
+            </h3>
+            <p className="mt-1.5 text-sm text-gray-500">Compare answers side by side.</p>
+          </div>
+
+          {/* Card Stack */}
+          <div className="relative mb-5">
+            {/* Peek card (next in stack) */}
+            {currentIndex < similarProviders.length - 1 && (
+              <div
+                className="absolute inset-x-2 top-2 h-16 rounded-xl bg-gray-100 shadow-inner -z-10"
+                style={{
+                  transform: "translateY(-8px) scale(0.96)",
+                  opacity: 0.6,
+                }}
+              />
+            )}
+
+            {/* Active Card */}
+            {currentCard && (
+              <div
+                className={`
+                  relative bg-white rounded-xl border border-gray-200 shadow-lg p-5
+                  transition-transform duration-300
+                  ${animationDirection === "left" ? "animate-swipe-left" : ""}
+                  ${animationDirection === "right" ? "animate-swipe-right" : ""}
+                  ${!animationDirection && currentIndex > 0 ? "animate-card-rise" : ""}
+                `}
+              >
+                {/* Provider header */}
+                <div className="flex items-start gap-3 mb-4">
+                  <ProviderAvatar provider={currentCard} size="lg" />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-[17px] font-semibold text-gray-900 truncate">
+                      {currentCard.name}
+                    </h4>
+                    <p className="text-sm text-gray-500">
+                      {currentCard.city}
+                      {currentCard.state ? `, ${currentCard.state}` : ""}
                     </p>
                   </div>
-                </div>
-                {/* Save option for logged-in users */}
-                <p className="text-[13px] text-gray-500 mt-4">
-                  <button
-                    type="button"
-                    onClick={handleSaveAll}
-                    className="font-medium text-primary-600 hover:text-primary-700 underline underline-offset-2"
-                  >
-                    Save {totalSentCount === 1 ? "this provider" : `all ${totalSentCount} providers`}
-                  </button>{" "}for later.
-                </p>
-              </div>
-            ) : (
-              /* ─── Guest User: Email capture form ──────────────────────────── */
-              <>
-                {/* CTA with Avatar */}
-                <div className="flex items-center gap-3 mb-4">
-                  {currentProvider.image && !failedImages.has(currentProvider.id) ? (
-                    <img
-                      src={currentProvider.image}
-                      alt={firstName}
-                      onError={() => handleImageError(currentProvider.id)}
-                      className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm shrink-0">
-                      <span className="text-sm font-semibold text-gray-500">
-                        {firstName.charAt(0)}
-                      </span>
-                    </div>
-                  )}
-                  <p className="text-[16px] text-gray-700">
-                    {totalSentCount === 1 ? (
-                      <>Hear directly from <span className="font-semibold text-gray-900">{firstName}</span>.</>
-                    ) : (
-                      <>Get replies from <span className="font-semibold text-gray-900">{totalSentCount} providers</span>.</>
-                    )}
-                  </p>
                 </div>
 
-                {/* Input + Button Row */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="flex-1 min-w-0">
-                    <input
-                      ref={inputRef}
-                      type="email"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        setError("");
-                      }}
-                      onKeyDown={handleKeyDown}
-                      onFocus={() => setInputFocused(true)}
-                      onBlur={() => setInputFocused(false)}
-                      placeholder="your email"
-                      autoComplete="email"
-                      disabled={isSubmitting}
-                      className={`
-                        w-full px-4 py-3
-                        text-[15px] text-gray-900 placeholder-gray-400
-                        bg-white border rounded-xl
-                        transition-all duration-200 ease-out
-                        focus:outline-none disabled:opacity-50
-                        ${inputFocused
-                          ? "border-primary-400 ring-2 ring-primary-100"
-                          : error
-                            ? "border-red-300 ring-2 ring-red-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        }
-                      `}
-                    />
-                  </div>
+                {/* Stats row */}
+                <div className="flex gap-3 mb-5">
+                  {currentCard.rating && (
+                    <div className="flex-1 px-3 py-2.5 rounded-lg bg-gray-50">
+                      <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-0.5">
+                        Rating
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Star size={14} weight="fill" className="text-amber-400" />
+                        <span className="text-sm font-semibold text-gray-900">
+                          {currentCard.rating.toFixed(1)}/5
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {currentCard.priceRange && (
+                    <div className="flex-1 px-3 py-2.5 rounded-lg bg-gray-50">
+                      <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-0.5">
+                        Hourly Rate
+                      </div>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {currentCard.priceRange}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={handleSubmit}
-                    disabled={isSubmitting || !email.trim()}
+                    onClick={handleSkip}
+                    disabled={isAnimating}
                     className="
-                      shrink-0 px-5 py-3
-                      text-[15px] font-semibold text-white
-                      bg-primary-600 rounded-xl
-                      transition-all duration-200 ease-out
-                      hover:bg-primary-700 active:scale-[0.98]
-                      disabled:opacity-40 disabled:cursor-not-allowed
-                      disabled:hover:bg-primary-600
-                      sm:w-auto w-full
+                      flex-shrink-0 px-5 py-2.5
+                      text-sm font-medium text-gray-700
+                      bg-white border-2 border-gray-300 rounded-xl
+                      hover:border-gray-400 hover:bg-gray-50
+                      transition-all duration-200
+                      disabled:opacity-50 disabled:cursor-not-allowed
                     "
                   >
-                    {isSubmitting ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Sending...
-                      </span>
-                    ) : (
-                      totalSentCount === 1 ? "Get reply" : `Get ${totalSentCount} replies`
-                    )}
+                    Skip
                   </button>
-                </div>
-
-                {/* Error Message */}
-                {error && (
-                  <p className="text-[13px] text-red-600 mt-2 font-medium">
-                    {error}
-                  </p>
-                )}
-
-                {/* Trust Line + Save Option */}
-                <p className="text-[13px] text-gray-500 mt-4 leading-relaxed">
-                  {totalSentCount === 1 ? "One email. No calls." : `${totalSentCount} emails. No calls.`}
-                  {" "}Or{" "}
                   <button
                     type="button"
-                    onClick={handleSaveAll}
-                    className="font-medium text-primary-600 hover:text-primary-700 underline underline-offset-2"
+                    onClick={handleAsk}
+                    disabled={isAnimating}
+                    className="
+                      flex-1 px-5 py-2.5
+                      text-sm font-semibold text-white
+                      bg-primary-600 rounded-xl
+                      hover:bg-primary-700
+                      transition-all duration-200
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                    "
                   >
-                    save {totalSentCount === 1 ? "for later" : `all ${totalSentCount} for later`}
-                  </button>.
-                </p>
-              </>
+                    Ask them too
+                  </button>
+                </div>
+              </div>
             )}
           </div>
+
+          {/* Progress tracker */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-success-500" />
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                Question sent to · {totalAsked} provider{totalAsked !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <div className="flex -space-x-2">
+              <ProviderAvatar
+                provider={currentProvider}
+                size="sm"
+                className="animate-tracker-pop"
+              />
+              {askedProviders.map((p, idx) => (
+                <ProviderAvatar
+                  key={p.id}
+                  provider={p}
+                  size="sm"
+                  className="animate-tracker-pop"
+                  style={{ animationDelay: `${(idx + 1) * 100}ms` } as React.CSSProperties}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          STATE 2: EMAIL CAPTURE — Collect email after all cards processed
+          ═══════════════════════════════════════════════════════════════ */}
+      {cardState === "email_capture" && (
+        <div className="p-6">
+          {isLoggedIn ? (
+            /* Logged-in user: show confirmation */
+            <div className="text-center py-4">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-success-100 mb-4">
+                <Check size={28} weight="bold" className="text-success-600" />
+              </div>
+              <h3 className="font-display text-xl font-bold text-gray-900 mb-2">
+                {totalAsked === 1 ? "Question sent!" : `${totalAsked} questions sent!`}
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                We&apos;ll email <span className="font-medium">{userEmail}</span> as they respond.
+              </p>
+              <button
+                type="button"
+                onClick={handleSaveAll}
+                className="
+                  inline-flex items-center gap-2 px-4 py-2.5
+                  text-sm font-medium text-gray-700
+                  bg-white rounded-xl border border-gray-200
+                  hover:bg-gray-50 hover:border-gray-300
+                  transition-all duration-200
+                "
+              >
+                Save all {totalAsked} providers
+              </button>
+            </div>
+          ) : (
+            /* Guest user: email capture form */
+            <>
+              {/* Header with reply count */}
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <span className="w-2 h-2 rounded-full bg-success-500" />
+                <span className="text-[12px] font-semibold uppercase tracking-wide text-primary-700">
+                  {totalAsked} {totalAsked === 1 ? "reply" : "replies"} on the way
+                </span>
+              </div>
+
+              {/* Provider list with "Replying" animation */}
+              <div className="space-y-2 mb-5">
+                {allSentProviders.map((provider) => (
+                  <div
+                    key={provider.id}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-gray-50"
+                  >
+                    <ProviderAvatar provider={provider} size="sm" />
+                    <span className="flex-1 text-sm font-medium text-gray-900 truncate">
+                      {provider.name}
+                    </span>
+                    <span className="flex items-center gap-1 text-sm text-gray-500">
+                      <span className="italic">Replying</span>
+                      <span className="flex gap-0.5">
+                        <span className="w-1 h-1 rounded-full bg-gray-400 typing-dot-1" />
+                        <span className="w-1 h-1 rounded-full bg-gray-400 typing-dot-2" />
+                        <span className="w-1 h-1 rounded-full bg-gray-400 typing-dot-3" />
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Headline */}
+              <h3 className="font-display text-xl font-bold text-gray-900 text-center mb-5">
+                Don&apos;t miss what they say.
+              </h3>
+
+              {/* Email form */}
+              <div className="flex gap-2">
+                <input
+                  ref={inputRef}
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setEmailError(null);
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder="you@email.com"
+                  autoComplete="email"
+                  disabled={isSubmitting}
+                  className={`
+                    flex-1 px-4 py-3
+                    text-sm text-gray-900 placeholder-gray-400
+                    bg-white border rounded-xl
+                    transition-all duration-200
+                    focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400
+                    disabled:opacity-50
+                    ${emailError ? "border-red-300 ring-2 ring-red-50" : "border-gray-200"}
+                  `}
+                />
+                <button
+                  type="button"
+                  onClick={handleEmailSubmit}
+                  disabled={isSubmitting || !email.trim()}
+                  className="
+                    shrink-0 px-4 py-3
+                    text-sm font-semibold text-white
+                    bg-gray-900 rounded-xl
+                    hover:bg-gray-800
+                    transition-all duration-200
+                    disabled:opacity-40 disabled:cursor-not-allowed
+                  "
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    </span>
+                  ) : (
+                    "Send replies to me"
+                  )}
+                </button>
+              </div>
+
+              {/* Error message */}
+              {emailError && (
+                <p className="mt-2 text-sm text-red-600 font-medium">{emailError}</p>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          STATE 3: SUCCESS — Confirmation after email submitted
+          ═══════════════════════════════════════════════════════════════ */}
+      {cardState === "success" && (
+        <div className="p-6 text-center">
+          {/* Success checkmark */}
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-success-700 mb-4 animate-success-pop">
+            <Check size={28} weight="bold" className="text-white" />
+          </div>
+
+          {/* Headline */}
+          <h3 className="font-display text-xl font-bold text-gray-900 mb-2">
+            We&apos;ve got it from here.
+          </h3>
+
+          {/* Confirmation text */}
+          <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+            We&apos;ll send their replies to{" "}
+            <span className="font-semibold text-gray-900">{userEmail || email}</span> as they come
+            in — usually within a day.
+          </p>
+
+          {/* Overlapping avatars */}
+          <div className="flex justify-center -space-x-3 mb-5">
+            {allSentProviders.slice(0, 4).map((provider, idx) => (
+              <ProviderAvatar
+                key={provider.id}
+                provider={provider}
+                size="md"
+                className="ring-4 ring-white"
+                style={{ zIndex: allSentProviders.length - idx } as React.CSSProperties}
+              />
+            ))}
+            {allSentProviders.length > 4 && (
+              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center ring-4 ring-white text-xs font-semibold text-gray-500">
+                +{allSentProviders.length - 4}
+              </div>
+            )}
+          </div>
+
+          {/* Keep browsing CTA */}
+          <Link href={browseUrl}>
+            <button
+              type="button"
+              className="
+                w-full py-3
+                text-sm font-medium text-gray-900
+                bg-white border-2 border-gray-200 rounded-xl
+                hover:bg-gray-50 hover:border-gray-300
+                transition-all duration-200
+              "
+            >
+              Keep browsing {city} providers
+            </button>
+          </Link>
         </div>
       )}
     </div>

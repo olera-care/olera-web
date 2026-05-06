@@ -18,7 +18,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import Link from "next/link";
 import PulseHeader from "@/components/admin/PulseHeader";
 import type { DateRangeValue } from "@/components/admin/DateRangePopover";
 import { Drawer } from "./Drawer";
@@ -155,10 +154,6 @@ export default function StudentOutreachPage() {
     [refetch],
   );
 
-  const currentCampus = useMemo(
-    () => campuses.find((c) => c.slug === campusSlug) ?? null,
-    [campuses, campusSlug],
-  );
 
   // Direct-API helper for row-driven actions (no drawer round-trip).
   const callAction = useCallback(
@@ -275,14 +270,10 @@ export default function StudentOutreachPage() {
             <option key={f.key} value={f.key}>{f.label}</option>
           ))}
         </select>
-        {currentCampus && (
-          <Link
-            href={`/admin/student-outreach/campus/${currentCampus.slug}`}
-            className="shrink-0 text-sm text-blue-600 hover:underline"
-          >
-            View {currentCampus.name} →
-          </Link>
-        )}
+        {/* v8.10.21: dropped the "View <campus> →" inline link. The
+            dropdown selection itself is enough indicator that the page
+            is filtered to one campus; the deep-link to the dedicated
+            campus page is reachable from the Campuses sidebar item. */}
       </div>
 
       {/* v8.10.9: tab styling matches the Questions page — plain label

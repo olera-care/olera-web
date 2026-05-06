@@ -134,9 +134,20 @@ export function SignupCard({ row }: { row: SignupRow }) {
  * v9.0 Phase 3: row card for the Candidates tab — LIVE provider-facing
  * student profiles (Candidates ⊂ Signups). Standard MedjobsCard chrome
  * with single-tone slate pills for readiness signals (no per-signal
- * color drift). Click opens the admin-side student profile editor.
+ * color drift).
+ *
+ * v9.0 Phase 7 Commit B: card opens the CandidateDrawer (Step Board +
+ * link to the full profile editor) when onOpen is provided. Without
+ * onOpen it falls back to navigating to the profile editor (used by
+ * surfaces that don't yet host a drawer mount).
  */
-export function CandidateCard({ row }: { row: CandidateRow }) {
+export function CandidateCard({
+  row,
+  onOpen,
+}: {
+  row: CandidateRow;
+  onOpen?: () => void;
+}) {
   const subtitle = [
     row.university,
     [row.city, row.state].filter(Boolean).join(", ") || null,
@@ -153,8 +164,6 @@ export function CandidateCard({ row }: { row: CandidateRow }) {
   if (row.certifications_count > 0) {
     pillBits.push(`${row.certifications_count} cert${row.certifications_count === 1 ? "" : "s"}`);
   }
-  // One pill per signal, all single-tone. Less visual noise than the
-  // earlier emerald/violet/blue/amber mix.
   const pill =
     pillBits.length > 0 ? (
       <>
@@ -170,8 +179,9 @@ export function CandidateCard({ row }: { row: CandidateRow }) {
       subtitle={subtitle}
       footnote={`Live since ${formatRelative(row.signed_up_at)}`}
       pill={pill}
-      href={`/admin/medjobs/${row.id}`}
-      hoverTitle="Open candidate profile."
+      href={onOpen ? undefined : `/admin/medjobs/${row.id}`}
+      onClick={onOpen}
+      hoverTitle={onOpen ? "Open candidate drawer." : "Open candidate profile."}
     />
   );
 }

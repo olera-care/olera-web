@@ -495,82 +495,56 @@ async function computeTabCounts(
     }
   }
 
-  // v8.10.42: Candidates = LIVE student profiles visible to providers
-  // on the job board. Subset of Signups (Candidates ⊂ Signups). Filter
-  // matches /api/medjobs/candidates: type=student + is_active=true +
-  // metadata.application_completed=true. Campus filter narrows by
-  // metadata.university name match.
-  let candidateCampusName: string | null = null;
-  if (filters.campusId) {
-    const { data: campus } = await db
-      .from("student_outreach_campuses")
-      .select("name")
-      .eq("id", filters.campusId)
-      .single();
-    candidateCampusName = (campus as { name: string } | null)?.name ?? null;
+  // v9.0 Phase 7 Commit B: In Basket Clients/Candidates/Sites tabs are
+  // task-driven (Option B polymorphic tasks). Each tab's badge counts
+  // distinct entities with at least one pending task in the matching
+  // table. The dedicated /admin/medjobs/{clients,candidates,sites}
+  // pages still show full inventory; only the In Basket badge here is
+  // task-filtered (so the tab smart-hides when there's no pending work).
+  //
+  // Unread is intentionally 0 on these tabs — there's no viewed_at on
+  // business_profile_tasks/site_tasks yet. Tab labels render as plain
+  // counts (not the bolded `unread/total` fraction).
+  const [{ data: clientTaskRows }, { data: candidateTaskRows }, { data: siteTaskRows }] =
+    await Promise.all([
+      db
+        .from("business_profile_tasks")
+        .select("business_profile_id")
+        .eq("status", "pending")
+        .eq("kind", "client"),
+      db
+        .from("business_profile_tasks")
+        .select("business_profile_id")
+        .eq("status", "pending")
+        .eq("kind", "candidate"),
+      db
+        .from("site_tasks")
+        .select("campus_id")
+        .eq("status", "pending"),
+    ]);
+
+  const clientSet = new Set<string>();
+  for (const r of (clientTaskRows ?? []) as Array<{ business_profile_id: string }>) {
+    clientSet.add(r.business_profile_id);
   }
-  if (candidateCampusName) {
-    // Campus filter active — fetch metadata so we can match university
-    // case-insensitively in JS (JSONB ilike is awkward in PostgREST).
-    const { data: profiles } = await db
-      .from("business_profiles")
-      .select("metadata")
-      .eq("type", "student")
-      .eq("is_active", true)
-      .contains("metadata", { application_completed: true });
-    const lower = candidateCampusName.toLowerCase();
-    counts.candidates = (
-      (profiles ?? []) as Array<{ metadata: Record<string, unknown> | null }>
-    ).filter((p) => {
-      const u = typeof p.metadata?.university === "string" ? p.metadata.university : null;
-      return u !== null && u.toLowerCase() === lower;
-    }).length;
-  } else {
-    const { count: candidatesCount } = await db
-      .from("business_profiles")
-      .select("id", { count: "exact", head: true })
-      .eq("type", "student")
-      .eq("is_active", true)
-      .contains("metadata", { application_completed: true });
-    counts.candidates = candidatesCount ?? 0;
+  counts.clients = clientSet.size;
+
+  const candidateSet = new Set<string>();
+  for (const r of (candidateTaskRows ?? []) as Array<{ business_profile_id: string }>) {
+    candidateSet.add(r.business_profile_id);
   }
+  // Override the inventory-based candidates count above. The In Basket
+  // tab is task-driven; the dedicated Candidates page still uses the
+  // inventory count via /api/admin/student-outreach/candidates.
+  counts.candidates = candidateSet.size;
 
-  // v9.0 Phase 2: clients + campuses tab counts.
-  //   Clients = providers who accepted T&C OR have an active subscription.
-  //   This is best-effort across the provider population — pilot expiry
-  //   is filtered client-side from the dedicated endpoint, but for the
-  //   tab badge we count both pilot-active and subscribed.
-  //   Campuses = total campus rows (operational territory in scope).
-  const [{ data: clientProviders }, { count: campusCount }] = await Promise.all([
-    db
-      .from("business_profiles")
-      .select("metadata")
-      .in("type", ["organization", "caregiver"]),
-    db
-      .from("student_outreach_campuses")
-      .select("id", { count: "exact", head: true })
-      .eq("is_active", true),
-  ]);
-
-  const PILOT_MS = 90 * 24 * 60 * 60 * 1000;
-  const now = Date.now();
-  counts.clients = (
-    (clientProviders ?? []) as Array<{ metadata: Record<string, unknown> | null }>
-  ).filter((p) => {
-    const meta = p.metadata ?? {};
-    if (meta.medjobs_subscription_active === true) return true;
-    const accepted = meta.interview_terms_accepted_at;
-    if (typeof accepted !== "string") return false;
-    const t = new Date(accepted).getTime();
-    return !isNaN(t) && now - t < PILOT_MS;
-  }).length;
-
-  counts.campuses = campusCount ?? 0;
-  // v9.0 Phase 7: 'sites' is the new UI tab key for the campus territorial
-  // primitive. Mirror the same numeric value so the In Basket tab bar's
-  // smart-hide computes against either alias.
-  counts.sites = counts.campuses;
-  unread.sites = unread.campuses ?? 0;
+  const siteSet = new Set<string>();
+  for (const r of (siteTaskRows ?? []) as Array<{ campus_id: string }>) {
+    siteSet.add(r.campus_id);
+  }
+  counts.sites = siteSet.size;
+  // Legacy 'campuses' alias retained for queue-endpoint defenders.
+  counts.campuses = siteSet.size;
 
   return { counts, unread };
 }

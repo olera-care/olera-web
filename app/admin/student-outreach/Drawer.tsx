@@ -21,6 +21,7 @@ import { OutreachStepList } from "./OutreachStepList";
 import { PreFlightReviewModal } from "./PreFlightReviewModal";
 import { ReplyClassifierModal } from "./ReplyClassifierModal";
 import { LogMeetingModal } from "./LogMeetingModal";
+import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import {
   PARTNER_CTA_STAGES,
   KIND_LABELS,
@@ -53,8 +54,15 @@ interface DrawerProps {
   /** v9.0 Phase 2: provider mode — pass providerId to load a
    *  business_profiles row and render the Manage panel for a Client. */
   providerId?: string;
+  /** v9.0 Phase 7 Commit B: site mode — pass siteId (a campus_id) to
+   *  render the Site reference + Step Board panel. */
+  siteId?: string;
+  /** v9.0 Phase 7 Commit B: candidate mode — pass candidateId (a
+   *  student business_profile id) to render the Candidate reference +
+   *  Step Board panel. */
+  candidateId?: string;
   onClose: () => void;
-  /** Optional in provider mode (drawer is mostly read-only there). */
+  /** Optional in non-stakeholder modes. */
   onAction?: (refreshed: DrawerContext | null) => void;
 }
 
@@ -84,6 +92,12 @@ const TERMINAL_STATUSES: Status[] = [
 export function Drawer(props: DrawerProps) {
   if (props.providerId) {
     return <ProviderDrawer providerId={props.providerId} onClose={props.onClose} />;
+  }
+  if (props.siteId) {
+    return <SiteDrawer siteId={props.siteId} onClose={props.onClose} />;
+  }
+  if (props.candidateId) {
+    return <CandidateDrawer candidateId={props.candidateId} onClose={props.onClose} />;
   }
   if (!props.outreachId) {
     return null;
@@ -458,6 +472,16 @@ function ProviderManagePanel({ data }: { data: ProviderDrawerData }) {
 
   return (
     <div className="space-y-6">
+      {/* v9.0 Phase 7 Commit B: Step Board leads the panel — the
+          operational surface for client-side follow-ups (trial
+          check-ins, billing nudges, account expansion). Reference
+          sections (pilot status, subscription, interviews) follow. */}
+      <EntityStepBoard
+        kind="client"
+        entityId={data.id}
+        entityName={data.display_name}
+      />
+
       {/* Pilot / Trial */}
       <section>
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -592,6 +616,240 @@ function ProviderManagePanel({ data }: { data: ProviderDrawerData }) {
         )}
       </section>
     </div>
+  );
+}
+
+// ── Site + Candidate drawers (v9.0 Phase 7 Commit B) ──────────────────
+//
+// Lightweight non-stakeholder drawers. Each shows a small reference
+// header + the EntityStepBoard for custom follow-up tasks. The full
+// inventory / management surfaces (campus management at
+// /admin/student-outreach/campus/[slug], candidate profile editor at
+// /admin/medjobs/[studentId]) are reachable via header links.
+
+interface SiteDrawerData {
+  id: string;
+  slug: string;
+  name: string;
+  state: string | null;
+  city: string | null;
+  research_complete: boolean;
+  is_active: boolean;
+}
+
+function SiteDrawer({ siteId, onClose }: { siteId: string; onClose: () => void }) {
+  const [data, setData] = useState<SiteDrawerData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/medjobs/campuses`);
+        if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
+        const body = await res.json();
+        const all = (body.rows ?? []) as Array<{
+          id: string;
+          slug: string;
+          name: string;
+          state: string | null;
+          city: string | null;
+          research_complete: boolean;
+        }>;
+        const found = all.find((c) => c.id === siteId);
+        if (!cancelled) {
+          if (!found) {
+            setError("Site not found");
+          } else {
+            setData({ ...found, is_active: true });
+          }
+        }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [siteId]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} />
+      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-white shadow-2xl">
+        <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
+          {data ? (
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-lg font-semibold text-gray-900">{data.name}</h2>
+              <p className="truncate text-sm text-gray-500">
+                {[data.city, data.state].filter(Boolean).join(", ") || "Site"}
+              </p>
+              <p className="mt-1 text-xs font-medium text-gray-500">
+                {data.research_complete ? "Active" : "Research in progress"}
+              </p>
+            </div>
+          ) : (
+            <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
+          )}
+          <button
+            onClick={onClose}
+            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            aria-label="Close"
+          >
+            <span aria-hidden>×</span>
+          </button>
+        </header>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {loading ? (
+            <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+          ) : error ? (
+            <p className="py-8 text-center text-sm text-red-600">{error}</p>
+          ) : data ? (
+            <div className="space-y-6">
+              <EntityStepBoard kind="site" entityId={data.id} entityName={data.name} />
+              <section>
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Open in
+                </h3>
+                <a
+                  href={`/admin/student-outreach/campus/${data.slug}`}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Site management page ↗
+                </a>
+              </section>
+            </div>
+          ) : null}
+        </div>
+      </aside>
+    </>
+  );
+}
+
+interface CandidateDrawerData {
+  id: string;
+  display_name: string;
+  university: string | null;
+  city: string | null;
+  state: string | null;
+  program_track: string | null;
+  signed_up_at: string | null;
+}
+
+function CandidateDrawer({
+  candidateId,
+  onClose,
+}: {
+  candidateId: string;
+  onClose: () => void;
+}) {
+  const [data, setData] = useState<CandidateDrawerData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    (async () => {
+      try {
+        // Reuse the candidates list endpoint and pick the matching row.
+        // No per-candidate endpoint exists yet; the inventory list is
+        // small enough (live candidates only) to scan client-side.
+        const res = await fetch(`/api/admin/student-outreach/candidates`);
+        if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
+        const body = await res.json();
+        const all = (body.rows ?? []) as Array<{
+          id: string;
+          display_name: string;
+          university: string | null;
+          city: string | null;
+          state: string | null;
+          program_track: string | null;
+          signed_up_at: string | null;
+        }>;
+        const found = all.find((r) => r.id === candidateId);
+        if (!cancelled) {
+          if (!found) setError("Candidate not found");
+          else setData(found);
+        }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [candidateId]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} />
+      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-white shadow-2xl">
+        <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
+          {data ? (
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-lg font-semibold text-gray-900">{data.display_name}</h2>
+              <p className="truncate text-sm text-gray-500">
+                {[data.university, [data.city, data.state].filter(Boolean).join(", "), data.program_track]
+                  .filter(Boolean)
+                  .join(" · ") || "Candidate"}
+              </p>
+            </div>
+          ) : (
+            <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
+          )}
+          <button
+            onClick={onClose}
+            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            aria-label="Close"
+          >
+            <span aria-hidden>×</span>
+          </button>
+        </header>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {loading ? (
+            <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+          ) : error ? (
+            <p className="py-8 text-center text-sm text-red-600">{error}</p>
+          ) : data ? (
+            <div className="space-y-6">
+              <EntityStepBoard
+                kind="candidate"
+                entityId={data.id}
+                entityName={data.display_name}
+              />
+              <section>
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Open in
+                </h3>
+                <a
+                  href={`/admin/medjobs/${data.id}`}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Candidate profile editor ↗
+                </a>
+              </section>
+            </div>
+          ) : null}
+        </div>
+      </aside>
+    </>
   );
 }
 

@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CandidateCard } from "@/components/admin/medjobs/cards/SpecialtyCards";
+import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import type { CandidateRow } from "@/lib/student-outreach/tab-config";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
@@ -16,6 +17,7 @@ export default function CandidatesPage() {
   const [rows, setRows] = useState<CandidateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openCandidateId, setOpenCandidateId] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
     setLoading(true);
@@ -56,10 +58,18 @@ export default function CandidatesPage() {
         <ul className="space-y-2">
           {rows.map((r) => (
             <li key={r.id}>
-              <CandidateCard row={r} />
+              <CandidateCard row={r} onOpen={() => setOpenCandidateId(r.id)} />
             </li>
           ))}
         </ul>
+      )}
+
+      {openCandidateId && (
+        <Drawer
+          candidateId={openCandidateId}
+          onClose={() => setOpenCandidateId(null)}
+          onAction={() => { void refetch(); }}
+        />
       )}
     </div>
   );

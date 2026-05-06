@@ -32,7 +32,7 @@ export default function SitesPage() {
   const [error, setError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [bulkResearchSite, setBulkResearchSite] = useState<ResearchCampusCard | null>(null);
-  const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
+  const [openSiteId, setOpenSiteId] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
     setLoading(true);
@@ -99,9 +99,7 @@ export default function SitesPage() {
                     last_added_at: r.last_added_at,
                   })
                 }
-                onViewSite={() => {
-                  window.location.href = `/admin/student-outreach/campus/${r.slug}`;
-                }}
+                onViewSite={() => setOpenSiteId(r.id)}
               />
             </li>
           ))}
@@ -127,10 +125,10 @@ export default function SitesPage() {
           }}
         />
       )}
-      {openOutreachId && (
+      {openSiteId && (
         <Drawer
-          outreachId={openOutreachId}
-          onClose={() => setOpenOutreachId(null)}
+          siteId={openSiteId}
+          onClose={() => setOpenSiteId(null)}
           onAction={() => { void refetch(); }}
         />
       )}

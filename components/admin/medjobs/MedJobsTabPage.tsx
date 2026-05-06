@@ -51,6 +51,7 @@ import {
   type ClientRow,
   type EmailSentRow,
   type OutboundRow,
+  type ProviderProspectRow,
   type SignupRow,
   type TabKey,
 } from "@/lib/student-outreach/tab-config";
@@ -97,6 +98,7 @@ export function MedJobsTabPage({
   const [outboundRows, setOutboundRows] = useState<OutboundRow[]>([]);
   const [candidateRows, setCandidateRows] = useState<CandidateRow[]>([]);
   const [clientRows, setClientRows] = useState<ClientRow[]>([]);
+  const [providerProspects, setProviderProspects] = useState<ProviderProspectRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
@@ -212,6 +214,27 @@ export function MedJobsTabPage({
           if (!r.ok) throw new Error((await r.json()).error || "Failed to load clients");
           const d = await r.json();
           setClientRows(d.rows ?? []);
+        })());
+      }
+
+      // v9.0 Phase 2 Tier 3: virtual provider prospects for the
+      // Prospects tab. Fetched alongside the queue so the filter chips
+      // can switch between providers and stakeholders without a
+      // refetch round-trip.
+      if (tab === "prospects") {
+        fetches.push((async () => {
+          const p = new URLSearchParams();
+          if (campusSlug) p.set("campus", campusSlug);
+          const r = await fetch(`/api/admin/medjobs/provider-prospects?${p}`);
+          if (!r.ok) {
+            // Non-fatal: provider prospects are additive; surface a
+            // console warning but don't block the rest of the page.
+            console.warn("[medjobs] provider-prospects fetch failed", await r.text());
+            setProviderProspects([]);
+            return;
+          }
+          const d = await r.json();
+          setProviderProspects(d.rows ?? []);
         })());
       }
       // v9.0 Phase 2 (deferred): campuses tab still uses queue.campuses.
@@ -453,8 +476,21 @@ export function MedJobsTabPage({
         <ResearchTabContent
           rows={rows}
           researchCampuses={researchCampuses}
+          providerProspects={providerProspects}
           renderRow={renderRow}
           onContinueCampus={(c) => setBulkResearchCampus(c)}
+          onStartProviderOutreach={(p) => {
+            // v9.0 Phase 2 Tier 3: materialization endpoint lands in
+            // Tier 3.5 (needs the stakeholder_type constraint relax
+            // migration). For now, surface what's coming so admin
+            // doesn't think the click silently failed.
+            window.alert(
+              `Starting outreach for ${p.provider_name} (${p.campus_name}) is coming in v9.x.\n\n` +
+                "We're finishing the migration that lets a student_outreach row carry kind='provider' " +
+                "without a stakeholder_type. Once it ships, this button materializes the row and the " +
+                "drawer opens for cadence configuration.",
+            );
+          }}
           onMarkResearchComplete={async (slug, name) => {
             if (!window.confirm(`Mark research complete for ${name}? You can reopen later from the Campuses page.`)) return;
             try {

@@ -199,6 +199,26 @@ export interface CandidateRow {
 }
 
 /**
+ * v9.0 Phase 2 Tier 3: virtual provider prospects shown in the Prospects
+ * tab. Computed at query-time from the campus catchment + materialized
+ * outreach records — never stored. Materialization happens when admin
+ * clicks Start outreach (Phase 2 Tier 3.5 — pending the stakeholder_type
+ * constraint relaxation migration).
+ */
+export interface ProviderProspectRow {
+  /** Synthetic id: `${provider_id}|${campus_id}`. Stable for React keys. */
+  id: string;
+  provider_id: string;
+  provider_name: string;
+  city: string | null;
+  state: string | null;
+  campus_id: string;
+  campus_slug: string;
+  campus_name: string;
+  created_at: string;
+}
+
+/**
  * v9.0 Phase 2: provider clients (agencies in pilot or paying via
  * Stripe). Rendered by ClientCard on the Clients tab. Status, dates,
  * and pilot countdown are computed server-side in

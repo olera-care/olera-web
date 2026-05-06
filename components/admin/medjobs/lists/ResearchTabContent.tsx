@@ -17,32 +17,71 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ResearchCampusCard, TabRow } from "@/lib/student-outreach/types";
+import type { ProviderProspectRow } from "@/lib/student-outreach/tab-config";
 import { formatRelative } from "@/lib/student-outreach/formatters";
 import { FilterPill, MenuItem } from "../cards/StakeholderCard";
+import { ProviderProspectCard } from "../cards/ProviderProspectCard";
+
+/**
+ * v9.0 Phase 2 Tier 3: kind filter for the unified Prospects list.
+ *   "all"            — show stakeholders + provider prospects + campus banners
+ *   "stakeholders"   — only campus stakeholders (the original behavior)
+ *   "providers"      — only virtual provider prospects from catchment
+ *   "campus_research" — only the violet "research needed" banner cards
+ *   "ready"          — stakeholders ready to email (legacy chip, preserved)
+ */
+type ProspectKindFilter = "all" | "ready" | "stakeholders" | "providers" | "campus_research";
 
 export function ResearchTabContent({
   rows,
   researchCampuses,
+  providerProspects,
   renderRow,
   onContinueCampus,
   onMarkResearchComplete,
   onBulkStartOutreach,
+  onStartProviderOutreach,
   tabCountsAll,
 }: {
   rows: TabRow[];
   researchCampuses: ResearchCampusCard[];
+  /** v9.0 Phase 2 Tier 3: virtual provider prospects from catchment. */
+  providerProspects: ProviderProspectRow[];
   renderRow: (row: TabRow) => ReactNode;
   onContinueCampus: (campus: ResearchCampusCard) => void;
   onMarkResearchComplete: (slug: string, name: string) => Promise<void>;
   onBulkStartOutreach: (selectedRows: TabRow[]) => Promise<void>;
+  /** v9.0 Phase 2 Tier 3: provider prospect "Start outreach" handler.
+   *  Tier 3.5 will wire this to a materialization endpoint. For now
+   *  the parent surfaces a "coming soon" toast / alert. */
+  onStartProviderOutreach: (row: ProviderProspectRow) => void;
   tabCountsAll: number;
 }) {
-  const [filter, setFilter] = useState<"all" | "ready">("all");
+  const [filter, setFilter] = useState<ProspectKindFilter>("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkRunning, setBulkRunning] = useState(false);
 
   const readyRows = useMemo(() => rows.filter((r) => r.status === "researched"), [rows]);
-  const visibleRows = filter === "ready" ? readyRows : rows;
+  // v9.0 Phase 2: which row sets render given the active filter.
+  const showStakeholderRows =
+    filter === "all" || filter === "stakeholders" || filter === "ready";
+  const showProviderRows = filter === "all" || filter === "providers";
+  const showCampusBanners =
+    filter === "all" || filter === "campus_research" || filter === "stakeholders";
+  const visibleRows = filter === "ready" ? readyRows : showStakeholderRows ? rows : [];
+  const visibleProviderProspects = showProviderRows ? providerProspects : [];
+  const visibleCampuses = showCampusBanners
+    ? filter === "campus_research"
+      ? researchCampuses.filter(
+          (c) => c.stage === "stakeholder_prospecting" && c.research_stakeholder_count === 0,
+        )
+      : researchCampuses
+    : [];
+  const stakeholderCount = rows.length;
+  const providerCount = providerProspects.length;
+  const campusResearchCount = researchCampuses.filter(
+    (c) => c.stage === "stakeholder_prospecting" && c.research_stakeholder_count === 0,
+  ).length;
 
   const visibleIds = useMemo(() => new Set(visibleRows.map((r) => r.id)), [visibleRows]);
   const effectiveSelected = useMemo(
@@ -80,10 +119,12 @@ export function ResearchTabContent({
     }
   };
 
-  const showCampusSection = researchCampuses.length > 0;
-  const showStakeholderSection = rows.length > 0;
+  const totalVisible =
+    visibleCampuses.length + visibleProviderProspects.length + visibleRows.length;
+  const totalAvailable =
+    researchCampuses.length + providerProspects.length + rows.length;
 
-  if (!showCampusSection && !showStakeholderSection) {
+  if (totalAvailable === 0) {
     const headline = tabCountsAll === 0 ? "Nothing here yet." : "✓ All caught up.";
     const headlineColor = tabCountsAll === 0 ? "text-gray-700" : "text-emerald-700";
     return (
@@ -104,13 +145,90 @@ export function ResearchTabContent({
 
   return (
     <div className="space-y-6">
-      {showCampusSection && (
+      {/* v9.0 Phase 2 Tier 3: kind filter chips. Always visible at top
+          so admin can switch between provider prospecting (Stage 1) and
+          stakeholder prospecting (Stage 2) without bouncing between
+          pages. Existing "Ready to email" chip preserved as a sub-filter
+          for the bulk-start workflow. */}
+      <div className="flex flex-wrap items-center gap-1 px-1">
+        <FilterPill
+          active={filter === "all"}
+          onClick={() => setFilter("all")}
+          label="All"
+          count={stakeholderCount + providerCount + campusResearchCount}
+        />
+        <FilterPill
+          active={filter === "providers"}
+          onClick={() => setFilter("providers")}
+          label="Providers"
+          count={providerCount}
+        />
+        <FilterPill
+          active={filter === "stakeholders"}
+          onClick={() => setFilter("stakeholders")}
+          label="Stakeholders"
+          count={stakeholderCount}
+        />
+        <FilterPill
+          active={filter === "campus_research"}
+          onClick={() => setFilter("campus_research")}
+          label="Campus research"
+          count={campusResearchCount}
+        />
+        <FilterPill
+          active={filter === "ready"}
+          onClick={() => setFilter("ready")}
+          label="Ready to email"
+          count={readyRows.length}
+        />
+        {filter === "ready" && readyRows.length > 0 && (
+              <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 px-2 text-xs font-medium text-gray-500 hover:text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={allReadySelected}
+                  onChange={toggleSelectAllReady}
+                  className="h-3.5 w-3.5 rounded border-gray-300"
+                />
+            Select all
+          </label>
+        )}
+      </div>
+
+      {effectiveSelected.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <span className="text-sm font-medium text-emerald-900">
+            {effectiveSelected.size} selected
+          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              disabled={bulkRunning}
+              className="text-sm font-medium text-emerald-900 underline-offset-2 hover:underline disabled:opacity-50"
+            >
+              Clear
+            </button>
+            <button
+              onClick={runBulk}
+              disabled={bulkRunning}
+              className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {bulkRunning
+                ? "Starting…"
+                : `Start outreach for ${effectiveSelected.size}`}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Campus banners (research_complete=false campuses, with banner
+          styling for Stage 2 and existing styling for in-progress). */}
+      {visibleCampuses.length > 0 && (
         <div>
           <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
             Campuses in research
           </h3>
           <ul className="space-y-2">
-            {researchCampuses.map((c) => (
+            {visibleCampuses.map((c) => (
               <li key={c.id}>
                 <ResearchCampusCardView
                   campus={c}
@@ -123,66 +241,33 @@ export function ResearchTabContent({
         </div>
       )}
 
-      {showStakeholderSection && (
+      {/* v9.0 Phase 2 Tier 3: virtual provider prospects from catchment. */}
+      {visibleProviderProspects.length > 0 && (
         <div>
-          {showCampusSection && (
-            <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Stakeholders in research ({rows.length})
-            </h3>
-          )}
-
-          <div className="mb-3 flex flex-wrap items-center gap-1 px-1">
-            <FilterPill
-              active={filter === "all"}
-              onClick={() => setFilter("all")}
-              label="All"
-              count={rows.length}
-            />
-            <FilterPill
-              active={filter === "ready"}
-              onClick={() => setFilter("ready")}
-              label="Ready to email"
-              count={readyRows.length}
-            />
-            {filter === "ready" && readyRows.length > 0 && (
-              <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 px-2 text-xs font-medium text-gray-500 hover:text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={allReadySelected}
-                  onChange={toggleSelectAllReady}
-                  className="h-3.5 w-3.5 rounded border-gray-300"
+          <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Provider prospects ({visibleProviderProspects.length})
+          </h3>
+          <ul className="space-y-2">
+            {visibleProviderProspects.map((p) => (
+              <li key={p.id}>
+                <ProviderProspectCard
+                  row={p}
+                  onStartOutreach={() => onStartProviderOutreach(p)}
                 />
-                Select all
-              </label>
-            )}
-          </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-          {effectiveSelected.size > 0 && (
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
-              <span className="text-sm font-medium text-emerald-900">
-                {effectiveSelected.size} selected
-              </span>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setSelectedIds(new Set())}
-                  disabled={bulkRunning}
-                  className="text-sm font-medium text-emerald-900 underline-offset-2 hover:underline disabled:opacity-50"
-                >
-                  Clear
-                </button>
-                <button
-                  onClick={runBulk}
-                  disabled={bulkRunning}
-                  className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  {bulkRunning
-                    ? "Starting…"
-                    : `Start outreach for ${effectiveSelected.size}`}
-                </button>
-              </div>
-            </div>
-          )}
-
+      {/* Stakeholder rows (existing student_outreach prospect/researched rows). */}
+      {showStakeholderRows && rows.length > 0 && (
+        <div>
+          <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            {filter === "ready"
+              ? `Ready to email (${visibleRows.length})`
+              : `Stakeholders in research (${rows.length})`}
+          </h3>
           {visibleRows.length === 0 ? (
             <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-400">
               {filter === "ready"
@@ -212,6 +297,13 @@ export function ResearchTabContent({
             </ul>
           )}
         </div>
+      )}
+
+      {/* Empty state when filter narrows to nothing. */}
+      {totalVisible === 0 && (
+        <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-12 text-center text-sm text-gray-400">
+          Nothing matches this filter. Try the All chip above.
+        </p>
       )}
     </div>
   );

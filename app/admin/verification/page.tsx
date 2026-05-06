@@ -669,36 +669,24 @@ export default function AdminVerificationPage() {
       <div className="flex gap-2 mb-4">
         {filters.map((f) => {
           const count = tabCounts[f.value];
-          const isActionable = f.value === "unverified_claims" || f.value === "in_progress" || f.value === "pending";
-          const showBadge = isActionable && count > 0;
 
           return (
             <button
               key={f.value}
               type="button"
               onClick={() => { if (filter === f.value) return; setPage(0); setProviders([]); setLoading(true); setFilter(f.value); }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
                 filter === f.value
                   ? "bg-primary-600 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               {f.label}
-              {showBadge ? (
-                <span className={`px-1.5 py-0.5 text-xs font-semibold rounded-full ${
-                  filter === f.value
-                    ? "bg-white/20 text-white"
-                    : "bg-amber-100 text-amber-700"
-                }`}>
-                  {count}
-                </span>
-              ) : (
-                <span className={`text-xs ${
-                  filter === f.value ? "text-white/70" : "text-gray-400"
-                }`}>
-                  ({count})
-                </span>
-              )}
+              <span className={`text-xs ${
+                filter === f.value ? "text-white/70" : "text-gray-400"
+              }`}>
+                ({count})
+              </span>
             </button>
           );
         })}
@@ -870,7 +858,7 @@ export default function AdminVerificationPage() {
                       className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                     />
                   </th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Provider</th>
+                  <th className="text-left pl-3 pr-6 py-3 text-sm font-medium text-gray-500">Provider</th>
                   {filter === "pending" && (
                     <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Submitter</th>
                   )}
@@ -900,7 +888,7 @@ export default function AdminVerificationPage() {
                           className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                         />
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="pl-3 pr-6 py-4">
                         <div className="flex items-center gap-3">
                           {provider.image_url ? (
                             <img

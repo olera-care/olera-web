@@ -42,9 +42,9 @@ export const BENEFITS_VARIANT_COPY: Record<
 // pieces plus city-specific phrasing the admin preview can stub with a
 // placeholder city name.
 export const OUTREACH_VARIANT_COPY = {
-  h2: () => "Skip the phone calls.",
+  h2: () => "Don't know which one to trust?",
   sub: (city: string) =>
-    `Have an AI agent contact the top providers in ${city} for you.`,
+    `Our care team will get pricing, availability, and how to start from the top providers in ${city} — in one email.`,
 };
 
 // Care-need card labels — identical across the 3 benefits arms. Kept in
@@ -83,7 +83,7 @@ export function variantSurfaceLabel(variant: IntakeVariant): string {
     case "empathic":
       return "Empathic framing";
     case "outreach":
-      return "AI agent outreach";
+      return "Care-team outreach";
     case "qa_email_capture":
       return "Q&A email capture (no SBF)";
   }
@@ -103,7 +103,7 @@ export function variantSubLabel(variant: IntakeVariant): string {
     case "empathic":
       return "Benefits — shared-truth framing";
     case "outreach":
-      return "Agent contacts top providers";
+      return "Care team gets pricing & availability";
     case "qa_email_capture":
       return "Q&A enrichment, no SBF";
   }

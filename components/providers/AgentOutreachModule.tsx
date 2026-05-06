@@ -8,11 +8,13 @@
  * → mod 4). For these visitors, BenefitsDiscoveryModule is hidden and this
  * module renders in the Q&A area instead.
  *
- * The pitch (two-line H2): outcome first ("Skip the phone calls"), mechanic
- * second ("Have an AI agent contact the top providers in [City] for you").
- * The mechanic line is intentional — it plants the seed for the broader
- * agent-callable layer (Medicaid, etc.) we want families to associate with
- * Olera. Pulsing dots + the "AI agent" phrase share the load.
+ * The pitch (two-line H2): empathic hook ("Don't know which one to trust?"),
+ * concrete deliverable second ("Our care team will get pricing, availability,
+ * and how to start from the top N [category] providers in [City] — in one
+ * email"). Reframed 2026-05-06 from service-offering ("AI agent contacts
+ * providers") to guide-orientation ("our care team has vetted these and
+ * will hand you the answers"). Targets the spouse/adult-child persona in a
+ * care-decision crisis: lost, time-pressed, wary of sales pressure.
  *
  * Spec: plans/agent-outreach-cta-workbook.md → "Olera-hosted outreach module
  * for H1". Decision rule: ≥6% email-capture rate vs 3% baseline = greenlight
@@ -237,19 +239,15 @@ export default function AgentOutreachModule({
             </div>
             <div className="max-w-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-slate-900 leading-tight">
-                Skip the phone calls.
+                Don&apos;t know which one to trust?
               </h2>
               <p className="mt-1 text-base md:text-lg text-slate-700 leading-snug">
-                Have an AI agent contact the top providers in {city} for you.
+                Our care team will get pricing, availability, and how to start from the top {topProviders.length} {categoryLabel} {topProviders.length === 1 ? "provider" : "providers"} in {city} — in one email.
               </p>
             </div>
           </div>
 
-          <p className="mt-5 text-xs text-slate-500">
-            Top {topProviders.length} {categoryLabel} {topProviders.length === 1 ? "provider" : "providers"} in {city}, where families are actively reaching out.
-          </p>
-
-          <div className="mt-3 -mx-1 overflow-x-auto">
+          <div className="mt-5 -mx-1 overflow-x-auto">
             <ul className="flex gap-3 snap-x snap-mandatory pb-2 px-1">
               {topProviders.map((card) => (
                 <li key={card.id} className="snap-start shrink-0">
@@ -363,7 +361,7 @@ export default function AgentOutreachModule({
                     Sending
                   </>
                 ) : (
-                  "Get the answers"
+                  "Send me the comparison"
                 )}
               </button>
             </div>
@@ -372,8 +370,8 @@ export default function AgentOutreachModule({
                 {error}
               </p>
             )}
-            <p className="text-[11px] text-slate-500">
-              We'll only use your email to send back the outreach summary. No spam.
+            <p className="text-[13px] font-medium text-slate-600">
+              No phone calls. No sales pitch. Just the facts.
             </p>
           </form>
         </>
@@ -386,10 +384,10 @@ export default function AgentOutreachModule({
           </div>
           <div className="flex-1">
             <h3 className="text-lg md:text-xl font-semibold text-slate-900">
-              On it.
+              We&apos;re on it.
             </h3>
             <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-              We'll email you back with what we hear from these {topProviders.length} {categoryLabel.toLowerCase()} {topProviders.length === 1 ? "provider" : "providers"} — pricing, intake requirements, and availability.
+              You&apos;ll have pricing, availability, and next steps{topProviders.length > 1 ? ` for all ${topProviders.length}` : ""} in your inbox within 24 hours.
             </p>
             <button
               type="button"

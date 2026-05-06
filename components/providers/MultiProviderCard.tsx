@@ -370,15 +370,14 @@ export default function MultiProviderCard({
            Main Card — Question → Provider List → Email Capture
            ═══════════════════════════════════════════════════════════════ */
         <div className="p-6">
-          {/* ─── Question Block — with decorative quote mark ────────────── */}
+          {/* ─── Question Block — plain text with quotes ────────────────── */}
           <div
             className={`
-              relative pl-4 border-l-2 border-primary-200
               transition-all duration-500 ease-out delay-75
               ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
             `}
           >
-            <p className="font-display italic text-[17px] text-gray-800 leading-relaxed">
+            <p className="text-[16px] text-gray-800 leading-relaxed">
               &ldquo;{question}&rdquo;
             </p>
           </div>

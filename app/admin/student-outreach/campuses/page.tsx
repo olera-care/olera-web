@@ -11,7 +11,7 @@ import type { Campus } from "@/lib/student-outreach/types";
  *
  * v8.10.18: manual campus creation removed. Campuses enter Student
  * Outreach only via the Staffing Outreach workflow — when a provider
- * becomes an Active Partner, their linked university auto-flows in
+ * becomes a Partner, their linked university auto-flows in
  * here. Prevents duplicate / accidental campus creation.
  */
 export default function CampusesPage() {
@@ -43,7 +43,7 @@ export default function CampusesPage() {
           <p className="mt-1 text-sm text-gray-500">
             Universities you&apos;re targeting for student outreach. Each campus groups its own
             stakeholders (orgs, advisors, dept heads, professors). New campuses appear here
-            automatically when a Staffing Outreach provider becomes an Active Partner.
+            automatically when a Staffing Outreach provider becomes a Partner.
           </p>
         </div>
         <div className="flex gap-2">
@@ -64,7 +64,7 @@ export default function CampusesPage() {
         <div className="py-12 text-center">
           <p className="text-sm font-medium text-gray-700">No campuses yet.</p>
           <p className="mt-1 text-xs text-gray-500">
-            Campuses flow in automatically when a Staffing Outreach provider becomes an Active Partner.
+            Campuses flow in automatically when a Staffing Outreach provider becomes a Partner.
           </p>
         </div>
       ) : (

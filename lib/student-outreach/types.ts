@@ -339,21 +339,24 @@ export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {
   dept_head: "Dept Head",
 };
 
+// v8.10.20: "Active Partner" → "Partner" everywhere admins see the
+// label. The Status enum value `active_partner` stays as the database
+// code; only the display string changes.
 export const STATUS_LABELS: Record<Status | LegacyStatus, string> = {
   prospect: "Prospect",
   researched: "Researched",
   outreach_sent: "Outreach Sent",
   engaged: "Interested",
   meeting_scheduled: "Meeting Scheduled",
-  active_partner: "Active Partner",
+  active_partner: "Partner",
   not_interested: "Not Interested",
   no_response_closed: "No Response (Closed)",
   do_not_contact: "Do Not Contact",
   wrong_contact: "Wrong Contact",
   redirected: "Redirected",
   // Legacy — only present on un-migrated historical rows.
-  agreed: "Active Partner",
-  distributed: "Active Partner",
+  agreed: "Partner",
+  distributed: "Partner",
 };
 
 /**
@@ -367,7 +370,7 @@ export type StatusGroup = "research" | "in_progress" | "active_partner" | "close
 export const STATUS_GROUP_LABELS: Record<StatusGroup, string> = {
   research: "Research",
   in_progress: "In Progress",
-  active_partner: "Active Partner",
+  active_partner: "Partner",
   closed: "Closed",
 };
 

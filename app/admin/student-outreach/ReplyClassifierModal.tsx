@@ -146,7 +146,7 @@ export function ReplyClassifierModal({
               active={choice === "committed"}
               onSelect={() => setChoice("committed")}
               label="They're sharing with students"
-              blurb="They committed. Row becomes an Active Partner; we'll capture evidence and queue seasonal check-ins."
+              blurb="They committed. Row becomes a Partner; we'll capture evidence and queue seasonal check-ins."
               tone="ok"
             />
             <ChoiceCard

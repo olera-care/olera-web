@@ -4,7 +4,7 @@
  * Admin Student Outreach Funnel — main page (v8).
  *
  * Six tabs in workflow order:
- *   🔍 Research → 📞 Calls → 📬 Replies → 📅 Meetings → ⭐ Active Partners → 🔎 All
+ *   Research → Calls → Replies → Meetings → Partners → Archive → All
  *
  * v8 changes vs v7:
  *   - Calls tab: row click opens LogCallOutcomeModal (6 outcomes routing the row)
@@ -56,7 +56,7 @@ const TABS: TabDef[] = [
   { key: "calls",     label: "Calls",           tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
   { key: "replies",   label: "Replies",         tooltip: "Email replies, callbacks, voicemails. Triage what they said and pick the next step." },
   { key: "meetings",  label: "Meetings",        tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
-  { key: "partners",  label: "Active Partners", tooltip: "Stakeholders sharing with students. Mostly automated seasonal emails." },
+  { key: "partners",  label: "Partners",        tooltip: "Stakeholders sharing with students. Click Engage to work pending partner tasks (job board posting, materials, follow-ups)." },
   { key: "archive",   label: "Archive",         tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Replies if they reply or call back later." },
   { key: "all",       label: "All",             tooltip: "Search and filter every stakeholder across all stages." },
 ];
@@ -549,7 +549,7 @@ function EmptyState({
     calls: "No phone calls due. 🎉",
     replies: "No inbox triage right now. The cadence is humming along.",
     meetings: "No meetings in flight or booked.",
-    partners: "No active partners yet. Mark a stakeholder as Active Partner when they commit to sharing.",
+    partners: "No partners yet. Mark a stakeholder as Partner when they commit to sharing.",
     archive: "Archive is empty — no stale or no-response outreach yet.",
     all: "No matches.",
   };
@@ -1073,10 +1073,14 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
 }
 
 function partnersSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // No "Active Partner" pill — the tab name carries the meaning. Just the
-  // Next: … pill (when there's an upcoming task). Already-active partners
-  // skip Make Partner in the overflow but keep Stop Outreach (for the
-  // rare close-out case).
+  // v8.10.20: universal "Engage" CTA on every partner card. Click →
+  // opens the drawer where ongoing partner-management lives (job board
+  // task section, seasonal email schedule, history, contacts). Single
+  // mental model: "These people already support the program. Engage =
+  // maintain and activate the relationship."
+  // Pill is the "Next: <task>" descriptor when there's an upcoming
+  // automated action; otherwise no pill (tab name carries meaning).
+  // Make Partner is excluded from overflow — they already are one.
   return {
     footnote: row.last_activity_at ? (
       <p className="mt-0.5 text-[11px] text-gray-400">
@@ -1088,6 +1092,14 @@ function partnersSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         {row.next_step_label}
       </Pill>
     ) : undefined,
+    cta: (
+      <PrimaryAction
+        onClick={cb.onOpenDrawer}
+        title="Open the drawer to work pending partner tasks (job board posting, materials, follow-ups)."
+      >
+        Engage
+      </PrimaryAction>
+    ),
     overflowMenu: buildUniversalOverflow(cb, { excludeMakePartner: true }),
   };
 }

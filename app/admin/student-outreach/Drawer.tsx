@@ -6,7 +6,7 @@
  * Core principle: at every moment the admin should know exactly what
  * to do next. The "Next Step" panel at the top is the single source of
  * truth — primary CTA + cadence checklist + the always-visible
- * "Mark as Active Partner" graduation button (from `engaged` onward).
+ * "Mark as Partner" graduation button (from `engaged` onward).
  *
  * Sections are also stakeholder-type-aware: orgs see multi-officer +
  * IG/contact-form actions, advisors see a single contact and no
@@ -448,7 +448,7 @@ function NextStepPanel({
               onClick={() => setShowPartner(true)}
               className="w-full rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
             >
-              Mark as Active Partner ★
+              Mark as Partner ★
             </button>
             <p className="mt-1.5 text-center text-[11px] text-emerald-900/80">
               Click when you&apos;re confident they&apos;ve committed to sharing with students.
@@ -616,7 +616,7 @@ function StageGuidance({
         <Guidance>
           <strong>Meeting is on the calendar.</strong>
           {ctx.meeting_at && <> It&apos;s scheduled for {new Date(ctx.meeting_at).toLocaleString()}.</>}
-          {" "}After the meeting, click <em>Mark as Active Partner</em> if they committed, or use <em>Log meeting outcome</em> below if they need a follow-up email first.
+          {" "}After the meeting, click <em>Mark as Partner</em> if they committed, or use <em>Log meeting outcome</em> below if they need a follow-up email first.
         </Guidance>
       );
     } else if (hasOverdueCall) {
@@ -632,7 +632,7 @@ function StageGuidance({
       banner = (
         <>
           <Guidance>
-            <strong>Met — needs a follow-up.</strong> The meeting happened and they want time to think. Send a follow-up email through Gmail to keep the conversation alive. Once they commit, click <em>Mark as Active Partner</em>.
+            <strong>Met — needs a follow-up.</strong> The meeting happened and they want time to think. Send a follow-up email through Gmail to keep the conversation alive. Once they commit, click <em>Mark as Partner</em>.
           </Guidance>
           {ctx.followup_notes && (
             <p className="rounded-md bg-gray-50 px-3 py-2 text-xs italic text-gray-700">
@@ -653,7 +653,7 @@ function StageGuidance({
     } else if (r === "engaged") {
       banner = (
         <Guidance>
-          <strong>They replied.</strong> Open the email in Gmail to see what they said. Then close this drawer and click <em>Open reply</em> on the row to record the next step. If they&apos;ve already committed, click <em>Mark as Active Partner</em> below.
+          <strong>They replied.</strong> Open the email in Gmail to see what they said. Then close this drawer and click <em>Open reply</em> on the row to record the next step. If they&apos;ve already committed, click <em>Mark as Partner</em> below.
         </Guidance>
       );
     } else if (r === "stale") {
@@ -676,7 +676,7 @@ function StageGuidance({
     const seasonal = ctx.pending_tasks.find((t) => t.task_type === "outreach_email_send");
     return (
       <Guidance>
-        <strong>Active Partner.</strong>{" "}
+        <strong>Partner.</strong>{" "}
         {seasonal
           ? `Next seasonal email auto-sends ${new Date(seasonal.due_at).toLocaleDateString()}.`
           : "Seasonal emails are queued automatically — no action needed."}

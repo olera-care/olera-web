@@ -76,7 +76,7 @@ const REACHED_THEM: Outcome[] = [
   },
   {
     key: "convert_to_partner",
-    label: "Convert to Active Partner ★",
+    label: "Convert to Partner ★",
     blurb: "They committed to sharing with students — opens the partner-evidence step next.",
   },
   {

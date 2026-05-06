@@ -119,7 +119,7 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
 
     case "distribution_confirmed": {
       const ev = p.evidence ? ` — evidence: ${p.evidence}` : "";
-      text = `Marked as Active Partner${ev}`;
+      text = `Marked as Partner${ev}`;
       break;
     }
 

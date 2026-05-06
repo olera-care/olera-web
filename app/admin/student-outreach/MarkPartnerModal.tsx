@@ -39,7 +39,7 @@ export function MarkPartnerModal({ organizationName, onCancel, onConfirm }: Prop
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl">
         <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">Mark as Active Partner</h3>
+          <h3 className="text-base font-semibold text-gray-900">Mark as Partner</h3>
           <p className="mt-0.5 text-xs text-gray-500">
             Graduating <strong>{organizationName}</strong>. We'll log the evidence and queue the
             first seasonal check-in.
@@ -103,7 +103,7 @@ export function MarkPartnerModal({ organizationName, onCancel, onConfirm }: Prop
             disabled={submitting}
             className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            {submitting ? "Saving…" : "Mark as Active Partner"}
+            {submitting ? "Saving…" : "Mark as Partner"}
           </button>
         </footer>
       </div>

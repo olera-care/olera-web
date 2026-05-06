@@ -46,6 +46,7 @@ export default function InlineAnswerCard({
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const expandTrackedRef = useRef(false);
+  const loggedInCollapseScheduledRef = useRef(false);
 
   // Extract first name - handle names starting with (Test) or similar prefixes
   // Also strip trailing 's (possessive) so "Effy's Homecare" becomes "Effy" not "Effy's"
@@ -56,7 +57,7 @@ export default function InlineAnswerCard({
   // Build contextual label: "Typical for home care in Texas"
   // Strip parentheticals like "(Non-medical)" for cleaner display
   const rawCareType = providerCareTypes?.[0]?.toLowerCase() || "care";
-  const careType = rawCareType.replace(/\s*\([^)]*\)/g, "").trim();
+  const careType = rawCareType.replace(/\s*\([^)]*\)/g, "").trim() || "care";
   const location = providerLocation?.split(",")[0]?.trim() || null;
   const contextLabel = location
     ? `Typical for ${careType} in ${location}`
@@ -117,6 +118,19 @@ export default function InlineAnswerCard({
       return () => clearTimeout(timer);
     }
   }, [isSuccess, showSuccess, onCollapse]);
+
+  // Auto-collapse for logged-in users after they've seen the confirmation
+  // They don't need to submit email, so we collapse after a delay
+  // Use ref to schedule once — QASectionV2 resets questionSent after 3s which would
+  // otherwise clear the timer via effect cleanup
+  useEffect(() => {
+    if (isLoggedIn && mounted && questionSent && !loggedInCollapseScheduledRef.current) {
+      loggedInCollapseScheduledRef.current = true;
+      setTimeout(() => {
+        onCollapse();
+      }, 5000);
+    }
+  }, [isLoggedIn, mounted, questionSent, onCollapse]);
 
   const handleSubmit = async () => {
     setError("");
@@ -303,7 +317,7 @@ export default function InlineAnswerCard({
                     We&apos;ll notify you when {firstName} replies
                   </p>
                   <p className="text-[13px] text-gray-500 mt-0.5">
-                    Your question has been sent
+                    Check your email for their response
                   </p>
                 </div>
               </div>

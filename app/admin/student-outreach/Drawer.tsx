@@ -279,9 +279,6 @@ function ResearchModePanel({
   const type = ctx.outreach.stakeholder_type;
   const [showPreFlight, setShowPreFlight] = useState(false);
 
-  const handleErr = (p: Promise<unknown>) =>
-    p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
-
   // Readiness gating per stage.
   const haveContact = ctx.contacts.some((c) => c.status === "active");
   const havePrograms = ctx.outreach.programs.length > 0;
@@ -319,8 +316,20 @@ function ResearchModePanel({
       ? "Start email sequence →"
       : "Add a contact with email to continue";
 
+  // v8.10.5: prospect's CTA chains mark_research_complete with opening
+  // PreFlight. Removes the previous "two clicks to schedule" friction
+  // — admin transitions to researched AND lands on the email-review
+  // modal in one action. ctx re-renders to the researched-stage label
+  // behind the modal, but admin doesn't have to click again.
   const onCtaClick = isProspect
-    ? () => handleErr(action("mark_research_complete"))
+    ? async () => {
+        try {
+          await action("mark_research_complete");
+          setShowPreFlight(true);
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Action failed");
+        }
+      }
     : () => setShowPreFlight(true);
 
   const cta = (

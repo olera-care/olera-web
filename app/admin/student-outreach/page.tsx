@@ -201,11 +201,19 @@ export default function StudentOutreachPage() {
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Student Outreach</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Bring in pre-health students by working with campus advisors, dept heads, and student
-            orgs. Tabs match what you do each day.
+            Reach pre-health students through campus advisors, dept heads, and student orgs.
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
+          <a
+            href="https://mail.google.com/mail/u/0/#inbox"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open Gmail in a new tab to triage replies, callbacks, and voicemails."
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Open Gmail ↗
+          </a>
           <Link
             href="/admin/student-outreach/campuses"
             title="Browse and manage campuses (universities)."
@@ -294,8 +302,10 @@ export default function StudentOutreachPage() {
         })}
       </div>
 
-      {/* v8: top banners for tabs that anchor on inbox/calendar */}
-      {tab === "replies" && <RepliesTabBanner />}
+      {/* v8: top banners for tabs that anchor on inbox/calendar.
+          v8.10.5: replies-tab banner removed — Open Gmail is now the
+          top-right header button next to Campuses, available from
+          every tab. */}
       {tab === "meetings" && <MeetingsTabBanner />}
       {tab === "calls" && <CallsTabBanner />}
 
@@ -502,17 +512,6 @@ function BannerLink({ href, children }: { href: string; children: ReactNode }) {
     >
       {children}
     </a>
-  );
-}
-
-function RepliesTabBanner() {
-  return (
-    <BannerBar>
-      <span className="text-sm font-medium text-gray-800">
-        Inbox triage. Check Gmail for replies, callbacks, and voicemails.
-      </span>
-      <BannerLink href="https://mail.google.com/mail/u/0/#inbox">Open Gmail ↗</BannerLink>
-    </BannerBar>
   );
 }
 

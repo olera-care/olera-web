@@ -704,9 +704,17 @@ export default function MultiProviderCard({
                   </p>
                 )}
 
-                {/* Trust Line */}
+                {/* Trust Line + Save Option */}
                 <p className="text-[13px] text-gray-500 mt-4 leading-relaxed">
                   {totalSentCount === 1 ? "One email. No calls." : `${totalSentCount} emails. No calls.`}
+                  {" "}Or{" "}
+                  <button
+                    type="button"
+                    onClick={handleSaveAll}
+                    className="font-medium text-primary-600 hover:text-primary-700 underline underline-offset-2"
+                  >
+                    save {totalSentCount === 1 ? "for later" : `all ${totalSentCount} for later`}
+                  </button>.
                 </p>
               </>
             )}

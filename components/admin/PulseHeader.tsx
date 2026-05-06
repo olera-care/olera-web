@@ -6,11 +6,22 @@ import DateRangePopover, { resolveRange } from "./DateRangePopover";
 
 type Bucket = "hour" | "day" | "week" | "month";
 
+interface SeriesGroup {
+  name: string;
+  color: string;
+  series: { date: string; count: number }[];
+}
+
 interface Stats {
   total: number;
   delta: number | null;
   series: { date: string; count: number }[];
   bucket: Bucket;
+  /** v8.10.41: multi-series breakdown for funnel views. When present,
+   *  the chart renders one colored line per group (with a small legend
+   *  below) instead of the single-area default. The single `series`
+   *  field is ignored when `breakdown` is set. */
+  breakdown?: SeriesGroup[];
 }
 
 /**
@@ -25,12 +36,17 @@ export default function PulseHeader({
   statsPath,
   range,
   onRangeChange,
+  actions,
 }: {
   title: string;
   kpiSuffix: string;
   statsPath: string;
   range: DateRangeValue;
   onRangeChange: (next: DateRangeValue) => void;
+  /** Optional inline actions rendered between the title and the date
+   *  picker. Used for page-level CTAs like "Add Stakeholder" or
+   *  "Open Gmail" without adding a competing top-right block. */
+  actions?: React.ReactNode;
 }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,7 +58,18 @@ export default function PulseHeader({
     const params = new URLSearchParams();
     if (from) params.set("date_from", from);
     if (to) params.set("date_to", to);
-    fetch(`${statsPath}?${params}`)
+    // v8.10.46: statsPath may already include a `?metric=…&campus=…`
+    // query string (per-tab metric was introduced in v8.10.38). Append
+    // the date params with `&` in that case — naively concatenating
+    // `?` produced a malformed URL where the second `?` got swallowed
+    // into the previous param's value, the server returned 400, and
+    // every per-tab chart silently rendered empty. URL.searchParams
+    // would be cleaner long-term, but it requires absolute URLs which
+    // varies across server/client contexts; this delimiter check is
+    // the smallest safe fix.
+    const sep = statsPath.includes("?") ? "&" : "?";
+    const url = params.toString().length > 0 ? `${statsPath}${sep}${params}` : statsPath;
+    fetch(url)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!cancelled) setStats(data);
@@ -60,22 +87,45 @@ export default function PulseHeader({
 
   return (
     <div className="mb-8">
+      {/* v8.10.10: title row only carries page-level controls (title +
+          optional actions like Add Stakeholder). The date picker moved
+          into the stats card below — it controls the data shown there,
+          so it belongs with the data, not with the page actions. */}
       <div className="flex items-center justify-between gap-4 mb-5">
         <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">{title}</h1>
-        <DateRangePopover value={range} onChange={onRangeChange} />
+        {actions && (
+          <div className="flex shrink-0 items-center gap-3">
+            {actions}
+          </div>
+        )}
       </div>
 
       <div className="rounded-2xl border border-gray-100 bg-white px-6 pt-6 pb-5">
-        <div className="flex items-baseline gap-2.5">
-          <span className="text-[44px] font-semibold text-gray-900 tracking-tight tabular-nums leading-none">
-            {stats ? stats.total.toLocaleString() : "—"}
-          </span>
-          <span className="text-sm text-gray-500">{kpiSuffix}</span>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="flex items-baseline gap-2.5">
+              <span className="text-[44px] font-semibold text-gray-900 tracking-tight tabular-nums leading-none">
+                {stats ? stats.total.toLocaleString() : "—"}
+              </span>
+              <span className="text-sm text-gray-500">{kpiSuffix}</span>
+            </div>
+            <DeltaLine stats={stats} range={range} />
+          </div>
+          <div className="shrink-0">
+            <DateRangePopover value={range} onChange={onRangeChange} />
+          </div>
         </div>
-        <DeltaLine stats={stats} range={range} />
 
         <div className="mt-6">
-          <Chart series={stats?.series ?? []} bucket={stats?.bucket ?? "day"} loading={loading} />
+          {stats?.breakdown && stats.breakdown.length > 0 ? (
+            <MultiChart
+              groups={stats.breakdown}
+              bucket={stats.bucket}
+              loading={loading}
+            />
+          ) : (
+            <Chart series={stats?.series ?? []} bucket={stats?.bucket ?? "day"} loading={loading} />
+          )}
         </div>
       </div>
     </div>
@@ -339,6 +389,226 @@ function formatBucketDate(iso: string, bucket: Bucket, verbose = false): string 
     return `${startLabel} – ${endLabel}`;
   }
   return d.toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+}
+
+/**
+ * v8.10.41: multi-line chart for the All-tab funnel view. Renders one
+ * colored line per series group on a shared X axis + Y axis (with the
+ * Y max scaled to the global peak across groups). Legend shows the
+ * group name + last-bucket count. Hover reveals all values at the
+ * crosshair so admin can read the funnel shape (signups → prospects
+ * → replies → meetings → partners) at any point in time.
+ */
+function MultiChart({
+  groups,
+  bucket,
+  loading,
+}: {
+  groups: SeriesGroup[];
+  bucket: Bucket;
+  loading: boolean;
+}) {
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const [width, setWidth] = useState(0);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!container) return;
+    setWidth(container.offsetWidth);
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width;
+      if (w && w > 0) setWidth(Math.round(w));
+    });
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [container]);
+
+  // Use the first group's series as the bucket grid; all groups share it.
+  const bucketDates = groups[0]?.series.map((s) => s.date) ?? [];
+  const realMax = groups.reduce(
+    (m, g) => g.series.reduce((mm, s) => Math.max(mm, s.count), m),
+    0,
+  );
+  const scaleMax = Math.max(1, niceCeiling(realMax));
+  const innerH = CHART_HEIGHT - CHART_PAD_TOP - CHART_PAD_BOTTOM;
+  const n = bucketDates.length;
+
+  const groupPaths = useMemo(() => {
+    if (n === 0 || !width) return [] as Array<{ name: string; color: string; linePath: string; points: { x: number; y: number }[] }>;
+    return groups.map((g) => {
+      const points = g.series.map((p, i) => {
+        const x = n === 1 ? width / 2 : (i / (n - 1)) * width;
+        const ratio = Math.min(1, p.count / scaleMax);
+        const y = CHART_PAD_TOP + innerH - ratio * innerH;
+        return { x, y };
+      });
+      let d = "";
+      if (points.length > 0) {
+        d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+        for (let i = 1; i < points.length; i++) {
+          d += ` L ${points[i].x.toFixed(2)} ${points[i].y.toFixed(2)}`;
+        }
+      }
+      return { name: g.name, color: g.color, linePath: d, points };
+    });
+  }, [groups, n, width, scaleMax, innerH]);
+
+  const hasData = n > 0 && realMax > 0;
+  const showSkeleton = loading && n === 0;
+  const showChart = hasData && width > 0;
+
+  const handleMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!container || !hasData) return;
+    const rect = container.getBoundingClientRect();
+    const relX = e.clientX - rect.left;
+    const frac = Math.max(0, Math.min(1, relX / rect.width));
+    const idx = Math.round(frac * (n - 1));
+    setHoverIndex(idx);
+  };
+
+  const TOOLTIP_W = 168;
+  const hoverX = hoverIndex !== null && groupPaths[0]?.points[hoverIndex]?.x;
+  const tooltipLeft =
+    typeof hoverX === "number"
+      ? Math.max(4, Math.min(width - TOOLTIP_W - 4, hoverX - TOOLTIP_W / 2))
+      : 0;
+
+  const firstLabel = hasData ? formatBucketDate(bucketDates[0], bucket) : "";
+  const lastLabel = hasData ? formatBucketDate(bucketDates[n - 1], bucket) : "";
+  const showLabels = hasData && n > 1;
+
+  return (
+    <div>
+      <div
+        ref={setContainer}
+        className={`relative w-full ${hasData ? "cursor-crosshair" : ""}`}
+        style={{ height: CHART_HEIGHT }}
+        onMouseMove={hasData ? handleMove : undefined}
+        onMouseLeave={() => setHoverIndex(null)}
+      >
+        {showSkeleton && (
+          <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
+        )}
+        {!showSkeleton && !hasData && (
+          <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-300">
+            No activity in this range
+          </div>
+        )}
+        {showChart && (
+          <>
+            <svg width={width} height={CHART_HEIGHT} className="absolute inset-0 block" aria-hidden="true">
+              <line
+                x1={0}
+                x2={width}
+                y1={CHART_PAD_TOP}
+                y2={CHART_PAD_TOP}
+                stroke="#e5e7eb"
+                strokeWidth={1}
+                strokeDasharray="3 3"
+              />
+              {groupPaths.map((g) => (
+                <path
+                  key={g.name}
+                  d={g.linePath}
+                  fill="none"
+                  stroke={g.color}
+                  strokeWidth={1.75}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              ))}
+              {hoverIndex !== null && typeof hoverX === "number" && (
+                <line
+                  x1={hoverX}
+                  x2={hoverX}
+                  y1={0}
+                  y2={CHART_HEIGHT}
+                  stroke="#111827"
+                  strokeOpacity={0.08}
+                  strokeWidth={1}
+                />
+              )}
+              {hoverIndex !== null &&
+                groupPaths.map((g) =>
+                  g.points[hoverIndex] ? (
+                    <circle
+                      key={`${g.name}-dot`}
+                      cx={g.points[hoverIndex].x}
+                      cy={g.points[hoverIndex].y}
+                      r={3.5}
+                      fill="#ffffff"
+                      stroke={g.color}
+                      strokeWidth={2}
+                    />
+                  ) : null,
+                )}
+            </svg>
+            <div
+              className="absolute left-0 text-[11px] font-medium text-gray-500 tabular-nums pointer-events-none"
+              style={{ top: Math.max(0, CHART_PAD_TOP - 18) }}
+            >
+              {scaleMax.toLocaleString()}
+            </div>
+          </>
+        )}
+        {showChart && hoverIndex !== null && (
+          <div
+            className="absolute pointer-events-none z-10 bg-gray-900 text-white rounded-lg px-2.5 py-1.5 shadow-lg"
+            style={{
+              left: tooltipLeft,
+              top: 4,
+              width: TOOLTIP_W,
+            }}
+          >
+            <div className="text-[10px] font-medium text-gray-300 leading-tight mb-1">
+              {formatBucketDate(bucketDates[hoverIndex], bucket, true)}
+            </div>
+            {groups.map((g) => (
+              <div key={g.name} className="flex items-center justify-between gap-2 text-[11px] leading-tight">
+                <span className="flex items-center gap-1.5">
+                  <span
+                    className="inline-block h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: g.color }}
+                  />
+                  {g.name}
+                </span>
+                <span className="font-semibold tabular-nums">
+                  {(g.series[hoverIndex]?.count ?? 0).toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {showLabels && (
+        <div className="flex justify-between mt-2 text-[11px] text-gray-400 tabular-nums">
+          <span>{firstLabel}</span>
+          <span>{lastLabel}</span>
+        </div>
+      )}
+
+      {hasData && (
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-gray-500">
+          {groups.map((g) => {
+            const total = g.series.reduce((s, p) => s + p.count, 0);
+            return (
+              <span key={g.name} className="inline-flex items-center gap-1.5">
+                <span
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{ backgroundColor: g.color }}
+                />
+                <span className="font-medium text-gray-700">{g.name}</span>
+                <span className="tabular-nums text-gray-400">
+                  {total.toLocaleString()}
+                </span>
+              </span>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /**

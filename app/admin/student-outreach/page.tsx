@@ -750,19 +750,14 @@ function StakeholderCard({
             {row.primary_contact_role && ` · ${row.primary_contact_role}`}
           </p>
           {footnote}
-          {/* Pill (status) sits below the footnote — matches the
-              v8.10.12 spec: status tag stacked under the last-activity
-              line, not competing with the CTA on the right. */}
-          {(pill || row.has_pending_job_board_task) && (
+          {/* v8.10.12: status pill stacks under the last-activity line.
+              v8.10.35: dropped the row-level "Task board: post pending"
+              pill — it was internal jargon that didn't change what the
+              admin should do next. The pending job-board task still
+              surfaces inside the drawer's Task Board where it has the
+              right operational context (full headline + Mark posted CTA). */}
+          {pill && (
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              {row.has_pending_job_board_task && (
-                <span
-                  title="Pending: post Olera's listing to the campus task board."
-                  className="shrink-0 rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-900"
-                >
-                  Task board: post pending
-                </span>
-              )}
               {pill}
             </div>
           )}
@@ -1190,12 +1185,14 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
 
 function partnersSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   // v8.10.20: universal "Engage" CTA on every partner card. Click →
-  // opens the drawer where ongoing partner-management lives (job board
-  // task section, seasonal email schedule, history, contacts). Single
-  // mental model: "These people already support the program. Engage =
-  // maintain and activate the relationship."
-  // Pill is the "Next: <task>" descriptor when there's an upcoming
-  // automated action; otherwise no pill (tab name carries meaning).
+  // opens the drawer where ongoing partner-management lives (task
+  // board, seasonal email schedule, history, contacts).
+  // v8.10.35: dropped the "Next: share update" / "Next: Pre-Fall email"
+  // pill. The label was abstract operational jargon; admin's MVP
+  // workflow doesn't depend on knowing which scheduled task fires
+  // next — just that the partner is active. Identity + last activity
+  // + Engage CTA carries the card. Internal scheduled tasks still
+  // surface inside the drawer's Task Board.
   // Make Partner is excluded from overflow — they already are one.
   return {
     footnote: row.last_activity_at ? (
@@ -1203,11 +1200,6 @@ function partnersSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Last activity {formatRelative(row.last_activity_at)}
       </p>
     ) : null,
-    pill: row.next_step_label ? (
-      <Pill title="Earliest scheduled action for this partner.">
-        {row.next_step_label}
-      </Pill>
-    ) : undefined,
     cta: (
       <PrimaryAction
         onClick={cb.onOpenDrawer}

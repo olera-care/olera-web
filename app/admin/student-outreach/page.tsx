@@ -987,6 +987,11 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         overflowMenu: buildUniversalOverflow(cb),
       };
     case "needs_followup":
+      // v8.10.17: unified CTA across every Needs Attention state.
+      // "Log reply" opens ReplyClassifierModal — same workflow as the
+      // engaged + wants_meeting cards. Admin sends their custom
+      // follow-up email through Gmail manually, then logs the reply
+      // when it lands.
       return {
         // followup notes quote stays — informational context, not a nudge.
         footnote: row.followup_notes ? (
@@ -996,7 +1001,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
           </p>
         ) : lastActivityFootnote,
         pill: <Pill>Met — needs follow-up</Pill>,
-        cta: <PrimaryAction onClick={cb.onSendFollowupEmail}>Send follow-up</PrimaryAction>,
+        cta: <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>,
         overflowMenu: buildUniversalOverflow(cb),
       };
     case "awaiting_callback":

@@ -29,6 +29,13 @@ interface Props {
   organizationName: string;
   contactName: string | null;
   contactPhone: string | null;
+  /**
+   * v9.0 Phase 2 Tier 3.6: row kind. When 'provider', the
+   * "Convert to Partner ★" outcome is hidden — providers convert
+   * to Clients via the T&C/Stripe signal, not via admin click.
+   * Defaults to stakeholder.
+   */
+  rowKind?: "provider" | "stakeholder";
   onCancel: () => void;
   /**
    * Called for outcomes that resolve in one shot (no answer / voicemail /
@@ -95,10 +102,20 @@ export function LogCallOutcomeModal({
   organizationName,
   contactName,
   contactPhone,
+  rowKind = "stakeholder",
   onCancel,
   onSubmit,
   onChooseConvert,
 }: Props) {
+  // v9.0 Phase 2 Tier 3.6: filter out the convert-to-partner outcome
+  // for provider rows. The rest of the call outcomes apply to both
+  // kinds — admin still records no_answer / voicemail / connected /
+  // promised_callback / connected_not_interested / wrong_number for
+  // a provider call the same way.
+  const reachedThemFiltered =
+    rowKind === "provider"
+      ? REACHED_THEM.filter((o) => o.key !== "convert_to_partner")
+      : REACHED_THEM;
   const [outcome, setOutcome] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -157,7 +174,7 @@ export function LogCallOutcomeModal({
           />
           <OutcomeGroup
             title="Reached them"
-            outcomes={REACHED_THEM}
+            outcomes={reachedThemFiltered}
             selected={outcome}
             onSelect={setOutcome}
           />

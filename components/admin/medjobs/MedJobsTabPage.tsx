@@ -628,6 +628,7 @@ export function MedJobsTabPage({
           organizationName={callOutcomeRow.organization_name}
           contactName={callOutcomeRow.primary_contact_name}
           contactPhone={callOutcomeRow.primary_contact_phone}
+          rowKind={callOutcomeRow.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setCallOutcomeRow(null)}
           onSubmit={async (outcome, notes) => {
             await callAction(callOutcomeRow.id, "log_call", { outcome, notes });
@@ -652,6 +653,7 @@ export function MedJobsTabPage({
         <ReplyClassifierModal
           organizationName={classifierRow.row.organization_name}
           source={classifierRow.source}
+          rowKind={classifierRow.row.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setClassifierRow(null)}
           onSubmit={async (classification, payload) => {
             await callAction(classifierRow.row.id, "classify_reply", {

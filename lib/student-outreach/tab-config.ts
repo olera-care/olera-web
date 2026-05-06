@@ -79,12 +79,11 @@ export const MENU_TABS: TabDef[] = [
 // metric (drives the time series fetched from /stats) and a label
 // (drives the kpiSuffix shown in the header).
 export const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
-  // v9.0 Phase 1: clients + campuses are scaffolded with the existing
-  // 'activity' metric so the chart renders something during the
-  // placeholder period. Phase 2 will introduce real metrics
-  // ('clients_active', 'campuses_active') and back-end queries.
-  clients:     { metric: "activity",         label: "client events"        },
-  campuses:    { metric: "activity",         label: "campus events"        },
+  // v9.0 Phase 2 Tier 3.6: real time-series metrics now wired in
+  // /stats. clients = T&C-acceptance timestamps; campuses = creation
+  // timestamps.
+  clients:     { metric: "clients",          label: "new clients"          },
+  campuses:    { metric: "campuses",         label: "campuses assigned"    },
   // v8.10.42: Candidates ⊂ Signups. Candidates = LIVE provider-facing
   // student profiles (is_active + application_completed). Signups =
   // every student in the funnel (broader acquisition volume).

@@ -34,6 +34,13 @@ interface Props {
   organizationName: string;
   /** Banner copy varies between email-reply and got-callback contexts. */
   source: "email_reply" | "callback";
+  /**
+   * v9.0 Phase 2 Tier 3.6: row kind. When 'provider', the "They're
+   * sharing with students" outcome (which graduates a stakeholder to
+   * Partner) is hidden — providers convert to Clients via T&C/Stripe
+   * signal, not via admin classification. Defaults to stakeholder.
+   */
+  rowKind?: "provider" | "stakeholder";
   onCancel: () => void;
   /**
    * Called for keep_emailing | wants_meeting | already_booked |
@@ -51,10 +58,12 @@ interface Props {
 export function ReplyClassifierModal({
   organizationName,
   source,
+  rowKind = "stakeholder",
   onCancel,
   onSubmit,
   onChooseCommitted,
 }: Props) {
+  const isProvider = rowKind === "provider";
   const [choice, setChoice] = useState<ReplyClassification | null>(null);
   const [notes, setNotes] = useState("");
   const [meetingAt, setMeetingAt] = useState("");
@@ -142,13 +151,15 @@ export function ReplyClassifierModal({
               blurb="Calendly auto-booked it, or you already added it to your calendar. Row moves to Meetings."
               tone="ok"
             />
-            <ChoiceCard
-              active={choice === "committed"}
-              onSelect={() => setChoice("committed")}
-              label="They're sharing with students"
-              blurb="They committed. Row becomes a Partner; we'll capture evidence and queue seasonal check-ins."
-              tone="ok"
-            />
+            {!isProvider && (
+              <ChoiceCard
+                active={choice === "committed"}
+                onSelect={() => setChoice("committed")}
+                label="They're sharing with students"
+                blurb="They committed. Row becomes a Partner; we'll capture evidence and queue seasonal check-ins."
+                tone="ok"
+              />
+            )}
             <ChoiceCard
               active={choice === "not_interested"}
               onSelect={() => setChoice("not_interested")}

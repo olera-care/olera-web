@@ -19,6 +19,8 @@ import { MarkPartnerModal } from "./MarkPartnerModal";
 import { AddStakeholderTaskModal } from "./AddStakeholderTaskModal";
 import { OutreachStepList } from "./OutreachStepList";
 import { PreFlightReviewModal } from "./PreFlightReviewModal";
+import { ReplyClassifierModal } from "./ReplyClassifierModal";
+import { LogMeetingModal } from "./LogMeetingModal";
 import {
   PARTNER_CTA_STAGES,
   STAKEHOLDER_TYPE_LABELS,
@@ -407,10 +409,27 @@ function NextStepPanel({
   const type = ctx.outreach.stakeholder_type;
   const [showPreFlight, setShowPreFlight] = useState(false);
   const [showPartner, setShowPartner] = useState(false);
-  const [showFollowup, setShowFollowup] = useState(false);
+  const [showLogReply, setShowLogReply] = useState(false);
+  const [showLogMeeting, setShowLogMeeting] = useState(false);
 
   const partnerCtaVisible = PARTNER_CTA_STAGES.includes(status);
-  const hasActiveScheduledMeeting = ctx.meeting_state === "scheduled";
+
+  // v8.10.30: meeting modal pre-fills from the row's current state, just
+  // like the page-level Meetings-tab modal does.
+  const meetingInitialStatus =
+    ctx.meeting_state === "scheduled" ? "booked" : "finding_time";
+  const meetingInitialAt = ctx.meeting_at ? ctx.meeting_at.slice(0, 16) : undefined;
+
+  const primaryContactDisplay = (() => {
+    const c =
+      ctx.contacts.find((x) => x.status === "active") ?? ctx.contacts[0] ?? null;
+    if (!c) return null;
+    return (
+      [c.title, c.first_name, c.last_name].filter(Boolean).join(" ").trim() ||
+      c.name ||
+      null
+    );
+  })();
 
   return (
     <section>
@@ -423,36 +442,26 @@ function NextStepPanel({
             ctx={ctx}
             onSchedulePreFlight={() => setShowPreFlight(true)}
             onOpenPartnerModal={() => setShowPartner(true)}
+            onLogReply={() => setShowLogReply(true)}
+            onLogMeeting={() => setShowLogMeeting(true)}
             action={action}
             setError={setError}
           />
         </div>
 
-        {/* v8.10.29: post-meeting "needs follow-up" + Mark as Partner are
-            now secondary actions — the StateCard above carries the primary
-            CTA that matches the row's current state. These stay visible
-            so the admin can always log a follow-up or graduate when ready,
-            but they no longer compete with the state-specific action. */}
-        {(hasActiveScheduledMeeting || partnerCtaVisible) && (
+        {/* v8.10.30: Mark as Partner remains as a secondary outline button
+            so the admin can graduate the row from any active stage without
+            funneling through Log reply → committed. The StateCard above
+            carries the unified primary CTA that matches the row's tab. */}
+        {partnerCtaVisible && (
           <div className="flex flex-wrap gap-2 border-t border-gray-100 bg-gray-50/60 px-4 py-3">
-            {hasActiveScheduledMeeting && (
-              <button
-                onClick={() => setShowFollowup(true)}
-                title="Meeting happened but they need follow-up before they commit. Notes show on the row in Replies."
-                className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Log meeting — needs follow-up
-              </button>
-            )}
-            {partnerCtaVisible && (
-              <button
-                onClick={() => setShowPartner(true)}
-                title="Click when you're confident they've committed to sharing with students."
-                className="rounded-md border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
-              >
-                Mark as Partner ★
-              </button>
-            )}
+            <button
+              onClick={() => setShowPartner(true)}
+              title="Click when you're confident they've committed to sharing with students."
+              className="rounded-md border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+            >
+              Mark as Partner ★
+            </button>
           </div>
         )}
       </div>
@@ -490,13 +499,55 @@ function NextStepPanel({
           }}
         />
       )}
-      {showFollowup && (
-        <FollowupNotesModal
-          onCancel={() => setShowFollowup(false)}
-          onConfirm={async (notes) => {
+      {showLogReply && (
+        <ReplyClassifierModal
+          organizationName={ctx.outreach.organization_name}
+          source="email_reply"
+          onCancel={() => setShowLogReply(false)}
+          onSubmit={async (classification, payload) => {
             try {
-              await action("mark_meeting_followup", { notes });
-              setShowFollowup(false);
+              await action("classify_reply", {
+                classification,
+                notes: payload.notes,
+                meeting_at: payload.meeting_at,
+              });
+              setShowLogReply(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+              throw e;
+            }
+          }}
+          onChooseCommitted={() => {
+            setShowLogReply(false);
+            setShowPartner(true);
+          }}
+        />
+      )}
+      {showLogMeeting && (
+        <LogMeetingModal
+          organizationName={ctx.outreach.organization_name}
+          contactName={primaryContactDisplay}
+          initialStatus={meetingInitialStatus}
+          initialMeetingAt={meetingInitialAt}
+          onCancel={() => setShowLogMeeting(false)}
+          onSubmit={async (mstatus, payload) => {
+            try {
+              if (mstatus === "booked") {
+                await action("mark_meeting_scheduled", {
+                  meeting_at: payload.meeting_at,
+                  notes: payload.notes,
+                });
+                setShowLogMeeting(false);
+              } else if (mstatus === "finding_time") {
+                await action("flag_wants_meeting", { notes: payload.notes });
+                setShowLogMeeting(false);
+              } else if (mstatus === "done_followup") {
+                await action("mark_meeting_followup", { notes: payload.notes });
+                setShowLogMeeting(false);
+              } else if (mstatus === "done_partner") {
+                setShowLogMeeting(false);
+                setShowPartner(true);
+              }
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
               throw e;
@@ -519,12 +570,16 @@ function StageGuidance({
   ctx,
   onSchedulePreFlight,
   onOpenPartnerModal,
+  onLogReply,
+  onLogMeeting,
   action,
   setError,
 }: {
   ctx: DrawerContext;
   onSchedulePreFlight: () => void;
   onOpenPartnerModal?: () => void;
+  onLogReply: () => void;
+  onLogMeeting: () => void;
   action: ActionFn;
   setError: (e: string | null) => void;
 }) {
@@ -610,20 +665,18 @@ function StageGuidance({
       (t) => t.task_type === "outreach_followup_call" && new Date(t.due_at).getTime() <= now,
     );
 
-    // v8.10.29: state-driven contextual cards. Each state gets a short
-    // 1-line subtext + a primary CTA that matches the actual next move
-    // (open Gmail, etc.). The universal "Mark as Partner ★" still
-    // anchors the bottom of NextStepPanel for graduation when ready.
-    const primaryEmail =
-      ctx.contacts.find((c) => c.status === "active" && c.email)?.email ??
-      ctx.contacts.find((c) => c.email)?.email ??
-      null;
-    const composeFollowup = (subjectPrefix: string) => {
-      const subject = encodeURIComponent(`${subjectPrefix} — ${ctx.outreach.organization_name}`);
-      const to = primaryEmail ? encodeURIComponent(primaryEmail) : "";
-      const url = `https://mail.google.com/mail/?view=cm&fs=1${to ? `&to=${to}` : ""}&su=${subject}`;
-      window.open(url, "_blank", "noopener,noreferrer");
-    };
+    // v8.10.30: drawer primary CTAs match the row-card vocabulary so
+    // admin uses the same verb whether they click on a row or open a
+    // drawer. Four labels total: Log reply, Log meeting, Start outreach,
+    // Engage. CTA is computed from the same derived state the queue
+    // uses to assign rows to tabs:
+    //   - Meeting in flight / scheduled / wants_meeting → "Log meeting"
+    //   - Reply states (engaged, needs_followup, awaiting_callback,
+    //     stale) → "Log reply"
+    //   - Mid-cadence with no signal → no CTA (cron is doing the work)
+    const isMeetingState = m === "scheduled" || m === "in_flight" || r === "wants_meeting";
+    const isReplyState =
+      r === "engaged" || r === "needs_followup" || r === "awaiting_callback" || r === "stale";
 
     let banner: React.ReactNode = null;
     if (m === "scheduled") {
@@ -635,6 +688,7 @@ function StageGuidance({
               ? `Set for ${new Date(ctx.meeting_at).toLocaleString()}.`
               : "After it happens, log how it went."
           }
+          primaryCta={{ label: "Log meeting", onClick: onLogMeeting }}
         />
       );
     } else if (hasOverdueCall) {
@@ -644,23 +698,17 @@ function StageGuidance({
       banner = (
         <StateCard
           title="They want to meet."
-          subtext="Send a few times over email."
-          primaryCta={{
-            label: "Open Gmail",
-            onClick: () => composeFollowup("Times to chat"),
-          }}
+          subtext="Send times over email, then log what was set."
+          primaryCta={{ label: "Log meeting", onClick: onLogMeeting }}
         />
       );
     } else if (r === "needs_followup") {
       banner = (
         <StateCard
           title="Met — needs follow-up."
-          subtext="Send a check-in email."
+          subtext="Send a check-in email, then log what they say."
           notes={ctx.followup_notes}
-          primaryCta={{
-            label: "Send follow-up email",
-            onClick: () => composeFollowup("Following up"),
-          }}
+          primaryCta={{ label: "Log reply", onClick: onLogReply }}
         />
       );
     } else if (r === "awaiting_callback") {
@@ -670,7 +718,8 @@ function StageGuidance({
       banner = (
         <StateCard
           title="Waiting on a call back."
-          subtext={`${kindText} The next call day will re-engage them.`}
+          subtext={`${kindText} If they call or write back, log it.`}
+          primaryCta={{ label: "Log reply", onClick: onLogReply }}
         />
       );
     } else if (r === "engaged") {
@@ -678,10 +727,7 @@ function StageGuidance({
         <StateCard
           title="They replied."
           subtext="Read it in Gmail, then log what they said."
-          primaryCta={{
-            label: "Open Gmail",
-            onClick: () => composeFollowup("Re"),
-          }}
+          primaryCta={{ label: "Log reply", onClick: onLogReply }}
         />
       );
     } else if (r === "stale") {
@@ -689,13 +735,12 @@ function StageGuidance({
         <StateCard
           title="Cadence stalled."
           subtext="Send a custom re-engage email, or close the row if it's not moving."
-          primaryCta={{
-            label: "Open Gmail",
-            onClick: () => composeFollowup("Quick check-in"),
-          }}
+          primaryCta={{ label: "Log reply", onClick: onLogReply }}
         />
       );
     }
+    void isMeetingState;
+    void isReplyState;
 
     return (
       <>
@@ -1880,75 +1925,9 @@ function DangerZone({
   );
 }
 
-// v8.10.11: TabContextBanner removed. Section h3 + per-state guidance
-// already convey orientation; the banner repeated the same information
-// one row above. ResearchModePanel and NextStepPanel are the single
-// source of "what's next" for their respective stages.
-
-function FollowupNotesModal({
-  onCancel,
-  onConfirm,
-}: {
-  onCancel: () => void;
-  onConfirm: (notes: string) => Promise<void>;
-}) {
-  const [notes, setNotes] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl">
-        <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">Needs follow-up — back to Replies</h3>
-          <p className="mt-0.5 text-xs text-gray-500">
-            Capture what was discussed so the team can run the follow-up email. The note shows on
-            the row in Replies.
-          </p>
-        </header>
-        <div className="px-6 py-4 space-y-2">
-          {err && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-gray-700">Meeting outcome notes *</span>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={5}
-              placeholder="e.g. Met with dean. Open to listserv access but needs to consult marketing first. Following up next week."
-              className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-            />
-          </label>
-        </div>
-        <footer className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
-          <button
-            onClick={onCancel}
-            disabled={submitting}
-            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={async () => {
-              if (!notes.trim()) return setErr("Add some notes so the team has context.");
-              setSubmitting(true);
-              setErr(null);
-              try {
-                await onConfirm(notes.trim());
-              } catch (e) {
-                setErr(e instanceof Error ? e.message : "Save failed");
-              } finally {
-                setSubmitting(false);
-              }
-            }}
-            disabled={submitting}
-            className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-          >
-            {submitting ? "Saving…" : "Send back to Replies"}
-          </button>
-        </footer>
-      </div>
-    </div>
-  );
-}
+// v8.10.30: FollowupNotesModal removed. The "needs follow-up" path is
+// now part of LogMeetingModal's done_followup outcome — admin uses the
+// unified Log meeting CTA both on the row card and inside the drawer.
 
 // ── UI primitives ──────────────────────────────────────────────────────
 

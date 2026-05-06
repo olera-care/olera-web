@@ -12,6 +12,7 @@ import {
 import { useAnimatedCount } from "@/hooks/use-animated-count";
 import VariantPreviewCard from "@/components/admin/VariantPreviewCard";
 import VariantSessionsList from "@/components/admin/VariantSessionsList";
+import CollapsibleSection, { bulkCollapse } from "@/components/admin/CollapsibleSection";
 import { INTAKE_VARIANTS, type IntakeVariant } from "@/lib/analytics/variant";
 import { variantSurfaceLabel, variantSubLabel } from "@/lib/analytics/variant-copy";
 
@@ -257,14 +258,95 @@ export default function AdminAnalyticsPage() {
 
       <InsightStrip insight={summary?.insight ?? null} loading={loading} />
 
-      <WindowedCard summary={summary} loading={loading} range={range} />
-      <QaFunnelCard summary={summary} loading={loading} range={range} />
-      <BenefitsFunnelCard summary={summary} loading={loading} range={range} />
-      <EntrySourceCard summary={summary} loading={loading} range={range} />
-      <TopProvidersCard summary={summary} loading={loading} />
-      <LatestEventsCard summary={summary} loading={loading} />
+      <BulkCollapseToolbar />
+
+      {/* WindowedCard's section title is the date range itself, matching the
+          existing in-card heading so the operator's mental anchor doesn't
+          change. */}
+      <CollapsibleSection
+        title={rangeLabel(range)}
+        storageKey="windowed"
+        defaultCollapsed={false}
+        loading={loading && !!summary}
+      >
+        <WindowedCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Provider Q&A Email Funnel"
+        storageKey="qaFunnel"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <QaFunnelCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      {/* Family Intake is the daily-driver experiment surface — open by
+          default. forceOpen ensures a ?variant=... drill-in URL keeps the
+          section visible even if the operator had collapsed it. */}
+      <CollapsibleSection
+        title="Family Intake"
+        storageKey="benefitsFunnel"
+        defaultCollapsed={false}
+        forceOpen={!!searchParams.get("variant")}
+        loading={loading && !!summary}
+      >
+        <BenefitsFunnelCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Submissions by Entry Source"
+        storageKey="entrySource"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <EntrySourceCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Top providers (last 7 days)"
+        storageKey="topProviders"
+        defaultCollapsed={true}
+      >
+        <TopProvidersCard summary={summary} loading={loading} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Latest 50 events"
+        storageKey="latestEvents"
+        defaultCollapsed={true}
+      >
+        <LatestEventsCard summary={summary} loading={loading} />
+      </CollapsibleSection>
 
       <FootNote summary={summary} />
+    </div>
+  );
+}
+
+// ── Bulk collapse toolbar ────────────────────────────────────────────────
+//
+// Two text buttons aligned right, minimal chrome. Sits above the first
+// CollapsibleSection so it reads as section-level control rather than
+// page-level chrome.
+
+function BulkCollapseToolbar() {
+  return (
+    <div className="flex justify-end gap-3 mb-3 -mt-1">
+      <button
+        type="button"
+        onClick={() => bulkCollapse(false)}
+        className="text-[11px] text-gray-500 hover:text-gray-900 underline underline-offset-2"
+      >
+        Expand all
+      </button>
+      <button
+        type="button"
+        onClick={() => bulkCollapse(true)}
+        className="text-[11px] text-gray-500 hover:text-gray-900 underline underline-offset-2"
+      >
+        Collapse all
+      </button>
     </div>
   );
 }
@@ -295,20 +377,14 @@ function WindowedCard({
   loading: boolean;
   range: DateRangeValue;
 }) {
+  if (loading && !summary) {
+    return <div className="h-72 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
+  }
+  if (!summary) {
+    return <p className="text-sm text-gray-400">Failed to load.</p>;
+  }
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <div className="flex items-baseline gap-3 mb-6">
-        <h2 className="text-base font-semibold text-gray-900">{rangeLabel(range)}</h2>
-        {loading && summary && (
-          <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>
-        )}
-      </div>
-      {loading && !summary ? (
-        <div className="h-72 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
-      ) : !summary ? (
-        <p className="text-sm text-gray-400">Failed to load.</p>
-      ) : (
-        <div className="space-y-8">
+    <div className="space-y-8">
           <AudienceGroup label="Care seekers" tint="bg-amber-50/70">
             <SubRow label="Discovery">
               <Stat
@@ -465,8 +541,6 @@ function WindowedCard({
               />
             </SubRow>
           </AudienceGroup>
-        </div>
-      )}
     </div>
   );
 }
@@ -483,7 +557,7 @@ function QaFunnelCard({
   range: DateRangeValue;
 }) {
   if (loading && !summary) {
-    return <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6 h-48 animate-pulse" />;
+    return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
   }
   if (!summary) return null;
 
@@ -575,11 +649,7 @@ function QaFunnelCard({
   ];
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <div className="flex items-baseline gap-3 mb-1">
-        <h2 className="text-base font-semibold text-gray-900">Provider Q&A Email Funnel</h2>
-        {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
-      </div>
+    <>
       <p className="text-xs text-gray-500 mb-5">
         Cohort: {`question_received`} emails sent {rangeLabel(range).toLowerCase()}. Step % is conversion from the previous step.
       </p>
@@ -638,7 +708,7 @@ function QaFunnelCard({
           </ul>
         )}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -730,7 +800,7 @@ function BenefitsFunnelCard({
   range: DateRangeValue;
 }) {
   if (loading && !summary) {
-    return <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6 h-48 animate-pulse" />;
+    return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
   }
   if (!summary) return null;
 
@@ -801,11 +871,7 @@ function BenefitsFunnelCard({
   ];
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <div className="flex items-baseline gap-3 mb-1">
-        <h2 className="text-base font-semibold text-gray-900">Family Intake</h2>
-        {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
-      </div>
+    <>
       <p className="text-xs text-gray-500 mb-5">
         Top-line tracks the embedded benefits-help form on a provider page {rangeLabel(range).toLowerCase()} — distinct sessions per step, with % showing conversion from the previous step. The 4-arm A/B comparison below adds the AI agent outreach module so all variants can be compared on a shared Impressions denominator.
       </p>
@@ -819,7 +885,7 @@ function BenefitsFunnelCard({
       <TrafficAllocationControl />
 
       <BenefitsVariantSplit byVariant={summary.windowed.benefits_funnel_by_variant} range={range} />
-    </div>
+    </>
   );
 }
 
@@ -1312,7 +1378,7 @@ function EntrySourceCard({
   range: DateRangeValue;
 }) {
   if (loading && !summary) {
-    return <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6 h-32 animate-pulse" />;
+    return <div className="h-32 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
   }
   if (!summary) return null;
 
@@ -1331,11 +1397,7 @@ function EntrySourceCard({
   const providerDelta = delta(b.provider_total, pb?.provider_total ?? null);
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <div className="flex items-baseline gap-3 mb-1">
-        <h2 className="text-base font-semibold text-gray-900">Submissions by Entry Source</h2>
-        {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
-      </div>
+    <>
       <p className="text-xs text-gray-500 mb-5">
         SBF intake submissions {rangeLabel(range).toLowerCase()}, bucketed by{" "}
         <code className="text-[11px] bg-gray-50 px-1 rounded">accounts.signup_source</code>
@@ -1385,7 +1447,7 @@ function EntrySourceCard({
           No editorial submissions yet in this window. Top articles by submission count appear here once <code className="text-[10px] bg-gray-50 px-1 rounded">/caregiver-support/[slug]</code> mounts start producing tagged accounts.
         </p>
       ) : null}
-    </div>
+    </>
   );
 }
 
@@ -1613,8 +1675,7 @@ function TopProvidersCard({
   }, [summary, sortKey]);
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <h2 className="text-base font-semibold text-gray-900 mb-4">Top providers (last 7 days)</h2>
+    <>
       {loading && !summary ? (
         <div className="h-32 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
       ) : !summary || sorted.length === 0 ? (
@@ -1678,7 +1739,7 @@ function TopProvidersCard({
           </table>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -1723,8 +1784,7 @@ function LatestEventsCard({
   loading: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <h2 className="text-base font-semibold text-gray-900 mb-4">Latest 50 events</h2>
+    <>
       {loading && !summary ? (
         <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
       ) : !summary || summary.latestEvents.length === 0 ? (
@@ -1767,7 +1827,7 @@ function LatestEventsCard({
           </table>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

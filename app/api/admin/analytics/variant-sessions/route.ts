@@ -31,6 +31,7 @@ const VALID_VARIANTS = new Set([
   "loss",
   "empathic",
   "outreach",
+  "qa_email_capture",
   "control",
   "money_loss",
 ]);
@@ -128,7 +129,79 @@ export async function GET(request: NextRequest) {
       if (!existing.care_need_selected && careNeed) existing.care_need_selected = careNeed;
     };
 
-    if (variant === "outreach") {
+    if (variant === "qa_email_capture") {
+      // qa_email_capture arm — events live in seeker_activity. Impression
+      // carries metadata.session_id; enrichment carries metadata.question_id
+      // and (post-this-deploy) metadata.session_id. We bucket by session_id
+      // when present, falling back to question_id as the row key for legacy
+      // enrichments that predate session_id threading. Submitter email
+      // comes from provider_questions.asker_email keyed on question_id.
+      let q = db
+        .from("seeker_activity")
+        .select("event_type, metadata, related_provider_id, created_at")
+        .in("event_type", ["qa_email_capture_impression", "question_email_enriched"])
+        .order("created_at", { ascending: false })
+        .limit(20000);
+      if (from) q = q.gte("created_at", from);
+      if (to) q = q.lt("created_at", to);
+
+      const res = await q;
+      if (res.error) {
+        console.error("[variant-sessions] qa_email_capture query failed:", res.error);
+        return NextResponse.json({ error: "Query failed" }, { status: 500 });
+      }
+
+      // question_id → row_key map. Post-deploy enrichments carry session_id
+      // and we fold them into the impression's row (rowKey = session_id).
+      // Pre-deploy enrichments lack session_id and become their own
+      // question_id-keyed rows (rowKey = question_id). Either way we need
+      // to remember which key we used so the submitter email join can find
+      // the right row to populate.
+      const rowKeyByQuestionId = new Map<string, string>();
+
+      for (const row of (res.data ?? []) as Array<{
+        event_type: string;
+        metadata: Record<string, unknown> | null;
+        related_provider_id: string | null;
+        created_at: string;
+      }>) {
+        const sid = typeof row.metadata?.session_id === "string" ? row.metadata.session_id : null;
+        const qid = typeof row.metadata?.question_id === "string" ? row.metadata.question_id : null;
+        const providerId = row.related_provider_id ?? null;
+
+        if (row.event_type === "qa_email_capture_impression") {
+          if (!sid) continue; // impression without session_id is unusable
+          upgrade(sid, "impression", row.created_at, providerId, null);
+        } else if (row.event_type === "question_email_enriched") {
+          if (!qid) continue; // can't resolve a row identity without it
+          const rowKey = sid || qid;
+          upgrade(rowKey, "submitted", row.created_at, providerId, null);
+          rowKeyByQuestionId.set(qid, rowKey);
+        }
+      }
+
+      // Submitter email join. provider_questions.asker_email is populated
+      // by the PATCH enrichment endpoint at the same moment the
+      // question_email_enriched event fires, so any enriched question
+      // always has the email.
+      if (rowKeyByQuestionId.size > 0) {
+        const qids = [...rowKeyByQuestionId.keys()];
+        const emailRes = await db
+          .from("provider_questions")
+          .select("id, asker_email")
+          .in("id", qids)
+          .limit(qids.length);
+        if (!emailRes.error) {
+          for (const row of (emailRes.data ?? []) as Array<{ id: string; asker_email: string | null }>) {
+            if (!row.asker_email) continue;
+            const rowKey = rowKeyByQuestionId.get(row.id);
+            if (!rowKey) continue;
+            const session = sessions.get(rowKey);
+            if (session) session.submitter = row.asker_email;
+          }
+        }
+      }
+    } else if (variant === "outreach") {
       // Outreach arm — events live in seeker_activity, no metadata.variant
       // (the event_type IS the variant). Bucket all three event types.
       let q = db

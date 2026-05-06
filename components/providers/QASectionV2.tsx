@@ -335,6 +335,7 @@ export default function QASectionV2({
         body: JSON.stringify({
           id: enrichQuestionId,
           asker_email: guestEmail.trim().toLowerCase(),
+          session_id: getOrCreateSessionId(),
         }),
       });
     } catch {

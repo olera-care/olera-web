@@ -1013,6 +1013,10 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         ),
       };
     case "awaiting_callback":
+      // v8.10.7: pill alone signals "voicemail / promised callback"; the
+      // explicit "Watch Gmail and voicemail" footnote was redundant
+      // with the section subtitle and got dropped. CTA is "Log reply" —
+      // one universal verb across email replies + callbacks.
       return {
         pills: (
           <Pill>
@@ -1020,10 +1024,10 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             {row.awaiting_callback_at ? ` · ${formatShortRelative(row.awaiting_callback_at)}` : ""}
           </Pill>
         ),
-        footnote: <p className="mt-0.5 text-[11px] text-gray-500">Watch Gmail and voicemail for the callback.</p>,
+        footnote: null,
         rightActions: (
           <>
-            <PrimaryAction onClick={() => cb.onClassifyReply("callback")}>Log callback</PrimaryAction>
+            <PrimaryAction onClick={() => cb.onClassifyReply("callback")}>Log reply</PrimaryAction>
             <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />
           </>
         ),
@@ -1128,7 +1132,7 @@ function archiveSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
           Log reply
         </PrimaryAction>
         <OverflowMenu
-          items={[{ label: "Log callback", onClick: () => cb.onClassifyReply("callback") }]}
+          items={[{ label: "Log reply (callback)", onClick: () => cb.onClassifyReply("callback") }]}
           onStopOutreach={cb.onStopOutreach}
         />
       </>
@@ -1201,7 +1205,20 @@ function RepliesGroupedList({
       />
       <RepliesSection
         title="Check inbox for updates"
-        subtitle="These stakeholders may have responses waiting in Gmail or voicemail. Open Gmail, see if anything came in, then come back here to log it."
+        subtitle={
+          <>
+            They might have written back or left a voicemail.{" "}
+            <a
+              href="https://mail.google.com/mail/u/0/#inbox"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-700 underline hover:no-underline"
+            >
+              Open Gmail
+            </a>
+            , then come back to log it.
+          </>
+        }
         rows={groups.checkInbox}
         renderRow={renderRow}
         defaultOpen
@@ -1221,8 +1238,9 @@ function RepliesSection({
 }: {
   title: string;
   /** v8.10.6: optional helper line under the section header. Used by
-   *  "Check inbox for updates" to remind admins to monitor Gmail. */
-  subtitle?: string;
+   *  "Check inbox for updates" to remind admins to monitor Gmail.
+   *  v8.10.7: accepts ReactNode so we can inline a live Open Gmail link. */
+  subtitle?: ReactNode;
   rows: TabRow[];
   renderRow: (row: TabRow) => ReactNode;
   defaultOpen: boolean;

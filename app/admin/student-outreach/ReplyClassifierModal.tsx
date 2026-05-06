@@ -51,8 +51,12 @@ export function ReplyClassifierModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const sourceLabel =
-    source === "email_reply" ? "What did they say?" : "What did they say on the callback?";
+  // v8.10.7: title is universal — "Log reply" is the single verb across
+  // email replies, voicemails, and callbacks. The source param still
+  // distinguishes touchpoint type on the server, but admins see one
+  // consistent prompt.
+  const sourceLabel = "What did they say?";
+  void source;
 
   const submit = async () => {
     if (!choice) {
@@ -96,6 +100,12 @@ export function ReplyClassifierModal({
         </header>
 
         <div className="space-y-2 px-6 py-4">
+          {/* v8.10.7: short reminder before the radio options. Reinforces
+              the inbox-triage workflow — admin checks Gmail and voicemail
+              first, then comes here to pick what happened. */}
+          <p className="rounded-md bg-blue-50/60 px-3 py-2 text-xs text-blue-900">
+            Check Gmail and voicemail first, then pick what happened below.
+          </p>
           {error && (
             <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
           )}

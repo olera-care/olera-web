@@ -201,7 +201,14 @@ function DrawerBody({
         <NextStepPanel ctx={ctx} action={action} setError={setError} />
       )}
       <JobBoardTaskSection ctx={ctx} action={action} setError={setError} />
-      <DangerZone ctx={ctx} action={action} setError={setError} />
+      {/* v8.10.7: in research stages, Close out is tucked under More
+          details so it doesn't compete visually with the primary
+          "Research complete" CTA. Outside research it stays at top
+          level — admins use stop reasons actively across Replies,
+          Calls, Meetings. */}
+      {!isResearch && (
+        <DangerZone ctx={ctx} action={action} setError={setError} />
+      )}
 
       <div>
         <button
@@ -213,6 +220,9 @@ function DrawerBody({
         </button>
         {showMore && (
           <div className="mt-4 space-y-6">
+            {isResearch && (
+              <DangerZone ctx={ctx} action={action} setError={setError} />
+            )}
             {/* Research stages render ResearchSection at the top via
                 ResearchModePanel — don't duplicate it inside More details. */}
             {!isResearch && (
@@ -1598,8 +1608,8 @@ function TabContextBanner({
 }) {
   if (tabContext === "research") {
     return (
-      <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
-        Fill in the basics below, then start the email sequence when ready.
+      <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-700">
+        Next step: Research
       </div>
     );
   }

@@ -38,6 +38,8 @@ const FAMILY_EVENT_TYPES = [
   "outreach_module_impression",
   "outreach_card_clicked",
   "outreach_request_submitted",
+  "qa_email_capture_impression",
+  "question_email_enriched",
 ] as const;
 
 // Anonymous events are care-seeker-driven but lack a known profile_id.
@@ -172,6 +174,8 @@ export async function POST(request: NextRequest) {
         "outreach_module_impression",
         "outreach_card_clicked",
         "outreach_request_submitted",
+        "qa_email_capture_impression",
+        "question_email_enriched",
       ];
       const requiresProfile = !profileOptionalEvents.includes(event_type);
 

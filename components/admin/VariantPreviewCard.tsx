@@ -50,6 +50,39 @@ export default function VariantPreviewCard({ variant }: { variant: IntakeVariant
     );
   }
 
+  if (variant === "qa_email_capture") {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white px-5 py-6">
+        <div className="text-[11px] font-medium uppercase tracking-wider text-gray-400 mb-1">
+          What &ldquo;{variant}&rdquo; looks like to families
+        </div>
+        <h3 className="font-display text-xl font-bold text-gray-900 leading-tight mt-2">
+          No benefits module. Q&A is the surface.
+        </h3>
+        <p className="mt-2 text-sm text-gray-700">
+          The 20% of provider-page visitors in this arm see no SBF and no
+          outreach module. The Q&A section&apos;s post-submit guest enrichment
+          is forced ON with an upgraded value-promise (&ldquo;we&apos;ll email
+          you when [Provider] replies — and send 3 similar providers in [City]
+          in case they don&apos;t reply fast&rdquo;). The confirmation email
+          delivers on that promise with real similar-provider cards.
+        </p>
+        <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+          <div className="text-[11px] uppercase tracking-wider text-gray-400 mb-1">
+            Funnel stages
+          </div>
+          <div className="text-[13px] text-gray-700">
+            <span className="font-semibold">Impressions</span> = QASectionV2 mounts in arm &middot;{" "}
+            <span className="font-semibold">Saved</span> = post-question email enriched. No middle stage.
+          </div>
+        </div>
+        <p className="text-[11px] text-gray-400 mt-3 italic">
+          No live SBF or outreach card preview — the arm hides those entirely.
+        </p>
+      </div>
+    );
+  }
+
   if (variant === "outreach") {
     return (
       <div className="rounded-xl border border-gray-200 bg-white px-5 py-6">

@@ -89,10 +89,14 @@ interface BenefitsFunnelByVariant {
   availability: BenefitsFunnel;
   loss: BenefitsFunnel;
   empathic: BenefitsFunnel;
-  // 4th arm — H1 demand-test surface, replaces SBF for 25% of provider-page
+  // 4th arm — H1 demand-test surface, replaces SBF for 20% of provider-page
   // visitors. Populates impressions, started (card click), and saved (form
   // submission); middle "care need" step is N/A and renders as "—".
   outreach: BenefitsFunnel;
+  // 5th arm (since 2026-05-05) — Q&A enrichment ON, SBF + outreach OFF.
+  // Populates impressions (QASectionV2 mount in arm) and saved (post-question
+  // email enrichment). Middle stages N/A → "—".
+  qa_email_capture: BenefitsFunnel;
   // Legacy V2 arms — historical, retained for the rollup window when V2 data
   // exists. Frozen after cutover.
   control: BenefitsFunnel;
@@ -821,6 +825,7 @@ const DRILLABLE_VARIANTS: ReadonlySet<VariantKey> = new Set([
   "loss",
   "empathic",
   "outreach",
+  "qa_email_capture",
   "control",
   "money_loss",
 ]);
@@ -866,6 +871,7 @@ function BenefitsVariantSplit({
     byVariant.loss.impressions +
     byVariant.empathic.impressions +
     byVariant.outreach.impressions +
+    byVariant.qa_email_capture.impressions +
     byVariant.control.impressions +
     byVariant.money_loss.impressions;
   const waitingForFirstImpression = totalAssigned === 0;
@@ -881,6 +887,7 @@ function BenefitsVariantSplit({
     { key: "loss" as const, label: "loss", description: "Most {state} families miss out on help paying for care." },
     { key: "empathic" as const, label: "empathic", description: "Care is expensive." },
     { key: "outreach" as const, label: "outreach", description: "Have an AI agent contact the top providers for you.", isOutreach: true },
+    { key: "qa_email_capture" as const, label: "qa_email_capture", description: "No SBF / no outreach. Q&A enrichment ON with comparison-providers value-promise.", isOutreach: true },
   ];
   // Legacy V2 arms only render when they have data in the window — once the
   // historical window rolls past V2, these rows disappear automatically.
@@ -899,10 +906,10 @@ function BenefitsVariantSplit({
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">
       <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
-        A/B Test — entry-point module (4-arm)
+        A/B Test — entry-point module (5-arm)
       </div>
       <p className="text-[11px] text-gray-400 mb-3">
-        Deterministic 1/4 split by session id (djb2 hash mod 4) — 3 benefits-help copy arms + 1 AI agent outreach arm. Impressions = module rendered on a provider page; Started = first interactive action (care-need click for benefits, recommended-card click for outreach); Submitted = email/form submission. Conversion % = Submitted / Impressions, so all four arms compare on the same denominator. Variant copy strings + commentary live in the{" "}
+        Deterministic 1/5 split by session id (djb2 hash mod 5) — 3 benefits-help copy arms + 1 AI agent outreach arm + 1 qa_email_capture arm (no SBF / no outreach; Q&A enrichment ON). Impressions = module rendered on a provider page; Started = first interactive action (care-need click for benefits, recommended-card click for outreach, N/A for qa_email_capture); Submitted = email/form submission (for qa_email_capture, post-question email enrichment). Conversion % = Submitted / Impressions, so all five arms compare on the same denominator. Variant copy strings + commentary live in the{" "}
         <a
           href="https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d"
           target="_blank"

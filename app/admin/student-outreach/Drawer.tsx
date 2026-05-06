@@ -16,6 +16,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { MarkPartnerModal } from "./MarkPartnerModal";
+import { AddStakeholderTaskModal } from "./AddStakeholderTaskModal";
 import { OutreachStepList } from "./OutreachStepList";
 import { PreFlightReviewModal } from "./PreFlightReviewModal";
 import {
@@ -239,6 +240,7 @@ function DrawerBody({
             {supportsApprovals(ctx.outreach.stakeholder_type) && (
               <ApprovalsSection ctx={ctx} action={action} setError={setError} />
             )}
+            <TasksSection ctx={ctx} action={action} setError={setError} />
             <HistorySection ctx={ctx} />
           </div>
         )}
@@ -1081,12 +1083,12 @@ function JobBoardTaskSection({
   return (
     <section>
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Job board post
+        Task Board
       </h3>
       <div className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/40 p-4 text-sm text-emerald-950">
         <p>
           <strong>Permission granted.</strong> Post Olera&apos;s clinical-experience listing to{" "}
-          {ctx.campus.name}&apos;s job board, then click <em>Mark posted</em> below.
+          {ctx.campus.name}&apos;s task board, then click <em>Mark posted</em> below.
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
           <a
@@ -1139,13 +1141,16 @@ const PROFESSOR_PERMISSION: PermissionKind = {
   tooltip: "When granted, you can bulk-import professors and email them directly.",
 };
 
+// v8.10.26: display labels say "task board"; the approval_for matching
+// key (database column) stays "Post on university job board" so we
+// don't break matching against existing approval rows.
 const JOB_BOARD_PERMISSION: PermissionKind = {
   key: "job_board",
   approval_for: "Post on university job board",
   approval_type: "job_board",
-  title: "Post on university job board",
-  blurb: "Permission to publish Olera's clinical-experience posting on the campus job board.",
-  tooltip: "When granted, a 'Post to job board' task is queued (one per campus, deduped if multiple grant).",
+  title: "Post on university task board",
+  blurb: "Permission to publish Olera's clinical-experience posting on the campus task board.",
+  tooltip: "When granted, a 'Post to task board' task is queued (one per campus, deduped if multiple grant).",
 };
 
 function permissionKindsFor(
@@ -1499,6 +1504,106 @@ function ApprovalRow({
         </div>
       )}
     </div>
+  );
+}
+
+// ── Tasks (lightweight per-stakeholder reminders) ─────────────────────
+//
+// v8.10.26: simple ad-hoc task list. Each row is a manual_followup
+// task tagged with payload.reason="custom". The admin adds free-text
+// reminders ("Send updated flyer", "Check listserv access", etc.)
+// and marks them done from this section. No due-date picker, no
+// priority — by design. Goal is "quickly attach a reminder" not a
+// project management system.
+
+function TasksSection({
+  ctx,
+  action,
+  setError,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (e: string | null) => void;
+}) {
+  const [showAdd, setShowAdd] = useState(false);
+  const customTasks = useMemo(
+    () =>
+      ctx.pending_tasks.filter(
+        (t) =>
+          t.task_type === "manual_followup" &&
+          (t.payload as Record<string, unknown> | null)?.reason === "custom",
+      ),
+    [ctx.pending_tasks],
+  );
+  const handleErr = (p: Promise<unknown>) =>
+    p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
+
+  const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
+  const contactDisplay = primary
+    ? [primary.title, primary.first_name, primary.last_name]
+        .filter(Boolean)
+        .join(" ")
+        .trim() || primary.name || null
+    : null;
+
+  return (
+    <section>
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        Tasks
+      </h3>
+      <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-4">
+        {customTasks.length === 0 ? (
+          <p className="text-xs text-gray-400">No tasks. Add one to remind yourself of a follow-up.</p>
+        ) : (
+          <ul className="space-y-1.5">
+            {customTasks.map((t) => {
+              const text = String(
+                (t.payload as Record<string, unknown> | null)?.notes ??
+                  (t.payload as Record<string, unknown> | null)?.description ??
+                  "(no description)",
+              );
+              return (
+                <li
+                  key={t.id}
+                  className="flex items-start justify-between gap-3 rounded-md border border-gray-100 bg-gray-50/60 px-3 py-2 text-sm"
+                >
+                  <span className="min-w-0 flex-1 text-gray-800">{text}</span>
+                  <button
+                    onClick={() => handleErr(action("complete_task", { task_id: t.id }))}
+                    className="shrink-0 rounded border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-700 hover:bg-gray-50"
+                    title="Mark this task done."
+                  >
+                    Done
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <button
+          onClick={() => setShowAdd(true)}
+          className="rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+        >
+          + Add task
+        </button>
+      </div>
+
+      {showAdd && (
+        <AddStakeholderTaskModal
+          organizationName={ctx.outreach.organization_name}
+          contactName={contactDisplay}
+          onCancel={() => setShowAdd(false)}
+          onSubmit={async (text) => {
+            await action("queue_manual_task", {
+              task_type: "manual_followup",
+              due_at: new Date().toISOString(),
+              notes: text,
+            });
+            setShowAdd(false);
+          }}
+        />
+      )}
+    </section>
   );
 }
 

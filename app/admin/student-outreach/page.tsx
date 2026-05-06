@@ -55,7 +55,7 @@ const TABS: TabDef[] = [
   { key: "calls",     label: "Calls",           tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
   { key: "replies",   label: "Replies",         tooltip: "Email replies, callbacks, voicemails. Triage what they said and pick the next step." },
   { key: "meetings",  label: "Meetings",        tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
-  { key: "partners",  label: "Partners",        tooltip: "Stakeholders sharing with students. Click Engage to work pending partner tasks (job board posting, materials, follow-ups)." },
+  { key: "partners",  label: "Partners",        tooltip: "Stakeholders sharing with students. Click Engage to work pending partner tasks (task board posting, materials, follow-ups)." },
   { key: "archive",   label: "Archive",         tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Replies if they reply or call back later." },
   { key: "all",       label: "All",             tooltip: "Search and filter every stakeholder across all stages." },
 ];
@@ -663,10 +663,10 @@ function StakeholderCard({
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               {row.has_pending_job_board_task && (
                 <span
-                  title="Pending: post Olera's listing to the campus job board."
+                  title="Pending: post Olera's listing to the campus task board."
                   className="shrink-0 rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-900"
                 >
-                  Job board: post pending
+                  Task board: post pending
                 </span>
               )}
               {pill}
@@ -1114,7 +1114,7 @@ function partnersSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     cta: (
       <PrimaryAction
         onClick={cb.onOpenDrawer}
-        title="Open the drawer to work pending partner tasks (job board posting, materials, follow-ups)."
+        title="Open the drawer to work pending partner tasks (task board posting, materials, follow-ups)."
       >
         Engage
       </PrimaryAction>

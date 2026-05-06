@@ -1998,10 +1998,20 @@ async function handleQueueManualTask(
   if (!body.due_at) throw new Error("due_at required");
   const due = new Date(body.due_at);
   if (isNaN(due.getTime())) throw new Error("Invalid due_at");
+  // v8.10.26: tag manual_followup tasks with reason=custom so the
+  // queue route's customTaskByOutreach map picks them up. Notes go in
+  // payload.notes so the Tasks section in the drawer can render them.
+  const payload: Record<string, unknown> = {};
+  if (body.task_type === "manual_followup") {
+    payload.reason = "custom";
+    if (body.notes) payload.notes = body.notes;
+  } else if (body.notes) {
+    payload.admin_notes = body.notes;
+  }
   await queueTask(
     db,
     row.id,
-    { task_type: body.task_type, due_at: due, payload: body.notes ? { admin_notes: body.notes } : {} },
+    { task_type: body.task_type, due_at: due, payload },
     userId,
   );
   await touchOutreach(db, row.id, userId);

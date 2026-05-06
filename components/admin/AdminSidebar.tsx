@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AdminUser } from "@/lib/types";
-import { AddCampusModal } from "@/components/admin/medjobs/AddCampusModal";
 
 interface AdminSidebarProps {
   adminUser: AdminUser;
@@ -69,17 +68,25 @@ const navSections: NavSection[] = [
   },
 ];
 
-// v9.0 Phase 6: MedJobs section is hand-rendered (not config-driven)
-// because it has nested structure (Stakeholders sub-group with three
-// children + Add Campus action button). The flat-config navSections
-// pattern doesn't model this cleanly; explicit JSX is simpler.
+// v9.0 Phase 7: MedJobs left nav simplifies to six flat operational
+// surfaces. No dropdowns. Each is a peer top-level link. Site
+// (formerly "Campus") becomes a top-level entry; Add Site moves to
+// the Sites page itself as a primary action.
 const STAKEHOLDERS_KEY = "stakeholders";
 
-const stakeholdersChildren: NavItem[] = [
+const medjobsItems: NavItem[] = [
+  { label: "In Basket",  href: "/admin/medjobs/in-basket" },
+  { label: "Sites",      href: "/admin/medjobs/sites" },
   { label: "Clients",    href: "/admin/medjobs/clients" },
   { label: "Candidates", href: "/admin/medjobs/candidates" },
   { label: "Partners",   href: "/admin/medjobs/partners" },
+  { label: "Logs",       href: "/admin/medjobs/logs" },
 ];
+
+// Retained for backwards-compat with auto-expand logic; will be cleared
+// in a follow-up. The current sidebar implementation uses this set
+// to detect which sections contain the active route.
+const stakeholdersChildren: NavItem[] = [];
 
 // Mobile: 5 daily-use items with icons
 const mobileNavItems: (NavItem & { icon: React.ReactNode })[] = [
@@ -153,19 +160,15 @@ function Chevron({ open }: { open: boolean }) {
 
 export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   const pathname = usePathname();
-  const [showAddCampus, setShowAddCampus] = useState(false);
 
-  // v9.0 Phase 6: medjobs section + stakeholders sub-group track
-  // their open/closed state separately. medjobs defaults open;
-  // stakeholders defaults open too (admin probably wants to see
-  // Clients / Candidates / Partners at a glance).
+  // v9.0 Phase 7: medjobs section toggles open/close. Defaults open
+  // since the section is the primary daily-use surface.
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     for (const s of navSections) {
       initial[s.key] = !s.defaultOpen;
     }
     initial.medjobs = false;
-    initial[STAKEHOLDERS_KEY] = false;
     return initial;
   });
 
@@ -193,16 +196,12 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
     s.items.some((item) => isActive(item.href))
   )?.key;
 
-  // v9.0 Phase 6: medjobs + stakeholders open state. Both auto-expand
-  // when a child route is active so the active page is always visible.
-  const medjobsHasActive =
-    isActive("/admin/medjobs/in-basket") ||
-    isActive("/admin/medjobs/completed-work") ||
-    stakeholdersChildren.some((c) => isActive(c.href));
+  // v9.0 Phase 7: medjobs section auto-expands when any child route
+  // is active, so the current page is always visible in the nav.
+  const medjobsHasActive = medjobsItems.some((item) => isActive(item.href));
   const medjobsOpen = !collapsed.medjobs || medjobsHasActive;
-  const stakeholdersHasActive = stakeholdersChildren.some((c) => isActive(c.href));
-  const stakeholdersOpen =
-    !collapsed[STAKEHOLDERS_KEY] || stakeholdersHasActive;
+  void STAKEHOLDERS_KEY;
+  void stakeholdersChildren;
 
   return (
     <>
@@ -261,8 +260,9 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
             );
           })}
 
-          {/* v9.0 Phase 6: MedJobs section — three top-level entries +
-              Stakeholders sub-group + Add Campus action button. */}
+          {/* v9.0 Phase 7: MedJobs section — six flat items, no
+              sub-groups, no action buttons. Add Site lives on the
+              Sites page itself as a primary action. */}
           <div key="medjobs" className="mt-1">
             <button
               onClick={() => toggle("medjobs")}
@@ -274,63 +274,20 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
 
             {medjobsOpen && (
               <div className="mt-0.5 space-y-px">
-                <Link
-                  href="/admin/medjobs/in-basket"
-                  className={[
-                    "block pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
-                    isActive("/admin/medjobs/in-basket")
-                      ? "text-gray-900 font-medium bg-gray-100"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-                  ].join(" ")}
-                >
-                  In Basket
-                </Link>
-                <Link
-                  href="/admin/medjobs/completed-work"
-                  className={[
-                    "block pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
-                    isActive("/admin/medjobs/completed-work")
-                      ? "text-gray-900 font-medium bg-gray-100"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-                  ].join(" ")}
-                >
-                  Completed Work
-                </Link>
-
-                {/* Stakeholders sub-group */}
-                <button
-                  onClick={() => toggle(STAKEHOLDERS_KEY)}
-                  className="w-full flex items-center justify-between pl-5 pr-2.5 py-1.5 rounded-md text-[13px] text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-100"
-                >
-                  Stakeholders
-                  <Chevron open={stakeholdersOpen} />
-                </button>
-                {stakeholdersOpen && (
-                  <div className="space-y-px">
-                    {stakeholdersChildren.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={[
-                          "block pl-9 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
-                          isActive(item.href)
-                            ? "text-gray-900 font-medium bg-gray-100"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-                        ].join(" ")}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                    {/* Add Campus action button — kicks off the campus
-                        cascade (Stage 1 catchment surfacing). */}
-                    <button
-                      onClick={() => setShowAddCampus(true)}
-                      className="block w-full text-left pl-9 pr-2.5 py-1.5 rounded-md text-[13px] text-emerald-700 hover:text-emerald-900 hover:bg-emerald-50 transition-colors duration-100"
-                    >
-                      + Add Campus
-                    </button>
-                  </div>
-                )}
+                {medjobsItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={[
+                      "block pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                      isActive(item.href)
+                        ? "text-gray-900 font-medium bg-gray-100"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                    ].join(" ")}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             )}
           </div>
@@ -372,21 +329,6 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
           })}
         </div>
       </nav>
-
-      {showAddCampus && (
-        <AddCampusModal
-          onClose={() => setShowAddCampus(false)}
-          onCreated={(slug, name) => {
-            setShowAddCampus(false);
-            // Refresh the page so the new campus surfaces in the
-            // Campuses tab inside In Basket. Soft refresh — preserves
-            // current route. Window.location preserves URL state.
-            if (typeof window !== "undefined") window.location.reload();
-            void slug;
-            void name;
-          }}
-        />
-      )}
     </>
   );
 }

@@ -1,10 +1,13 @@
 "use client";
 
 /**
- * v9.0 Phase 6: Add Campus modal. Triggered from the Stakeholders
- * sidebar section. Lets admin activate a campus territory by picking
- * from the PARTNER_UNIVERSITIES preset list (27 universities with
- * known catchment cities).
+ * v9.0 Phase 7: Add Site modal. Triggered from the Sites page header
+ * action. Lets admin activate a university territory by picking from
+ * the PARTNER_UNIVERSITIES preset list (universities with known
+ * catchment cities).
+ *
+ * The DB table is still `student_outreach_campuses`; only the UI says
+ * "site". Endpoint stays /api/admin/student-outreach/campuses.
  *
  * Flow:
  *   1. Modal opens with a dropdown of PARTNER_UNIVERSITIES
@@ -15,15 +18,14 @@
  *   5. Stage 2 (stakeholder prospecting) unlocks when a client converts
  *      in the catchment — already wired
  *
- * The endpoint returns an error if the campus already exists; the modal
- * surfaces it inline. Re-running this script with already-seeded
- * campuses (which is most of the 27) is a no-op except for that error.
+ * The endpoint returns an error if the site already exists; the modal
+ * surfaces it inline.
  */
 
 import { useState } from "react";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 
-export function AddCampusModal({
+export function AddSiteModal({
   onClose,
   onCreated,
 }: {
@@ -73,7 +75,7 @@ export function AddCampusModal({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">Add Campus</h3>
+          <h3 className="text-base font-semibold text-gray-900">Add Site</h3>
           <p className="mt-0.5 text-xs text-gray-500">
             Activate a university territory. Provider prospects in the catchment
             will surface in In Basket as virtual rows; once a provider converts,
@@ -127,7 +129,7 @@ export function AddCampusModal({
             disabled={submitting || !selectedSlug}
             className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            {submitting ? "Adding…" : "Add Campus"}
+            {submitting ? "Adding…" : "Add Site"}
           </button>
         </footer>
       </div>

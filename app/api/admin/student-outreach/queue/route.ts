@@ -86,6 +86,10 @@ export interface TabCounts {
   // public type in lib/student-outreach/types.ts mirrors this.
   clients?: number;
   campuses?: number;
+  // v9.0 Phase 7: 'sites' is the new UI alias for the campus
+  // territorial primitive. Mirrored here so the queue route can return
+  // both keys; In Basket reads `sites`, legacy callers read `campuses`.
+  sites?: number;
 }
 
 export interface TabRow extends OutreachRow {
@@ -562,6 +566,11 @@ async function computeTabCounts(
   }).length;
 
   counts.campuses = campusCount ?? 0;
+  // v9.0 Phase 7: 'sites' is the new UI tab key for the campus territorial
+  // primitive. Mirror the same numeric value so the In Basket tab bar's
+  // smart-hide computes against either alias.
+  counts.sites = counts.campuses;
+  unread.sites = unread.campuses ?? 0;
 
   return { counts, unread };
 }

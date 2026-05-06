@@ -348,9 +348,12 @@ export interface TabCounts {
   outbound?: number;
   emails_sent?: number;
   signups?: number;
-  // v9.0 Phase 6: state-based In Basket tabs.
+  // v9.0 Phase 6: state-based In Basket tabs (legacy union members).
   unread?: number;
   undone?: number;
+  // v9.0 Phase 7: Sites = the renamed Campuses tab + new Site-task
+  // surfacing. Same numeric shape as campuses.
+  sites?: number;
 }
 
 /** v9.0 Phase 4: per-tab unread counts, mirroring TabCounts shape.
@@ -373,9 +376,12 @@ export interface TabUnreadCounts {
   outbound?: number;
   emails_sent?: number;
   signups?: number;
-  // v9.0 Phase 6: state-based In Basket tabs.
+  // v9.0 Phase 6: state-based In Basket tabs (legacy union members).
   unread?: number;
   undone?: number;
+  // v9.0 Phase 7: Sites = the renamed Campuses tab + new Site-task
+  // surfacing. Same numeric shape as campuses.
+  sites?: number;
 }
 
 /** What the drawer needs to render every section. */

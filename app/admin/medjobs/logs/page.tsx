@@ -1,8 +1,12 @@
 "use client";
 
 /**
- * v9.0 Phase 6: Completed Work page. Chronological touchpoint feed
- * of completed operational actions. The "what we got done" surface.
+ * v9.0 Phase 7: Logs page. Chronological touchpoint feed of completed
+ * operational actions — the "what we got done" surface.
+ *
+ * Renamed from "Completed Work" → "Logs" to align with the universal
+ * "Log" CTA across cards. The internal API endpoint
+ * (/api/admin/medjobs/completed-work) keeps its existing name.
  *
  * Date range filter at top. Click any card to open the source row's
  * drawer for full context.
@@ -24,7 +28,7 @@ const RANGE_OPTIONS = [
 
 type RangeKey = (typeof RANGE_OPTIONS)[number]["key"];
 
-export default function CompletedTasksPage() {
+export default function LogsPage() {
   const [rows, setRows] = useState<CompletedTaskRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,9 +63,9 @@ export default function CompletedTasksPage() {
     <div>
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">MedJobs · Completed Work</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">MedJobs · Logs</h1>
           <p className="mt-0.5 text-sm text-gray-500">
-            What you and the team finished. Click any row to open it for context.
+            Every logged action across MedJobs. Click any row to open it for context.
           </p>
         </div>
         <div className="flex gap-1">

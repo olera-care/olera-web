@@ -18,18 +18,22 @@ import type { StakeholderType, TabCounts, TabRow } from "./types";
  * net-new). For Phase 0 the keys mirror the legacy v8.10 surface.
  */
 export type TabKey =
-  // v9.0 Phase 6: state-based In Basket tabs
-  | "unread"
-  | "undone"
-  // Legacy entity-keyed tabs — kept on the union for the queue endpoint
-  // and other historical call sites; not rendered in the new In Basket.
+  // v9.0 Phase 7: entity-keyed In Basket tabs in the priority order
+  // the team triages them. Smart-hide removes empty ones; the active
+  // tab anchors the bar mid-session.
   | "clients"
   | "candidates"
   | "prospects"
-  | "calls"
-  | "replies"
-  | "meetings"
   | "partners"
+  | "meetings"
+  | "replies"
+  | "calls"
+  | "sites"
+  // Legacy state-keyed tab names — retained on the union for queue
+  // endpoint compatibility and historical call sites; not rendered.
+  | "unread"
+  | "undone"
+  // Legacy operational keys — retained for queue endpoint defense.
   | "campuses"
   | "archive"
   | "all"
@@ -67,15 +71,25 @@ export interface TabDef {
 //   (Meetings hidden ← 0 active work)
 //
 // Categories surface in In Basket only when they have active work
-// (unread + undone, excluding completed which moves to Completed Work).
+// (unread + undone, excluding completed which moves to the Logs page).
 // Completed rows move out of In Basket; they don't pad the tab counts.
+// v9.0 Phase 7: tab order = team's response priority. Clients first
+// (highest-value relationships), then supply-side and workflow stages,
+// Sites at the end (territorial primitive). Smart-hide hides empty
+// tabs; the active tab anchors the bar.
+//
+// Clients + Candidates show only when their entity-task tables (added
+// in Commit B) have pending tasks for those entities — until then,
+// they're always smart-hidden.
 export const TABS: TabDef[] = [
+  { key: "clients",    label: "Clients",    tooltip: "Provider clients with a pending task — onboarding, trial check-in, follow-up." },
+  { key: "candidates", label: "Candidates", tooltip: "Live candidates with a pending review or action." },
   { key: "prospects",  label: "Prospects",  tooltip: "Stakeholders being researched + provider prospects in catchment." },
-  { key: "calls",      label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
-  { key: "replies",    label: "Replies",    tooltip: "Email replies, callbacks, voicemails. Triage and pick the next step." },
-  { key: "meetings",   label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
   { key: "partners",   label: "Partners",   tooltip: "Active partners with a pending custom task. Smart-hidden when no partners have open tasks." },
-  { key: "campuses",   label: "Campuses",   tooltip: "Campuses with Stage 2 unlocked but no stakeholders in research yet." },
+  { key: "meetings",   label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
+  { key: "replies",    label: "Replies",    tooltip: "Email replies, callbacks, voicemails. Triage and pick the next step." },
+  { key: "calls",      label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
+  { key: "sites",      label: "Sites",      tooltip: "Sites needing research or with a pending site-level task." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
@@ -94,15 +108,15 @@ export const MENU_TABS: TabDef[] = [
 // metric (drives the time series fetched from /stats) and a label
 // (drives the kpiSuffix shown in the header).
 export const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
-  // v9.0 Phase 6.5: state keys retained on the union for backwards
-  // compat but never rendered as tabs. Both fall back to the broad
-  // 'activity' metric.
+  // v9.0 Phase 7: state-keyed legacy entries retained for the queue
+  // endpoint's union; never rendered as tabs.
   unread:      { metric: "activity",         label: "operational events"   },
   undone:      { metric: "activity",         label: "operational events"   },
-  // Stakeholders-page metrics — still used by their dedicated PulseHeader
-  // when those pages are surfaced.
+  // Per-entity metrics powering the per-tab PulseHeader in In Basket.
   clients:     { metric: "clients",          label: "new clients"          },
-  campuses:    { metric: "campuses",         label: "campuses assigned"    },
+  // Sites uses the same time-series metric as the legacy 'campuses' key.
+  sites:       { metric: "campuses",         label: "sites added"          },
+  campuses:    { metric: "campuses",         label: "sites added"          },
   // v8.10.42: Candidates ⊂ Signups. Candidates = LIVE provider-facing
   // student profiles (is_active + application_completed). Signups =
   // every student in the funnel (broader acquisition volume).

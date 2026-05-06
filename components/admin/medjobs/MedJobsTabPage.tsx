@@ -1,14 +1,18 @@
 "use client";
 
 /**
- * MedJobsTabPage — the In Basket workflow surface. v9.0 Phase 6: tabs
- * are state-based (Unread / Undone) instead of entity-keyed. Cards in
- * the feed are heterogeneous — stakeholder rows, virtual provider
- * prospects, and campus banners all flow through one list — but each
- * card carries its own kind-aware chrome.
+ * MedJobsTabPage — the In Basket workflow surface. v9.0 Phase 7:
+ * entity-keyed tabs (Clients · Candidates · Prospects · Partners ·
+ * Meetings · Replies · Calls · Sites) with smart-hide so empty
+ * categories drop out of the bar. Cards in the feed are heterogeneous
+ * — stakeholder rows, virtual provider prospects, and site banners
+ * all flow through one list — but each card carries its own
+ * kind-aware chrome.
  *
- * Inventory + relationship surfaces (Clients / Candidates / Partners)
- * moved to dedicated /admin/medjobs/{name} pages outside In Basket.
+ * Inventory + relationship surfaces (Sites / Clients / Candidates /
+ * Partners) live on dedicated /admin/medjobs/{name} pages outside In
+ * Basket. The In Basket tab for each entity surfaces only items with
+ * pending action.
  *
  * Smart-hide: a tab is visible when (count > 0) OR it's the active
  * tab. URL-driven via ?tab= so deep links land correctly.
@@ -48,7 +52,7 @@ import {
   type TabKey,
 } from "@/lib/student-outreach/tab-config";
 import { RowCard } from "@/components/admin/medjobs/cards/StakeholderCard";
-import { CampusCard } from "@/components/admin/medjobs/cards/CampusCard";
+import { SiteCard } from "@/components/admin/medjobs/cards/SiteCard";
 import { ResearchTabContent } from "@/components/admin/medjobs/lists/ResearchTabContent";
 import { RepliesGroupedList } from "@/components/admin/medjobs/lists/RepliesGroupedList";
 import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
@@ -139,14 +143,14 @@ export function MedJobsTabPage({
         setProviderProspects([]);
       }
 
-      if (tab === "campuses") {
+      if (tab === "sites") {
         const r = await fetch(`/api/admin/medjobs/campuses`);
         if (r.ok) {
           const d = await r.json();
-          // v9.0 Phase 6.5: Campuses tab inside In Basket shows ONLY
-          // Stage-2-unlocked campuses with no stakeholders yet — the
-          // research-needed prompts. The full campus inventory lives
-          // in the Add Campus flow / Stakeholders cascade.
+          // v9.0 Phase 7: Sites tab inside In Basket shows ONLY
+          // Stage-2-unlocked sites with no stakeholders yet — the
+          // research-needed prompts. The full site inventory lives
+          // on /admin/medjobs/sites (Sites page).
           const all = (d.rows ?? []) as CampusRow[];
           setCampusBanners(
             all.filter(
@@ -278,7 +282,7 @@ export function MedJobsTabPage({
             </a>
             <button
               onClick={() => setShowAdd(true)}
-              title="Add a new advisor, dept head, or student org for a campus."
+              title="Add a new advisor, dept head, or student org for a site."
               className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
             >
               + Add Stakeholder
@@ -298,10 +302,10 @@ export function MedJobsTabPage({
         <select
           value={campusSlug}
           onChange={(e) => setCampusSlug(e.target.value)}
-          title="Filter to one campus, or 'All campuses' to see everything."
+          title="Filter to one site, or 'All sites' to see everything."
           className="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none"
         >
-          <option value="">All campuses</option>
+          <option value="">All sites</option>
           {campuses.map((c) => (
             <option key={c.id} value={c.slug}>{c.name}</option>
           ))}
@@ -373,10 +377,10 @@ export function MedJobsTabPage({
           <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
             The In Basket is clear. Head to{" "}
             <a
-              href="/admin/medjobs/completed-work"
+              href="/admin/medjobs/logs"
               className="font-medium text-emerald-700 underline hover:no-underline"
             >
-              Completed Work
+              Logs
             </a>
             {" "}to review what you and the team finished.
           </p>
@@ -409,13 +413,13 @@ export function MedJobsTabPage({
         ) : (
           <RepliesGroupedList rows={rows} renderRow={(row) => renderRow(row)} />
         )
-      ) : tab === "campuses" ? (
-        // v9.0 Phase 6.5: Campuses tab inside In Basket shows only
+      ) : tab === "sites" ? (
+        // v9.0 Phase 7: Sites tab inside In Basket shows only
         // research-needed prompts (Stage 2 unlocked, 0 stakeholders).
-        // The full campus inventory is reachable via Add Campus.
+        // The full site inventory lives on /admin/medjobs/sites.
         campusBanners.length === 0 ? (
           <p className="py-12 text-center text-sm text-gray-400">
-            No campuses need stakeholder research right now.
+            No sites need stakeholder research right now.
           </p>
         ) : (
           <ul className="space-y-2">
@@ -425,7 +429,7 @@ export function MedJobsTabPage({
               const matching = researchCampuses.find((r) => r.id === c.id);
               return (
                 <li key={c.id}>
-                  <CampusCard
+                  <SiteCard
                     row={c}
                     onAddStakeholders={() => {
                       const payload = matching ?? {
@@ -439,7 +443,7 @@ export function MedJobsTabPage({
                       };
                       setBulkResearchCampus(payload);
                     }}
-                    onViewCampus={() => {
+                    onViewSite={() => {
                       window.location.href = `/admin/student-outreach/campus/${c.slug}`;
                     }}
                   />

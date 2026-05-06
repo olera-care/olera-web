@@ -160,24 +160,29 @@ const nextConfig: NextConfig = {
       // workflow entry point. Existing bookmarks redirect through.
       { source: "/admin/student-outreach", destination: "/admin/medjobs/in-basket", permanent: true },
 
-      // v9.0 Phase 6: completed-tasks → completed-work rename.
-      // all-tasks dropped entirely; redirects to completed-work as the
-      // closest replacement (touchpoint feed).
-      { source: "/admin/medjobs/completed-tasks", destination: "/admin/medjobs/completed-work", permanent: true },
-      { source: "/admin/medjobs/all-tasks",       destination: "/admin/medjobs/completed-work", permanent: true },
+      // v9.0 Phase 7: completed-work → logs rename (UI only; the API
+      // endpoint /api/admin/medjobs/completed-work keeps its name).
+      // Earlier completed-tasks → completed-work and all-tasks legacy
+      // redirects collapse onto the new /logs URL.
+      { source: "/admin/medjobs/completed-work",  destination: "/admin/medjobs/logs", permanent: true },
+      { source: "/admin/medjobs/completed-tasks", destination: "/admin/medjobs/logs", permanent: true },
+      { source: "/admin/medjobs/all-tasks",       destination: "/admin/medjobs/logs", permanent: true },
+
+      // v9.0 Phase 7: campuses → sites rename (UI only; DB table +
+      // /api/admin/medjobs/campuses endpoint keep their existing names).
+      { source: "/admin/medjobs/campuses",   destination: "/admin/medjobs/sites", permanent: true },
 
       // Phase 5 left in legacy entity-keyed redirects; Phase 6 turns
       // Clients / Candidates / Partners back into real pages, so the
       // redirect for those is no longer needed (next.js routes the
       // real pages first). The remaining entity-keyed In Basket
-      // sub-tabs (prospects / meetings / replies / calls / campuses)
-      // collapse to In Basket itself — no per-tab URLs since the new
-      // tabs are state-based (?tab=unread / ?tab=undone).
+      // sub-tabs (prospects / meetings / replies / calls) collapse to
+      // In Basket itself — no per-tab URLs since the new tabs are
+      // state-driven (?tab= via the In Basket page).
       { source: "/admin/medjobs/prospects",  destination: "/admin/medjobs/in-basket", permanent: true },
       { source: "/admin/medjobs/meetings",   destination: "/admin/medjobs/in-basket", permanent: true },
       { source: "/admin/medjobs/replies",    destination: "/admin/medjobs/in-basket", permanent: true },
       { source: "/admin/medjobs/calls",      destination: "/admin/medjobs/in-basket", permanent: true },
-      { source: "/admin/medjobs/campuses",   destination: "/admin/medjobs/in-basket", permanent: true },
     ];
   },
 

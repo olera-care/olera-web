@@ -1,21 +1,21 @@
 "use client";
 
 /**
- * v9.0 Phase 3: CampusCard — first-class operational card for the
- * Campuses tab. Standard MedjobsCard chrome + single-tone slate pill
- * carrying the stage. The Campuses tab is now the sole place where
- * campus research + university prospecting workflows live; provider
- * Prospects tab no longer surfaces campus banners.
+ * v9.0 Phase 7: SiteCard — first-class operational card for the Sites
+ * surface. Standard MedjobsCard chrome + single-tone slate pill
+ * carrying the stage. Renamed from CampusCard as part of the v9.0
+ * "Site" terminology pass — the underlying DB table is still
+ * `student_outreach_campuses`; only the user-facing copy says "site".
  *
  * Stage-driven content:
  *   provider_prospecting (no clients yet):
- *     pill "Prospecting providers" · CTA "View campus →"
+ *     pill "Prospecting providers" · CTA "View site →"
  *   stakeholder_prospecting AND stakeholder_count = 0:
  *     pill "Research needed" · CTA "Add stakeholders →"
  *   stakeholder_prospecting AND stakeholder_count > 0:
  *     pill "Researching stakeholders" · CTA "Continue →"
  *   active (research_complete = true):
- *     pill "Active" · CTA "View campus →"
+ *     pill "Active" · CTA "View site →"
  */
 
 import { formatRelative } from "@/lib/student-outreach/formatters";
@@ -23,15 +23,15 @@ import type { CampusRow } from "@/lib/student-outreach/tab-config";
 import { MedjobsCard } from "./MedjobsCard";
 import { Pill } from "./StakeholderCard";
 
-export function CampusCard({
+export function SiteCard({
   row,
   onAddStakeholders,
-  onViewCampus,
+  onViewSite,
   overflowMenu,
 }: {
   row: CampusRow;
   onAddStakeholders: () => void;
-  onViewCampus: () => void;
+  onViewSite: () => void;
   overflowMenu?: React.ReactNode;
 }) {
   const isResearchNeeded =
@@ -44,8 +44,8 @@ export function CampusCard({
 
   if (row.stage === "active") {
     pillText = "Active";
-    ctaText = "View campus →";
-    ctaAction = onViewCampus;
+    ctaText = "View site →";
+    ctaAction = onViewSite;
   } else if (isResearchNeeded) {
     pillText = "Research needed";
     ctaText = "Add stakeholders →";
@@ -56,11 +56,10 @@ export function CampusCard({
     ctaAction = onAddStakeholders;
   } else {
     pillText = "Prospecting providers";
-    ctaText = "View campus →";
-    ctaAction = onViewCampus;
+    ctaText = "View site →";
+    ctaAction = onViewSite;
   }
 
-  // Subtitle: city/state + counts that matter for the stage.
   const subtitleParts: string[] = [];
   const loc = [row.city, row.state].filter(Boolean).join(", ");
   if (loc) subtitleParts.push(loc);
@@ -101,7 +100,7 @@ export function CampusCard({
       }
       overflowMenu={overflowMenu}
       onClick={ctaAction}
-      hoverTitle="Open campus operational view."
+      hoverTitle="Open site operational view."
     />
   );
 }

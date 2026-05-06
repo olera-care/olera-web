@@ -3,47 +3,46 @@
 /**
  * Variant routing for the 5-way SBF intake A/B test on provider pages.
  *
- *   20% availability       ┐
- *   20% loss               ├─  see BenefitsDiscoveryModule (3-arm copy A/B inside)
- *   20% empathic           ┘
- *   20% outreach           →   see AgentOutreachModule on the Q&A surface
- *   20% qa_email_capture   →   NO SBF / NO outreach module. Q&A enrichment ON.
+ *   N% availability       ┐
+ *   N% loss               ├─  see BenefitsDiscoveryModule (3-arm copy A/B inside)
+ *   N% empathic           ┘
+ *   N% outreach           →   see AgentOutreachModule on the Q&A surface
+ *   N% qa_email_capture   →   NO SBF / NO outreach. Q&A enrichment ON
+ *                             (handled inside QASectionV2 via useIntakeVariant).
  *
- * Math note: BenefitsDiscoveryModule does its own mod-3 copy assignment
- * internally. Combining mod-3 (which 3-arm) with this mod-5 (which surface)
- * on the same sessionId yields a uniform 1/5 distribution across all 5 arms
- * — gcd(3,5) = 1, so the two mods are uncorrelated.
+ * Allocation is no longer hardcoded — weights are read from
+ * /api/variant-weights/intake (backed by the experiment_weights row),
+ * which the admin can re-tune live from /admin/analytics. Both this
+ * file and QASectionV2 read the same hook (useIntakeVariant) so the
+ * dial controls every surface consistently.
  *
- * SSR behavior: BenefitsArmGate renders children eagerly (matching today's
- * pre-mount paint), then hides them after mount if the assigned variant is
- * "outreach" OR "qa_email_capture". 40% of visitors now see a brief flash
- * of BenefitsDiscoveryModule disappearing. Trade preserved for first-paint
- * UX of the 60% benefits-arm majority.
+ * SSR behavior: BenefitsArmGate renders children eagerly (matching
+ * today's pre-mount paint), then hides them after mount when the
+ * resolved variant is "outreach" OR "qa_email_capture" — both
+ * suppress the SBF entirely. Sessions in those two arms see a brief
+ * flash of the benefits module disappearing. Trade chosen to preserve
+ * first-paint UX for the benefits-arm majority.
  */
 
-import { useEffect, useState, type ReactNode } from "react";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
-import { assignIntakeVariant } from "@/lib/analytics/variant";
+import { type ReactNode } from "react";
+import { useIntakeVariant } from "@/hooks/use-intake-variant";
 import AgentOutreachModule from "@/components/providers/AgentOutreachModule";
 import type { ProviderCardData } from "@/lib/types/provider";
 
 /**
  * Wraps the BenefitsDiscoveryModule section. Renders children unless the
- * session is in the outreach OR qa_email_capture arm.
+ * session is in the outreach OR qa_email_capture arm — both of those
+ * arms suppress the SBF entirely.
  */
 export function BenefitsArmGate({ children }: { children: ReactNode }) {
-  const [hide, setHide] = useState(false);
-  useEffect(() => {
-    const v = assignIntakeVariant(getOrCreateSessionId());
-    if (v === "outreach" || v === "qa_email_capture") setHide(true);
-  }, []);
-  if (hide) return null;
+  const variant = useIntakeVariant();
+  if (variant === "outreach" || variant === "qa_email_capture") return null;
   return <>{children}</>;
 }
 
 /**
  * Renders AgentOutreachModule only for the outreach arm. Mounted on the Q&A
- * surface; renders null for the other 75%.
+ * surface; renders null for the other arms.
  */
 export function AgentOutreachSlot(props: {
   sourceProviderId: string;
@@ -54,11 +53,8 @@ export function AgentOutreachSlot(props: {
   topProviders: ProviderCardData[];
   recentQuestion?: { id: string; text: string } | null;
 }) {
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    if (assignIntakeVariant(getOrCreateSessionId()) === "outreach") setShow(true);
-  }, []);
-  if (!show) return null;
+  const variant = useIntakeVariant();
+  if (variant !== "outreach") return null;
   if (props.topProviders.length === 0) return null; // graceful fallback (no candidates)
   return <AgentOutreachModule {...props} />;
 }

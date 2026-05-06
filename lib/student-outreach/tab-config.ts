@@ -74,6 +74,7 @@ export const TABS: TabDef[] = [
   { key: "calls",      label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
   { key: "replies",    label: "Replies",    tooltip: "Email replies, callbacks, voicemails. Triage and pick the next step." },
   { key: "meetings",   label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
+  { key: "partners",   label: "Partners",   tooltip: "Active partners with a pending custom task. Smart-hidden when no partners have open tasks." },
   { key: "campuses",   label: "Campuses",   tooltip: "Campuses with Stage 2 unlocked but no stakeholders in research yet." },
 ];
 

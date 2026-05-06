@@ -444,6 +444,29 @@ async function computeTabCounts(
   // v9.0 Phase 4: unread call rows = subset of callSet that are unread.
   for (const id of callSet) if (unreadIds.has(id)) unread.calls++;
 
+  // v9.0 Phase 6.5: Partners count for the In Basket tab is task-driven
+  // (smart-hide when no partners have open tasks). Override the
+  // status-based partner count from the initial pass with this
+  // task-filtered count. The Stakeholders → Partners reference page
+  // uses a separate endpoint (/api/admin/medjobs/partners) that
+  // returns ALL active_partner non-provider rows regardless of tasks.
+  let partnerTaskQ = db
+    .from("student_outreach_tasks")
+    .select("outreach_id, student_outreach!inner(campus_id, stakeholder_type, status, kind)")
+    .eq("status", "pending")
+    .eq("student_outreach.status", "active_partner")
+    .neq("student_outreach.kind", "provider");
+  if (filters.campusId) partnerTaskQ = partnerTaskQ.eq("student_outreach.campus_id", filters.campusId);
+  if (filters.type) partnerTaskQ = partnerTaskQ.eq("student_outreach.stakeholder_type", filters.type);
+  const { data: partnerTasks } = await partnerTaskQ;
+  const partnerWithTaskSet = new Set<string>();
+  for (const t of (partnerTasks ?? []) as Array<{ outreach_id: string }>) {
+    partnerWithTaskSet.add(t.outreach_id);
+  }
+  counts.partners = partnerWithTaskSet.size;
+  unread.partners = 0;
+  for (const id of partnerWithTaskSet) if (unreadIds.has(id)) unread.partners++;
+
   // Meetings count: among in-progress rows, those whose most-recent
   // meeting-related touchpoint is in_flight or scheduled. Also: rows
   // with state=scheduled are dropped from the Replies tab in v8.2, so
@@ -630,7 +653,11 @@ async function fetchRowIdsForTab(
       //   - Signups       = student-signup touchpoints / business_profiles
       return [];
     case "partners":
-      return await idsByStatus(db, PARTNER_ALL as Status[], { campusId, type, search, page, pageSize });
+      // v9.0 Phase 6.5: In Basket Partners tab surfaces only active
+      // partners (kind != 'provider') with a pending task — custom
+      // step, follow-up, seasonal check-in, etc. Partners without
+      // open tasks live in the Stakeholders → Partners reference page.
+      return await idsByPartnersWithTasks(db, { campusId, type, search, page, pageSize });
     case "all": {
       const inc = showClosed
         ? [...RESEARCH_STATUSES, ...REPLIES_STATUSES, ...PARTNER_ALL, ...CLOSED_STATUSES]
@@ -739,6 +766,41 @@ async function idsByStatus(
   return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
 }
 
+
+/**
+ * v9.0 Phase 6.5: active_partner stakeholders that have at least one
+ * pending task. Powers the In Basket Partners tab — smart-hidden when
+ * no partners have open tasks.
+ *
+ * The Stakeholders → Partners page (separate endpoint) returns ALL
+ * active_partner kind!='provider' rows, with or without tasks.
+ *
+ * Same join shape as idsByCallsDue: pull pending tasks where the
+ * stakeholder is active_partner + non-provider, dedupe on outreach_id,
+ * return up to pageSize unique stakeholder ids.
+ */
+async function idsByPartnersWithTasks(db: DB, opts: QueryOpts): Promise<string[]> {
+  let q = db
+    .from("student_outreach_tasks")
+    .select("outreach_id, due_at, student_outreach!inner(campus_id, stakeholder_type, organization_name, status, kind)")
+    .eq("status", "pending")
+    .eq("student_outreach.status", "active_partner")
+    .neq("student_outreach.kind", "provider")
+    .order("due_at", { ascending: true });
+  if (opts.campusId) q = q.eq("student_outreach.campus_id", opts.campusId);
+  if (opts.type) q = q.eq("student_outreach.stakeholder_type", opts.type);
+  if (opts.search) q = q.ilike("student_outreach.organization_name", `%${opts.search}%`);
+  const { data } = await q;
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const t of (data ?? []) as Array<{ outreach_id: string }>) {
+    if (seen.has(t.outreach_id)) continue;
+    seen.add(t.outreach_id);
+    ids.push(t.outreach_id);
+    if (ids.length >= opts.pageSize) break;
+  }
+  return ids;
+}
 
 async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
   let q = db

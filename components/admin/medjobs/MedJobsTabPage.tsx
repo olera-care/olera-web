@@ -454,6 +454,8 @@ export function MedJobsTabPage({
             ? "No phone calls due. 🎉"
             : tab === "meetings"
             ? "No meetings in flight or booked."
+            : tab === "partners"
+            ? "No partners have open tasks. Add a custom step from the Partner drawer to bring one back."
             : "Nothing here right now."}
         </p>
       ) : (

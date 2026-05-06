@@ -395,7 +395,6 @@ export default function StudentOutreachPage() {
       {openOutreachId && (
         <Drawer
           outreachId={openOutreachId}
-          tabContext={tab}
           onClose={() => setOpenOutreachId(null)}
           onAction={handleDrawerAction}
         />

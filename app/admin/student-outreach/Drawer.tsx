@@ -43,19 +43,19 @@ import {
 } from "@/lib/student-outreach/presets";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 
-type TabContext = "research" | "calls" | "replies" | "meetings" | "partners" | "archive" | "all";
-
 interface DrawerProps {
   outreachId: string;
-  /** Which tab the drawer was opened from. Drives primary-CTA adaptation. */
-  tabContext?: TabContext;
   onClose: () => void;
   onAction: (refreshed: DrawerContext | null) => void;
 }
 
 type ActionFn = (action: string, payload?: Record<string, unknown>) => Promise<DrawerContext>;
 
-export function Drawer({ outreachId, tabContext = "all", onClose, onAction }: DrawerProps) {
+// v8.10.11: TabContext + TabContextBanner removed. The drawer's section
+// h3s + per-state guidance already convey orientation; the banner was
+// repeating it one row above. tabContext prop on DrawerProps was only
+// used to drive that banner, so it's gone too.
+export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
   const [ctx, setCtx] = useState<DrawerContext | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -160,7 +160,7 @@ export function Drawer({ outreachId, tabContext = "all", onClose, onAction }: Dr
           ) : error ? (
             <p className="py-8 text-center text-sm text-red-600">{error}</p>
           ) : ctx ? (
-            <DrawerBody ctx={ctx} tabContext={tabContext} action={action} setError={setError} />
+            <DrawerBody ctx={ctx} action={action} setError={setError} />
           ) : null}
         </div>
       </aside>
@@ -175,12 +175,10 @@ export function Drawer({ outreachId, tabContext = "all", onClose, onAction }: Dr
  */
 function DrawerBody({
   ctx,
-  tabContext,
   action,
   setError,
 }: {
   ctx: DrawerContext;
-  tabContext: TabContext;
   action: ActionFn;
   setError: (e: string | null) => void;
 }) {
@@ -194,7 +192,11 @@ function DrawerBody({
   return (
     <div className="space-y-6">
       <RelationshipBanner ctx={ctx} />
-      <TabContextBanner tabContext={tabContext} />
+      {/* v8.10.11: TabContextBanner removed. The ResearchSection h3 +
+          card orientation already convey "you're doing research" for
+          research stages, and NextStepPanel's h3 + guidance already
+          convey state for active-partner / closed states. The banner
+          was repeating those signals one row above them. */}
       {isResearch ? (
         <ResearchModePanel ctx={ctx} action={action} setError={setError} />
       ) : (
@@ -300,14 +302,14 @@ function ResearchModePanel({
   const isProspect = status === "prospect";
   const ready = isProspect ? haveContact && havePrograms && haveDept : eligibleEmail > 0;
 
+  // v8.10.11: orientation copy trimmed — the section h3 ("RESEARCH")
+  // already says what the section is for, so the prefix sentence
+  // ("Research this stakeholder." / "Ready to email.") was redundant.
+  // What's left is the actionable bit only.
   const orientation = isProspect ? (
-    <>
-      <strong>Research this stakeholder.</strong> Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.
-    </>
+    <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
   ) : (
-    <>
-      <strong>Ready to email.</strong> Review the {OUTREACH_DAYS_BY_TYPE[type].length}-step email sequence and start it. Day 0 sends right away; later days fire automatically.
-    </>
+    <>Review the {OUTREACH_DAYS_BY_TYPE[type].length}-step email sequence below. Day 0 sends right away; later days fire automatically.</>
   );
 
   const checklist = isProspect
@@ -1595,33 +1597,10 @@ function DangerZone({
   );
 }
 
-// ── Tab-context banner (v8.3) ───────────────────────────────────────────
-//
-// Drawer banners are kept ONLY for tabs where the drawer is the primary
-// action surface (Research / Partners). For Calls / Replies / Meetings
-// the row cards drive the action — the banner would just nag.
-
-function TabContextBanner({
-  tabContext,
-}: {
-  tabContext: TabContext;
-}) {
-  if (tabContext === "research") {
-    return (
-      <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-700">
-        Next step: Research
-      </div>
-    );
-  }
-  if (tabContext === "partners") {
-    return (
-      <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
-        Active Partner. Seasonal emails fire automatically — light-touch maintenance.
-      </div>
-    );
-  }
-  return null;
-}
+// v8.10.11: TabContextBanner removed. Section h3 + per-state guidance
+// already convey orientation; the banner repeated the same information
+// one row above. ResearchModePanel and NextStepPanel are the single
+// source of "what's next" for their respective stages.
 
 function FollowupNotesModal({
   onCancel,

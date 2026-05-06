@@ -65,22 +65,34 @@ export default function PulseHeader({
 
   return (
     <div className="mb-8">
+      {/* v8.10.10: title row only carries page-level controls (title +
+          optional actions like Add Stakeholder). The date picker moved
+          into the stats card below — it controls the data shown there,
+          so it belongs with the data, not with the page actions. */}
       <div className="flex items-center justify-between gap-4 mb-5">
         <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">{title}</h1>
-        <div className="flex shrink-0 items-center gap-3">
-          {actions}
-          <DateRangePopover value={range} onChange={onRangeChange} />
-        </div>
+        {actions && (
+          <div className="flex shrink-0 items-center gap-3">
+            {actions}
+          </div>
+        )}
       </div>
 
       <div className="rounded-2xl border border-gray-100 bg-white px-6 pt-6 pb-5">
-        <div className="flex items-baseline gap-2.5">
-          <span className="text-[44px] font-semibold text-gray-900 tracking-tight tabular-nums leading-none">
-            {stats ? stats.total.toLocaleString() : "—"}
-          </span>
-          <span className="text-sm text-gray-500">{kpiSuffix}</span>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="flex items-baseline gap-2.5">
+              <span className="text-[44px] font-semibold text-gray-900 tracking-tight tabular-nums leading-none">
+                {stats ? stats.total.toLocaleString() : "—"}
+              </span>
+              <span className="text-sm text-gray-500">{kpiSuffix}</span>
+            </div>
+            <DeltaLine stats={stats} range={range} />
+          </div>
+          <div className="shrink-0">
+            <DateRangePopover value={range} onChange={onRangeChange} />
+          </div>
         </div>
-        <DeltaLine stats={stats} range={range} />
 
         <div className="mt-6">
           <Chart series={stats?.series ?? []} bucket={stats?.bucket ?? "day"} loading={loading} />

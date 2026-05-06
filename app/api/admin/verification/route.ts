@@ -444,16 +444,17 @@ export async function DELETE(request: NextRequest) {
       .update({ active_profile_id: null, updated_at: new Date().toISOString() })
       .in("active_profile_id", ids);
 
-    // Log audit action
+    // Log audit action - use singular/plural based on count
+    const deletedCount = count ?? ids.length;
     await logAuditAction({
       adminUserId: adminUser.id,
-      action: "bulk_delete_providers",
+      action: deletedCount === 1 ? "delete_provider" : "delete_providers",
       targetType: "business_profile",
-      targetId: "bulk",
+      targetId: deletedCount === 1 ? ids[0] : "bulk",
       details: {
         ids,
         names: toDelete?.map((p) => p.display_name) || [],
-        count: count ?? ids.length,
+        count: deletedCount,
         source: "verification",
       },
     });

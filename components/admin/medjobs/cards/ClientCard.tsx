@@ -1,19 +1,25 @@
 "use client";
 
 /**
- * v9.0 Phase 2: ClientCard — provider-facing card variant for the
- * Clients tab. Same chrome as StakeholderCard but the headline is the
- * provider name, the pill encodes pilot/subscribed status, and the
- * primary CTA is "Manage" (opens the provider drawer).
+ * v9.0 Phase 3: ClientCard — provider clients (in pilot or subscribed).
+ * Standard MedjobsCard chrome (white bg, gray-200 border) with a
+ * single-tone slate pill carrying the status label. No colored
+ * backgrounds or red urgency accents — keeps the palette calm and
+ * consistent with the rest of the system.
  *
- * Visual distinctions vs StakeholderCard:
- *   - Emerald accent border for active subscriptions
- *   - Amber accent + countdown pill for in-pilot rows
- *   - Pilot ending in <14 days highlighted in red
+ * Structure:
+ *   - Title:    business name
+ *   - Subtitle: city, state · email
+ *   - Footnote: pilot-start or subscription-start blurb +
+ *               total interviews scheduled
+ *   - Pill:     "Pilot · 87 days left" / "Subscribed" / "Pilot ended"
+ *   - CTA:      Manage (opens provider drawer)
  */
 
 import { formatRelative } from "@/lib/student-outreach/formatters";
 import type { ClientRow } from "@/lib/student-outreach/tab-config";
+import { MedjobsCard } from "./MedjobsCard";
+import { Pill } from "./StakeholderCard";
 
 export function ClientCard({
   row,
@@ -22,105 +28,51 @@ export function ClientCard({
   row: ClientRow;
   onManage: () => void;
 }) {
-  const subtitleParts = [
+  const subtitle = [
     [row.city, row.state].filter(Boolean).join(", ") || null,
     row.email,
-  ].filter(Boolean);
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
-  const isUrgent =
-    row.status === "in_pilot" &&
-    typeof row.days_remaining_in_pilot === "number" &&
-    row.days_remaining_in_pilot <= 14;
-
-  const accentClass =
-    row.status === "subscribed"
-      ? "border-emerald-200"
-      : isUrgent
-        ? "border-red-200"
-        : row.status === "in_pilot"
-          ? "border-amber-200"
-          : "border-gray-200";
+  const startBlurb = row.interview_terms_accepted_at
+    ? `Pilot started ${formatRelative(row.interview_terms_accepted_at)}`
+    : `Subscribed since ${formatRelative(row.created_at)}`;
+  const interviewBlurb =
+    row.credits_used > 0
+      ? ` · ${row.credits_used} interview${row.credits_used === 1 ? "" : "s"} scheduled`
+      : "";
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <MedjobsCard
+      title={row.display_name}
+      subtitle={subtitle}
+      footnote={`${startBlurb}${interviewBlurb}`}
+      pill={<StatusPill row={row} />}
+      cta={
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onManage();
+          }}
+          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+        >
+          Manage
+        </button>
+      }
       onClick={onManage}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onManage();
-        }
-      }}
-      title="Open the management drawer for this client."
-      className={`cursor-pointer rounded-lg border bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${accentClass}`}
-    >
-      <div className="flex items-stretch justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-gray-900">
-            {row.display_name}
-          </p>
-          {subtitleParts.length > 0 && (
-            <p className="mt-0.5 truncate text-xs text-gray-500">
-              {subtitleParts.join(" · ")}
-            </p>
-          )}
-          <p className="mt-0.5 text-[11px] text-gray-400">
-            {row.interview_terms_accepted_at
-              ? `Pilot started ${formatRelative(row.interview_terms_accepted_at)}`
-              : `Subscribed since ${formatRelative(row.created_at)}`}
-            {row.credits_used > 0 && ` · ${row.credits_used} interviews scheduled`}
-          </p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <StatusPill row={row} isUrgent={isUrgent} />
-            {row.subscription_active && row.status === "in_pilot" && (
-              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-900">
-                Subscribed
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex shrink-0 flex-col items-end justify-end">
-          <button
-            onClick={(e) => { e.stopPropagation(); onManage(); }}
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
-          >
-            Manage
-          </button>
-        </div>
-      </div>
-    </div>
+      hoverTitle="Open the management drawer for this client."
+    />
   );
 }
 
-function StatusPill({ row, isUrgent }: { row: ClientRow; isUrgent: boolean }) {
-  if (row.status === "subscribed") {
-    return (
-      <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-900">
-        Subscribed
-      </span>
-    );
-  }
-  if (row.status === "pilot_expired") {
-    return (
-      <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
-        Pilot ended
-      </span>
-    );
-  }
-  // in_pilot
+function StatusPill({ row }: { row: ClientRow }) {
+  if (row.status === "subscribed") return <Pill>Subscribed</Pill>;
+  if (row.status === "pilot_expired") return <Pill>Pilot ended</Pill>;
   const days = row.days_remaining_in_pilot ?? 0;
-  const cls = isUrgent
-    ? "bg-red-100 text-red-900"
-    : "bg-amber-100 text-amber-900";
-  const label =
-    days === 1
-      ? "Pilot · 1 day left"
-      : `Pilot · ${days} days left`;
   return (
-    <span className={`rounded px-2 py-0.5 text-xs font-medium ${cls}`}>
-      {label}
-    </span>
+    <Pill title="Provider is in their 90-day pilot.">
+      {days === 1 ? "Pilot · 1 day left" : `Pilot · ${days} days left`}
+    </Pill>
   );
 }

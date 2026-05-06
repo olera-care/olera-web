@@ -23,6 +23,8 @@ import type {
   OutboundRow,
   SignupRow,
 } from "@/lib/student-outreach/tab-config";
+import { MedjobsCard } from "./MedjobsCard";
+import { Pill } from "./StakeholderCard";
 
 /**
  * v8.10.39: row card for the Emails Sent menu view.
@@ -129,82 +131,48 @@ export function SignupCard({ row }: { row: SignupRow }) {
 }
 
 /**
- * v8.10.42: row card for the Candidates tab — LIVE provider-facing
- * student profiles (Candidates ⊂ Signups). Marketplace-supply feel:
- * leads with the candidate's display name + university, surfaces
- * program track + location + readiness signals (video, certifications,
- * profile completeness) as pills so admin can scan the live supply.
- *
- * Click opens the admin-side student profile editor.
+ * v9.0 Phase 3: row card for the Candidates tab — LIVE provider-facing
+ * student profiles (Candidates ⊂ Signups). Standard MedjobsCard chrome
+ * with single-tone slate pills for readiness signals (no per-signal
+ * color drift). Click opens the admin-side student profile editor.
  */
 export function CandidateCard({ row }: { row: CandidateRow }) {
-  const subtitleParts = [
+  const subtitle = [
     row.university,
     [row.city, row.state].filter(Boolean).join(", ") || null,
     row.program_track,
-  ].filter(Boolean);
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
-  const pills: ReactNode[] = [];
+  const pillBits: string[] = [];
   if (typeof row.profile_completeness === "number") {
-    pills.push(
-      <span
-        key="completeness"
-        className={`rounded px-2 py-0.5 text-xs font-medium ${
-          row.profile_completeness >= 80
-            ? "bg-emerald-100 text-emerald-900"
-            : row.profile_completeness >= 50
-              ? "bg-amber-100 text-amber-900"
-              : "bg-gray-100 text-gray-700"
-        }`}
-      >
-        {row.profile_completeness}% complete
-      </span>,
-    );
+    pillBits.push(`${row.profile_completeness}% complete`);
   }
-  if (row.has_video) {
-    pills.push(
-      <span
-        key="video"
-        className="rounded bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-900"
-      >
-        Video intro
-      </span>,
-    );
-  }
+  if (row.has_video) pillBits.push("Video");
   if (row.certifications_count > 0) {
-    pills.push(
-      <span
-        key="certs"
-        className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-900"
-      >
-        {row.certifications_count} cert{row.certifications_count === 1 ? "" : "s"}
-      </span>,
-    );
+    pillBits.push(`${row.certifications_count} cert${row.certifications_count === 1 ? "" : "s"}`);
   }
+  // One pill per signal, all single-tone. Less visual noise than the
+  // earlier emerald/violet/blue/amber mix.
+  const pill =
+    pillBits.length > 0 ? (
+      <>
+        {pillBits.map((b) => (
+          <Pill key={b}>{b}</Pill>
+        ))}
+      </>
+    ) : null;
 
   return (
-    <a
+    <MedjobsCard
+      title={row.display_name}
+      subtitle={subtitle}
+      footnote={`Live since ${formatRelative(row.signed_up_at)}`}
+      pill={pill}
       href={`/admin/medjobs/${row.id}`}
-      title="Open candidate profile."
-      className="block cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-    >
-      <div className="flex items-stretch justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-gray-900">{row.display_name}</p>
-          {subtitleParts.length > 0 && (
-            <p className="mt-0.5 truncate text-xs text-gray-500">
-              {subtitleParts.join(" · ")}
-            </p>
-          )}
-          <p className="mt-0.5 text-[11px] text-gray-400">
-            Live since {formatRelative(row.signed_up_at)}
-          </p>
-          {pills.length > 0 && (
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">{pills}</div>
-          )}
-        </div>
-      </div>
-    </a>
+      hoverTitle="Open candidate profile."
+    />
   );
 }
 

@@ -551,11 +551,15 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     ) : (
       <Pill>Finding a time</Pill>
     );
-  const ctaLabel = row.meeting_state === "scheduled" ? "Complete" : "Log Meeting";
+  // v9.0 Phase 3: CTA is always "Log Meeting" — applies whether the
+  // row is finding-a-time or already booked. The previous "Complete"
+  // label for booked rows drifted from the rest of the system; the
+  // modal still handles all four outcomes (find time / on calendar /
+  // done sharing / done follow-up) regardless of label.
   return {
     footnote: lastActivityFootnote,
     pill,
-    cta: <PrimaryAction onClick={cb.onLogMeeting}>{ctaLabel}</PrimaryAction>,
+    cta: <PrimaryAction onClick={cb.onLogMeeting}>Log Meeting</PrimaryAction>,
     overflowMenu: buildUniversalOverflow(cb),
   };
 }

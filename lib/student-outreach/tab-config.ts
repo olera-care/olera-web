@@ -198,6 +198,24 @@ export interface CandidateRow {
 }
 
 /**
+ * v9.0 Phase 3: row shape for the Campuses tab. Fed by
+ * /api/admin/medjobs/campuses with derived stage + counts so the UI
+ * doesn't need to recompute the catchment join per render.
+ */
+export interface CampusRow {
+  id: string;
+  slug: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+  research_complete: boolean;
+  stage: "provider_prospecting" | "stakeholder_prospecting" | "active";
+  client_count: number;
+  stakeholder_count: number;
+  last_added_at: string | null;
+}
+
+/**
  * v9.0 Phase 2 Tier 3: virtual provider prospects shown in the Prospects
  * tab. Computed at query-time from the campus catchment + materialized
  * outreach records — never stored. Materialization happens when admin

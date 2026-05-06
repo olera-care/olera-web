@@ -39,6 +39,8 @@ import type {
   TabCounts,
   TabRow,
 } from "@/lib/student-outreach/types";
+// ResearchCampusCard is still used for the bulkResearchCampus modal
+// payload — Campuses tab CampusCard onAddStakeholders constructs it.
 import {
   CHART_SERIES_OPTIONS,
   MENU_TABS,
@@ -47,6 +49,7 @@ import {
   TAB_STATS,
   TABS,
   TYPE_FILTERS,
+  type CampusRow,
   type CandidateRow,
   type ClientRow,
   type EmailSentRow,
@@ -57,6 +60,7 @@ import {
 } from "@/lib/student-outreach/tab-config";
 import { buildDefaultEmailSnapshots } from "@/lib/student-outreach/email-snapshot";
 import { RowCard } from "@/components/admin/medjobs/cards/StakeholderCard";
+import { CampusCard } from "@/components/admin/medjobs/cards/CampusCard";
 import { ClientCard } from "@/components/admin/medjobs/cards/ClientCard";
 import {
   CandidateCard,
@@ -91,7 +95,6 @@ export function MedJobsTabPage({
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [rows, setRows] = useState<TabRow[]>([]);
-  const [researchCampuses, setResearchCampuses] = useState<ResearchCampusCard[]>([]);
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
   const [emailsSentRows, setEmailsSentRows] = useState<EmailSentRow[]>([]);
   const [signupRows, setSignupRows] = useState<SignupRow[]>([]);
@@ -99,6 +102,7 @@ export function MedJobsTabPage({
   const [candidateRows, setCandidateRows] = useState<CandidateRow[]>([]);
   const [clientRows, setClientRows] = useState<ClientRow[]>([]);
   const [providerProspects, setProviderProspects] = useState<ProviderProspectRow[]>([]);
+  const [campusRows, setCampusRows] = useState<CampusRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
@@ -159,7 +163,6 @@ export function MedJobsTabPage({
             tab !== "campuses"
           ) {
             setRows(data.rows ?? []);
-            setResearchCampuses(data.research_campuses ?? []);
           }
           setTabCounts(data.tab_counts ?? null);
         })(),
@@ -214,6 +217,23 @@ export function MedJobsTabPage({
           if (!r.ok) throw new Error((await r.json()).error || "Failed to load clients");
           const d = await r.json();
           setClientRows(d.rows ?? []);
+        })());
+      }
+
+      // v9.0 Phase 3: Campuses tab fetches the dedicated campuses
+      // endpoint with derived stage + counts. This is now the sole
+      // place where campus research/operational state lives — Prospects
+      // no longer surfaces campus banners.
+      if (tab === "campuses") {
+        fetches.push((async () => {
+          const r = await fetch("/api/admin/medjobs/campuses");
+          if (!r.ok) {
+            console.warn("[medjobs] campuses fetch failed", await r.text());
+            setCampusRows([]);
+            return;
+          }
+          const d = await r.json();
+          setCampusRows(d.rows ?? []);
         })());
       }
 
@@ -471,21 +491,43 @@ export function MedJobsTabPage({
           </ul>
         )
       ) : tab === "campuses" ? (
-        <CampusesPlaceholder campuses={campuses} />
+        campusRows.length === 0 ? (
+          <p className="py-12 text-center text-sm text-gray-400">
+            No campuses configured yet.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {campusRows.map((c) => (
+              <li key={c.id}>
+                <CampusCard
+                  row={c}
+                  onAddStakeholders={() =>
+                    setBulkResearchCampus({
+                      id: c.id,
+                      slug: c.slug,
+                      name: c.name,
+                      state: c.state,
+                      city: c.city,
+                      research_stakeholder_count: c.stakeholder_count,
+                      last_added_at: c.last_added_at,
+                    })
+                  }
+                  onViewCampus={() => {
+                    window.location.href = `/admin/student-outreach/campus/${c.slug}`;
+                  }}
+                />
+              </li>
+            ))}
+          </ul>
+        )
       ) : tab === "prospects" ? (
         <ResearchTabContent
           rows={rows}
-          researchCampuses={researchCampuses}
           providerProspects={providerProspects}
           renderRow={renderRow}
-          onContinueCampus={(c) => setBulkResearchCampus(c)}
           onStartProviderOutreach={async (p) => {
             // v9.0 Phase 2 Tier 3.5: materialize a student_outreach row
             // with kind='provider' and open the workflow drawer for it.
-            // The virtual prospect disappears from the catchment list
-            // (deduped by the materialize endpoint) and the materialized
-            // row appears in the stakeholder rows section with amber
-            // accent + "Provider" pill.
             try {
               const res = await fetch("/api/admin/medjobs/provider-prospects/materialize", {
                 method: "POST",
@@ -498,20 +540,6 @@ export function MedJobsTabPage({
               setOpenOutreachId(body.id);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Failed to start outreach");
-            }
-          }}
-          onMarkResearchComplete={async (slug, name) => {
-            if (!window.confirm(`Mark research complete for ${name}? You can reopen later from the Campuses page.`)) return;
-            try {
-              const res = await fetch(`/api/admin/student-outreach/campuses/${slug}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ research_complete: true }),
-              });
-              if (!res.ok) throw new Error((await res.json()).error || "Failed to mark complete");
-              await refetch();
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Action failed");
             }
           }}
           onBulkStartOutreach={async (selectedRows) => {
@@ -754,33 +782,3 @@ export function MedJobsTabPage({
   );
 }
 
-/**
- * v9.0 Phase 1: Campuses tab — minimal list of all campuses pulled from
- * the existing queue endpoint. Phase 2 will add per-campus state
- * (provider_prospecting / stakeholder_prospecting / active) and a
- * "campus research needed" banner.
- */
-function CampusesPlaceholder({ campuses }: { campuses: Campus[] }) {
-  if (campuses.length === 0) {
-    return (
-      <p className="py-12 text-center text-sm text-gray-400">No campuses configured yet.</p>
-    );
-  }
-  return (
-    <ul className="space-y-2">
-      {campuses.map((c) => (
-        <li key={c.id}>
-          <a
-            href={`/admin/medjobs/campuses/${c.slug}`}
-            className="block rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50"
-          >
-            <p className="text-sm font-medium text-gray-900">{c.name}</p>
-            <p className="mt-0.5 text-xs text-gray-500">
-              {[c.city, c.state].filter(Boolean).join(", ") || "—"}
-            </p>
-          </a>
-        </li>
-      ))}
-    </ul>
-  );
-}

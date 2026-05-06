@@ -494,70 +494,102 @@ export async function getSimilarProvidersForMulti(
 
   const supabase = await createClient();
 
-  // Query providers in the same state and category
-  // Prioritize same city, then nearby cities
+  // Pass 1: Same state and category (preferred - local results)
+  if (state) {
+    try {
+      const { data, error } = await supabase
+        .from(PROVIDERS_TABLE)
+        .select("provider_id, slug, provider_name, provider_images, provider_logo, google_rating, price_range, city, state, lat, lng")
+        .not("deleted", "is", true)
+        .ilike("provider_category", `%${supabaseCategory}%`)
+        .eq("state", state)
+        .neq("provider_id", excludeSlug)
+        .neq("slug", excludeSlug)
+        .order("google_rating", { ascending: false, nullsFirst: false })
+        .limit(20);
+
+      if (!error && data && data.length > 0) {
+        return processProvidersForMulti(data, sourceLat, sourceLng, limit);
+      }
+    } catch {
+      // Fall through to global fallback
+    }
+  }
+
+  // Pass 2: Same category, any state (fallback when no local results)
   try {
-    let query = supabase
+    const { data, error } = await supabase
       .from(PROVIDERS_TABLE)
       .select("provider_id, slug, provider_name, provider_images, provider_logo, google_rating, price_range, city, state, lat, lng")
       .not("deleted", "is", true)
       .ilike("provider_category", `%${supabaseCategory}%`)
       .neq("provider_id", excludeSlug)
-      .not("provider_images", "is", null);
-
-    // Filter by state if available
-    if (state) {
-      query = query.eq("state", state);
-    }
-
-    // Order by rating
-    query = query.order("google_rating", { ascending: false, nullsFirst: false });
-
-    // Fetch more than needed so we can filter/sort by distance
-    const { data, error } = await query.limit(20);
+      .neq("slug", excludeSlug)
+      .order("google_rating", { ascending: false, nullsFirst: false })
+      .limit(20);
 
     if (error || !data || data.length === 0) return [];
 
-    // Map to our interface and calculate distances
-    const providers: SimilarProviderForMulti[] = data.map((p) => {
-      // Get first image from pipe-delimited string
-      const images = p.provider_images?.split(" | ") || [];
-      const image = images[0] || p.provider_logo || null;
-
-      // Calculate distance if we have coordinates
-      let distanceMiles: number | null = null;
-      if (sourceLat != null && sourceLng != null && p.lat != null && p.lng != null) {
-        distanceMiles = Math.round(haversineDistance(sourceLat, sourceLng, p.lat, p.lng) * 10) / 10;
-      }
-
-      return {
-        id: p.provider_id,
-        slug: p.slug || p.provider_id,
-        name: p.provider_name,
-        image,
-        rating: p.google_rating,
-        priceRange: p.price_range,
-        city: p.city,
-        state: p.state,
-        distanceMiles,
-      };
-    });
-
-    // Sort by distance if available, otherwise by rating (already sorted)
-    if (sourceLat != null && sourceLng != null) {
-      providers.sort((a, b) => {
-        // Prioritize providers with distance data
-        if (a.distanceMiles == null && b.distanceMiles == null) return 0;
-        if (a.distanceMiles == null) return 1;
-        if (b.distanceMiles == null) return -1;
-        return a.distanceMiles - b.distanceMiles;
-      });
-    }
-
-    return providers.slice(0, limit);
+    return processProvidersForMulti(data, sourceLat, sourceLng, limit);
   } catch {
     return [];
   }
+}
+
+/** Helper to map raw provider data to SimilarProviderForMulti format */
+function processProvidersForMulti(
+  data: Array<{
+    provider_id: string;
+    slug: string | null;
+    provider_name: string;
+    provider_images: string | null;
+    provider_logo: string | null;
+    google_rating: number | null;
+    price_range: string | null;
+    city: string | null;
+    state: string | null;
+    lat: number | null;
+    lng: number | null;
+  }>,
+  sourceLat: number | null,
+  sourceLng: number | null,
+  limit: number
+): SimilarProviderForMulti[] {
+  const providers: SimilarProviderForMulti[] = data.map((p) => {
+    // Get first image from pipe-delimited string
+    const images = p.provider_images?.split(" | ") || [];
+    const image = images[0] || p.provider_logo || null;
+
+    // Calculate distance if we have coordinates
+    let distanceMiles: number | null = null;
+    if (sourceLat != null && sourceLng != null && p.lat != null && p.lng != null) {
+      distanceMiles = Math.round(haversineDistance(sourceLat, sourceLng, p.lat, p.lng) * 10) / 10;
+    }
+
+    return {
+      id: p.provider_id,
+      slug: p.slug || p.provider_id,
+      name: p.provider_name,
+      image,
+      rating: p.google_rating,
+      priceRange: p.price_range,
+      city: p.city,
+      state: p.state,
+      distanceMiles,
+    };
+  });
+
+  // Sort by distance if available, otherwise by rating (already sorted)
+  if (sourceLat != null && sourceLng != null) {
+    providers.sort((a, b) => {
+      if (a.distanceMiles == null && b.distanceMiles == null) return 0;
+      if (a.distanceMiles == null) return 1;
+      if (b.distanceMiles == null) return -1;
+      return a.distanceMiles - b.distanceMiles;
+    });
+  }
+
+  return providers.slice(0, limit);
 }
 
 export async function getSimilarProviders(

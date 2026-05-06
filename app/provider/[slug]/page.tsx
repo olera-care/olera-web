@@ -1037,7 +1037,17 @@ export default async function ProviderPage({
                   }))}
                   suggestedQuestions={getSuggestedQuestions(profile.category)}
                   hasBenefitsData={hasBenefitsData && !!benefitsData}
-                  similarProvidersForMulti={multiProviderCandidates}
+                  similarProvidersForMulti={similarProviders.providers.map(p => ({
+                    id: p.id,
+                    slug: p.slug,
+                    name: p.name,
+                    image: p.image || null,
+                    rating: p.rating,
+                    priceRange: p.priceRange,
+                    city: p.address?.split(",")[0]?.trim() || null,
+                    state: p.address?.split(",")[1]?.trim()?.split(" ")[0] || null,
+                    distanceMiles: null,
+                  }))}
                 />
 
                 {/* Outreach arm of the 6-way intake A/B. Slot itself renders

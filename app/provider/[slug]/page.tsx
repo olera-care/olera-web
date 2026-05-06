@@ -41,6 +41,7 @@ import {
   getCategoryDescription,
   getCategoryServices,
   getSimilarProviders,
+  getSimilarProvidersForMulti,
   getSuggestedQuestions,
 } from "@/lib/provider-utils";
 
@@ -383,7 +384,7 @@ export default async function ProviderPage({
   const canFetchOutreachCandidates = !!(profile.city && profile.state && outreachCategoryString);
 
   // --- Parallel data fetching (claim state, similar providers, Q&A, reviews, outreach candidates) ---
-  const [claimResult, similarProviders, qaResult, outreachCandidates] = await Promise.all([
+  const [claimResult, similarProviders, similarProvidersForMulti, qaResult, outreachCandidates] = await Promise.all([
     // 1. Actual claim state (iOS data always says "unclaimed")
     profile.source_provider_id
       ? (async () => {
@@ -401,11 +402,23 @@ export default async function ProviderPage({
         })()
       : Promise.resolve(null),
 
-    // 2. Similar providers (state-filtered, with global fallback)
-    // Also reused for multi_provider variant (mapped inline at render time)
+    // 2. Similar providers for Compare section (state-filtered, with global fallback)
     getSimilarProviders(profile.category, profile.source_provider_id || profile.id, profile.state, 3),
 
-    // 3. Q&A pairs + review count
+    // 3. Similar providers for multi_provider variant (with distance calculation)
+    getSimilarProvidersForMulti(
+      profile.category,
+      profile.source_provider_id || profile.id,
+      profile.city,
+      profile.state,
+      profile.lat ?? null,
+      profile.lng ?? null,
+      null, // lowerPrice - not filtering by price yet
+      null, // upperPrice
+      3
+    ),
+
+    // 4. Q&A pairs + review count
     (async () => {
       try {
         const db = getServiceClient();
@@ -435,7 +448,7 @@ export default async function ProviderPage({
       }
     })(),
 
-    // 4. Outreach arm candidates (top 3 same-city, same-category providers).
+    // 5. Outreach arm candidates (top 3 same-city, same-category providers).
     // Returns [] when context is missing or no candidates exist; gate handles.
     canFetchOutreachCandidates
       ? getTopProvidersByCityAndCategory({
@@ -1024,21 +1037,11 @@ export default async function ProviderPage({
                   }))}
                   suggestedQuestions={getSuggestedQuestions(profile.category)}
                   hasBenefitsData={hasBenefitsData && !!benefitsData}
-                  similarProvidersForMulti={similarProviders.providers.map(p => ({
-                    id: p.id,
-                    slug: p.slug,
-                    name: p.name,
-                    image: p.image || null,
-                    rating: p.rating,
-                    priceRange: p.priceRange,
-                    city: p.address?.split(",")[0]?.trim() || null,
-                    state: p.address?.split(",")[1]?.trim()?.split(" ")[0] || null,
-                    distanceMiles: null,
-                  }))}
+                  similarProvidersForMulti={similarProvidersForMulti}
                 />
 
-                {/* Outreach arm of the 6-way intake A/B. Slot itself renders
-                    null for the ~83% not in the outreach arm, so no wrapping div
+                {/* Outreach arm of the 5-way intake A/B. Slot itself renders
+                    null for the ~80% not in the outreach arm, so no wrapping div
                     here — it would leave a phantom mt-6 gap. The module owns
                     its own top margin. See IntakeVariantSlots.tsx. */}
                 {canFetchOutreachCandidates && outreachCandidates.length > 0 && (
@@ -1055,9 +1058,9 @@ export default async function ProviderPage({
 
               {/* ── Benefits Discovery ── */}
               {/* Wrapped in BenefitsArmGate so the section disappears for the
-                  50% of visitors in the outreach, inline_answer, or multi_provider
-                  arms of the 6-way intake A/B. The 50% in the 3 benefits arms see
-                  the existing module unchanged (with its internal mod-3 copy A/B). */}
+                  40% of visitors in the outreach or multi_provider arms of the
+                  5-way intake A/B. The 60% in the 3 benefits arms see the existing
+                  module unchanged (with its internal mod-3 copy A/B). */}
               {hasBenefitsData && benefitsData && (
                 <BenefitsArmGate>
                   <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">

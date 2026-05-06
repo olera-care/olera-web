@@ -80,6 +80,10 @@ export interface TabCounts {
   partners: number;
   archive: number;
   all: number;
+  // v9.0 Phase 2: optional so the legacy fields are decoupled. The
+  // public type in lib/student-outreach/types.ts mirrors this.
+  clients?: number;
+  campuses?: number;
 }
 
 export interface TabRow extends OutreachRow {
@@ -308,7 +312,7 @@ async function computeTabCounts(
   db: DB,
   filters: { campusId: string | null; type: StakeholderType | null },
 ): Promise<TabCounts> {
-  const counts: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0 };
+  const counts: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
 
   // Single status scan in scope.
   let q = db.from("student_outreach").select("id, status");
@@ -408,6 +412,38 @@ async function computeTabCounts(
       .contains("metadata", { application_completed: true });
     counts.candidates = candidatesCount ?? 0;
   }
+
+  // v9.0 Phase 2: clients + campuses tab counts.
+  //   Clients = providers who accepted T&C OR have an active subscription.
+  //   This is best-effort across the provider population — pilot expiry
+  //   is filtered client-side from the dedicated endpoint, but for the
+  //   tab badge we count both pilot-active and subscribed.
+  //   Campuses = total campus rows (operational territory in scope).
+  const [{ data: clientProviders }, { count: campusCount }] = await Promise.all([
+    db
+      .from("business_profiles")
+      .select("metadata")
+      .in("type", ["organization", "caregiver"]),
+    db
+      .from("student_outreach_campuses")
+      .select("id", { count: "exact", head: true })
+      .eq("is_active", true),
+  ]);
+
+  const PILOT_MS = 90 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  counts.clients = (
+    (clientProviders ?? []) as Array<{ metadata: Record<string, unknown> | null }>
+  ).filter((p) => {
+    const meta = p.metadata ?? {};
+    if (meta.medjobs_subscription_active === true) return true;
+    const accepted = meta.interview_terms_accepted_at;
+    if (typeof accepted !== "string") return false;
+    const t = new Date(accepted).getTime();
+    return !isNaN(t) && now - t < PILOT_MS;
+  }).length;
+
+  counts.campuses = campusCount ?? 0;
 
   return counts;
 }

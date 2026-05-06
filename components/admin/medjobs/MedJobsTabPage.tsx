@@ -48,6 +48,7 @@ import {
   TABS,
   TYPE_FILTERS,
   type CandidateRow,
+  type ClientRow,
   type EmailSentRow,
   type OutboundRow,
   type SignupRow,
@@ -55,6 +56,7 @@ import {
 } from "@/lib/student-outreach/tab-config";
 import { buildDefaultEmailSnapshots } from "@/lib/student-outreach/email-snapshot";
 import { RowCard } from "@/components/admin/medjobs/cards/StakeholderCard";
+import { ClientCard } from "@/components/admin/medjobs/cards/ClientCard";
 import {
   CandidateCard,
   EmailSentCard,
@@ -94,9 +96,14 @@ export function MedJobsTabPage({
   const [signupRows, setSignupRows] = useState<SignupRow[]>([]);
   const [outboundRows, setOutboundRows] = useState<OutboundRow[]>([]);
   const [candidateRows, setCandidateRows] = useState<CandidateRow[]>([]);
+  const [clientRows, setClientRows] = useState<ClientRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
+  // v9.0 Phase 2: when set, the Drawer mounts in provider mode and
+  // shows the Manage panel for that client. Mutually exclusive with
+  // openOutreachId — only one drawer surface is visible at a time.
+  const [openProviderId, setOpenProviderId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
   const [callOutcomeRow, setCallOutcomeRow] = useState<TabRow | null>(null);
@@ -194,10 +201,21 @@ export function MedJobsTabPage({
           const d = await r.json();
           setCandidateRows(d.rows ?? []);
         })());
+      } else if (tab === "clients") {
+        // v9.0 Phase 2: Clients = providers in pilot OR with active
+        // Stripe subscription. Pilot status derived from
+        // metadata.interview_terms_accepted_at (90-day window).
+        fetches.push((async () => {
+          const p = new URLSearchParams();
+          if (debouncedSearch) p.set("search", debouncedSearch);
+          const r = await fetch(`/api/admin/medjobs/clients?${p}`);
+          if (!r.ok) throw new Error((await r.json()).error || "Failed to load clients");
+          const d = await r.json();
+          setClientRows(d.rows ?? []);
+        })());
       }
-      // v9.0 Phase 1: clients + campuses tabs render placeholder content
-      // and don't fetch anything beyond the queue's tab_counts. Phase 2
-      // wires real endpoints for both.
+      // v9.0 Phase 2 (deferred): campuses tab still uses queue.campuses.
+      // Per-campus state and the research-needed banner come in 2.5.
 
       await Promise.all(fetches);
     } catch (e) {
@@ -416,7 +434,19 @@ export function MedJobsTabPage({
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : tab === "clients" ? (
-        <ClientsPlaceholder />
+        clientRows.length === 0 ? (
+          <p className="py-12 text-center text-sm text-gray-400">
+            No clients yet. Providers enter the pilot when they accept T&amp;C at first interview scheduling, or convert via Stripe.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {clientRows.map((r) => (
+              <li key={r.id}>
+                <ClientCard row={r} onManage={() => setOpenProviderId(r.id)} />
+              </li>
+            ))}
+          </ul>
+        )
       ) : tab === "campuses" ? (
         <CampusesPlaceholder campuses={campuses} />
       ) : tab === "prospects" ? (
@@ -539,6 +569,12 @@ export function MedJobsTabPage({
           outreachId={openOutreachId}
           onClose={() => setOpenOutreachId(null)}
           onAction={handleDrawerAction}
+        />
+      )}
+      {openProviderId && (
+        <Drawer
+          providerId={openProviderId}
+          onClose={() => setOpenProviderId(null)}
         />
       )}
 
@@ -667,25 +703,6 @@ export function MedJobsTabPage({
           }}
         />
       )}
-    </div>
-  );
-}
-
-/**
- * v9.0 Phase 1: Clients tab placeholder. Phase 2 will replace this with
- * a list of provider rows (kind='provider' with active subscription or
- * pilot_started_at set), backed by /api/admin/medjobs/clients.
- */
-function ClientsPlaceholder() {
-  return (
-    <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center">
-      <p className="text-sm font-medium text-gray-700">Clients — coming in v9.x</p>
-      <p className="mx-auto mt-2 max-w-md text-xs text-gray-500">
-        Provider clients (agencies in trial or paying via Stripe) land here in
-        Phase 2 once the T&amp;C pilot signal and the catchment-driven trigger
-        are wired up. The drawer will fork on <code>kind=&quot;provider&quot;</code> to
-        surface trial status, acknowledgement records, and Stripe links.
-      </p>
     </div>
   );
 }

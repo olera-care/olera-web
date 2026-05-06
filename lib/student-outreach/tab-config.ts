@@ -198,6 +198,36 @@ export interface CandidateRow {
   signed_up_at: string;
 }
 
+/**
+ * v9.0 Phase 2: provider clients (agencies in pilot or paying via
+ * Stripe). Rendered by ClientCard on the Clients tab. Status, dates,
+ * and pilot countdown are computed server-side in
+ * /api/admin/medjobs/clients so the UI doesn't recompute the 90-day
+ * window each render.
+ */
+export interface ClientRow {
+  id: string;
+  display_name: string;
+  slug: string | null;
+  email: string | null;
+  phone: string | null;
+  city: string | null;
+  state: string | null;
+  image_url: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  stripe_customer_id: string | null;
+  subscription_id: string | null;
+  subscription_active: boolean;
+  interview_terms_accepted_at: string | null;
+  credits_used: number;
+  status: "in_pilot" | "pilot_expired" | "subscribed";
+  pilot_started_at: string | null;
+  pilot_ends_at: string | null;
+  days_remaining_in_pilot: number | null;
+}
+
 export interface OutboundRow {
   outreach_id: string;
   organization_name: string;

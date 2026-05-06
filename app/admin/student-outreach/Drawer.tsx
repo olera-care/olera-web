@@ -47,9 +47,15 @@ import {
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 
 interface DrawerProps {
-  outreachId: string;
+  /** v9.0 Phase 2: stakeholder mode — pass outreachId to load a
+   *  student_outreach row and render the existing workflow drawer. */
+  outreachId?: string;
+  /** v9.0 Phase 2: provider mode — pass providerId to load a
+   *  business_profiles row and render the Manage panel for a Client. */
+  providerId?: string;
   onClose: () => void;
-  onAction: (refreshed: DrawerContext | null) => void;
+  /** Optional in provider mode (drawer is mostly read-only there). */
+  onAction?: (refreshed: DrawerContext | null) => void;
 }
 
 type ActionFn = (action: string, payload?: Record<string, unknown>) => Promise<DrawerContext>;
@@ -69,7 +75,37 @@ const TERMINAL_STATUSES: Status[] = [
 // h3s + per-state guidance already convey orientation; the banner was
 // repeating it one row above. tabContext prop on DrawerProps was only
 // used to drive that banner, so it's gone too.
-export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
+//
+// v9.0 Phase 2: Drawer is now polymorphic — `outreachId` mounts the
+// existing stakeholder workflow drawer; `providerId` mounts the
+// provider Manage drawer (Clients tab). One drawer file, internal
+// fork on which prop is set. The two share the outer chrome (backdrop,
+// aside, ESC handler, close button) via DrawerShell.
+export function Drawer(props: DrawerProps) {
+  if (props.providerId) {
+    return <ProviderDrawer providerId={props.providerId} onClose={props.onClose} />;
+  }
+  if (!props.outreachId) {
+    return null;
+  }
+  return (
+    <StakeholderDrawer
+      outreachId={props.outreachId}
+      onClose={props.onClose}
+      onAction={props.onAction ?? (() => {})}
+    />
+  );
+}
+
+function StakeholderDrawer({
+  outreachId,
+  onClose,
+  onAction,
+}: {
+  outreachId: string;
+  onClose: () => void;
+  onAction: (refreshed: DrawerContext | null) => void;
+}) {
   const [ctx, setCtx] = useState<DrawerContext | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -198,6 +234,237 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
       </aside>
     </>
   );
+}
+
+/**
+ * v9.0 Phase 2: Provider variant of the unified drawer. Mirrors the
+ * stakeholder drawer's chrome (backdrop, aside, ESC-to-close, scrollable
+ * body) but the body is the Manage panel — read-only summary of trial
+ * status, T&C acceptance, and Stripe linkage. Acknowledgement records
+ * + admin actions (extend trial, mark churned) land in subsequent v9.x.
+ */
+interface ProviderDrawerData {
+  id: string;
+  display_name: string;
+  slug: string | null;
+  email: string | null;
+  phone: string | null;
+  city: string | null;
+  state: string | null;
+  is_active: boolean;
+  created_at: string;
+  stripe_customer_id: string | null;
+  subscription_id: string | null;
+  subscription_active: boolean;
+  interview_terms_accepted_at: string | null;
+  credits_used: number;
+  status: "in_pilot" | "pilot_expired" | "subscribed";
+  pilot_started_at: string | null;
+  pilot_ends_at: string | null;
+  days_remaining_in_pilot: number | null;
+}
+
+function ProviderDrawer({
+  providerId,
+  onClose,
+}: {
+  providerId: string;
+  onClose: () => void;
+}) {
+  const [data, setData] = useState<ProviderDrawerData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/medjobs/clients/${providerId}`);
+        if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
+        const body = await res.json();
+        if (!cancelled) setData(body);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [providerId]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} aria-label="Close drawer" />
+      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-white shadow-2xl">
+        <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
+          {data ? (
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-lg font-semibold text-gray-900">{data.display_name}</h2>
+              <p className="truncate text-sm text-gray-500">
+                {[data.city, data.state].filter(Boolean).join(", ") || "Provider"}
+                {data.email && ` · ${data.email}`}
+              </p>
+              <ProviderStatusLabel data={data} />
+            </div>
+          ) : (
+            <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
+          )}
+          <button
+            onClick={onClose}
+            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            aria-label="Close"
+          >
+            <span aria-hidden>×</span>
+          </button>
+        </header>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {loading ? (
+            <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+          ) : error ? (
+            <p className="py-8 text-center text-sm text-red-600">{error}</p>
+          ) : data ? (
+            <ProviderManagePanel data={data} />
+          ) : null}
+        </div>
+      </aside>
+    </>
+  );
+}
+
+function ProviderStatusLabel({ data }: { data: ProviderDrawerData }) {
+  if (data.status === "subscribed") {
+    return (
+      <p className="mt-1 text-xs font-medium text-emerald-700">$ Subscribed via Stripe</p>
+    );
+  }
+  if (data.status === "pilot_expired") {
+    return <p className="mt-1 text-xs font-medium text-gray-500">Pilot ended</p>;
+  }
+  const days = data.days_remaining_in_pilot ?? 0;
+  const isUrgent = days <= 14;
+  return (
+    <p
+      className={`mt-1 text-xs font-medium ${
+        isUrgent ? "text-red-700" : "text-amber-700"
+      }`}
+    >
+      In 90-day pilot · {days === 1 ? "1 day" : `${days} days`} remaining
+    </p>
+  );
+}
+
+function ProviderManagePanel({ data }: { data: ProviderDrawerData }) {
+  const stripeUrl = data.stripe_customer_id
+    ? `https://dashboard.stripe.com/customers/${data.stripe_customer_id}`
+    : null;
+
+  return (
+    <div className="space-y-6">
+      {/* Pilot / Trial */}
+      <section>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Pilot status
+        </h3>
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
+          <Row label="T&C accepted" value={formatTimestamp(data.interview_terms_accepted_at)} />
+          <Row label="Pilot started" value={formatTimestamp(data.pilot_started_at)} />
+          <Row label="Pilot ends" value={formatTimestamp(data.pilot_ends_at)} />
+          <Row
+            label="Days remaining"
+            value={
+              data.days_remaining_in_pilot === null
+                ? "—"
+                : data.days_remaining_in_pilot > 0
+                  ? `${data.days_remaining_in_pilot}`
+                  : "Expired"
+            }
+          />
+        </dl>
+      </section>
+
+      {/* Subscription */}
+      <section>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Subscription
+        </h3>
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
+          <Row label="Status" value={data.subscription_active ? "Active" : "Not subscribed"} />
+          <Row label="Customer ID" value={data.stripe_customer_id ?? "—"} mono />
+          <Row label="Subscription ID" value={data.subscription_id ?? "—"} mono />
+          <Row label="Interviews scheduled" value={`${data.credits_used}`} />
+        </dl>
+        {stripeUrl && (
+          <a
+            href={stripeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            View in Stripe Dashboard ↗
+          </a>
+        )}
+      </section>
+
+      {/* Profile */}
+      <section>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Provider profile
+        </h3>
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
+          <Row label="Active" value={data.is_active ? "Yes" : "No"} />
+          <Row label="Phone" value={data.phone ?? "—"} />
+          <Row label="Created" value={formatTimestamp(data.created_at)} />
+          <Row label="Slug" value={data.slug ?? "—"} mono />
+        </dl>
+        {data.slug && (
+          <a
+            href={`/${data.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            View public profile ↗
+          </a>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <>
+      <dt className="text-xs text-gray-500">{label}</dt>
+      <dd
+        className={`text-sm text-gray-900 ${
+          mono ? "break-all font-mono text-xs" : "truncate"
+        }`}
+      >
+        {value}
+      </dd>
+    </>
+  );
+}
+
+function formatTimestamp(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 /**

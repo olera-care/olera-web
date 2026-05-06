@@ -54,6 +54,17 @@ interface DrawerProps {
 
 type ActionFn = (action: string, payload?: Record<string, unknown>) => Promise<DrawerContext>;
 
+// v8.10.37: terminal closed statuses — Step Board hides for these so the
+// drawer doesn't invite adding workflow steps to a closed/DNC stakeholder.
+// Mirrors DangerZone's terminal-suppression rule.
+const TERMINAL_STATUSES: Status[] = [
+  "not_interested",
+  "do_not_contact",
+  "wrong_contact",
+  "redirected",
+  "no_response_closed",
+];
+
 // v8.10.11: TabContext + TabContextBanner removed. The drawer's section
 // h3s + per-state guidance already convey orientation; the banner was
 // repeating it one row above. tabContext prop on DrawerProps was only
@@ -127,6 +138,16 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
             const headline = contactDisplay || ctx.outreach.organization_name;
             const showOrgInSubline =
               !!contactDisplay && contactDisplay !== ctx.outreach.organization_name;
+            // v8.10.37: surface a small "★ Partner since {date}" indicator
+            // for active partners. NextStepPanel is suppressed for partners,
+            // so without this header cue the drawer wouldn't show their
+            // status anywhere prominent. Date comes from the most recent
+            // distribution_confirmed touchpoint (when they were graduated).
+            const isPartner = ctx.outreach.status === "active_partner";
+            const partnerSince = isPartner
+              ? ctx.touchpoints.find((t) => t.touchpoint_type === "distribution_confirmed")
+                  ?.created_at ?? null
+              : null;
             return (
               <div className="min-w-0 flex-1">
                 <h2 className="truncate text-lg font-semibold text-gray-900">{headline}</h2>
@@ -143,6 +164,14 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
                   {ctx.campus.name} · {STAKEHOLDER_TYPE_LABELS[ctx.outreach.stakeholder_type]}
                   {primary?.role && ` · ${primary.role}`}
                 </p>
+                {isPartner && (
+                  <p className="mt-1 text-xs font-medium text-emerald-700">
+                    ★ Partner
+                    {partnerSince
+                      ? ` since ${new Date(partnerSince).toLocaleDateString()}`
+                      : ""}
+                  </p>
+                )}
               </div>
             );
           })() : (
@@ -210,8 +239,13 @@ function DrawerBody({
           follow-ups, relationship-progression items. Same card hierarchy
           as row cards on Meetings/Replies/Calls/Prospects so it reads as
           part of the same system. For partners (where Next Step is
-          suppressed) Step Board becomes the leading section in the drawer. */}
-      <TaskBoardSection ctx={ctx} action={action} setError={setError} />
+          suppressed) Step Board becomes the leading section in the drawer.
+          v8.10.37: hidden for terminal closed states — adding a step to
+          a closed/DNC stakeholder doesn't fit the workflow. History +
+          Reopen (in NextStepPanel) carry those drawers. */}
+      {!TERMINAL_STATUSES.includes(ctx.outreach.status) && (
+        <TaskBoardSection ctx={ctx} action={action} setError={setError} />
+      )}
 
       <div>
         <button

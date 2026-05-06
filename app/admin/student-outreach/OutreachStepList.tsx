@@ -51,7 +51,7 @@ export function OutreachStepList({ ctx, action, setError, onOpenPartnerModal }: 
   return (
     <div className="space-y-3">
       <p className="text-sm text-gray-700">
-        Outreach history · {days.length} touch{days.length === 1 ? "" : "es"} across the cadence.
+        Outreach plan · {days.length} touch{days.length === 1 ? "" : "es"} across the cadence.
       </p>
       <ol className="space-y-2">
         {days.map((day) => (

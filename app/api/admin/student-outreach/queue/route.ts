@@ -119,11 +119,10 @@ export async function GET(req: NextRequest) {
   // v8.10.33: tab=prospects is the new label for what was previously
   // tab=research (prospect/researched stakeholders being qualified).
   // The server filter still keys on the same status set; the rename is
-  // purely operational language. Accept both for backward compatibility.
+  // purely operational language.
   // (tab=candidates is a separate upcoming view — student applicants —
   // currently returns no rows; UI shows a "Coming soon" placeholder.)
-  const rawTab = url.searchParams.get("tab") ?? "prospects";
-  const tab = rawTab === "research" ? "prospects" : rawTab;
+  const tab = url.searchParams.get("tab") ?? "prospects";
   const campusSlug = url.searchParams.get("campus");
   const typeFilter = url.searchParams.get("type") as StakeholderType | null;
   const search = (url.searchParams.get("search") ?? "").trim();
@@ -434,12 +433,17 @@ async function fetchRowIdsForTab(
     case "prospects":
       return await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize });
     case "candidates":
-    case "all_archived":
     case "outbound":
-      // v8.10.33: placeholder slots — UI shows "Coming soon" so the
-      // server returns no rows for these views. Real datasets ship later.
-      // (Candidates = student-applicant pipeline; All Archived = every
-      // permanently-closed row; Outbound = email/outreach activity log.)
+    case "emails_sent":
+    case "signups":
+      // v8.10.33 / v8.10.37: placeholder slots — UI shows "Coming soon"
+      // so the server returns no rows for these views. Real datasets ship
+      // later, each with its own query strategy:
+      //   - Candidates    = student-applicant pipeline (different table)
+      //   - Outbound      = aggregated email/outreach activity log,
+      //                     replied threads sorted to the top
+      //   - Emails Sent   = email_sent touchpoints across stakeholders
+      //   - Signups       = student-signup touchpoints / business_profiles
       return [];
     case "partners":
       return await idsByStatus(db, PARTNER_ALL as Status[], { campusId, type, search, page, pageSize });

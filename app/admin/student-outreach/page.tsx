@@ -52,8 +52,9 @@ type TabKey =
   | "partners"
   | "archive"
   | "all"
-  | "all_archived"
-  | "outbound";
+  | "outbound"
+  | "emails_sent"
+  | "signups";
 
 // v8.10.9: emojis dropped — tab styling matches the Questions page
 // (plain label + count, gray text, gray underline on active).
@@ -85,12 +86,15 @@ const TABS: TabDef[] = [
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
-// the end of the tab row.
+// the end of the tab row. Each menu view is a hidden top-level tab that
+// behaves the same as primary tabs (data viewport + filters + cards) —
+// just accessed through the ⋯ for a quieter primary tab row.
 const MENU_TABS: TabDef[] = [
-  { key: "archive",      label: "Archive",        tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Replies if they reply or call back later." },
-  { key: "all",          label: "All",            tooltip: "Search and filter every stakeholder across all stages." },
-  { key: "all_archived", label: "All Archived",   tooltip: "Every stakeholder closed permanently — Not interested, Wrong contact, DNC, etc. (Coming soon.)" },
-  { key: "outbound",     label: "Outbound",       tooltip: "Email + outreach activity log. Replied threads float to the top. (Coming soon.)" },
+  { key: "all",         label: "All",          tooltip: "Search and filter every stakeholder across all stages." },
+  { key: "emails_sent", label: "Emails Sent",  tooltip: "All email-send touchpoints across stakeholders. (Coming soon.)" },
+  { key: "outbound",    label: "Outbound",     tooltip: "Aggregated outbound activity log — emails, IG DMs, contact-form sends. Replied threads float to the top. (Coming soon.)" },
+  { key: "signups",     label: "Signups",      tooltip: "Student signups / applicants. (Coming soon.)" },
+  { key: "archive",     label: "Archive",      tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Replies if they reply or call back later." },
 ];
 
 const TYPE_FILTERS: Array<{ key: StakeholderType | "all"; label: string }> = [
@@ -312,41 +316,50 @@ export default function StudentOutreachPage() {
             campus page is reachable from the Campuses sidebar item. */}
       </div>
 
-      {/* v8.10.33: primary tabs in workflow order. Secondary surfaces
-          (Archive / All / All Archived / Outbound) live in the ⋯ menu
-          to the right so they don't compete with the operational tabs. */}
-      <div className="mb-8 flex items-center gap-1 overflow-x-auto border-b border-gray-100">
-        {TABS.map((t) => {
-          // v8.10.33: candidates is the student-applicant pipeline,
-          // not part of the stakeholder TabCounts. The other primary
-          // tab keys all live on TabCounts.
-          const count =
-            t.key === "candidates"
-              ? null
-              : tabCounts?.[
-                  t.key as Exclude<TabKey, "candidates" | "all_archived" | "outbound">
-                ];
-          const active = t.key === tab;
-          return (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              title={t.tooltip}
-              className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-                active
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-400 hover:text-gray-600"
-              }`}
-            >
-              {t.label}
-              {typeof count === "number" && count > 0 && (
-                <span className="ml-1.5 text-xs text-gray-400">
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
+      {/* v8.10.33: primary tabs in workflow order; secondary surfaces
+          live in the ⋯ menu to the right so they don't compete with the
+          operational tabs.
+          v8.10.37: tab row split into two regions — primary tabs in a
+          scrollable inner div, ⋯ menu pinned outside it. Previously the
+          dropdown was clipped because the outer container's
+          overflow-x-auto creates a containing block that hides absolute
+          children that extend below it. The fix: keep the scroll on the
+          tabs alone; let the ⋯ button + dropdown sit in the outer
+          container with no overflow constraint. */}
+      <div className="mb-8 flex items-center border-b border-gray-100">
+        <div className="flex flex-1 items-center gap-1 overflow-x-auto">
+          {TABS.map((t) => {
+            // v8.10.33: candidates is the student-applicant pipeline,
+            // not part of the stakeholder TabCounts. The other primary
+            // tab keys all live on TabCounts.
+            const count =
+              t.key === "candidates"
+                ? null
+                : tabCounts?.[
+                    t.key as Exclude<TabKey, "candidates" | "outbound" | "emails_sent" | "signups">
+                  ];
+            const active = t.key === tab;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                title={t.tooltip}
+                className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                  active
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                {t.label}
+                {typeof count === "number" && count > 0 && (
+                  <span className="ml-1.5 text-xs text-gray-400">
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
         <TabOverflowMenu
           tabs={MENU_TABS}
           activeTab={tab}
@@ -634,8 +647,9 @@ function EmptyState({
     partners: "No partners yet. Mark a stakeholder as Partner when they commit to sharing.",
     archive: "Archive is empty — no stale or no-response outreach yet.",
     all: "No matches.",
-    all_archived: "Coming soon.",
-    outbound: "Coming soon.",
+    outbound: "Coming soon — outbound activity log.",
+    emails_sent: "Coming soon — email-send log.",
+    signups: "Coming soon — student-signup feed.",
   };
   return <p className="py-12 text-center text-sm text-gray-400">{blurbs[tab]}</p>;
 }
@@ -1706,9 +1720,13 @@ function CampusOverflowMenu({ onMarkComplete }: { onMarkComplete: () => void }) 
 
 /**
  * v8.10.33: Tab-row overflow menu. Surfaces secondary views (Archive,
- * All, All Archived, Outbound) without crowding the primary workflow
- * tabs. Active selection from the menu shows the underline on the ⋯
- * button so the admin still sees which view they're in.
+ * All, Emails Sent, Outbound, Signups) without crowding the primary
+ * workflow tabs.
+ * v8.10.37: button always shows the ⋯ glyph (no longer substitutes the
+ * active item label) — admin learns "click the ⋯ to see secondary
+ * views" and that affordance stays stable. Active selection still
+ * highlights via underline + a subtle dot beside ⋯ so admin sees
+ * "I'm in a menu view" without the trigger morphing.
  */
 function TabOverflowMenu({
   tabs,
@@ -1724,7 +1742,6 @@ function TabOverflowMenu({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const isActive = tabs.some((t) => t.key === activeTab);
-  const activeLabel = tabs.find((t) => t.key === activeTab)?.label;
   useEffect(() => {
     if (!open) return;
     const onClickOutside = (e: MouseEvent) => {
@@ -1741,28 +1758,34 @@ function TabOverflowMenu({
     };
   }, [open]);
   return (
-    <div ref={ref} className="relative ml-auto">
+    <div ref={ref} className="relative shrink-0">
       <button
         onClick={() => setOpen((s) => !s)}
         title="More views"
         aria-label="More views"
-        className={`whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
+        aria-expanded={open}
+        className={`flex items-center whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
           isActive
             ? "border-gray-900 text-gray-900"
             : "border-transparent text-gray-400 hover:text-gray-600"
         }`}
       >
-        {activeLabel ?? "⋯"}
-        <span className="ml-1.5 text-xs text-gray-400">▾</span>
+        <span aria-hidden className="text-base leading-none">⋯</span>
+        {isActive && (
+          <span className="ml-1.5 h-1.5 w-1.5 rounded-full bg-gray-900" aria-hidden />
+        )}
       </button>
       {open && (
         <div className="absolute right-0 top-full z-30 mt-1 w-56 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
           {tabs.map((t) => {
             const count =
-              t.key === "candidates" || t.key === "all_archived" || t.key === "outbound"
+              t.key === "candidates" ||
+              t.key === "outbound" ||
+              t.key === "emails_sent" ||
+              t.key === "signups"
                 ? null
                 : tabCounts?.[
-                    t.key as Exclude<TabKey, "candidates" | "all_archived" | "outbound">
+                    t.key as Exclude<TabKey, "candidates" | "outbound" | "emails_sent" | "signups">
                   ];
             const active = t.key === activeTab;
             return (

@@ -31,9 +31,10 @@ const VALID_VARIANTS = new Set([
   "loss",
   "empathic",
   "outreach",
-  "inline_answer",
-  "control",
-  "money_loss",
+  "inline_answer",    // archived, historical data only
+  "multi_provider",
+  "control",          // legacy V2
+  "money_loss",       // legacy V2
 ]);
 
 const STAGE_RANK: Record<VariantSessionRow["furthest_stage"], number> = {

@@ -40,8 +40,8 @@ interface QASectionProps {
   // The spotlight handoff then owns the post-submit moment.
   hasBenefitsSection?: boolean;
   // Variant for A/B test — determines which experience to render.
-  // "inline_answer" variant shows expanded answer + email capture inline.
   // "multi_provider" variant shows click-to-send multi-provider comparison.
+  // (Note: "inline_answer" was archived to a separate branch 2026-05-06)
   variant?: IntakeVariant;
   // Similar providers for multi_provider variant
   similarProvidersForMulti?: SimilarProviderForMulti[];
@@ -158,11 +158,12 @@ export default function QASectionV2({
   const [guestError, setGuestError] = useState("");
   const [enriching, setEnriching] = useState(false);
 
-  // Inline answer variant state (accordion-style expansion)
+  // Variant expansion state (accordion-style expansion for multi_provider)
   const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
   const [inlineSubmitting, setInlineSubmitting] = useState(false);
   const [inlineSuccess, setInlineSuccess] = useState(false);
-  const isInlineAnswerVariant = variant === "inline_answer";
+  // inline_answer variant archived 2026-05-06 — code kept for reference, always false
+  const isInlineAnswerVariant = false;
   const isMultiProviderVariant = variant === "multi_provider";
 
   // Edit question state

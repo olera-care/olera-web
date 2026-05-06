@@ -93,9 +93,12 @@ interface BenefitsFunnelByVariant {
   // visitors. Populates impressions, started (card click), and saved (form
   // submission); middle "care need" step is N/A and renders as "—".
   outreach: BenefitsFunnel;
-  // 5th arm — H2 inline UX test, inline Q&A answer expansion with email
-  // capture. Populates impressions (Q&A section viewed), started (question
-  // tapped), and saved (email submitted); care need step N/A.
+  // 5th arm — H2 multi-provider comparison, click-to-send to multiple
+  // providers. Populates impressions (Q&A section viewed), started (card
+  // expanded), and saved (email submitted); care need step N/A.
+  multi_provider: BenefitsFunnel;
+  // Archived arm — inline Q&A answer expansion. Historical data only;
+  // removed from rotation 2026-05-06.
   inline_answer: BenefitsFunnel;
   // Legacy V2 arms — historical, retained for the rollup window when V2 data
   // exists. Frozen after cutover.
@@ -825,6 +828,7 @@ const DRILLABLE_VARIANTS: ReadonlySet<VariantKey> = new Set([
   "loss",
   "empathic",
   "outreach",
+  "multi_provider",
   "inline_answer",
   "control",
   "money_loss",
@@ -871,6 +875,7 @@ function BenefitsVariantSplit({
     byVariant.loss.impressions +
     byVariant.empathic.impressions +
     byVariant.outreach.impressions +
+    byVariant.multi_provider.impressions +
     byVariant.inline_answer.impressions +
     byVariant.control.impressions +
     byVariant.money_loss.impressions;
@@ -887,11 +892,12 @@ function BenefitsVariantSplit({
     { key: "loss" as const, label: "loss", description: "Most {state} families miss out on help paying for care." },
     { key: "empathic" as const, label: "empathic", description: "Care is expensive." },
     { key: "outreach" as const, label: "outreach", description: "Have an AI agent contact the top providers for you.", isOutreach: true },
-    { key: "inline_answer" as const, label: "inline_answer", description: "Inline Q&A answer expansion with email capture.", isInlineAnswer: true },
+    { key: "multi_provider" as const, label: "multi_provider", description: "Click-to-send multi-provider comparison.", isMultiProvider: true },
   ];
-  // Legacy V2 arms only render when they have data in the window — once the
-  // historical window rolls past V2, these rows disappear automatically.
+  // Legacy/archived arms only render when they have data in the window — once
+  // the historical window rolls past their cutover, these rows disappear.
   const legacyCandidates = [
+    { key: "inline_answer" as const, label: "inline_answer (archived)", isInlineAnswer: true },
     { key: "control" as const, label: "control (legacy V2)" },
     { key: "money_loss" as const, label: "money_loss (legacy V2)" },
   ];
@@ -938,10 +944,10 @@ function BenefitsVariantSplit({
             </tr>
           </thead>
           <tbody>
-            {activeArms.map(({ key, label, description, isOutreach, isInlineAnswer }) => {
+            {activeArms.map(({ key, label, description, isOutreach, isMultiProvider }) => {
               const r = byVariant[key];
               const isExpanded = expandedVariant === key;
-              const skipCareNeed = isOutreach || isInlineAnswer;
+              const skipCareNeed = isOutreach || isMultiProvider;
               return (
                 <Fragment key={key}>
                   <tr
@@ -965,7 +971,7 @@ function BenefitsVariantSplit({
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.impressions}</td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
-                    {/* Outreach and inline_answer arms have no middle "care need" step — show — instead of 0. */}
+                    {/* Outreach and multi_provider arms have no middle "care need" step — show — instead of 0. */}
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">
                       {skipCareNeed ? <span className="text-gray-300">—</span> : r.care_need_completed}
                     </td>

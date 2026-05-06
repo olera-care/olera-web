@@ -38,12 +38,14 @@ export function EmptyState({
     );
   }
   const blurbs: Record<TabKey, string> = {
+    clients: "Coming in v9.x — provider clients (trial + Stripe) land here in Phase 2.",
     candidates: "No live candidates yet.",
     prospects: "No prospects need research right now.",
     calls: "No phone calls due. 🎉",
     replies: "No inbox triage right now. The cadence is humming along.",
     meetings: "No meetings in flight or booked.",
     partners: "No partners yet. Mark a stakeholder as Partner when they commit to sharing.",
+    campuses: "No campuses configured yet.",
     archive: "Archive is empty — no stale or no-response outreach yet.",
     all: "No matches.",
     outbound: "Coming soon — outbound activity log.",

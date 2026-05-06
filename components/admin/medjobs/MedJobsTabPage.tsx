@@ -1,33 +1,35 @@
 "use client";
 
 /**
- * Admin Student Outreach Funnel — In Basket workflow page.
+ * MedJobsTabPage — the shared workflow surface mounted by both the In
+ * Basket page (combined dashboard with all tabs) and the dedicated
+ * left-menu pages (focused single-tab view).
  *
- * v9.0 (MedJobs reorg, Phase 0): refactor only — the body is unchanged
- * from v8.10.X. Card primitives, slot builders, specialty cards,
- * Prospects + Replies tab content, TabOverflowMenu, formatters, and
- * tab/metric configuration moved to:
- *   - components/admin/medjobs/cards/StakeholderCard.tsx
- *   - components/admin/medjobs/cards/SpecialtyCards.tsx
- *   - components/admin/medjobs/lists/{ResearchTabContent,RepliesGroupedList,EmptyState}.tsx
- *   - components/admin/medjobs/TabOverflowMenu.tsx
- *   - lib/student-outreach/{tab-config,formatters,email-snapshot}.ts
+ * Props:
+ *   initialTab  — TabKey to mount with active.
+ *   lockedTab   — when true, the tab bar + ⋯ overflow menu are hidden
+ *                 so the user can't switch tabs. Used by dedicated
+ *                 pages that show one tab's content.
+ *   title       — PulseHeader title. Defaults to "Student Outreach".
  *
- * This page now hosts orchestration only: state, fetching, modal
- * dispatch, and tab-conditional list mounting. Phase 1 will move it to
- * /admin/medjobs/in-basket and add Clients + Campuses as primary tabs.
+ * Extracted from app/admin/student-outreach/page.tsx as part of the
+ * v9.0 MedJobs reorg (Phase 1). v9.0 Phase 2 will fork the rendering
+ * here on row.kind === 'provider' for the Clients tab.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PulseHeader from "@/components/admin/PulseHeader";
 import type { DateRangeValue } from "@/components/admin/DateRangePopover";
-import { Drawer } from "./Drawer";
-import { AddStakeholderModal } from "./AddStakeholderModal";
-import { BulkResearchModal } from "./BulkResearchModal";
-import { LogCallOutcomeModal } from "./LogCallOutcomeModal";
-import { ReplyClassifierModal } from "./ReplyClassifierModal";
-import { MarkPartnerModal } from "./MarkPartnerModal";
-import { LogMeetingModal, type MeetingStatus } from "./LogMeetingModal";
+import { Drawer } from "@/app/admin/student-outreach/Drawer";
+import { AddStakeholderModal } from "@/app/admin/student-outreach/AddStakeholderModal";
+import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
+import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
+import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
+import { MarkPartnerModal } from "@/app/admin/student-outreach/MarkPartnerModal";
+import {
+  LogMeetingModal,
+  type MeetingStatus,
+} from "@/app/admin/student-outreach/LogMeetingModal";
 import type {
   Campus,
   DistributionEvidence,
@@ -65,20 +67,22 @@ import { ResearchTabContent } from "@/components/admin/medjobs/lists/ResearchTab
 import { TabOverflowMenu } from "@/components/admin/medjobs/TabOverflowMenu";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
-export default function StudentOutreachPage() {
+interface MedJobsTabPageProps {
+  initialTab: TabKey;
+  lockedTab?: boolean;
+  title?: string;
+}
+
+export function MedJobsTabPage({
+  initialTab,
+  lockedTab = false,
+  title = "Student Outreach",
+}: MedJobsTabPageProps) {
   const [campuses, setCampuses] = useState<Campus[]>([]);
   const [campusSlug, setCampusSlug] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<StakeholderType | "all">("all");
-  // v8.10.33: default to Prospects since Candidates is still a
-  // "Coming soon" placeholder (student-applicant pipeline isn't wired
-  // up yet). Switch the default once the candidates dataset lands.
-  const [tab, setTab] = useState<TabKey>("prospects");
-  // v8.10.47: when admin checks boxes in the ⋯ chart-series picker, the
-  // chart switches to a custom multi-line view of the selected metrics.
-  // Empty set = chart shows the active tab's default metric (existing
-  // per-tab telemetry).
+  const [tab, setTab] = useState<TabKey>(initialTab);
   const [chartSeries, setChartSeries] = useState<Set<string>>(new Set());
-  // v8.10.9: PulseHeader date range. KPI = student signups in range.
   const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
   const [showClosed, setShowClosed] = useState(false);
   const [search, setSearch] = useState("");
@@ -86,8 +90,6 @@ export default function StudentOutreachPage() {
   const [rows, setRows] = useState<TabRow[]>([]);
   const [researchCampuses, setResearchCampuses] = useState<ResearchCampusCard[]>([]);
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
-  // v8.10.39: dedicated row sets for the menu views that don't share the
-  // stakeholder shape. Populated by tab-specific endpoints.
   const [emailsSentRows, setEmailsSentRows] = useState<EmailSentRow[]>([]);
   const [signupRows, setSignupRows] = useState<SignupRow[]>([]);
   const [outboundRows, setOutboundRows] = useState<OutboundRow[]>([]);
@@ -97,17 +99,12 @@ export default function StudentOutreachPage() {
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
-
-  // v8: per-row action modals (driven by row buttons, not the drawer).
   const [callOutcomeRow, setCallOutcomeRow] = useState<TabRow | null>(null);
   const [classifierRow, setClassifierRow] = useState<{
     row: TabRow;
     source: "email_reply" | "callback";
   } | null>(null);
   const [partnerRow, setPartnerRow] = useState<TabRow | null>(null);
-  // v8.10.19: universal Meetings-tab modal. Replaces the previous
-  // state-specific "Booked it" + "Make Partner ★" CTAs with a single
-  // "Log Meeting" entry point.
   const [logMeetingRow, setLogMeetingRow] = useState<TabRow | null>(null);
 
   useEffect(() => {
@@ -119,11 +116,6 @@ export default function StudentOutreachPage() {
     setLoading(true);
     setError(null);
     try {
-      // v8.10.39: emails_sent + signups are dedicated views — they don't
-      // share the stakeholder row shape, so they hit dedicated endpoints
-      // and populate their own row sets. The queue is still fetched for
-      // tabCounts so the tab-row counts stay accurate while the menu
-      // views are open.
       const queueParams = new URLSearchParams();
       if (campusSlug) queueParams.set("campus", campusSlug);
       if (typeFilter !== "all") queueParams.set("type", typeFilter);
@@ -134,7 +126,9 @@ export default function StudentOutreachPage() {
         tab === "emails_sent" ||
         tab === "signups" ||
         tab === "outbound" ||
-        tab === "candidates"
+        tab === "candidates" ||
+        tab === "clients" ||
+        tab === "campuses"
           ? "prospects"
           : tab;
       queueParams.set("tab", queueTab);
@@ -151,7 +145,9 @@ export default function StudentOutreachPage() {
             tab !== "emails_sent" &&
             tab !== "signups" &&
             tab !== "outbound" &&
-            tab !== "candidates"
+            tab !== "candidates" &&
+            tab !== "clients" &&
+            tab !== "campuses"
           ) {
             setRows(data.rows ?? []);
             setResearchCampuses(data.research_campuses ?? []);
@@ -199,6 +195,9 @@ export default function StudentOutreachPage() {
           setCandidateRows(d.rows ?? []);
         })());
       }
+      // v9.0 Phase 1: clients + campuses tabs render placeholder content
+      // and don't fetch anything beyond the queue's tab_counts. Phase 2
+      // wires real endpoints for both.
 
       await Promise.all(fetches);
     } catch (e) {
@@ -210,9 +209,8 @@ export default function StudentOutreachPage() {
 
   useEffect(() => { refetch(); }, [refetch]);
 
-  // v9.0 Phase 0: register this page's refetch with the shared MedJobs
-  // refresh contract so that mutations triggered from dedicated
-  // left-menu pages (Phase 1+) propagate here without prop-drilling.
+  // Register refetch with the shared MedJobs refresh contract so
+  // mutations triggered from other surfaces propagate here.
   useMedJobsRefresh(refetch);
 
   const handleDrawerAction = useCallback(
@@ -220,7 +218,6 @@ export default function StudentOutreachPage() {
     [refetch],
   );
 
-  // Direct-API helper for row-driven actions (no drawer round-trip).
   const callAction = useCallback(
     async (outreachId: string, action: string, payload: Record<string, unknown> = {}) => {
       const res = await fetch(`/api/admin/student-outreach/${outreachId}`, {
@@ -237,7 +234,6 @@ export default function StudentOutreachPage() {
     [refetch],
   );
 
-  // Per-row render — used by both the flat list and the Replies grouped list.
   const renderRow = useCallback(
     (row: TabRow) => (
       <RowCard
@@ -265,7 +261,6 @@ export default function StudentOutreachPage() {
     [tab, callAction],
   );
 
-  // v8.10.38: PulseHeader stats are now per-tab.
   const tabStats = TAB_STATS[tab];
   const customSeries = useMemo(
     () => Array.from(chartSeries).join(","),
@@ -296,7 +291,7 @@ export default function StudentOutreachPage() {
   return (
     <div>
       <PulseHeader
-        title="Student Outreach"
+        title={title}
         kpiSuffix={kpiSuffix}
         statsPath={statsPath}
         range={range}
@@ -323,7 +318,6 @@ export default function StudentOutreachPage() {
         }
       />
 
-      {/* v8.10.8: search + filters condensed into one horizontal row above the tabs. */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <input
           type="text"
@@ -355,52 +349,53 @@ export default function StudentOutreachPage() {
         </select>
       </div>
 
-      {/* v8.10.33: primary tabs in workflow order; secondary surfaces in ⋯ menu. */}
-      <div className="mb-8 flex items-center border-b border-gray-100">
-        <div className="flex flex-1 items-center gap-1 overflow-x-auto">
-          {TABS.map((t) => {
-            const count = tabCounts?.[
-              t.key as Exclude<TabKey, "outbound" | "emails_sent" | "signups">
-            ];
-            const active = t.key === tab;
-            return (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                title={t.tooltip}
-                className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-                  active
-                    ? "border-gray-900 text-gray-900"
-                    : "border-transparent text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                {t.label}
-                {typeof count === "number" && count > 0 && (
-                  <span className="ml-1.5 text-xs text-gray-400">
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+      {/* v9.0: tab bar hides when lockedTab=true (dedicated pages). */}
+      {!lockedTab && (
+        <div className="mb-8 flex items-center border-b border-gray-100">
+          <div className="flex flex-1 items-center gap-1 overflow-x-auto">
+            {TABS.map((t) => {
+              const count =
+                t.key === "outbound" || t.key === "emails_sent" || t.key === "signups"
+                  ? undefined
+                  : tabCounts?.[t.key];
+              const active = t.key === tab;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  title={t.tooltip}
+                  className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                    active
+                      ? "border-gray-900 text-gray-900"
+                      : "border-transparent text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  {t.label}
+                  {typeof count === "number" && count > 0 && (
+                    <span className="ml-1.5 text-xs text-gray-400">{count}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <TabOverflowMenu
+            tabs={MENU_TABS}
+            activeTab={tab}
+            onSelect={setTab}
+            tabCounts={tabCounts}
+            chartSeries={chartSeries}
+            onToggleChartSeries={(metric) => {
+              setChartSeries((prev) => {
+                const next = new Set(prev);
+                if (next.has(metric)) next.delete(metric);
+                else next.add(metric);
+                return next;
+              });
+            }}
+            onClearChartSeries={() => setChartSeries(new Set())}
+          />
         </div>
-        <TabOverflowMenu
-          tabs={MENU_TABS}
-          activeTab={tab}
-          onSelect={setTab}
-          tabCounts={tabCounts}
-          chartSeries={chartSeries}
-          onToggleChartSeries={(metric) => {
-            setChartSeries((prev) => {
-              const next = new Set(prev);
-              if (next.has(metric)) next.delete(metric);
-              else next.add(metric);
-              return next;
-            });
-          }}
-          onClearChartSeries={() => setChartSeries(new Set())}
-        />
-      </div>
+      )}
 
       {tab === "all" && (
         <div className="mb-3 flex items-center gap-2 text-xs text-gray-600">
@@ -420,6 +415,10 @@ export default function StudentOutreachPage() {
         <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
+      ) : tab === "clients" ? (
+        <ClientsPlaceholder />
+      ) : tab === "campuses" ? (
+        <CampusesPlaceholder campuses={campuses} />
       ) : tab === "prospects" ? (
         <ResearchTabContent
           rows={rows}
@@ -441,9 +440,6 @@ export default function StudentOutreachPage() {
             }
           }}
           onBulkStartOutreach={async (selectedRows) => {
-            // v8.10.31: bulk fire schedule_sequence with the default
-            // template snapshots for each row's stakeholder type +
-            // organization + campus.
             const errors: string[] = [];
             for (const row of selectedRows) {
               try {
@@ -546,7 +542,6 @@ export default function StudentOutreachPage() {
         />
       )}
 
-      {/* Modals driven by row buttons */}
       {callOutcomeRow && (
         <LogCallOutcomeModal
           organizationName={callOutcomeRow.organization_name}
@@ -554,17 +549,10 @@ export default function StudentOutreachPage() {
           contactPhone={callOutcomeRow.primary_contact_phone}
           onCancel={() => setCallOutcomeRow(null)}
           onSubmit={async (outcome, notes) => {
-            await callAction(callOutcomeRow.id, "log_call", {
-              outcome,
-              notes,
-            });
+            await callAction(callOutcomeRow.id, "log_call", { outcome, notes });
             setCallOutcomeRow(null);
           }}
           onChooseConvert={async (notes) => {
-            // v8.8: log the call FIRST (server marks current call task
-            // complete + writes call_connected touchpoint w/o transitioning
-            // stage), then chain into MarkPartnerModal which captures
-            // evidence and runs the active_partner transition.
             try {
               await callAction(callOutcomeRow.id, "log_call", {
                 outcome: "convert_to_partner",
@@ -621,7 +609,6 @@ export default function StudentOutreachPage() {
             logMeetingRow.meeting_state === "scheduled" ? "booked" : "finding_time"
           }
           initialMeetingAt={
-            // datetime-local expects YYYY-MM-DDTHH:mm in LOCAL time.
             logMeetingRow.meeting_at
               ? logMeetingRow.meeting_at.slice(0, 16)
               : undefined
@@ -681,5 +668,55 @@ export default function StudentOutreachPage() {
         />
       )}
     </div>
+  );
+}
+
+/**
+ * v9.0 Phase 1: Clients tab placeholder. Phase 2 will replace this with
+ * a list of provider rows (kind='provider' with active subscription or
+ * pilot_started_at set), backed by /api/admin/medjobs/clients.
+ */
+function ClientsPlaceholder() {
+  return (
+    <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center">
+      <p className="text-sm font-medium text-gray-700">Clients — coming in v9.x</p>
+      <p className="mx-auto mt-2 max-w-md text-xs text-gray-500">
+        Provider clients (agencies in trial or paying via Stripe) land here in
+        Phase 2 once the T&amp;C pilot signal and the catchment-driven trigger
+        are wired up. The drawer will fork on <code>kind=&quot;provider&quot;</code> to
+        surface trial status, acknowledgement records, and Stripe links.
+      </p>
+    </div>
+  );
+}
+
+/**
+ * v9.0 Phase 1: Campuses tab — minimal list of all campuses pulled from
+ * the existing queue endpoint. Phase 2 will add per-campus state
+ * (provider_prospecting / stakeholder_prospecting / active) and a
+ * "campus research needed" banner.
+ */
+function CampusesPlaceholder({ campuses }: { campuses: Campus[] }) {
+  if (campuses.length === 0) {
+    return (
+      <p className="py-12 text-center text-sm text-gray-400">No campuses configured yet.</p>
+    );
+  }
+  return (
+    <ul className="space-y-2">
+      {campuses.map((c) => (
+        <li key={c.id}>
+          <a
+            href={`/admin/medjobs/campuses/${c.slug}`}
+            className="block rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50"
+          >
+            <p className="text-sm font-medium text-gray-900">{c.name}</p>
+            <p className="mt-0.5 text-xs text-gray-500">
+              {[c.city, c.state].filter(Boolean).join(", ") || "—"}
+            </p>
+          </a>
+        </li>
+      ))}
+    </ul>
   );
 }

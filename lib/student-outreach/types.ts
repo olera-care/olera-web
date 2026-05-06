@@ -302,7 +302,10 @@ export interface ResearchCampusCard {
  *  v8.10.33: "prospects" is the new label for what was previously
  *  "research" (prospect/researched stakeholders being qualified).
  *  v8.10.42: "candidates" added — count of LIVE candidate profiles
- *  visible to providers on the job board (Candidates ⊂ Signups). */
+ *  visible to providers on the job board (Candidates ⊂ Signups).
+ *  v9.0: clients + campuses are optional on the type so existing queue
+ *  responses don't break before Phase 2 wires up real counts. The In
+ *  Basket page treats undefined as 0. */
 export interface TabCounts {
   candidates: number;
   prospects: number;
@@ -312,6 +315,8 @@ export interface TabCounts {
   partners: number;
   archive: number;
   all: number;
+  clients?: number;
+  campuses?: number;
 }
 
 /** What the drawer needs to render every section. */

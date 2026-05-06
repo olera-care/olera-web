@@ -18,12 +18,14 @@ import type { StakeholderType, TabCounts, TabRow } from "./types";
  * net-new). For Phase 0 the keys mirror the legacy v8.10 surface.
  */
 export type TabKey =
+  | "clients"
   | "candidates"
   | "prospects"
   | "calls"
   | "replies"
   | "meetings"
   | "partners"
+  | "campuses"
   | "archive"
   | "all"
   | "outbound"
@@ -45,13 +47,20 @@ export interface TabDef {
 // Archive / All / All Archived / Outbound moved into the ⋯ menu
 // (MENU_TABS) — secondary surfaces that don't compete with the
 // primary workflow.
+// v9.0: tab order surfaces the operational arc — Clients (paying side)
+// first, then the supply-side workflow (Candidates → Prospects → ... →
+// Partners), with Campuses as the territorial primitive at the end.
+// Clients + Campuses are scaffolded in v9.0 Phase 1 with placeholder
+// content; their full data model + drawer fork lands in Phase 2.
 export const TABS: TabDef[] = [
+  { key: "clients",    label: "Clients",          tooltip: "Provider clients — agencies in trial or with an active subscription. (Coming in v9.x — Phase 2 wires the data model.)" },
   { key: "candidates", label: "Candidates",       tooltip: "Live student profiles visible to providers on the job board (active + application complete). Subset of all signups." },
-  { key: "prospects",  label: "Prospects",        tooltip: "Stakeholders being researched and qualified before outreach starts." },
+  { key: "prospects",  label: "Prospects",        tooltip: "Stakeholders being researched and qualified before outreach starts. v9.0 Phase 2 will fold provider prospects into this tab too." },
   { key: "partners",   label: "Partners",         tooltip: "Stakeholders sharing with students. Click Engage to work pending partner tasks (task board posting, materials, follow-ups)." },
   { key: "meetings",   label: "Meetings",         tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
   { key: "replies",    label: "Replies",          tooltip: "Email replies, callbacks, voicemails. Triage what they said and pick the next step." },
   { key: "calls",      label: "Calls",            tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
+  { key: "campuses",   label: "Campuses",         tooltip: "Universities and their catchment areas — the operational primitive. Provider prospecting kicks off here; student-stakeholder prospecting unlocks after the first client converts in a campus's catchment." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
@@ -70,6 +79,12 @@ export const MENU_TABS: TabDef[] = [
 // metric (drives the time series fetched from /stats) and a label
 // (drives the kpiSuffix shown in the header).
 export const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
+  // v9.0 Phase 1: clients + campuses are scaffolded with the existing
+  // 'activity' metric so the chart renders something during the
+  // placeholder period. Phase 2 will introduce real metrics
+  // ('clients_active', 'campuses_active') and back-end queries.
+  clients:     { metric: "activity",         label: "client events"        },
+  campuses:    { metric: "activity",         label: "campus events"        },
   // v8.10.42: Candidates ⊂ Signups. Candidates = LIVE provider-facing
   // student profiles (is_active + application_completed). Signups =
   // every student in the funnel (broader acquisition volume).

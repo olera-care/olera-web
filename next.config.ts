@@ -154,6 +154,11 @@ const nextConfig: NextConfig = {
       { source: "/waiver-library/:state/:benefit/current", destination: "/benefits/:state/:benefit", permanent: true },
       { source: "/waiver-library/:state/:benefit/checklist", destination: "/benefits/:state/:benefit", permanent: true },
       { source: "/waiver-library/:state/:benefit/forms", destination: "/benefits/:state/:benefit", permanent: true },
+
+      // ── v9.0 MedJobs reorg ──
+      // Student Outreach lives at /admin/medjobs/in-basket as the new
+      // workflow entry point. Existing bookmarks redirect through.
+      { source: "/admin/student-outreach", destination: "/admin/medjobs/in-basket", permanent: true },
     ];
   },
 

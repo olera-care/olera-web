@@ -572,41 +572,47 @@ function RowCard({
   return (
     <StakeholderCard
       row={row}
-      pills={slots.pills}
+      pill={slots.pill}
       footnote={slots.footnote}
       headlineAccessory={slots.headlineAccessory}
-      rightActions={slots.rightActions}
+      cta={slots.cta}
+      overflowMenu={slots.overflowMenu}
       onOpenDrawer={cb.onOpenDrawer}
     />
   );
 }
 
 /**
- * Unified row shell. Same chrome on every tab.
+ * Unified row shell — v8.10.12 layout.
  *
- * v8.3 layout: org name + sub-line + footnote on the LEFT (clickable to
- * open drawer). Pills + primary action + overflow stack vertically on
- * the RIGHT, in that order top-to-bottom.
+ *   [Contact name + headlineAccessory]                     [⋯ overflow]
+ *   [org · campus · type · role]
+ *   [footnote — last activity, overdue, etc.]
+ *   [status pill]
+ *   [notes (optional)]
+ *                                                         [Primary CTA]
+ *
+ * Three regions: descriptive content (left column, top-down), overflow
+ * menu (top-right), primary CTA (bottom-right). Each per-tab slots
+ * function returns whichever pieces apply; missing pieces don't render.
  */
 function StakeholderCard({
   row,
-  pills,
+  pill,
   footnote,
   headlineAccessory,
-  rightActions,
+  cta,
+  overflowMenu,
   onOpenDrawer,
 }: {
   row: TabRow;
-  pills: ReactNode;
-  footnote: ReactNode;
-  /** v8.10.2: optional inline accessory rendered right after the headline
-   *  contact name (e.g. a tel: link on the Calls tab). Sits on the same
-   *  line as the contact name, before the right-side action stack. */
+  pill?: ReactNode;
+  footnote?: ReactNode;
   headlineAccessory?: ReactNode;
-  rightActions: ReactNode;
+  cta?: ReactNode;
+  overflowMenu?: ReactNode;
   onOpenDrawer: () => void;
 }) {
-  const hasRightSide = pills || rightActions;
   return (
     <div
       role="button"
@@ -621,14 +627,9 @@ function StakeholderCard({
       title="Open the drawer for full context and history."
       className="cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-stretch justify-between gap-3">
+        {/* LEFT: descriptive content stacked top-down */}
         <div className="min-w-0 flex-1">
-          {/* v8.9: contact name leads. Universal — applies to every
-              stakeholder type. When no contact exists yet, fall back to
-              the organization name so the card isn't blank.
-              v8.10: subline appends the contact's role when present.
-              v8.10.2: optional inline accessory (e.g. Calls-tab phone
-              link) renders on the same line as the contact name. */}
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-medium text-gray-900">
               {row.primary_contact_name || row.organization_name}
@@ -636,9 +637,6 @@ function StakeholderCard({
             {headlineAccessory}
           </div>
           <p className="mt-0.5 truncate text-xs text-gray-500">
-            {/* Show org in the subline when it differs from the headline
-                (i.e. when there IS a contact and the org isn't the
-                person's own name as for some advisors). */}
             {row.primary_contact_name &&
               row.primary_contact_name !== row.organization_name && (
               <>
@@ -651,19 +649,31 @@ function StakeholderCard({
             {row.primary_contact_role && ` · ${row.primary_contact_role}`}
           </p>
           {footnote}
+          {/* Pill (status) sits below the footnote — matches the
+              v8.10.12 spec: status tag stacked under the last-activity
+              line, not competing with the CTA on the right. */}
+          {(pill || row.has_pending_job_board_task) && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              {row.has_pending_job_board_task && (
+                <span
+                  title="Pending: post Olera's listing to the campus job board."
+                  className="shrink-0 rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-900"
+                >
+                  Job board: post pending
+                </span>
+              )}
+              {pill}
+            </div>
+          )}
         </div>
-        {(hasRightSide || row.has_pending_job_board_task) && (
-          <div className="flex shrink-0 flex-col items-end gap-1.5">
-            {row.has_pending_job_board_task && (
-              <span
-                title="Pending: post Olera's listing to the campus job board."
-                className="shrink-0 rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-900"
-              >
-                Job board: post pending
-              </span>
-            )}
-            {pills}
-            {rightActions}
+
+        {/* RIGHT: ellipsis at top, CTA at bottom. justify-between pushes
+            them apart so the CTA always anchors to the bottom edge of
+            the card no matter how tall the left content grows. */}
+        {(cta || overflowMenu) && (
+          <div className="flex shrink-0 flex-col items-end justify-between gap-2">
+            <div className="flex items-center">{overflowMenu}</div>
+            <div className="flex items-center">{cta}</div>
           </div>
         )}
       </div>
@@ -834,11 +844,22 @@ function MenuItem({
 
 // ── Per-tab slot builders ────────────────────────────────────────────────
 
+// v8.10.12: standardized card geometry across every tab.
+//   - pill         → status tag, stacked on the LEFT below "footnote".
+//                    Was previously on the right competing with the CTA.
+//   - footnote     → informational line under the subline (last-activity,
+//                    overdue indicator, followup-notes quote, etc.).
+//   - cta          → primary action, anchored BOTTOM-RIGHT of the card.
+//   - overflowMenu → ellipsis stack, anchored TOP-RIGHT of the card.
+//   - headlineAccessory → inline next to the contact name (e.g. tel: link
+//                    on Calls tab cards).
+// Each per-tab slots function returns whichever subset applies; missing
+// pieces just don't render.
 interface RowSlots {
-  pills: ReactNode;
-  footnote: ReactNode;
-  rightActions: ReactNode;
-  /** v8.10.2: optional inline accessory next to the headline contact name. */
+  pill?: ReactNode;
+  footnote?: ReactNode;
+  cta?: ReactNode;
+  overflowMenu?: ReactNode;
   headlineAccessory?: ReactNode;
 }
 
@@ -855,24 +876,16 @@ function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): RowSlots
 function researchSlots(row: TabRow): RowSlots {
   if (row.status === "researched") {
     return {
-      pills: <Pill title="Has contact + programs — start the email sequence next.">Ready to email</Pill>,
-      footnote: null,
-      rightActions: null,
+      pill: <Pill title="Has contact + programs — start the email sequence next.">Ready to email</Pill>,
     };
   }
   return {
-    pills: <Pill title="Add a contact and programs to start the email sequence.">Needs contact</Pill>,
-    footnote: null,
-    rightActions: null,
+    pill: <Pill title="Add a contact and programs to start the email sequence.">Needs contact</Pill>,
   };
 }
 
 function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // v8.10.2: phone number renders inline next to the contact name as an
-  // underlined tel: link (mirrors the drawer's Day-N call block). Right
-  // side carries a single "Log call" primary CTA — the workflow action.
   return {
-    pills: null,
     footnote: row.due_call_task ? (
       <p className="mt-0.5 text-[11px] text-gray-400">
         {formatDueDate(row.due_call_task.due_at)}
@@ -888,29 +901,27 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         📞 {row.primary_contact_phone}
       </a>
     ) : null,
-    rightActions: (
-      <PrimaryAction onClick={cb.onLogCallOutcome}>Log call</PrimaryAction>
-    ),
+    cta: <PrimaryAction onClick={cb.onLogCallOutcome}>Log call</PrimaryAction>,
   };
 }
 
 function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // v8.10.6: standardized CTA vocabulary. Three verbs total:
-  //   - Log reply       (email reply / mid-cadence / wants meeting)
-  //   - Log callback    (voicemail or promised-callback states)
-  //   - Send follow-up  (post-meeting follow-up only)
-  // Each card has exactly one primary CTA matching its state.
+  // v8.10.12: standardized layout. Pill stacks under the footnote (last
+  // activity / followup-notes quote). CTA is bottom-right. Overflow is
+  // top-right. Instructional nudges ("Coordinate the time, then log
+  // the booking", etc.) removed — the UI hierarchy itself teaches the
+  // workflow.
+  const lastActivityFootnote = row.last_activity_at ? (
+    <p className="mt-0.5 text-[11px] text-gray-400">
+      Last activity {formatRelative(row.last_activity_at)}
+    </p>
+  ) : null;
   const state: RepliesState = row.replies_state ?? "mid_cadence";
   switch (state) {
     case "mid_cadence":
       return {
-        pills: null,
-        footnote: row.last_activity_at ? (
-          <p className="mt-0.5 text-[11px] text-gray-400">
-            Last activity {formatRelative(row.last_activity_at)}
-          </p>
-        ) : null,
-        rightActions: (
+        footnote: lastActivityFootnote,
+        cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}
             title="Saw a reply in Gmail? Click to record what they said."
@@ -921,124 +932,101 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
       };
     case "engaged":
       return {
-        pills: <Pill>Replied</Pill>,
-        footnote: row.last_activity_at ? (
-          <p className="mt-0.5 text-[11px] text-gray-500">
-            Last activity {formatRelative(row.last_activity_at)}
-          </p>
-        ) : null,
-        rightActions: (
-          <>
-            <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>
-            <OverflowMenu
-              items={[{ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" }]}
-              onStopOutreach={cb.onStopOutreach}
-            />
-          </>
+        footnote: lastActivityFootnote,
+        pill: <Pill>Replied</Pill>,
+        cta: <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>,
+        overflowMenu: (
+          <OverflowMenu
+            items={[{ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" }]}
+            onStopOutreach={cb.onStopOutreach}
+          />
         ),
       };
     case "wants_meeting":
       return {
-        pills: <Pill>Wants to meet</Pill>,
-        footnote: <p className="mt-0.5 text-[11px] text-gray-500">Coordinate the time, then log the booking.</p>,
-        rightActions: (
-          <>
-            <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>
-            <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />
-          </>
-        ),
+        footnote: lastActivityFootnote,
+        pill: <Pill>Wants to meet</Pill>,
+        cta: <PrimaryAction onClick={() => cb.onClassifyReply("email_reply")}>Log reply</PrimaryAction>,
+        overflowMenu: <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />,
       };
     case "booked":
       // Filtered out of Replies server-side in v8.2. Kept here for type-completeness only.
       return {
-        pills: <Pill>{row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}</Pill>,
-        footnote: null,
-        rightActions: null,
+        pill: <Pill>{row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}</Pill>,
       };
     case "needs_followup":
       return {
-        pills: <Pill>Met — needs follow-up</Pill>,
+        // followup notes quote stays — informational context, not a nudge.
         footnote: row.followup_notes ? (
           <p className="mt-0.5 text-[11px] italic text-gray-700">
             &quot;{row.followup_notes.slice(0, 160)}
             {row.followup_notes.length > 160 ? "…" : ""}&quot;
           </p>
-        ) : null,
-        rightActions: (
-          <>
-            <PrimaryAction onClick={cb.onSendFollowupEmail}>Send follow-up</PrimaryAction>
-            <OverflowMenu
-              items={[{ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" }]}
-              onStopOutreach={cb.onStopOutreach}
-            />
-          </>
+        ) : lastActivityFootnote,
+        pill: <Pill>Met — needs follow-up</Pill>,
+        cta: <PrimaryAction onClick={cb.onSendFollowupEmail}>Send follow-up</PrimaryAction>,
+        overflowMenu: (
+          <OverflowMenu
+            items={[{ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" }]}
+            onStopOutreach={cb.onStopOutreach}
+          />
         ),
       };
     case "awaiting_callback":
-      // v8.10.7: pill alone signals "voicemail / promised callback"; the
-      // explicit "Watch Gmail and voicemail" footnote was redundant
-      // with the section subtitle and got dropped. CTA is "Log reply" —
-      // one universal verb across email replies + callbacks.
       return {
-        pills: (
+        footnote: lastActivityFootnote,
+        pill: (
           <Pill>
             {row.awaiting_callback_kind === "promised" ? "Promised callback" : "Voicemail"}
             {row.awaiting_callback_at ? ` · ${formatShortRelative(row.awaiting_callback_at)}` : ""}
           </Pill>
         ),
-        footnote: null,
-        rightActions: (
-          <>
-            <PrimaryAction onClick={() => cb.onClassifyReply("callback")}>Log reply</PrimaryAction>
-            <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />
-          </>
-        ),
+        cta: <PrimaryAction onClick={() => cb.onClassifyReply("callback")}>Log reply</PrimaryAction>,
+        overflowMenu: <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />,
       };
     case "stale":
-      // v8.10.6: stale rows now live in Archive. This branch is kept
-      // for type-completeness — server filters them out of Replies.
+      // v8.10.6: stale rows live in Archive — server filters them out
+      // of Replies. Kept here for type-completeness only.
       return {
-        pills: (
-          <Pill>Stale{row.stale_days != null ? ` · ${row.stale_days}d` : ""}</Pill>
-        ),
-        footnote: null,
-        rightActions: null,
+        pill: <Pill>Stale{row.stale_days != null ? ` · ${row.stale_days}d` : ""}</Pill>,
       };
   }
 }
 
 function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
+  // v8.10.12: instructional nudge "Coordinate over email, then mark
+  // booked" removed from in_flight cards. The pill ("Finding a time")
+  // + the "Booked it" CTA already convey the workflow.
+  const lastActivityFootnote = row.last_activity_at ? (
+    <p className="mt-0.5 text-[11px] text-gray-400">
+      Last activity {formatRelative(row.last_activity_at)}
+    </p>
+  ) : null;
   if (row.meeting_state === "scheduled") {
     return {
-      pills: (
+      footnote: lastActivityFootnote,
+      pill: (
         <Pill title="Meeting is on the calendar.">
           {row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}
         </Pill>
       ),
-      footnote: null,
-      rightActions: (
-        <>
-          <PrimaryAction
-            onClick={cb.onMarkPartner}
-            title="Meeting happened and they committed — graduate to Active Partner."
-          >
-            Make Partner ★
-          </PrimaryAction>
-          <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />
-        </>
+      cta: (
+        <PrimaryAction
+          onClick={cb.onMarkPartner}
+          title="Meeting happened and they committed — graduate to Active Partner."
+        >
+          Make Partner ★
+        </PrimaryAction>
       ),
+      overflowMenu: <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />,
     };
   }
   // in_flight
   return {
-    pills: <Pill>Finding a time</Pill>,
-    footnote: <p className="mt-0.5 text-[11px] text-gray-500">Coordinate over email, then mark booked.</p>,
-    rightActions: (
-      <>
-        <PrimaryAction onClick={cb.onMarkScheduledFromInFlight}>Booked it</PrimaryAction>
-        <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />
-      </>
-    ),
+    footnote: lastActivityFootnote,
+    pill: <Pill>Finding a time</Pill>,
+    cta: <PrimaryAction onClick={cb.onMarkScheduledFromInFlight}>Booked it</PrimaryAction>,
+    overflowMenu: <OverflowMenu items={[]} onStopOutreach={cb.onStopOutreach} />,
   };
 }
 
@@ -1046,17 +1034,16 @@ function partnersSlots(row: TabRow): RowSlots {
   // No "Active Partner" pill — the tab name carries the meaning. Just the
   // Next: … pill (when there's an upcoming task).
   return {
-    pills: row.next_step_label ? (
-      <Pill title="Earliest scheduled action for this partner.">
-        {row.next_step_label}
-      </Pill>
-    ) : null,
     footnote: row.last_activity_at ? (
       <p className="mt-0.5 text-[11px] text-gray-400">
         Last activity {formatRelative(row.last_activity_at)}
       </p>
     ) : null,
-    rightActions: null,
+    pill: row.next_step_label ? (
+      <Pill title="Earliest scheduled action for this partner.">
+        {row.next_step_label}
+      </Pill>
+    ) : undefined,
   };
 }
 
@@ -1075,42 +1062,41 @@ function archiveSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     ? `No response${row.stale_days != null ? ` · ${row.stale_days}d cold` : ""}`
     : `Stale${row.stale_days != null ? ` · ${row.stale_days}d cold` : ""}`;
   return {
-    pills: (
-      <Pill title="Cadence ran without engagement. Logging a reply or callback re-routes them to Replies.">
-        {pillLabel}
-      </Pill>
-    ),
     footnote: row.last_activity_at ? (
       <p className="mt-0.5 text-[11px] text-gray-400">
         Last activity {formatRelative(row.last_activity_at)}
       </p>
     ) : null,
-    rightActions: (
-      <>
-        <PrimaryAction
-          onClick={() => cb.onClassifyReply("email_reply")}
-          title="They replied or called back. Log it to re-route this row to Replies."
-        >
-          Log reply
-        </PrimaryAction>
-        <OverflowMenu
-          items={[{ label: "Log reply (callback)", onClick: () => cb.onClassifyReply("callback") }]}
-          onStopOutreach={cb.onStopOutreach}
-        />
-      </>
+    pill: (
+      <Pill title="Cadence ran without engagement. Logging a reply or callback re-routes them to Replies.">
+        {pillLabel}
+      </Pill>
+    ),
+    cta: (
+      <PrimaryAction
+        onClick={() => cb.onClassifyReply("email_reply")}
+        title="They replied or called back. Log it to re-route this row to Replies."
+      >
+        Log reply
+      </PrimaryAction>
+    ),
+    overflowMenu: (
+      <OverflowMenu
+        items={[{ label: "Log reply (callback)", onClick: () => cb.onClassifyReply("callback") }]}
+        onStopOutreach={cb.onStopOutreach}
+      />
     ),
   };
 }
 
 function allSlots(row: TabRow): RowSlots {
   return {
-    pills: <Pill title="Stage in the funnel.">{STATUS_LABELS[row.status] ?? row.status}</Pill>,
     footnote: row.last_activity_at ? (
       <p className="mt-0.5 text-[11px] text-gray-400">
         Last activity {formatRelative(row.last_activity_at)}
       </p>
     ) : null,
-    rightActions: null,
+    pill: <Pill title="Stage in the funnel.">{STATUS_LABELS[row.status] ?? row.status}</Pill>,
   };
 }
 

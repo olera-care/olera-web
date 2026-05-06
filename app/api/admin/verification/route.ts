@@ -190,20 +190,6 @@ export async function GET(request: NextRequest) {
       return hasOldSubmission || hasNewAttempts || hasEmailOtpAttempt || isPendingState;
     };
 
-    const isUnverifiedClaim = (p: typeof allProviders[number]) => {
-      const meta = p.metadata as ProfileMetadata | null;
-      const claimState = (p as { claim_state?: string }).claim_state;
-      const isClaimedOrPending = claimState === "claimed" || claimState === "pending";
-      const isUnverified = p.verification_state === "unverified";
-      const hasNoSubmissions =
-        !meta?.verification_submission &&
-        (!Array.isArray(meta?.verification_attempts) || meta.verification_attempts.length === 0) &&
-        !meta?.email_otp_attempt;
-      const needsReviewStandard = isClaimedOrPending && isUnverified && hasNoSubmissions;
-      const pendingSlipThrough = claimState === "pending" && p.verification_state !== "verified" && p.verification_state !== "not_required" && hasNoSubmissions;
-      return needsReviewStandard || pendingSlipThrough;
-    };
-
     const isPending = (p: typeof allProviders[number]) => {
       const meta = p.metadata as ProfileMetadata | null;
       const notApproved = !meta?.badge_approved;
@@ -227,12 +213,38 @@ export async function GET(request: NextRequest) {
       return meta?.badge_rejected === true;
     };
 
+    // Check if provider is in the "In Progress" outreach state
+    // Must be AFTER other predicates since it excludes providers who have moved to other states
+    const isInProgress = (p: typeof allProviders[number]) => {
+      const meta = p.metadata as ProfileMetadata & { outreach_state?: string } | null;
+      const hasOutreachState = meta?.outreach_state === "in_progress";
+      // Exclude if they've moved to another state (approved, rejected, or has pending failed verification)
+      return hasOutreachState && !isApproved(p) && !isRejected(p) && !isPending(p);
+    };
+
+    const isUnverifiedClaim = (p: typeof allProviders[number]) => {
+      const meta = p.metadata as ProfileMetadata | null;
+      const claimState = (p as { claim_state?: string }).claim_state;
+      const isClaimedOrPending = claimState === "claimed" || claimState === "pending";
+      const isUnverified = p.verification_state === "unverified";
+      const hasNoSubmissions =
+        !meta?.verification_submission &&
+        (!Array.isArray(meta?.verification_attempts) || meta.verification_attempts.length === 0) &&
+        !meta?.email_otp_attempt;
+      const needsReviewStandard = isClaimedOrPending && isUnverified && hasNoSubmissions;
+      const pendingSlipThrough = claimState === "pending" && p.verification_state !== "verified" && p.verification_state !== "not_required" && hasNoSubmissions;
+      // Exclude providers that are already in progress
+      const notInProgress = !isInProgress(p);
+      return (needsReviewStandard || pendingSlipThrough) && notInProgress;
+    };
+
     // If counts_only, return counts for all statuses
     if (countsOnly) {
       const providers = allProviders ?? [];
       return NextResponse.json({
         counts: {
           unverified_claims: providers.filter(isUnverifiedClaim).length,
+          in_progress: providers.filter(isInProgress).length,
           pending: providers.filter(isPending).length,
           approved: providers.filter(isApproved).length,
           rejected: providers.filter(isRejected).length,
@@ -244,6 +256,8 @@ export async function GET(request: NextRequest) {
 
     if (status === "unverified_claims") {
       filtered = filtered.filter(isUnverifiedClaim);
+    } else if (status === "in_progress") {
+      filtered = filtered.filter(isInProgress);
     } else if (status === "pending") {
       filtered = filtered.filter(isPending);
     } else if (status === "approved") {

@@ -43,6 +43,14 @@ interface EmailOtpAttempt {
   otp_verified: boolean;
 }
 
+interface OutreachLogEntry {
+  action: string;
+  reason: string;
+  note?: string | null;
+  by: string;
+  at: string;
+}
+
 interface ProviderMetadata extends OrganizationMetadata {
   verification_submission?: VerificationSubmission;
   verification_attempts?: VerificationAttempt[];
@@ -53,6 +61,8 @@ interface ProviderMetadata extends OrganizationMetadata {
   badge_rejected?: boolean;
   auto_verified?: boolean;
   claim_trust_level?: "high" | "medium" | "low";
+  outreach_state?: string;
+  outreach_log?: OutreachLogEntry[];
 }
 
 interface ClaimJourney {
@@ -107,7 +117,7 @@ const METHOD_LABELS: Record<string, { label: string; icon: string }> = {
   "badge-request": { label: "Badge Request", icon: "🎖️" },
 };
 
-type StatusFilter = "unverified_claims" | "pending" | "approved" | "rejected";
+type StatusFilter = "unverified_claims" | "in_progress" | "pending" | "approved" | "rejected";
 
 const PAGE_SIZE = 50;
 
@@ -387,10 +397,12 @@ export default function AdminVerificationPage() {
   const [trustFilter, setTrustFilter] = useState("");
   const [tabCounts, setTabCounts] = useState<Record<StatusFilter, number>>({
     unverified_claims: 0,
+    in_progress: 0,
     pending: 0,
     approved: 0,
     rejected: 0,
   });
+  const [moveModalProvider, setMoveModalProvider] = useState<Provider | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -470,7 +482,8 @@ export default function AdminVerificationPage() {
 
   const filters: { label: string; value: StatusFilter }[] = [
     { label: "Unverified Claims", value: "unverified_claims" },
-    { label: "Awaiting Review", value: "pending" },
+    { label: "In Progress", value: "in_progress" },
+    { label: "Failed Verifications", value: "pending" },
     { label: "Verified", value: "approved" },
     { label: "Rejected", value: "rejected" },
   ];
@@ -504,6 +517,38 @@ export default function AdminVerificationPage() {
     } catch (err) {
       console.error("Action failed:", err);
       setActionError(`Failed to ${action} badge. Please check your connection.`);
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleMoveToInProgress(id: string, reason: string, note?: string) {
+    setActionLoading(id);
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/admin/verification/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "move_to_in_progress", reason, note }),
+      });
+      if (res.ok) {
+        setProviders((prev) => {
+          const updated = prev.filter((p) => p.id !== id);
+          if (updated.length === 0 && page > 0) {
+            setPage(0);
+          }
+          return updated;
+        });
+        setTotal((prev) => prev - 1);
+        setMoveModalProvider(null);
+        fetchCounts();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setActionError(data.error || "Failed to move provider. Please try again.");
+      }
+    } catch (err) {
+      console.error("Move action failed:", err);
+      setActionError("Failed to move provider. Please check your connection.");
     } finally {
       setActionLoading(null);
     }
@@ -559,7 +604,7 @@ export default function AdminVerificationPage() {
       <div className="flex gap-2 mb-4">
         {filters.map((f) => {
           const count = tabCounts[f.value];
-          const isActionable = f.value === "unverified_claims" || f.value === "pending";
+          const isActionable = f.value === "unverified_claims" || f.value === "in_progress" || f.value === "pending";
           const showBadge = isActionable && count > 0;
 
           return (
@@ -701,18 +746,22 @@ export default function AdminVerificationPage() {
                   ? "No results found"
                   : filter === "unverified_claims"
                     ? "No unverified claims"
-                    : filter === "pending"
-                      ? "All caught up!"
-                      : `No ${filter} badge requests`}
+                    : filter === "in_progress"
+                      ? "No claims in progress"
+                      : filter === "pending"
+                        ? "All caught up!"
+                        : `No ${filter} badge requests`}
               </p>
               <p className="text-sm text-gray-500 mt-1">
                 {hasActiveFilters
                   ? "Try adjusting your search or filters."
                   : filter === "unverified_claims"
                     ? "No claimed providers awaiting verification."
-                    : filter === "pending"
-                      ? "No badge requests waiting for review."
-                      : `No providers with ${filter} badges.`}
+                    : filter === "in_progress"
+                      ? "No providers currently being contacted or under review."
+                      : filter === "pending"
+                        ? "No failed verifications waiting for review."
+                        : `No providers with ${filter} badges.`}
               </p>
             </div>
           );
@@ -730,12 +779,15 @@ export default function AdminVerificationPage() {
                   {filter === "pending" && (
                     <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Submitter</th>
                   )}
+                  {filter === "in_progress" && (
+                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Outreach</th>
+                  )}
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Location</th>
-                  {filter !== "pending" && filter !== "unverified_claims" && (
+                  {filter !== "pending" && filter !== "unverified_claims" && filter !== "in_progress" && (
                     <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
                   )}
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
-                    {filter === "pending" ? "Submitted" : filter === "unverified_claims" ? "Claimed" : "Updated"}
+                    {filter === "pending" ? "Submitted" : filter === "unverified_claims" ? "Claimed" : filter === "in_progress" ? "Moved" : "Updated"}
                   </th>
                   <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
                 </tr>
@@ -798,10 +850,15 @@ export default function AdminVerificationPage() {
                           </button>
                         </td>
                       )}
+                      {filter === "in_progress" && (
+                        <td className="px-6 py-4">
+                          <OutreachBadge outreachLog={provider.metadata?.outreach_log} />
+                        </td>
+                      )}
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {[provider.city, provider.state].filter(Boolean).join(", ") || "—"}
                       </td>
-                      {filter !== "pending" && filter !== "unverified_claims" && (
+                      {filter !== "pending" && filter !== "unverified_claims" && filter !== "in_progress" && (
                         <td className="px-6 py-4">
                           {filter === "approved" ? (
                             // Simplified badge system:
@@ -838,11 +895,18 @@ export default function AdminVerificationPage() {
                         <p className="text-sm text-gray-500">
                           {filter === "pending" && submission?.submitted_at
                             ? new Date(submission.submitted_at).toLocaleDateString()
-                            : new Date(provider.updated_at).toLocaleDateString()}
+                            : filter === "in_progress" && provider.metadata?.outreach_log?.length
+                              ? new Date(provider.metadata.outreach_log[provider.metadata.outreach_log.length - 1].at).toLocaleDateString()
+                              : new Date(provider.updated_at).toLocaleDateString()}
                         </p>
                         {filter === "unverified_claims" && (
                           <p className="text-xs text-gray-400">
                             {formatDaysAgo(provider.updated_at)}
+                          </p>
+                        )}
+                        {filter === "in_progress" && provider.metadata?.outreach_log?.length && (
+                          <p className="text-xs text-gray-400">
+                            {formatDaysAgo(provider.metadata.outreach_log[provider.metadata.outreach_log.length - 1].at)}
                           </p>
                         )}
                         {filter === "pending" && submission?.submitted_at && (
@@ -872,11 +936,41 @@ export default function AdminVerificationPage() {
                                 Details
                               </button>
                               <button
+                                onClick={() => setMoveModalProvider(provider)}
+                                className="px-3 py-1.5 bg-amber-100 text-amber-700 text-sm font-medium rounded-lg hover:bg-amber-200 transition-colors"
+                              >
+                                Move
+                              </button>
+                              <button
                                 onClick={() => handleAction(provider.id, "approve")}
                                 disabled={actionLoading === provider.id}
                                 className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
                               >
                                 {actionLoading === provider.id ? "..." : "Verify"}
+                              </button>
+                            </>
+                          )}
+                          {filter === "in_progress" && (
+                            <>
+                              <button
+                                onClick={() => openProviderModal(provider)}
+                                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                              >
+                                Details
+                              </button>
+                              <button
+                                onClick={() => handleAction(provider.id, "approve")}
+                                disabled={actionLoading === provider.id}
+                                className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                              >
+                                {actionLoading === provider.id ? "..." : "Verify"}
+                              </button>
+                              <button
+                                onClick={() => handleAction(provider.id, "reject")}
+                                disabled={actionLoading === provider.id}
+                                className="px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
+                              >
+                                {actionLoading === provider.id ? "..." : "Reject"}
                               </button>
                             </>
                           )}
@@ -963,6 +1057,16 @@ export default function AdminVerificationPage() {
           actionError={actionError}
         />
       )}
+
+      {/* Move to In Progress Modal */}
+      {moveModalProvider && (
+        <MoveToInProgressModal
+          provider={moveModalProvider}
+          onClose={() => { setMoveModalProvider(null); setActionError(null); }}
+          onMove={(reason, note) => handleMoveToInProgress(moveModalProvider.id, reason, note)}
+          isLoading={actionLoading === moveModalProvider.id}
+        />
+      )}
     </div>
   );
 }
@@ -977,6 +1081,163 @@ function hasVerificationAttempts(provider: Provider): boolean {
   const emailOtpAttempt = metadata.email_otp_attempt;
 
   return attempts.length > 0 || !!emailOtpAttempt;
+}
+
+// ── Outreach Badge ──
+
+const OUTREACH_REASON_LABELS: Record<string, { label: string; icon: string; color: string }> = {
+  left_voicemail: { label: "Left voicemail", icon: "📞", color: "bg-blue-50 text-blue-700" },
+  sent_email: { label: "Sent email", icon: "✉️", color: "bg-purple-50 text-purple-700" },
+  requested_verification: { label: "Requested verification", icon: "🔐", color: "bg-teal-50 text-teal-700" },
+  under_investigation: { label: "Under investigation", icon: "🔍", color: "bg-amber-50 text-amber-700" },
+  other: { label: "Other", icon: "📝", color: "bg-gray-100 text-gray-700" },
+};
+
+function OutreachBadge({ outreachLog }: { outreachLog?: OutreachLogEntry[] }) {
+  if (!outreachLog || outreachLog.length === 0) return <span className="text-gray-400 text-sm">—</span>;
+
+  // Show the most recent outreach entry
+  const latest = outreachLog[outreachLog.length - 1];
+  const reasonInfo = OUTREACH_REASON_LABELS[latest.reason] || OUTREACH_REASON_LABELS.other;
+
+  return (
+    <div className="space-y-1">
+      <span className={`inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-lg ${reasonInfo.color}`}>
+        <span>{reasonInfo.icon}</span>
+        {reasonInfo.label}
+      </span>
+      {latest.note && (
+        <p className="text-xs text-gray-500 truncate max-w-[180px]" title={latest.note}>
+          {latest.note}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── Move to In Progress Modal ──
+
+interface MoveToInProgressModalProps {
+  provider: Provider;
+  onClose: () => void;
+  onMove: (reason: string, note?: string) => void;
+  isLoading: boolean;
+}
+
+function MoveToInProgressModal({ provider, onClose, onMove, isLoading }: MoveToInProgressModalProps) {
+  const [selectedReason, setSelectedReason] = useState<string>("");
+  const [note, setNote] = useState("");
+
+  const reasons = [
+    { value: "left_voicemail", label: "Left voicemail", description: "Called but no answer, left a message" },
+    { value: "sent_email", label: "Sent email", description: "Sent manual verification email" },
+    { value: "requested_verification", label: "Provider will verify", description: "Asked them to complete verification flow" },
+    { value: "under_investigation", label: "Under investigation", description: "Suspicious activity, needs review" },
+    { value: "other", label: "Other", description: "Different reason (add note below)" },
+  ];
+
+  const handleSubmit = () => {
+    if (!selectedReason) return;
+    onMove(selectedReason, note.trim() || undefined);
+  };
+
+  return (
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title="Move to In Progress"
+      size="md"
+      footer={
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={isLoading}
+            className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading || !selectedReason}
+            className="flex-1 px-4 py-3 bg-amber-500 text-white text-sm font-semibold rounded-xl hover:bg-amber-600 disabled:opacity-50 transition-colors"
+          >
+            {isLoading ? "Moving..." : "Move"}
+          </button>
+        </div>
+      }
+    >
+      {/* Provider Info */}
+      <div className="mb-6 pb-5 border-b border-gray-100">
+        <div className="flex items-center gap-4">
+          {provider.image_url ? (
+            <img
+              src={provider.image_url}
+              alt={provider.display_name}
+              className="w-12 h-12 rounded-xl object-cover"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+              <span className="text-gray-400 text-lg font-semibold">
+                {provider.display_name.charAt(0)}
+              </span>
+            </div>
+          )}
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">{provider.display_name}</h3>
+            <p className="text-sm text-gray-500">
+              {[provider.city, provider.state].filter(Boolean).join(", ") || "No location"}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Reason Selection */}
+      <div className="mb-5">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
+          Why are you moving this claim?
+        </p>
+        <div className="space-y-2">
+          {reasons.map((reason) => (
+            <label
+              key={reason.value}
+              className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                selectedReason === reason.value
+                  ? "border-amber-400 bg-amber-50 ring-1 ring-amber-200"
+                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              <input
+                type="radio"
+                name="reason"
+                value={reason.value}
+                checked={selectedReason === reason.value}
+                onChange={(e) => setSelectedReason(e.target.value)}
+                className="mt-0.5 w-4 h-4 text-amber-500 border-gray-300 focus:ring-amber-500"
+              />
+              <div>
+                <p className="text-sm font-medium text-gray-900">{reason.label}</p>
+                <p className="text-xs text-gray-500">{reason.description}</p>
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Optional Note */}
+      <div>
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
+          Additional note <span className="font-normal">(optional)</span>
+        </p>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Add any details about your outreach attempt..."
+          rows={3}
+          className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-100 focus:border-amber-400 resize-none placeholder:text-gray-400"
+        />
+      </div>
+    </Modal>
+  );
 }
 
 // ── Verification Review Modal ──
@@ -1068,13 +1329,16 @@ function EmptyStateMessage({
   currentTab,
   isHighTrust,
   trustReason,
+  hasOutreachLog,
 }: {
   currentTab: StatusFilter;
   isHighTrust: boolean;
   trustReason: string | null;
+  hasOutreachLog?: boolean;
 }) {
   // Determine appropriate message based on context
   const isUnverifiedClaim = currentTab === "unverified_claims";
+  const isInProgress = currentTab === "in_progress";
   const isVerifiedTab = currentTab === "approved";
 
   let icon: React.ReactNode;
@@ -1090,6 +1354,18 @@ function EmptyStateMessage({
     );
     title = "No verification submitted yet";
     description = "This provider claimed their listing but hasn't started the verification process.";
+  } else if (isInProgress && hasOutreachLog) {
+    // In progress with outreach log - just show the log, no empty state needed
+    return null;
+  } else if (isInProgress) {
+    // In progress but no outreach log (shouldn't happen, but handle gracefully)
+    icon = (
+      <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    );
+    title = "Outreach in progress";
+    description = "Your team has reached out to this provider.";
   } else if (isVerifiedTab && isHighTrust) {
     // High-trust verified - no verification needed
     icon = (
@@ -1171,6 +1447,63 @@ function PreClaimEngagementSection({ journey }: { journey: ClaimJourney | null }
   );
 }
 
+// ── Outreach Log Section ──
+
+function OutreachLogSection({ outreachLog }: { outreachLog?: OutreachLogEntry[] }) {
+  if (!outreachLog || outreachLog.length === 0) return null;
+
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  // Reverse to show most recent first
+  const sortedLog = [...outreachLog].reverse();
+
+  return (
+    <div className="mb-6 pb-5 border-b border-gray-100">
+      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
+        Outreach History ({outreachLog.length})
+      </p>
+      <div className="space-y-3">
+        {sortedLog.map((entry, index) => {
+          const reasonInfo = OUTREACH_REASON_LABELS[entry.reason] || OUTREACH_REASON_LABELS.other;
+          return (
+            <div key={index} className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{reasonInfo.icon}</span>
+                  <span className="text-sm font-semibold text-gray-900">{reasonInfo.label}</span>
+                </div>
+                <span className="text-xs text-gray-400">
+                  {formatDateTime(entry.at)}
+                </span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <p className="text-xs text-gray-400">Moved by</p>
+                  <p className="text-gray-700">{entry.by}</p>
+                </div>
+                {entry.note && (
+                  <div>
+                    <p className="text-xs text-gray-400">Note</p>
+                    <p className="text-gray-700">{entry.note}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function VerificationReviewModal({
   provider,
   currentTab,
@@ -1197,16 +1530,38 @@ function VerificationReviewModal({
   // Determine modal title based on tab context
   const modalTitle = currentTab === "unverified_claims"
     ? "Claim Details"
-    : currentTab === "approved"
-      ? "Verified Provider"
-      : currentTab === "rejected"
-        ? "Rejected Provider"
-        : "Review Badge Request";
+    : currentTab === "in_progress"
+      ? "In Progress"
+      : currentTab === "approved"
+        ? "Verified Provider"
+        : currentTab === "rejected"
+          ? "Rejected Provider"
+          : "Review Failed Verification";
 
   // Render footer buttons based on current tab
   const renderFooter = () => {
     switch (currentTab) {
       case "unverified_claims":
+        // [Reject] [Verify]
+        return (
+          <div className="flex gap-3">
+            <button
+              onClick={onReject}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            >
+              Reject
+            </button>
+            <button
+              onClick={onApprove}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
+            >
+              {isLoading ? "Processing..." : "Verify"}
+            </button>
+          </div>
+        );
+      case "in_progress":
         // [Reject] [Verify]
         return (
           <div className="flex gap-3">
@@ -1388,6 +1743,9 @@ function VerificationReviewModal({
       {/* Pre-Claim Engagement - Only show if there's engagement data */}
       <PreClaimEngagementSection journey={provider.claim_journey} />
 
+      {/* Outreach Log - Show for in_progress providers */}
+      <OutreachLogSection outreachLog={provider.metadata?.outreach_log} />
+
       {/* Verification Attempts - Always show if they exist (regardless of submission) */}
       <VerificationAttemptsSection provider={provider} formatDate={formatDate} />
 
@@ -1549,12 +1907,13 @@ function VerificationReviewModal({
         </div>
       )}
 
-      {/* Empty state - only show if NO submission AND NO verification attempts */}
+      {/* Empty state - only show if NO submission AND NO verification attempts AND NO outreach log */}
       {!submission && !hasVerificationAttempts(provider) && (
         <EmptyStateMessage
           currentTab={currentTab}
           isHighTrust={provider.claim_trust_level === "high" || provider.verification_state === "not_required"}
           trustReason={provider.claim_trust_reason}
+          hasOutreachLog={!!provider.metadata?.outreach_log?.length}
         />
       )}
 

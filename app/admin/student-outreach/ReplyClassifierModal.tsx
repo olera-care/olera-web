@@ -19,7 +19,16 @@
 
 import { useState } from "react";
 
-export type ReplyClassification = "keep_emailing" | "wants_meeting" | "already_booked" | "committed";
+// v8.10.8: added "not_interested" — admin's "they said no thanks" path.
+// Routes to handleClassifyReply -> not_interested transition (same as
+// the Stop Outreach overflow's Not interested option, but reachable
+// inline from the same Log Reply modal).
+export type ReplyClassification =
+  | "keep_emailing"
+  | "wants_meeting"
+  | "already_booked"
+  | "committed"
+  | "not_interested";
 
 interface Props {
   organizationName: string;
@@ -27,9 +36,10 @@ interface Props {
   source: "email_reply" | "callback";
   onCancel: () => void;
   /**
-   * Called for keep_emailing | wants_meeting | already_booked. The
-   * `committed` path is dispatched via onChooseCommitted so the parent
-   * can mount its own MarkPartnerModal flow.
+   * Called for keep_emailing | wants_meeting | already_booked |
+   * not_interested. The `committed` path is dispatched via
+   * onChooseCommitted so the parent can mount its own MarkPartnerModal
+   * flow with evidence capture.
    */
   onSubmit: (
     classification: Exclude<ReplyClassification, "committed">,
@@ -114,30 +124,37 @@ export function ReplyClassifierModal({
             <ChoiceCard
               active={choice === "keep_emailing"}
               onSelect={() => setChoice("keep_emailing")}
-              label="They replied — keep emailing"
-              blurb="Generic reply (questions, asking for info). Cancels the cadence so the cron stops sending."
+              label="They replied"
+              blurb="Generic reply or question. The auto-cadence stops; you'll handle replies through Gmail from here."
               tone="neutral"
             />
             <ChoiceCard
               active={choice === "wants_meeting"}
               onSelect={() => setChoice("wants_meeting")}
-              label="They want a meeting"
-              blurb="Coordinating a time over email. Row moves to Meetings tab as 'Finding a time'."
+              label="They want to meet"
+              blurb="You'll coordinate a time over email. Row moves to Meetings."
               tone="warn"
             />
             <ChoiceCard
               active={choice === "already_booked"}
               onSelect={() => setChoice("already_booked")}
-              label="A meeting is already booked"
-              blurb="Calendly auto-booked, or you've already added it to the calendar. Row moves to Meetings."
+              label="Meeting is booked"
+              blurb="Calendly auto-booked it, or you already added it to your calendar. Row moves to Meetings."
               tone="ok"
             />
             <ChoiceCard
               active={choice === "committed"}
               onSelect={() => setChoice("committed")}
-              label="They committed to sharing with students"
-              blurb="They're an Active Partner. We'll capture evidence and queue seasonal check-ins."
+              label="They're sharing with students"
+              blurb="They committed. Row becomes an Active Partner; we'll capture evidence and queue seasonal check-ins."
               tone="ok"
+            />
+            <ChoiceCard
+              active={choice === "not_interested"}
+              onSelect={() => setChoice("not_interested")}
+              label="They said no thanks"
+              blurb="Polite decline. Row closes as Not interested; cadence stops and they leave the active workflow."
+              tone="danger"
             />
           </div>
 
@@ -204,7 +221,7 @@ function ChoiceCard({
   onSelect: () => void;
   label: string;
   blurb: string;
-  tone: "ok" | "neutral" | "warn";
+  tone: "ok" | "neutral" | "warn" | "danger";
 }) {
   const toneClass =
     tone === "ok"
@@ -215,6 +232,10 @@ function ChoiceCard({
       ? active
         ? "border-amber-500 bg-amber-50"
         : "border-gray-200 hover:border-amber-300 hover:bg-amber-50/30"
+      : tone === "danger"
+      ? active
+        ? "border-red-400 bg-red-50"
+        : "border-gray-200 hover:border-red-300 hover:bg-red-50/30"
       : active
       ? "border-gray-700 bg-gray-50"
       : "border-gray-200 hover:border-gray-300 hover:bg-gray-50";

@@ -1208,6 +1208,12 @@ async function handleClassifyReply(
         userId,
       );
       return;
+    case "not_interested":
+      // v8.10.8: "They said no thanks" path. Mirrors the Stop Outreach
+      // overflow's not_interested option but reachable inline from the
+      // Log Reply modal so admin doesn't have to switch menus.
+      await transitionStage(db, row, "not_interested", userId, body.notes ?? null);
+      return;
     default:
       throw new Error("Invalid classification");
   }

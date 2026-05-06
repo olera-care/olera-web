@@ -205,23 +205,19 @@ export default function StudentOutreachPage() {
             Reach pre-health students through campus advisors, dept heads, and student orgs.
           </p>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
+          {/* v8.10.8: Open Gmail demoted to a plain text link — visually
+              quieter so the primary action ("+ Add Stakeholder") leads.
+              Campuses moved to the left admin sidebar. */}
           <a
             href="https://mail.google.com/mail/u/0/#inbox"
             target="_blank"
             rel="noopener noreferrer"
             title="Open Gmail in a new tab to triage replies, callbacks, and voicemails."
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="text-sm font-medium text-emerald-700 underline hover:no-underline"
           >
             Open Gmail ↗
           </a>
-          <Link
-            href="/admin/student-outreach/campuses"
-            title="Browse and manage campuses (universities)."
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Campuses
-          </Link>
           <button
             onClick={() => setShowAdd(true)}
             title="Add a new advisor, dept head, or student org for a campus."
@@ -232,13 +228,22 @@ export default function StudentOutreachPage() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* v8.10.8: search + filters condensed into one horizontal row above
+          the tabs. Search takes the available flex; campus + type are
+          shrink-0 dropdowns on the right. Reduces page header height. */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by organization name…"
+          className="min-w-[220px] flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+        />
         <select
           value={campusSlug}
           onChange={(e) => setCampusSlug(e.target.value)}
           title="Filter to one campus, or 'All campuses' to see everything."
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none"
+          className="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none"
         >
           <option value="">All campuses</option>
           {campuses.map((c) => (
@@ -249,7 +254,7 @@ export default function StudentOutreachPage() {
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value as StakeholderType | "all")}
           title="Filter by stakeholder type."
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none"
+          className="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none"
         >
           {TYPE_FILTERS.map((f) => (
             <option key={f.key} value={f.key}>{f.label}</option>
@@ -258,21 +263,11 @@ export default function StudentOutreachPage() {
         {currentCampus && (
           <Link
             href={`/admin/student-outreach/campus/${currentCampus.slug}`}
-            className="text-sm text-blue-600 hover:underline"
+            className="shrink-0 text-sm text-blue-600 hover:underline"
           >
             View {currentCampus.name} →
           </Link>
         )}
-      </div>
-
-      <div className="mb-4">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by organization name…"
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
-        />
       </div>
 
       {/* Tabs */}
@@ -303,12 +298,11 @@ export default function StudentOutreachPage() {
         })}
       </div>
 
-      {/* v8: top banners for tabs that anchor on inbox/calendar.
-          v8.10.5: replies-tab banner removed — Open Gmail is now the
-          top-right header button next to Campuses, available from
-          every tab. */}
-      {tab === "meetings" && <MeetingsTabBanner />}
-      {tab === "calls" && <CallsTabBanner />}
+      {/* v8.10.8: per-tab banners removed entirely. Calls + Meetings
+          nudges ("Calls due. Tap the number…" / "Meetings to book or
+          run…") were redundant with the tab name + card affordances.
+          Replies tab uses the section subtitle for its Gmail nudge.
+          Open Gmail moved to the top-right header (v8.10.5). */}
 
       {tab === "all" && (
         <div className="mb-3 flex items-center gap-2 text-xs text-gray-600">
@@ -494,48 +488,6 @@ export default function StudentOutreachPage() {
 //
 // v8.2: one short line + (optional) link button. Subtle gray chrome.
 // No emoji, no onboarding paragraphs.
-
-function BannerBar({ children }: { children: ReactNode }) {
-  return (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-100 bg-gray-50 px-4 py-2.5">
-      {children}
-    </div>
-  );
-}
-
-function BannerLink({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="shrink-0 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
-    >
-      {children}
-    </a>
-  );
-}
-
-function MeetingsTabBanner() {
-  return (
-    <BannerBar>
-      <span className="text-sm font-medium text-gray-800">
-        Meetings to book or run.
-      </span>
-      <BannerLink href="https://calendar.google.com/calendar/u/0/r">Open Calendar ↗</BannerLink>
-    </BannerBar>
-  );
-}
-
-function CallsTabBanner() {
-  return (
-    <BannerBar>
-      <span className="text-sm font-medium text-gray-800">
-        Calls due. Tap the number to dial, then log what happened.
-      </span>
-    </BannerBar>
-  );
-}
 
 // ── Empty states ────────────────────────────────────────────────────────
 

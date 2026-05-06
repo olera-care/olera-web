@@ -66,6 +66,7 @@ const navSections: NavSection[] = [
       { label: "MedJobs", href: "/admin/medjobs" },
       { label: "Staffing Outreach", href: "/admin/staffing-outreach" },
       { label: "Student Outreach", href: "/admin/student-outreach" },
+      { label: "Campuses", href: "/admin/student-outreach/campuses" },
       { label: "Team", href: "/admin/team" },
     ],
   },

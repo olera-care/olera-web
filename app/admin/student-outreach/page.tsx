@@ -27,7 +27,6 @@ import { BulkResearchModal } from "./BulkResearchModal";
 import { LogCallOutcomeModal } from "./LogCallOutcomeModal";
 import { ReplyClassifierModal } from "./ReplyClassifierModal";
 import { MarkPartnerModal } from "./MarkPartnerModal";
-import { PRESET_UNIVERSITIES } from "@/lib/student-outreach/universities";
 import {
   STAKEHOLDER_TYPE_LABELS,
   STATUS_LABELS,
@@ -337,7 +336,6 @@ export default function StudentOutreachPage() {
         <ResearchTabContent
           rows={rows}
           researchCampuses={researchCampuses}
-          existingCampuses={campuses}
           renderRow={renderRow}
           onContinueCampus={(c) => setBulkResearchCampus(c)}
           onMarkResearchComplete={async (slug, name) => {
@@ -353,29 +351,6 @@ export default function StudentOutreachPage() {
             } catch (e) {
               setError(e instanceof Error ? e.message : "Action failed");
             }
-          }}
-          onAddCampus={async (input) => {
-            const res = await fetch(`/api/admin/student-outreach/campuses`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(input),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Failed to add campus");
-            await refetch();
-            // v8.5: a brand-new campus has 0 stakeholders, so it won't
-            // appear as a card in the Research tab on its own. Auto-open
-            // the bulk modal so the admin can immediately add stakeholders
-            // — that's what "Add campus" implies as the next step.
-            setBulkResearchCampus({
-              id: data.campus.id,
-              slug: data.campus.slug,
-              name: data.campus.name,
-              state: data.campus.state,
-              city: data.campus.city,
-              research_stakeholder_count: 0,
-              last_added_at: null,
-            });
           }}
           onAddStakeholder={() => setShowAdd(true)}
           tabCountsAll={tabCounts?.all ?? 0}
@@ -1288,24 +1263,36 @@ function RepliesSection({
 //      prospect/researched status.
 // Inline + Add campus form sits between the two when needed.
 
+// ── Research tab content (v8.10.18) ─────────────────────────────────────
+//
+// Two sections, top to bottom:
+//   1. Campus cards — one per campus where research_complete=false. Each
+//      is an entry point into the BulkResearchModal for that campus.
+//   2. Stakeholder rows — same row cards as today, one per row in
+//      prospect/researched status.
+//
+// v8.10.18: dropped the inline "+ Add campus" affordance entirely.
+// Campuses enter Student Outreach only via the Staffing Outreach
+// workflow (a provider becomes an Active Partner → their linked
+// university auto-flows in here). This keeps the workflow clean and
+// prevents accidental duplicate campus creation. The dedicated
+// /admin/student-outreach/campuses page also no longer offers manual
+// campus creation.
+
 function ResearchTabContent({
   rows,
   researchCampuses,
-  existingCampuses,
   renderRow,
   onContinueCampus,
   onMarkResearchComplete,
-  onAddCampus,
   onAddStakeholder,
   tabCountsAll,
 }: {
   rows: TabRow[];
   researchCampuses: ResearchCampusCard[];
-  existingCampuses: Campus[];
   renderRow: (row: TabRow) => ReactNode;
   onContinueCampus: (campus: ResearchCampusCard) => void;
   onMarkResearchComplete: (slug: string, name: string) => Promise<void>;
-  onAddCampus: (input: { name: string; slug: string; city: string; state: string }) => Promise<void>;
   onAddStakeholder: () => void;
   tabCountsAll: number;
 }) {
@@ -1318,14 +1305,11 @@ function ResearchTabContent({
         <div className="py-12 text-center">
           <p className="text-sm font-medium text-gray-700">No stakeholders yet.</p>
           <p className="mt-1 text-xs text-gray-500">
-            Add a campus below or click + Add Stakeholder to start.
+            Click + Add Stakeholder to start researching one. Campuses flow in automatically when a Staffing Outreach provider becomes an Active Partner.
           </p>
-          <div className="mt-4 flex justify-center">
-            <AddCampusInline onSubmit={onAddCampus} existingCampuses={existingCampuses} />
-          </div>
           <button
             onClick={onAddStakeholder}
-            className="mt-3 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="mt-4 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             + Add Stakeholder
           </button>
@@ -1336,11 +1320,8 @@ function ResearchTabContent({
       <div className="py-10 text-center">
         <p className="text-sm font-medium text-emerald-700">✓ All caught up.</p>
         <p className="mt-1 text-xs text-gray-500">
-          No campuses in research and no stakeholders waiting. Add a new campus below to start more research.
+          No campuses in research and no stakeholders waiting.
         </p>
-        <div className="mt-4 flex justify-center">
-          <AddCampusInline onSubmit={onAddCampus} existingCampuses={existingCampuses} />
-        </div>
       </div>
     );
   }
@@ -1363,28 +1344,25 @@ function ResearchTabContent({
               </li>
             ))}
           </ul>
-          <div className="mt-3">
-            <AddCampusInline onSubmit={onAddCampus} existingCampuses={existingCampuses} />
-          </div>
         </div>
       )}
 
       {showStakeholderSection && (
         <div>
-          <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Stakeholders in research ({rows.length})
-          </h3>
+          {/* v8.10.18: only render the "Stakeholders in research" h3 when
+              there's also a campus section above. With campus cards
+              hidden, the header is redundant — the tab name + filter
+              row already describe what's listed. */}
+          {showCampusSection && (
+            <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Stakeholders in research ({rows.length})
+            </h3>
+          )}
           <ul className="space-y-2">
             {rows.map((row) => (
               <li key={row.id}>{renderRow(row)}</li>
             ))}
           </ul>
-        </div>
-      )}
-
-      {!showCampusSection && (
-        <div className="px-1">
-          <AddCampusInline onSubmit={onAddCampus} existingCampuses={existingCampuses} />
         </div>
       )}
     </div>
@@ -1472,190 +1450,12 @@ function CampusOverflowMenu({ onMarkComplete }: { onMarkComplete: () => void }) 
   );
 }
 
-// Sentinel value used by the preset <select> for the "Other (type
-// manually)" escape hatch. Any non-empty string that's not a real slug
-// works; we picked one prefixed to avoid collision risk.
-const OTHER_PRESET_VALUE = "__other__";
-
-function AddCampusInline({
-  onSubmit,
-  existingCampuses,
-}: {
-  onSubmit: (input: { name: string; slug: string; city: string; state: string }) => Promise<void>;
-  existingCampuses: Campus[];
-}) {
-  const [open, setOpen] = useState(false);
-  const [presetSlug, setPresetSlug] = useState<string>("");
-  const [name, setName] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  // Filter the preset list down to universities NOT already in the
-  // database so admins can't accidentally re-add a campus.
-  const availablePresets = useMemo(() => {
-    const taken = new Set(existingCampuses.map((c) => c.slug));
-    return PRESET_UNIVERSITIES.filter((u) => !taken.has(u.slug));
-  }, [existingCampuses]);
-
-  const isOther = presetSlug === OTHER_PRESET_VALUE;
-
-  const reset = () => {
-    setPresetSlug("");
-    setName("");
-    setCity("");
-    setState("");
-    setErr(null);
-  };
-
-  // When admin picks a preset, auto-fill name/city/state. "Other" clears
-  // them so the admin can type freely.
-  const onPickPreset = (slug: string) => {
-    setPresetSlug(slug);
-    if (slug === OTHER_PRESET_VALUE || slug === "") {
-      setName("");
-      setCity("");
-      setState("");
-    } else {
-      const preset = PRESET_UNIVERSITIES.find((u) => u.slug === slug);
-      if (preset) {
-        setName(preset.name);
-        setCity(preset.city);
-        setState(preset.state);
-      }
-    }
-  };
-
-  const submit = async () => {
-    if (!name.trim()) {
-      setErr("Campus name required");
-      return;
-    }
-    setSubmitting(true);
-    setErr(null);
-    try {
-      // Use the preset's curated slug when one is picked; otherwise
-      // derive from the (manually-typed) name.
-      const slug = isOther || presetSlug === ""
-        ? slugify(name)
-        : presetSlug;
-      await onSubmit({
-        name: name.trim(),
-        slug,
-        city: city.trim(),
-        state: state.trim(),
-      });
-      reset();
-      setOpen(false);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed to add campus");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        className="rounded-md border border-dashed border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50"
-      >
-        + Add campus
-      </button>
-    );
-  }
-
-  // When a preset is picked we hide the city/state inputs (already
-  // filled). When admin chose "Other" we show the manual-entry inputs.
-  const showManualFields = isOther;
-
-  return (
-    <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Add a campus
-      </p>
-      {err && <p className="mb-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">{err}</p>}
-      <div className="flex flex-wrap items-end gap-2">
-        <label className="flex flex-1 flex-col" style={{ minWidth: 280 }}>
-          <span className="mb-1 text-[11px] font-medium text-gray-600">University</span>
-          <select
-            value={presetSlug}
-            onChange={(e) => onPickPreset(e.target.value)}
-            autoFocus
-            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-          >
-            <option value="">— pick a university —</option>
-            {availablePresets.map((u) => (
-              <option key={u.slug} value={u.slug}>
-                {u.name} ({u.state})
-              </option>
-            ))}
-            <option value={OTHER_PRESET_VALUE}>Other (type manually)</option>
-          </select>
-        </label>
-
-        {showManualFields && (
-          <>
-            <label className="flex flex-col">
-              <span className="mb-1 text-[11px] font-medium text-gray-600">Campus name</span>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Campus name"
-                className="rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-              />
-            </label>
-            <label className="flex flex-col">
-              <span className="mb-1 text-[11px] font-medium text-gray-600">City</span>
-              <input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="City"
-                className="rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-              />
-            </label>
-            <label className="flex flex-col">
-              <span className="mb-1 text-[11px] font-medium text-gray-600">State</span>
-              <input
-                value={state}
-                onChange={(e) => setState(e.target.value.toUpperCase())}
-                maxLength={2}
-                placeholder="TX"
-                className="w-16 rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-              />
-            </label>
-          </>
-        )}
-
-        <div className="ml-auto flex gap-2">
-          <button
-            onClick={submit}
-            disabled={submitting || !presetSlug}
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {submitting ? "Adding…" : "Add"}
-          </button>
-          <button
-            onClick={() => { setOpen(false); reset(); }}
-            disabled={submitting}
-            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-+|-+$)/g, "");
-}
+// v8.10.18: AddCampusInline + the OTHER_PRESET_VALUE sentinel removed.
+// Manual campus creation is no longer offered from the Student Outreach
+// page — campuses flow in via the Staffing Outreach workflow when a
+// provider becomes an Active Partner. The /admin/student-outreach/
+// campuses page also dropped its + Add campus button. Keeping the
+// orphaned component here just makes the file longer; deleted.
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 

@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     // Verify provider exists + is a provider type.
     const { data: provider, error: providerErr } = await db
       .from("business_profiles")
-      .select("id, display_name, business_name, city, state, metadata, type")
+      .select("id, display_name, city, state, metadata, type")
       .eq("id", providerId)
       .in("type", ["organization", "caregiver"])
       .maybeSingle();
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ id: existing.id, already_materialized: true });
     }
 
-    const orgName = provider.business_name || provider.display_name || "(unnamed provider)";
+    const orgName = provider.display_name || "(unnamed provider)";
 
     const { data: inserted, error: insertErr } = await db
       .from("student_outreach")

@@ -20,7 +20,7 @@ import {
  *
  * Query params:
  *   include_expired=true  → include pilot_expired rows in response
- *   search=<string>       → filter by display_name or business_name
+ *   search=<string>       → filter by display_name
  */
 export async function GET(request: NextRequest) {
   try {
@@ -44,14 +44,14 @@ export async function GET(request: NextRequest) {
     let query = db
       .from("business_profiles")
       .select(
-        "id, display_name, business_name, slug, email, phone, city, state, metadata, is_active, image_url, created_at, updated_at",
+        "id, display_name, slug, email, phone, city, state, metadata, is_active, image_url, created_at, updated_at",
       )
       .in("type", ["organization", "caregiver"])
       .order("created_at", { ascending: false });
 
     if (search) {
       const safe = search.replace(/[%_]/g, (m) => `\\${m}`);
-      query = query.or(`display_name.ilike.%${safe}%,business_name.ilike.%${safe}%`);
+      query = query.ilike("display_name", `%${safe}%`);
     }
 
     const { data, error } = await query;
@@ -66,7 +66,6 @@ export async function GET(request: NextRequest) {
     type ProviderRow = {
       id: string;
       display_name: string | null;
-      business_name: string | null;
       slug: string | null;
       email: string | null;
       phone: string | null;
@@ -84,7 +83,7 @@ export async function GET(request: NextRequest) {
         const status = getClientStatus(row.metadata);
         return {
           id: row.id,
-          display_name: row.business_name || row.display_name || "(unnamed provider)",
+          display_name: row.display_name || "(unnamed provider)",
           slug: row.slug,
           email: row.email,
           phone: row.phone,

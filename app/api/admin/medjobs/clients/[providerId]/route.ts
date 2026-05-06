@@ -28,7 +28,7 @@ export async function GET(
     const { data, error } = await db
       .from("business_profiles")
       .select(
-        "id, display_name, business_name, slug, email, phone, city, state, metadata, is_active, image_url, created_at, updated_at, type",
+        "id, display_name, slug, email, phone, city, state, metadata, is_active, image_url, created_at, updated_at, type",
       )
       .eq("id", providerId)
       .in("type", ["organization", "caregiver"])
@@ -90,7 +90,7 @@ export async function GET(
 
     return NextResponse.json({
       id: data.id,
-      display_name: data.business_name || data.display_name || "(unnamed provider)",
+      display_name: data.display_name || "(unnamed provider)",
       slug: data.slug,
       email: data.email,
       phone: data.phone,

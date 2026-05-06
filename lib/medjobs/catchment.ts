@@ -57,7 +57,7 @@ export async function getProvidersInCatchment(slug: string) {
   const states = Array.from(new Set(uni.catchment.map((c) => c.state)));
   const { data, error } = await db
     .from("business_profiles")
-    .select("id, display_name, business_name, city, state, metadata, is_active, created_at")
+    .select("id, display_name, city, state, metadata, is_active, created_at")
     .in("type", ["organization", "caregiver"])
     .in("state", states);
 
@@ -73,7 +73,6 @@ export async function getProvidersInCatchment(slug: string) {
   type Row = {
     id: string;
     display_name: string | null;
-    business_name: string | null;
     city: string | null;
     state: string | null;
     metadata: ProviderMetadata | null;

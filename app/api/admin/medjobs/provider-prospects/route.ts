@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
         rows.push({
           id: `${p.id}|${c.id}`,
           provider_id: p.id,
-          provider_name: p.business_name || p.display_name || "(unnamed provider)",
+          provider_name: p.display_name || "(unnamed provider)",
           city: p.city,
           state: p.state,
           campus_id: c.id,

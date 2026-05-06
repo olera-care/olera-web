@@ -49,7 +49,9 @@ export default function InlineAnswerCard({
   const firstName = rawFirstName.replace(/'s$/i, "") || rawFirstName;
 
   // Build contextual label: "Typical for home care in Texas"
-  const careType = providerCareTypes?.[0]?.toLowerCase() || "care";
+  // Strip parentheticals like "(Non-medical)" for cleaner display
+  const rawCareType = providerCareTypes?.[0]?.toLowerCase() || "care";
+  const careType = rawCareType.replace(/\s*\([^)]*\)/g, "").trim();
   const location = providerLocation?.split(",")[0]?.trim() || null;
   const contextLabel = location
     ? `Typical for ${careType} in ${location}`
@@ -83,19 +85,24 @@ export default function InlineAnswerCard({
     }
   }, [mounted, showSuccess]);
 
+  // Track expansion — deduplicated per session to avoid inflating "started" counts
   useEffect(() => {
-    fetch("/api/activity/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        actor_type: "anonymous",
-        event_type: "inline_answer_expanded",
-        related_provider_id: providerId,
-        session_id: getOrCreateSessionId(),
-        metadata: { question_text: question, variant: "inline_answer" },
-      }),
-      keepalive: true,
-    }).catch(() => {});
+    const storageKey = `inline_expanded_${providerId}_${question}`;
+    if (typeof window !== "undefined" && !sessionStorage.getItem(storageKey)) {
+      sessionStorage.setItem(storageKey, "1");
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          event_type: "inline_answer_expanded",
+          related_provider_id: providerId,
+          session_id: getOrCreateSessionId(),
+          metadata: { question_text: question, variant: "inline_answer" },
+        }),
+        keepalive: true,
+      }).catch(() => {});
+    }
   }, [providerId, question]);
 
   useEffect(() => {
@@ -155,7 +162,7 @@ export default function InlineAnswerCard({
       ref={cardRef}
       className={`
         bg-white rounded-2xl
-        ring-1 ring-inset ring-primary-200
+        ring-1 ring-inset ring-primary-200 hover:ring-primary-300
         shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)]
         overflow-hidden
         transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]

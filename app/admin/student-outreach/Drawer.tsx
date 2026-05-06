@@ -205,14 +205,15 @@ function DrawerBody({
       ) : (
         <NextStepPanel ctx={ctx} action={action} setError={setError} />
       )}
-      {/* v8.10.29: Job-board task no longer rendered as its own card.
-          It now appears in the unified Tasks section inside More details
-          alongside custom tasks + scheduled cadence items. */}
 
-      {/* v8.10.27: Close out (DangerZone) lives inside More details
-          for ALL stages now. Stop reasons are operational escape
-          hatches — should never compete visually with the primary
-          workflow card. Available one click away when needed. */}
+      {/* v8.10.32: Task Board is a top-level operational section. Same
+          card hierarchy as row cards on Meetings/Replies/Calls/Research
+          (headline + subtitle + footnote, ⋯ top-right, CTA bottom-right)
+          so it reads as part of the same operating system rather than a
+          different sub-product. Always visible — empty state nudges
+          adding a custom reminder. */}
+      <TaskBoardSection ctx={ctx} action={action} setError={setError} />
+
       <div>
         <button
           onClick={() => setShowMore((s) => !s)}
@@ -238,7 +239,6 @@ function DrawerBody({
             {supportsApprovals(ctx.outreach.stakeholder_type) && (
               <ApprovalsSection ctx={ctx} action={action} setError={setError} />
             )}
-            <TasksSection ctx={ctx} action={action} setError={setError} />
             <HistorySection ctx={ctx} />
           </div>
         )}
@@ -1575,16 +1575,74 @@ function ApprovalRow({
   );
 }
 
-// ── Tasks (lightweight per-stakeholder reminders) ─────────────────────
+// ── Task Board (v8.10.32) ──────────────────────────────────────────────
 //
-// v8.10.26: simple ad-hoc task list. Each row is a manual_followup
-// task tagged with payload.reason="custom". The admin adds free-text
-// reminders ("Send updated flyer", "Check listserv access", etc.)
-// and marks them done from this section. No due-date picker, no
-// priority — by design. Goal is "quickly attach a reminder" not a
-// project management system.
+// Top-level drawer section listing every pending task on the stakeholder
+// using the same card hierarchy as the row cards on Meetings/Replies/etc.
+// Each TaskCard renders headline + subtitle + footnote, with ⋯ overflow
+// top-right and the per-type primary CTA bottom-right — same shape the
+// admin already learned from row cards. Job-board, custom, and scheduled
+// items all use the same chrome; scheduled passive items get a muted
+// variant (no CTA, lighter text) so the operational priorities lead.
 
-function TasksSection({
+/**
+ * v8.10.32: TaskCard — same card shape as row-card StakeholderCard
+ * (white bg, gray-200 border, rounded-md, headline + subtitle + footnote
+ * + pill on the left; ⋯ + CTA stacked on the right). `muted` switches to
+ * a lighter chrome for passive scheduled items.
+ */
+function TaskCard({
+  headline,
+  subtitle,
+  footnote,
+  pill,
+  overflow,
+  cta,
+  muted,
+}: {
+  headline: React.ReactNode;
+  subtitle?: React.ReactNode;
+  footnote?: React.ReactNode;
+  pill?: React.ReactNode;
+  overflow?: React.ReactNode;
+  cta?: React.ReactNode;
+  muted?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-lg border px-4 py-3 ${
+        muted
+          ? "border-gray-100 bg-gray-50/60"
+          : "border-gray-200 bg-white"
+      }`}
+    >
+      <div className="flex items-stretch justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className={`text-sm font-medium ${muted ? "text-gray-700" : "text-gray-900"}`}>
+            {headline}
+          </p>
+          {subtitle && (
+            <p className="mt-0.5 truncate text-xs text-gray-500">{subtitle}</p>
+          )}
+          {footnote && (
+            <p className="mt-0.5 text-[11px] text-gray-400">{footnote}</p>
+          )}
+          {pill && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">{pill}</div>
+          )}
+        </div>
+        {(overflow || cta) && (
+          <div className="flex shrink-0 flex-col items-end justify-between gap-2">
+            {overflow ?? <span />}
+            {cta ?? <span />}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TaskBoardSection({
   ctx,
   action,
   setError,
@@ -1594,16 +1652,7 @@ function TasksSection({
   setError: (e: string | null) => void;
 }) {
   const [showAdd, setShowAdd] = useState(false);
-  // editingTask: when set, opens the AddStakeholderTaskModal pre-populated
-  // with the task's text. On save, cancels the old task and queues a new
-  // one — atomic from the admin's perspective. No new server action
-  // needed; reuses cancel_task + queue_manual_task.
   const [editingTask, setEditingTask] = useState<{ id: string; text: string } | null>(null);
-  // v8.10.29: Tasks is now the unified view of every pending task on
-  // this stakeholder. We split into "actionable" (custom + job-board
-  // posts) and "scheduled" (auto-cadence emails + calls + seasonal).
-  // The previous separate JobBoardTaskSection card is gone — its task
-  // shows up here under the actionable group.
   const actionable = useMemo(
     () =>
       ctx.pending_tasks.filter((t) => {
@@ -1632,50 +1681,41 @@ function TasksSection({
         .trim() || primary.name || null
     : null;
 
+  const overdueTone = (
+    <span className="rounded bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-900">
+      Overdue
+    </span>
+  );
+
   const renderActionable = (t: Task) => {
     const reason = (t.payload as Record<string, unknown> | null)?.reason;
+    const overdue = new Date(t.due_at).getTime() < Date.now();
+    const cta = (
+      <button
+        onClick={() =>
+          handleErr(
+            t.task_type === "partner_share_update"
+              ? action("mark_job_board_posted")
+              : action("complete_task", { task_id: t.id }),
+          )
+        }
+        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
+      >
+        {t.task_type === "partner_share_update" ? "Mark posted" : "Done"}
+      </button>
+    );
+
     if (t.task_type === "partner_share_update" && reason === "job_board_post") {
       return (
-        <div key={t.id} className="rounded-md border border-emerald-200 bg-emerald-50/40 px-4 py-3">
-          <div className="flex items-stretch justify-between gap-3">
-            <div className="min-w-0 flex-1 text-sm text-gray-800">
-              Post Olera&apos;s clinical-experience listing to {ctx.campus.name}&apos;s task board, then mark it posted.
-            </div>
-            <div className="flex shrink-0 flex-col items-end justify-between gap-2">
-              <TaskOverflow
-                items={[
-                  {
-                    label: "Delete task",
-                    onClick: () => handleErr(action("cancel_task", { task_id: t.id })),
-                    tone: "danger",
-                  },
-                ]}
-              />
-              <button
-                onClick={() => handleErr(action("mark_job_board_posted"))}
-                className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
-              >
-                Mark posted
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    // Custom (manual_followup / reason=custom)
-    const text = String(
-      (t.payload as Record<string, unknown> | null)?.notes ??
-        (t.payload as Record<string, unknown> | null)?.description ??
-        "(no description)",
-    );
-    return (
-      <div key={t.id} className="rounded-md border border-gray-200 bg-white px-4 py-3">
-        <div className="flex items-stretch justify-between gap-3">
-          <div className="min-w-0 flex-1 text-sm text-gray-800">{text}</div>
-          <div className="flex shrink-0 flex-col items-end justify-between gap-2">
+        <TaskCard
+          key={t.id}
+          headline={`Post to ${ctx.campus.name} task board`}
+          subtitle="Olera's clinical-experience listing"
+          footnote={`Permission granted ${relativeTime(t.created_at)}`}
+          pill={overdue ? overdueTone : undefined}
+          overflow={
             <TaskOverflow
               items={[
-                { label: "Edit task", onClick: () => setEditingTask({ id: t.id, text }) },
                 {
                   label: "Delete task",
                   onClick: () => handleErr(action("cancel_task", { task_id: t.id })),
@@ -1683,44 +1723,62 @@ function TasksSection({
                 },
               ]}
             />
-            <button
-              onClick={() => handleErr(action("complete_task", { task_id: t.id }))}
-              className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      </div>
+          }
+          cta={cta}
+        />
+      );
+    }
+    const text = String(
+      (t.payload as Record<string, unknown> | null)?.notes ??
+        (t.payload as Record<string, unknown> | null)?.description ??
+        "(no description)",
+    );
+    return (
+      <TaskCard
+        key={t.id}
+        headline={text}
+        subtitle="Custom reminder"
+        footnote={`Added ${relativeTime(t.created_at)}`}
+        pill={overdue ? overdueTone : undefined}
+        overflow={
+          <TaskOverflow
+            items={[
+              { label: "Edit task", onClick: () => setEditingTask({ id: t.id, text }) },
+              {
+                label: "Delete task",
+                onClick: () => handleErr(action("cancel_task", { task_id: t.id })),
+                tone: "danger",
+              },
+            ]}
+          />
+        }
+        cta={cta}
+      />
     );
   };
 
   return (
     <section>
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Tasks
+        Task Board
       </h3>
       <div className="space-y-2">
         {actionable.length === 0 && scheduled.length === 0 ? (
-          <p className="rounded-md border border-gray-200 bg-white px-4 py-3 text-xs text-gray-400">
+          <p className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-xs text-gray-400">
             No tasks. Add one to remind yourself of a follow-up.
           </p>
         ) : (
           <>
             {actionable.map(renderActionable)}
-            {scheduled.length > 0 && (
-              <ul className="space-y-1 rounded-md border border-gray-100 bg-gray-50/60 px-3 py-2">
-                {scheduled.map((t) => (
-                  <li key={t.id} className="flex items-center justify-between gap-2 text-xs text-gray-600">
-                    <span>
-                      <span className="mr-1.5 text-gray-400">⏳</span>
-                      {scheduledTaskLabel(t)}
-                    </span>
-                    <span className="text-gray-400">{formatDueAt(t.due_at)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {scheduled.map((t) => (
+              <TaskCard
+                key={t.id}
+                muted
+                headline={scheduledTaskLabel(t)}
+                subtitle="Auto-scheduled — runs on its own."
+                footnote={`Sends ${formatDueAt(t.due_at)}`}
+              />
+            ))}
           </>
         )}
         <button

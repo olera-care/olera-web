@@ -118,23 +118,57 @@ export default function AgentOutreachModule({
   const [dismissed, setDismissed] = useState(false);
   const impressionFiredRef = useRef(false);
   const sessionIdRef = useRef<string>("");
+  const sectionRef = useRef<HTMLElement | null>(null);
 
-  // Fire impression once on mount. Guarded to survive React strict-mode
-  // double-mount in dev so we don't double-count.
+  // Fire impression once the section is at least 50% in the viewport, not on
+  // mount. The module sits below the Q&A area so a meaningful share of
+  // outreach-arm sessions never scroll to it; firing on mount inflates the
+  // denominator with ghost views and makes the conversion rate look worse
+  // than it is. IntersectionObserver gives us "actually saw it" semantics.
+  // Guarded so React strict-mode's double-mount can't double-count.
   useEffect(() => {
     if (impressionFiredRef.current) return;
-    impressionFiredRef.current = true;
-    sessionIdRef.current = getOrCreateSessionId();
-    void fireSeekerEvent("outreach_module_impression", {
-      session_id: sessionIdRef.current,
-      source_provider_id: sourceProviderId,
-      source_provider_name: sourceProviderName,
-      city,
-      state,
-      category,
-      target_provider_ids: topProviders.map((p) => p.id),
-      target_provider_count: topProviders.length,
-    });
+    const node = sectionRef.current;
+    if (!node) return;
+
+    const fireImpression = () => {
+      if (impressionFiredRef.current) return;
+      impressionFiredRef.current = true;
+      sessionIdRef.current = getOrCreateSessionId();
+      void fireSeekerEvent("outreach_module_impression", {
+        session_id: sessionIdRef.current,
+        source_provider_id: sourceProviderId,
+        source_provider_name: sourceProviderName,
+        city,
+        state,
+        category,
+        target_provider_ids: topProviders.map((p) => p.id),
+        target_provider_count: topProviders.length,
+      });
+    };
+
+    // SSR / unsupported-browser fallback: better to lose the gate than the
+    // event entirely. IntersectionObserver is available in every browser
+    // we support, so this branch is essentially defensive.
+    if (typeof IntersectionObserver === "undefined") {
+      fireImpression();
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+            fireImpression();
+            observer.disconnect();
+            return;
+          }
+        }
+      },
+      { threshold: 0.5 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
   }, [sourceProviderId, sourceProviderName, city, state, category, topProviders]);
 
   function handleCardClick(card: ProviderCardData) {
@@ -227,6 +261,7 @@ export default function AgentOutreachModule({
 
   return (
     <section
+      ref={sectionRef}
       id="agent-outreach"
       className="mt-8 pt-8 border-t border-slate-200"
       data-arm="outreach"

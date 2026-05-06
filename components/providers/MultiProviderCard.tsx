@@ -265,7 +265,7 @@ export default function MultiProviderCard({
         <div className="p-6">
           {/* Celebratory Header */}
           <div className="text-center mb-5">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 shadow-lg shadow-emerald-200 mb-3">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-500 shadow-lg shadow-primary-200 mb-3">
               <Check size={24} weight="bold" className="text-white" />
             </div>
             <h3 className="text-[19px] font-semibold text-gray-900">
@@ -307,7 +307,7 @@ export default function MultiProviderCard({
                     </div>
                   )}
                   {/* Checkmark badge overlay */}
-                  <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-white shadow-sm">
+                  <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center ring-2 ring-white shadow-sm">
                     <Check size={12} weight="bold" className="text-white" />
                   </div>
                 </div>
@@ -399,10 +399,10 @@ export default function MultiProviderCard({
           >
             {/* Current provider — already sent */}
             <div
-              className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-emerald-50/60 border-emerald-100"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-primary-50/60 border-primary-100"
             >
-              {/* Checkbox — checked */}
-              <div className="w-6 h-6 rounded-md bg-emerald-500 flex items-center justify-center shrink-0 shadow-sm">
+              {/* Checkbox — checked (circular, Apple/Airbnb style) */}
+              <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center shrink-0 shadow-sm">
                 <Check size={14} weight="bold" className="text-white" />
               </div>
 
@@ -435,8 +435,8 @@ export default function MultiProviderCard({
               </div>
 
               {/* Sent status */}
-              <span className="shrink-0 flex items-center gap-1.5 text-[13px] text-emerald-600 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="shrink-0 flex items-center gap-1.5 text-[13px] text-primary-600 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
                 Sent
               </span>
             </div>
@@ -456,18 +456,18 @@ export default function MultiProviderCard({
                     group w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl border
                     transition-all duration-200 ease-out
                     ${isSent
-                      ? "bg-emerald-50/60 border-emerald-100 cursor-default"
+                      ? "bg-primary-50/60 border-primary-100 cursor-default"
                       : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm cursor-pointer active:scale-[0.995]"
                     }
                     ${isSending ? "opacity-80 scale-[0.99]" : ""}
                   `}
                 >
-                  {/* Checkbox */}
+                  {/* Checkbox (circular, Apple/Airbnb style) */}
                   <div
                     className={`
-                      w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-all duration-200
+                      w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all duration-200
                       ${isSent
-                        ? "bg-emerald-500 shadow-sm"
+                        ? "bg-primary-500 shadow-sm"
                         : "border-2 border-gray-300"
                       }
                     `}
@@ -509,8 +509,8 @@ export default function MultiProviderCard({
 
                   {/* Sent status badge */}
                   {isSent && (
-                    <span className="shrink-0 flex items-center gap-1.5 text-[13px] text-emerald-600 font-medium">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span className="shrink-0 flex items-center gap-1.5 text-[13px] text-primary-600 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
                       Sent
                     </span>
                   )}

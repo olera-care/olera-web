@@ -66,7 +66,7 @@ export function AddStakeholderTaskModal({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">{isEditing ? "Edit task" : "Add task"}</h3>
+          <h3 className="text-base font-semibold text-gray-900">{isEditing ? "Edit step" : "Add step"}</h3>
           <p className="mt-0.5 text-xs text-gray-500">
             {contactName ? `${contactName} · ${organizationName}` : organizationName}
           </p>
@@ -99,7 +99,7 @@ export function AddStakeholderTaskModal({
             disabled={submitting || !text.trim()}
             className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            {submitting ? "Saving…" : isEditing ? "Save" : "Add task"}
+            {submitting ? "Saving…" : isEditing ? "Save" : "Add step"}
           </button>
         </footer>
       </div>

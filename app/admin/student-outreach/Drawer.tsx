@@ -206,12 +206,11 @@ function DrawerBody({
         <NextStepPanel ctx={ctx} action={action} setError={setError} />
       )}
 
-      {/* v8.10.32: Task Board is a top-level operational section. Same
-          card hierarchy as row cards on Meetings/Replies/Calls/Research
-          (headline + subtitle + footnote, ⋯ top-right, CTA bottom-right)
-          so it reads as part of the same operating system rather than a
-          different sub-product. Always visible — empty state nudges
-          adding a custom reminder. */}
+      {/* v8.10.36: Step Board is the operational surface — workflow steps,
+          follow-ups, relationship-progression items. Same card hierarchy
+          as row cards on Meetings/Replies/Calls/Prospects so it reads as
+          part of the same system. For partners (where Next Step is
+          suppressed) Step Board becomes the leading section in the drawer. */}
       <TaskBoardSection ctx={ctx} action={action} setError={setError} />
 
       <div>
@@ -224,9 +223,15 @@ function DrawerBody({
         </button>
         {showMore && (
           <div className="mt-4 space-y-6">
-            <DangerZone ctx={ctx} action={action} setError={setError} />
-            {/* Research stages render ResearchSection at the top via
-                ResearchModePanel — don't duplicate it inside More details. */}
+            {/* v8.10.36: More Details order matches the operational
+                priority (data → history → escape hatch):
+                  1. Research details   — what we know about them
+                  2. Contacts           — who to talk to
+                  3. Approvals          — what they've granted
+                  4. History            — what's happened
+                  5. Close out          — last-resort escape hatch
+                Research stages render ResearchSection at the top via
+                ResearchModePanel; don't duplicate it inside More Details. */}
             {!isResearch && (
               <ResearchSection ctx={ctx} action={action} setError={setError} />
             )}
@@ -240,6 +245,7 @@ function DrawerBody({
               <ApprovalsSection ctx={ctx} action={action} setError={setError} />
             )}
             <HistorySection ctx={ctx} />
+            <DangerZone ctx={ctx} action={action} setError={setError} />
           </div>
         )}
       </div>
@@ -411,6 +417,12 @@ function NextStepPanel({
   const [showPartner, setShowPartner] = useState(false);
   const [showLogReply, setShowLogReply] = useState(false);
   const [showLogMeeting, setShowLogMeeting] = useState(false);
+
+  // v8.10.36: drop the entire Next Step section for active partners.
+  // Step Board (rendered immediately below this panel in DrawerBody)
+  // becomes the leading operational surface — no abstract status copy
+  // ("Next seasonal email auto-sends X") competing with it.
+  if (status === "active_partner") return null;
 
   const partnerCtaVisible = PARTNER_CTA_STAGES.includes(status);
 
@@ -750,17 +762,9 @@ function StageGuidance({
     );
   }
 
-  if (status === "active_partner") {
-    const seasonal = ctx.pending_tasks.find((t) => t.task_type === "outreach_email_send");
-    return (
-      <Guidance>
-        <strong>Partner.</strong>{" "}
-        {seasonal
-          ? `Next seasonal email auto-sends ${new Date(seasonal.due_at).toLocaleDateString()}.`
-          : "Seasonal emails are queued automatically — no action needed."}
-      </Guidance>
-    );
-  }
+  // v8.10.36: active_partner has no Next Step banner — NextStepPanel
+  // returns null for partners and the Step Board immediately below
+  // becomes the leading operational surface.
 
   if (status === "no_response_closed" || status === "wrong_contact") {
     return (
@@ -1575,15 +1579,16 @@ function ApprovalRow({
   );
 }
 
-// ── Task Board (v8.10.32) ──────────────────────────────────────────────
+// ── Step Board (v8.10.36) ──────────────────────────────────────────────
 //
-// Top-level drawer section listing every pending task on the stakeholder
-// using the same card hierarchy as the row cards on Meetings/Replies/etc.
-// Each TaskCard renders headline + subtitle + footnote, with ⋯ overflow
-// top-right and the per-type primary CTA bottom-right — same shape the
-// admin already learned from row cards. Job-board, custom, and scheduled
-// items all use the same chrome; scheduled passive items get a muted
-// variant (no CTA, lighter text) so the operational priorities lead.
+// Top-level drawer section listing every pending workflow step on the
+// stakeholder using the same card hierarchy as row cards. Steps are the
+// operational unit here: external task-board posts, custom follow-ups,
+// scheduled cadence emails / calls / seasonals. Each TaskCard renders
+// headline + subtitle + footnote, with ⋯ overflow top-right and the
+// per-type primary CTA bottom-right. Scheduled passive items use a
+// muted variant (no CTA, lighter text) so admin's operational priorities
+// lead.
 
 /**
  * v8.10.32: TaskCard — same card shape as row-card StakeholderCard
@@ -1717,7 +1722,7 @@ function TaskBoardSection({
             <TaskOverflow
               items={[
                 {
-                  label: "Delete task",
+                  label: "Delete step",
                   onClick: () => handleErr(action("cancel_task", { task_id: t.id })),
                   tone: "danger",
                 },
@@ -1737,15 +1742,15 @@ function TaskBoardSection({
       <TaskCard
         key={t.id}
         headline={text}
-        subtitle="Custom reminder"
+        subtitle="Custom step"
         footnote={`Added ${relativeTime(t.created_at)}`}
         pill={overdue ? overdueTone : undefined}
         overflow={
           <TaskOverflow
             items={[
-              { label: "Edit task", onClick: () => setEditingTask({ id: t.id, text }) },
+              { label: "Edit step", onClick: () => setEditingTask({ id: t.id, text }) },
               {
-                label: "Delete task",
+                label: "Delete step",
                 onClick: () => handleErr(action("cancel_task", { task_id: t.id })),
                 tone: "danger",
               },
@@ -1760,12 +1765,12 @@ function TaskBoardSection({
   return (
     <section>
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Task Board
+        Step Board
       </h3>
       <div className="space-y-2">
         {actionable.length === 0 && scheduled.length === 0 ? (
           <p className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-xs text-gray-400">
-            No tasks. Add one to remind yourself of a follow-up.
+            No steps yet. Add one to remind yourself of a follow-up.
           </p>
         ) : (
           <>
@@ -1785,7 +1790,7 @@ function TaskBoardSection({
           onClick={() => setShowAdd(true)}
           className="w-full rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
         >
-          + Add task
+          + Add step
         </button>
       </div>
 

@@ -81,7 +81,7 @@ const organizationJsonLd = {
   url: "https://olera.care",
   description:
     "Olera helps families find trusted senior care options. Compare assisted living, home care, memory care, and more across 39,000+ providers nationwide.",
-  logo: "https://olera.care/logo.png",
+  logo: "https://olera.care/images/olera-logo.png",
   sameAs: [],
   contactPoint: {
     "@type": "ContactPoint",

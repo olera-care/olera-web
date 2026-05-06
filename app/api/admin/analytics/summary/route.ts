@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getBotRejectsToday } from "@/lib/analytics/bot-filter";
+import {
+  REFERRER_CLASSES,
+  type ReferrerClass,
+} from "@/lib/analytics/referrer";
 
 const PROVIDER_EVENT_TYPES = [
   "page_view",
@@ -105,6 +109,13 @@ type ProviderQaFunnelByVariant = {
 // event fires immediately before the save-results POST, so it's the cleaner
 // signal for the saved stage anyway.
 type BenefitsFunnel = {
+  // Distinct sessions that saw the module render on a provider page. Counted
+  // for all four arms (benefits_entry_viewed for the 3 benefits arms,
+  // outreach_module_impression for the outreach arm) so apples-to-apples
+  // top-of-funnel comparison is possible. Without this, outreach's "started"
+  // counted impressions while the benefits arms' counted card-clicks —
+  // an instrumentation mismatch that made outreach look 100x bigger.
+  impressions: number;
   started: number;
   care_need_completed: number;
   age_completed: number;
@@ -122,9 +133,38 @@ type BenefitsFunnelByVariant = {
   availability: BenefitsVariantRow;
   loss: BenefitsVariantRow;
   empathic: BenefitsVariantRow;
+  outreach: BenefitsVariantRow;        // 4th arm: AI outreach module (H1 demand test)
+  qa_email_capture: BenefitsVariantRow; // 5th arm: Q&A enrichment ON, SBF off (since 2026-05-05)
   control: BenefitsVariantRow;     // legacy V2
   money_loss: BenefitsVariantRow;  // legacy V2
   unassigned: BenefitsVariantRow;
+};
+// Page-view referrer breakdown — counts page_view events by traffic class
+// (ai_chat / search / social / olera_internal / direct / other). Lets us
+// watch the AI-chat slice grow as ChatGPT/Claude/Gemini/Perplexity start
+// citing Olera. Source field: provider_activity.metadata.referrer_class,
+// populated server-side in /api/activity/track for anonymous events.
+type ReferrerBreakdown = Record<ReferrerClass, number>;
+
+// Submissions by entry source — accounts.signup_source bucketed for the
+// "did editorial-mounted SBF produce signups?" question. The existing
+// benefits funnel above is provider-page-only (gated on provider_activity
+// keyed by providerSlug); editorial mounts emit no provider_activity, so
+// they're invisible to that funnel. This breakdown reads accounts directly
+// so editorial submissions surface in the admin UI.
+//
+// Both provider and editorial SBF mounts now tag entrySource: provider
+// page sets `/provider/{slug}`, editorial sets `/caregiver-support/{slug}`.
+// Accounts created from non-SBF paths (auth callback, provider claims,
+// listing creation, etc.) leave signup_source NULL and are excluded here —
+// the card answers "where did SBF submissions come from?", not "where did
+// signups come from?"
+type EntrySourceBreakdown = {
+  total: number;                  // editorial + provider + other
+  editorial_total: number;        // signup_source LIKE '/caregiver-support/%'
+  provider_total: number;         // signup_source LIKE '/provider/%'
+  other_total: number;            // signup_source set but neither — future entry points
+  top_editorial_articles: Array<{ slug: string; count: number }>; // top 5 by count
 };
 type WindowResult = {
   counts: WindowedCounts;
@@ -135,6 +175,8 @@ type WindowResult = {
   qa_email_issues: QaEmailIssue[];
   benefits_funnel: BenefitsFunnel;
   benefits_funnel_by_variant: BenefitsFunnelByVariant;
+  referrer_breakdown: ReferrerBreakdown;
+  entry_source_breakdown: EntrySourceBreakdown;
 };
 
 const EMPTY_COUNTS = (): WindowedCounts => ({
@@ -189,6 +231,7 @@ const EMPTY_FUNNEL_BY_VARIANT = (): ProviderQaFunnelByVariant => ({
   unassigned: EMPTY_VARIANT_ROW(),
 });
 const EMPTY_BENEFITS_FUNNEL = (): BenefitsFunnel => ({
+  impressions: 0,
   started: 0,
   care_need_completed: 0,
   age_completed: 0,
@@ -199,9 +242,26 @@ const EMPTY_BENEFITS_FUNNEL_BY_VARIANT = (): BenefitsFunnelByVariant => ({
   availability: EMPTY_BENEFITS_FUNNEL(),
   loss: EMPTY_BENEFITS_FUNNEL(),
   empathic: EMPTY_BENEFITS_FUNNEL(),
+  outreach: EMPTY_BENEFITS_FUNNEL(),         // 4th arm
+  qa_email_capture: EMPTY_BENEFITS_FUNNEL(), // 5th arm
   control: EMPTY_BENEFITS_FUNNEL(),     // legacy V2
   money_loss: EMPTY_BENEFITS_FUNNEL(),  // legacy V2
   unassigned: EMPTY_BENEFITS_FUNNEL(),
+});
+const EMPTY_REFERRER_BREAKDOWN = (): ReferrerBreakdown => ({
+  ai_chat: 0,
+  search: 0,
+  social: 0,
+  olera_internal: 0,
+  direct: 0,
+  other: 0,
+});
+const EMPTY_ENTRY_SOURCE_BREAKDOWN = (): EntrySourceBreakdown => ({
+  total: 0,
+  editorial_total: 0,
+  provider_total: 0,
+  other_total: 0,
+  top_editorial_articles: [],
 });
 
 /**
@@ -288,12 +348,48 @@ async function fetchWindow(
   let benefitsQ = db
     .from("provider_activity")
     .select("event_type, metadata")
-    .in("event_type", ["benefits_started", "benefits_step_completed"])
+    .in("event_type", ["benefits_entry_viewed", "benefits_started", "benefits_step_completed"])
     .limit(50000);
   if (from) benefitsQ = benefitsQ.gte("created_at", from);
   if (to) benefitsQ = benefitsQ.lt("created_at", to);
 
-  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes, benefitsRes] = await Promise.all([
+  // Agent outreach 4th-arm + qa_email_capture 5th-arm funnel. Different
+  // table (seeker_activity), different shape from the SBF arms.
+  //   outreach          — impression → card click → submit
+  //   qa_email_capture  — impression → (question_asked from POST /api/questions)
+  //                       → question_email_enriched
+  // Both arm sets bucketed by event_type below; metadata.variant is set on
+  // qa_email_capture events but not strictly needed for bucketing.
+  let outreachQ = db
+    .from("seeker_activity")
+    .select("event_type, metadata")
+    .in("event_type", [
+      "outreach_module_impression",
+      "outreach_card_clicked",
+      "outreach_request_submitted",
+      "qa_email_capture_impression",
+      "question_email_enriched",
+    ])
+    .limit(50000);
+  if (from) outreachQ = outreachQ.gte("created_at", from);
+  if (to) outreachQ = outreachQ.lt("created_at", to);
+
+  // SBF-tagged accounts created in the window. signup_source is set ONLY
+  // by the SBF intake (provider mounts → '/provider/{slug}', editorial →
+  // '/caregiver-support/{slug}'). NULL means non-SBF account creation
+  // (auth callback, provider claim, listing creation, etc.) — explicitly
+  // filtered out so the bucket counts mean "SBF submissions" rather than
+  // "all new accounts". Pre-this-deploy provider SBF rows are NULL and
+  // therefore invisible until the new tagging takes effect.
+  let accountsQ = db
+    .from("accounts")
+    .select("signup_source")
+    .not("signup_source", "is", null)
+    .limit(50000);
+  if (from) accountsQ = accountsQ.gte("created_at", from);
+  if (to) accountsQ = accountsQ.lt("created_at", to);
+
+  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes, benefitsRes, outreachRes, accountsRes] = await Promise.all([
     providerQ,
     seekerQ,
     distinctQ,
@@ -301,6 +397,8 @@ async function fetchWindow(
     funnelQ,
     issuesEventsQ,
     benefitsQ,
+    outreachQ,
+    accountsQ,
   ]);
 
   if (providerRes.error) return { error: "provider window query failed" };
@@ -308,11 +406,14 @@ async function fetchWindow(
   if (distinctRes.error) return { error: "distinct window query failed" };
   if (openersRes.error) return { error: "Q&A email openers query failed" };
   if (funnelRes.error) return { error: "Q&A funnel query failed" };
+  if (outreachRes.error) return { error: "outreach funnel query failed" };
   if (issuesEventsRes.error) return { error: "Q&A issues query failed" };
   if (benefitsRes.error) return { error: "benefits funnel query failed" };
+  if (accountsRes.error) return { error: "accounts entry-source query failed" };
 
   const counts = EMPTY_COUNTS();
   const uniqueSessions = new Set<string>();
+  const referrerBreakdown = EMPTY_REFERRER_BREAKDOWN();
   for (const r of (providerRes.data ?? []) as Array<{
     event_type: string;
     metadata: Record<string, unknown> | null;
@@ -323,6 +424,16 @@ async function fetchWindow(
     if (r.event_type === "page_view") {
       const sid = r.metadata?.session_id;
       if (typeof sid === "string" && sid.length > 0) uniqueSessions.add(sid);
+      // Bucket by referrer_class. Older rows (pre-instrumentation) have
+      // no referrer_class field — those fall through and aren't counted,
+      // which is fine: the breakdown is a forward-looking metric.
+      const cls = r.metadata?.referrer_class;
+      if (
+        typeof cls === "string" &&
+        (REFERRER_CLASSES as readonly string[]).includes(cls)
+      ) {
+        referrerBreakdown[cls as ReferrerClass] += 1;
+      }
     }
   }
   for (const r of (seekerRes.data ?? []) as Array<{ event_type: string }>) {
@@ -488,10 +599,13 @@ async function fetchWindow(
     | "availability"
     | "loss"
     | "empathic"
+    | "outreach"          // 4th arm
+    | "qa_email_capture"  // 5th arm (since 2026-05-05)
     | "control"      // legacy V2
     | "money_loss"   // legacy V2
     | "unassigned";
   const emptyStages = (): Record<keyof BenefitsFunnel, Set<string>> => ({
+    impressions: new Set(),
     started: new Set(),
     care_need_completed: new Set(),
     age_completed: new Set(),
@@ -503,6 +617,8 @@ async function fetchWindow(
     availability: emptyStages(),
     loss: emptyStages(),
     empathic: emptyStages(),
+    outreach: emptyStages(),
+    qa_email_capture: emptyStages(),
     control: emptyStages(),
     money_loss: emptyStages(),
     unassigned: emptyStages(),
@@ -538,7 +654,9 @@ async function fetchWindow(
         ? (v as BenefitsBucket)
         : "unassigned";
     let stage: keyof BenefitsFunnel | undefined;
-    if (r.event_type === "benefits_started") {
+    if (r.event_type === "benefits_entry_viewed") {
+      stage = "impressions";
+    } else if (r.event_type === "benefits_started") {
       stage = "started";
     } else if (r.event_type === "benefits_step_completed") {
       const stepName = r.metadata?.step_name;
@@ -548,7 +666,51 @@ async function fetchWindow(
     benefitsStageSets[stage].add(sid);
     benefitsByVariantSets[bucket][stage].add(sid);
   }
+  // Bucket outreach + qa_email_capture events by distinct session_id into
+  // their respective arm. These events are unique per arm (event_type IS
+  // the variant signal). Stage mapping mirrors the SBF arms so the funnel
+  // reads apples-to-apples on a shared impressions denominator:
+  //
+  //   outreach arm:
+  //     outreach_module_impression   → impressions  (passive: module rendered)
+  //     outreach_card_clicked        → started      (first interactive action)
+  //     outreach_request_submitted   → saved        (form submitted)
+  //
+  //   qa_email_capture arm:
+  //     qa_email_capture_impression  → impressions  (Q&A section rendered for arm)
+  //     question_email_enriched      → saved        (email captured post-question)
+  //     no `started` middle stage; arm collapses impressions → saved
+  for (const r of (outreachRes.data ?? []) as Array<{
+    event_type: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    const sid = typeof r.metadata?.session_id === "string" ? r.metadata.session_id : null;
+    if (r.event_type === "outreach_module_impression") {
+      if (sid) benefitsByVariantSets.outreach.impressions.add(sid);
+    } else if (r.event_type === "outreach_card_clicked") {
+      if (sid) benefitsByVariantSets.outreach.started.add(sid);
+    } else if (r.event_type === "outreach_request_submitted") {
+      if (sid) benefitsByVariantSets.outreach.saved.add(sid);
+    } else if (r.event_type === "qa_email_capture_impression") {
+      if (sid) benefitsByVariantSets.qa_email_capture.impressions.add(sid);
+    } else if (r.event_type === "question_email_enriched") {
+      // The PATCH route doesn't carry session_id (no client involvement at
+      // that point). Use question_id as the dedup key — each question's
+      // enrichment counts once per question, which is the right unit for
+      // this arm. Fall back to a generated key if both are missing (rare).
+      const qid = typeof r.metadata?.question_id === "string" ? r.metadata.question_id : null;
+      const key = qid || sid || `${r.event_type}-${Math.random()}`;
+      benefitsByVariantSets.qa_email_capture.saved.add(key);
+    }
+  }
+
+  // Top-line funnel = the 3 benefits arms only (the embedded form). The
+  // outreach arm is an alternative entry-point on the same A/B test, but
+  // it lives in seeker_activity and uses different events; surface it in
+  // the per-variant table instead so the top-line stays a clean read of
+  // "how is the benefits form performing?"
   const benefitsFunnel: BenefitsFunnel = {
+    impressions: benefitsStageSets.impressions.size,
     started: benefitsStageSets.started.size,
     care_need_completed: benefitsStageSets.care_need_completed.size,
     age_completed: benefitsStageSets.age_completed.size,
@@ -556,6 +718,7 @@ async function fetchWindow(
     saved: benefitsStageSets.saved.size,
   };
   const sizesFor = (b: BenefitsBucket): BenefitsVariantRow => ({
+    impressions: benefitsByVariantSets[b].impressions.size,
     started: benefitsByVariantSets[b].started.size,
     care_need_completed: benefitsByVariantSets[b].care_need_completed.size,
     age_completed: benefitsByVariantSets[b].age_completed.size,
@@ -566,10 +729,37 @@ async function fetchWindow(
     availability: sizesFor("availability"),
     loss: sizesFor("loss"),
     empathic: sizesFor("empathic"),
+    outreach: sizesFor("outreach"),
+    qa_email_capture: sizesFor("qa_email_capture"),
     control: sizesFor("control"),
     money_loss: sizesFor("money_loss"),
     unassigned: sizesFor("unassigned"),
   };
+
+  // Entry-source bucketing — query already filters to signup_source IS NOT
+  // NULL, so every row here is an SBF submission with a tagged origin.
+  // Editorial: '/caregiver-support/{slug}'. Provider: '/provider/{slug}'.
+  // Future entry points fall into "other".
+  const entrySourceBreakdown = EMPTY_ENTRY_SOURCE_BREAKDOWN();
+  const editorialSlugCounts = new Map<string, number>();
+  const accountRows = (accountsRes.data ?? []) as Array<{ signup_source: string }>;
+  entrySourceBreakdown.total = accountRows.length;
+  for (const row of accountRows) {
+    const src = row.signup_source;
+    if (src.startsWith("/caregiver-support/")) {
+      entrySourceBreakdown.editorial_total++;
+      const slug = src.slice("/caregiver-support/".length);
+      editorialSlugCounts.set(slug, (editorialSlugCounts.get(slug) || 0) + 1);
+    } else if (src.startsWith("/provider/")) {
+      entrySourceBreakdown.provider_total++;
+    } else {
+      entrySourceBreakdown.other_total++;
+    }
+  }
+  entrySourceBreakdown.top_editorial_articles = Array.from(editorialSlugCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([slug, count]) => ({ slug, count }));
 
   return {
     counts,
@@ -580,6 +770,8 @@ async function fetchWindow(
     qa_email_issues: qaEmailIssues,
     benefits_funnel: benefitsFunnel,
     benefits_funnel_by_variant: benefitsFunnelByVariant,
+    referrer_breakdown: referrerBreakdown,
+    entry_source_breakdown: entrySourceBreakdown,
   };
 }
 
@@ -804,6 +996,8 @@ export async function GET(request: NextRequest) {
         qa_email_issues: windowedRes.qa_email_issues,
         benefits_funnel: windowedRes.benefits_funnel,
         benefits_funnel_by_variant: windowedRes.benefits_funnel_by_variant,
+        referrer_breakdown: windowedRes.referrer_breakdown,
+        entry_source_breakdown: windowedRes.entry_source_breakdown,
       },
       prior: prior
         ? {
@@ -815,6 +1009,8 @@ export async function GET(request: NextRequest) {
             qa_email_issues: prior.qa_email_issues,
             benefits_funnel: prior.benefits_funnel,
             benefits_funnel_by_variant: prior.benefits_funnel_by_variant,
+            referrer_breakdown: prior.referrer_breakdown,
+            entry_source_breakdown: prior.entry_source_breakdown,
           }
         : null,
       insight,

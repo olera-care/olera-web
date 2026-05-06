@@ -722,11 +722,28 @@ export function slackBenefitsStarted(opts: {
   stateName: string | null;
   providerName: string | null;
   providerSlug: string | null;
+  /** Path of the page that mounted the module. Editorial articles pass
+   *  `/caregiver-support/{slug}`; provider mounts leave undefined. When
+   *  set to an editorial path, the source line renders "On article: …"
+   *  with a clickable link instead of the "On provider page: …" default. */
+  entrySource?: string | null;
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-  const providerLine = opts.providerName && opts.providerSlug
-    ? `<${siteUrl}/provider/${opts.providerSlug}|${opts.providerName}>`
-    : opts.providerName || "unknown provider";
+  const isEditorialSource = !!opts.entrySource && opts.entrySource.startsWith("/caregiver-support/");
+
+  // Source line — editorial mounts get an "On article" link to the actual
+  // article slug; provider mounts (or unknown) keep the original "On
+  // provider page" framing. Falls through to "unknown" when neither is set.
+  let sourceLine: string;
+  if (isEditorialSource) {
+    const slug = opts.entrySource!.slice("/caregiver-support/".length);
+    sourceLine = `*On article:* <${siteUrl}${opts.entrySource}|${slug}>`;
+  } else {
+    const providerLine = opts.providerName && opts.providerSlug
+      ? `<${siteUrl}/provider/${opts.providerSlug}|${opts.providerName}>`
+      : opts.providerName || "unknown provider";
+    sourceLine = `*On provider page:* ${providerLine}`;
+  }
 
   return {
     text: `Benefits intake started: ${opts.careNeedLabel}${opts.stateCode ? ` (${opts.stateCode})` : ""}`,
@@ -746,7 +763,7 @@ export function slackBenefitsStarted(opts: {
       },
       {
         type: "section",
-        text: { type: "mrkdwn", text: `*On provider page:* ${providerLine}` },
+        text: { type: "mrkdwn", text: sourceLine },
       },
     ],
   };
@@ -934,6 +951,224 @@ export function slackBenefitsCompleted(opts: {
       },
     ],
   };
+}
+
+/**
+ * Agent outreach request submitted — primary fulfillment surface for the
+ * H1 Wizard-of-Oz outreach module. TJ acts directly from this alert in
+ * Claude Code; the alert must be self-contained.
+ *
+ * Includes:
+ *  - Asker email (the To: address)
+ *  - Full question text (NO truncation — TJ needs full context to draft)
+ *  - Source provider page link
+ *  - 3 target providers with name, city, link to Olera detail page
+ *  - City + category metadata
+ *
+ * PHI note: question text + email together is fine in this team-restricted
+ * channel. Never put either in `text` (notification preview) — that field
+ * surfaces in push notifications and server logs (see
+ * feedback_phi_in_subject_lines.md).
+ */
+/** Display label for the relationship enum. Optional — many submitters skip. */
+function formatRelationshipForSlack(rel: string | null): string | null {
+  switch (rel) {
+    case "my-parent": return "for their parent";
+    case "my-spouse": return "for their spouse";
+    case "myself": return "for themselves";
+    case "other-family": return "for a family member";
+    default: return null;
+  }
+}
+
+export function slackOutreachRequestSubmitted(opts: {
+  requestId: string;
+  askerEmail: string;
+  sourceProviderName: string;
+  sourceProviderSlug: string;
+  city: string;
+  state: string;
+  category: string;
+  relationship: string | null;
+  questionText: string | null;
+  targetProviders: Array<{ name: string; slug: string; address: string }>;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const targetCount = opts.targetProviders.length;
+
+  const targetList = opts.targetProviders
+    .map((p) => `• <${siteUrl}/provider/${p.slug}|${p.name}> — ${p.address}`)
+    .join("\n");
+
+  const relLabel = formatRelationshipForSlack(opts.relationship);
+
+  // First section's fields. Two columns; we pad with the relationship row only
+  // when the family told us — keeps the alert dense when they didn't.
+  const summaryFields = [
+    { type: "mrkdwn", text: `*Reply to:*\n${opts.askerEmail}` },
+    { type: "mrkdwn", text: `*Source page:*\n<${siteUrl}/provider/${opts.sourceProviderSlug}|${opts.sourceProviderName}>` },
+    { type: "mrkdwn", text: `*Where:*\n${opts.city}, ${opts.state}` },
+    { type: "mrkdwn", text: `*Category:*\n${opts.category}` },
+  ];
+  if (relLabel) {
+    summaryFields.push({ type: "mrkdwn", text: `*Care is:*\n${relLabel}` });
+  }
+
+  const blocks: SlackBlock[] = [
+    {
+      type: "header",
+      text: { type: "plain_text", text: "🤝 Outreach Request — needs fulfillment", emoji: true },
+    },
+    {
+      type: "section",
+      fields: summaryFields,
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Contact these ${targetCount}:*\n${targetList}`,
+      },
+    },
+  ];
+
+  if (opts.questionText) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Asker's question:*\n${opts.questionText}`,
+      },
+    });
+  }
+
+  blocks.push({
+    type: "context",
+    elements: [
+      { type: "mrkdwn", text: `Request \`${opts.requestId}\` · reply in thread when handled` },
+    ],
+  });
+
+  return {
+    // No PHI in `text` — this is the notification preview shown in pushes/sidebar.
+    text: `Outreach request: ${targetCount} ${opts.category} provider${targetCount === 1 ? "" : "s"} in ${opts.city}, ${opts.state}`,
+    blocks,
+  };
+}
+
+/**
+ * Email captured via the qa_email_capture variant — fires when a guest who
+ * just asked a question on a provider page submits their email through the
+ * post-submit enrichment prompt. This is the conversion event for the 5th
+ * arm of the SBF intake A/B (since 2026-05-05) and the canonical signal that
+ * the experiment is working.
+ *
+ * Pattern mirrors slackOutreachRequestSubmitted: arm-specific header, summary
+ * fields with reply-to + source page + location + category, the alternatives
+ * we sent (full provider links), the asker's question, and a question_id
+ * footer for traceability. Notification preview text is PHI-free per
+ * feedback_phi_in_subject_lines.md.
+ */
+export function slackQuestionEmailEnriched(opts: {
+  questionId: string;
+  askerEmail: string;
+  questionText: string;
+  sourceProviderName: string;
+  sourceProviderSlug: string;
+  city: string | null;
+  state: string | null;
+  /** Display-ready category label (e.g., "Memory Care", "Home Care").
+   *  May be null when the source provider's category isn't resolvable. */
+  category: string | null;
+  /** The 3 alternative providers we emailed to the family. Each has the
+   *  full URL ready (computed from siteUrl + slug at the call site) so
+   *  this helper doesn't need to know the routing convention. The `city`
+   *  field carries the alternative's address string (named to match the
+   *  shape of `questionConfirmationEmail.alternatives`). */
+  alternatives: Array<{ name: string; city: string | null; url: string }>;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const altCount = opts.alternatives.length;
+
+  const altList = opts.alternatives
+    .map(
+      (a) =>
+        `• <${a.url}|${a.name}>${a.city ? ` — ${a.city}` : ""}`,
+    )
+    .join("\n");
+
+  const summaryFields: Array<{ type: "mrkdwn"; text: string }> = [
+    { type: "mrkdwn", text: `*Reply to:*\n${opts.askerEmail}` },
+    {
+      type: "mrkdwn",
+      text: `*Source page:*\n<${siteUrl}/provider/${opts.sourceProviderSlug}|${opts.sourceProviderName}>`,
+    },
+  ];
+  if (opts.city || opts.state) {
+    const where = [opts.city, opts.state].filter(Boolean).join(", ");
+    summaryFields.push({ type: "mrkdwn", text: `*Where:*\n${where}` });
+  }
+  if (opts.category) {
+    summaryFields.push({ type: "mrkdwn", text: `*Category:*\n${opts.category}` });
+  }
+
+  const blocks: SlackBlock[] = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: "✉️ Q&A Email Captured — qa_email_capture",
+        emoji: true,
+      },
+    },
+    {
+      type: "section",
+      fields: summaryFields,
+    },
+  ];
+
+  if (altCount > 0) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*We sent ${altCount} alternative${altCount === 1 ? "" : "s"}:*\n${altList}`,
+      },
+    });
+  }
+
+  if (opts.questionText) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Their question:*\n${opts.questionText}`,
+      },
+    });
+  }
+
+  blocks.push({
+    type: "context",
+    elements: [
+      {
+        type: "mrkdwn",
+        text: `Question \`${opts.questionId}\` · email captured via qa_email_capture arm`,
+      },
+    ],
+  });
+
+  // PHI-free preview — no asker email, no question text, no source provider
+  // name. Just the surface count + category + city.
+  const noun = opts.category || "providers";
+  const wherePreview = opts.city
+    ? `${opts.city}${opts.state ? `, ${opts.state}` : ""}`
+    : "their area";
+  const previewText =
+    altCount > 0
+      ? `Q&A capture: ${altCount} ${noun} in ${wherePreview}`
+      : `Q&A capture: question + email in ${wherePreview}`;
+
+  return { text: previewText, blocks };
 }
 
 export function slackSaveNudgeConverted(opts: {

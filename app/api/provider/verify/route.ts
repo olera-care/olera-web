@@ -269,6 +269,30 @@ export async function POST(request: NextRequest) {
     // If verified, update the profile
     if (result.verified) {
       const currentMetadata = (profile.metadata as Record<string, unknown>) || {};
+
+      // Build the verification attempt record (same structure as failed attempts)
+      const attemptRecord: Record<string, unknown> = {
+        method,
+        value: method === "document" ? "[document]" : value,
+        submitted_at: new Date().toISOString(),
+        reason: result.reason,
+        claimer_name: claimerName,
+        verified: true,
+      };
+
+      // Add screenshot URLs if present (for LinkedIn verification)
+      if (result.screenshotUrls) {
+        attemptRecord.screenshot_urls = result.screenshotUrls;
+      }
+
+      // Add document URL if present
+      if (result.documentUrl) {
+        attemptRecord.document_url = result.documentUrl;
+      }
+
+      // Get existing attempts array or create new one
+      const existingAttempts = (currentMetadata.verification_attempts as Record<string, unknown>[]) || [];
+
       const updatedMetadata = {
         ...currentMetadata,
         verification_method: method,
@@ -277,6 +301,12 @@ export async function POST(request: NextRequest) {
         verification_reason: result.reason,
         // Store T&C acceptance timestamp for compliance audit trail
         ...(termsAcceptedAt && { terms_accepted_at: termsAcceptedAt }),
+        // Clear any previous rejection so they appear in Verified tab
+        badge_rejected: null,
+        badge_rejected_at: null,
+        // Also record successful attempt in the attempts array for audit trail
+        verification_attempt: attemptRecord,
+        verification_attempts: [...existingAttempts, attemptRecord],
       };
 
       const { error: updateError } = await admin
@@ -371,6 +401,7 @@ export async function POST(request: NextRequest) {
         submitted_at: new Date().toISOString(),
         reason: result.reason,
         claimer_name: claimerName,
+        verified: false,
       };
 
       // Add screenshot URLs if present (for LinkedIn verification)

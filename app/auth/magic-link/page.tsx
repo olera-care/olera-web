@@ -116,7 +116,7 @@ function MagicLinkHandler() {
 
         // Handle save nudge signup: create family profile + track conversion
         // If account creation failed, skip this block and let client-side fallback handle it
-        // (deferred action will persist in sessionStorage)
+        // (deferred action will persist in localStorage)
         try {
           const deferredAction = getDeferredAction();
           console.log("[magic-link-debug] Deferred action:", deferredAction, "accountReady:", accountReady, "isNewUser:", isNewUser);

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { isBotRequest, incrementBotReject } from "@/lib/analytics/bot-filter";
+import {
+  classifyReferrer,
+  sanitizeReferrer,
+} from "@/lib/analytics/referrer";
 
 const PROVIDER_EVENT_TYPES = [
   "email_click",
@@ -31,6 +35,11 @@ const FAMILY_EVENT_TYPES = [
   "save_nudge_signup_clicked",
   "save_nudge_dismissed",
   "save_nudge_converted",
+  "outreach_module_impression",
+  "outreach_card_clicked",
+  "outreach_request_submitted",
+  "qa_email_capture_impression",
+  "question_email_enriched",
 ] as const;
 
 // Anonymous events are care-seeker-driven but lack a known profile_id.
@@ -42,14 +51,6 @@ const ANONYMOUS_EVENT_TYPES = [
   "cta_click_public",
   "benefits_started",
 ] as const;
-
-const OLERA_HOSTS = new Set([
-  "olera.care",
-  "www.olera.care",
-  "olera2-web.vercel.app",
-  "staging-olera2-web.vercel.app",
-  "localhost",
-]);
 
 function getServiceDb() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -64,24 +65,6 @@ function classifyUserAgent(ua: string | null): "mobile" | "tablet" | "desktop" |
   if (/Mobile|iPhone|Android/i.test(ua)) return "mobile";
   if (/Mozilla|Chrome|Safari|Firefox|Edg/i.test(ua)) return "desktop";
   return "other";
-}
-
-/**
- * Reduce a raw referrer URL to either an Olera-internal path or just the
- * external domain. Never store query strings on external referrers — they
- * can leak search terms (PII risk per Phase 0 privacy review).
- */
-function sanitizeReferrer(rawReferrer: string | null | undefined): string | null {
-  if (!rawReferrer) return null;
-  try {
-    const u = new URL(rawReferrer);
-    if (OLERA_HOSTS.has(u.hostname)) {
-      return `internal:${u.pathname}`;
-    }
-    return u.hostname;
-  } catch {
-    return null;
-  }
 }
 
 /**
@@ -154,6 +137,11 @@ export async function POST(request: NextRequest) {
         session_id,
         ua_class: classifyUserAgent(userAgent),
         referrer: sanitizeReferrer(metadata?.referrer),
+        // referrer_class buckets traffic source into a small enum
+        // (ai_chat / search / social / olera_internal / direct / other)
+        // so we can measure the rise of LLM-originated visits without
+        // hand-rolling host matchers in admin queries.
+        referrer_class: classifyReferrer(metadata?.referrer),
       };
 
       const { error } = await db.from("provider_activity").insert({
@@ -176,12 +164,18 @@ export async function POST(request: NextRequest) {
 
     // --- Family events → seeker_activity ---
     if (actor_type === "family") {
-      // Save nudge events fire for GUESTS who don't have a profile yet
+      // Save nudge + outreach module events fire for GUESTS who don't have
+      // a profile yet (most provider-page visitors are unauthenticated).
       const profileOptionalEvents = [
         "save_nudge_shown",
         "save_nudge_signup_clicked",
         "save_nudge_dismissed",
         "save_nudge_converted",
+        "outreach_module_impression",
+        "outreach_card_clicked",
+        "outreach_request_submitted",
+        "qa_email_capture_impression",
+        "question_email_enriched",
       ];
       const requiresProfile = !profileOptionalEvents.includes(event_type);
 

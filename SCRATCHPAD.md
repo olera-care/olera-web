@@ -7,6 +7,339 @@
 
 ## Current Focus
 
+### 2026-05-05 (Tue, evening) — Admin dial for intake A/B traffic allocation (P1, shipped on `great-jackson` branch)
+
+Replaces the hardcoded equal split with a per-arm percentage dial in `/admin/analytics`. Operator can ramp a winning arm to 100, dark a losing arm to 0, or run a 50/50 head-to-head — without a deploy. Built directly on top of PR #743's qa_email_capture work; includes the merge resolution.
+
+**The motivation (why now):** Now that there are 5 arms in flight and the data is starting to point somewhere (qa_email_capture is the early candidate per the same-day session), TJ asked for a way to control allocation without touching code. "Sometimes I want two arms only, sometimes one, sometimes all five."
+
+**What shipped (2 commits on `great-jackson`):**
+
+1. **`6c951623`** — Add admin dial. New `experiment_weights` table (migration 070, RLS-on, service-role-only). Public read at `/api/variant-weights/intake` is CDN-cached (s-maxage=30) so weight changes propagate within ~30s. Admin GET/POST at `/api/admin/analytics/variant-weights`. Saving bumps a `version` int that's namespaced into the variant assignment hash (`djb2(sessionId + ":v" + version)`), so a save reshuffles returning sessions in one cut instead of grandfathering them. UI is a card at the top of Family Intake — 5 arm-cards in an auto-fit grid (handles future N>5 cleanly), live "Sum: X / 100" badge, Save button gated on dirty + sum=100, Reset to equal split, Discard changes, error feedback, version display.
+
+2. **`debca38e`** — Pre-test fix. Admin GET fetch chain returned null on `r.ok=false` then early-returned without setting `loaded=true` — a 401/403/500 left the form in a permanent disabled state with no error visible. Fixed: every failure path now lands at loaded+errorFeedback. Plus three stale-comment refreshes (4-arm/25-25-25-25 references from before the qa_email_capture merge).
+
+**Architectural decision worth remembering:** Built a shared `useIntakeVariant()` hook at `hooks/use-intake-variant.ts` so both `IntakeVariantSlots` (SBF/outreach surface) and `QASectionV2` (qa_email_capture surface) read from one source of truth. Without this consolidation, the dial would have controlled 4 of 5 surfaces only — `QASectionV2` was calling `assignIntakeVariant` directly with the equal-split mod-5, and would have stayed on equal-split even after the dial darked an arm. **Single client-side authority for variant assignment is now an invariant** — any future caller of "which arm is this session in?" must use this hook.
+
+**Variant set is now expansion-proof:** `INTAKE_VARIANTS as const` is the single source of truth; `IntakeVariant` derives from it via `(typeof ...)[number]`; the validation, assignment, default-weights, and admin UI all iterate the array. Adding an arm = one append + a `variantSurfaceLabel` + `variantSubLabel` case + an `INTAKE_VARIANT_DEFAULT_WEIGHTS` entry. TypeScript flags all three as missing if you skip them.
+
+**Migration 070 seeds at 20/20/20/20/20** — matches the live qa_email_capture-era equal split, so applying it is a net no-op for traffic. Only effect: the dial becomes editable.
+
+**Merge resolution (with PR #743):** Resolved 4 file conflicts cleanly. Renamed my migration 069 → 070 (theirs took 069). Updated `BenefitsArmGate` to hide for both `outreach` AND `qa_email_capture`. Updated `INTAKE_VARIANT_DEFAULT_WEIGHTS` to include the 5th arm at 20. Refactored `QASectionV2` from local `assignIntakeVariant` call to the shared hook.
+
+**TJ tested live:** Set `25/25/25/25/0` (qa_email_capture darked out, others bumped to 25 each) — sum stayed at 100, Save worked, version bumped. Confirmed the "zero an arm without removing the code path" use case.
+
+**RLS handled in the migration file** — `ALTER TABLE experiment_weights ENABLE ROW LEVEL SECURITY;` with zero policies. Anon/authenticated keys blocked entirely. Service role bypasses RLS, which is the only legitimate access path for this config table.
+
+**Resume next session here →** Open the PR to staging, run TJ through the test plan one more time on the Vercel preview, then merge → staging → main. Watch the dial in production for 7-14 days alongside the qa_email_capture experiment; if qa_email_capture wins, ramp it via the dial (100/0/0/0/0 or 50/50 against a control) instead of a code revert. First formal `/weekly` measurement window: Mon 5/11.
+
+---
+
+### 2026-05-05 (Tue) — qa_email_capture: 5th arm of SBF intake A/B (P1, shipped on PR #743)
+
+Day-long session that started as a `/product-led-growth` daily run, surfaced the structural conversion problem on provider pages, and ended shipping a new A/B arm to test the fix.
+
+**The diagnosis (the strategic arc):**
+
+Family intake on provider pages is converting at 0.21% (3,809 module impressions → 8 submits in the visible window). V2 (5-step) historical screenshot showed similar near-zero rates. V3 (2-step) and outreach (4th arm) all converged around the same. Across four mechanic shapes, none win — meaning the form structure isn't the binding constraint.
+
+The codebase audit revealed why: `QASectionV2` has a polished post-submit guest enrichment prompt with email capture, but it's gated behind `hasBenefitsSection`. On most pages SBF is on, so the gate evaluated true and Q&A's own email capture never ran. We disabled the surface that was actually working in favor of one that didn't.
+
+**What shipped (PR #743 → staging, awaiting promotion):**
+
+A 5th arm `qa_email_capture` in the existing 4-way djb2 split (mod 4 → mod 5). 20% of provider-page visitors:
+
+- See NO `BenefitsDiscoveryModule` and NO `AgentOutreachModule` (both gated off via extended `BenefitsArmGate`)
+- Get the Q&A enrichment prompt forced ON (`effectiveHasBenefitsSection = false` override inside QASectionV2)
+- See a redesigned compact prompt: "Top 3 [Category] in [City]." + 3 text-only mini cards (name + ★ rating + city) + email + "Email me these" CTA + "Free. No spam." + tiny Skip
+- Get a confirmation email with the 3 alternative providers inline; subject reads "Top 3 [Category] in [City]" so the inbox preview matches the in-page promise
+
+8 commits on `qa-email-capture-arm`:
+
+1. **`b525dfc9`** — Initial 5-arm wiring: variant.ts mod 5, BenefitsArmGate hides for both `outreach` and `qa_email_capture`, QASectionV2 variant detection + impression event + override hasBenefitsSection, PATCH /api/questions fires `question_email_enriched` + sends enhanced email with alternatives, migration 069 extends `seeker_activity_event_type_check`, admin analytics 5-arm split.
+2. **`765548e`** — Pre-test fixes: silent Supabase insert errors (try/catch doesn't catch return-error pattern; destructure `{ error }` explicitly), `excludeProviderId` mismatch (helper compares on `provider_id` not slug — was potentially recommending the same provider as a "similar alternative").
+3. **`5b4a64c2`** — Vercel build fix: missing `qa_email_capture` branches in `variantSurfaceLabel` switch + `VariantPreviewCard` component. Caught only after deps were installed for real (the earlier "tsc clean" claims were grep-filter false-positives — `./node_modules/.bin/tsc` didn't exist in the worktree).
+4. **`b6f47c2a`** — Compact mobile-first redesign of the enrichment prompt. Replaced gray-box gray-text dim version with no-box flush-with-section design, headline + 3 inline text-only cards + Linear-style black CTA. Mobile lesson learned from the outreach module's image-heavy version that doesn't convert.
+5. **`ed38fd4c`** — Pre-test fix: email subject mismatched the in-page promise. User taps "Send the list" but inbox preview said "Your question to [Provider]." Subject now reads "[N] similar providers in [City]" when alternatives sent.
+6. **`02a45ed0`** — 4 copy swaps for stronger conviction: headline `{N} more` → `Top {N}` (curation signal), new sub-line "Plus, we'll email when [Provider] replies." (surfaces dual promise), CTA `Send the list` → `Email me these` (first-person + deictic), email subject leads with "Top".
+7. **`87bccb2d`** — Include category in headline + email subject: "Top 3 Assisted Living in [City]" instead of generic "Top 3 in [City]." Synced both code paths (page-side + PATCH-side) to use the same `PROFILE_CAT_TO_SUPABASE_CAT` + `getCategoryDisplayName` resolution.
+8. **`79379b73`** — Slack alert on email enrichment. New `slackQuestionEmailEnriched` helper in `lib/slack.ts`. Mirrors `slackOutreachRequestSubmitted`'s shape: header "✉️ Q&A Email Captured — qa_email_capture", reply-to email, source page link, location, category, the 3 alternatives we sent (clickable links), the asker's question, question_id footer. PHI-free notification preview. Awaited per `feedback_serverless_fire_and_forget.md`.
+
+**Decision rule:** ≥6% email-capture rate in 30-90 days vs the existing arms' near-zero. If qa_email_capture beats meaningfully, next move is killing SBF on provider pages entirely (not part of this PR).
+
+**What's measured:**
+
+- `/admin/analytics` — 5-arm split table tracks impressions (`qa_email_capture_impression`) + saved (`question_email_enriched`) on shared denominator.
+- Slack alert per email captured — gives TJ real-time visibility into conversion events.
+- Admin VariantPreviewCard branch renders an explainer card for the new arm.
+
+**Migration 069 applied to Supabase by TJ mid-session.** Live now.
+
+**TJ tested it on the Aggie Assisted Living provider page (College Station). Variant detected correctly, prompt rendered with personalized copy, email capture worked end-to-end. Confirmed live and converting.**
+
+**Mid-session detours / lessons:**
+
+- **The V2 revival thesis was wrong.** TJ's intuition that V2 (5-step) was converting better than V3 turned out to be incorrect — historical V2 screenshot showed control: 4 submits / 917 imps = 0.44%, money_loss: 1 / 973 = 0.10%. V3 at 0.21% sits in the middle. Form structure isn't the lever. Removed from active recommendations mid-doc.
+- **The Outreach Module on mobile is the cautionary tale.** Image-heavy 280px-tall cards + relationship pills + verbose microcopy + sticky bottom CTA all compete for the same viewport, and the form lives below the fold. qa_email_capture's redesign explicitly reverse-engineered that anti-pattern: text-only ~50px cards, no pills, "Free. No spam." (4 words, not 18), no sticky competition.
+- **The `hasBenefitsSection` gate was the hidden insight.** Q&A's email enrichment had been silently disabled for ~6 months. The flag flip alone (set to false in qa_email_capture arm) is the single most important code change in the variant. Everything else amplifies it.
+- **Pre-test depth lesson.** My `./node_modules/.bin/tsc | grep -v ...` pipeline returned 0 from the grep filter even though tsc didn't exist in the worktree. False clean signal. Caught only when Vercel build failed. Rule going forward: verify deps installed (`ls node_modules/.bin/tsc`) before relying on typecheck output, or run `tsc; echo "exit=$?"` directly.
+- **Silent Supabase error pattern.** `try { await db.from(...).insert(...) } catch` does NOT catch insert errors — Supabase returns `{ data, error }`, doesn't throw. The catch is dead code. Always destructure `{ error }` and log explicitly. Affects the `seeker_activity` insert in PATCH `/api/questions` — fixed.
+- **`excludeProviderId` mismatch.** The `getTopProvidersByCityAndCategory` helper compares against `olera-providers.provider_id` (alphanumeric), not the page slug. Was passing slug → exclusion never matched → could have recommended the same provider being asked about as a "similar alternative." Fixed by capturing `source_provider_id` during the multi-strategy lookup.
+
+**Other artifacts shipped today:**
+
+- **`/ceo-brief` slash command** at `.claude/commands/ceo-brief.md` (PR #736, merged to staging+main). Captures the "explain to a busy CEO" pattern: bottom line first, only decision-changing context, end with concrete next steps. Operator voice, no filler. Use after dense working sessions or when asked to "explain in simple terms."
+- **`plans/family-acquisition-radical-ideas.md`** — strategic doc with the 10 mechanic ideas (Preview-before-email, Reverse Marketplace, Sibling Mode, AI Benefits Screen, Care Receipt, Earned-Access Concierge, Voice-First Triage, Hospital Discharge Trojan Horse, Insurance-First Reorder, Care-Readiness Points). Top 3 picks revised twice through the session (first by TJ's reframe — Sibling Mode and Reverse Marketplace don't directly address conversion; second after the V2 data confirmed form-shape isn't the lever). Honorable mentions section captures the cuts.
+- **Notion strategy page:** [Family Acquisition: 10 Radical Mechanics](https://www.notion.so/3575903a0ffe81f1852eebcfc8571b84). Created and revised inline in chat. Worth rewriting cleanly once we have first-week data on the variant per TJ's earlier ask.
+- **`/product-led-growth` daily run earlier in the session** caught up state hygiene on Active Experiments — 5 untracked shipments from the 5/1→5/4 cadence gap added to the board (Agent Outreach Module, H2 capture layer, SBF V3 editorial mount, save bug fix, post-answer hook). Daily report at [Daily — Tue, May 5, 2026](https://www.notion.so/3575903a0ffe81c2ac75feeb7931bd17). Flagged: `/weekly` was due Mon 5/4 and didn't run; recommend Mon 5/11 for first formal measurement window.
+
+**Resume next session here →** Promote PR #743 to staging when satisfied with the Vercel preview test. Promote staging → main when ready. Watch `/admin/analytics` 5-arm split for the next 7-14 days; ≥6% qa_email_capture saved-rate vs the SBF arms' near-zero is the greenlight. Mon 5/11 `/weekly` should be the first formal measurement window.
+
+### 2026-05-04 — Mount SBF V3 on /caregiver-support/ article template (P1, planning)
+
+Retargeting a stale Apr 21 task ("topic-seeded question funnel" was architecturally invalid — `/api/questions` requires `provider_id`, no general entry point exists). SBF V3 cut over to provider pages on Apr 18, three days before the original task was written; SBF is the actual unified inquiry pipeline today and is provider-agnostic. Same goal as the original (turn editorial traffic into pipeline), correct mechanism.
+
+**Decision:** ship single-variant on editorial (no 4-arm A/B replication — want clean editorial-vs-provider baseline). Replace the existing `/browse?type=` CTA at `app/caregiver-support/[slug]/page.tsx:395-410` with `BenefitsDiscoveryModule`. Instrument `signup_source = '/caregiver-support/{slug}'` so "conversion by entry page" is answerable 4-6 weeks out.
+
+**Notion (canonical):** [Mount SBF V3 (Benefits Discovery) on /caregiver-support/ article template](https://www.notion.so/Mount-SBF-V3-Benefits-Discovery-on-caregiver-support-article-template-3495903a0ffe81f085fdde9b8dc149ac). RETARGETED block appended preserves the original framing as historical context.
+
+**Plan:** [`plans/editorial-sbf-mount-plan.md`](plans/editorial-sbf-mount-plan.md). 11 tasks across 4 phases (plumbing → editorial wrapper → mount → verify).
+
+**What shipped as code (not yet deployed):**
+
+1. **Migration `065_accounts_signup_source.sql`** — adds `accounts.signup_source TEXT NULL` + partial index `WHERE signup_source IS NOT NULL`. Apply via Supabase dashboard before deploy or the editorial submit will 500 on the accounts insert.
+
+2. **`BenefitsDiscoveryModule` (modified)** — new optional `entrySource?: string` prop, threaded into `fireFunnelEvent` (event payload), `/api/benefits/track-start` body, and `/api/benefits/save-results` body. Provider pages leave it undefined; behavior unchanged. Required no null-state copy work after all — handled in the editorial wrapper instead (ResultsSheet hard-depends on `state.name`/`state.slug` for `/benefits/{slug}` links, so making the module null-state would have rippled into a parallel rewrite of the success overlay).
+
+3. **`/api/benefits/save-results` (modified)** — accepts `entrySource` in payload, writes it to `accounts.signup_source` on the new-account insert. Existing rows + provider-page submits stay NULL.
+
+4. **`/api/geo` (new)** — returns `{ state: string | null, city: string | null }` from Vercel `x-vercel-ip-country-region` / `x-vercel-ip-city`, gated through the `US_STATES` allowlist. `force-dynamic` (header-derived). Reuses the same pattern as `app/page.tsx`.
+
+5. **`/api/benefits/programs` (new)** — `?state=XX` returns `{ topPrograms, allPrograms, stateId, stateName }` from the in-memory program library. **Bug caught + fixed during smoke test:** initial `force-static` declaration prerendered the route with empty searchParams and 400'd every real call; flipped to `force-dynamic`. No DB calls so latency stays low.
+
+6. **`components/article/EditorialBenefitsModule.tsx` (new)** — `"use client"` wrapper. Fetches `/api/geo` then `/api/benefits/programs?state=XX` on mount, renders `BenefitsDiscoveryModule` with `entrySource={'/caregiver-support/' + slug}`. Three states: `loading` (height-stable pulse skeleton matching step-1 footprint, CLS guard), `resolved` (full module), `fallback` (styled link to `/benefits/finder` when geo can't resolve — better than reverting to the old `/browse` CTA, simpler than building a no-state path through ResultsSheet).
+
+7. **`app/caregiver-support/[slug]/page.tsx` (modified)** — replaced the old `/browse?type=` Link block (lines 395-410 pre-edit) with `<EditorialBenefitsModule articleSlug={slug} />`. Single-variant — NO `BenefitsArmGate` wrap, no `AgentOutreachSlot`. Want clean editorial-vs-provider baseline data, not arm-vs-arm noise inside editorial.
+
+**Smoke tests passed (local dev):** page returns 200, SSR markup contains the skeleton at the correct spot (between article body and Author + Tags section), `/api/geo` returns `{state:null,city:null}` on localhost (expected — no Vercel headers in dev) and resolves correctly with mocked headers, `/api/benefits/programs?state=TX` returns the full library shape. Typecheck clean (`tsc --noEmit` exit 0). ESLint clean on touched files (apostrophe-escape errors in the wrapper fixed mid-build; the pre-existing img + no-explicit-any warnings are unrelated).
+
+**Files touched:**
+- New: `supabase/migrations/065_accounts_signup_source.sql`, `app/api/geo/route.ts`, `app/api/benefits/programs/route.ts`, `components/article/EditorialBenefitsModule.tsx`, `plans/editorial-sbf-mount-plan.md`
+- Modified: `components/providers/BenefitsDiscoveryModule.tsx`, `app/api/benefits/save-results/route.ts`, `lib/analytics/track-step.ts`, `app/caregiver-support/[slug]/page.tsx`, `SCRATCHPAD.md`
+
+**Mid-build decisions (deviations from the plan worth flagging):**
+- **Plan task 2 dropped (null-state in BenefitsDiscoveryModule).** ResultsSheet hard-depends on `state.name`/`state.slug` for the `/benefits/{slug}` link — making the module null-state would have rippled. Wrapper-level handling (geo-fail → styled fallback to `/benefits/finder`) is strictly cleaner.
+- **Editorial step-level funnel events deferred to v2.** Both `track-start` and `track-step` gate inserts on `(providerSlug && sessionId)` — on editorial mounts (no providerSlug), inserts silently drop. `accounts.signup_source` is the canonical leading-metric source for v1. Full editorial funnel parity would require either a new event-type set in `seeker_activity` (with the matching DB CHECK migration per the Apr 29 lesson) or routing `benefits_*` events to seeker_activity when providerSlug is null.
+
+**What's NOT done (intentional — out of scope for v1):**
+- Article-aware copy / pre-selected care-need card by article topic.
+- Editorial-specific A/B variants.
+- Inline mid-article placement.
+- Admin analytics breakdown by entry source — query directly from `accounts.signup_source` for the first 4 weeks.
+- Migration 065 applied to Supabase (TJ to apply via dashboard before staging promote).
+- TJ's manual end-to-end submit on staging (Slack alert, accounts row, ResultsSheet overlay).
+
+**Status:** code complete, awaiting (a) TJ to apply migration 065 via Supabase dashboard, (b) TJ's manual submit test on a real article slug (e.g., `/caregiver-support/caregiver-burnout-prevention`), (c) PR to staging.
+
+### 2026-05-03 — Build Olera into the agent-callable layer for senior care (P1)
+
+Day-long strategic + writing session to lock the thesis behind the three sibling P1 CTA-copy variants and ship a clean Notion workbook.
+
+**Thesis:** Olera becomes the data and functions AI calls when families make senior care decisions. Two routes hit the same primitives. **H1**: Olera-hosted agent on olera.care. **H2**: bring-your-own-AI calling Olera via MCP/ChatGPT App/REST. We test both. Build value first, gate later (Resend/Airtable/Fathom Loops playbook).
+
+**What we ship now** — three categories, parallel clocks, all TJ-owned:
+- **Engineering** (a few hours capture + a day for outreach module): llms.txt + JSON-LD + AI-referral instrumentation + new outreach arm as 4th SBF intake A/B variant. djb2 4-way split. AgentOutreachModule renders on Q&A surface for the 25% in outreach arm. 3 mini provider cards (top in city + category, current excluded) as visual proof. Email submit → DB row + Slack alert with full fulfillment context.
+- **Content** (a few days, TJ writes/records): Medicaid guide as **article + YouTube video**. "How to apply for Medicaid for a parent in Texas using ChatGPT and Olera." Founder voice. TJ as AI-use expert, Olera as real-world tool layer. Be one of one. Article ranks on Google, video ranks on YouTube and gets cited by AI agents that browse video sources. Cap the bet at one of each.
+- **Operations** (continuous, TJ owns): outreach fulfilled manually in Claude Code via Slack alert. 24h SLA. No admin UI in v0.
+
+**Decision gate at 30-90 days** — three usage signals: SBF step-1 pickup ≥55%, outreach email-capture ≥6% (vs 3% baseline), AI referrals ≥10/day + Medicaid content ranks. 2 of 3 = greenlight scaling.
+
+**Notion (canonical):** [Build Olera into the agent-callable layer for senior care](https://www.notion.so/Build-Olera-into-the-agent-callable-layer-for-senior-care-3555903a0ffe81e18e63f566794560a6). Old duct-taped parent + child workbook trashed. Three sibling CTA-copy tasks were closed earlier with "superseded by [old parent]" notes — those links break against the trashed page but the siblings are Done so it's cosmetic.
+
+**Local mirror:** [`plans/agent-outreach-cta-workbook.md`](plans/agent-outreach-cta-workbook.md). Stays in sync with Notion. [`plans/agent-outreach-cta-plan.md`](plans/agent-outreach-cta-plan.md) is the engineering task breakdown.
+
+**Doc structure choices made along the way:** hybrid (strategic narrative on top + execution by category + decision gate + conditional scale). Not phase-numbered for execution because the work runs in parallel on different clocks. Verb-led titles for orientation. TJ voice throughout: no em dashes (use `--`), direct, no PR-speak, no jargon ("lever," "asymmetry buys us," etc. all dropped). Multi-session-friendly.
+
+**Working-pattern split (locked):** markdown file is the source of truth for content (mine to edit). Notion is the presentation surface (TJ's to format with collapsibles, callouts, headings). When iterating on this task in future sessions, work from `plans/agent-outreach-cta-workbook.md`. Surface content changes in chat; TJ syncs to Notion. If TJ changes copy in Notion, he'll tell me to sync the markdown — otherwise the two will quietly diverge.
+
+**Tooling note:** Notion `update-a-block` MCP wraps payload in `body.type` which the API rejects. Workaround pattern that worked: delete-old + patch-block-children with `after` anchor to insert at the correct position. Used this to surgically add the article+video split without duct-taping. Documented in case I hit the same flow again.
+
+**Team comms (drafted in chat for TJ's Slack to #marketing-team):** "Build Olera into the AI agent layer for senior care. ChatGPT already sends us referrals every day. We make Olera the data and tools AI agents call when families apply for Medicaid, find providers, or send connection requests. Two tracks running in parallel: an Olera-hosted AI on our site, and a bring-your-own-AI version for families using ChatGPT, Claude, or Gemini." TJ's broader Slack message reframes team focus: Chantel mostly on care shifts (1 article every 3 weeks), Logan on staffing (revenue path), TJ owns this agent-layer work for the next few weeks.
+
+**End of session — final state of the strategic doc:**
+- Cut redundant sections: Operations H3 (was duplicating "What we capture and how TJ acts on it") and the entire Non-goals H2 (most items were already implied; the load-bearing ones — MCP premature, OpenClaw lesson, auto-submission — are covered in surrounding sections).
+- "Read the signals" simplified from 3 to 2 signals. Cut signal #1 (SBF benefits prompt) — wasn't about agent-callable, was anchoring on the wrong thing. New gate: H1 signal (outreach email capture ≥6%) + H2 signal (AI referrals ≥10/day + Medicaid content ranks). Decision: scale whichever route signaled.
+- Final structure: 8 H2 sections, 3 H3 under "What we ship now" (Capture, Olera-hosted outreach module, Medicaid guide), 4 H4 under the outreach module.
+- Notion is fully structured by TJ — toggles wrap Scale/Risks/Where-the-gate. Markdown stays in sync as of session end.
+
+**Tooling note for future Notion writes:** `mcp__notion__API-update-a-block` rejects `body.type` wrapper — workaround is delete + `patch-block-children` with `after` anchor. Also: when TJ formats in Notion (creating toggles, converting list types), block IDs and parent relationships shift — stale anchors fail with "not parented by" errors. Solution: refetch children before patching, or ask TJ to paste content himself.
+
+### 2026-05-03 (PM) — Phase 2 build: H1 Olera-hosted outreach module shipped end-to-end
+
+All 6 build tasks from `plans/agent-outreach-cta-plan.md` landed in one focused session. Branch: `lively-poitras` (one commit behind staging at session start; rebase later when ready). Migration 064 applied to Supabase by TJ mid-session. Typecheck clean across all touched files (sole noise was a duplicate `BenefitsFunnelByVariant` declaration in `app/admin/analytics/page.tsx` that was caught + fixed).
+
+**What's now live as code (not yet deployed):**
+
+1. **Migration `064_agent_outreach_requests.sql`** — creates `agent_outreach_requests` table (id, seeker_user_id, seeker_email, source_provider_id, city/state/category, question_id/text, target_provider_ids[], status, claim metadata) + extends `seeker_activity_event_type_check` to allow `outreach_module_impression`, `outreach_card_clicked`, `outreach_request_submitted`. App allowlist + DB CHECK coupled in one migration per `feedback_event_allowlist_needs_db_migration.md`. RLS enabled (service-role only). 3 indexes: status+created (queue), email+created (rate limit), source_provider (per-page analytics).
+
+2. **`lib/analytics/variant.ts`** — added `IntakeVariant` (4 arms with "outreach") + `assignIntakeVariant` (mod 4) alongside the legacy 3-arm `BenefitsVariant`/`assignBenefitsVariant`. Kept legacy intact so BenefitsDiscoveryModule's internal mod-3 copy A/B continues working untouched. **Math note: gcd(3,4)=1, so independent mod-3 + mod-4 on the same sessionId yield a uniform 1/4 distribution across all 4 arms.** No need to lift variant assignment to a single source.
+
+3. **`lib/agent-outreach-providers.ts`** — `getTopProvidersByCityAndCategory({ city, state, category, excludeProviderId, limit })`. Composite score `weight × rating × log(reviews+1) × completeness`. Score precomputed once per provider (not per sort comparison — would burn ~140 buildHighlights calls otherwise). City → state fallback. Claim weight wired up properly via parallel business_profiles query (verified=1.5, claimed=1.2, unclaimed=1.0) — TJ pushed back on the "stub at 1.0 for v0" approach with "Claude Code makes hard things easy, don't underdo it" ([feedback_default_to_now_not_later.md](feedback_default_to_now_not_later.md) reflex). Completeness floor 0.5 / ceiling 1.0 so unenriched providers can still compete in small-city pools. 10-min in-memory cache keyed by `(state|city|category)`; cache stores `limit+1` and excludes self at read time so adjacent provider pages share hits.
+
+4. **`components/providers/AgentOutreachModule.tsx`** — client component with horizontal-scroll mini cards (next/image + onError fallback to category stock), email capture, honeypot, inline error + success states. Slate/cream palette. Impression fires once via ref guard (handles React strict-mode double-mount). Submit body now passes `target_providers: { id, name, slug, address }[]` so the Slack alert has rich per-provider links without a server-side slug lookup.
+
+5. **`app/api/activity/track/route.ts`** — added 3 new event types to `FAMILY_EVENT_TYPES` AND `profileOptionalEvents` (so guests fire them without a profile_id, matching `save_nudge_*` precedent).
+
+6. **`components/providers/IntakeVariantSlots.tsx` (new)** — `BenefitsArmGate` (renders children eagerly during SSR; hides post-mount on outreach arm) + `AgentOutreachSlot` (renders AgentOutreachModule iff outreach arm). Both share the same `assignIntakeVariant(getOrCreateSessionId())` call. SSR trade: 25% in outreach arm see brief flash of BenefitsDiscoveryModule disappearing + AgentOutreachModule appearing on Q&A surface; 75% see no change. Chose to preserve first-paint UX for the majority arm.
+
+7. **`app/provider/[slug]/page.tsx`** — added 4th item to existing `Promise.all` for top providers fetch (cached, returns [] gracefully on missing context). Wrapped `<div id="benefits">` in `BenefitsArmGate`. Inserted `AgentOutreachSlot` inside `<div id="qa">` below `QASectionV2` with `mt-6` spacing. Exported `PROFILE_CAT_TO_SUPABASE_CAT` from `lib/types/provider.ts` for the ProfileCategory→supabase string map.
+
+8. **`POST /api/outreach/request`** — validates email + target_providers shape + honeypot, rate-limits 3/email/hour, attaches seeker_user_id when authenticated, inserts row, fires `outreach_request_submitted` to seeker_activity (fire-and-forget), fires Slack via `slackOutreachRequestSubmitted` (fire-and-forget). Returns `{ ok, id }`.
+
+9. **`slackOutreachRequestSubmitted` in `lib/slack.ts`** — self-contained fulfillment alert. Reply-to email, source page link, target provider bullet list with name + city + Olera detail link, full question text (no truncation — TJ needs full context), city/state/category metadata, request-ID footer with 24h SLA reminder. The `text` notification preview is PHI-free per `feedback_phi_in_subject_lines.md` ("Outreach request: 3 Memory Care providers in Austin, TX").
+
+10. **Admin analytics 4th row** — extended `BenefitsFunnelByVariant` type (in BOTH `app/api/admin/analytics/summary/route.ts` and the duplicate declaration in `app/admin/analytics/page.tsx`), added `outreach: emptyStages()` to bucket sets, separate seeker_activity query for outreach events, distinct-session bucketing into the new `outreach` `BenefitsBucket`. UI table renders `—` for the middle "Care need ✓" cell on outreach since the funnel skips that step. Subtitle now reads "1/4 split by djb2 mod 4 — 3 benefits-copy arms + 1 outreach arm."
+
+**Files touched:**
+- New: `supabase/migrations/064_agent_outreach_requests.sql`, `lib/agent-outreach-providers.ts`, `components/providers/AgentOutreachModule.tsx`, `components/providers/IntakeVariantSlots.tsx`, `app/api/outreach/request/route.ts`, `plans/agent-outreach-cta-plan.md`, `plans/agent-outreach-cta-workbook.md`
+- Modified: `lib/analytics/variant.ts`, `lib/types/provider.ts`, `lib/slack.ts`, `app/api/activity/track/route.ts`, `app/api/admin/analytics/summary/route.ts`, `app/admin/analytics/page.tsx`, `app/provider/[slug]/page.tsx`
+
+**What's NOT done (intentional — out of scope for v0):**
+- Daily digest extension (Phase A task 5 in `plans/agent-outreach-cta-plan.md`) — admin row covers daily visibility for now.
+- Manual end-to-end test on a real provider page — TJ to do this when ready.
+- Vercel preview / staging promotion / PR.
+
+### 2026-05-03 (late PM) — Design pass + Slack fire-and-forget bug fix (post-test iteration)
+
+TJ tested the v1 module on a Washington DC nursing-home page. Visual was solid but he had a sharper design vision and one functional bug: no Slack alert landed.
+
+**Design crit + redesign — both sides agreed direction first, then I shipped:**
+
+- **Killed cream-bg + full border container.** Was reading as "ad callout" — too much chrome around content. Now borderless with a subtle top divider (`mt-8 pt-8 border-t border-slate-200`) so the module reads as part of the page flow.
+- **Two-line H2:** outcome hook ("Skip the phone calls.") + mechanic line ("Have an AI agent contact the top providers in [City] for you."). TJ's argument for keeping "AI agent" in the second line: brand-education tax to drop entirely; this plants the seed for future agent-callable products (Medicaid apps, etc.). Outcome leads, mechanic supports.
+- **Anthropic/Claude/Grok-style 3x3 pulsing dot grid** prefixed to H2 (and persists into success state). Staggered diagonal wave on a 1.5s cycle. Visual shorthand for "AI is at work" without saying "loading." TJ proposed this from a walk; locked the inline-grid (option A) over background-texture (option B) — more explicit signal, gives the static module a motion moment. Custom keyframe in `app/globals.css` (`animate-outreach-dot`) with prefers-reduced-motion override.
+- **Caption above cards:** "Top 3 [Category] providers in [City], where families are actively reaching out." Social proof anchored to behavior we actually measure (engagement events) — not "booking" data we don't have. TJ originally said "booking"; we negotiated honest framing. ✅ landed in sentence case after pre-test caught all-caps reading badly on a sentence-length string.
+- **Optional relationship chip row:** Parent / Spouse / Me / Family. Toggling on/off; selected = inverted dark slate. Lifts fulfillment context without forcing collection. TJ confirmed name field NOT viable (we don't capture it on questions).
+- **Card click → opens in new tab** (`target="_blank" rel="noopener noreferrer"`). Was a conversion leak; family who clicked a card lost their place in the form.
+- **Pill colors unified** to single muted slate (was multi-color from trust-signals system, looked ad-hoc).
+- **Submit copy:** "Get the answers" (was "Send the agent" — cold/novel).
+- **Success state honest:** "On it. We'll email you back with what we hear from these N providers." Dropped the "24h SLA" promise — TJ flagged we can't guarantee it.
+
+**Then a real bug bit:** TJ submitted, got the success state, no Slack alert.
+
+**Root cause:** `app/api/outreach/request/route.ts` was firing both the `seeker_activity` insert and `sendSlackAlert` as fire-and-forget Promises after returning the response. **In Vercel's serverless runtime the function instance can be torn down right after the response goes out, killing pending Promises.** Every other `sendSlackAlert` call site in the codebase awaits; mine didn't. Pre-test review missed it because I traced the logic but didn't compare to the rest-of-codebase pattern.
+
+**Fix:** Both side effects now run via `await Promise.allSettled([activityInsert, sendSlackAlert])` before the response. Parallel so neither blocks the other; failure-tolerant so neither aborts the response (the canonical `agent_outreach_requests` row is already saved at that point). Adds ~200-400ms response latency. Logged this lesson — pre-test reviews need a "does this match the rest-of-codebase pattern" pass.
+
+**Other bugs caught in two pre-test review rounds (all fixed):**
+- Phantom `mt-6` div for 75% of visitors who weren't in outreach arm (wrapping div rendered without children → empty 24px gap)
+- Double-fire of `outreach_request_submitted` event (server route + client both fired; set semantics in admin saved the count, but raw log got dupes — dropped client fire)
+- Unused `Link` import
+- Caption all-caps unreadable on long sentence (sentence case)
+- Pulsing dots ignored `prefers-reduced-motion` (added override to existing reduced-motion block)
+
+**Final commit chain on `lively-poitras`:**
+- `02c4098e` — Initial 6-task build
+- `01ee2420` — First pre-test fixes (phantom div, double-fire, unused import)
+- `4a2b3c2a` — Design pass (dots, caption, chips, kill cream box, kept "AI agent" line per TJ)
+- `a8b85c28` — Second pre-test fixes (caption case, prefers-reduced-motion)
+- `b3ad7ee5` — Slack fire-and-forget fix (await + Promise.allSettled)
+
+### 2026-05-04 (PM) — H2 capture PR #726 open on staging. Pre-test clean. Awaiting Vercel preview test.
+
+**Branch + commit chain on `keen-hopper`** (off latest `origin/staging` `4eb7808a`):
+
+- `f54eac82` — H1 ship marker + H2 plan in SCRATCHPAD
+- `afba46c4` — `app/llms.txt/route.ts` (curated AI-agent map per llmstxt.org spec; 6 categories + top 10 state benefits pages dynamic from pipeline data; 1hr ISR)
+- `880cbacd` — Article + GovernmentService JSON-LD on `/benefits/[slug]` and `/benefits/[slug]/[program]`; FAQPage on program pages when `program.faqs` populated; fix broken Org logo path in `app/layout.tsx` (`/logo.png` → `/images/olera-logo.png`)
+- `65c2f820` — `lib/analytics/referrer.ts` classifier + extracted `sanitizeReferrer`/`OLERA_HOSTS`; track route writes `referrer_class` to anonymous page_view metadata; admin summary buckets page_views by class; admin UI adds "Traffic source" SubRow with 6 stats + prior-window deltas
+- `f640d2d3` — SCRATCHPAD H2 status update
+
+**Pushed + PR opened:** [PR #726 — `keen-hopper` → `staging`](https://github.com/olera-care/olera-web/pull/726). State: open, mergeable.
+
+**Scope calls (deliberate skips):**
+- Provider detail JSON-LD: already comprehensive (LocalBusiness with reviews, offers, geo, sameAs, priceSpec). No work needed.
+- `/m/[token]` SBF results ItemList: page is `robots: noindex` for PII reasons. AI agents won't crawl. Skipped.
+
+**Verification done:**
+- Zero new TS errors over baseline (56 phantom-module errors pre-existing, all `@phosphor-icons/react` / `isbot` unrelated to H2 changes).
+- Pre-test caught two bugs during build (overpromising savings on llms.txt benefits-finder line; broken Org logo path) — fixed inline.
+- Final /pre-test review (post-commit, pre-merge): **clean — no bugs found.** Walked all 8 files end-to-end, traced every data chain, confirmed JSONB freeform metadata adds no DB risk, confirmed `dynamic="force-static"` + `revalidate=3600` is the right ISR combo, confirmed `program.faqs` shape matches schema generation, confirmed no event_type allowlist trap.
+
+**Decision-gate measurement (now with admin visibility):** /admin/analytics → "Traffic source" → AI chat counts. Baseline is whatever lands in the first day or two. Decision question after 2-4 weeks: did llms.txt + JSON-LD move ai_chat counts up materially, OR did total page views grow without ai_chat moving (meaning agents aren't citing us yet — we'd then need outreach to crawl directly).
+
+**Resume next session here →** Test on Vercel preview (URL appears as a check in PR #726). Test plan: (1) `/llms.txt` renders + state benefits links resolve; (2) `view-source` on `/benefits/california` shows Article schema; (3) `view-source` on a program page shows Article + GovernmentService + FAQPage; (4) Org logo URL resolves (no more 404); (5) Admin /admin/analytics shows new "Traffic source" SubRow. If healthy, /pr-merge 726 → /pr-merge promote staging to main.
+
+---
+
+### 2026-05-04 (AM) — H1 outreach module shipped to production.
+
+PR #722 merged to staging (squash, commit `420aba6a`). PR #725 promoted staging to main (`--merge`, commit `81d1d8d6`). Vercel production deploy rolling out. Outreach module is now live for ~25% of provider-page visitors on `olera.care` — Slack alerts will route to TJ for manual fulfillment.
+
+**Notion merge reports:**
+- [PR #722 — staging merge](https://www.notion.so/PR-722-Add-agent-outreach-module-as-4th-SBF-intake-A-B-arm-2026-05-04-3565903a0ffe81b0bbced66bd0318832)
+- [PR #725 — production promotion](https://www.notion.so/PR-725-Promote-staging-to-main-2026-05-04-3565903a0ffe81a1bd46cb5857495623)
+
+**Decision-gate measurement window for H1 starts now (30-90 days):** ≥6% email-capture rate vs 3% baseline = greenlight Phase 4 (real agent build).
+
+---
+
+**Next chunk: H2 capture work** (~3 hours total, single PR back to staging).
+
+Per the locked workbook section "Capture work for H2": ChatGPT/Claude/Gemini already cite Olera (~4 visits/day from ChatGPT alone, no optimization). Three small infra pieces to close the gap:
+
+1. **`llms.txt` at site root.** Curated map AI agents read like a sitemap. Static text — list browse, SBF, top cities, top benefits, key landing pages. Either `public/llms.txt` (static) or `app/llms.txt/route.ts` (dynamic, generated from current cities/benefits data — preferred so it stays fresh as we add coverage). ~30 min.
+
+2. **JSON-LD on key pages.** Provider detail pages already have BreadcrumbList; extend with `LocalBusiness` (name, address, telephone, priceRange, aggregateRating, image). Benefits pages (`app/waiver-library/[state]/[benefit]/page.tsx`) need `GovernmentBenefitsType` or `Article` schema. SBF results / `/m/[token]` page — `WebPage` + `ItemList` of matched programs. Goal: agents quote provider name + rating + price + benefit-savings accurately when families ask. ~1.5 hours.
+
+3. **AI-referral instrumentation.** Detect `Referer` header host on incoming requests and tag in page_view metadata. Hosts to flag: `chatgpt.com`, `chat.openai.com`, `claude.ai`, `gemini.google.com`, `perplexity.ai`, `copilot.microsoft.com`. Plug into existing `seeker_activity` / `provider_activity` page_view tracking — add `ai_referrer` field (or `referrer_class` enum: ai_chat / search / direct / olera_internal / other). Surface count in admin analytics so we can measure baseline. ~30 min.
+
+**Workflow when this resumes:**
+- Cut new branch off `origin/staging` (suggest tribute name; lively-poitras worktree is fine to reuse — branch + commit + PR back to staging).
+- Working tree currently on `lively-poitras` branch (now stale — merged + remote-deleted). After compact, first action: `git checkout staging` then `git checkout -b <new-branch>` from latest staging.
+- Single PR back to staging when done. Same /pre-test → /pr-merge → promote-to-main flow as H1.
+
+**Files most likely to touch:**
+- New: `app/llms.txt/route.ts` (or `public/llms.txt`)
+- Modified: `app/provider/[slug]/page.tsx` (add LocalBusiness JSON-LD), benefits library pages (Article/Benefits schema), the welcome/results sheet pages (ItemList schema)
+- Modified: `app/api/activity/track/route.ts` (capture referrer host) and/or `lib/analytics/session.ts`, plus admin analytics route to surface the new dimension
+
+**Ship lessons captured this session:**
+- [feedback_serverless_fire_and_forget.md](feedback_serverless_fire_and_forget.md) — always `await` side-effect Promises in Next.js routes; Vercel's serverless runtime kills pending Promises post-response. Pre-test reviews need a "does this match the rest-of-codebase pattern" pass — internal correctness alone shipped the bug.
+
+### 2026-05-03 (late PM) — Design pass + Slack fire-and-forget bug fix (post-test iteration)
+
+TJ tested the v1 module on a Washington DC nursing-home page. Visual was solid but he had a sharper design vision and one functional bug: no Slack alert landed.
+
+**Design crit + redesign — both sides agreed direction first, then I shipped:**
+
+- **Killed cream-bg + full border container.** Was reading as "ad callout" — too much chrome around content. Now borderless with a subtle top divider (`mt-8 pt-8 border-t border-slate-200`) so the module reads as part of the page flow.
+- **Two-line H2:** outcome hook ("Skip the phone calls.") + mechanic line ("Have an AI agent contact the top providers in [City] for you."). TJ's argument for keeping "AI agent" in the second line: brand-education tax to drop entirely; this plants the seed for future agent-callable products (Medicaid apps, etc.). Outcome leads, mechanic supports.
+- **Anthropic/Claude/Grok-style 3x3 pulsing dot grid** prefixed to H2 (and persists into success state). Staggered diagonal wave on a 1.5s cycle. Visual shorthand for "AI is at work" without saying "loading." TJ proposed this from a walk; locked the inline-grid (option A) over background-texture (option B) — more explicit signal, gives the static module a motion moment. Custom keyframe in `app/globals.css` (`animate-outreach-dot`) with prefers-reduced-motion override.
+- **Caption above cards:** "Top 3 [Category] providers in [City], where families are actively reaching out." Social proof anchored to behavior we actually measure (engagement events) — not "booking" data we don't have. TJ originally said "booking"; we negotiated honest framing. Landed in sentence case after pre-test caught all-caps reading badly on a sentence-length string.
+- **Optional relationship chip row:** Parent / Spouse / Me / Family. Toggling on/off; selected = inverted dark slate. Lifts fulfillment context without forcing collection. TJ confirmed name field NOT viable (we don't capture it on questions).
+- **Card click → opens in new tab** (`target="_blank" rel="noopener noreferrer"`). Was a conversion leak; family who clicked a card lost their place in the form.
+- **Pill colors unified** to single muted slate (was multi-color from trust-signals system, looked ad-hoc).
+- **Submit copy:** "Get the answers" (was "Send the agent" — cold/novel).
+- **Success state honest:** "On it. We'll email you back with what we hear from these N providers." Dropped the "24h SLA" promise — TJ flagged we can't guarantee it.
+
+**Then a real bug bit:** TJ submitted, got the success state, no Slack alert. Root cause: fire-and-forget Promises in Vercel's serverless runtime get killed after the response returns. Fix: `await Promise.allSettled([activityInsert, sendSlackAlert])`. Saved as feedback memory; pre-test reviews missed it because I didn't pattern-match against the rest of the codebase (every other `sendSlackAlert` call site awaits).
+
+**Other bugs caught in two pre-test review rounds (all fixed):**
+- Phantom `mt-6` div for 75% of visitors who weren't in outreach arm (wrapping div rendered without children → empty 24px gap)
+- Double-fire of `outreach_request_submitted` event (server route + client both fired; set semantics in admin saved the count, but raw log got dupes — dropped client fire)
+- Unused `Link` import
+- Caption all-caps unreadable on long sentence (sentence case)
+- Pulsing dots ignored `prefers-reduced-motion` (added override to existing reduced-motion block)
+
+**Final commit chain on `lively-poitras` (squashed into staging as `420aba6a`):**
+- `02c4098e` — Initial 6-task build
+- `01ee2420` — First pre-test fixes (phantom div, double-fire, unused import)
+- `4a2b3c2a` — Design pass (dots, caption, chips, kill cream box, kept "AI agent" line per TJ)
+- `a8b85c28` — Second pre-test fixes (caption case, prefers-reduced-motion)
+- `b3ad7ee5` — Slack fire-and-forget fix (await + Promise.allSettled)
+- `3f2b85d4` — Admin eyebrow 3-arm → 4-arm
+
 ### 2026-05-02 — Places Photo + Reviews API leak patches (P1)
 
 Mercury alert May 1: $4,531 April Google Cloud bill, +184% MoM on Places API (New), $25K/yr pace.
@@ -975,6 +1308,30 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-05-01 → 2026-05-02 — Texas expansion (293 cities) — full Atlas batch shipped
+
+**Scope:** Atlas-flagged TX batch from `map.olera.care`, 293 cities. 50 fresh (Atlas `missing` + 1 `covered` Mission Bend that DB said was empty), 243 expand (29 thin + 56 moderate + 158 covered).
+
+**Two-phase run:**
+- **Phase A (Fresh, 50 cities):** discovery → pipeline-batch `--phase all`. 1,332 active providers loaded. 1h17m + 20.4m discovery. Cost: $48.64 + $134.51 = $183.15.
+- **Phase B (Expand, 243 cities):** discovery `--force` → pipeline-batch `--force --cities="..." --phase all`. Killed mid-enrich on a false-alarm panic, resumed at `--phase enrich`. 6,260 → 9,341 active (+3,081). 2h20m discovery + 2h13m clean+load + 3h58m enrich resume. Cost: $269.02 + $29.69 + $185.23 = $483.94.
+
+**Combined: 6,316 → 10,729 statewide TX active (+4,413 net). Total spend: $667.09.** Atlas estimated $7,325 — ran ~9% of estimate.
+
+**Key numbers from the run:**
+- 1,239 trust signals confirmed senior care; 1,665 false positives soft-deleted by entity verification (wedding venues / DME / community centers)
+- 2,201 review snippets fetched; 1,877 photos resolved to permanent lh3 URLs
+- 146 expand cities with real expansion (+5 or more); 18 dedup-blocked (Atlas correctly labeled "covered"); 22 with small -delta (max -12 Fresno, all from entity-verify cleanup)
+- Top expand winners: San Antonio +74, Houston +70, Arlington +63, Dallas +62, El Paso +61, Austin +50, Amarillo +44
+
+**Notion state:** 50 fresh pages created + flipped to Complete with Done boxes. 66 individual TX expand pages reset to "Upload to Backend" mid-run, then restored to Complete. 2 "Texas Group" rollup pages also patched (172 of the 243 expand cities live in those rollups, not as individual rows — left them rolled up vs creating 172 new pages).
+
+**Slack notified:** Logan tagged in #ai-product-development for provider outreach handoff.
+
+**Mistake to remember:** mid-enrich QC reported "massive deletions" (Garland 196 → 21, etc.) and I raised a 5-alarm panic. **Bug was in my QC query** — I used `provider_id LIKE 'garland-tx-%'` while the legacy Garland providers use random-prefix IDs (`4trRGPZ-...`, `pLaafyS-...`) from an older import format. Cross-checking by `city='Garland', state='TX'` showed 217 active (not 21) — pipeline was fine. Killed and resumed pipeline lost ~30 min. **Lesson:** baseline used `city=` field, but I built the QC with `provider_id LIKE` — always match the QC pattern to the baseline pattern, OR use `city=`/`state=` as the canonical truth. Saved this as a memory.
+
+**Branch:** `fast-dijkstra` (worktree off staging). No code changes — pipeline-running session only. SCRATCHPAD update only.
 
 ### 2026-04-27 — Sweep #1 wrap (resume → execution → pipeline updates)
 

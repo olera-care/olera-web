@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-27T23:10:14.924Z
+ * Last updated: 2026-05-05T17:49:01.707Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -523,14 +523,14 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs",
       "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "If your loved one is on Medicare with limited income, they could qualify for help paying premiums, deductibles, and copays",
+      "tagline": "If your loved one is on Medicare with a limited income, they may qualify for Florida programs that pay their $202.90 monthly Part B premiums, plus deductibles and copays.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one struggles to afford Medicare premiums or copays, Florida's Medicare Savings Programs could cover hundreds or thousands in annual costs. These three programs, QMB, SLMB, and QI, help pay Medicare expenses based on your loved one's income level. QMB provides the most help (covering all Medicare cost-sharing) for those with the lowest incomes (under $1,350/month for individuals). SLMB and QI cover Medicare Part B premiums for those with slightly higher incomes.\n\nAll three programs require your loved one to have Medicare Part A, be a Florida resident, and meet strict income and asset limits. Because QMB covers deductibles and copays that your loved one would otherwise pay out-of-pocket, providers cannot bill QMB recipients for these costs, this alone could save thousands per year depending on healthcare usage.",
+      "intro": "If you're looking for a way to ease the financial pressure on your loved one, Florida's Medicare Savings Programs can be a true lifesaver. For 2026, these programs can stop the $202.90 monthly Part B premium from being taken out of their Social Security check, putting over $2,400 back in their pocket annually. Depending on their income, they might even qualify for the QMB level, which covers almost all out-of-pocket medical costs — meaning doctors can no longer bill them for Medicare deductibles or copays.\n\nEnrolling is one of the kindest things you can do to protect their health and savings. Beyond the premium relief, qualifying for any of these programs automatically triggers \"Extra Help\" with prescription costs, which can save them thousands more at the pharmacy. As long as your loved one is a Florida resident with Medicare Part A and meets certain income and asset limits (their home and one car typically won't count), this support is waiting for them. It's a wonderful way to ensure they get the care they deserve without the constant worry of medical bills.",
       "savingsRange": "$1,000 – $3,000+/year in 2026",
       "savingsSource": "Part B premium savings plus potential deductible/copay coverage",
       "savingsVerified": true,
@@ -588,12 +588,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at myflfamilies.com or call 1-877-411-6810, processing times vary by county workload.",
+        "summary": "Apply online at myflfamilies.com or call 1-866-762-2237, or contact a free SHINE counselor at 1-800-963-5337 for personalized help with your application.",
         "steps": [
           {
             "step": 1,
             "title": "Choose application method",
-            "description": "Apply online at myflfamilies.com, call 1-877-411-6810 for general Florida Medicaid inquiries, or visit your local DCF office in person."
+            "description": "The fastest way to get started is online at myflfamilies.com through the MyACCESS portal. If you'd prefer to speak with someone, call the Florida Department of Children and Families at 1-866-762-2237, or you can visit a local DCF service center to apply in person."
           },
           {
             "step": 2,
@@ -642,10 +642,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Florida Medicaid General Line",
-          "phone": "1-877-411-6810",
-          "description": "General Florida Medicaid inquiries and application assistance",
-          "hours": "Business hours, Monday-Friday"
+          "label": "Florida Department of Children & Families (DCF)",
+          "phone": "1-866-762-2237",
+          "description": "Best for applying for the program or checking the status of an existing application. Alternate: 1-850-300-4323.",
+          "hours": "Monday–Friday, 8:00 AM–5:00 PM ET"
         },
         {
           "label": "Medicare.gov Helpline",
@@ -673,6 +673,11 @@ export const drafts: PipelineStateDrafts = {
         "LIHEAP Energy Assistance"
       ],
       "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Estimated 2026 savings: $2,400 to $8,000+ per year. This includes direct premium savings and automatic 'Extra Help' to lower prescription drug costs."
+        },
         {
           "type": "tier-comparison",
           "title": "Program Tiers: QMB vs SLMB vs QI",
@@ -722,10 +727,12 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Money",
-      "phone": "1-877-411-6810",
+      "phone": "1-866-762-2237",
       "sourceUrl": "https://www.myflfamilies.com",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "Cess",
+      "lastVerifiedDate": "2026-05-05"
     },
     {
       "id": "snap-food-benefits",
@@ -1752,24 +1759,25 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one has Alzheimer's disease or dementia and you're struggling to provide 24/7 care, Florida's ADI program can give you relief. Because caring for someone with memory loss is exhausting, this program provides in-home respite workers, adult day care, emergency respite (when you have a crisis), and extended respite up to 30 days. Your loved one must be 60+ with a diagnosed memory disorder and at risk of nursing home placement.\n\nThe program also includes case management to coordinate your loved one's care, caregiver training to help you manage challenging behaviors, medical supplies, and therapeutic activities. Cost is based on a sliding scale according to your loved one's income, it's not free, but no specific dollar amounts are published. Services vary significantly by region based on local funding and provider availability.",
+      "intro": "Caring for a loved one with memory loss is a journey of incredible love, but it can also be exhausting. Florida's Alzheimer's Disease Initiative (ADI) is here to provide the \"backup\" you need to recharge while ensuring your loved one stays safe at home. Whether you need a few hours of help from an in-home worker, a secure day program, or even temporary overnight care during a crisis, this program offers a compassionate safety net. Beyond basic care, the ADI provides specialized caregiver training, case management, and medical supplies specifically designed to help you manage the unique challenges of dementia.\n\nWe know that worrying about costs can add to your stress, so the ADI program is designed to be accessible. There are no asset limits to qualify, meaning savings or home equity won't get in the way of getting help. Instead, a simple sliding scale based only on your loved one's monthly income determines a modest co-payment. While primarily for those 60 and older, the program also supports adults as young as 18 with a verified dementia diagnosis. Because this support is a lifeline for so many families, services are prioritized based on need, so reaching out to the Florida Elder Helpline is the best way to start your journey toward relief.",
       "savingsRange": "",
       "savingsSource": "Service program with sliding-scale co-payments",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Age 60+",
-          "Diagnosed Alzheimer's or dementia",
-          "At risk of nursing home placement",
-          "Sliding-scale co-payment based on income"
+          "Florida resident",
+          "Medically verified diagnosis of Alzheimer's or related dementia (Lewy body, Parkinson's, or vascular dementia)",
+          "Functionally impaired and at risk of premature nursing home placement",
+          "Primarily 60+, but adults 18+ with verified dementia diagnosis are also served"
         ],
-        "ageRequirement": "60+",
+        "ageRequirement": "60+ (18+ with verified dementia diagnosis)",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must be functionally impaired and at risk of premature nursing home placement (assessed by local Area Agency on Aging)",
+        "functionalRequirement": "Eligibility is determined through a clinical screening and assessment conducted by your local Aging and Disability Resource Center (ADRC) or Area Agency on Aging (AAA). Because services depend on annual state funding availability, applicants are placed on a waitlist with priority given to those with the highest level of impairment and caregiver stress.",
         "otherRequirements": [
           "Must have diagnosis of Alzheimer's disease or related dementia/memory disorders",
-          "Services depend on funding availability in your region"
+          "Services depend on funding availability in your region",
+          "No asset limits — sliding-scale co-payment is based only on monthly income"
         ],
         "povertyLevelReference": null
       },
@@ -1804,7 +1812,7 @@ export const drafts: PipelineStateDrafts = {
         "urls": [
           {
             "label": "Florida Department of Elder Affairs ADI page",
-            "url": "https://elderaffairs.org/programs-services/bureau-of-elder-rights/alzheimers-disease-initiative/"
+            "url": "https://elderaffairs.org/programs-and-services/alzheimers-disease-initiative-adi/"
           }
         ]
       },
@@ -1821,15 +1829,21 @@ export const drafts: PipelineStateDrafts = {
       "contacts": [
         {
           "label": "Elder Helpline",
-          "phone": "(800) 963-5337",
-          "description": "Statewide helpline to connect with your local Area Agency on Aging for ADI services",
-          "hours": "Business hours, Monday-Friday"
+          "phone": "1-800-963-5337",
+          "description": "Statewide helpline. Routes to your local Area Agency on Aging for ADI screening and referrals.",
+          "hours": "Monday–Friday, 8:00 AM–5:00 PM ET"
         },
         {
-          "label": "Broward County Example",
+          "label": "Local Broward County Contact",
           "phone": "(954) 357-6622",
-          "description": "Broward County Elderly Services (example of local AAA contact)",
-          "hours": "Check with your local AAA"
+          "description": "If you live in Broward County, the Elderly and Veterans Services Division handles community-based programs and case management directly. ADRC Helpline: (954) 745-9779.",
+          "hours": "Monday–Friday business hours"
+        },
+        {
+          "label": "Outside of Broward?",
+          "phone": "1-800-963-5337",
+          "description": "Every county is served by a local Area Agency on Aging. A call to the main Elder Helpline will automatically route you to the correct local office for your area.",
+          "hours": "Monday–Friday, 8:00 AM–5:00 PM ET"
         }
       ],
       "applicationNotes": [
@@ -1843,7 +1857,18 @@ export const drafts: PipelineStateDrafts = {
         "Older Americans Act Title III Services",
         "Florida SHINE (Medicare counseling)"
       ],
-      "contentSections": [],
+      "contentSections": [
+        {
+          "type": "prose",
+          "heading": "Day programs",
+          "body": "Therapeutic social activities in a secure setting.\n\nNutritional meals and snacks.\n\nHealth monitoring by trained staff."
+        },
+        {
+          "type": "prose",
+          "heading": "Respite Care",
+          "body": "In-Home: Companionship and personal care.\n\nFacility: Short-term stays in licensed assisted living or nursing facilities.\n\nEmergency: Rapid-response care during a caregiver crisis.\n\nExtended: Up to 30 days of continuous relief care."
+        }
+      ],
       "faqs": [
         {
           "question": "What if my loved one is under 60 but has early-onset dementia?",
@@ -1867,7 +1892,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I apply for this program and Medicaid waiver services at the same time?",
-          "answer": "Yes, these programs can complement each other. Your AAA case manager can help coordinate with Medicaid waiver programs to maximize the support available to your family."
+          "answer": "No. ADI is a state-funded program specifically for people who are not currently enrolled in the Statewide Medicaid Managed Care Long-Term Care (LTC) program. If your loved one is approved for the Medicaid LTC waiver, they will transition to that program for their respite care, and their ADI services will end to prevent a duplication of benefits."
         },
         {
           "question": "What happens if my loved one's dementia progresses and they need more care?",
@@ -1887,10 +1912,12 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "HandHeart",
-      "phone": "(800) 963-5337",
-      "sourceUrl": "https://elderaffairs.org/programs-services/bureau-of-elder-rights/alzheimers-disease-initiative/",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "phone": "1-800-963-5337",
+      "sourceUrl": "https://elderaffairs.org/programs-and-services/alzheimers-disease-initiative-adi/",
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "Cess",
+      "lastVerifiedDate": "2026-05-05"
     },
     {
       "id": "scsep-employment",
@@ -1921,7 +1948,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55 or older, unemployed, and struggling to find work, SCSEP provides paid job training at nonprofits and government agencies. Your loved one earns minimum wage for an average of 20 hours per week while learning new skills at places like schools, hospitals, or senior centers. The program typically lasts about 6 months and focuses on helping participants find permanent, unsubsidized employment.\n\nTo qualify, your loved one's household income must be at or below 125% of the federal poverty level and they must have poor employment prospects. Priority goes to veterans, people over 65, those with disabilities, low literacy, limited English proficiency, rural residents, or those experiencing homelessness. Because this is a federal program with limited funding, there may be waiting periods depending on your area.\n\nSCSEP operates statewide in Florida through multiple organizations including the Florida Department of Elder Affairs, AARP Foundation, and other community partners. Each area offers different types of training positions based on local needs and available host sites.",
+      "intro": "If your loved one is 55 or older, unemployed, and struggling to find work, SCSEP provides paid job training at nonprofits and government agencies. Your loved one earns minimum wage for an average of 20 hours per week while learning new skills at places like schools, libraries, or senior centers. While the program focuses on helping participants find permanent, unsubsidized employment as soon as they are ready, individuals may participate for up to 48 months over their lifetime.\n\nTo qualify, your loved one's household income must be at or below 125% of the federal poverty level and they must have poor employment prospects. Priority goes to veterans, people over 65, those with disabilities, low literacy, limited English proficiency, rural residents, or those experiencing homelessness. Because this is a federal program with limited funding, there may be waiting periods depending on your area.\n\nSCSEP operates statewide in Florida through multiple organizations including the Florida Department of Elder Affairs, AARP Foundation, and other community partners. Each area offers different types of training positions based on local needs and available host sites.",
       "savingsRange": "",
       "savingsSource": "Paid employment opportunity",
       "savingsVerified": false,
@@ -1955,7 +1982,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Contact the provider directly",
-            "description": "Call the local office (for example, Orange County residents call 866-500-6587). Each provider handles their own intake process."
+            "description": "Call your local office to begin the screening process. If you aren't sure who your provider is, call the Florida Elder Helpline at 1-800-963-5337 — they will connect you with the specific organization managing SCSEP in your county."
           },
           {
             "step": 3,
@@ -2015,7 +2042,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Income limits are based on household size and updated annually, contact your local provider for current income guidelines",
+        "Income limits are based on household size and updated annually — contact your local provider for current income guidelines.",
         "Priority enrollment may delay non-priority applicants, especially during high-demand periods",
         "This is a temporary bridge program averaging 6 months, designed to lead to permanent unsubsidized employment",
         "Program funding is 90% federal with 10% state/local match, subject to annual funding changes that may affect availability"
@@ -2034,7 +2061,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one doesn't find permanent work after the 6-month training period?",
-          "answer": "SCSEP provides job placement assistance throughout and after the training period. If your loved one doesn't find permanent work immediately, they may be eligible for extended services or referrals to other employment programs like those offered through American Job Centers."
+          "answer": "SCSEP is a bridge to permanent work, and while many find jobs quickly, participants can remain in the program for up to 48 months over their lifetime to gain the necessary skills. Job placement assistance is provided throughout the entire time they are enrolled."
         },
         {
           "question": "How long is the wait to get into the program?",
@@ -2072,8 +2099,10 @@ export const drafts: PipelineStateDrafts = {
       "icon": "Briefcase",
       "phone": "855-850-2525",
       "sourceUrl": "https://elderaffairs.org/programs-and-services/senior-community-service-employment-program-scsep/",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "Cess",
+      "lastVerifiedDate": "2026-05-05"
     },
     {
       "id": "area-agency-legal-services",

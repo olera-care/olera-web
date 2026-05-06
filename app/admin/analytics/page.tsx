@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import PulseHeader from "@/components/admin/PulseHeader";
@@ -10,6 +10,10 @@ import {
   type DateRangeValue,
 } from "@/components/admin/DateRangePopover";
 import { useAnimatedCount } from "@/hooks/use-animated-count";
+import VariantPreviewCard from "@/components/admin/VariantPreviewCard";
+import VariantSessionsList from "@/components/admin/VariantSessionsList";
+import { INTAKE_VARIANTS, type IntakeVariant } from "@/lib/analytics/variant";
+import { variantSurfaceLabel, variantSubLabel } from "@/lib/analytics/variant-copy";
 
 interface WindowedCounts {
   page_view: number;
@@ -71,6 +75,10 @@ interface QaEmailIssue {
 }
 
 interface BenefitsFunnel {
+  // Distinct sessions that saw the module render. Apples-to-apples top-of-
+  // funnel for all four arms (benefits_entry_viewed for the 3 form arms,
+  // outreach_module_impression for the outreach arm).
+  impressions: number;
   started: number;
   care_need_completed: number;
   age_completed: number;
@@ -83,11 +91,43 @@ interface BenefitsFunnelByVariant {
   availability: BenefitsFunnel;
   loss: BenefitsFunnel;
   empathic: BenefitsFunnel;
+  // 4th arm — H1 demand-test surface, replaces SBF for 20% of provider-page
+  // visitors. Populates impressions, started (card click), and saved (form
+  // submission); middle "care need" step is N/A and renders as "—".
+  outreach: BenefitsFunnel;
+  // 5th arm (since 2026-05-05) — Q&A enrichment ON, SBF + outreach OFF.
+  // Populates impressions (QASectionV2 mount in arm) and saved (post-question
+  // email enrichment). Middle stages N/A → "—".
+  qa_email_capture: BenefitsFunnel;
   // Legacy V2 arms — historical, retained for the rollup window when V2 data
   // exists. Frozen after cutover.
   control: BenefitsFunnel;
   money_loss: BenefitsFunnel;
   unassigned: BenefitsFunnel;
+}
+
+interface ReferrerBreakdown {
+  ai_chat: number;
+  search: number;
+  social: number;
+  olera_internal: number;
+  direct: number;
+  other: number;
+}
+
+// SBF submissions bucketed by entry source. Both editorial AND provider
+// mounts now tag entrySource — editorial passes /caregiver-support/{slug},
+// provider passes /provider/{slug}. The query filters to NOT NULL so non-
+// SBF account creations (auth callback, claim flows, listing creation)
+// don't pollute the counts. Pre-tagging-deploy provider SBF rows are NULL
+// and therefore invisible until enough time passes for tagged inserts to
+// dominate the window.
+interface EntrySourceBreakdown {
+  total: number;
+  editorial_total: number;
+  provider_total: number;
+  other_total: number;
+  top_editorial_articles: Array<{ slug: string; count: number }>;
 }
 
 interface SummaryResponse {
@@ -101,6 +141,8 @@ interface SummaryResponse {
     qa_email_issues: QaEmailIssue[];
     benefits_funnel: BenefitsFunnel;
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
+    referrer_breakdown: ReferrerBreakdown;
+    entry_source_breakdown: EntrySourceBreakdown;
   };
   prior: {
     counts: WindowedCounts;
@@ -111,6 +153,8 @@ interface SummaryResponse {
     qa_email_issues: QaEmailIssue[];
     benefits_funnel: BenefitsFunnel;
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
+    referrer_breakdown: ReferrerBreakdown;
+    entry_source_breakdown: EntrySourceBreakdown;
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -148,16 +192,6 @@ function rangeFromSearch(sp: ReturnType<typeof useSearchParams>): DateRangeValue
   return DEFAULT_RANGE;
 }
 
-function rangeToSearch(range: DateRangeValue): string {
-  const params = new URLSearchParams();
-  params.set("preset", range.preset);
-  if (range.preset === "custom") {
-    if (range.customFrom) params.set("from", range.customFrom);
-    if (range.customTo) params.set("to", range.customTo);
-  }
-  return params.toString();
-}
-
 export default function AdminAnalyticsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -165,9 +199,23 @@ export default function AdminAnalyticsPage() {
   const range = useMemo(() => rangeFromSearch(searchParams), [searchParams]);
   const setRange = useCallback(
     (next: DateRangeValue) => {
-      router.replace(`/admin/analytics?${rangeToSearch(next)}`, { scroll: false });
+      // Merge into existing params so other URL state (notably ?variant=
+      // for the Family Intake drill-in expansion) survives a date-range
+      // change. Replacing the URLSearchParams wholesale would silently
+      // collapse any open drill-in.
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("preset");
+      params.delete("from");
+      params.delete("to");
+      params.set("preset", next.preset);
+      if (next.preset === "custom") {
+        if (next.customFrom) params.set("from", next.customFrom);
+        if (next.customTo) params.set("to", next.customTo);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `/admin/analytics?${qs}` : "/admin/analytics", { scroll: false });
     },
-    [router],
+    [router, searchParams],
   );
 
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
@@ -212,6 +260,7 @@ export default function AdminAnalyticsPage() {
       <WindowedCard summary={summary} loading={loading} range={range} />
       <QaFunnelCard summary={summary} loading={loading} range={range} />
       <BenefitsFunnelCard summary={summary} loading={loading} range={range} />
+      <EntrySourceCard summary={summary} loading={loading} range={range} />
       <TopProvidersCard summary={summary} loading={loading} />
       <LatestEventsCard summary={summary} loading={loading} />
 
@@ -279,6 +328,44 @@ function WindowedCard({
                 value={summary.windowed.counts.search_click}
                 prior={summary.prior?.counts.search_click ?? null}
                 tooltip="Click-throughs from a provider card on a results/browse page (NOT home-page Search button)."
+              />
+            </SubRow>
+            <SubRow label="Traffic source" cols={6}>
+              <Stat
+                label="AI chat"
+                value={summary.windowed.referrer_breakdown.ai_chat}
+                prior={summary.prior?.referrer_breakdown.ai_chat ?? null}
+                tooltip="Page views referred from ChatGPT, Claude, Gemini, Perplexity, or Copilot. The H2 capture target — should grow as llms.txt + JSON-LD land."
+              />
+              <Stat
+                label="Search"
+                value={summary.windowed.referrer_breakdown.search}
+                prior={summary.prior?.referrer_breakdown.search ?? null}
+                tooltip="Page views referred from Google, Bing, DuckDuckGo, Yahoo, or Brave search."
+              />
+              <Stat
+                label="Social"
+                value={summary.windowed.referrer_breakdown.social}
+                prior={summary.prior?.referrer_breakdown.social ?? null}
+                tooltip="Page views referred from Facebook, X, LinkedIn, Reddit, YouTube, TikTok, Instagram, or Pinterest."
+              />
+              <Stat
+                label="Internal"
+                value={summary.windowed.referrer_breakdown.olera_internal}
+                prior={summary.prior?.referrer_breakdown.olera_internal ?? null}
+                tooltip="Page views from olera.care itself — same-tab navigation between Olera pages."
+              />
+              <Stat
+                label="Direct"
+                value={summary.windowed.referrer_breakdown.direct}
+                prior={summary.prior?.referrer_breakdown.direct ?? null}
+                tooltip="Page views with no referrer — typed URLs, bookmarks, app webviews, or referrer-stripping browsers."
+              />
+              <Stat
+                label="Other"
+                value={summary.windowed.referrer_breakdown.other}
+                prior={summary.prior?.referrer_breakdown.other ?? null}
+                tooltip="Page views from any other external host. Long tail."
               />
             </SubRow>
             <SubRow label="Engagement">
@@ -631,7 +718,7 @@ function VariantSplit({ byVariant }: { byVariant: ProviderQaFunnelByVariant }) {
   );
 }
 
-// ── Benefits Intake Funnel ───────────────────────────────────────────────
+// ── Family Intake ────────────────────────────────────────────────────────
 
 function BenefitsFunnelCard({
   summary,
@@ -650,8 +737,9 @@ function BenefitsFunnelCard({
   const f = summary.windowed.benefits_funnel;
   const pf = summary.prior?.benefits_funnel ?? null;
 
-  // Distinct sessions per stage. `started` is the cohort denominator (the
-  // user clicked a care-need card). Each subsequent stage is a session that
+  // Distinct sessions per stage. `impressions` is the cohort denominator (the
+  // module rendered on a provider page). `started` is the first interactive
+  // step (care-need card click). Each subsequent stage is a session that
   // fired benefits_step_completed for that step. The save step's completion
   // is the conversion event — it fires immediately before the save-results
   // POST in BenefitsDiscoveryModule.
@@ -663,12 +751,20 @@ function BenefitsFunnelCard({
     tooltip: string;
   }> = [
     {
+      label: "Impressions",
+      value: f.impressions,
+      prior: pf?.impressions ?? null,
+      prev: null,
+      tooltip:
+        "Distinct sessions that saw the intake module render on a provider page (cohort denominator). Mirrors the outreach module's impression event so the four A/B arms can be compared apples-to-apples.",
+    },
+    {
       label: "Started",
       value: f.started,
       prior: pf?.started ?? null,
-      prev: null,
+      prev: f.impressions,
       tooltip:
-        "Distinct sessions that clicked a care-need card to launch the benefits intake (cohort denominator).",
+        "Distinct sessions that took the first interactive action — clicked a care-need card on the benefits form, or clicked a recommended provider card on the outreach module. % shown is conversion from Impressions (engagement rate).",
     },
     {
       label: "Care need ✓",
@@ -707,42 +803,332 @@ function BenefitsFunnelCard({
   return (
     <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
       <div className="flex items-baseline gap-3 mb-1">
-        <h2 className="text-base font-semibold text-gray-900">Benefits Intake Funnel</h2>
+        <h2 className="text-base font-semibold text-gray-900">Family Intake</h2>
         {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
       </div>
       <p className="text-xs text-gray-500 mb-5">
-        Cohort: distinct sessions that started the benefits intake on a provider page {rangeLabel(range).toLowerCase()}. Step % is conversion from the previous step.
+        Top-line tracks the embedded benefits-help form on a provider page {rangeLabel(range).toLowerCase()} — distinct sessions per step, with % showing conversion from the previous step. The 4-arm A/B comparison below adds the AI agent outreach module so all variants can be compared on a shared Impressions denominator.
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-5 gap-y-4">
         {stages.map((s) => (
           <FunnelStat key={s.label} {...s} />
         ))}
       </div>
 
-      <BenefitsVariantSplit byVariant={summary.windowed.benefits_funnel_by_variant} />
+      <TrafficAllocationControl />
+
+      <BenefitsVariantSplit byVariant={summary.windowed.benefits_funnel_by_variant} range={range} />
     </div>
   );
 }
 
-function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVariant }) {
+// Live dial for the intake A/B traffic split. Reads the current weights
+// + version from /api/admin/analytics/variant-weights on mount, lets
+// the operator edit per-arm percentages, and POSTs back when sum is
+// exactly 100. Saving bumps the version on the server side, which
+// reshuffles returning sessions on their next visit (assignment hash
+// is namespaced by version — see lib/analytics/variant.ts).
+//
+// Arm list is derived from INTAKE_VARIANTS so adding/removing a code-
+// level arm flows into this UI automatically. Layout uses an auto-fit
+// grid so 4 / 5 / 6+ arms all flow naturally without leaving a dangling
+// last card.
+//
+// Use cases this supports cleanly:
+//   - Even split (default).
+//   - Two-arm head-to-head: zero out the others.
+//   - Single-arm rollout: 100 on one, 0 elsewhere.
+//   - Off-but-keep-the-code-path: any 0 leaves the variant assignable
+//     in code without taking traffic.
+
+function buildEqualSplit(): Record<IntakeVariant, number> {
+  // Distribute 100 across N arms. Floor each share, then assign the
+  // remainder (100 - N*floor) to the first arm so the sum stays at
+  // exactly 100. With 4 arms this is 25/25/25/25; with 3 it's 34/33/33;
+  // with 7 it's 16/14/14/14/14/14/14. Always lands on integers, always
+  // sums to 100 — i.e. always passes the save validator without
+  // additional fiddling.
+  const n = INTAKE_VARIANTS.length;
+  const base = Math.floor(100 / n);
+  const remainder = 100 - base * n;
+  const out = Object.fromEntries(
+    INTAKE_VARIANTS.map((v, i) => [v, base + (i === 0 ? remainder : 0)]),
+  ) as Record<IntakeVariant, number>;
+  return out;
+}
+
+function TrafficAllocationControl() {
+  const [loaded, setLoaded] = useState(false);
+  const initial = useMemo(buildEqualSplit, []);
+  const [weights, setWeights] = useState<Record<IntakeVariant, number>>(initial);
+  // Saved snapshot. Used to detect "is the form dirty?" so Save is only
+  // enabled when something has actually changed AND the new sum is 100.
+  const [savedWeights, setSavedWeights] = useState<Record<IntakeVariant, number>>(initial);
+  const [version, setVersion] = useState<number>(0);
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Always reach a loaded state — even on auth failure or 500 — so the
+    // form isn't a dead zone. Show error feedback so the operator knows
+    // why the inputs hold the equal-split fallback instead of the live row.
+    fetch("/api/admin/analytics/variant-weights", { cache: "no-store" })
+      .then(async (r) => {
+        if (cancelled) return;
+        if (!r.ok) {
+          setFeedback({ kind: "err", msg: `Failed to load current allocation (${r.status}).` });
+          setLoaded(true);
+          return;
+        }
+        const data = await r.json().catch(() => null);
+        if (!data) {
+          setFeedback({ kind: "err", msg: "Failed to parse current allocation." });
+          setLoaded(true);
+          return;
+        }
+        const w = (data.weights ?? {}) as Partial<Record<IntakeVariant, number>>;
+        // Mirror the server's coerceWeights semantics: missing keys mean
+        // 0%. If a new arm has been added in code but the DB row doesn't
+        // carry it yet, the dial shows the new arm at 0 (and the existing
+        // arms still sum to 100). Operator deliberately turns it on by
+        // re-balancing and saving.
+        const merged = Object.fromEntries(
+          INTAKE_VARIANTS.map((v) => [v, typeof w[v] === "number" ? (w[v] as number) : 0]),
+        ) as Record<IntakeVariant, number>;
+        setWeights(merged);
+        setSavedWeights(merged);
+        setVersion(typeof data.version === "number" ? data.version : 0);
+        setLoaded(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setFeedback({ kind: "err", msg: "Network error loading allocation — try refreshing." });
+        setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const sum = INTAKE_VARIANTS.reduce((s, v) => s + (weights[v] || 0), 0);
+  const sumIsValid = sum === 100;
+  const isDirty = INTAKE_VARIANTS.some((v) => weights[v] !== savedWeights[v]);
+  const canSave = loaded && sumIsValid && isDirty && !saving;
+
+  const setArm = (arm: IntakeVariant, raw: string) => {
+    // Allow empty string while editing; coerce to integer 0-100 on commit.
+    const n = raw === "" ? 0 : parseInt(raw, 10);
+    if (Number.isNaN(n)) return;
+    setWeights((prev) => ({ ...prev, [arm]: Math.max(0, Math.min(100, n)) }));
+    if (feedback?.kind === "ok") setFeedback(null); // clear stale "Saved" once they edit again
+  };
+
+  const reset = () => {
+    setWeights(savedWeights);
+    setFeedback(null);
+  };
+
+  const equalize = () => {
+    setWeights(buildEqualSplit());
+    if (feedback?.kind === "ok") setFeedback(null);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/analytics/variant-weights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weights }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        setFeedback({ kind: "err", msg: body?.error || `Save failed (${res.status})` });
+      } else {
+        const w = (body?.weights ?? {}) as Partial<Record<IntakeVariant, number>>;
+        const merged = { ...weights };
+        for (const v of INTAKE_VARIANTS) {
+          if (typeof w[v] === "number") merged[v] = w[v] as number;
+        }
+        setSavedWeights(merged);
+        setWeights(merged);
+        setVersion(typeof body?.version === "number" ? body.version : version + 1);
+        setFeedback({ kind: "ok", msg: "Saved — returning sessions reshuffle on their next visit." });
+      }
+    } catch {
+      setFeedback({ kind: "err", msg: "Network error — try again." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mt-6 pt-5 border-t border-gray-100">
+      <div className="flex items-baseline justify-between mb-1">
+        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
+          Traffic allocation
+        </div>
+        <div className="text-[11px] text-gray-400 tabular-nums">
+          v{version}
+        </div>
+      </div>
+      <p className="text-[11px] text-gray-400 mb-3">
+        Live dial for the {INTAKE_VARIANTS.length}-arm intake split. Set any arm to 0 to dark it out without removing the code path; concentrate to 100 on a single arm to ramp a winner. Saves apply to new + returning sessions on their next visit (version bump invalidates the prior assignment).
+      </p>
+
+      <div
+        className="grid gap-3 mb-3"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}
+      >
+        {INTAKE_VARIANTS.map((v) => (
+          <label
+            key={v}
+            className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2"
+          >
+            <span className="text-[11px] font-medium text-gray-700">{variantSurfaceLabel(v)}</span>
+            <span className="text-[10px] text-gray-400 leading-tight">{variantSubLabel(v)}</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                disabled={!loaded || saving}
+                value={weights[v]}
+                onChange={(e) => setArm(v, e.target.value)}
+                className="w-16 text-right tabular-nums text-base font-medium text-gray-900 bg-transparent border-b border-gray-200 focus:border-gray-900 focus:outline-none disabled:opacity-50"
+              />
+              <span className="text-xs text-gray-400">%</span>
+            </div>
+          </label>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3 flex-wrap">
+        <span
+          className={`text-[12px] tabular-nums px-2 py-0.5 rounded ${
+            sumIsValid
+              ? "bg-emerald-50 text-emerald-700"
+              : "bg-amber-50 text-amber-700"
+          }`}
+        >
+          Sum: {sum} / 100{sumIsValid ? "" : ` (${sum > 100 ? "+" : ""}${sum - 100})`}
+        </span>
+        <button
+          type="button"
+          onClick={save}
+          disabled={!canSave}
+          className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+            canSave
+              ? "bg-gray-900 text-white hover:bg-gray-800"
+              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+          }`}
+        >
+          {saving ? "Saving…" : "Save allocation"}
+        </button>
+        <button
+          type="button"
+          onClick={equalize}
+          disabled={!loaded || saving}
+          className="text-xs text-gray-500 hover:text-gray-800 underline underline-offset-2 disabled:text-gray-300 disabled:no-underline"
+        >
+          Reset to equal split
+        </button>
+        {isDirty && !saving && (
+          <button
+            type="button"
+            onClick={reset}
+            className="text-xs text-gray-500 hover:text-gray-800 underline underline-offset-2"
+          >
+            Discard changes
+          </button>
+        )}
+        {feedback && (
+          <span
+            className={`text-[11px] ${
+              feedback.kind === "ok" ? "text-emerald-700" : "text-rose-700"
+            }`}
+          >
+            {feedback.msg}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+type VariantKey = keyof BenefitsFunnelByVariant;
+const DRILLABLE_VARIANTS: ReadonlySet<VariantKey> = new Set([
+  "availability",
+  "loss",
+  "empathic",
+  "outreach",
+  "qa_email_capture",
+  "control",
+  "money_loss",
+]);
+
+function BenefitsVariantSplit({
+  byVariant,
+  range,
+}: {
+  byVariant: BenefitsFunnelByVariant;
+  range: DateRangeValue;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // Read the expanded variant from the URL so the state survives reload
+  // and is shareable via link. Validates against the known set so a stray
+  // ?variant=foo doesn't try to render a missing arm.
+  const expandedRaw = searchParams.get("variant");
+  const expandedVariant: VariantKey | null =
+    expandedRaw && DRILLABLE_VARIANTS.has(expandedRaw as VariantKey)
+      ? (expandedRaw as VariantKey)
+      : null;
+
+  const toggleVariant = useCallback(
+    (key: VariantKey) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (expandedVariant === key) {
+        params.delete("variant");
+      } else {
+        params.set("variant", key);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `/admin/analytics?${qs}` : "/admin/analytics", { scroll: false });
+    },
+    [searchParams, expandedVariant, router],
+  );
+
+  const resolved = resolveRange(range);
+  const dateFrom = resolved.from ?? null;
+  const dateTo = resolved.to ?? null;
+
   const totalAssigned =
-    byVariant.availability.started +
-    byVariant.loss.started +
-    byVariant.empathic.started +
-    byVariant.control.started +
-    byVariant.money_loss.started;
-  const waitingForFirstStart = totalAssigned === 0;
+    byVariant.availability.impressions +
+    byVariant.loss.impressions +
+    byVariant.empathic.impressions +
+    byVariant.outreach.impressions +
+    byVariant.qa_email_capture.impressions +
+    byVariant.control.impressions +
+    byVariant.money_loss.impressions;
+  const waitingForFirstImpression = totalAssigned === 0;
 
   const rate = (num: number, den: number) =>
     den > 0 ? `${Math.round((num / den) * 100)}%` : "—";
 
-  // Active V3 arms shipped in the cutover. Empty rows are still shown so the
-  // layout stays stable as data trickles in.
-  const activeArms: Array<{ key: keyof BenefitsFunnelByVariant; label: string; description: string }> = [
-    { key: "availability", label: "availability", description: "There's help paying for care in {state}." },
-    { key: "loss", label: "loss", description: "Most {state} families miss out on help paying for care." },
-    { key: "empathic", label: "empathic", description: "Care is expensive." },
+  // Active arms. Empty rows are still shown so the layout stays stable as
+  // data trickles in. Narrow key types so VariantPreviewCard's prop
+  // signature (IntakeVariant + legacy strings) accepts them without a cast.
+  const activeArms = [
+    { key: "availability" as const, label: "availability", description: "There's help paying for care in {state}." },
+    { key: "loss" as const, label: "loss", description: "Most {state} families miss out on help paying for care." },
+    { key: "empathic" as const, label: "empathic", description: "Care is expensive." },
+    { key: "outreach" as const, label: "outreach", description: "Have an AI agent contact the top providers for you.", isOutreach: true },
+    { key: "qa_email_capture" as const, label: "qa_email_capture", description: "No SBF / no outreach. Q&A enrichment ON with comparison-providers value-promise.", isOutreach: true },
   ];
   // Legacy V2 arms only render when they have data in the window — once the
   // historical window rolls past V2, these rows disappear automatically.
@@ -750,15 +1136,21 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
     { key: "control" as const, label: "control (legacy V2)" },
     { key: "money_loss" as const, label: "money_loss (legacy V2)" },
   ];
-  const legacyArms = legacyCandidates.filter((a) => byVariant[a.key].started > 0);
+  // Legacy V2 rows predate the benefits_entry_viewed instrumentation, so
+  // they'll have started > 0 but impressions == 0. Keep them visible while
+  // any signal exists in either column so the historical funnel doesn't
+  // disappear from the dashboard mid-window.
+  const legacyArms = legacyCandidates.filter(
+    (a) => byVariant[a.key].started > 0 || byVariant[a.key].impressions > 0,
+  );
 
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">
       <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
-        A/B Test — entry-point copy (3-arm)
+        A/B Test — entry-point module (5-arm)
       </div>
       <p className="text-[11px] text-gray-400 mb-3">
-        Deterministic 1/3 split by session id (djb2 hash mod 3). Conversion % = contact submitted / started. Variant copy strings + commentary live in the{" "}
+        Deterministic split by session id (djb2 hash, weighted-bucket lookup against the live allocation set above) — 3 benefits-help copy arms + 1 AI agent outreach arm + 1 qa_email_capture arm (no SBF / no outreach; Q&A enrichment ON). Impressions = module rendered on a provider page; Started = first interactive action (care-need click for benefits, recommended-card click for outreach, N/A for qa_email_capture); Submitted = email/form submission (for qa_email_capture, post-question email enrichment). Conversion % = Submitted / Impressions, so all five arms compare on the same denominator. Variant copy strings + commentary live in the{" "}
         <a
           href="https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d"
           target="_blank"
@@ -769,9 +1161,9 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
         </a>
         .
       </p>
-      {waitingForFirstStart && (
+      {waitingForFirstImpression && (
         <p className="text-[12px] text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-3 py-2 mb-3">
-          Waiting for the first variant-tagged start. The numbers below populate once a new <code className="text-[11px] bg-white/60 px-1 rounded">benefits_started</code> event fires in this window.
+          Waiting for the first variant-tagged impression. The numbers below populate once a new module impression fires in this window.
         </p>
       )}
       <div className="overflow-x-auto -mx-1">
@@ -779,6 +1171,7 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
           <thead>
             <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
               <th className="px-3 py-2 font-medium">Variant</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Impressions</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Started</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Care need ✓</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Submitted</th>
@@ -786,38 +1179,108 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
             </tr>
           </thead>
           <tbody>
-            {activeArms.map(({ key, label, description }) => {
+            {activeArms.map(({ key, label, description, isOutreach }) => {
               const r = byVariant[key];
+              const isExpanded = expandedVariant === key;
               return (
-                <tr key={key} className="border-b border-gray-50">
-                  <td className="px-3 py-2 font-medium text-gray-700">
-                    {label}
-                    <div className="text-[11px] font-normal text-gray-400 truncate max-w-[280px]">{description}</div>
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.started}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.care_need_completed}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.saved}</td>
-                  <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.saved, r.started)}</td>
-                </tr>
+                <Fragment key={key}>
+                  <tr
+                    className={`border-b border-gray-50 cursor-pointer transition-colors ${
+                      isExpanded ? "bg-gray-50/60" : "hover:bg-gray-50/40"
+                    }`}
+                    onClick={() => toggleVariant(key)}
+                    aria-expanded={isExpanded}
+                  >
+                    <td className="px-3 py-2 font-medium text-gray-700">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`inline-block text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                          aria-hidden="true"
+                        >
+                          ›
+                        </span>
+                        <span>{label}</span>
+                      </div>
+                      <div className="text-[11px] font-normal text-gray-400 truncate max-w-[280px] pl-4">{description}</div>
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.impressions}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
+                    {/* Outreach arm has no middle "care need" step — show — instead of 0. */}
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-700">
+                      {isOutreach ? <span className="text-gray-300">—</span> : r.care_need_completed}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.saved}</td>
+                    <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.saved, r.impressions)}</td>
+                  </tr>
+                  {isExpanded && (
+                    <tr className="bg-gray-50/30">
+                      <td colSpan={6} className="px-3 py-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
+                          <VariantPreviewCard variant={key} />
+                          <VariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               );
             })}
             {legacyArms.length > 0 && (
               <>
                 <tr>
-                  <td colSpan={5} className="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-gray-400">
+                  <td colSpan={6} className="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-gray-400">
                     Legacy V2 (historical)
                   </td>
                 </tr>
                 {legacyArms.map(({ key, label }) => {
                   const r = byVariant[key];
+                  const isExpanded = expandedVariant === key;
+                  // Legacy V2 rows predate the benefits_entry_viewed event,
+                  // so they have impressions=0 even when they have meaningful
+                  // started/saved counts. Fall back to saved/started so the
+                  // historical conversion rate stays visible until those
+                  // rows roll out of the window entirely.
+                  const legacyConversion =
+                    r.impressions > 0 ? rate(r.saved, r.impressions) : rate(r.saved, r.started);
                   return (
-                    <tr key={key} className="border-b border-gray-50 opacity-60">
-                      <td className="px-3 py-2 font-medium text-gray-500">{label}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-gray-600">{r.care_need_completed}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-gray-600">{r.saved}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-gray-700">{rate(r.saved, r.started)}</td>
-                    </tr>
+                    <Fragment key={key}>
+                      <tr
+                        className={`border-b border-gray-50 cursor-pointer transition-colors ${
+                          isExpanded ? "bg-gray-50/60" : "hover:bg-gray-50/40 opacity-60"
+                        }`}
+                        onClick={() => toggleVariant(key)}
+                        aria-expanded={isExpanded}
+                      >
+                        <td className="px-3 py-2 font-medium text-gray-500">
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`inline-block text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                              aria-hidden="true"
+                            >
+                              ›
+                            </span>
+                            <span>{label}</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-400">
+                          {r.impressions > 0 ? r.impressions : <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-600">{r.care_need_completed}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-600">{r.saved}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-700">{legacyConversion}</td>
+                      </tr>
+                      {isExpanded && (
+                        <tr className="bg-gray-50/30">
+                          <td colSpan={6} className="px-3 py-4">
+                            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
+                              <VariantPreviewCard variant={key} />
+                              <VariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </>
@@ -825,11 +1288,126 @@ function BenefitsVariantSplit({ byVariant }: { byVariant: BenefitsFunnelByVarian
           </tbody>
         </table>
       </div>
-      {byVariant.unassigned.started > 0 && (
+      {byVariant.unassigned.impressions > 0 && (
         <p className="text-[11px] text-gray-400 mt-3">
-          {byVariant.unassigned.started} sessions in window with no variant assigned (events fired before any A/B was wired).
+          {byVariant.unassigned.impressions} sessions in window with no variant assigned (events fired before any A/B was wired).
         </p>
       )}
+    </div>
+  );
+}
+
+// Submissions bucketed by entry source. The benefits funnel above is
+// provider_activity-driven and editorial mounts emit zero provider_activity,
+// so editorial submissions are invisible there. This card reads accounts
+// directly so editorial conversions surface — and so we can answer
+// "did /caregiver-support/ produce signups?" without a SQL detour.
+function EntrySourceCard({
+  summary,
+  loading,
+  range,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+  range: DateRangeValue;
+}) {
+  if (loading && !summary) {
+    return <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6 h-32 animate-pulse" />;
+  }
+  if (!summary) return null;
+
+  const b = summary.windowed.entry_source_breakdown;
+  const pb = summary.prior?.entry_source_breakdown ?? null;
+
+  const pct = (n: number, d: number) => (d > 0 ? `${Math.round((n / d) * 100)}%` : "—");
+  const delta = (curr: number, prior: number | null) => {
+    if (prior === null) return null;
+    if (prior === 0) return curr > 0 ? "new" : null;
+    const change = Math.round(((curr - prior) / prior) * 100);
+    return `${change >= 0 ? "+" : ""}${change}%`;
+  };
+
+  const editorialDelta = delta(b.editorial_total, pb?.editorial_total ?? null);
+  const providerDelta = delta(b.provider_total, pb?.provider_total ?? null);
+
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
+      <div className="flex items-baseline gap-3 mb-1">
+        <h2 className="text-base font-semibold text-gray-900">Submissions by Entry Source</h2>
+        {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
+      </div>
+      <p className="text-xs text-gray-500 mb-5">
+        SBF intake submissions {rangeLabel(range).toLowerCase()}, bucketed by{" "}
+        <code className="text-[11px] bg-gray-50 px-1 rounded">accounts.signup_source</code>
+        . Editorial mounts tag <code className="text-[11px] bg-gray-50 px-1 rounded">/caregiver-support/&#123;slug&#125;</code>; provider mounts tag <code className="text-[11px] bg-gray-50 px-1 rounded">/provider/&#123;slug&#125;</code>. Untagged accounts (auth callback, claim flows, etc.) are excluded. Provider SBF submissions made before the tagging deploy are also untagged → invisible until they roll out of the window.
+      </p>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-3 mb-5">
+        <EntrySourceStat label="Total tagged" value={b.total} delta={null} />
+        <EntrySourceStat
+          label="Editorial"
+          value={b.editorial_total}
+          subLabel={pct(b.editorial_total, b.total)}
+          delta={editorialDelta}
+        />
+        <EntrySourceStat
+          label="Provider"
+          value={b.provider_total}
+          subLabel={pct(b.provider_total, b.total)}
+          delta={providerDelta}
+        />
+        <EntrySourceStat label="Other" value={b.other_total} subLabel={pct(b.other_total, b.total)} delta={null} />
+      </div>
+
+      {b.top_editorial_articles.length > 0 ? (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-2">
+            Top editorial articles
+          </div>
+          <ul className="space-y-1.5">
+            {b.top_editorial_articles.map(({ slug, count }) => (
+              <li key={slug} className="flex items-baseline justify-between text-sm">
+                <a
+                  href={`/caregiver-support/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-700 hover:text-gray-900 truncate mr-3 underline-offset-2 hover:underline"
+                >
+                  /caregiver-support/{slug}
+                </a>
+                <span className="tabular-nums text-gray-900 font-medium flex-shrink-0">{count}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : b.editorial_total === 0 ? (
+        <p className="text-[11px] text-gray-400 mt-3">
+          No editorial submissions yet in this window. Top articles by submission count appear here once <code className="text-[10px] bg-gray-50 px-1 rounded">/caregiver-support/[slug]</code> mounts start producing tagged accounts.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function EntrySourceStat({
+  label,
+  value,
+  subLabel,
+  delta,
+}: {
+  label: string;
+  value: number;
+  subLabel?: string;
+  delta: string | null;
+}) {
+  return (
+    <div>
+      <div className="text-[11px] font-medium uppercase tracking-wider text-gray-400 mb-0.5">{label}</div>
+      <div className="flex items-baseline gap-2">
+        <div className="text-xl font-semibold tabular-nums text-gray-900">{value}</div>
+        {subLabel && <div className="text-[12px] text-gray-500 tabular-nums">{subLabel}</div>}
+      </div>
+      {delta && <div className="text-[11px] text-gray-400 mt-0.5">{delta} vs prior</div>}
     </div>
   );
 }

@@ -138,6 +138,15 @@ interface SaveResultsPayload {
    *  email + downstream re-engagement copy. Optional — falls back to
    *  generic copy when missing. */
   relationship?: "my-parent" | "my-spouse" | "myself" | "other-family";
+  /** Path of the page where the user submitted the intake. Editorial mounts
+   *  pass `/caregiver-support/{slug}`; provider-page mounts leave undefined.
+   *  Persisted to accounts.signup_source so downstream conversion analysis
+   *  can segment by entry page. */
+  entrySource?: string;
+  /** Anonymous session id from lib/analytics/session.ts. Persisted to
+   *  accounts.session_id so the admin Family Intake drill-in can join an
+   *  account back to its impression / started events on provider_activity. */
+  sessionId?: string;
   matchedPrograms: SavedProgramInput[];
   matchCount: number;
 }
@@ -169,6 +178,8 @@ export async function POST(req: Request) {
     contactChannel = "email",
     providerSlug,
     relationship,
+    entrySource,
+    sessionId,
     matchedPrograms,
     matchCount,
   } = payload;
@@ -420,6 +431,8 @@ export async function POST(req: Request) {
           user_id: userId,
           display_name: displayName,
           onboarding_completed: false,
+          signup_source: entrySource || null,
+          session_id: sessionId || null,
         })
         .select("id")
         .single();
@@ -658,9 +671,18 @@ export async function POST(req: Request) {
       topSavings,
       isNewUser,
     });
-    sendSlackAlert(alert.text, alert.blocks).catch((err) => {
-      console.error("[save-results] Slack alert failed:", err);
-    });
+    // Awaited via Promise.allSettled — fire-and-forget gets killed by
+    // Vercel's serverless runtime once the response goes out (cost a 7h
+    // diagnosis on the agent-outreach route, 2026-05-03). Adds ~200-400ms
+    // latency but guarantees the alert lands. allSettled so a Slack
+    // failure doesn't abort the response — the canonical accounts row is
+    // already in the DB at this point.
+    const [slackResult] = await Promise.allSettled([
+      sendSlackAlert(alert.text, alert.blocks),
+    ]);
+    if (slackResult.status === "rejected") {
+      console.error("[save-results] Slack alert failed:", slackResult.reason);
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════

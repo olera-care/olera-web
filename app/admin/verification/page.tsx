@@ -104,6 +104,7 @@ const METHOD_LABELS: Record<string, { label: string; icon: string }> = {
   linkedin: { label: "LinkedIn", icon: "🔗" },
   website: { label: "Website", icon: "🌐" },
   document: { label: "Document", icon: "📄" },
+  "badge-request": { label: "Badge Request", icon: "🎖️" },
 };
 
 type StatusFilter = "unverified_claims" | "pending" | "approved" | "rejected";
@@ -116,6 +117,27 @@ const TRUST_OPTIONS = [
   { value: "low", label: "Low trust" },
   { value: "none", label: "Not scored" },
 ];
+
+// ── Helper to format relative time ──
+
+function formatDaysAgo(dateString: string): string {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) return ""; // Future date edge case
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "1 day ago";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 14) return "1 week ago";
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (diffDays < 60) return "1 month ago";
+  return `${Math.floor(diffDays / 30)} months ago`;
+}
 
 // ── Filter Components ──
 
@@ -544,7 +566,7 @@ export default function AdminVerificationPage() {
             <button
               key={f.value}
               type="button"
-              onClick={() => { setPage(0); setFilter(f.value); }}
+              onClick={() => { if (filter === f.value) return; setPage(0); setProviders([]); setLoading(true); setFilter(f.value); }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                 filter === f.value
                   ? "bg-primary-600 text-white"
@@ -611,13 +633,13 @@ export default function AdminVerificationPage() {
         {/* State filter */}
         <StateSelectFilter
           value={stateFilter}
-          onChange={(v) => { setPage(0); setStateFilter(v); }}
+          onChange={(v) => { setPage(0); setProviders([]); setLoading(true); setStateFilter(v); }}
         />
 
         {/* Trust filter */}
         <TrustSelectFilter
           value={trustFilter}
-          onChange={(v) => { setPage(0); setTrustFilter(v); }}
+          onChange={(v) => { setPage(0); setProviders([]); setLoading(true); setTrustFilter(v); }}
         />
 
         {/* Clear filters - only when active */}
@@ -625,6 +647,8 @@ export default function AdminVerificationPage() {
           <button
             onClick={() => {
               setPage(0);
+              setProviders([]);
+              setLoading(true);
               setStateFilter("");
               setTrustFilter("");
             }}
@@ -796,7 +820,7 @@ export default function AdminVerificationPage() {
                                   Admin
                                 </span>
                               ) : provider.metadata?.auto_verified || provider.metadata?.verification_method ? (
-                                <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded font-medium">
+                                <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded font-medium whitespace-nowrap">
                                   Self-Verified
                                 </span>
                               ) : (
@@ -810,13 +834,35 @@ export default function AdminVerificationPage() {
                           )}
                         </td>
                       )}
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {filter === "pending" && submission?.submitted_at
-                          ? new Date(submission.submitted_at).toLocaleDateString()
-                          : new Date(provider.updated_at).toLocaleDateString()}
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-gray-500">
+                          {filter === "pending" && submission?.submitted_at
+                            ? new Date(submission.submitted_at).toLocaleDateString()
+                            : new Date(provider.updated_at).toLocaleDateString()}
+                        </p>
+                        {filter === "unverified_claims" && (
+                          <p className="text-xs text-gray-400">
+                            {formatDaysAgo(provider.updated_at)}
+                          </p>
+                        )}
+                        {filter === "pending" && submission?.submitted_at && (
+                          <p className="text-xs text-gray-400">
+                            {formatDaysAgo(submission.submitted_at)}
+                          </p>
+                        )}
+                        {filter === "approved" && (
+                          <p className="text-xs text-gray-400">
+                            {formatDaysAgo(provider.updated_at)}
+                          </p>
+                        )}
+                        {filter === "rejected" && (
+                          <p className="text-xs text-gray-400">
+                            {formatDaysAgo(provider.updated_at)}
+                          </p>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex gap-2 justify-end">
+                        <div className="flex flex-nowrap gap-2 justify-end">
                           {filter === "unverified_claims" && (
                             <>
                               <button
@@ -879,14 +925,14 @@ export default function AdminVerificationPage() {
                             <>
                               <button
                                 onClick={() => openProviderModal(provider)}
-                                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap"
                               >
                                 Details
                               </button>
                               <button
                                 onClick={() => handleAction(provider.id, "approve")}
                                 disabled={actionLoading === provider.id}
-                                className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                                className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors whitespace-nowrap"
                               >
                                 {actionLoading === provider.id ? "..." : "Approve Badge"}
                               </button>
@@ -919,6 +965,18 @@ export default function AdminVerificationPage() {
       )}
     </div>
   );
+}
+
+// ── Helper to check if provider has verification attempts ──
+
+function hasVerificationAttempts(provider: Provider): boolean {
+  const metadata = provider.metadata;
+  if (!metadata) return false;
+
+  const attempts = metadata.verification_attempts || [];
+  const emailOtpAttempt = metadata.email_otp_attempt;
+
+  return attempts.length > 0 || !!emailOtpAttempt;
 }
 
 // ── Verification Review Modal ──
@@ -1330,8 +1388,11 @@ function VerificationReviewModal({
       {/* Pre-Claim Engagement - Only show if there's engagement data */}
       <PreClaimEngagementSection journey={provider.claim_journey} />
 
+      {/* Verification Attempts - Always show if they exist (regardless of submission) */}
+      <VerificationAttemptsSection provider={provider} formatDate={formatDate} />
+
       {/* Submission Details */}
-      {submission ? (
+      {submission && (
         <div className="space-y-5">
           <div>
             <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
@@ -1432,9 +1493,6 @@ function VerificationReviewModal({
             </div>
           )}
 
-          {/* Verification Attempts */}
-          <VerificationAttemptsSection provider={provider} formatDate={formatDate} />
-
           {/* Show notes (new field) or affiliation (legacy field) */}
           {(submission.notes || submission.affiliation) && (
             <div>
@@ -1489,7 +1547,10 @@ function VerificationReviewModal({
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {/* Empty state - only show if NO submission AND NO verification attempts */}
+      {!submission && !hasVerificationAttempts(provider) && (
         <EmptyStateMessage
           currentTab={currentTab}
           isHighTrust={provider.claim_trust_level === "high" || provider.verification_state === "not_required"}
@@ -1594,7 +1655,7 @@ function VerificationAttemptsSection({ provider, formatDate }: VerificationAttem
 
   return (
     <>
-      <div>
+      <div className="mb-5">
         <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
           Verification Attempts ({allAttempts.length})
         </p>

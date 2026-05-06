@@ -104,17 +104,17 @@ export default function Select({
     : normalizedOptions;
   const selectedOption = normalizedOptions.find((opt) => opt.value === value);
 
-  // Size classes
+  // Size classes - matched to common input styling
   const sizeClasses = {
-    sm: "px-3 py-2 text-sm min-h-[40px]",
-    md: "px-4 py-3 text-base min-h-[48px]",
-    lg: "px-4 py-3.5 text-lg min-h-[52px]",
+    sm: "px-3 py-2 text-sm",
+    md: "px-4 py-2.5 text-base",
+    lg: "px-4 py-3 text-lg",
   };
 
   const optionSizeClasses = {
-    sm: "px-3 py-2.5 text-sm",
-    md: "px-4 py-3 text-base",
-    lg: "px-4 py-3.5 text-lg",
+    sm: "px-3 py-2 text-sm",
+    md: "px-4 py-2.5 text-base",
+    lg: "px-4 py-3 text-lg",
   };
 
   // ────────────────────────────────────────────────────────────
@@ -304,12 +304,21 @@ export default function Select({
     [disabled, isOpen, focusedIndex, filteredOptions, value, onChange, searchable]
   );
 
-  // Scroll focused option into view
+  // Scroll focused option into view (within the dropdown only, not the page)
   useEffect(() => {
-    if (isOpen && focusedIndex >= 0 && optionRefs.current[focusedIndex]) {
-      optionRefs.current[focusedIndex]?.scrollIntoView({
-        block: "nearest",
-      });
+    if (isOpen && focusedIndex >= 0 && optionRefs.current[focusedIndex] && listRef.current) {
+      const option = optionRefs.current[focusedIndex];
+      const list = listRef.current.querySelector('[class*="overflow-y-auto"]');
+      if (option && list) {
+        const optionRect = option.getBoundingClientRect();
+        const listRect = list.getBoundingClientRect();
+
+        if (optionRect.top < listRect.top) {
+          option.scrollIntoView({ block: "start", behavior: "instant" });
+        } else if (optionRect.bottom > listRect.bottom) {
+          option.scrollIntoView({ block: "end", behavior: "instant" });
+        }
+      }
     }
   }, [isOpen, focusedIndex]);
 
@@ -346,18 +355,18 @@ export default function Select({
         onKeyDown={handleKeyDown}
         disabled={disabled}
         className={[
-          "w-full pr-10 rounded-xl border text-left transition-all cursor-pointer",
+          "w-full pr-10 rounded-lg border text-left transition-all cursor-pointer",
           sizeClasses[size],
           isOpen
-            ? "border-transparent ring-2 ring-primary-300 bg-white"
+            ? "border-primary-400 ring-2 ring-primary-100 bg-white"
             : error
               ? "border-red-300 bg-white"
-              : "border-gray-200 bg-gray-50/50 hover:border-gray-300",
+              : "border-gray-200 bg-white hover:border-gray-300",
           disabled
             ? "opacity-50 cursor-not-allowed bg-gray-100"
             : "",
           !value ? "text-gray-400" : "text-gray-900",
-          "focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent focus:bg-white",
+          "focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-400",
         ].filter(Boolean).join(" ")}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
@@ -389,12 +398,12 @@ export default function Select({
           role="listbox"
           aria-labelledby={label ? labelId : undefined}
           aria-activedescendant={focusedIndex >= 0 ? `${listboxId}-option-${focusedIndex}` : undefined}
-          className="z-[100] bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden max-h-[320px] flex flex-col"
+          className="z-[100] bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden max-h-[320px] flex flex-col"
           style={{ ...dropdownStyle, animation: "fade-in 0.15s ease-out" }}
         >
           {/* Search input */}
           {searchable && (
-            <div className="px-3 py-2 border-b border-gray-100 shrink-0">
+            <div className="px-2 py-2 border-b border-gray-100 shrink-0">
               <input
                 ref={searchInputRef}
                 type="text"
@@ -405,7 +414,7 @@ export default function Select({
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder={searchPlaceholder}
-                className="w-full px-2.5 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 placeholder:text-gray-400"
+                className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-md outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 placeholder:text-gray-400"
                 aria-label="Filter options"
               />
             </div>
@@ -449,8 +458,8 @@ export default function Select({
                       option.disabled
                         ? "opacity-50 cursor-not-allowed"
                         : "",
-                      !searchable && index === 0 ? "rounded-t-xl" : "",
-                      index === filteredOptions.length - 1 ? "rounded-b-xl" : "",
+                      !searchable && index === 0 ? "rounded-t-lg" : "",
+                      index === filteredOptions.length - 1 ? "rounded-b-lg" : "",
                     ].filter(Boolean).join(" ")}
                   >
                     <span className="flex items-center gap-2.5">

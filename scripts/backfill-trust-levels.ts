@@ -1,12 +1,12 @@
 /**
- * Backfill Trust Levels for Legacy Verified Providers
+ * Backfill Trust Levels for All Claimed Providers
  *
- * This script finds verified providers with null claim_trust_level,
- * retrieves their claimer email, scores them using the existing
- * scoreClaimTrust function, and updates the database.
+ * This script finds all claimed providers (verified OR unverified) with null
+ * claim_trust_level, retrieves their claimer email, scores them using the
+ * existing scoreClaimTrust function, and updates the database.
  *
- * SAFE: Only updates claim_trust_level and claim_trust_reason.
- * Does NOT modify verification_state or any access controls.
+ * SAFE: Only updates claim_trust_level.
+ * Does NOT modify verification_state, claim_state, or any access controls.
  *
  * Usage:
  *   npx tsx scripts/backfill-trust-levels.ts           # Dry run (default)
@@ -176,20 +176,22 @@ function sleep(ms: number): Promise<void> {
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Backfill Trust Levels for Verified Providers");
+  console.log("Backfill Trust Levels for All Claimed Providers");
   console.log("=".repeat(60));
   console.log("");
   console.log(`Mode: ${isDryRun ? "DRY RUN (no changes)" : "COMMIT (writing to DB)"}`);
   console.log("");
 
-  // Find verified providers without trust level
-  // "Verified" = verification_state in ('verified', 'not_required') OR badge_approved = true
+  // Find all claimed providers without trust level
+  // Includes both verified AND unverified providers who have claimed
+  // Only organizations and caregivers (NOT family, student, or other types)
   const { data: providers, error: fetchError } = await db
     .from("business_profiles")
     .select("id, display_name, account_id, city, state, category, website, verification_state, claim_trust_level")
     .is("claim_trust_level", null)
     .not("account_id", "is", null)
-    .or("verification_state.eq.verified,verification_state.eq.not_required")
+    .in("claim_state", ["pending", "claimed"])
+    .in("type", ["organization", "caregiver"])
     .order("updated_at", { ascending: false });
 
   if (fetchError) {
@@ -202,7 +204,7 @@ async function main() {
     return;
   }
 
-  console.log(`Found ${providers.length} verified providers with null trust level.`);
+  console.log(`Found ${providers.length} claimed providers with null trust level.`);
   console.log("");
 
   // Process in batches

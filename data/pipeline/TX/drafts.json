@@ -9,7 +9,7 @@
       "id": "medicaid-buy-in-qmb-slmb-qi",
       "name": "Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
       "shortName": "Medicaid Buy-In Programs",
-      "tagline": "If your disabled child needs comprehensive health coverage or your loved one struggles with Medicare costs, these programs provide full Medicaid benefits or pay Medicare premiums.",
+      "tagline": "Estimated 2026 savings: $2,434–$5,000+/year. Based on the 2026 Medicare Part B premium of $202.90/month plus potential cost-sharing savings for QMB; MBIC comprehensive coverage value varies by child's needs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -22,8 +22,8 @@
           }
         ]
       },
-      "intro": "If you have a disabled child whose family earns too much for regular Medicaid, or an elderly loved one struggling with Medicare premiums and co-pays, these Texas programs can provide critical health coverage. MBIC (Medicaid Buy-In for Children) offers full Medicaid benefits for disabled children in families earning up to 300% of the federal poverty level, that's about $66,700 annually for a family of four. You'll pay a sliding-scale premium (typically $20-$40 monthly), but your child gets comprehensive coverage including doctor visits, prescriptions, dental care, therapies, and case management.\n\nFor elderly loved ones on Medicare, three related programs help with costs. QMB (Qualified Medicare Beneficiary) pays all Medicare premiums and cost-sharing for individuals with monthly income under $1,275. SLMB (Specified Low-Income Medicare Beneficiary) covers Medicare Part B premiums for those earning up to $1,526 monthly. QI (Qualifying Individual) also covers Part B premiums but has limited funding and potential waitlists.\n\nAll programs require Texas residency, citizenship or legal status, and specific asset limits, typically under $9,660 for individuals or $14,470 for couples, excluding your home and car. Because these programs have strict disability requirements (for children) and precise income thresholds (for Medicare beneficiaries), gather documentation carefully before applying.",
-      "savingsRange": "$1,500 – $4,000/year in 2026",
+      "intro": "If you have a disabled child whose family earns too much for regular Medicaid, or an elderly loved one struggling with Medicare premiums and co-pays, these Texas programs can provide critical health coverage. MBIC (Medicaid Buy-In for Children) offers full Medicaid benefits for disabled children in families earning up to $8,250 monthly for a family of four. You'll pay a sliding-scale premium based on your income and existing insurance, but your child gets comprehensive coverage including doctor visits, hospital care, therapies, and prescriptions.\n\nFor elderly loved ones on Medicare, three related programs help with costs. QMB (Qualified Medicare Beneficiary) pays all Medicare premiums and cost-sharing for individuals with monthly income under $1,350. SLMB (Specified Low-Income Medicare Beneficiary) covers Medicare Part B premiums ($202.90/month in 2026) for those earning up to $1,616 monthly. QI (Qualifying Individual) also covers Part B premiums for those earning up to $1,816 but operates on a first-come, first-served basis.\n\nAll programs require Texas residency and have specific asset limits of $9,950 for individuals or $14,910 for couples (Medicare Savings Programs only — MBIC has no asset test), though your home and one car are typically excluded. Because these programs have strict disability requirements and precise income thresholds, gather documentation carefully before applying at YourTexasBenefits.com.",
+      "savingsRange": "$2,434 – $5,000+/year in 2026",
       "savingsSource": "Medicare Part B premium ($174.70/month) plus potential cost-sharing savings for QMB; MBIC comprehensive coverage value varies by child's needs",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -38,32 +38,32 @@
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 3913
+            "monthlyLimit": 3990
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 5297
+            "monthlyLimit": 5410
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 6681
+            "monthlyLimit": 6830
           },
           {
             "householdSize": 4,
-            "monthlyLimit": 8065
+            "monthlyLimit": 8250
           },
           {
             "householdSize": 5,
-            "monthlyLimit": 9449
+            "monthlyLimit": 9670
           },
           {
             "householdSize": 6,
-            "monthlyLimit": 10833
+            "monthlyLimit": 11090
           }
         ],
         "assetLimits": {
-          "individual": 9660,
-          "couple": 14470,
+          "individual": 9950,
+          "couple": 14910,
           "countedAssets": [
             "Cash",
             "Bank accounts",
@@ -99,7 +99,7 @@
           {
             "step": 2,
             "title": "Choose application method",
-            "description": "For MBIC: Download Form H1200-MBIC from www.hhsc.state.tx.us/Help/HealthCare/Children/MBIC.html. For QMB/SLMB/QI: Apply online at YourTexasBenefits.com or use Form H1200."
+            "description": "Apply for all programs (MBIC, QMB, SLMB, QI) at YourTexasBenefits.com or via the Your Texas Benefits mobile app. For Medicare Savings Programs specifically, use Form H1200."
           },
           {
             "step": 3,
@@ -122,16 +122,16 @@
         "tip": "For MBIC, have your child's SSI determination letter ready, this speeds up the disability verification process significantly.",
         "urls": [
           {
-            "label": "MBIC Application Form",
-            "url": "https://www.hhsc.state.tx.us/Help/HealthCare/Children/MBIC.html"
-          },
-          {
-            "label": "Your Texas Benefits Portal",
+            "label": "Apply Now (Your Texas Benefits)",
             "url": "https://www.yourtexasbenefits.com"
           },
           {
-            "label": "Medicare Buy-In Programs Info",
-            "url": "https://www.hhs.texas.gov/services/medicare-medicaid"
+            "label": "MBIC Official Overview",
+            "url": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs-services/programs-children-adults-disabilities/medicaid-buy-children"
+          },
+          {
+            "label": "Texas Medicare Savings Programs",
+            "url": "https://www.hhs.texas.gov/services/health/medicare"
           }
         ]
       },
@@ -186,6 +186,11 @@
       ],
       "contentSections": [
         {
+          "type": "callout",
+          "tone": "info",
+          "text": "Asset limits above apply to Medicare Savings Programs (QMB, SLMB, QI) only. MBIC for children does not have an asset test — only family income is tested."
+        },
+        {
           "type": "tier-comparison",
           "title": "Medicare Cost-Sharing Program Comparison",
           "content": {
@@ -214,16 +219,16 @@
       ],
       "faqs": [
         {
-          "question": "Can my disabled child get MBIC if our family income is $70,000 a year?",
-          "answer": "No, $70,000 exceeds the 300% federal poverty level limit for most family sizes. For a family of four, the limit is approximately $66,700 annually. However, income limits increase with larger household sizes, so check the current federal poverty guidelines if you have 5+ family members."
+          "question": "Can my disabled child get MBIC if our family income is $99,000 a year?",
+          "answer": "Yes. For 2026, the income limit for a family of four is $8,250 monthly, which is $99,000 annually. As long as your family's adjusted gross income is below 300% of the federal poverty level, your child likely qualifies."
         },
         {
           "question": "What happens if my loved one's income is just over the QMB limit but they can't afford Medicare costs?",
-          "answer": "Check if they qualify for SLMB (income up to $1,526/month) or QI (up to $1,718/month), which at least cover the Medicare Part B premium. They may also qualify for Medicare's Extra Help program for prescription drug costs, which has higher income limits."
+          "answer": "Check if they qualify for SLMB (income up to $1,616/month) or QI (up to $1,816/month). They may also qualify for Extra Help with prescriptions, which has an even higher individual limit of approximately $2,015/month."
         },
         {
-          "question": "Does my loved one's home count toward the $9,660 asset limit?",
-          "answer": "No, your loved one's primary residence is exempt regardless of value, along with one vehicle, burial plots, and pre-paid burial contracts. Only countable assets like cash, bank accounts, and investments count toward the limit."
+          "question": "Does my loved one's home count toward the $9,950 asset limit?",
+          "answer": "No. Your loved one's primary residence is exempt. For Medicare Savings Programs, countable assets must be under $9,950 (up from $9,660). Note: For children applying for MBIC, there is no asset test at all — only family income is considered."
         },
         {
           "question": "How long does the MBIC disability determination take?",
@@ -231,7 +236,7 @@
         },
         {
           "question": "Can I apply for multiple Medicare programs at the same time?",
-          "answer": "You should apply for the highest benefit level you think you qualify for. If approved for QMB, you automatically get the most comprehensive coverage. If denied, HHSC will consider you for SLMB or QI based on the same application."
+          "answer": "You only need to submit one application. Texas HHSC will automatically evaluate you for the highest benefit (QMB) and, if you don't qualify, they will automatically consider you for SLMB or QI."
         },
         {
           "question": "What if my elderly loved one lives in assisted living - can they still get these Medicare programs?",
@@ -255,13 +260,15 @@
         "visualTone": "editorial"
       },
       "phone": "2-1-1",
-      "sourceUrl": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-members/medicaid-buy-children-mbic",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-10"
+      "sourceUrl": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs-services/programs-children-adults-disabilities/medicaid-buy-children",
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-10",
+      "reviewedBy": "Cess",
+      "lastVerifiedDate": "2026-05-05"
     },
     {
       "id": "star-plus-medicaid-hcbs",
-      "name": "STAR+PLUS",
+      "name": "STAR+PLUS Home and Community-Based Services (HCBS) Waiver",
       "shortName": "STAR+PLUS",
       "tagline": "Comprehensive Medicaid coverage plus home care services for seniors at nursing home level of need",
       "programType": "benefit",
@@ -276,7 +283,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ and needs daily help with basic activities like bathing, dressing, or medication management, STAR+PLUS provides comprehensive Medicaid coverage plus home and community-based services to help them avoid nursing home placement. The program covers all medical care (doctor visits, hospital, prescriptions, dental, vision), transportation to appointments, and home services like personal attendants, day programs, minor home modifications, and specialized medical equipment.\n\nIncome limit: $2,901/month per person (2025). Assets limited to $2,000 (your loved one's home and one vehicle don't count). Because Texas requires nursing facility level of care assessment, your loved one must need significant daily assistance, not just low income and age 65+. The catch: long waitlists of several years for home services, though basic Medicaid coverage can begin immediately upon approval.",
+      "intro": "For the 2026 fiscal year, the STAR+PLUS Home and Community-Based Services (HCBS) Waiver helps your loved one stay at home instead of moving to a nursing facility. This integrated program coordinates all medical care — including doctors, hospitals, and prescriptions — while providing \"wraparound\" supports like personal attendants, home modifications (ramps/grab bars), and respite care to give family caregivers a break. To qualify, your loved one must meet the \"nursing facility level of care\" standard and have a monthly income of $2,982 or less, with assets under $2,000 (their primary home and one vehicle are usually exempt).\n\nWhile basic medical Medicaid can start quickly, specialized home care services have a multi-year statewide Interest List. Because spots are assigned based on when you signed up, it is vital to call the Texas Long-Term Care Interest List at 1-877-438-5658 to register your loved one today. You do not need to be financially or medically ready just to get on the list, and you can decline services later if the timing isn't right. If your loved one is already in a Medicaid-funded nursing home, ask about \"Money Follows the Person\" rules, which could help them move home much faster.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -292,20 +299,20 @@
         "incomeTable": null,
         "assetLimits": {
           "individual": 2000,
-          "couple": 2000,
+          "couple": 3000,
           "countedAssets": [
             "Bank accounts",
             "Investments",
             "Property other than primary home"
           ],
           "exemptAssets": [
-            "Primary home if equity ≤ $730,000",
+            "Primary home if equity ≤ $752,000",
             "One vehicle",
             "Personal belongings",
             "Burial plots",
             "Life insurance up to $1,500 face value"
           ],
-          "homeEquityCap": 730000
+          "homeEquityCap": 752000
         },
         "functionalRequirement": "Must need nursing facility level of care, daily assistance with bathing, dressing, medication management, or other activities of daily living. Requires physician-signed assessment and state approval.",
         "otherRequirements": [
@@ -323,7 +330,7 @@
           {
             "step": 1,
             "title": "Join the interest list",
-            "description": "Call 2-1-1 or (877) 541-7905 to get on the STAR+PLUS Home and Community-Based Services waitlist. This is required, you cannot apply directly."
+            "description": "Call the Texas Health and Human Services (HHS) Long-Term Care Interest List directly at 1-877-438-5658. While 2-1-1 is a general entry point, calling the direct line is the fastest way to get on the STAR+PLUS HCBS waitlist. This is a mandatory first step for anyone waiting at home."
           },
           {
             "step": 2,
@@ -346,13 +353,21 @@
             "description": "Choose from available plans in your area: Community First, Molina, Superior, or Wellpoint. Benefits and extras vary by plan."
           }
         ],
-        "processingTime": "Medicaid approval varies; HCBS assessment completed by MCO after Medicaid approval",
-        "waitlist": "Several years wait for home and community-based services invitation; wait times vary by region",
+        "processingTime": "45 to 90 days once your loved one reaches the top of the Interest List. During this time, the state verifies financial eligibility while your chosen health plan (MCO) completes a required in-home medical assessment.",
+        "waitlist": "Statewide wait of several years for home-based services. While the list is strictly chronological, your loved one may bypass this wait through the \"Money Follows the Person\" policy if they currently reside in a Medicaid-funded nursing home.",
         "tip": "Apply for basic Medicaid immediately if eligible, you'll get medical coverage while waiting for home services.",
         "urls": [
           {
-            "label": "Your Texas Benefits",
-            "url": "https://yourtexasbenefits.com"
+            "label": "Apply Now (Your Texas Benefits)",
+            "url": "https://yourtexasbenefits.com/"
+          },
+          {
+            "label": "STAR+PLUS Program Overview",
+            "url": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-members/starplus"
+          },
+          {
+            "label": "Official HCBS Service Rules",
+            "url": "https://www.hhs.texas.gov/handbooks/starplus-handbook/6100-home-community-based-services"
           }
         ]
       },
@@ -381,9 +396,9 @@
         },
         {
           "label": "HHSC Benefits Line",
-          "phone": "(877) 541-7905",
-          "description": "STAR+PLUS and Medicaid questions",
-          "hours": "Mon-Fri 8am-6pm CT"
+          "phone": "1-877-541-7905",
+          "description": "Use this number for specific questions regarding an active Medicaid application, to check your current eligibility status, or to update your address and income information. Alternate: 2-1-1, option 2.",
+          "hours": "Monday–Friday, 8:00 AM–6:00 PM CT"
         }
       ],
       "applicationNotes": [
@@ -429,11 +444,11 @@
       "faqs": [
         {
           "question": "Can my loved one keep their house if it's worth more than $2,000?",
-          "answer": "Yes. The $2,000 asset limit doesn't include your loved one's primary home as long as the equity is $730,000 or less and they live there or intend to return. The home is also exempt if a spouse or disabled child lives there."
+          "answer": "Yes. The $2,000 asset limit doesn't include your loved one's primary home as long as the equity is $752,000 or less (increased from $730,000 in 2025) and they live there or intend to return. The home is also exempt if a spouse or disabled child lives there."
         },
         {
           "question": "How long is the waitlist really for home services?",
-          "answer": "Several years in most areas, though this varies by region and priority level. Crisis cases or those at immediate risk of nursing home placement may get expedited processing. You can apply for basic Medicaid coverage immediately while waiting for home services."
+          "answer": "Statewide wait of several years for home-based services in most areas, though this varies by region and priority level. Crisis cases or those at immediate risk of nursing home placement may get expedited processing. You can apply for basic Medicaid coverage immediately while waiting for home services. The only major way to bypass the wait is if your loved one is already in a Medicaid-funded nursing home and uses the \"Money Follows the Person\" policy — they can often transition back to the community with STAR+PLUS HCBS waiver services much faster than those waiting at home."
         },
         {
           "question": "Can I apply for my loved one who has dementia?",
@@ -441,7 +456,7 @@
         },
         {
           "question": "What's the difference between the MCO plans?",
-          "answer": "All plans provide the same basic Medicaid and HCBS services, but extras vary. Some offer Weight Watchers subscriptions, camp allowances, or additional medical supplies. Service areas also differ, Community First serves central Texas while Superior operates in Dallas, Hidalgo, and Travis counties."
+          "answer": "All plans provide the same Medicaid benefits, but \"Value-Added Services\" vary. For 2026, some plans offer extra vision allowances, dental rewards, or fitness programs. Service areas have also shifted; for example, Wellpoint and UnitedHealthcare now cover large clusters including Dallas, Harris, and Bexar counties, while smaller plans may only serve specific Rural Service Areas."
         },
         {
           "question": "Can my loved one have STAR+PLUS and Medicare at the same time?",
@@ -449,11 +464,11 @@
         },
         {
           "question": "What happens if my loved one's income increases after enrollment?",
-          "answer": "Report income changes immediately to your MCO and local HHS office. If monthly income exceeds $2,901, your loved one may lose STAR+PLUS eligibility. Some temporary increases may be exempt, so discuss the situation with your caseworker before assuming disqualification."
+          "answer": "Report any changes immediately. For 2026, the gross monthly income limit has increased to $2,982. If their income goes above this, they may need a Qualified Income Trust (QIT) to maintain eligibility. Do not assume they are disqualified until you've explored this legal option."
         },
         {
           "question": "Can couples both be on STAR+PLUS?",
-          "answer": "Yes, but each spouse applies individually with the same $2,901 monthly income limit. There's no household scaling, both must meet individual income and asset requirements. Asset limits also apply individually at $2,000 each."
+          "answer": "Yes. If both apply, each has an individual income limit of $2,982, but their combined countable asset limit is $3,000 (not $2,000 each). If only one spouse applies, the spouse staying at home can often keep significantly more assets (up to $162,660) to prevent spousal impoverishment. Texas follows the \"name on the check\" rule, so a spouse's high income won't automatically disqualify an applicant."
         },
         {
           "question": "What if my loved one needs nursing home care while on the waitlist?",
@@ -469,9 +484,11 @@
         "visualTone": "editorial"
       },
       "phone": "2-1-1",
-      "sourceUrl": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs/services-people-who-are-older/starplus-home-community-based-services-hcbs-waiver",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-10"
+      "sourceUrl": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-members/starplus",
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-10",
+      "reviewedBy": "Cess",
+      "lastVerifiedDate": "2026-05-05"
     },
     {
       "id": "pace-eldercare",
@@ -490,7 +507,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay in their home, PACE provides everything under one coordinated team: primary care, specialists, prescription drugs, adult day center with transportation, home care services, and respite care. Because all services are managed by a single provider, your loved one won't need to coordinate between separate doctors, pharmacies, and care agencies, one team handles everything.\n\nYour loved one must be certified by Texas as needing nursing home-level care (daily help with bathing, dressing, medication management, or mobility) and live in a PACE service area. Most participants have both Medicare and Medicaid, which covers all services with no copays. Private pay is possible if your loved one doesn't qualify for Medicaid but needs comprehensive care coordination.\n\nPACE is only available in limited Texas areas. Currently, Bienvivir serves the El Paso region. If your loved one lives outside these service areas, PACE is not available.",
+      "intro": "If your loved one is 55+ and needs nursing home-level care but wants to stay in their home, PACE provides everything under one coordinated team: primary care, specialists, prescription drugs, adult day center with transportation, home care services, and respite care. Because all services are managed by a single provider, your loved one won't need to coordinate between separate doctors, pharmacies, and care agencies — one team handles everything. Your loved one must be certified by Texas as needing nursing home-level care (daily help with bathing, dressing, medication management, or mobility) and live in a PACE service area. Most participants have both Medicare and Medicaid, which covers all services with no copays. Private pay is possible if your loved one doesn't qualify for Medicaid but needs comprehensive care coordination.\n\nPACE is only available in limited Texas areas. Major service hubs currently include Amarillo and the Panhandle, Lubbock, El Paso (Bienvivir), San Antonio and Bexar County, the Dallas/Fort Worth area, and the Houston/Harris County region. If your loved one lives outside these specific service areas, PACE is not available.",
       "savingsRange": "",
       "savingsSource": "Free comprehensive care coordination service",
       "savingsVerified": false,
@@ -499,7 +516,8 @@
           "Age 55+",
           "State-certified need for nursing home level of care",
           "Live in PACE service area",
-          "Able to live safely in community"
+          "Able to live safely in community",
+          "2026 gross monthly income limit: under $2,982 (most participants)"
         ],
         "ageRequirement": "55+",
         "incomeTable": null,
@@ -523,7 +541,8 @@
         "otherRequirements": [
           "Live in the service area of a Texas PACE provider",
           "Able to live safely in the community with PACE support",
-          "Cannot be enrolled in Medicare Advantage, Medicare prescription drug plan, or hospice"
+          "Cannot be enrolled in Medicare Advantage, Medicare prescription drug plan, or hospice",
+          "Spousal protection: If the applicant is married, the healthy spouse can retain a significant portion of the couple's assets (up to $162,660 in 2026)."
         ],
         "povertyLevelReference": null
       },
@@ -534,7 +553,7 @@
           {
             "step": 1,
             "title": "Contact PACE provider in your area",
-            "description": "Call Bienvivir at (915) 562-3444 ext. 1442 if in El Paso area. Provider will schedule initial assessment and explain services."
+            "description": "Call the PACE provider serving your area. For Bienvivir in El Paso, the 2026 intake extension is (915) 562-3444 ext. 2300 (previously ext. 1442). For other regions, see the contact list below or call Texas 2-1-1."
           },
           {
             "step": 2,
@@ -544,7 +563,7 @@
           {
             "step": 3,
             "title": "State certification review",
-            "description": "Texas reviews assessment and certifies nursing home level of care requirement. Provider assists with this process."
+            "description": "The State of Texas reviews the application and certifies the nursing home level of care requirement. This typically takes 30–120 days."
           },
           {
             "step": 4,
@@ -581,14 +600,14 @@
       "contacts": [
         {
           "label": "Bienvivir PACE (El Paso)",
-          "phone": "(915) 562-3444 ext. 1442",
-          "description": "Intake and enrollment for El Paso area PACE services",
-          "hours": "Business hours"
+          "phone": "(915) 562-3444 ext. 2300",
+          "description": "El Paso PACE provider. The 2026 intake/enrollment extension is 2300 (previously 1442).",
+          "hours": "Monday–Friday, 8:00 AM–5:00 PM CT"
         },
         {
           "label": "Texas 2-1-1",
           "phone": "2-1-1",
-          "description": "Information about PACE and other senior care programs statewide",
+          "description": "Statewide help for finding community resources, food assistance, and emergency senior services.",
           "hours": "24 hours, 7 days a week"
         },
         {
@@ -596,6 +615,12 @@
           "phone": "(800) 633-4227",
           "description": "General Medicare and PACE program information",
           "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "Texas HHS / Area Agency on Aging",
+          "phone": "1-800-252-9240",
+          "description": "Official state resource to find PACE providers and other senior benefits in any Texas county.",
+          "hours": "Monday–Friday, 8:00 AM–5:00 PM CT"
         }
       ],
       "applicationNotes": [
@@ -617,7 +642,7 @@
         },
         {
           "question": "What if my loved one lives outside El Paso, are there other PACE programs in Texas?",
-          "answer": "Currently, Bienvivir in El Paso is the only active PACE provider we found in Texas. If your loved one lives elsewhere in Texas, PACE is not available. Consider Texas Medicaid STAR+PLUS or Home and Community-based Services waivers as alternatives."
+          "answer": "Yes. While PACE is only available in specific ZIP codes, multiple regional providers serve Texas, including Bienvivir (El Paso), Silver Star PACE (Lubbock), The Village PACE (Amarillo), Inspire PACE (San Antonio), and Legacy PACE (Houston). If your loved one lives outside these areas, they may instead qualify for the Texas Medicaid STAR+PLUS program or a Home and Community-based Services (HCS) waiver."
         },
         {
           "question": "Can my loved one try PACE and switch back to regular Medicare if they don't like it?",
@@ -654,8 +679,10 @@
       },
       "phone": "(915) 562-3444",
       "sourceUrl": "https://www.cms.gov/medicare/medicaid-coordination/about/pace",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-10"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-10",
+      "reviewedBy": "Cess",
+      "lastVerifiedDate": "2026-05-05"
     },
     {
       "id": "snap-food-benefits",
@@ -847,7 +874,7 @@
       "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
-      "tagline": "Get $1,000–12,300 paid directly to your loved one's utility company to cover heating and cooling bills.",
+      "tagline": "Get $1,000–$12,600 paid directly to your loved one's utility company to cover heating and cooling bills.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -860,8 +887,8 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to pay electric, gas, or propane bills on a fixed income, LIHEAP provides direct payments to utility companies. In Texas, this program is delivered through CEAP (Comprehensive Energy Assistance Program) and covers one-time payments of $1 to $12,300 for regular heating and cooling assistance, plus up to $2,400 in crisis situations like shutoff notices.\n\nYour loved one qualifies if their household income is at or below 150% of the federal poverty level, that's $2,815/month for a single person or $3,681/month for a couple in 2025. There are no asset limits, and if they already receive SNAP, SSI, TANF, or certain veterans' benefits, they're automatically eligible. Because funding is limited and distributed through local agencies across all 254 Texas counties, expect to be placed on a waitlist after applying.\n\nThe program prioritizes elderly households, people with disabilities, families with young children, and anyone facing an energy crisis. Benefits are paid directly to the utility company, not to your loved one, and may include weatherization services like insulation or heating system repairs.",
-      "savingsRange": "$1 – $12,300/year in 2026",
+      "intro": "If your loved one struggles to pay electric, gas, or propane bills on a fixed income, LIHEAP provides direct payments to utility companies. In Texas, this program is delivered through CEAP (Comprehensive Energy Assistance Program) and covers one-time payments of $1,000 to $12,600 for regular heating and cooling assistance, plus up to $2,400 in crisis situations like shutoff notices.",
+      "savingsRange": "$1,000 – $12,600/year in 2026",
       "savingsSource": "Texas Department of Housing and Community Affairs CEAP guidelines",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -875,27 +902,27 @@
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 2815
+            "monthlyLimit": 1995
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 3681
+            "monthlyLimit": 2705
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 4547
+            "monthlyLimit": 3415
           },
           {
             "householdSize": 4,
-            "monthlyLimit": 5414
+            "monthlyLimit": 4125
           },
           {
             "householdSize": 5,
-            "monthlyLimit": 6280
+            "monthlyLimit": 4835
           },
           {
             "householdSize": 6,
-            "monthlyLimit": 7146
+            "monthlyLimit": 5545
           }
         ],
         "assetLimits": null,
@@ -905,11 +932,11 @@
           "U.S. citizen or qualified non-citizen (lawful permanent resident, refugee)",
           "Automatic eligibility if receiving SNAP, SSI, TANF, or certain veterans' benefits"
         ],
-        "povertyLevelReference": "150% FPL"
+        "povertyLevelReference": "150% of the Federal Poverty Level"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call 2-1-1 to find your local Community Action Agency and get placed on the waitlist, processing time varies by region and funding availability.",
+        "summary": "To apply, call the TDHCA at 1-877-399-8939 (weekdays, 8 a.m. – 5 p.m.) or dial 2-1-1 to find your local agency. Note that waitlists and processing times vary by county.",
         "steps": [
           {
             "step": 1,
@@ -968,7 +995,7 @@
           "label": "LIHEAP National Helpline",
           "phone": "(877) 399-8939",
           "description": "Federal helpline for energy assistance programs",
-          "hours": "Mon-Fri 8am-6pm CT"
+          "hours": "Monday–Friday, 8:00 AM–6:00 PM CT"
         },
         {
           "label": "Travis County CEAP",
@@ -978,7 +1005,7 @@
         }
       ],
       "applicationNotes": [
-        "Crisis cases with active disconnection notices may receive expedited processing, but you're still placed on a waitlist",
+        "Households facing a life-threatening energy crisis (such as a broken AC in extreme heat or an immediate shutoff) may receive expedited processing within 48 hours, even when standard waitlists are long.",
         "Household size includes everyone living at the address who shares utility bills, not just family members",
         "Benefits are paid directly to your utility company, you won't receive a check or cash payment",
         "Funding runs out quickly each year, so apply as early as possible when applications open"
@@ -999,7 +1026,7 @@
       "faqs": [
         {
           "question": "How long is the waitlist really?",
-          "answer": "Wait times vary significantly by county and available funding. Some areas process applications within a few weeks, while others have waitlists lasting several months. Crisis cases with shutoff notices typically get priority, but even they face delays when funding is low."
+          "answer": "Wait times vary significantly by county and available funding. Some areas process applications within 4–6 weeks, while others have waitlists lasting several months. Crisis cases with shutoff notices typically receive priority and can often be resolved within 48 hours, but standard applications face delays when federal funding is low."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
@@ -1007,7 +1034,7 @@
         },
         {
           "question": "What if my loved one's income is slightly over the limit?",
-          "answer": "If gross monthly income exceeds 150% of the federal poverty level ($2,815 for one person), they don't qualify. However, if they receive SNAP, SSI, TANF, or certain veterans' benefits, they're automatically eligible regardless of other income."
+          "answer": "The 2026 gross monthly income limit for a single person is $1,995 (150% of the Federal Poverty Level). If they exceed this, they generally do not qualify. However, if they receive SNAP, SSI, or TANF, they are often \"categorically eligible,\" which simplifies the income verification process."
         },
         {
           "question": "Can my loved one get LIHEAP and apply for other energy programs at the same time?",
@@ -1027,7 +1054,7 @@
         },
         {
           "question": "How often can my loved one receive LIHEAP benefits?",
-          "answer": "Regular LIHEAP benefits are limited to once per federal fiscal year (October 1 to September 30). However, if they face a crisis like a shutoff notice, they may be eligible for additional crisis assistance funds in the same year."
+          "answer": "In Texas, eligible households can typically receive assistance for 6 to 8 utility payments per program year, depending on their vulnerability status (seniors and those with disabilities often qualify for the full 8 payments). This is not a \"one-time check\" but ongoing support throughout the year until their maximum benefit is reached."
         }
       ],
       "layoutIntent": {
@@ -1040,8 +1067,10 @@
       },
       "phone": "2-1-1",
       "sourceUrl": "https://www.tdhca.texas.gov/comprehensive-energy-assistance-program-ceap",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-10"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-10",
+      "reviewedBy": "Cess",
+      "lastVerifiedDate": "2026-05-05"
     },
     {
       "id": "weatherization-assistance-program",
@@ -1073,7 +1102,9 @@
           "Household income at or below 200% federal poverty level",
           "U.S. citizen or qualified alien status for all household members",
           "Home must be primary residence",
-          "Single-family home, duplex, triplex, fourplex, or eligible mobile home"
+          "Single-family home, duplex, triplex, fourplex, or eligible mobile home",
+          "In most Texas regions, the property must not have received WAP services in the last 15 years.",
+          "Both homeowners and renters qualify, though renters must obtain signed permission from their landlord."
         ],
         "ageRequirement": null,
         "incomeTable": null,
@@ -1141,7 +1172,7 @@
           "label": "TCOG (North Texas)",
           "phone": "(800) 677-8264 ext. 3530",
           "description": "Weatherization services for North Texas region",
-          "hours": "Business hours"
+          "hours": "Monday–Friday, 8:00 AM–5:00 PM CT"
         },
         {
           "label": "Austin Energy",
@@ -1184,11 +1215,11 @@
         },
         {
           "question": "What if the landlord won't sign the permission form?",
-          "answer": "Landlord permission is required for renters, and there's no workaround if they refuse. Try explaining that weatherization improvements increase property value and reduce utility costs for tenants. Some landlords may be more willing if you provide details about the specific improvements planned."
+          "answer": "Unfortunately, weatherization services cannot proceed without a signed Landlord Permission Form. The program requires access to the property for an audit and contractor work. If the landlord refuses, your loved one may still qualify for utility bill assistance through the CEAP program, which often does not require physical home modifications."
         },
         {
-          "question": "Can my loved one apply if they received weatherization services 8 years ago?",
-          "answer": "It depends on your region. Some areas require a 10-year gap between weatherization services, while others have different timeframes. Contact your regional agency with the approximate date of previous service to confirm eligibility."
+          "question": "Can my loved one apply if they received weatherization services in the past?",
+          "answer": "In most Texas regions, a property is ineligible if it has been weatherized by WAP within the last 15 years. If the previous service was more than 15 years ago, they may be eligible to apply again for updated energy-efficiency measures."
         },
         {
           "question": "What happens if the energy audit shows my loved one's home doesn't need weatherization?",
@@ -1200,7 +1231,7 @@
         },
         {
           "question": "What if my loved one's income includes irregular Social Security or pension payments?",
-          "answer": "You must document the exact income received in the 30 days prior to application, even if payments were irregular. The agency will annualize this amount. If a regular payment was missed in those 30 days, bring documentation showing the typical payment schedule."
+          "answer": "You must provide proof of all gross income received in the 30 days prior to the application date. If a regular payment was missed or an extra one was received in that window, provide the official Award Letter from the Social Security Administration or pension source to help the agency accurately annualize the income."
         }
       ],
       "layoutIntent": {
@@ -1213,8 +1244,10 @@
       },
       "phone": "2-1-1",
       "sourceUrl": "https://www.tdhca.texas.gov/weatherization-assistance-program",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-10"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-10",
+      "reviewedBy": "Cess",
+      "lastVerifiedDate": "2026-05-05"
     },
     {
       "id": "ship-medicare-counseling",
@@ -1329,8 +1362,10 @@
       },
       "phone": "(800) 252-9240",
       "sourceUrl": "https://www.shiphelp.org/ships/texas/",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-10"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-10",
+      "reviewedBy": "Cess",
+      "lastVerifiedDate": "2026-05-05"
     },
     {
       "id": "meals-on-wheels",
@@ -1941,6 +1976,10 @@
         "tip": "Contact the AAA first, not the legal aid organizations directly, AAA staff can often resolve benefits and nursing home issues without needing a lawyer.",
         "urls": [
           {
+            "label": "Official Texas AAA Directory",
+            "url": "https://www.hhs.texas.gov/providers/long-term-care-providers/area-agencies-aging-aaa"
+          },
+          {
             "label": "Texas AAAs Directory",
             "url": "https://texaslawhelp.org/article/area-agencies-on-aging-a-place-to-get-help"
           }
@@ -1955,6 +1994,12 @@
         "Any relevant legal documents related to the issue"
       ],
       "contacts": [
+        {
+          "label": "Statewide AAA Referral",
+          "phone": "1-800-252-9240",
+          "description": "Texas HHS routing line. You will be automatically routed to the Area Agency on Aging serving your specific county.",
+          "hours": "Monday–Friday, 8:00 AM–5:00 PM CT"
+        },
         {
           "label": "Concho Valley AAA",
           "phone": "(325) 223-5704",
@@ -2014,10 +2059,12 @@
         "hasDocumentChecklist": true,
         "visualTone": "minimal"
       },
-      "phone": "(325) 223-5704",
+      "phone": "1-800-252-9240",
       "sourceUrl": "https://texaslawhelp.org/article/area-agencies-on-aging-a-place-to-get-help",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-10"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-10",
+      "reviewedBy": "Cess",
+      "lastVerifiedDate": "2026-05-05"
     },
     {
       "id": "ltc-ombudsman",

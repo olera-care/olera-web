@@ -4,6 +4,11 @@ import { validateReturnUrl } from "@/lib/validation";
 const STORAGE_KEY = "olera_deferred_action";
 const MAX_AGE_MS = 60 * 60 * 1000; // 1 hour
 
+/**
+ * Store a deferred action to be executed after auth completes.
+ * Uses localStorage (not sessionStorage) so it persists when magic links
+ * open in a new tab.
+ */
 export function setDeferredAction(action: Omit<DeferredAction, "createdAt">) {
   if (typeof window === "undefined") return;
 
@@ -16,13 +21,15 @@ export function setDeferredAction(action: Omit<DeferredAction, "createdAt">) {
     createdAt: new Date().toISOString(),
   };
 
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(entry));
+  console.log("[deferred-action] SET:", entry);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entry));
 }
 
 export function getDeferredAction(): DeferredAction | null {
   if (typeof window === "undefined") return null;
 
-  const raw = sessionStorage.getItem(STORAGE_KEY);
+  const raw = localStorage.getItem(STORAGE_KEY);
+  console.log("[deferred-action] GET raw:", raw);
   if (!raw) return null;
 
   try {
@@ -31,6 +38,7 @@ export function getDeferredAction(): DeferredAction | null {
 
     // Expire stale entries
     if (age > MAX_AGE_MS) {
+      console.log("[deferred-action] Expired, clearing");
       clearDeferredAction();
       return null;
     }
@@ -41,6 +49,7 @@ export function getDeferredAction(): DeferredAction | null {
 
     return entry;
   } catch {
+    console.log("[deferred-action] Parse error, clearing");
     clearDeferredAction();
     return null;
   }
@@ -48,5 +57,6 @@ export function getDeferredAction(): DeferredAction | null {
 
 export function clearDeferredAction() {
   if (typeof window === "undefined") return;
-  sessionStorage.removeItem(STORAGE_KEY);
+  console.log("[deferred-action] CLEAR called from:", new Error().stack);
+  localStorage.removeItem(STORAGE_KEY);
 }

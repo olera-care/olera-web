@@ -632,7 +632,7 @@ export default function UnifiedAuthModal({
   // ──────────────────────────────────────────────────────────
 
   const handleAuthComplete = async () => {
-    // Check for any deferred action (from options or sessionStorage)
+    // Check for any deferred action (from options or localStorage)
     const deferred = options.deferred || getDeferredAction();
     const hasDeferredAction = !!deferred?.action;
 

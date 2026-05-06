@@ -153,11 +153,9 @@ export async function GET(req: NextRequest) {
     query = query.in("status", statuses);
   }
 
-  // Needs Call tab: only show items that are due (next_action_due_at <= now)
-  // This replaces the old "Action Needed" cross-university to-do list
-  if (stage === "needs_call") {
-    query = query.lte("next_action_due_at", new Date().toISOString());
-  }
+  // Note: Removed due date filter from Needs Call tab to fix count vs list mismatch
+  // Previously we filtered by next_action_due_at <= now, but this caused the tab count
+  // to not match the visible list. Now all providers in needs_call statuses appear.
 
   query = query
     .order("next_action_due_at", { ascending: true, nullsFirst: false })

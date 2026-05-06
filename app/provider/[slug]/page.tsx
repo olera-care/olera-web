@@ -1007,6 +1007,7 @@ export default async function ProviderPage({
                   providerId={profile.slug}
                   providerName={profile.display_name}
                   providerImage={images[0]}
+                  providerCity={profile.city}
                   questions={answeredQuestions.map((q) => ({
                     id: q.id,
                     question: q.question,
@@ -1016,6 +1017,8 @@ export default async function ProviderPage({
                   }))}
                   suggestedQuestions={getSuggestedQuestions(profile.category)}
                   hasBenefitsSection={hasBenefitsData && !!benefitsData}
+                  alternativeProviders={outreachCandidates}
+                  providerCategory={outreachCategoryString}
                 />
 
                 {/* Outreach arm of the 4-way intake A/B. Slot itself renders

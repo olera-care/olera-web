@@ -7,6 +7,94 @@
 
 ## Current Focus
 
+### 2026-05-05 (Tue, evening) — Admin dial for intake A/B traffic allocation (P1, shipped on `great-jackson` branch)
+
+Replaces the hardcoded equal split with a per-arm percentage dial in `/admin/analytics`. Operator can ramp a winning arm to 100, dark a losing arm to 0, or run a 50/50 head-to-head — without a deploy. Built directly on top of PR #743's qa_email_capture work; includes the merge resolution.
+
+**The motivation (why now):** Now that there are 5 arms in flight and the data is starting to point somewhere (qa_email_capture is the early candidate per the same-day session), TJ asked for a way to control allocation without touching code. "Sometimes I want two arms only, sometimes one, sometimes all five."
+
+**What shipped (2 commits on `great-jackson`):**
+
+1. **`6c951623`** — Add admin dial. New `experiment_weights` table (migration 070, RLS-on, service-role-only). Public read at `/api/variant-weights/intake` is CDN-cached (s-maxage=30) so weight changes propagate within ~30s. Admin GET/POST at `/api/admin/analytics/variant-weights`. Saving bumps a `version` int that's namespaced into the variant assignment hash (`djb2(sessionId + ":v" + version)`), so a save reshuffles returning sessions in one cut instead of grandfathering them. UI is a card at the top of Family Intake — 5 arm-cards in an auto-fit grid (handles future N>5 cleanly), live "Sum: X / 100" badge, Save button gated on dirty + sum=100, Reset to equal split, Discard changes, error feedback, version display.
+
+2. **`debca38e`** — Pre-test fix. Admin GET fetch chain returned null on `r.ok=false` then early-returned without setting `loaded=true` — a 401/403/500 left the form in a permanent disabled state with no error visible. Fixed: every failure path now lands at loaded+errorFeedback. Plus three stale-comment refreshes (4-arm/25-25-25-25 references from before the qa_email_capture merge).
+
+**Architectural decision worth remembering:** Built a shared `useIntakeVariant()` hook at `hooks/use-intake-variant.ts` so both `IntakeVariantSlots` (SBF/outreach surface) and `QASectionV2` (qa_email_capture surface) read from one source of truth. Without this consolidation, the dial would have controlled 4 of 5 surfaces only — `QASectionV2` was calling `assignIntakeVariant` directly with the equal-split mod-5, and would have stayed on equal-split even after the dial darked an arm. **Single client-side authority for variant assignment is now an invariant** — any future caller of "which arm is this session in?" must use this hook.
+
+**Variant set is now expansion-proof:** `INTAKE_VARIANTS as const` is the single source of truth; `IntakeVariant` derives from it via `(typeof ...)[number]`; the validation, assignment, default-weights, and admin UI all iterate the array. Adding an arm = one append + a `variantSurfaceLabel` + `variantSubLabel` case + an `INTAKE_VARIANT_DEFAULT_WEIGHTS` entry. TypeScript flags all three as missing if you skip them.
+
+**Migration 070 seeds at 20/20/20/20/20** — matches the live qa_email_capture-era equal split, so applying it is a net no-op for traffic. Only effect: the dial becomes editable.
+
+**Merge resolution (with PR #743):** Resolved 4 file conflicts cleanly. Renamed my migration 069 → 070 (theirs took 069). Updated `BenefitsArmGate` to hide for both `outreach` AND `qa_email_capture`. Updated `INTAKE_VARIANT_DEFAULT_WEIGHTS` to include the 5th arm at 20. Refactored `QASectionV2` from local `assignIntakeVariant` call to the shared hook.
+
+**TJ tested live:** Set `25/25/25/25/0` (qa_email_capture darked out, others bumped to 25 each) — sum stayed at 100, Save worked, version bumped. Confirmed the "zero an arm without removing the code path" use case.
+
+**RLS handled in the migration file** — `ALTER TABLE experiment_weights ENABLE ROW LEVEL SECURITY;` with zero policies. Anon/authenticated keys blocked entirely. Service role bypasses RLS, which is the only legitimate access path for this config table.
+
+**Resume next session here →** Open the PR to staging, run TJ through the test plan one more time on the Vercel preview, then merge → staging → main. Watch the dial in production for 7-14 days alongside the qa_email_capture experiment; if qa_email_capture wins, ramp it via the dial (100/0/0/0/0 or 50/50 against a control) instead of a code revert. First formal `/weekly` measurement window: Mon 5/11.
+
+---
+
+### 2026-05-05 (Tue) — qa_email_capture: 5th arm of SBF intake A/B (P1, shipped on PR #743)
+
+Day-long session that started as a `/product-led-growth` daily run, surfaced the structural conversion problem on provider pages, and ended shipping a new A/B arm to test the fix.
+
+**The diagnosis (the strategic arc):**
+
+Family intake on provider pages is converting at 0.21% (3,809 module impressions → 8 submits in the visible window). V2 (5-step) historical screenshot showed similar near-zero rates. V3 (2-step) and outreach (4th arm) all converged around the same. Across four mechanic shapes, none win — meaning the form structure isn't the binding constraint.
+
+The codebase audit revealed why: `QASectionV2` has a polished post-submit guest enrichment prompt with email capture, but it's gated behind `hasBenefitsSection`. On most pages SBF is on, so the gate evaluated true and Q&A's own email capture never ran. We disabled the surface that was actually working in favor of one that didn't.
+
+**What shipped (PR #743 → staging, awaiting promotion):**
+
+A 5th arm `qa_email_capture` in the existing 4-way djb2 split (mod 4 → mod 5). 20% of provider-page visitors:
+
+- See NO `BenefitsDiscoveryModule` and NO `AgentOutreachModule` (both gated off via extended `BenefitsArmGate`)
+- Get the Q&A enrichment prompt forced ON (`effectiveHasBenefitsSection = false` override inside QASectionV2)
+- See a redesigned compact prompt: "Top 3 [Category] in [City]." + 3 text-only mini cards (name + ★ rating + city) + email + "Email me these" CTA + "Free. No spam." + tiny Skip
+- Get a confirmation email with the 3 alternative providers inline; subject reads "Top 3 [Category] in [City]" so the inbox preview matches the in-page promise
+
+8 commits on `qa-email-capture-arm`:
+
+1. **`b525dfc9`** — Initial 5-arm wiring: variant.ts mod 5, BenefitsArmGate hides for both `outreach` and `qa_email_capture`, QASectionV2 variant detection + impression event + override hasBenefitsSection, PATCH /api/questions fires `question_email_enriched` + sends enhanced email with alternatives, migration 069 extends `seeker_activity_event_type_check`, admin analytics 5-arm split.
+2. **`765548e`** — Pre-test fixes: silent Supabase insert errors (try/catch doesn't catch return-error pattern; destructure `{ error }` explicitly), `excludeProviderId` mismatch (helper compares on `provider_id` not slug — was potentially recommending the same provider as a "similar alternative").
+3. **`5b4a64c2`** — Vercel build fix: missing `qa_email_capture` branches in `variantSurfaceLabel` switch + `VariantPreviewCard` component. Caught only after deps were installed for real (the earlier "tsc clean" claims were grep-filter false-positives — `./node_modules/.bin/tsc` didn't exist in the worktree).
+4. **`b6f47c2a`** — Compact mobile-first redesign of the enrichment prompt. Replaced gray-box gray-text dim version with no-box flush-with-section design, headline + 3 inline text-only cards + Linear-style black CTA. Mobile lesson learned from the outreach module's image-heavy version that doesn't convert.
+5. **`ed38fd4c`** — Pre-test fix: email subject mismatched the in-page promise. User taps "Send the list" but inbox preview said "Your question to [Provider]." Subject now reads "[N] similar providers in [City]" when alternatives sent.
+6. **`02a45ed0`** — 4 copy swaps for stronger conviction: headline `{N} more` → `Top {N}` (curation signal), new sub-line "Plus, we'll email when [Provider] replies." (surfaces dual promise), CTA `Send the list` → `Email me these` (first-person + deictic), email subject leads with "Top".
+7. **`87bccb2d`** — Include category in headline + email subject: "Top 3 Assisted Living in [City]" instead of generic "Top 3 in [City]." Synced both code paths (page-side + PATCH-side) to use the same `PROFILE_CAT_TO_SUPABASE_CAT` + `getCategoryDisplayName` resolution.
+8. **`79379b73`** — Slack alert on email enrichment. New `slackQuestionEmailEnriched` helper in `lib/slack.ts`. Mirrors `slackOutreachRequestSubmitted`'s shape: header "✉️ Q&A Email Captured — qa_email_capture", reply-to email, source page link, location, category, the 3 alternatives we sent (clickable links), the asker's question, question_id footer. PHI-free notification preview. Awaited per `feedback_serverless_fire_and_forget.md`.
+
+**Decision rule:** ≥6% email-capture rate in 30-90 days vs the existing arms' near-zero. If qa_email_capture beats meaningfully, next move is killing SBF on provider pages entirely (not part of this PR).
+
+**What's measured:**
+
+- `/admin/analytics` — 5-arm split table tracks impressions (`qa_email_capture_impression`) + saved (`question_email_enriched`) on shared denominator.
+- Slack alert per email captured — gives TJ real-time visibility into conversion events.
+- Admin VariantPreviewCard branch renders an explainer card for the new arm.
+
+**Migration 069 applied to Supabase by TJ mid-session.** Live now.
+
+**TJ tested it on the Aggie Assisted Living provider page (College Station). Variant detected correctly, prompt rendered with personalized copy, email capture worked end-to-end. Confirmed live and converting.**
+
+**Mid-session detours / lessons:**
+
+- **The V2 revival thesis was wrong.** TJ's intuition that V2 (5-step) was converting better than V3 turned out to be incorrect — historical V2 screenshot showed control: 4 submits / 917 imps = 0.44%, money_loss: 1 / 973 = 0.10%. V3 at 0.21% sits in the middle. Form structure isn't the lever. Removed from active recommendations mid-doc.
+- **The Outreach Module on mobile is the cautionary tale.** Image-heavy 280px-tall cards + relationship pills + verbose microcopy + sticky bottom CTA all compete for the same viewport, and the form lives below the fold. qa_email_capture's redesign explicitly reverse-engineered that anti-pattern: text-only ~50px cards, no pills, "Free. No spam." (4 words, not 18), no sticky competition.
+- **The `hasBenefitsSection` gate was the hidden insight.** Q&A's email enrichment had been silently disabled for ~6 months. The flag flip alone (set to false in qa_email_capture arm) is the single most important code change in the variant. Everything else amplifies it.
+- **Pre-test depth lesson.** My `./node_modules/.bin/tsc | grep -v ...` pipeline returned 0 from the grep filter even though tsc didn't exist in the worktree. False clean signal. Caught only when Vercel build failed. Rule going forward: verify deps installed (`ls node_modules/.bin/tsc`) before relying on typecheck output, or run `tsc; echo "exit=$?"` directly.
+- **Silent Supabase error pattern.** `try { await db.from(...).insert(...) } catch` does NOT catch insert errors — Supabase returns `{ data, error }`, doesn't throw. The catch is dead code. Always destructure `{ error }` and log explicitly. Affects the `seeker_activity` insert in PATCH `/api/questions` — fixed.
+- **`excludeProviderId` mismatch.** The `getTopProvidersByCityAndCategory` helper compares against `olera-providers.provider_id` (alphanumeric), not the page slug. Was passing slug → exclusion never matched → could have recommended the same provider being asked about as a "similar alternative." Fixed by capturing `source_provider_id` during the multi-strategy lookup.
+
+**Other artifacts shipped today:**
+
+- **`/ceo-brief` slash command** at `.claude/commands/ceo-brief.md` (PR #736, merged to staging+main). Captures the "explain to a busy CEO" pattern: bottom line first, only decision-changing context, end with concrete next steps. Operator voice, no filler. Use after dense working sessions or when asked to "explain in simple terms."
+- **`plans/family-acquisition-radical-ideas.md`** — strategic doc with the 10 mechanic ideas (Preview-before-email, Reverse Marketplace, Sibling Mode, AI Benefits Screen, Care Receipt, Earned-Access Concierge, Voice-First Triage, Hospital Discharge Trojan Horse, Insurance-First Reorder, Care-Readiness Points). Top 3 picks revised twice through the session (first by TJ's reframe — Sibling Mode and Reverse Marketplace don't directly address conversion; second after the V2 data confirmed form-shape isn't the lever). Honorable mentions section captures the cuts.
+- **Notion strategy page:** [Family Acquisition: 10 Radical Mechanics](https://www.notion.so/3575903a0ffe81f1852eebcfc8571b84). Created and revised inline in chat. Worth rewriting cleanly once we have first-week data on the variant per TJ's earlier ask.
+- **`/product-led-growth` daily run earlier in the session** caught up state hygiene on Active Experiments — 5 untracked shipments from the 5/1→5/4 cadence gap added to the board (Agent Outreach Module, H2 capture layer, SBF V3 editorial mount, save bug fix, post-answer hook). Daily report at [Daily — Tue, May 5, 2026](https://www.notion.so/3575903a0ffe81c2ac75feeb7931bd17). Flagged: `/weekly` was due Mon 5/4 and didn't run; recommend Mon 5/11 for first formal measurement window.
+
+**Resume next session here →** Promote PR #743 to staging when satisfied with the Vercel preview test. Promote staging → main when ready. Watch `/admin/analytics` 5-arm split for the next 7-14 days; ≥6% qa_email_capture saved-rate vs the SBF arms' near-zero is the greenlight. Mon 5/11 `/weekly` should be the first formal measurement window.
+
 ### 2026-05-04 — Mount SBF V3 on /caregiver-support/ article template (P1, planning)
 
 Retargeting a stale Apr 21 task ("topic-seeded question funnel" was architecturally invalid — `/api/questions` requires `provider_id`, no general entry point exists). SBF V3 cut over to provider pages on Apr 18, three days before the original task was written; SBF is the actual unified inquiry pipeline today and is provider-agnostic. Same goal as the original (turn editorial traffic into pipeline), correct mechanism.
@@ -1220,6 +1308,30 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-05-01 → 2026-05-02 — Texas expansion (293 cities) — full Atlas batch shipped
+
+**Scope:** Atlas-flagged TX batch from `map.olera.care`, 293 cities. 50 fresh (Atlas `missing` + 1 `covered` Mission Bend that DB said was empty), 243 expand (29 thin + 56 moderate + 158 covered).
+
+**Two-phase run:**
+- **Phase A (Fresh, 50 cities):** discovery → pipeline-batch `--phase all`. 1,332 active providers loaded. 1h17m + 20.4m discovery. Cost: $48.64 + $134.51 = $183.15.
+- **Phase B (Expand, 243 cities):** discovery `--force` → pipeline-batch `--force --cities="..." --phase all`. Killed mid-enrich on a false-alarm panic, resumed at `--phase enrich`. 6,260 → 9,341 active (+3,081). 2h20m discovery + 2h13m clean+load + 3h58m enrich resume. Cost: $269.02 + $29.69 + $185.23 = $483.94.
+
+**Combined: 6,316 → 10,729 statewide TX active (+4,413 net). Total spend: $667.09.** Atlas estimated $7,325 — ran ~9% of estimate.
+
+**Key numbers from the run:**
+- 1,239 trust signals confirmed senior care; 1,665 false positives soft-deleted by entity verification (wedding venues / DME / community centers)
+- 2,201 review snippets fetched; 1,877 photos resolved to permanent lh3 URLs
+- 146 expand cities with real expansion (+5 or more); 18 dedup-blocked (Atlas correctly labeled "covered"); 22 with small -delta (max -12 Fresno, all from entity-verify cleanup)
+- Top expand winners: San Antonio +74, Houston +70, Arlington +63, Dallas +62, El Paso +61, Austin +50, Amarillo +44
+
+**Notion state:** 50 fresh pages created + flipped to Complete with Done boxes. 66 individual TX expand pages reset to "Upload to Backend" mid-run, then restored to Complete. 2 "Texas Group" rollup pages also patched (172 of the 243 expand cities live in those rollups, not as individual rows — left them rolled up vs creating 172 new pages).
+
+**Slack notified:** Logan tagged in #ai-product-development for provider outreach handoff.
+
+**Mistake to remember:** mid-enrich QC reported "massive deletions" (Garland 196 → 21, etc.) and I raised a 5-alarm panic. **Bug was in my QC query** — I used `provider_id LIKE 'garland-tx-%'` while the legacy Garland providers use random-prefix IDs (`4trRGPZ-...`, `pLaafyS-...`) from an older import format. Cross-checking by `city='Garland', state='TX'` showed 217 active (not 21) — pipeline was fine. Killed and resumed pipeline lost ~30 min. **Lesson:** baseline used `city=` field, but I built the QC with `provider_id LIKE` — always match the QC pattern to the baseline pattern, OR use `city=`/`state=` as the canonical truth. Saved this as a memory.
+
+**Branch:** `fast-dijkstra` (worktree off staging). No code changes — pipeline-running session only. SCRATCHPAD update only.
 
 ### 2026-04-27 — Sweep #1 wrap (resume → execution → pipeline updates)
 

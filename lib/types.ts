@@ -588,7 +588,7 @@ export interface MedJobsJobPost {
 }
 
 // ============================================================
-// Deferred Action (sessionStorage)
+// Deferred Action (localStorage)
 // ============================================================
 
 export interface DeferredAction {

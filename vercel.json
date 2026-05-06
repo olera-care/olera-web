@@ -55,6 +55,10 @@
     {
       "path": "/api/cron/staffing-sequence-check",
       "schedule": "30 * * * *"
+    },
+    {
+      "path": "/api/cron/staffing-send-email2",
+      "schedule": "0 * * * *"
     }
   ]
 }

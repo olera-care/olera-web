@@ -1056,6 +1056,121 @@ export function slackOutreachRequestSubmitted(opts: {
   };
 }
 
+/**
+ * Email captured via the qa_email_capture variant — fires when a guest who
+ * just asked a question on a provider page submits their email through the
+ * post-submit enrichment prompt. This is the conversion event for the 5th
+ * arm of the SBF intake A/B (since 2026-05-05) and the canonical signal that
+ * the experiment is working.
+ *
+ * Pattern mirrors slackOutreachRequestSubmitted: arm-specific header, summary
+ * fields with reply-to + source page + location + category, the alternatives
+ * we sent (full provider links), the asker's question, and a question_id
+ * footer for traceability. Notification preview text is PHI-free per
+ * feedback_phi_in_subject_lines.md.
+ */
+export function slackQuestionEmailEnriched(opts: {
+  questionId: string;
+  askerEmail: string;
+  questionText: string;
+  sourceProviderName: string;
+  sourceProviderSlug: string;
+  city: string | null;
+  state: string | null;
+  /** Display-ready category label (e.g., "Memory Care", "Home Care").
+   *  May be null when the source provider's category isn't resolvable. */
+  category: string | null;
+  /** The 3 alternative providers we emailed to the family. Each has the
+   *  full URL ready (computed from siteUrl + slug at the call site) so
+   *  this helper doesn't need to know the routing convention. The `city`
+   *  field carries the alternative's address string (named to match the
+   *  shape of `questionConfirmationEmail.alternatives`). */
+  alternatives: Array<{ name: string; city: string | null; url: string }>;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const altCount = opts.alternatives.length;
+
+  const altList = opts.alternatives
+    .map(
+      (a) =>
+        `• <${a.url}|${a.name}>${a.city ? ` — ${a.city}` : ""}`,
+    )
+    .join("\n");
+
+  const summaryFields: Array<{ type: "mrkdwn"; text: string }> = [
+    { type: "mrkdwn", text: `*Reply to:*\n${opts.askerEmail}` },
+    {
+      type: "mrkdwn",
+      text: `*Source page:*\n<${siteUrl}/provider/${opts.sourceProviderSlug}|${opts.sourceProviderName}>`,
+    },
+  ];
+  if (opts.city || opts.state) {
+    const where = [opts.city, opts.state].filter(Boolean).join(", ");
+    summaryFields.push({ type: "mrkdwn", text: `*Where:*\n${where}` });
+  }
+  if (opts.category) {
+    summaryFields.push({ type: "mrkdwn", text: `*Category:*\n${opts.category}` });
+  }
+
+  const blocks: SlackBlock[] = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: "✉️ Q&A Email Captured — qa_email_capture",
+        emoji: true,
+      },
+    },
+    {
+      type: "section",
+      fields: summaryFields,
+    },
+  ];
+
+  if (altCount > 0) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*We sent ${altCount} alternative${altCount === 1 ? "" : "s"}:*\n${altList}`,
+      },
+    });
+  }
+
+  if (opts.questionText) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Their question:*\n${opts.questionText}`,
+      },
+    });
+  }
+
+  blocks.push({
+    type: "context",
+    elements: [
+      {
+        type: "mrkdwn",
+        text: `Question \`${opts.questionId}\` · email captured via qa_email_capture arm`,
+      },
+    ],
+  });
+
+  // PHI-free preview — no asker email, no question text, no source provider
+  // name. Just the surface count + category + city.
+  const noun = opts.category || "providers";
+  const wherePreview = opts.city
+    ? `${opts.city}${opts.state ? `, ${opts.state}` : ""}`
+    : "their area";
+  const previewText =
+    altCount > 0
+      ? `Q&A capture: ${altCount} ${noun} in ${wherePreview}`
+      : `Q&A capture: question + email in ${wherePreview}`;
+
+  return { text: previewText, blocks };
+}
+
 export function slackSaveNudgeConverted(opts: {
   familyName: string;
   email: string;

@@ -1,7 +1,7 @@
 # Florida Benefits Exploration Report
 
-> Generated 2026-04-13 by benefits-pipeline.js
-> Cost: $0.090 (18 calls, 2.8m)
+> Generated 2026-05-05 by benefits-pipeline.js
+> Cost: $0.000 (0 calls, 0s)
 
 ---
 
@@ -679,8 +679,22 @@ Our data differs from what official sources say:
 
 ## Content Drafts
 
-Generated 0 page drafts. Review in admin dashboard or `data/pipeline/FL/drafts.json`.
+Generated 14 page drafts. Review in admin dashboard or `data/pipeline/FL/drafts.json`.
 
+- **Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers** (benefit) — 5 content sections, 8 FAQs
+- **Program of All-Inclusive Care for the Elderly (PACE)** (benefit) — 4 content sections, 8 FAQs
+- **Medicaid Medicare Savings Programs (QMB, SLMB, QI)** (benefit) — 2 content sections, 8 FAQs
+- **SNAP (Supplemental Nutrition Assistance Program)** (benefit) — 3 content sections, 7 FAQs
+- **LIHEAP (Low-Income Home Energy Assistance Program)** (benefit) — 0 content sections, 8 FAQs
+- **Weatherization Assistance Program (WAP)** (benefit) — 3 content sections, 8 FAQs
+- **SHINE (Serving Health Insurance Needs of Elders)** (resource) — 0 content sections, 4 FAQs
+- **Home Delivered Meals (Meals on Wheels)** (benefit) — 0 content sections, 8 FAQs
+- **Alzheimer's Disease Initiative (ADI) Respite Services** (benefit) — 2 content sections, 8 FAQs
+- **Senior Community Service Employment Program (SCSEP)** (employment) — 0 content sections, 8 FAQs
+- **Legal Aid for Seniors (Area Agency Legal Services)** (navigator) — 0 content sections, 4 FAQs
+- **Home Care for the Elderly (HCE) Program** (benefit) — 0 content sections, 8 FAQs
+- **Community Care for the Elderly (CCE) Program** (benefit) — 1 content sections, 8 FAQs
+- **Elder Options** (benefit) — 0 content sections, 8 FAQs
 
 ## What We Learned
 

@@ -16,7 +16,7 @@
  * and /api/admin/staffing-outreach/[id] (drawer detail).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Drawer } from "./Drawer";
 import Select from "@/components/ui/Select";
 import type {
@@ -27,10 +27,10 @@ import type {
 
 // V2: 5 tabs for automated email sequence workflow
 const STAGE_TABS: Array<{ key: string; label: string }> = [
-  { key: "to_queue", label: "To Queue" },
-  { key: "sequencing", label: "Sequencing" },
-  { key: "needs_call", label: "Needs Call" },
-  { key: "enrolled", label: "Enrolled" },
+  { key: "to_queue", label: "Not Started" },
+  { key: "sequencing", label: "Sending" },
+  { key: "needs_call", label: "Needs Follow-up" },
+  { key: "enrolled", label: "Active Partners" },
   { key: "closed", label: "Closed" },
 ];
 
@@ -52,7 +52,7 @@ export default function StaffingOutreachPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
-  const hasAutoSelected = useRef(false); // Track if we've done initial batch selection
+  const [showQueueConfirm, setShowQueueConfirm] = useState(false); // Queue All confirmation modal
 
   // Debounce search input
   useEffect(() => {
@@ -81,11 +81,7 @@ export default function StaffingOutreachPage() {
       setRows(data.rows ?? []);
       setTabCounts(data.tabCounts ?? {});
       setTotal(data.total ?? 0);
-      // Auto-select first batch only on initial load (not when user selects "All")
-      if (!hasAutoSelected.current && !batchId && data.batches?.[0]) {
-        setBatchId(data.batches[0].id);
-        hasAutoSelected.current = true;
-      }
+      // Note: Default to "All Universities" (batchId = null) for overview
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -111,24 +107,23 @@ export default function StaffingOutreachPage() {
     [batches],
   );
 
-  // Queue All handler
-  const handleQueueAll = useCallback(async () => {
+  // Queue All - show confirmation modal
+  const handleQueueAllClick = useCallback(() => {
     if (!batchId) {
       setError("Select a university first to queue all providers");
       return;
     }
-
     const toQueueCount = tabCounts["to_queue"] ?? 0;
     if (toQueueCount === 0) {
       setError("No providers to queue");
       return;
     }
+    setShowQueueConfirm(true);
+  }, [batchId, tabCounts]);
 
-    const confirmed = window.confirm(
-      `Start email sequence for ${toQueueCount} providers in ${currentBatch?.university_name}?`
-    );
-    if (!confirmed) return;
-
+  // Queue All - execute after confirmation
+  const handleQueueAllConfirm = useCallback(async () => {
+    setShowQueueConfirm(false);
     setQueueingAll(true);
     setError(null);
     try {
@@ -157,7 +152,7 @@ export default function StaffingOutreachPage() {
     } finally {
       setQueueingAll(false);
     }
-  }, [batchId, currentBatch, tabCounts, refetch]);
+  }, [batchId, refetch]);
 
   const handleRowAction = useCallback(
     async (refreshedCtx: DrawerContext | null) => {
@@ -286,7 +281,7 @@ export default function StaffingOutreachPage() {
         {/* Queue All button - only show on To Queue tab with providers */}
         {stage === "to_queue" && (tabCounts["to_queue"] ?? 0) > 0 && batchId && (
           <button
-            onClick={handleQueueAll}
+            onClick={handleQueueAllClick}
             disabled={queueingAll}
             className="flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -328,8 +323,8 @@ export default function StaffingOutreachPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <p className="text-lg font-semibold text-gray-900">All queued!</p>
-              <p className="mt-1 text-sm text-gray-500">All providers have been queued for email sequences.</p>
+              <p className="text-lg font-semibold text-gray-900">All started!</p>
+              <p className="mt-1 text-sm text-gray-500">All providers have been sent to the email sequence.</p>
             </>
           ) : stage === "sequencing" ? (
             <>
@@ -338,8 +333,8 @@ export default function StaffingOutreachPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-              <p className="text-lg font-semibold text-gray-900">No sequences in progress</p>
-              <p className="mt-1 text-sm text-gray-500">Queue providers to start email sequences.</p>
+              <p className="text-lg font-semibold text-gray-900">No emails sending</p>
+              <p className="mt-1 text-sm text-gray-500">Start providers from the Not Started tab to begin sending emails.</p>
             </>
           ) : stage === "needs_call" ? (
             <>
@@ -348,8 +343,8 @@ export default function StaffingOutreachPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
               </div>
-              <p className="text-lg font-semibold text-gray-900">No calls needed</p>
-              <p className="mt-1 text-sm text-gray-500">Sequences complete without needing manual follow-up.</p>
+              <p className="text-lg font-semibold text-gray-900">No follow-ups needed</p>
+              <p className="mt-1 text-sm text-gray-500">Providers who don&apos;t respond to emails will appear here.</p>
             </>
           ) : stage === "enrolled" ? (
             <>
@@ -358,8 +353,8 @@ export default function StaffingOutreachPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>
               </div>
-              <p className="text-lg font-semibold text-gray-900">No enrolled providers yet</p>
-              <p className="mt-1 text-sm text-gray-500">Providers will appear here once they complete enrollment.</p>
+              <p className="text-lg font-semibold text-gray-900">No active partners yet</p>
+              <p className="mt-1 text-sm text-gray-500">Providers will appear here once they accept the partnership.</p>
             </>
           ) : (
             <>
@@ -475,6 +470,107 @@ export default function StaffingOutreachPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Queue All Confirmation Drawer */}
+      {showQueueConfirm && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setShowQueueConfirm(false)}
+          />
+          {/* Drawer */}
+          <div className="relative z-10 flex h-full w-full max-w-xl flex-col bg-white shadow-xl">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+              <h2 className="text-lg font-semibold text-gray-900">Start Email Sequences</h2>
+              <button
+                onClick={() => setShowQueueConfirm(false)}
+                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">University</p>
+                  <p className="mt-1 text-lg font-semibold text-gray-900 truncate">{currentBatch?.university_name}</p>
+                </div>
+                <div className="rounded-xl bg-blue-50 p-4">
+                  <p className="text-xs font-medium text-blue-600 uppercase tracking-wide">Providers</p>
+                  <p className="mt-1 text-3xl font-bold text-blue-700">{tabCounts["to_queue"] ?? 0}</p>
+                </div>
+              </div>
+
+              {/* What will happen */}
+              <div className="rounded-xl border border-gray-200 p-4 mb-6">
+                <p className="text-sm font-semibold text-gray-900 mb-3">What will happen</p>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">1</div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Email 1 sent immediately</p>
+                      <p className="text-xs text-gray-500">Introduction to the Student Caregiver Program</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">2</div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Wait 3 days</p>
+                      <p className="text-xs text-gray-500">Providers move to Sending tab</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">3</div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Email 2 sent if no response</p>
+                      <p className="text-xs text-gray-500">Then move to Needs Follow-up tab</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Note about missing emails */}
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
+                <div className="flex gap-3">
+                  <svg className="h-5 w-5 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">Providers without email will be skipped</p>
+                    <p className="text-xs text-amber-700 mt-0.5">They&apos;ll stay in To Queue until you add an email address</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-gray-100 px-6 py-4">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowQueueConfirm(false)}
+                  className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleQueueAllConfirm}
+                  disabled={queueingAll}
+                  className="flex-1 rounded-xl bg-gray-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {queueingAll ? "Starting..." : `Start ${tabCounts["to_queue"] ?? 0} Sequences`}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

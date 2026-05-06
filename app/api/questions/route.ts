@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
-import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@/lib/slack";
+import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail, slackQuestionEmailEnriched } from "@/lib/slack";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { questionConfirmationEmail, questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
+import { getCategoryDisplayName, PROFILE_CAT_TO_SUPABASE_CAT } from "@/lib/types/provider";
 
 /**
  * GET /api/questions?provider_id=xxx
@@ -397,7 +398,7 @@ export async function PATCH(request: NextRequest) {
     if (enrichName || enrichEmail) {
       const { data: existing, error: fetchError } = await db
         .from("provider_questions")
-        .select("id, asker_user_id, asker_email")
+        .select("id, asker_user_id, asker_email, provider_id")
         .eq("id", id)
         .single();
 
@@ -432,40 +433,80 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: "Failed to update" }, { status: 500 });
       }
 
-      // Send confirmation email (fire-and-forget)
+      // Fire seeker_activity event for the enrichment. Always — every guest
+      // who upgraded their question with email is the qa_email_capture
+      // variant's `saved` signal. Awaited so we don't lose it to serverless
+      // teardown (per feedback_serverless_fire_and_forget.md). Supabase
+      // does NOT throw on insert errors — destructure { error } and log
+      // explicitly so CHECK-constraint rejections aren't silent.
+      if (updates.asker_email && updated?.id) {
+        const { error: actErr } = await db.from("seeker_activity").insert({
+          profile_id: null,
+          event_type: "question_email_enriched",
+          related_provider_id: existing.provider_id || null,
+          metadata: {
+            question_id: updated.id,
+            variant: "qa_email_capture",
+          },
+        });
+        if (actErr) {
+          console.error("[seeker_activity] question_email_enriched insert failed:", actErr);
+        }
+      }
+
+      // Send confirmation email — for the qa_email_capture variant we ALSO
+      // look up 3 similar providers in the same city + category and include
+      // them in the email body, delivering on the enrichment prompt's promise
+      // ("we'll send 3 similar providers in [City] in case they don't reply").
       if (updates.asker_email && updated?.question) {
         try {
-          // Look up provider name + slug for the email
-          const { data: q } = await db
-            .from("provider_questions")
-            .select("provider_id")
-            .eq("id", id)
-            .single();
-
-          const providerSlug = q?.provider_id || "";
-          // Multi-strategy name lookup (same root cause as POST handler)
+          // Reuse `existing.provider_id` from the upstream lookup — no need
+          // to round-trip a second .single() for the same row.
+          const providerSlug = existing.provider_id || "";
+          // Multi-strategy lookup: fetch name + city + state + category in
+          // one go from each candidate source, mirroring the POST handler.
+          // Also capture the olera-providers.provider_id (excludeId) so we
+          // can correctly exclude this same provider from the alternatives
+          // suggestions below — the helper matches on olera-providers.provider_id,
+          // NOT on slug. Without this, alternatives could include the same
+          // provider the family is asking about.
           let providerName: string | null = null;
+          let providerCity: string | null = null;
+          let providerState: string | null = null;
+          let providerCategoryRaw: string | null = null;
+          let excludeId: string | null = null;
           const { data: bp } = await db
             .from("business_profiles")
-            .select("display_name")
+            .select("display_name, city, state, category, source_provider_id")
             .eq("slug", providerSlug)
             .maybeSingle();
-          providerName = bp?.display_name || null;
+          if (bp) {
+            providerName = bp.display_name || null;
+            providerCity = bp.city || null;
+            providerState = bp.state || null;
+            providerCategoryRaw = bp.category || null;
+            excludeId = bp.source_provider_id || null;
+          }
           if (!providerName) {
-            // Try olera-providers by slug, then reverse slug match
             const { data: ios } = await db
               .from("olera-providers")
-              .select("provider_name")
+              .select("provider_name, city, state, provider_category, provider_id")
               .eq("slug", providerSlug)
               .not("deleted", "is", true)
               .maybeSingle();
-            providerName = ios?.provider_name || null;
+            if (ios) {
+              providerName = ios.provider_name || null;
+              providerCity = ios.city || null;
+              providerState = ios.state || null;
+              providerCategoryRaw = ios.provider_category || null;
+              excludeId = ios.provider_id || null;
+            }
             if (!providerName) {
               const slugParts = providerSlug.split("-");
               const namePrefix = slugParts.slice(0, 3).join("-");
               const { data: candidates } = await db
                 .from("olera-providers")
-                .select("provider_name, state")
+                .select("provider_name, state, city, provider_category, provider_id")
                 .not("deleted", "is", true)
                 .is("slug", null)
                 .ilike("provider_name", `${namePrefix.replace(/-/g, "%")}%`)
@@ -474,6 +515,10 @@ export async function PATCH(request: NextRequest) {
                 for (const c of candidates) {
                   if (generateProviderSlug(c.provider_name, c.state) === providerSlug) {
                     providerName = c.provider_name;
+                    providerCity = c.city || null;
+                    providerState = c.state || null;
+                    providerCategoryRaw = c.provider_category || null;
+                    excludeId = c.provider_id || null;
                     break;
                   }
                 }
@@ -481,27 +526,108 @@ export async function PATCH(request: NextRequest) {
             }
           }
 
+          // Fetch up to 3 similar providers nearby. Same helper that powers
+          // AgentOutreachModule. Reuses its 10-min cache. Returns [] when
+          // city/state/category isn't resolvable — email falls back to
+          // single-CTA layout in that case. excludeId (resolved above) is
+          // the olera-providers.provider_id of the source provider, which
+          // is what the helper actually filters on. Falling back to the
+          // slug is safe (helper just won't filter) but ideally we have
+          // the real ID here.
+          let alternatives: Array<{ name: string; city: string | null; url: string }> = [];
+          if (providerCity && providerState && providerCategoryRaw) {
+            try {
+              const { getTopProvidersByCityAndCategory } = await import("@/lib/agent-outreach-providers");
+              const cards = await getTopProvidersByCityAndCategory({
+                city: providerCity,
+                state: providerState,
+                category: providerCategoryRaw,
+                excludeProviderId: excludeId || undefined,
+                limit: 3,
+              });
+              const siteUrlBase = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+              alternatives = cards.map((c) => ({
+                name: c.name,
+                city: c.address || providerCity,
+                url: `${siteUrlBase}/provider/${c.slug}`,
+              }));
+            } catch (altErr) {
+              console.error("[question-enrich] alternatives lookup failed:", altErr);
+            }
+          }
+
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          // Subject reflects what the user clicked. qa_email_capture
+          // visitors clicked "Email me these" expecting curated top-N
+          // providers in their inbox — subject leads with "Top N [Category]
+          // in [City]" so the inbox preview matches the in-page promise.
+          // Two-stage category resolution mirrors the page's outreachCategoryString:
+          //   1. Snake_case enum (business_profiles.category) → display via
+          //      PROFILE_CAT_TO_SUPABASE_CAT.
+          //   2. Already display-ready (olera-providers.provider_category) →
+          //      pass through getCategoryDisplayName for simplification
+          //      (e.g., "Home Care (Non-medical)" → "Home Care").
+          // Falls back to "providers" when no category info is available.
+          let cleanCategory: string | null = null;
+          if (providerCategoryRaw) {
+            const displayReady =
+              PROFILE_CAT_TO_SUPABASE_CAT[providerCategoryRaw] ||
+              providerCategoryRaw;
+            const simplified = getCategoryDisplayName(displayReady);
+            // Avoid the "Senior Care" generic fallback when input was
+            // unknown — better to drop the category entirely.
+            if (simplified !== "Senior Care") cleanCategory = simplified;
+          }
+          const subjectNoun = cleanCategory || "providers";
+          const cityPhrase = providerCity ? `in ${providerCity}` : "nearby";
+          const emailSubject =
+            alternatives.length > 0
+              ? `Top ${alternatives.length} ${subjectNoun} ${cityPhrase}`
+              : `Your question to ${providerName || "a provider"} on Olera`;
           const enrichEmailLogId = await reserveEmailLogId({
             to: updates.asker_email,
-            subject: `Your question to ${providerName || "a provider"} on Olera`,
+            subject: emailSubject,
             emailType: "question_confirmation",
             recipientType: "family",
           });
 
           await sendEmail({
             to: updates.asker_email,
-            subject: `Your question to ${providerName || "a provider"} on Olera`,
+            subject: emailSubject,
             html: questionConfirmationEmail({
               askerName: updates.asker_name || "there",
               providerName: providerName || "the provider",
               question: updated.question,
               providerUrl: appendTrackingParams(`${siteUrl}/provider/${providerSlug}`, enrichEmailLogId),
+              alternatives,
+              city: providerCity,
             }),
             emailType: 'question_confirmation',
             recipientType: 'family',
             emailLogId: enrichEmailLogId ?? undefined,
           });
+
+          // Slack alert — qa_email_capture conversion event. Awaited so it
+          // survives Vercel's serverless teardown (per
+          // feedback_serverless_fire_and_forget.md). Lives in the same
+          // try/catch as the email so a Slack failure logs but doesn't
+          // mask an email-success response back to the client.
+          try {
+            const { text, blocks } = slackQuestionEmailEnriched({
+              questionId: updated.id,
+              askerEmail: updates.asker_email,
+              questionText: updated.question,
+              sourceProviderName: providerName || "the provider",
+              sourceProviderSlug: providerSlug,
+              city: providerCity,
+              state: providerState,
+              category: cleanCategory,
+              alternatives,
+            });
+            await sendSlackAlert(text, blocks);
+          } catch (slackErr) {
+            console.error("[slack] question_email_enriched alert failed:", slackErr);
+          }
         } catch (emailErr) {
           console.error("Question confirmation email failed:", emailErr);
         }

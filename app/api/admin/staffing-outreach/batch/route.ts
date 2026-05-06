@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { startEmailSequence, isResendMockMode } from "@/lib/staffing-outreach/resend-automation";
+import { startEmailSequence } from "@/lib/staffing-outreach/resend-automation";
 import { getServiceArea, type StaffingOutreachRow } from "@/lib/staffing-outreach/types";
 
 interface BatchResult {
@@ -58,14 +58,9 @@ async function handleStartSequenceBatch(
     return NextResponse.json({ error: "No outreach IDs provided" }, { status: 400 });
   }
 
-  // Limit batch size to prevent timeout
-  const MAX_BATCH_SIZE = 50;
-  if (outreachIds.length > MAX_BATCH_SIZE) {
-    return NextResponse.json(
-      { error: `Batch too large. Maximum ${MAX_BATCH_SIZE} providers at a time.` },
-      { status: 400 },
-    );
-  }
+  // Note: No hard limit - we process sequentially which is safe.
+  // Each startEmailSequence call is fast (~100-500ms), so even 100+ providers
+  // should complete well within Vercel's timeout limits.
 
   // Get all outreach records with their batch and provider info
   const { data: outreachRows, error: fetchError } = await db
@@ -149,17 +144,13 @@ async function handleStartSequenceBatch(
     });
 
     if (seqResult.success) {
-      // Update status
-      // Note: email1_sent_at/email2_sent_at are set by webhook when Resend confirms delivery
-      // In mock mode, set email1_sent_at immediately since no webhook will come
-      const isMockMode = isResendMockMode();
+      // Update status - email1_sent_at is set immediately since we send directly
       await db
         .from("staffing_outreach")
         .update({
           status: "sequencing",
           sequence_started_at: now,
-          ...(isMockMode && { email1_sent_at: now }), // Mock mode: simulate immediate send
-          resend_automation_id: seqResult.contactId,
+          email1_sent_at: now, // Email sent directly, not via automation
           sequence_email: recipientEmail,
           next_action_due_at: new Date(Date.now() + 6 * 86400_000).toISOString(),
           updated_at: now,
@@ -169,11 +160,11 @@ async function handleStartSequenceBatch(
       // Log touchpoint
       await db.from("staffing_touchpoints").insert({
         outreach_id: outreach.id,
-        type: "sequence_started",
-        notes: "Batch queue operation",
+        type: "sequence_email1_sent",
+        notes: "Batch queue operation - Email 1 sent directly",
         payload: {
           recipient_email: recipientEmail,
-          resend_contact_id: seqResult.contactId,
+          resend_email_id: seqResult.emailId,
           university: batchInfo?.name,
           batch_operation: true,
         },

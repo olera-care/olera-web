@@ -41,6 +41,7 @@ export default function InlineAnswerCard({
   const [inputFocused, setInputFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const expandTrackedRef = useRef(false);
 
   // Extract first name - handle names starting with (Test) or similar prefixes
   // Also strip trailing 's (possessive) so "Effy's Homecare" becomes "Effy" not "Effy's"
@@ -85,24 +86,22 @@ export default function InlineAnswerCard({
     }
   }, [mounted, showSuccess]);
 
-  // Track expansion — deduplicated per session to avoid inflating "started" counts
+  // Track expansion — deduplicated via ref (same pattern as benefits module)
   useEffect(() => {
-    const storageKey = `inline_expanded_${providerId}_${question}`;
-    if (typeof window !== "undefined" && !sessionStorage.getItem(storageKey)) {
-      sessionStorage.setItem(storageKey, "1");
-      fetch("/api/activity/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          actor_type: "anonymous",
-          event_type: "inline_answer_expanded",
-          related_provider_id: providerId,
-          session_id: getOrCreateSessionId(),
-          metadata: { question_text: question, variant: "inline_answer" },
-        }),
-        keepalive: true,
-      }).catch(() => {});
-    }
+    if (expandTrackedRef.current) return;
+    expandTrackedRef.current = true;
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "anonymous",
+        event_type: "inline_answer_expanded",
+        related_provider_id: providerId,
+        session_id: getOrCreateSessionId(),
+        metadata: { question_text: question, variant: "inline_answer" },
+      }),
+      keepalive: true,
+    }).catch(() => {});
   }, [providerId, question]);
 
   useEffect(() => {

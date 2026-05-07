@@ -6,6 +6,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { validateEmailStrict } from "@/lib/email-validation";
+import { sendSlackAlert, slackVariantConverted } from "@/lib/slack";
 
 /**
  * POST /api/inline-answer/capture-email
@@ -348,7 +349,26 @@ export async function POST(req: Request) {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 5. Return response with session cookies
+  // 5. Slack notification (awaited to survive serverless teardown)
+  // ═══════════════════════════════════════════════════════════════════
+  try {
+    const isMultiProvider = sentProviderIds && sentProviderIds.length > 0;
+    const alert = slackVariantConverted({
+      variant: isMultiProvider ? "multi_provider" : "inline_answer",
+      email: normalizedEmail,
+      providerName: providerName || "Unknown Provider",
+      questionText: questionText || undefined,
+      sentCount: isMultiProvider ? sentCount : undefined,
+      providerSlug: providerId,
+    });
+    await sendSlackAlert(alert.text, alert.blocks);
+  } catch (slackErr) {
+    // Log but don't fail the request — Slack is non-critical
+    console.error("[inline-answer/capture-email] Slack alert failed:", slackErr);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 6. Return response with session cookies
   // ═══════════════════════════════════════════════════════════════════
   const response = NextResponse.json({
     success: true,

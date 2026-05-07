@@ -372,8 +372,8 @@ export default function MultiProviderCard({
           ═══════════════════════════════════════════════════════════════ */}
       {cardState === "card_stack" && similarProviders.length > 0 && (
         <div className="p-6">
-          {/* Context pill */}
-          <div className="flex justify-center items-center gap-2 mb-4">
+          {/* Stack 1: Context pill */}
+          <div className="flex justify-center items-center gap-2 mb-8">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
               <span className="text-[12px] font-bold uppercase tracking-wide text-primary-700">
                 You asked {firstName}&apos;s
@@ -384,15 +384,15 @@ export default function MultiProviderCard({
             </span>
           </div>
 
-          {/* Headline */}
-          <div className="mb-5 text-center">
+          {/* Stack 2: Headline + Cards */}
+          <div className="mb-4 text-center">
             <h3 className="font-display text-2xl text-gray-900 leading-tight">
               Ask <span className="font-bold">more providers</span> the same question?
             </h3>
           </div>
 
           {/* Card Stack */}
-          <div className="relative mb-5 mx-8 lg:mx-20">
+          <div className="relative mb-8 mx-8 lg:mx-20">
             {/* Peek card 2 (furthest back) - rotated left */}
             {currentIndex < similarProviders.length - 2 && (
               <div
@@ -525,7 +525,7 @@ export default function MultiProviderCard({
             )}
           </div>
 
-          {/* Progress tracker */}
+          {/* Stack 3: Progress tracker */}
           <div className="flex items-center justify-center gap-3">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-success-500 animate-pulse" />

@@ -375,7 +375,7 @@ export default function MultiProviderCard({
           {/* Stack 1: Context pill + Headline */}
           <div className="flex justify-center items-center gap-2 mb-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
-              <span className="text-[10px] font-bold uppercase tracking-wide text-primary-700">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-primary-700 whitespace-nowrap">
                 You asked {firstName}&apos;s
               </span>
               <span className="text-[13px] font-medium italic text-gray-600 truncate max-w-[220px]">
@@ -391,7 +391,7 @@ export default function MultiProviderCard({
           </div>
 
           {/* Stack 2: Card Stack (standalone) */}
-          <div className="relative mb-8 mx-5 lg:mx-20">
+          <div className="relative mb-8 mx-4 lg:mx-20">
             {/* Peek card 2 (furthest back) - rotated left */}
             {currentIndex < similarProviders.length - 2 && (
               <div
@@ -595,7 +595,7 @@ export default function MultiProviderCard({
               </div>
 
               {/* Provider list with "Replying" animation */}
-              <div className="space-y-2 mb-5 mx-5 lg:mx-20">
+              <div className="space-y-2 mb-5 mx-4 lg:mx-20">
                 {allSentProviders.map((provider) => (
                   <div
                     key={provider.id}
@@ -628,7 +628,7 @@ export default function MultiProviderCard({
                   flex items-center gap-2 p-1.5
                   bg-white border rounded-full
                   transition-all duration-200
-                  focus-within:ring-2 focus-within:ring-primary-200 focus-within:border-primary-400
+                  focus-within:ring-2 focus-within:ring-gray-200 focus-within:border-gray-900
                   ${emailError ? "border-red-300 ring-2 ring-red-50" : "border-gray-300"}
                 `}
               >
@@ -641,7 +641,7 @@ export default function MultiProviderCard({
                     setEmailError(null);
                   }}
                   onKeyDown={handleKeyDown}
-                  placeholder="you@email.com"
+                  placeholder="yourname@email.com"
                   autoComplete="email"
                   disabled={isSubmitting}
                   className="
@@ -669,7 +669,7 @@ export default function MultiProviderCard({
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     </span>
                   ) : (
-                    "Send replies to me"
+                    "Send replies"
                   )}
                 </button>
               </div>

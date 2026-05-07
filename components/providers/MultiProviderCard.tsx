@@ -373,10 +373,10 @@ export default function MultiProviderCard({
       {cardState === "card_stack" && similarProviders.length > 0 && (
         <div className="p-6">
           {/* Stack 1: Context pill + Headline */}
-          <div className="flex justify-center items-center gap-2 mb-2.5">
+          <div className="flex justify-center items-center gap-2 mb-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
-              <span className="text-[12px] font-bold uppercase tracking-wide text-primary-700">
-                You asked
+              <span className="text-[10px] font-bold uppercase tracking-wide text-primary-700">
+                You asked {firstName}&apos;s
               </span>
               <span className="text-[13px] font-medium italic text-gray-600 truncate max-w-[220px]">
                 &ldquo;{truncateQuestion(question)}&rdquo;
@@ -385,8 +385,8 @@ export default function MultiProviderCard({
           </div>
 
           <div className="mb-8 text-center">
-            <h3 className="font-display text-2xl text-gray-900 leading-tight">
-              Get answers from <span className="font-bold">other providers</span> in {currentProvider.city || "your area"}?
+            <h3 className="font-display text-2xl font-normal text-gray-900 leading-tight">
+              Don&apos;t settle on the first answer.
             </h3>
           </div>
 

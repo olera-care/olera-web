@@ -154,17 +154,20 @@ export default function VariantSessionsList({
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.error || `Delete failed (${res.status})`);
       }
+      // Remove the deleted row locally. Avoids refetching from offset 0
+      // which would throw away any "Load more" state and force the
+      // operator to scroll/page back to verify the row is gone. Total
+      // count is decremented to keep "Showing N of M" honest.
+      const removedId = pendingDelete.session_id;
+      setSessions((prev) => prev.filter((s) => s.session_id !== removedId));
+      setTotal((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
       setPendingDelete(null);
-      // Refresh from scratch — counts in the parent funnel card will be
-      // stale until the next /admin/analytics summary refetch, but the
-      // drill-in itself is now accurate.
-      await fetchPage(0, false);
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : "Delete failed");
     } finally {
       setDeleting(false);
     }
-  }, [pendingDelete, variant, fetchPage]);
+  }, [pendingDelete, variant]);
 
   const hasMore = total !== null && sessions.length < total;
 

@@ -529,41 +529,94 @@ export async function DELETE(request: NextRequest) {
     }
 
     // ── Phase 2: cascading deletes ───────────────────────────────────────
+    // Each delete checks `error` explicitly. Earlier version swallowed
+    // errors and returned ok:true even when nothing was actually deleted
+    // — leading to "row reappears after Load more" because the refetch
+    // saw the still-present DB row.
+    const errors: Array<{ table: string; message: string }> = [];
+
     if (accountId) {
-      const { count } = await db
+      const { error, count } = await db
         .from("accounts")
         .delete({ count: "exact" })
         .eq("id", accountId);
-      deleted.accounts = count ?? 0;
+      if (error) {
+        console.error("[variant-sessions DELETE] accounts:", error);
+        errors.push({ table: "accounts", message: error.message });
+      } else {
+        deleted.accounts = count ?? 0;
+      }
     }
     if (outreachRequestId) {
-      const { count } = await db
+      const { error, count } = await db
         .from("agent_outreach_requests")
         .delete({ count: "exact" })
         .eq("id", outreachRequestId);
-      deleted.agent_outreach_requests = count ?? 0;
+      if (error) {
+        console.error("[variant-sessions DELETE] agent_outreach_requests:", error);
+        errors.push({ table: "agent_outreach_requests", message: error.message });
+      } else {
+        deleted.agent_outreach_requests = count ?? 0;
+      }
     }
     if (questionIds.length > 0) {
-      const { count } = await db
+      const { error, count } = await db
         .from("provider_questions")
         .delete({ count: "exact" })
         .in("id", questionIds);
-      deleted.provider_questions = count ?? 0;
+      if (error) {
+        console.error("[variant-sessions DELETE] provider_questions:", error);
+        errors.push({ table: "provider_questions", message: error.message });
+      } else {
+        deleted.provider_questions = count ?? 0;
+      }
     }
 
     {
-      const { count } = await db
+      const { error, count } = await db
         .from("seeker_activity")
         .delete({ count: "exact" })
         .filter("metadata->>session_id", "eq", sessionId);
-      deleted.seeker_activity = count ?? 0;
+      if (error) {
+        console.error("[variant-sessions DELETE] seeker_activity:", error);
+        errors.push({ table: "seeker_activity", message: error.message });
+      } else {
+        deleted.seeker_activity = count ?? 0;
+      }
     }
     {
-      const { count } = await db
+      const { error, count } = await db
         .from("provider_activity")
         .delete({ count: "exact" })
         .filter("metadata->>session_id", "eq", sessionId);
-      deleted.provider_activity = count ?? 0;
+      if (error) {
+        console.error("[variant-sessions DELETE] provider_activity:", error);
+        errors.push({ table: "provider_activity", message: error.message });
+      } else {
+        deleted.provider_activity = count ?? 0;
+      }
+    }
+
+    // If any delete errored, surface it. Best-effort: we still ran every
+    // delete (so the operator sees what got through in `deleted`), and
+    // we still log the audit entry below — but the response status flips
+    // so the frontend knows to keep the modal open and show the error.
+    if (errors.length > 0) {
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "variant_submission_delete_failed",
+        targetType: "variant_session",
+        targetId: sessionId,
+        details: { variant, email: auditEmail, deleted, errors },
+      });
+      return NextResponse.json(
+        {
+          error: `Delete failed in ${errors.length} table(s): ${errors.map((e) => e.table).join(", ")}`,
+          deleted,
+          errors,
+        },
+        { status: 500 },
+      );
     }
 
     await logAuditAction({

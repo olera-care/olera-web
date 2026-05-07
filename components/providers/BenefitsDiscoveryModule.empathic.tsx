@@ -104,10 +104,18 @@ export default function EmpathicSingleStep({
       setQuotedQuestion(detail.question);
       const active = document.activeElement as HTMLElement | null;
       if (active && typeof active.blur === "function") active.blur();
+      // Double rAF: lets React commit the quotedQuestion state update +
+      // any Q&A section DOM insertions (the user's question card) settle
+      // before we measure scroll target. Single rAF was racing with those
+      // layout shifts, landing the scroll past the module's true position.
+      // block: "center" puts the module's visual middle at the viewport's
+      // visual middle so the sticky tab nav doesn't crop the H2 + echo.
       requestAnimationFrame(() => {
-        const el = document.getElementById("benefits");
-        if (el) el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
-        document.body.classList.add("benefits-spotlight-active");
+        requestAnimationFrame(() => {
+          const el = document.getElementById("benefits");
+          if (el) el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
+          document.body.classList.add("benefits-spotlight-active");
+        });
       });
       pending.push(window.setTimeout(() => setEchoVisible(true), 450));
       pending.push(

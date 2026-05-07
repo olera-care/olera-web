@@ -259,10 +259,14 @@ export default function BenefitsDiscoveryModule({
       const active = document.activeElement as HTMLElement | null;
       if (active && typeof active.blur === "function") active.blur();
       const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      // Double rAF + block: "center" — see BenefitsDiscoveryModule.empathic.tsx
+      // for the rationale. Same fix applies to the legacy 3-step flow.
       requestAnimationFrame(() => {
-        const el = document.getElementById("benefits");
-        if (el) el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
-        document.body.classList.add("benefits-spotlight-active");
+        requestAnimationFrame(() => {
+          const el = document.getElementById("benefits");
+          if (el) el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
+          document.body.classList.add("benefits-spotlight-active");
+        });
       });
       pendingTimeouts.push(window.setTimeout(() => setEchoVisible(true), 450));
       pendingTimeouts.push(

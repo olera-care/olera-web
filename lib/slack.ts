@@ -1221,3 +1221,66 @@ export function slackSaveNudgeConverted(opts: {
     ],
   };
 }
+
+export function slackVariantConverted(opts: {
+  variant: "multi_provider";
+  email: string;
+  providerName: string;
+  questionText?: string;
+  sentCount?: number;
+  providerSlug?: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+  const variantLabel = "Multi-Provider";
+  const emoji = "🔀";
+
+  const headerText = opts.sentCount && opts.sentCount > 1
+    ? `${emoji} Q&A Conversion: ${opts.sentCount} providers`
+    : `${emoji} Q&A Conversion: ${variantLabel}`;
+
+  const fields: SlackBlock["fields"] = [
+    { type: "mrkdwn", text: `*Email:*\n${opts.email}` },
+    { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+    { type: "mrkdwn", text: `*Variant:*\n${variantLabel}` },
+  ];
+
+  if (opts.sentCount && opts.sentCount > 1) {
+    fields.push({ type: "mrkdwn", text: `*Providers Asked:*\n${opts.sentCount}` });
+  }
+
+  const blocks: SlackBlock[] = [
+    {
+      type: "header",
+      text: { type: "plain_text", text: headerText, emoji: true },
+    },
+    {
+      type: "section",
+      fields,
+    },
+  ];
+
+  if (opts.questionText) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Question:*\n_"${opts.questionText}"_`,
+      },
+    });
+  }
+
+  if (opts.providerSlug) {
+    blocks.push({
+      type: "context",
+      elements: [
+        { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View Provider>` },
+      ],
+    });
+  }
+
+  return {
+    text: `Q&A ${variantLabel} Conversion: ${opts.email} asked ${opts.providerName}`,
+    blocks,
+  };
+}

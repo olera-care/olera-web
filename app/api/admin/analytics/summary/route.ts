@@ -134,9 +134,10 @@ type BenefitsFunnelByVariant = {
   loss: BenefitsVariantRow;
   empathic: BenefitsVariantRow;
   outreach: BenefitsVariantRow;        // 4th arm: AI outreach module (H1 demand test)
-  qa_email_capture: BenefitsVariantRow; // 5th arm: Q&A enrichment ON, SBF off (since 2026-05-05)
-  control: BenefitsVariantRow;     // legacy V2
-  money_loss: BenefitsVariantRow;  // legacy V2
+  qa_email_capture: BenefitsVariantRow;   // 5th arm: inline Q&A answer expansion (H2 UX test)
+  multi_provider: BenefitsVariantRow;  // 6th arm: multi-provider comparison
+  control: BenefitsVariantRow;         // legacy V2
+  money_loss: BenefitsVariantRow;      // legacy V2
   unassigned: BenefitsVariantRow;
 };
 // Page-view referrer breakdown — counts page_view events by traffic class
@@ -242,10 +243,11 @@ const EMPTY_BENEFITS_FUNNEL_BY_VARIANT = (): BenefitsFunnelByVariant => ({
   availability: EMPTY_BENEFITS_FUNNEL(),
   loss: EMPTY_BENEFITS_FUNNEL(),
   empathic: EMPTY_BENEFITS_FUNNEL(),
-  outreach: EMPTY_BENEFITS_FUNNEL(),         // 4th arm
-  qa_email_capture: EMPTY_BENEFITS_FUNNEL(), // 5th arm
-  control: EMPTY_BENEFITS_FUNNEL(),     // legacy V2
-  money_loss: EMPTY_BENEFITS_FUNNEL(),  // legacy V2
+  outreach: EMPTY_BENEFITS_FUNNEL(),        // 4th arm
+  qa_email_capture: EMPTY_BENEFITS_FUNNEL(),   // 5th arm
+  multi_provider: EMPTY_BENEFITS_FUNNEL(),  // 6th arm
+  control: EMPTY_BENEFITS_FUNNEL(),         // legacy V2
+  money_loss: EMPTY_BENEFITS_FUNNEL(),      // legacy V2
   unassigned: EMPTY_BENEFITS_FUNNEL(),
 });
 const EMPTY_REFERRER_BREAKDOWN = (): ReferrerBreakdown => ({
@@ -353,8 +355,8 @@ async function fetchWindow(
   if (from) benefitsQ = benefitsQ.gte("created_at", from);
   if (to) benefitsQ = benefitsQ.lt("created_at", to);
 
-  // Agent outreach 4th-arm + qa_email_capture 5th-arm funnel. Different
-  // table (seeker_activity), different shape from the SBF arms.
+  // Outreach 4th-arm + qa_email_capture 5th-arm funnel. Different table
+  // (seeker_activity), different shape from the SBF arms.
   //   outreach          — impression → card click → submit
   //   qa_email_capture  — impression → (question_asked from POST /api/questions)
   //                       → question_email_enriched
@@ -374,6 +376,21 @@ async function fetchWindow(
   if (from) outreachQ = outreachQ.gte("created_at", from);
   if (to) outreachQ = outreachQ.lt("created_at", to);
 
+  // Multi-provider 6th-arm funnel. Lives in provider_activity (anonymous
+  // events). Event mapping:
+  //   multi_provider_viewed     → impressions  (wrapper mount in arm)
+  //   multi_provider_card_shown → started      (card stack rendered after a question)
+  //   multi_provider_converted  → saved        (email captured)
+  // Other multi_provider_* events (asked, skipped, save_all) are kept in
+  // the allowlist for downstream analysis but don't drive the canonical funnel.
+  let multiProviderQ = db
+    .from("provider_activity")
+    .select("event_type, metadata")
+    .in("event_type", ["multi_provider_viewed", "multi_provider_card_shown", "multi_provider_converted"])
+    .limit(50000);
+  if (from) multiProviderQ = multiProviderQ.gte("created_at", from);
+  if (to) multiProviderQ = multiProviderQ.lt("created_at", to);
+
   // SBF-tagged accounts created in the window. signup_source is set ONLY
   // by the SBF intake (provider mounts → '/provider/{slug}', editorial →
   // '/caregiver-support/{slug}'). NULL means non-SBF account creation
@@ -389,7 +406,7 @@ async function fetchWindow(
   if (from) accountsQ = accountsQ.gte("created_at", from);
   if (to) accountsQ = accountsQ.lt("created_at", to);
 
-  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes, benefitsRes, outreachRes, accountsRes] = await Promise.all([
+  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes, benefitsRes, outreachRes, multiProviderRes, accountsRes] = await Promise.all([
     providerQ,
     seekerQ,
     distinctQ,
@@ -398,6 +415,7 @@ async function fetchWindow(
     issuesEventsQ,
     benefitsQ,
     outreachQ,
+    multiProviderQ,
     accountsQ,
   ]);
 
@@ -407,6 +425,7 @@ async function fetchWindow(
   if (openersRes.error) return { error: "Q&A email openers query failed" };
   if (funnelRes.error) return { error: "Q&A funnel query failed" };
   if (outreachRes.error) return { error: "outreach funnel query failed" };
+  if (multiProviderRes.error) return { error: "multi_provider funnel query failed" };
   if (issuesEventsRes.error) return { error: "Q&A issues query failed" };
   if (benefitsRes.error) return { error: "benefits funnel query failed" };
   if (accountsRes.error) return { error: "accounts entry-source query failed" };
@@ -599,10 +618,11 @@ async function fetchWindow(
     | "availability"
     | "loss"
     | "empathic"
-    | "outreach"          // 4th arm
-    | "qa_email_capture"  // 5th arm (since 2026-05-05)
-    | "control"      // legacy V2
-    | "money_loss"   // legacy V2
+    | "outreach"        // 4th arm
+    | "qa_email_capture"   // 5th arm
+    | "multi_provider"  // 6th arm
+    | "control"         // legacy V2
+    | "money_loss"      // legacy V2
     | "unassigned";
   const emptyStages = (): Record<keyof BenefitsFunnel, Set<string>> => ({
     impressions: new Set(),
@@ -619,6 +639,7 @@ async function fetchWindow(
     empathic: emptyStages(),
     outreach: emptyStages(),
     qa_email_capture: emptyStages(),
+    multi_provider: emptyStages(),
     control: emptyStages(),
     money_loss: emptyStages(),
     unassigned: emptyStages(),
@@ -639,6 +660,8 @@ async function fetchWindow(
     "availability",
     "loss",
     "empathic",
+    "qa_email_capture",
+    "multi_provider",
     "control",
     "money_loss",
   ]);
@@ -694,14 +717,34 @@ async function fetchWindow(
     } else if (r.event_type === "qa_email_capture_impression") {
       if (sid) benefitsByVariantSets.qa_email_capture.impressions.add(sid);
     } else if (r.event_type === "question_email_enriched") {
-      // The PATCH route doesn't carry session_id (no client involvement at
-      // that point). Use question_id as the dedup key — each question's
-      // enrichment counts once per question, which is the right unit for
-      // this arm. Fall back to a generated key if both are missing (rare).
+      // The PATCH route doesn't carry session_id directly when it lacks
+      // a client; metadata.session_id is set by the client-side enrichment
+      // call. Use question_id as the dedup fallback so each question's
+      // enrichment counts once per question even when session_id is missing.
       const qid = typeof r.metadata?.question_id === "string" ? r.metadata.question_id : null;
       const key = qid || sid || `${r.event_type}-${Math.random()}`;
       benefitsByVariantSets.qa_email_capture.saved.add(key);
     }
+  }
+
+  // Multi-provider 6th-arm. Lives in provider_activity (anonymous events).
+  // Event mapping:
+  //   multi_provider_viewed     → impressions (wrapper mount in arm)
+  //   multi_provider_card_shown → started     (card stack rendered)
+  //   multi_provider_converted  → saved       (email captured)
+  for (const r of (multiProviderRes.data ?? []) as Array<{
+    event_type: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    const sid = r.metadata?.session_id;
+    if (typeof sid !== "string" || !sid) continue;
+    const stage: keyof BenefitsFunnel | undefined =
+      r.event_type === "multi_provider_viewed" ? "impressions"
+      : r.event_type === "multi_provider_card_shown" ? "started"
+      : r.event_type === "multi_provider_converted" ? "saved"
+      : undefined;
+    if (!stage) continue;
+    benefitsByVariantSets.multi_provider[stage].add(sid);
   }
 
   // Top-line funnel = the 3 benefits arms only (the embedded form). The
@@ -731,6 +774,7 @@ async function fetchWindow(
     empathic: sizesFor("empathic"),
     outreach: sizesFor("outreach"),
     qa_email_capture: sizesFor("qa_email_capture"),
+    multi_provider: sizesFor("multi_provider"),
     control: sizesFor("control"),
     money_loss: sizesFor("money_loss"),
     unassigned: sizesFor("unassigned"),

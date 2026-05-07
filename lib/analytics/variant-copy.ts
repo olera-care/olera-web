@@ -107,6 +107,8 @@ export function variantSurfaceLabel(variant: IntakeVariant): string {
       return "Care-team outreach";
     case "qa_email_capture":
       return "Q&A email capture (no SBF)";
+    case "multi_provider":
+      return "Multi-provider comparison";
   }
 }
 
@@ -127,5 +129,7 @@ export function variantSubLabel(variant: IntakeVariant): string {
       return "Care team gets pricing & availability";
     case "qa_email_capture":
       return "Q&A enrichment, no SBF";
+    case "multi_provider":
+      return "Send question to multiple providers";
   }
 }

@@ -99,6 +99,10 @@ interface BenefitsFunnelByVariant {
   // Populates impressions (QASectionV2 mount in arm) and saved (post-question
   // email enrichment). Middle stages N/A → "—".
   qa_email_capture: BenefitsFunnel;
+  // 6th arm (since 2026-05-07) — Multi-provider comparison. Tinder-style card
+  // stack lets user send the same question to similar providers. Populates
+  // impressions and saved (email capture after card flow). Middle stages N/A.
+  multi_provider: BenefitsFunnel;
   // Legacy V2 arms — historical, retained for the rollup window when V2 data
   // exists. Frozen after cutover.
   control: BenefitsFunnel;
@@ -873,7 +877,7 @@ function BenefitsFunnelCard({
   return (
     <>
       <p className="text-xs text-gray-500 mb-5">
-        Top-line tracks the embedded benefits-help form on a provider page {rangeLabel(range).toLowerCase()} — distinct sessions per step, with % showing conversion from the previous step. The 4-arm A/B comparison below adds the AI agent outreach module so all variants can be compared on a shared Impressions denominator.
+        Top-line tracks the embedded benefits-help form on a provider page {rangeLabel(range).toLowerCase()} — distinct sessions per step, with % showing conversion from the previous step. The 6-arm A/B comparison below adds outreach, qa_email_capture, and multi_provider so all variants can be compared on a shared Impressions denominator.
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-5 gap-y-4">
@@ -1143,6 +1147,7 @@ const DRILLABLE_VARIANTS: ReadonlySet<VariantKey> = new Set([
   "empathic",
   "outreach",
   "qa_email_capture",
+  "multi_provider",
   "control",
   "money_loss",
 ]);
@@ -1201,6 +1206,7 @@ function BenefitsVariantSplit({
     byVariant.empathic.impressions +
     byVariant.outreach.impressions +
     byVariant.qa_email_capture.impressions +
+    byVariant.multi_provider.impressions +
     byVariant.control.impressions +
     byVariant.money_loss.impressions;
   const waitingForFirstImpression = totalAssigned === 0;
@@ -1216,6 +1222,7 @@ function BenefitsVariantSplit({
     { key: "empathic" as const, label: "empathic (single-step D)", description: "Single-step capture w/ value preview. Question-anchored copy." },
     { key: "outreach" as const, label: "outreach", description: "Our care team gets pricing, availability, and how to start from the top providers — in one email.", isOutreach: true },
     { key: "qa_email_capture" as const, label: "qa_email_capture", description: "No SBF / no outreach. Q&A enrichment ON with comparison-providers value-promise.", isOutreach: true },
+    { key: "multi_provider" as const, label: "multi_provider", description: "Tinder-style card stack — send question to multiple similar providers.", isOutreach: true },
   ];
   // Legacy V2 arms only render when they have data in the window — once the
   // historical window rolls past V2, these rows disappear automatically.
@@ -1234,10 +1241,10 @@ function BenefitsVariantSplit({
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">
       <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
-        A/B Test — entry-point module (5-arm)
+        A/B Test — entry-point module (6-arm)
       </div>
       <p className="text-[11px] text-gray-400 mb-3">
-        Deterministic split by session id (djb2 hash, weighted-bucket lookup against the live allocation set above) — 3 benefits-help copy arms + 1 AI agent outreach arm + 1 qa_email_capture arm (no SBF / no outreach; Q&A enrichment ON). Impressions = module rendered on a provider page; Started = first interactive action (care-need click for benefits, recommended-card click for outreach, N/A for qa_email_capture); Submitted = email/form submission (for qa_email_capture, post-question email enrichment). Conversion % = Submitted / Impressions, so all five arms compare on the same denominator. Variant copy strings + commentary live in the{" "}
+        Deterministic split by session id (djb2 hash, weighted-bucket lookup against the live allocation set above) — 3 benefits-help copy arms + 1 AI agent outreach arm + 1 qa_email_capture arm + 1 multi_provider arm. Impressions = module rendered on a provider page; Started = first interactive action (care-need click for benefits, recommended-card click for outreach, N/A for non-benefits arms); Submitted = email/form submission. Conversion % = Submitted / Impressions, so all six arms compare on the same denominator. Variant copy strings + commentary live in the{" "}
         <a
           href="https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d"
           target="_blank"

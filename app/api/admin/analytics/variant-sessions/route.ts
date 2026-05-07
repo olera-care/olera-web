@@ -327,33 +327,65 @@ export async function GET(request: NextRequest) {
         upgrade(sid, stage, row.created_at, providerId, careNeed);
       }
 
-      // Submitter join — accounts.email (the spot-check signal — operator
-      // wants to verify a real address, not just see a first name) plus
-      // accounts.active_profile_id so the email can deep-link to the
-      // family's detail page at /admin/care-seekers/[id]. Keyed by
-      // accounts.session_id (post-migration #067). Pre-migration rows
-      // have NULL session_id and won't link; their drill-in row shows
-      // "—" for submitter.
+      // Submitter join — operator wants to spot-check the lead's email,
+      // and the email can deep-link to the family detail page at
+      // /admin/care-seekers/[id]. Email lives on business_profiles
+      // (NOT accounts — confirmed via migration 001), so this is two
+      // steps: accounts → active_profile_id → business_profiles.email.
+      // Keyed by accounts.session_id (post-migration #067). Pre-migration
+      // rows have NULL session_id and won't link.
       const submittedSids = [...sessions.values()]
         .filter((s) => s.furthest_stage === "submitted")
         .map((s) => s.session_id);
       if (submittedSids.length > 0) {
         const acctRes = await db
           .from("accounts")
-          .select("session_id, email, active_profile_id")
+          .select("session_id, active_profile_id")
           .in("session_id", submittedSids)
           .limit(submittedSids.length);
         if (!acctRes.error) {
+          // session_id → active_profile_id, also stash the link target
+          // on the session row immediately so we get the deep link even
+          // if the email lookup later fails.
+          const profileIdsBySession = new Map<string, string>();
           for (const row of (acctRes.data ?? []) as Array<{
             session_id: string | null;
-            email: string | null;
             active_profile_id: string | null;
           }>) {
-            if (!row.session_id) continue;
+            if (!row.session_id || !row.active_profile_id) continue;
+            profileIdsBySession.set(row.session_id, row.active_profile_id);
             const session = sessions.get(row.session_id);
-            if (!session) continue;
-            if (row.email) session.submitter = row.email;
-            if (row.active_profile_id) session.submitter_link_id = row.active_profile_id;
+            if (session) session.submitter_link_id = row.active_profile_id;
+          }
+
+          // Now fetch emails from business_profiles for those profile ids.
+          // Filter to type='family' as a defensive measure against data
+          // corruption — a non-family profile shouldn't ever be pointed
+          // to by an SBF submission's active_profile_id, but if it is,
+          // we don't want to leak that row's email here.
+          const profileIds = [...profileIdsBySession.values()];
+          if (profileIds.length > 0) {
+            const bpRes = await db
+              .from("business_profiles")
+              .select("id, email")
+              .in("id", profileIds)
+              .eq("type", "family")
+              .limit(profileIds.length);
+            if (!bpRes.error) {
+              const emailByProfileId = new Map<string, string>();
+              for (const row of (bpRes.data ?? []) as Array<{
+                id: string;
+                email: string | null;
+              }>) {
+                if (row.email) emailByProfileId.set(row.id, row.email);
+              }
+              for (const [sid, profileId] of profileIdsBySession.entries()) {
+                const email = emailByProfileId.get(profileId);
+                if (!email) continue;
+                const session = sessions.get(sid);
+                if (session) session.submitter = email;
+              }
+            }
           }
         }
       }

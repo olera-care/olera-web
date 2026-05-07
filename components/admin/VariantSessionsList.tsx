@@ -170,8 +170,10 @@ export default function VariantSessionsList({
                         s.submitter_link_id ? (
                           <a
                             href={`/admin/care-seekers/${s.submitter_link_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="font-medium text-gray-900 underline-offset-2 hover:underline hover:text-gray-700"
-                            title="Open care seeker profile"
+                            title="Open care seeker profile (new tab)"
                           >
                             {s.submitter}
                           </a>

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import QASectionV2 from "@/components/providers/QASectionV2";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
-import { assignIntakeVariant, type IntakeVariant } from "@/lib/analytics/variant";
+import { useIntakeVariant } from "@/hooks/use-intake-variant";
+import type { IntakeVariant } from "@/lib/analytics/variant";
 import type { SimilarProviderForMulti } from "@/lib/provider-utils";
 
 interface QAEntry {
@@ -37,12 +38,14 @@ interface QASectionWithVariantProps {
 
 /**
  * Client wrapper for QASectionV2 that determines the A/B variant client-side
- * and passes it down. This enables the multi_provider experience for ~20%
- * of visitors.
+ * and passes it down. Uses the shared useIntakeVariant hook to stay in sync
+ * with BenefitsArmGate — both read from the same weighted assignment (admin
+ * dial) so split-brain between "which arm hides benefits" vs "which arm
+ * QASectionV2 thinks we're in" is impossible.
  *
- * For benefits variants (60% total): hasBenefitsSection = true, variant is set
- * For outreach variant (~20%): hasBenefitsSection = false, variant = "outreach"
- * For multi_provider variant (~20%): hasBenefitsSection = false, variant = "multi_provider"
+ * Variant allocation is controlled from /admin/analytics traffic dials.
+ *   - Benefits arms (availability, loss, empathic): hasBenefitsSection = true
+ *   - Non-benefits arms (outreach, qa_email_capture, multi_provider): hasBenefitsSection = false
  */
 export default function QASectionWithVariant({
   providerId,
@@ -60,34 +63,16 @@ export default function QASectionWithVariant({
   hasBenefitsData,
   similarProvidersForMulti,
 }: QASectionWithVariantProps) {
-  const [variant, setVariant] = useState<IntakeVariant | undefined>(undefined);
-  const [hasBenefitsSection, setHasBenefitsSection] = useState(hasBenefitsData);
+  // Use the shared hook to get the variant — this ensures we stay in sync
+  // with BenefitsArmGate and AgentOutreachSlot (all use the same weighted
+  // assignment from the admin dial). Returns null while loading.
+  const hookVariant = useIntakeVariant();
 
+  // Track multi_provider impression once variant resolves
+  const impressionTrackedRef = useRef(false);
   useEffect(() => {
-    const sessionId = getOrCreateSessionId();
-
-    // Allow URL override for testing: ?variant=multi_provider (or any valid variant)
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlVariant = urlParams.get("variant") as IntakeVariant | null;
-    const validVariants: IntakeVariant[] = ["availability", "loss", "empathic", "outreach", "multi_provider"];
-
-    const assigned = (urlVariant && validVariants.includes(urlVariant))
-      ? urlVariant
-      : assignIntakeVariant(sessionId);
-
-    setVariant(assigned);
-
-    // For outreach and multi_provider variants, the benefits module is hidden
-    // so we tell QASectionV2 there's no benefits section
-    if (assigned === "outreach" || assigned === "multi_provider") {
-      setHasBenefitsSection(false);
-    } else {
-      // For benefits variants, respect the original hasBenefitsData
-      setHasBenefitsSection(hasBenefitsData);
-    }
-
-    // Track impression for multi_provider variant
-    if (assigned === "multi_provider") {
+    if (hookVariant === "multi_provider" && !impressionTrackedRef.current) {
+      impressionTrackedRef.current = true;
       fetch("/api/activity/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -95,13 +80,23 @@ export default function QASectionWithVariant({
           actor_type: "anonymous",
           event_type: "multi_provider_viewed",
           related_provider_id: providerId,
-          session_id: sessionId,
+          session_id: getOrCreateSessionId(),
           metadata: { variant: "multi_provider" },
         }),
         keepalive: true,
       }).catch(() => {});
     }
-  }, [hasBenefitsData, providerId]);
+  }, [hookVariant, providerId]);
+
+  // Derived: for outreach, qa_email_capture, and multi_provider variants,
+  // the benefits module is hidden by BenefitsArmGate, so we tell QASectionV2
+  // there's no benefits section (disables spotlight handoff behavior).
+  const hasBenefitsSection =
+    hookVariant === "outreach" ||
+    hookVariant === "qa_email_capture" ||
+    hookVariant === "multi_provider"
+      ? false
+      : hasBenefitsData;
 
   return (
     <QASectionV2
@@ -118,7 +113,7 @@ export default function QASectionWithVariant({
       questions={questions}
       suggestedQuestions={suggestedQuestions}
       hasBenefitsSection={hasBenefitsSection}
-      variant={variant}
+      variant={hookVariant ?? undefined}
       similarProvidersForMulti={similarProvidersForMulti}
     />
   );

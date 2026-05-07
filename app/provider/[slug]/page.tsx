@@ -367,7 +367,7 @@ export default async function ProviderPage({
       : null);
 
   const rating = meta?.rating;
-  const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
+  const images = (meta?.images || (profile.image_url ? [profile.image_url] : [])).filter(Boolean);
   const heroFallbackImage = getProfileCategoryFallbackImage(profile.category, profile.id);
   let staff = meta?.staff;
   const acceptedPayments = meta?.accepted_payments || [];

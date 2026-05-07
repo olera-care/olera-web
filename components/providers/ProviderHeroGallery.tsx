@@ -38,7 +38,7 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
   const [fallbackFailed, setFallbackFailed] = useState(false);
   const [anyRealImageLoaded, setAnyRealImageLoaded] = useState(false);
 
-  const validImages = images.filter((_, i) => !failedImages.has(i));
+  const validImages = images.filter((src, i) => src && !failedImages.has(i));
   const safeIndex = Math.min(currentIndex, Math.max(0, validImages.length - 1));
   const showFallback = !!fallbackImage && !fallbackFailed;
   const showRealImage = validImages.length > 0;

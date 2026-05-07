@@ -141,23 +141,10 @@ export function assignIntakeVariantWeighted(
   return INTAKE_VARIANTS[0];
 }
 
-/** Legacy 3-arm assignment — kept for BenefitsDiscoveryModule's in-component
- *  variant state until variant routing is lifted to the page level. Honors
- *  the ?preview_arm=<variant> URL override so the admin "Preview ↗" links
- *  work for any of the 3 benefits arms (availability/loss/empathic). The
- *  preview-arm import is intentionally lazy via the dynamic import shim
- *  below to avoid a circular dependency between variant + preview-mode. */
+/** Legacy 3-arm assignment — kept for back-compat / reference. Live callers
+ *  now use useIntakeVariant() so the 5-arm dial drives the copy variant
+ *  directly (was previously two independent splits, which decoupled the
+ *  dial from the actual copy a session saw). */
 export function assignBenefitsVariant(sessionId: string): BenefitsVariant {
-  if (typeof window !== "undefined") {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const previewArm = params.get("preview_arm");
-      if (previewArm && (BENEFITS_VARIANTS as readonly string[]).includes(previewArm)) {
-        return previewArm as BenefitsVariant;
-      }
-    } catch {
-      // best-effort — fall through to hash-based assignment
-    }
-  }
   return BENEFITS_VARIANTS[djb2(sessionId) % 3];
 }

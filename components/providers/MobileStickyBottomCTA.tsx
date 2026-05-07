@@ -292,20 +292,58 @@ export default function MobileStickyBottomCTA({
   // has its own primary CTA (email capture) and we don't want two competing
   // CTAs in the same thumb zone. Scroll listener still runs underneath so
   // the bar reappears when the user scrolls past the module.
+  //
+  // Important: the #benefits DOM element is REPLACED when the variant
+  // resolves (the parent BenefitsDiscoveryModule's render-output type
+  // changes from inline <section> to <EmpathicSingleStep>, so React
+  // unmounts the old section and mounts a new one). A simple
+  // getElementById + observe on mount captures the SSR-rendered legacy
+  // section, which becomes orphaned. We use a MutationObserver to detect
+  // when the #benefits node reference changes and re-attach the
+  // IntersectionObserver to the live element.
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") return;
-    const el = document.getElementById("benefits");
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          setBenefitsInView(entry.intersectionRatio >= 0.5);
-        }
-      },
-      { threshold: [0, 0.5, 1] },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
+
+    let attached: Element | null = null;
+    let io: IntersectionObserver | null = null;
+
+    const intersectionCallback = (entries: IntersectionObserverEntry[]) => {
+      for (const entry of entries) {
+        setBenefitsInView(entry.intersectionRatio >= 0.5);
+      }
+    };
+
+    function attach() {
+      const el = document.getElementById("benefits");
+      if (el === attached) return;
+      // Tear down old observer (if any) and reset visibility — the previous
+      // element is gone or replaced.
+      if (io) {
+        io.disconnect();
+        io = null;
+      }
+      setBenefitsInView(false);
+      attached = el;
+      if (!el) return;
+      io = new IntersectionObserver(intersectionCallback, { threshold: [0, 0.5, 1] });
+      io.observe(el);
+    }
+
+    attach();
+
+    // Watch for #benefits element add/remove/replace. Filter to childList
+    // mutations to avoid firing on every text/attribute change. addedNodes
+    // and removedNodes catch the typical React reconciler unmount/remount
+    // pattern.
+    const mo = typeof MutationObserver !== "undefined" ? new MutationObserver(() => {
+      attach();
+    }) : null;
+    if (mo) mo.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      if (io) io.disconnect();
+      if (mo) mo.disconnect();
+    };
   }, []);
 
   // Also suppress when an input is focused — keyboard is open and the sticky

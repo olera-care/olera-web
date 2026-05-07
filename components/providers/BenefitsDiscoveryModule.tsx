@@ -41,8 +41,9 @@ import {
 } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { trackBenefitsEvent, type BenefitsStepEvent } from "@/lib/analytics/track-step";
-import { getPreviewArm, isPreviewMode } from "@/lib/analytics/preview-mode";
-import { assignBenefitsVariant, type BenefitsVariant } from "@/lib/analytics/variant";
+import { isPreviewMode } from "@/lib/analytics/preview-mode";
+import { type BenefitsVariant } from "@/lib/analytics/variant";
+import { useIntakeVariant } from "@/hooks/use-intake-variant";
 import { BENEFITS_VARIANT_COPY } from "@/lib/analytics/variant-copy";
 import { matchesCareNeed, type CareNeed } from "@/lib/benefits/match-care-need";
 import type { MatchableProvider } from "@/lib/benefits/provider-tie-in";
@@ -187,26 +188,32 @@ export default function BenefitsDiscoveryModule({
   const [quotedQuestion, setQuotedQuestion] = useState<string | null>(null);
   const [echoVisible, setEchoVisible] = useState(false);
 
-  // ─── Session + variant — deferred to useEffect to avoid SSR hydration ──
-  // mismatch. Default to "availability" so the SSR HTML matches client's
-  // first render; useEffect computes the real variant after mount.
+  // ─── Session + variant — driven by the 5-arm dial via useIntakeVariant.
+  // Previously this used a standalone 3-arm hash (assignBenefitsVariant)
+  // that was uncorrelated with the dial — meaning the dial decided whether
+  // the benefits surface rendered at all, but the copy frame was a
+  // separate roll. With the empathic_single consolidation, we want the
+  // dial to drive copy directly: a session assigned to 5-arm "empathic"
+  // sees empathic_single, not a random 1-of-3 copy. useIntakeVariant
+  // already honors getPreviewArm() so admin preview links continue to work.
   const [sessionId, setSessionId] = useState<string>("");
+  const intakeVariant = useIntakeVariant();
   const [variant, setVariant] = useState<BenefitsVariant>("availability");
   useEffect(() => {
-    const sid = getOrCreateSessionId();
-    setSessionId(sid);
-    // Admin preview override: when ?preview_arm=availability|loss|empathic
-    // is on the URL, force the copy variant to match. The production 3-arm
-    // hash (assignBenefitsVariant) stays uncorrelated from the 5-arm page-
-    // level split by design (gcd(3,5)=1) — preview mode is the only path
-    // that bypasses that independence so the URL does what it says.
-    const previewArm = getPreviewArm();
-    if (previewArm === "availability" || previewArm === "loss" || previewArm === "empathic") {
-      setVariant(previewArm);
-      return;
-    }
-    setVariant(assignBenefitsVariant(sid));
+    setSessionId(getOrCreateSessionId());
   }, []);
+  useEffect(() => {
+    if (
+      intakeVariant === "availability" ||
+      intakeVariant === "loss" ||
+      intakeVariant === "empathic"
+    ) {
+      setVariant(intakeVariant);
+    }
+    // Other 5-arm values (outreach, qa_email_capture) → BenefitsArmGate
+    // hides this entire surface, so the variant state is irrelevant.
+    // Initial value "availability" is the SSR-safe placeholder.
+  }, [intakeVariant]);
 
   function fireFunnelEvent(
     event: BenefitsStepEvent,

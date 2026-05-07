@@ -50,8 +50,12 @@ export default function MultiProviderCard({
 }: MultiProviderCardProps) {
   const isLoggedIn = Boolean(userEmail);
 
+  // If there are no similar providers, skip directly to email capture
+  // (the user already sent a question to the current provider)
+  const initialState: CardState = similarProviders.length === 0 ? "email_capture" : "card_stack";
+
   // State machine
-  const [cardState, setCardState] = useState<CardState>("card_stack");
+  const [cardState, setCardState] = useState<CardState>(initialState);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [askedProviders, setAskedProviders] = useState<SimilarProviderForMulti[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);

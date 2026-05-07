@@ -12,8 +12,7 @@ import ExpandableText from "@/components/providers/ExpandableText";
 import CompactProviderCard from "@/components/providers/CompactProviderCard";
 import SaveButton from "@/components/providers/SaveButton";
 import CareServicesList from "@/components/providers/CareServicesList";
-import QASectionV2 from "@/components/providers/QASectionV2";
-import PreviewModeBanner from "@/components/providers/PreviewModeBanner";
+import QASectionWithVariant from "@/components/providers/QASectionWithVariant";
 import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
@@ -402,10 +401,11 @@ export default async function ProviderPage({
         })()
       : Promise.resolve(null),
 
-    // 2. Similar providers (state-filtered, with global fallback)
+    // 2. Similar providers for Compare section AND multi_provider card stack
+    // (same data source, transformed for card stack format below)
     getSimilarProviders(profile.category, profile.source_provider_id || profile.id, profile.state, 3),
 
-    // 3. Q&A pairs + review count
+    // 4. Q&A pairs + review count
     (async () => {
       try {
         const db = getServiceClient();
@@ -435,7 +435,7 @@ export default async function ProviderPage({
       }
     })(),
 
-    // 4. Outreach arm candidates (top 3 same-city, same-category providers).
+    // 5. Outreach arm candidates (top 3 same-city, same-category providers).
     // Returns [] when context is missing or no candidates exist; gate handles.
     canFetchOutreachCandidates
       ? getTopProvidersByCityAndCategory({
@@ -447,6 +447,26 @@ export default async function ProviderPage({
         }).catch(() => [])
       : Promise.resolve([]),
   ]);
+
+  // Transform Compare section providers to card stack format
+  // (same data, different shape - eliminates duplicate queries)
+  const similarProvidersForMulti = similarProviders.providers.map((p) => {
+    // Parse "City, State" format from address field
+    const addressParts = p.address?.split(", ") || [];
+    const city = addressParts[0] || null;
+    const state = addressParts[1] || null;
+    return {
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      image: p.image || null,
+      rating: p.rating || null,
+      priceRange: p.priceRange || null,
+      city,
+      state,
+      distanceMiles: null, // Could calculate if we had lat/lng on Provider type
+    };
+  });
 
   let actualClaimState = profile.claim_state;
   let claimAccountId: string | null = profile.account_id;
@@ -707,7 +727,6 @@ export default async function ProviderPage({
   return (
     <div className="min-h-screen pb-20 md:pb-0">
       <ViewTracker providerId={slug} />
-      <PreviewModeBanner />
 
       {/* Structured data */}
       <script
@@ -755,7 +774,7 @@ export default async function ProviderPage({
               />
               <MobileGalleryActionBar
                 provider={{
-                  providerId: profile.id,
+                  providerId: profile.slug,
                   slug: profile.slug,
                   name: profile.display_name,
                   location: locationStr,
@@ -785,7 +804,7 @@ export default async function ProviderPage({
                 <div className="hidden md:block">
                   <SaveButton
                     provider={{
-                      providerId: profile.id,
+                      providerId: profile.slug,
                       slug: profile.slug,
                       name: profile.display_name,
                       location: locationStr,
@@ -1005,11 +1024,17 @@ export default async function ProviderPage({
 
               {/* ── Customer Questions & Answers ── */}
               <div id="qa" className={`py-8 scroll-mt-20 ${(googleReviewsData?.reviews?.length ?? 0) > 0 ? "border-t border-gray-200" : ""}`}>
-                <QASectionV2
+                <QASectionWithVariant
                   providerId={profile.slug}
                   providerName={profile.display_name}
                   providerImage={images[0]}
-                  providerCity={profile.city}
+                  providerSlug={profile.slug}
+                  providerLocation={profile.city && profile.state ? `${profile.city}, ${profile.state}` : ""}
+                  providerCareTypes={profile.care_types || []}
+                  providerRating={rating}
+                  providerPriceRange={priceRange ?? undefined}
+                  providerCity={profile.city ?? undefined}
+                  providerState={profile.state ?? undefined}
                   questions={answeredQuestions.map((q) => ({
                     id: q.id,
                     question: q.question,
@@ -1018,15 +1043,16 @@ export default async function ProviderPage({
                     created_at: q.created_at,
                   }))}
                   suggestedQuestions={getSuggestedQuestions(profile.category)}
-                  hasBenefitsSection={hasBenefitsData && !!benefitsData}
+                  hasBenefitsData={hasBenefitsData && !!benefitsData}
+                  similarProvidersForMulti={similarProvidersForMulti}
                   alternativeProviders={outreachCandidates}
                   providerCategory={outreachCategoryString}
                 />
 
-                {/* Outreach arm of the 4-way intake A/B. Slot itself renders
-                    null for the 75% in benefits arms, so no wrapping div here
-                    — it would leave a phantom mt-6 gap. The module owns its
-                    own top margin. See IntakeVariantSlots.tsx. */}
+                {/* Outreach arm of the 5-way intake A/B. Slot itself renders
+                    null for the ~80% not in the outreach arm, so no wrapping div
+                    here — it would leave a phantom mt-6 gap. The module owns
+                    its own top margin. See IntakeVariantSlots.tsx. */}
                 {canFetchOutreachCandidates && outreachCandidates.length > 0 && (
                   <AgentOutreachSlot
                     sourceProviderId={profile.slug}
@@ -1041,9 +1067,9 @@ export default async function ProviderPage({
 
               {/* ── Benefits Discovery ── */}
               {/* Wrapped in BenefitsArmGate so the section disappears for the
-                  25% of visitors in the outreach arm of the 4-way intake A/B.
-                  The 75% in the 3 benefits arms see the existing module
-                  unchanged (with its internal mod-3 copy A/B). */}
+                  40% of visitors in the outreach or multi_provider arms of the
+                  5-way intake A/B. The 60% in the 3 benefits arms see the existing
+                  module unchanged (with its internal mod-3 copy A/B). */}
               {hasBenefitsData && benefitsData && (
                 <BenefitsArmGate>
                   <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">

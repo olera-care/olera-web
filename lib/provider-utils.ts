@@ -437,6 +437,162 @@ export interface SimilarProvidersResult {
   isLocal: boolean;
 }
 
+/**
+ * Provider data shape for the multi_provider card variant.
+ * Includes fields needed to render provider rows with distance.
+ */
+export interface SimilarProviderForMulti {
+  id: string;
+  slug: string;
+  name: string;
+  image: string | null;
+  rating: number | null;
+  priceRange: string | null;
+  city: string | null;
+  state: string | null;
+  /** Distance in miles from source provider (null if not calculable) */
+  distanceMiles: number | null;
+}
+
+/**
+ * Haversine distance between two lat/lng points in miles.
+ */
+function haversineDistance(
+  lat1: number, lng1: number,
+  lat2: number, lng2: number
+): number {
+  const R = 3958.8; // Earth's radius in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * Fetches similar providers for the multi_provider card variant.
+ * Returns providers with distance from source, sorted by rating.
+ */
+export async function getSimilarProvidersForMulti(
+  category: ProfileCategory | null,
+  excludeSlug: string,
+  city: string | null,
+  state: string | null,
+  sourceLat: number | null,
+  sourceLng: number | null,
+  lowerPrice: number | null,
+  upperPrice: number | null,
+  limit: number = 3
+): Promise<SimilarProviderForMulti[]> {
+  if (!category) return [];
+
+  const supabaseCategory = categoryToSupabaseCategory[category];
+  if (!supabaseCategory) return [];
+
+  const supabase = await createClient();
+
+  // Pass 1: Same state and category (preferred - local results)
+  // Note: Use exact same filters as getSimilarProviders for consistency
+  if (state) {
+    try {
+      const { data, error } = await supabase
+        .from(PROVIDERS_TABLE)
+        .select("provider_id, slug, provider_name, provider_images, provider_logo, google_rating, price_range, city, state, lat, lng")
+        .not("deleted", "is", true)
+        .ilike("provider_category", `%${supabaseCategory}%`)
+        .eq("state", state)
+        .neq("provider_id", excludeSlug)
+        .not("provider_images", "is", null)
+        .order("google_rating", { ascending: false, nullsFirst: false })
+        .limit(20);
+
+      if (!error && data && data.length > 0) {
+        return processProvidersForMulti(data, sourceLat, sourceLng, limit);
+      }
+    } catch {
+      // Fall through to global fallback
+    }
+  }
+
+  // Pass 2: Same category, any state (fallback when no local results)
+  try {
+    const { data, error } = await supabase
+      .from(PROVIDERS_TABLE)
+      .select("provider_id, slug, provider_name, provider_images, provider_logo, google_rating, price_range, city, state, lat, lng")
+      .not("deleted", "is", true)
+      .ilike("provider_category", `%${supabaseCategory}%`)
+      .neq("provider_id", excludeSlug)
+      .not("provider_images", "is", null)
+      .order("google_rating", { ascending: false, nullsFirst: false })
+      .limit(20);
+
+    if (error || !data || data.length === 0) return [];
+
+    return processProvidersForMulti(data, sourceLat, sourceLng, limit);
+  } catch {
+    return [];
+  }
+}
+
+/** Helper to map raw provider data to SimilarProviderForMulti format */
+function processProvidersForMulti(
+  data: Array<{
+    provider_id: string;
+    slug: string | null;
+    provider_name: string;
+    provider_images: string | null;
+    provider_logo: string | null;
+    google_rating: number | null;
+    price_range: string | null;
+    city: string | null;
+    state: string | null;
+    lat: number | null;
+    lng: number | null;
+  }>,
+  sourceLat: number | null,
+  sourceLng: number | null,
+  limit: number
+): SimilarProviderForMulti[] {
+  const providers: SimilarProviderForMulti[] = data.map((p) => {
+    // Get first image from pipe-delimited string
+    const images = p.provider_images?.split(" | ") || [];
+    const image = images[0] || p.provider_logo || null;
+
+    // Calculate distance if we have coordinates
+    let distanceMiles: number | null = null;
+    if (sourceLat != null && sourceLng != null && p.lat != null && p.lng != null) {
+      distanceMiles = Math.round(haversineDistance(sourceLat, sourceLng, p.lat, p.lng) * 10) / 10;
+    }
+
+    return {
+      id: p.provider_id,
+      slug: p.slug || p.provider_id,
+      name: p.provider_name,
+      image,
+      rating: p.google_rating,
+      priceRange: p.price_range,
+      city: p.city,
+      state: p.state,
+      distanceMiles,
+    };
+  });
+
+  // Sort by distance if available, otherwise by rating (already sorted)
+  if (sourceLat != null && sourceLng != null) {
+    providers.sort((a, b) => {
+      if (a.distanceMiles == null && b.distanceMiles == null) return 0;
+      if (a.distanceMiles == null) return 1;
+      if (b.distanceMiles == null) return -1;
+      return a.distanceMiles - b.distanceMiles;
+    });
+  }
+
+  return providers.slice(0, limit);
+}
+
 export async function getSimilarProviders(
   category: ProfileCategory | null,
   excludeSlug: string,

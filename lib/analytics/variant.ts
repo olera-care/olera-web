@@ -5,23 +5,23 @@
 //
 // Hash: djb2. Cheap, no dep, well-distributed for short strings like UUIDs.
 //
-// ─── 5-arm IntakeVariant (canonical, since 2026-05-05) ──────────────────────
-// Adds a "qa_email_capture" arm on top of the existing 4. Sessions in this arm
-// see NO benefits / outreach module on the provider page; instead the Q&A
-// section's post-submit guest enrichment prompt is enabled (it's normally
-// suppressed when SBF is on the page) with an upgraded value-promise. Tests
-// the hypothesis that the SBF on provider pages was cannibalizing Q&A's email
-// capture instead of complementing it. See plans/family-acquisition-radical-ideas.md.
+// ─── 6-arm IntakeVariant (canonical, since 2026-05-07) ──────────────────────
+// Adds "multi_provider" arm on top of the existing 5. Sessions in this arm
+// see a click-to-send multi-provider comparison flow: when tapping a suggested
+// question, card expands showing similar providers they can also send the
+// question to. No template answer — the value prop is "compare REAL answers
+// from REAL providers."
 //
 //   availability     — "There's help paying for care in {state}."   (benefits, positive)
 //   loss             — "Most {state} families miss out on help…"     (benefits, loss)
 //   empathic         — "Care is expensive."                          (benefits, shared-truth)
 //   outreach         — "Don't know which one to trust?" (H1 demand test, care-team framing)
 //   qa_email_capture — Q&A enrichment ON, SBF / outreach OFF.        (qa-first email capture)
+//   multi_provider   — Click-to-send multi-provider comparison       (H2 comparison UX test)
 //
 // Page-level routing decides which surface renders. BenefitsDiscoveryModule,
-// AgentOutreachModule, and QASectionV2's enrichment prompt are mutually
-// exclusive across the 5 arms.
+// AgentOutreachModule, QASectionV2's enrichment prompt, and MultiProviderCard
+// are mutually exclusive across the 6 arms.
 //
 // ─── Allocation (since 2026-05-05) ──────────────────────────────────────────
 // Allocation is no longer a hardcoded equal split. Live percentages come from
@@ -31,7 +31,7 @@
 // the picked arm. assignIntakeVariant is kept for the few legacy callers that
 // still need an equal-split fallback (BenefitsDiscoveryModule's mod-3 V3 copy
 // A/B continues to use its own assignBenefitsVariant — gcd(3, N) = 1 keeps
-// the two splits uncorrelated for any N coprime with 3, including 5).
+// the two splits uncorrelated for any N coprime with 3, including 6).
 //
 // V3 rename history (2026-04-30): replaced the old "control" | "money_loss"
 // 2-arm copy A/B with the 3-arm test on the rebuilt 2-step embedded SBF. Each
@@ -54,27 +54,35 @@ export const INTAKE_VARIANTS = [
   "empathic",
   "outreach",
   "qa_email_capture",
+  "multi_provider",
 ] as const;
 
 export type IntakeVariant = (typeof INTAKE_VARIANTS)[number];
 
 /** Narrow alias for the benefits-copy arms. Excludes outreach because the
- *  BenefitsDiscoveryModule never legitimately renders for it, and
- *  qa_email_capture because that arm suppresses the SBF entirely. */
-export type BenefitsVariant = Exclude<IntakeVariant, "outreach" | "qa_email_capture">;
+ *  BenefitsDiscoveryModule never legitimately renders for it, qa_email_capture
+ *  because that arm suppresses the SBF entirely, and multi_provider because
+ *  that arm uses the MultiProviderCard instead. */
+export type BenefitsVariant = Exclude<IntakeVariant, "outreach" | "qa_email_capture" | "multi_provider">;
 
 const BENEFITS_VARIANTS: BenefitsVariant[] = ["availability", "loss", "empathic"];
 
-/** Default equal split. Used when the experiment_weights row is missing
- *  or unreadable (DB hiccup, env not wired, etc.) so the page always
- *  renders something instead of going dark. Adding a new arm requires
- *  updating this map — TypeScript will flag the missing entry. */
+/** Default weights used when the experiment_weights row is missing or
+ *  unreadable. Adjusted 2026-05-07 for the empathic_single (Arm D)
+ *  consolidation: empathic absorbs availability + loss's slots and runs at
+ *  60% to test the structural mechanic change (1-step capture vs 3-step
+ *  relay). availability and loss stay paused at 0% — bench assets, ready
+ *  to re-enable via the admin dial when D's read is in. outreach and
+ *  qa_email_capture continue at 20% each. multi_provider defaults to 0
+ *  so a missing-DB fallback doesn't accidentally route traffic into a
+ *  newly-shipped arm before TJ enables it via the live dial. */
 export const INTAKE_VARIANT_DEFAULT_WEIGHTS: Record<IntakeVariant, number> = {
-  availability: 20,
-  loss: 20,
-  empathic: 20,
+  availability: 0,
+  loss: 0,
+  empathic: 60,
   outreach: 20,
   qa_email_capture: 20,
+  multi_provider: 0,
 };
 
 export type IntakeWeightMap = Partial<Record<IntakeVariant, number>>;
@@ -138,8 +146,10 @@ export function assignIntakeVariantWeighted(
   return INTAKE_VARIANTS[0];
 }
 
-/** Legacy 3-arm assignment — kept for BenefitsDiscoveryModule's in-component
- *  variant state until Task 5 lifts variant routing to the page level. */
+/** Legacy 3-arm assignment — kept for back-compat / reference. Live callers
+ *  now use useIntakeVariant() so the 5-arm dial drives the copy variant
+ *  directly (was previously two independent splits, which decoupled the
+ *  dial from the actual copy a session saw). */
 export function assignBenefitsVariant(sessionId: string): BenefitsVariant {
   return BENEFITS_VARIANTS[djb2(sessionId) % 3];
 }

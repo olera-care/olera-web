@@ -779,13 +779,13 @@ export function welcomeEmail(opts: {
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
       Hi ${opts.familyName}, thanks for joining Olera — where families find trusted senior care providers.
     </p>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 8px;line-height:1.5;">Here's what you can do:</p>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 8px;line-height:1.5;">Your account is ready. Here's what happens next:</p>
     <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
-      <li><strong>Browse providers</strong> in your area</li>
-      <li><strong>Complete your profile</strong> so providers can reach out to you</li>
-      <li><strong>Go live on Matches</strong> and let qualified providers come to you</li>
+      <li><strong>Your saved providers</strong> are kept safe and accessible on any device</li>
+      <li><strong>Get notified</strong> when providers respond to your questions</li>
+      <li><strong>Explore more options</strong> and compare care in your area</li>
     </ul>
-    <div>${button("Browse care providers", opts.browseUrl)}</div>
+    <div>${button("Explore care options", opts.browseUrl)}</div>
   `);
 }
 

@@ -7,6 +7,49 @@
 
 ## Current Focus
 
+### 2026-05-07 (Thu) — Empathic single-step (Arm D) consolidation + mobile UX foundation (P1, PR #760 awaiting merge)
+
+Reframed the empathic arm of the post-question CTA from a 3-step relay (care need → relationship → email) into a single-step capture with value preview, modeled on the only post-question mechanic that's converting (qa_email_capture). Branch `feature/empathic-single-mobile` → 6 commits → PR open to staging.
+
+**The strategic arc (yesterday's funnel review → today's ship):**
+
+Pulled real conversion numbers across all 5 arms in the post-question CTA family. None converted. With iCloud test submissions filtered out: 0 of 956 empathic, 0 of 944 availability (the dashboard's "2" was click-events, no real account creations), 0 of 973 loss, 0 of 418 outreach (4 of 4 were TJ tests), and the only directional signal was qa_email_capture's 2 of 126 (~1.6%). TJ's Door-A-vs-Door-B framing landed: the sticky "Check cost" bar produces 138 thin email-only leads/30d while the post-question CTA produces ~5 fully-qualified ones — the ~10x lead-value multiplier on a qualified lead means the post-question lane is real but the multi-step structure is broken. TJ chose to invest in Door B as the qualified lane and keep iterating; redesign the empathic arm specifically since "questions draw the most engagement."
+
+**What shipped on PR #760:**
+
+1. **`d2a61711`** — Initial implementation. New `EmpathicSingleStep` component renders inline within `BenefitsDiscoveryModule` via early-return when variant === "empathic". Question echo (12px italic gray) → intent-mapped H2 (cost / care-type / fit / default) → 2 real program preview chips → email field with autofill + 16px font + 48px tap height → dynamic CTA "Email me my N {state} matches →" → trust line. Care need + intent inferred from question text via keyword classifier (`lib/benefits/infer-care-need-from-question.ts`). Three retired arms' copy frames preserved as situational copy mapped by intent — empathic warmth as default, loss data point ($400-900/mo) for cost questions, availability "families like yours" for care-type. New shared hooks: `useViewportGate`, `useReducedMotion`, `useKeyboardOpen`, `tapHaptic` in `MobileUXPrimitives.tsx`. Sticky "Check cost" bar viewport-suppressed when benefits module ≥50% in viewport (Door-A-vs-Door-B cannibalization fix). New endpoint `/api/benefits/update-relationship` for soft post-submit enrichment via session_id join.
+
+2. **`ce258988`** — Pre-test self-review caught two critical bugs. (1) `BenefitsDiscoveryModule` was using a standalone 3-arm hash (`assignBenefitsVariant`) uncorrelated with the 5-arm dial — so setting empathic=60% on the dial would have only delivered empathic_single to ~20% of total traffic (the other 40% landed on legacy availability/loss copy via the inner uniform hash). Switched to `useIntakeVariant()` so the dial drives copy. (2) `MobileStickyBottomCTA`'s IntersectionObserver attached on mount to the SSR-rendered legacy section; when variant resolved to empathic, React replaced that section with `EmpathicSingleStep`'s new section and the observer was orphaned — sticky bar would NEVER suppress for the 60% empathic audience. Added MutationObserver on document.body to re-attach IO when `#benefits` reference changes.
+
+3. **`a0453808`** — UX pivot per TJ feedback. Original implementation opened the full `ResultsSheet` on submit (match list + provider tie-in + benefit-detail links). TJ flagged it as a hijack: user came for a specific provider, sheet pulled them off into a benefits-detail flow. Replaced with an inline success state in the same section: "✓ Sent — check your inbox. We emailed your N {state} matches to {email}." + the relationship pill row. Match list, provider tie-in, and benefit-detail links all live in the email instead. Page UI keeps the user on the provider they came to see. Reverted the `showRelationshipPills` prop addition to ResultsSheet since empathic_single was the only consumer and now handles pills inline.
+
+4. **`0202a73a`** — Scroll behavior fix. Post-question scrollIntoView was over-scrolling on iPhone — module's bottom landed near the top of the viewport, H2 + echo cropped above the visible area + sticky tab nav. Two fixes stacked: `block: "start"` → `"center"` (so the module's middle aligns with the viewport's middle, no nav cropping), and single rAF → double rAF (lets React commit the quotedQuestion state update + Q&A's question-card DOM insertion settle before measuring scroll target). Applied to both legacy 3-step and empathic_single listeners.
+
+5. **`2e305dce`** — Stale docstring cleanup referencing the removed ResultsSheet.
+
+6. **`1359e2ef`** — Empty commit to force a Vercel rebuild after the dashboard wasn't picking up `ce258988`.
+
+**Admin parity verified:** empathic_single appears in the Family Intake variant dial (relabeled "Empathic — single-step (D)" surface label, "Single-step capture w/ value preview" sub-label), the Preview ↗ link forces the empathic_single render via `?preview_arm=empathic` (also fixed `assignBenefitsVariant` to honor the URL override — was a real gap before), and events fire with `variant=empathic` so the dashboard buckets correctly without a code change. Funnel continuity preserved via `step_name=contact` on submit; new `step_name=empathic_single_submitted` added for structural segmentation.
+
+**Notion catalog updated:** SBF Copy Variants DB has `empathic_single` as Arm D (Status: Planned) carrying the full locked spec. The 3 retired arms (availability/loss/empathic) moved from Live → Paused (new status added to the schema), notes reframed as iterable bench assets ready to re-deploy + optimize when D's read is in. Two legacy V2 arms (control, money_loss) remain Archived.
+
+**Default weights flipped in code (60/0/0/20/20)** but the live `experiment_weights` row still reads `25/0/25/50/0` (the dashboard showed it at v7) — TJ's call when to re-balance via the dial post-merge.
+
+**Files modified (10 total):** new `lib/benefits/infer-care-need-from-question.ts`, `components/providers/connection-card/MobileUXPrimitives.tsx`, `components/providers/BenefitsDiscoveryModule.empathic.tsx`, `app/api/benefits/update-relationship/route.ts`. Modified `components/providers/BenefitsDiscoveryModule.tsx`, `components/providers/MobileStickyBottomCTA.tsx`, `components/benefits/ResultsSheet.tsx`, `lib/analytics/variant-copy.ts`, `lib/analytics/variant.ts`, `app/admin/analytics/page.tsx`.
+
+**Tips for future variants** (embedded in the PR + memory):
+- Add to `INTAKE_VARIANTS` array first — TS errors are the checklist (default weights, surface labels, sub labels, dashboard buckets, drillable variants set).
+- Variant assignment must honor `getPreviewArm()` / `?preview_arm=` — either use `useIntakeVariant` (already wired) or add the URL check at the top of any custom assigner.
+- Always check `isPreviewMode()` in submit handlers — block API calls + show "Preview mode — submission disabled."
+- Fire `step_name=contact` on submit (canonical dashboard marker) AND your variant-specific marker on top — never instead.
+- Don't change variant identifiers post-launch. To evolve an arm, keep the variant value the same and change only what it renders.
+- Update Notion SBF Copy Variants + admin's `activeArms` description for the human-facing surfaces.
+- Server-side `seeker_activity.benefits_completed` is the source of truth for conversion. Client-side `step=contact` is a click event that fires before the API call — over-counts retries, masks failures.
+
+**Resume next session here →** PR #760 awaiting TJ's mobile test on the branch preview (`olera-web-git-feature-empathic-single-mobile-olera.vercel.app`). When green, merge to staging → main. Decide on dial allocation (recommended: 60/0/0/20/20 to give empathic_single full benefits-arm budget + keep outreach + qa_email_capture running for comparison). Watch funnel daily for 5–7 days against current 0/956 baseline. If empathic_single moves the needle even modestly (>1% submit/imp), that's a 10x+ lift.
+
+---
+
 ### 2026-05-06 (Wed) — Outreach variant reframe + measurement instrumentation (P1, on `lively-ride`, awaiting PR)
 
 The outreach arm of the 5-way intake A/B (`AgentOutreachModule`) was getting impressions and almost no engagement. TJ flagged it as a "great potential" surface that wasn't converting. Pulled the data, diagnosed three structural issues, shipped fixes for the first two on `lively-ride`. Branch has 4 commits, pushed, ready for PR.

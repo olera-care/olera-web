@@ -3,10 +3,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Star } from "@phosphor-icons/react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useSavedProviders, type SaveProviderData } from "@/hooks/use-saved-providers";
+import MultiProviderCard from "@/components/providers/MultiProviderCard";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { isPreviewMode } from "@/lib/analytics/preview-mode";
-import { useIntakeVariant } from "@/hooks/use-intake-variant";
+import type { IntakeVariant } from "@/lib/analytics/variant";
 import { getCategoryDisplayName, type ProviderCardData } from "@/lib/types/provider";
+import type { SimilarProviderForMulti } from "@/lib/provider-utils";
 
 interface QAEntry {
   id?: string;
@@ -23,7 +26,13 @@ interface QASectionProps {
   providerId: string;
   providerName: string;
   providerImage?: string;
-  providerCity?: string | null;
+  providerSlug?: string;
+  providerLocation?: string;
+  providerCareTypes?: string[];
+  providerRating?: number;
+  providerPriceRange?: string;
+  providerCity?: string;
+  providerState?: string;
   questions?: QAEntry[];
   suggestedQuestions?: string[];
   // When true, the page has a benefits discovery module below Q&A.
@@ -31,24 +40,18 @@ interface QASectionProps {
   // because the benefits intake is the stronger conversion path — it
   // captures name + email + a full profile rather than just an email.
   // The spotlight handoff then owns the post-submit moment.
-  //
-  // OVERRIDDEN by qa_email_capture variant (5th arm, since 2026-05-05): when
-  // the visitor's session is in that arm, this prop is ignored and enrichment
-  // is forced ON. The arm tests whether SBF was cannibalizing email capture.
   hasBenefitsSection?: boolean;
-  /** Top 3 providers in the same city + category (already excludes this
-   *  provider). Computed server-side via getTopProvidersByCityAndCategory.
-   *  Used by the qa_email_capture arm's enrichment prompt to surface
-   *  "Top 3 [Category] in [City]" cards inline as preview-before-email.
-   *  Pass the same array provider page passes to AgentOutreachSlot. Empty
-   *  array is fine — fallback copy renders. */
+  // Variant for A/B test — determines which experience to render.
+  // "multi_provider" variant shows click-to-send multi-provider comparison.
+  // "qa_email_capture" variant shows redesigned Top-N comparison cards + email capture.
+  variant?: IntakeVariant;
+  // Similar providers for multi_provider variant
+  similarProvidersForMulti?: SimilarProviderForMulti[];
+  /** Top providers in same city + category. qa_email_capture arm renders
+   *  these as "Top N [Category] in [City]" cards in the post-question
+   *  enrichment prompt. Empty array → fallback "save your spot" prompt. */
   alternativeProviders?: ProviderCardData[];
-  /** Display-ready provider category, used in the qa_email_capture arm's
-   *  headline for specificity ("Top 3 Assisted Living in [City]" vs the
-   *  generic "Top 3 in [City]"). Pass the same value the provider page
-   *  passes to AgentOutreachSlot's `category` prop (i.e., the resolved
-   *  PROFILE_CAT_TO_SUPABASE_CAT lookup). null falls back gracefully to
-   *  the generic headline. */
+  /** Display-ready category for the qa_email_capture arm headline. */
   providerCategory?: string | null;
 }
 
@@ -126,7 +129,13 @@ export default function QASectionV2({
   providerId,
   providerName,
   providerImage,
+  providerSlug,
+  providerLocation = "",
+  providerCareTypes = [],
+  providerRating,
+  providerPriceRange,
   providerCity,
+  providerState,
   questions: initialQuestions = [],
   suggestedQuestions = [
     "What services do you provide?",
@@ -135,10 +144,13 @@ export default function QASectionV2({
     "Do you accept insurance or Medicaid?",
   ],
   hasBenefitsSection = false,
+  variant,
+  similarProvidersForMulti = [],
   alternativeProviders = [],
   providerCategory = null,
 }: QASectionProps) {
-  const { user } = useAuth();
+  const { user, openAuth } = useAuth();
+  const { toggleSave, isSaved } = useSavedProviders();
   const [inputValue, setInputValue] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const [questions, setQuestions] = useState<QAEntry[]>(initialQuestions);
@@ -156,21 +168,20 @@ export default function QASectionV2({
   const [guestError, setGuestError] = useState("");
   const [enriching, setEnriching] = useState(false);
 
-  // ─── Intake variant detection (5-arm A/B since 2026-05-05) ───────────────
-  // Reads from the shared useIntakeVariant hook so this component agrees with
-  // IntakeVariantSlots (and any future caller) on which arm a session is in
-  // — single source of truth for the dial-controlled allocation. Returns
-  // null until the weights fetch resolves; SSR renders without variant
-  // knowledge, post-mount the assignment lands. The qa_email_capture arm
-  // overrides hasBenefitsSection to false (forces enrichment on) AND fires
-  // an impression event for funnel comparison.
-  const variant = useIntakeVariant();
+  // Variant expansion state (accordion-style expansion for multi_provider)
+  const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
+  const [inlineSubmitting, setInlineSubmitting] = useState(false);
+  const [inlineSuccess, setInlineSuccess] = useState(false);
+  const isMultiProviderVariant = variant === "multi_provider";
+  const isQaCaptureArm = variant === "qa_email_capture";
+
+  // qa_email_capture arm: fire impression once when the variant resolves so
+  // the funnel comparison has a denominator. Skip in admin preview to keep
+  // inspection out of the funnel.
   const variantImpressionFiredRef = useRef(false);
   useEffect(() => {
-    if (variant !== "qa_email_capture" || variantImpressionFiredRef.current) return;
+    if (!isQaCaptureArm || variantImpressionFiredRef.current) return;
     variantImpressionFiredRef.current = true;
-    // Admin preview mode: skip the impression so inspection doesn't pollute
-    // the qa_email_capture funnel. variant is still set, so the UI renders.
     if (isPreviewMode()) return;
     const sid = getOrCreateSessionId();
     void fetch("/api/activity/track", {
@@ -184,12 +195,7 @@ export default function QASectionV2({
       }),
       keepalive: true,
     }).catch(() => {});
-  }, [variant, providerId]);
-
-  // Effective hasBenefitsSection: true qa_email_capture overrides the prop.
-  // Pre-mount (variant === null) we trust the prop so SSR matches.
-  const isQaCaptureArm = variant === "qa_email_capture";
-  const effectiveHasBenefitsSection = isQaCaptureArm ? false : hasBenefitsSection;
+  }, [isQaCaptureArm, providerId]);
 
   // Edit question state
   const [editingQuestion, setEditingQuestion] = useState<QAEntry | null>(null);
@@ -235,10 +241,9 @@ export default function QASectionV2({
   const submitQuestion = useCallback(async (questionText: string, suggestionIndex?: number) => {
     if (!questionText.trim()) return;
 
-    // Admin preview mode: silent no-op. The page's PreviewModeBanner
-    // already tells the operator submissions are disabled — re-stating it
-    // via an error toast would conflict with "Something went wrong" which
-    // implies system failure, not intentional preview behavior.
+    // Admin preview mode: silent no-op. PreviewModeBanner already tells the
+    // operator submissions are disabled — re-stating it via an error toast
+    // would conflict with "Something went wrong" which implies system failure.
     if (isPreviewMode()) return;
 
     setSubmitting(true);
@@ -267,11 +272,10 @@ export default function QASectionV2({
         setQuestions((prev) => [data.question, ...prev]);
 
         // For guests: show enrichment prompt after successful submit.
-        // SKIP when the page has a benefits module (in arms other than
-        // qa_email_capture) — the benefits spotlight handoff owns the
-        // post-submit moment and captures email as part of its intake.
-        // qa_email_capture arm forces enrichment ON via effectiveHasBenefitsSection.
-        if (!user && data.question.id && !effectiveHasBenefitsSection) {
+        // SKIP when:
+        //   - Page has a benefits module (spotlight handoff owns the moment)
+        //   - Multi-provider variant (MultiProviderCard handles email capture)
+        if (!user && data.question.id && !hasBenefitsSection && !isMultiProviderVariant) {
           setEnrichQuestionId(data.question.id);
           setShowEnrichment(true);
         }
@@ -284,7 +288,8 @@ export default function QASectionV2({
       // The Q&A moment is peak intent — the caregiver just articulated
       // their exact worry. Pass the question text to the benefits module
       // so it can quietly bring itself into focus.
-      if (typeof window !== "undefined") {
+      // SKIP for multi_provider variant — it owns the moment.
+      if (typeof window !== "undefined" && !isMultiProviderVariant) {
         window.dispatchEvent(
           new CustomEvent("olera:question-submitted", {
             detail: { question: questionText.trim() },
@@ -305,7 +310,7 @@ export default function QASectionV2({
     } finally {
       setSubmitting(false);
     }
-  }, [providerId, user, honeypot, effectiveHasBenefitsSection]);
+  }, [providerId, user, honeypot, hasBenefitsSection, isMultiProviderVariant]);
 
   // Handle submit from chat bar
   const handleChatSubmit = () => {
@@ -368,6 +373,146 @@ export default function QASectionV2({
     setTimeout(() => { setSubmitStatus("idle"); setTappedIndex(null); }, 2000);
   };
 
+  // ─── Multi-Provider Variant Handlers ────────────────────────────────────────
+
+  const handleMultiProviderQuestionTap = useCallback(async (questionText: string, index: number) => {
+    if (!isMultiProviderVariant) return;
+
+    // Accordion: collapse current if tapping the same question
+    if (expandedQuestion === questionText) {
+      setExpandedQuestion(null);
+      return;
+    }
+
+    // Submit the question to the current provider (existing behavior)
+    submitQuestion(questionText, index);
+
+    // Expand the multi-provider card
+    setExpandedQuestion(questionText);
+    setInlineSuccess(false);
+  }, [isMultiProviderVariant, expandedQuestion, submitQuestion]);
+
+  const handleMultiProviderSelect = useCallback(async (targetProviderId: string, targetProviderName: string) => {
+    if (!expandedQuestion) return;
+
+    // Submit question to the selected provider
+    const res = await fetch("/api/questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        provider_id: targetProviderId,
+        question: expandedQuestion.trim(),
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to send question");
+    }
+  }, [expandedQuestion]);
+
+  const handleMultiProviderEmailSubmit = useCallback(async (
+    email: string,
+    sentProviderIds: string[],
+    sentCount: number
+  ) => {
+    if (!expandedQuestion) return;
+
+    setInlineSubmitting(true);
+
+    try {
+      // Capture email via dedicated inline-answer endpoint (handles user creation + welcome email)
+      const captureRes = await fetch("/api/inline-answer/capture-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          providerId,
+          providerName,
+          questionText: expandedQuestion,
+          sessionId: getOrCreateSessionId(),
+          // Include all providers contacted for multi_provider variant
+          sentProviderIds,
+          sentCount,
+        }),
+      });
+
+      if (!captureRes.ok) {
+        const data = await captureRes.json();
+        throw new Error(data.error || "Something went wrong. Please try again.");
+      }
+
+      // Track conversion with full provider data
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          event_type: "multi_provider_converted",
+          related_provider_id: providerId,
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            question_text: expandedQuestion,
+            email,
+            variant: "multi_provider",
+            provider_name: providerName,
+            sent_count: sentCount,
+            sent_provider_ids: sentProviderIds,
+          },
+        }),
+        keepalive: true,
+      }).catch(() => {});
+
+      setInlineSuccess(true);
+    } catch (err) {
+      throw err;
+    } finally {
+      setInlineSubmitting(false);
+    }
+  }, [expandedQuestion, providerId, providerName]);
+
+  const handleMultiProviderSaveAll = useCallback((providerIds: string[]) => {
+    // Save all sent providers (only if not already saved)
+    for (const pid of providerIds) {
+      // Skip if already saved (avoid toggling OFF)
+      if (isSaved(pid)) continue;
+
+      // Find provider data for each ID
+      const provider = pid === providerId
+        ? {
+            providerId,
+            slug: providerSlug || providerId,
+            name: providerName,
+            location: providerLocation,
+            careTypes: providerCareTypes,
+            image: providerImage || null,
+            rating: providerRating,
+          }
+        : similarProvidersForMulti.find((p) => p.id === pid);
+
+      if (provider) {
+        const saveData: SaveProviderData = pid === providerId
+          ? (provider as SaveProviderData)
+          : {
+              providerId: (provider as SimilarProviderForMulti).id,
+              slug: (provider as SimilarProviderForMulti).slug,
+              name: (provider as SimilarProviderForMulti).name,
+              location: [(provider as SimilarProviderForMulti).city, (provider as SimilarProviderForMulti).state].filter(Boolean).join(", "),
+              careTypes: providerCareTypes, // Use current provider's care types as fallback
+              image: (provider as SimilarProviderForMulti).image,
+              rating: (provider as SimilarProviderForMulti).rating ?? undefined,
+            };
+        toggleSave(saveData);
+      }
+    }
+    // Collapse the card after saving
+    setExpandedQuestion(null);
+  }, [providerId, providerSlug, providerName, providerLocation, providerCareTypes, providerImage, providerRating, similarProvidersForMulti, toggleSave, isSaved]);
+
+  const handleMultiProviderCollapse = useCallback(() => {
+    setExpandedQuestion(null);
+    setInlineSuccess(false);
+  }, []);
+
   const handleEditSubmit = async () => {
     if (!editingQuestion?.id || !editValue.trim() || editSubmitting) return;
 
@@ -416,7 +561,9 @@ export default function QASectionV2({
   const answeredCount = questions.filter((q) => q.status === "answered" || q.answer).length;
 
   // Determine if we're in post-submit state (success or enrichment)
-  const isPostSubmit = submitStatus === "success" || showEnrichment;
+  // For multi_provider variant, the card handles everything inline, so we
+  // never show the old post-submit enrichment UI.
+  const isPostSubmit = !isMultiProviderVariant && (submitStatus === "success" || showEnrichment);
 
   return (
     <div>
@@ -582,36 +729,25 @@ export default function QASectionV2({
             </div>
           </div>
 
-          {/* Guest enrichment — qa_email_capture arm gets a redesigned compact
-              prompt with 3 inline provider cards as preview-before-email.
-              Other arms (rare: only when hasBenefitsSection=false) keep the
-              original gray-box prompt for backwards compat. */}
+          {/* Guest enrichment — qa_email_capture arm renders the redesigned
+              compact prompt with 3 inline provider cards as preview-before-email.
+              Other arms keep the legacy gray-box prompt unchanged. */}
           {showEnrichment && isQaCaptureArm && (
             <>
               {alternativeProviders.length > 0 ? (
                 <div className="mt-4 pt-6 border-t border-zinc-100">
                   {/* Headline — "Top N [Category] in [City]" implies curation
                       (we ranked them), specificity (this kind of care) and
-                      relevance (where the user is). Category falls through
-                      cleanly when missing, leaving "Top N in [City]". */}
+                      relevance (where the user is). */}
                   <h3 className="text-[20px] md:text-2xl font-semibold text-zinc-900 tracking-tight leading-tight">
                     Top {alternativeProviders.length}
                     {providerCategory ? ` ${getCategoryDisplayName(providerCategory)}` : ""}
                     {providerCity ? ` in ${providerCity}` : " nearby"}.
                   </h3>
-                  {/* Sub-line surfaces the dual-promise that's otherwise
-                      only visible in the success-confirmation block above.
-                      Without this, users miss that this email ALSO notifies
-                      them when [Provider] replies. */}
                   <p className="mt-1.5 text-[13px] text-zinc-500">
                     Plus, we&apos;ll email when {providerName} replies.
                   </p>
 
-                  {/* Compact text-only cards. No images. Each card is one
-                      provider's name + a single metadata line (rating,
-                      reviews, city). Mobile-first: stacked vertically, each
-                      ~50-55px tall. Three cards = ~165px total. Cards open
-                      in new tab so the form survives a click-through. */}
                   <ul className="mt-3 space-y-1.5">
                     {alternativeProviders.slice(0, 3).map((alt) => {
                       const metaParts: string[] = [];
@@ -646,9 +782,6 @@ export default function QASectionV2({
                     })}
                   </ul>
 
-                  {/* Email + CTA. Mobile-first: stacked, full-width. md:+
-                      collapses to a row. Black CTA — Linear-style maximum
-                      contrast. */}
                   <div className="mt-4 flex flex-col sm:flex-row gap-2">
                     <input
                       type="email"
@@ -676,7 +809,6 @@ export default function QASectionV2({
                     </button>
                   </div>
 
-                  {/* Honeypot */}
                   <input
                     type="text"
                     name="website"
@@ -706,8 +838,8 @@ export default function QASectionV2({
                 </div>
               ) : (
                 /* Empty-alternatives fallback — small cities / rare categories
-                   where the helper returns 0 candidates. Drop the cards
-                   framing; lean on the reply-notification value alone. */
+                   with 0 candidates. Drop the cards framing; lean on the
+                   reply-notification value alone. */
                 <div className="mt-4 pt-6 border-t border-zinc-100">
                   <h3 className="text-[20px] md:text-2xl font-semibold text-zinc-900 tracking-tight leading-tight">
                     Save your spot.
@@ -774,15 +906,15 @@ export default function QASectionV2({
             </>
           )}
 
-          {/* Legacy enrichment prompt — preserved for non-qa_email_capture
-              arms that hit !hasBenefitsSection (rare: pages without benefits
-              data). Unchanged so the experiment stays clean. */}
+          {/* Legacy enrichment prompt — non-qa_email_capture arms that hit
+              !hasBenefitsSection (rare: pages without benefits data). Kept
+              for backwards compat. */}
           {showEnrichment && !isQaCaptureArm && (
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
               <p className="text-[14px] font-medium text-gray-800 mb-1">
                 Get notified when they reply
               </p>
-              <p className="text-[12px] text-gray-500 mb-3">
+              <p className="text-[12px] text-gray-400 mb-3">
                 We&apos;ll email you — nothing else.
               </p>
 
@@ -845,32 +977,67 @@ export default function QASectionV2({
             <div className="space-y-2 mb-4">
               {suggestedQuestions.map((q, i) => {
                 const isTapped = tappedIndex === i;
+                const isMultiExpanded = isMultiProviderVariant && expandedQuestion === q;
+                const isExpanded = isMultiExpanded;
+                const isOtherExpanded = isMultiProviderVariant && expandedQuestion && expandedQuestion !== q;
+
                 return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => {
-                      if (submitting) return;
-                      submitQuestion(q, i);
-                    }}
-                    disabled={submitting}
-                    className={`group/card w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all duration-150 cursor-pointer disabled:cursor-default ${
-                      isTapped
-                        ? "bg-primary-50 border-primary-200"
-                        : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-[0.99]"
-                    }`}
-                  >
-                    <span className={`text-[15px] leading-snug flex-1 ${
-                      isTapped ? "text-primary-700 font-medium" : "text-gray-700 font-medium"
-                    }`}>
-                      {q}
-                    </span>
-                    {isTapped && submitting ? (
-                      <span className="w-4 h-4 border-2 border-primary-300 border-t-primary-600 rounded-full animate-spin shrink-0" />
-                    ) : (
-                      <ArrowIcon />
+                  <div key={i}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (submitting) return;
+                        if (isMultiProviderVariant) {
+                          handleMultiProviderQuestionTap(q, i);
+                        } else {
+                          submitQuestion(q, i);
+                        }
+                      }}
+                      disabled={submitting}
+                      className={`group/card w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all duration-150 cursor-pointer disabled:cursor-default ${
+                        isTapped || isExpanded
+                          ? "bg-primary-50 border-primary-200"
+                          : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-[0.99]"
+                      } ${isOtherExpanded ? "opacity-50" : ""} ${isExpanded ? "hidden" : ""}`}
+                    >
+                      <span className={`text-[15px] leading-snug flex-1 ${
+                        isTapped || isExpanded ? "text-primary-700 font-medium" : "text-gray-700 font-medium"
+                      }`}>
+                        {q}
+                      </span>
+                      {isTapped && submitting ? (
+                        <span className="w-4 h-4 border-2 border-primary-300 border-t-primary-600 rounded-full animate-spin shrink-0" />
+                      ) : (
+                        <ArrowIcon />
+                      )}
+                    </button>
+
+                    {/* Multi-Provider Card (multi_provider variant only) */}
+                    {isMultiExpanded && (
+                      <MultiProviderCard
+                        question={q}
+                        currentProvider={{
+                          id: providerId,
+                          slug: providerSlug || providerId,
+                          name: providerName,
+                          image: providerImage,
+                          priceRange: providerPriceRange,
+                          rating: providerRating,
+                          city: providerCity,
+                          state: providerState,
+                        }}
+                        similarProviders={similarProvidersForMulti}
+                        onProviderSelect={handleMultiProviderSelect}
+                        onEmailSubmit={handleMultiProviderEmailSubmit}
+                        onSaveAll={handleMultiProviderSaveAll}
+                        onCollapse={handleMultiProviderCollapse}
+                        isSubmitting={inlineSubmitting}
+                        isSuccess={inlineSuccess}
+                        questionSent={submitStatus === "success"}
+                        userEmail={user?.email}
+                      />
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>

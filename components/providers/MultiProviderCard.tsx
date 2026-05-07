@@ -373,7 +373,7 @@ export default function MultiProviderCard({
       {cardState === "card_stack" && similarProviders.length > 0 && (
         <div className="p-6">
           {/* Stack 1: Context pill + Headline */}
-          <div className="flex justify-center items-center gap-2 mb-4">
+          <div className="flex justify-center items-center gap-2 mb-2.5">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
               <span className="text-[12px] font-bold uppercase tracking-wide text-primary-700">
                 You asked

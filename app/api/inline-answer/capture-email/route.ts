@@ -6,7 +6,6 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { validateEmailStrict } from "@/lib/email-validation";
-import { sendSlackAlert, slackVariantConverted } from "@/lib/slack";
 
 /**
  * POST /api/inline-answer/capture-email
@@ -349,26 +348,11 @@ export async function POST(req: Request) {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 5. Slack notification (awaited to survive serverless teardown)
+  // 5. Return response with session cookies
   // ═══════════════════════════════════════════════════════════════════
-  try {
-    const alert = slackVariantConverted({
-      variant: "multi_provider",
-      email: normalizedEmail,
-      providerName: providerName || "Unknown Provider",
-      questionText: questionText || undefined,
-      sentCount: sentCount,
-      providerSlug: providerId,
-    });
-    await sendSlackAlert(alert.text, alert.blocks);
-  } catch (slackErr) {
-    // Log but don't fail the request — Slack is non-critical
-    console.error("[inline-answer/capture-email] Slack alert failed:", slackErr);
-  }
-
-  // ═══════════════════════════════════════════════════════════════════
-  // 6. Return response with session cookies
-  // ═══════════════════════════════════════════════════════════════════
+  // Note: Slack notification fires from /api/activity/track when the client
+  // sends multi_provider_converted (single source of truth for both guest
+  // and logged-in conversions). Don't double-fire it here.
   const response = NextResponse.json({
     success: true,
     profileId: familyProfileId,

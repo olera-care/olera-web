@@ -97,13 +97,16 @@ export default function QASectionWithVariant({
     }).catch(() => {});
   }, [hookVariant, providerId]);
 
-  // Derived: for outreach, qa_email_capture, and multi_provider variants,
-  // the benefits module is hidden by BenefitsArmGate, so we tell QASectionV2
-  // there's no benefits section (disables spotlight handoff behavior).
+  // Derived: for qa_email_capture and multi_provider arms — both own the
+  // post-question moment with their own email-capture UX — force
+  // hasBenefitsSection=false so QASectionV2's legacy gray-box enrichment
+  // prompt doesn't compete. Outreach passes through the real prop value:
+  // its AgentOutreachSlot module is the post-question CTA, and overriding
+  // hasBenefitsSection=false there would re-enable the legacy gray-box
+  // prompt on top of the outreach module (two competing CTAs after one
+  // question).
   const hasBenefitsSection =
-    hookVariant === "outreach" ||
-    hookVariant === "qa_email_capture" ||
-    hookVariant === "multi_provider"
+    hookVariant === "qa_email_capture" || hookVariant === "multi_provider"
       ? false
       : hasBenefitsData;
 

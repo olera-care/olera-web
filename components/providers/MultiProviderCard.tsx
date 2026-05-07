@@ -366,13 +366,13 @@ export default function MultiProviderCard({
       {cardState === "card_stack" && similarProviders.length > 0 && (
         <div className="p-6">
           {/* Context pill */}
-          <div className="flex items-center gap-2 mb-4">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 border border-primary-100">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-primary-700">
+          <div className="flex justify-center items-center gap-2 mb-4">
+            <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
+              <span className="text-[12px] font-bold uppercase tracking-wide text-primary-700">
                 You asked {firstName}&apos;s
               </span>
               <span className="mx-1.5 text-gray-300">·</span>
-              <span className="text-[11px] italic text-gray-500 truncate max-w-[180px]">
+              <span className="text-[13px] italic text-gray-500 truncate max-w-[220px]">
                 &ldquo;{truncateQuestion(question)}&rdquo;
               </span>
             </span>

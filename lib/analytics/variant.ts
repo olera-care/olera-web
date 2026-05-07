@@ -65,14 +65,17 @@ export type BenefitsVariant = Exclude<IntakeVariant, "outreach" | "qa_email_capt
 
 const BENEFITS_VARIANTS: BenefitsVariant[] = ["availability", "loss", "empathic"];
 
-/** Default equal split. Used when the experiment_weights row is missing
- *  or unreadable (DB hiccup, env not wired, etc.) so the page always
- *  renders something instead of going dark. Adding a new arm requires
- *  updating this map — TypeScript will flag the missing entry. */
+/** Default weights used when the experiment_weights row is missing or
+ *  unreadable. Adjusted 2026-05-07 for the empathic_single (Arm D)
+ *  consolidation: empathic absorbs availability + loss's slots and runs at
+ *  60% to test the structural mechanic change (1-step capture vs 3-step
+ *  relay). availability and loss stay paused at 0% — bench assets, ready
+ *  to re-enable via the admin dial when D's read is in. outreach and
+ *  qa_email_capture continue at 20% each. */
 export const INTAKE_VARIANT_DEFAULT_WEIGHTS: Record<IntakeVariant, number> = {
-  availability: 20,
-  loss: 20,
-  empathic: 20,
+  availability: 0,
+  loss: 0,
+  empathic: 60,
   outreach: 20,
   qa_email_capture: 20,
 };
@@ -139,7 +142,22 @@ export function assignIntakeVariantWeighted(
 }
 
 /** Legacy 3-arm assignment — kept for BenefitsDiscoveryModule's in-component
- *  variant state until Task 5 lifts variant routing to the page level. */
+ *  variant state until variant routing is lifted to the page level. Honors
+ *  the ?preview_arm=<variant> URL override so the admin "Preview ↗" links
+ *  work for any of the 3 benefits arms (availability/loss/empathic). The
+ *  preview-arm import is intentionally lazy via the dynamic import shim
+ *  below to avoid a circular dependency between variant + preview-mode. */
 export function assignBenefitsVariant(sessionId: string): BenefitsVariant {
+  if (typeof window !== "undefined") {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const previewArm = params.get("preview_arm");
+      if (previewArm && (BENEFITS_VARIANTS as readonly string[]).includes(previewArm)) {
+        return previewArm as BenefitsVariant;
+      }
+    } catch {
+      // best-effort — fall through to hash-based assignment
+    }
+  }
   return BENEFITS_VARIANTS[djb2(sessionId) % 3];
 }

@@ -47,6 +47,7 @@ import { BENEFITS_VARIANT_COPY } from "@/lib/analytics/variant-copy";
 import { matchesCareNeed, type CareNeed } from "@/lib/benefits/match-care-need";
 import type { MatchableProvider } from "@/lib/benefits/provider-tie-in";
 import type { WaiverProgram } from "@/data/waiver-library";
+import EmpathicSingleStep from "@/components/providers/BenefitsDiscoveryModule.empathic";
 import ResultsSheet from "@/components/benefits/ResultsSheet";
 
 /** Minimal program shape passed from the provider page server component. */
@@ -336,6 +337,26 @@ export default function BenefitsDiscoveryModule({
   const [overlayContactChannel, setOverlayContactChannel] = useState<"email" | "sms">("email");
 
   if (topPrograms.length === 0) return null;
+
+  // ─── Empathic_single arm (D) — the consolidated single-step flow ──────
+  // Replaces the 3-step relay for variant=empathic. availability + loss
+  // continue to render the legacy 3-step flow below (currently weighted
+  // 0% but kept iterable as bench assets — see SBF Copy Variants Notion).
+  if (variant === "empathic") {
+    return (
+      <EmpathicSingleStep
+        providerState={providerState}
+        stateId={stateId}
+        stateName={stateName}
+        allPrograms={allPrograms}
+        providerName={providerName}
+        providerSlug={providerSlug}
+        providerCareTypes={providerCareTypes}
+        providerCategory={providerCategory}
+        entrySource={entrySource}
+      />
+    );
+  }
 
   // ─── Handle submit ────────────────────────────────────────────────────
   async function handleSubmit() {

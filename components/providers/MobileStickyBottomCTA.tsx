@@ -233,6 +233,12 @@ export default function MobileStickyBottomCTA({
   const router = useRouter();
   const [visible, setVisible] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  // Suppression flag: true when the in-page #benefits module is ≥50% in
+  // viewport (Door A vs Door B competing-CTA fix). Applies to all benefits
+  // arms equally — clean A/B impact since the module renders for all of
+  // availability/loss/empathic. The suppression resolves the cannibalization
+  // we identified in the 2026-05-06 funnel review.
+  const [benefitsInView, setBenefitsInView] = useState(false);
 
   // ── Redirect after connection ──
   const handleConnectionCreated = useCallback(
@@ -281,6 +287,56 @@ export default function MobileStickyBottomCTA({
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
+
+  // Suppress the sticky bar when the benefits module is in view. The module
+  // has its own primary CTA (email capture) and we don't want two competing
+  // CTAs in the same thumb zone. Scroll listener still runs underneath so
+  // the bar reappears when the user scrolls past the module.
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const el = document.getElementById("benefits");
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          setBenefitsInView(entry.intersectionRatio >= 0.5);
+        }
+      },
+      { threshold: [0, 0.5, 1] },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Also suppress when an input is focused — keyboard is open and the sticky
+  // bar would collide with native chrome. Re-uses the same focusin/focusout
+  // pattern as MobileUXPrimitives.useKeyboardOpen.
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  useEffect(() => {
+    function isTypable(target: EventTarget | null): boolean {
+      if (!target || !(target instanceof HTMLElement)) return false;
+      const tag = target.tagName;
+      if (tag === "INPUT") {
+        const type = (target as HTMLInputElement).type;
+        return type !== "checkbox" && type !== "radio" && type !== "button" && type !== "submit";
+      }
+      return tag === "TEXTAREA" || target.isContentEditable;
+    }
+    function onFocusIn(e: FocusEvent) {
+      if (isTypable(e.target)) setKeyboardOpen(true);
+    }
+    function onFocusOut() {
+      requestAnimationFrame(() => {
+        if (!isTypable(document.activeElement)) setKeyboardOpen(false);
+      });
+    }
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+    };
+  }, []);
 
   // Allow other components (e.g. ScrollToConnectionCard) to open the sheet
   useEffect(() => {
@@ -475,7 +531,7 @@ export default function MobileStickyBottomCTA({
       {/* ── Sticky bottom bar ── */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
-          visible ? "translate-y-0" : "translate-y-full"
+          visible && !benefitsInView && !keyboardOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >
         <div

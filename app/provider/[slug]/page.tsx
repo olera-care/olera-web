@@ -41,7 +41,6 @@ import {
   getCategoryDescription,
   getCategoryServices,
   getSimilarProviders,
-  getSimilarProvidersForMulti,
   getSuggestedQuestions,
 } from "@/lib/provider-utils";
 
@@ -384,7 +383,7 @@ export default async function ProviderPage({
   const canFetchOutreachCandidates = !!(profile.city && profile.state && outreachCategoryString);
 
   // --- Parallel data fetching (claim state, similar providers, Q&A, reviews, outreach candidates) ---
-  const [claimResult, similarProviders, similarProvidersForMulti, qaResult, outreachCandidates] = await Promise.all([
+  const [claimResult, similarProviders, qaResult, outreachCandidates] = await Promise.all([
     // 1. Actual claim state (iOS data always says "unclaimed")
     profile.source_provider_id
       ? (async () => {
@@ -402,21 +401,9 @@ export default async function ProviderPage({
         })()
       : Promise.resolve(null),
 
-    // 2. Similar providers for Compare section (state-filtered, with global fallback)
+    // 2. Similar providers for Compare section AND multi_provider card stack
+    // (same data source, transformed for card stack format below)
     getSimilarProviders(profile.category, profile.source_provider_id || profile.id, profile.state, 3),
-
-    // 3. Similar providers for multi_provider variant (with distance calculation)
-    getSimilarProvidersForMulti(
-      profile.category,
-      profile.source_provider_id || profile.id,
-      profile.city,
-      profile.state,
-      profile.lat ?? null,
-      profile.lng ?? null,
-      null, // lowerPrice - not filtering by price yet
-      null, // upperPrice
-      3
-    ),
 
     // 4. Q&A pairs + review count
     (async () => {
@@ -460,6 +447,26 @@ export default async function ProviderPage({
         }).catch(() => [])
       : Promise.resolve([]),
   ]);
+
+  // Transform Compare section providers to card stack format
+  // (same data, different shape - eliminates duplicate queries)
+  const similarProvidersForMulti = similarProviders.providers.map((p) => {
+    // Parse "City, State" format from address field
+    const addressParts = p.address?.split(", ") || [];
+    const city = addressParts[0] || null;
+    const state = addressParts[1] || null;
+    return {
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      image: p.image || null,
+      rating: p.rating || null,
+      priceRange: p.priceRange || null,
+      city,
+      state,
+      distanceMiles: null, // Could calculate if we had lat/lng on Provider type
+    };
+  });
 
   let actualClaimState = profile.claim_state;
   let claimAccountId: string | null = profile.account_id;

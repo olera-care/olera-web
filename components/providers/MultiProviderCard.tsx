@@ -587,7 +587,7 @@ export default function MultiProviderCard({
             /* Guest user: email capture form */
             <>
               {/* Header with reply count */}
-              <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="flex items-center justify-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full bg-success-500 animate-pulse" />
                 <span className="text-[11px] font-bold uppercase tracking-wide text-gray-600">
                   {totalAsked} {totalAsked === 1 ? "reply" : "replies"} on the way
@@ -595,7 +595,7 @@ export default function MultiProviderCard({
               </div>
 
               {/* Provider list with "Replying" animation */}
-              <div className="space-y-2 mb-5 mx-4 lg:mx-20">
+              <div className="space-y-2 mb-8 mx-4 lg:mx-20">
                 {allSentProviders.map((provider) => (
                   <div
                     key={provider.id}
@@ -618,7 +618,7 @@ export default function MultiProviderCard({
               </div>
 
               {/* Headline */}
-              <h3 className="font-display text-2xl font-normal text-gray-900 text-center mb-5">
+              <h3 className="font-display text-2xl font-normal text-gray-900 text-center mb-2">
                 Don&apos;t miss what they say.
               </h3>
 

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AdminUser } from "@/lib/types";
+import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
 interface AdminSidebarProps {
   adminUser: AdminUser;
@@ -62,14 +63,74 @@ const navSections: NavSection[] = [
       { label: "Analytics", href: "/admin/analytics" },
       { label: "Benefits", href: "/admin/benefits" },
       { label: "Content", href: "/admin/content" },
-      { label: "MedJobs", href: "/admin/medjobs" },
-      { label: "Staffing Outreach", href: "/admin/staffing-outreach" },
-      { label: "Student Outreach", href: "/admin/student-outreach" },
-      { label: "Campuses", href: "/admin/student-outreach/campuses" },
+      // v9.0 Phase 7 Commit K: Staffing Outreach retired — its
+      // operational concerns are fully covered by the MedJobs
+      // section below (sites, prospects, partners, etc.). Hidden
+      // here to avoid redundancy + conceptual overlap; the legacy
+      // /admin/staffing-outreach route still resolves for any
+      // bookmarks during transition.
       { label: "Team", href: "/admin/team" },
     ],
   },
 ];
+
+// v9.0 Phase 7 Commit K: MedJobs left nav expands to ten flat
+// operational surfaces, ordered as a directional priority view:
+//   In Basket             — the smart priority workspace (active work)
+//   Sites · Prospects     — territorial + funnel-feeder backlogs
+//   Clients · Partners ·
+//   Candidates            — relationship surfaces
+//   Replies · Meetings ·
+//   Calls                 — workflow-stage queues
+//   Logs                  — historical / analytics layer
+//
+// Each entity page is a full operational repository — admins can
+// work outside the In Basket if preferred. The In Basket emphasizes
+// active work; the dedicated pages show full inventory including
+// closed/completed history.
+//
+// All 10 items expose an unread/total fraction sourced from
+// /api/admin/medjobs/sidebar-counts. Labels + fractions bold when
+// unread > 0, mirroring the In Basket tab-bar pattern.
+const STAKEHOLDERS_KEY = "stakeholders";
+
+const medjobsItems: NavItem[] = [
+  { label: "In Basket",  href: "/admin/medjobs/in-basket" },
+  { label: "Sites",      href: "/admin/medjobs/sites" },
+  { label: "Prospects",  href: "/admin/medjobs/prospects" },
+  { label: "Clients",    href: "/admin/medjobs/clients" },
+  { label: "Partners",   href: "/admin/medjobs/partners" },
+  { label: "Candidates", href: "/admin/medjobs/candidates" },
+  { label: "Replies",    href: "/admin/medjobs/replies" },
+  { label: "Meetings",   href: "/admin/medjobs/meetings" },
+  { label: "Calls",      href: "/admin/medjobs/calls" },
+  { label: "Logs",       href: "/admin/medjobs/logs" },
+];
+
+/** Map nav-item href → sidebar-counts response key. */
+const COUNTS_KEY: Record<string, string | null> = {
+  "/admin/medjobs/in-basket":  "in_basket",
+  "/admin/medjobs/sites":      "sites",
+  "/admin/medjobs/prospects":  "prospects",
+  "/admin/medjobs/clients":    "clients",
+  "/admin/medjobs/partners":   "partners",
+  "/admin/medjobs/candidates": "candidates",
+  "/admin/medjobs/replies":    "replies",
+  "/admin/medjobs/meetings":   "meetings",
+  "/admin/medjobs/calls":      "calls",
+  "/admin/medjobs/logs":       null,
+};
+
+interface CountEntry {
+  unread: number;
+  total: number;
+}
+type SidebarCounts = Record<string, CountEntry | undefined>;
+
+// Retained for backwards-compat with auto-expand logic; will be cleared
+// in a follow-up. The current sidebar implementation uses this set
+// to detect which sections contain the active route.
+const stakeholdersChildren: NavItem[] = [];
 
 // Mobile: 5 daily-use items with icons
 const mobileNavItems: (NavItem & { icon: React.ReactNode })[] = [
@@ -111,7 +172,7 @@ const mobileNavItems: (NavItem & { icon: React.ReactNode })[] = [
   },
   {
     label: "MedJobs",
-    href: "/admin/medjobs",
+    href: "/admin/medjobs/in-basket",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
@@ -144,14 +205,35 @@ function Chevron({ open }: { open: boolean }) {
 export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   const pathname = usePathname();
 
-  // Initialize collapsed state — sections without defaultOpen start collapsed
+  // v9.0 Phase 7: medjobs section toggles open/close. Defaults open
+  // since the section is the primary daily-use surface.
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     for (const s of navSections) {
       initial[s.key] = !s.defaultOpen;
     }
+    initial.medjobs = false;
     return initial;
   });
+
+  // v9.0 Phase 7 Commit K: per-item unread/total fractions. Fetched
+  // once on mount and on every MedJobs refresh signal so the
+  // sidebar stays live as admins work the queue. Failure is silent
+  // — the fraction just doesn't render until the next successful
+  // fetch.
+  const [sidebarCounts, setSidebarCounts] = useState<SidebarCounts | null>(null);
+  const refetchCounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/medjobs/sidebar-counts");
+      if (!res.ok) return;
+      const data = (await res.json()) as { counts: SidebarCounts };
+      setSidebarCounts(data.counts ?? null);
+    } catch {
+      /* non-critical */
+    }
+  }, []);
+  useEffect(() => { void refetchCounts(); }, [refetchCounts]);
+  useMedJobsRefresh(refetchCounts);
 
   // Hydrate from localStorage after mount
   useEffect(() => {
@@ -176,6 +258,13 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   const activeSectionKey = navSections.find((s) =>
     s.items.some((item) => isActive(item.href))
   )?.key;
+
+  // v9.0 Phase 7: medjobs section auto-expands when any child route
+  // is active, so the current page is always visible in the nav.
+  const medjobsHasActive = medjobsItems.some((item) => isActive(item.href));
+  const medjobsOpen = !collapsed.medjobs || medjobsHasActive;
+  void STAKEHOLDERS_KEY;
+  void stakeholdersChildren;
 
   return (
     <>
@@ -233,6 +322,66 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
               </div>
             );
           })}
+
+          {/* v9.0 Phase 7 Commit K: MedJobs section — ten flat
+              operational surfaces with per-item unread/total
+              fractions. Labels + fractions bold when unread > 0
+              (same pattern as the In Basket tab bar). */}
+          <div key="medjobs" className="mt-1">
+            <button
+              onClick={() => toggle("medjobs")}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors duration-100"
+            >
+              MedJobs
+              <Chevron open={medjobsOpen} />
+            </button>
+
+            {medjobsOpen && (
+              <div className="mt-0.5 space-y-px">
+                {medjobsItems.map((item) => {
+                  const active = isActive(item.href);
+                  const countsKey = COUNTS_KEY[item.href];
+                  const entry = countsKey ? sidebarCounts?.[countsKey] : undefined;
+                  const hasUnread = !!entry && entry.unread > 0;
+                  const fraction = entry
+                    ? hasUnread
+                      ? `${entry.unread}/${entry.total}`
+                      : entry.total > 0
+                        ? String(entry.total)
+                        : null
+                    : null;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={[
+                        "flex items-center justify-between pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                        active
+                          ? hasUnread
+                            ? "bg-gray-100 font-semibold text-gray-900"
+                            : "bg-gray-100 font-medium text-gray-900"
+                          : hasUnread
+                            ? "font-semibold text-gray-900 hover:bg-gray-50"
+                            : "font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                      ].join(" ")}
+                    >
+                      <span>{item.label}</span>
+                      {fraction != null && (
+                        <span
+                          className={[
+                            "ml-2 text-[11px] tabular-nums",
+                            hasUnread ? "font-semibold text-gray-900" : "text-gray-400",
+                          ].join(" ")}
+                        >
+                          {fraction}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className="border-t border-gray-100 px-3 py-3">

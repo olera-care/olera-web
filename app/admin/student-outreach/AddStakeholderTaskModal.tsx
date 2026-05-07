@@ -17,6 +17,7 @@
  */
 
 import { useState } from "react";
+import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
 
 interface Props {
   organizationName: string;
@@ -57,36 +58,14 @@ export function AddStakeholderTaskModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
-      onClick={onCancel}
-    >
-      <div
-        className="w-full max-w-md rounded-xl bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">{isEditing ? "Edit step" : "Add step"}</h3>
-          <p className="mt-0.5 text-xs text-gray-500">
-            {contactName ? `${contactName} · ${organizationName}` : organizationName}
-          </p>
-        </header>
-
-        <div className="px-6 py-4">
-          {error && (
-            <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
-          )}
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            rows={3}
-            autoFocus
-            placeholder="e.g. Follow up after department meeting; send updated flyer"
-            className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-          />
-        </div>
-
-        <footer className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
+    <LogModalShell
+      title={isEditing ? "Edit step" : "Add step"}
+      subtitle={contactName ? `${contactName} · ${organizationName}` : organizationName}
+      error={error}
+      size="md"
+      onCancel={onCancel}
+      footer={
+        <>
           <button
             onClick={onCancel}
             disabled={submitting}
@@ -101,8 +80,17 @@ export function AddStakeholderTaskModal({
           >
             {submitting ? "Saving…" : isEditing ? "Save" : "Add step"}
           </button>
-        </footer>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={3}
+        autoFocus
+        placeholder="e.g. Follow up after department meeting; send updated flyer"
+        className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
+      />
+    </LogModalShell>
   );
 }

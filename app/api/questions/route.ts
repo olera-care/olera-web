@@ -386,7 +386,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, question, asker_name: enrichName, asker_email: enrichEmail } = body;
+    const { id, question, asker_name: enrichName, asker_email: enrichEmail, session_id: enrichSessionId } = body;
 
     if (!id) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
@@ -440,14 +440,22 @@ export async function PATCH(request: NextRequest) {
       // does NOT throw on insert errors — destructure { error } and log
       // explicitly so CHECK-constraint rejections aren't silent.
       if (updates.asker_email && updated?.id) {
+        const enrichMetadata: Record<string, string> = {
+          question_id: updated.id,
+          variant: "qa_email_capture",
+        };
+        // Carry session_id through so the admin variant-sessions drill-in
+        // can link this enrichment back to the impression that came from
+        // the same browser session. Optional — pre-this-deploy rows lack
+        // it and the drill-in falls back to question_id as the row key.
+        if (typeof enrichSessionId === "string" && enrichSessionId.length > 0) {
+          enrichMetadata.session_id = enrichSessionId;
+        }
         const { error: actErr } = await db.from("seeker_activity").insert({
           profile_id: null,
           event_type: "question_email_enriched",
           related_provider_id: existing.provider_id || null,
-          metadata: {
-            question_id: updated.id,
-            variant: "qa_email_capture",
-          },
+          metadata: enrichMetadata,
         });
         if (actErr) {
           console.error("[seeker_activity] question_email_enriched insert failed:", actErr);

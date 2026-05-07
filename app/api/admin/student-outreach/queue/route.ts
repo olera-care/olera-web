@@ -38,6 +38,7 @@ import {
   type DerivedState,
   type TouchpointRow,
 } from "@/lib/student-outreach/state-derivation";
+import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import type {
   AwaitingCallbackKind,
   Campus,
@@ -69,6 +70,7 @@ const CLOSED_STATUSES: Status[] = [
 // Legacy active-partner values (pre-migration 065); still surface in Partners.
 const PARTNER_ALL: string[] = [...PARTNER_STATUSES, "agreed", "distributed"];
 
+
 type DB = ReturnType<typeof getServiceClient>;
 
 export interface TabCounts {
@@ -80,6 +82,14 @@ export interface TabCounts {
   partners: number;
   archive: number;
   all: number;
+  // v9.0 Phase 2: optional so the legacy fields are decoupled. The
+  // public type in lib/student-outreach/types.ts mirrors this.
+  clients?: number;
+  campuses?: number;
+  // v9.0 Phase 7: 'sites' is the new UI alias for the campus
+  // territorial primitive. Mirrored here so the queue route can return
+  // both keys; In Basket reads `sites`, legacy callers read `campuses`.
+  sites?: number;
 }
 
 export interface TabRow extends OutreachRow {
@@ -147,7 +157,9 @@ export async function GET(req: NextRequest) {
     : null;
 
   // Counts for all tabs (one efficient pass + a few small queries).
-  const tabCounts = await computeTabCounts(db, {
+  // v9.0 Phase 4: also returns per-tab unread counts mirroring the
+  // shape, so the UI can render `Label unread/total`.
+  const { counts: tabCounts, unread: tabUnreadCounts } = await computeTabCounts(db, {
     campusId: selectedCampus?.id ?? null,
     type: typeFilter,
   });
@@ -184,6 +196,7 @@ export async function GET(req: NextRequest) {
       rows: [],
       total: 0,
       tab_counts: tabCounts,
+      tab_unread_counts: tabUnreadCounts,
       research_campuses: researchCampuses,
     });
   }
@@ -204,6 +217,7 @@ export async function GET(req: NextRequest) {
     rows,
     total: rows.length,
     tab_counts: tabCounts,
+    tab_unread_counts: tabUnreadCounts,
     research_campuses: researchCampuses,
   });
 }
@@ -225,6 +239,9 @@ async function fetchResearchCampuses(
   city: string | null;
   research_stakeholder_count: number;
   last_added_at: string | null;
+  // v9.0 Phase 2: catchment-derived state + client count.
+  stage: "provider_prospecting" | "stakeholder_prospecting" | "active";
+  client_count: number;
 }>> {
   let q = db
     .from("student_outreach_campuses")
@@ -276,25 +293,87 @@ async function fetchResearchCampuses(
     if (!cur || s.created_at > cur) lastAddedAt.set(s.campus_id, s.created_at);
   }
 
+  // v9.0 Phase 2: pull all organization/caregiver providers once with
+  // their metadata so we can derive each campus's stage from its
+  // catchment without N round-trips. Providers count is small
+  // (hundreds), so a single in-memory join is efficient.
+  const { data: providers } = await db
+    .from("business_profiles")
+    .select("city, state, metadata")
+    .in("type", ["organization", "caregiver"]);
+
+  // Index providers by lowercase city|state for O(1) catchment lookups.
+  type ProviderLite = {
+    city: string | null;
+    state: string | null;
+    metadata: Record<string, unknown> | null;
+  };
+  const providerIndex = new Map<string, ProviderLite[]>();
+  for (const p of (providers ?? []) as ProviderLite[]) {
+    if (!p.city || !p.state) continue;
+    const key = `${p.city.toLowerCase()}|${p.state}`;
+    if (!providerIndex.has(key)) providerIndex.set(key, []);
+    providerIndex.get(key)!.push(p);
+  }
+
+  const PILOT_MS = 90 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const isClientMeta = (m: Record<string, unknown> | null): boolean => {
+    if (!m) return false;
+    if (m.medjobs_subscription_active === true) return true;
+    const accepted = m.interview_terms_accepted_at;
+    if (typeof accepted !== "string") return false;
+    const t = new Date(accepted).getTime();
+    return !isNaN(t) && now - t < PILOT_MS;
+  };
+
   return campusRows
-    .map((c) => ({
-      id: c.id,
-      slug: c.slug,
-      name: c.name,
-      state: c.state,
-      city: c.city,
-      research_stakeholder_count: counts.get(c.id) ?? 0,
-      last_added_at: lastAddedAt.get(c.id) ?? null,
-    }))
-    // v8.5: only surface campuses with at least one stakeholder currently
-    // in research stage. Brand-new empty campuses (just added, never had
-    // a stakeholder) stay hidden until research is initiated. Same for
-    // campuses where every stakeholder has advanced past research — the
-    // card naturally disappears, leaving the Research tab focused on
-    // active work.
-    .filter((c) => c.research_stakeholder_count > 0)
+    .map((c) => {
+      const uni = PARTNER_UNIVERSITIES.find((u) => u.slug === c.slug);
+      let clientCount = 0;
+      if (uni) {
+        for (const cc of uni.catchment) {
+          const key = `${cc.city.toLowerCase()}|${cc.state}`;
+          const list = providerIndex.get(key) ?? [];
+          for (const p of list) if (isClientMeta(p.metadata)) clientCount += 1;
+        }
+      }
+      const stakeholderCount = counts.get(c.id) ?? 0;
+      // research_complete=false (filter above), so stage is either
+      // provider_prospecting (no clients yet) or stakeholder_prospecting
+      // (≥1 client in catchment).
+      const stage: "provider_prospecting" | "stakeholder_prospecting" =
+        clientCount > 0 ? "stakeholder_prospecting" : "provider_prospecting";
+
+      return {
+        id: c.id,
+        slug: c.slug,
+        name: c.name,
+        state: c.state,
+        city: c.city,
+        research_stakeholder_count: stakeholderCount,
+        last_added_at: lastAddedAt.get(c.id) ?? null,
+        stage,
+        client_count: clientCount,
+      };
+    })
+    // v9.0 Phase 2: surface a campus card if it has stakeholders in
+    // research OR if Stage 2 has unlocked (≥1 client) — the latter
+    // becomes the "Campus research needed" banner. v8.5's "must have
+    // ≥1 stakeholder" filter is preserved for provider_prospecting
+    // campuses since those don't have a Stage 2 banner yet.
+    .filter(
+      (c) =>
+        c.research_stakeholder_count > 0 ||
+        c.stage === "stakeholder_prospecting",
+    )
     .sort((a, b) => {
-      // Most recently active first; null last_added_at sinks to the bottom.
+      // v9.0 Phase 2: stakeholder_prospecting (Stage 2 unlocked) cards
+      // bubble to the top — they're the prompt admin needs to act on.
+      const aPriority = a.stage === "stakeholder_prospecting" && a.research_stakeholder_count === 0 ? 0 : 1;
+      const bPriority = b.stage === "stakeholder_prospecting" && b.research_stakeholder_count === 0 ? 0 : 1;
+      if (aPriority !== bPriority) return aPriority - bPriority;
+      // Within tier: most recently active first.
       const aTime = a.last_added_at ? new Date(a.last_added_at).getTime() : 0;
       const bTime = b.last_added_at ? new Date(b.last_added_at).getTime() : 0;
       if (aTime !== bTime) return bTime - aTime;
@@ -307,11 +386,13 @@ async function fetchResearchCampuses(
 async function computeTabCounts(
   db: DB,
   filters: { campusId: string | null; type: StakeholderType | null },
-): Promise<TabCounts> {
-  const counts: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0 };
+): Promise<{ counts: TabCounts; unread: TabCounts }> {
+  const counts: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
+  const unread: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
 
-  // Single status scan in scope.
-  let q = db.from("student_outreach").select("id, status");
+  // Single status scan in scope. v9.0 Phase 4: also pull viewed_at so
+  // we can split totals into unread/total per tab in one pass.
+  let q = db.from("student_outreach").select("id, status, viewed_at");
   if (filters.campusId) q = q.eq("campus_id", filters.campusId);
   if (filters.type) q = q.eq("stakeholder_type", filters.type);
   const { data: scan } = await q;
@@ -321,18 +402,27 @@ async function computeTabCounts(
   const partner = new Set<string>(PARTNER_ALL);
 
   let inProgressIds: string[] = [];
-  for (const row of (scan ?? []) as Array<{ id: string; status: string }>) {
+  const unreadIds = new Set<string>();
+  for (const row of (scan ?? []) as Array<{ id: string; status: string; viewed_at: string | null }>) {
+    const isUnread = row.viewed_at == null;
+    if (isUnread) unreadIds.add(row.id);
     counts.all++;
-    if (research.has(row.status)) counts.prospects++;
-    else if (partner.has(row.status)) counts.partners++;
-    else if (replies.has(row.status)) {
+    if (isUnread) unread.all++;
+    if (research.has(row.status)) {
+      counts.prospects++;
+      if (isUnread) unread.prospects++;
+    } else if (partner.has(row.status)) {
+      counts.partners++;
+      if (isUnread) unread.partners++;
+    } else if (replies.has(row.status)) {
       counts.replies++;
+      if (isUnread) unread.replies++;
       inProgressIds.push(row.id);
     }
-    // v8.10.6: no_response_closed rows count for Archive (the other
-    // closed states — not_interested / DNC / wrong_contact / redirected
-    // — stay in All only as terminal historical records).
-    if (row.status === "no_response_closed") counts.archive++;
+    if (row.status === "no_response_closed") {
+      counts.archive++;
+      if (isUnread) unread.archive++;
+    }
   }
 
   // Calls count: distinct outreach_id with a pending call task due now.
@@ -355,6 +445,31 @@ async function computeTabCounts(
     callSet.add(t.outreach_id);
   }
   counts.calls = callSet.size;
+  // v9.0 Phase 4: unread call rows = subset of callSet that are unread.
+  for (const id of callSet) if (unreadIds.has(id)) unread.calls++;
+
+  // v9.0 Phase 6.5: Partners count for the In Basket tab is task-driven
+  // (smart-hide when no partners have open tasks). Override the
+  // status-based partner count from the initial pass with this
+  // task-filtered count. The Stakeholders → Partners reference page
+  // uses a separate endpoint (/api/admin/medjobs/partners) that
+  // returns ALL active_partner non-provider rows regardless of tasks.
+  let partnerTaskQ = db
+    .from("student_outreach_tasks")
+    .select("outreach_id, student_outreach!inner(campus_id, stakeholder_type, status, kind)")
+    .eq("status", "pending")
+    .eq("student_outreach.status", "active_partner")
+    .neq("student_outreach.kind", "provider");
+  if (filters.campusId) partnerTaskQ = partnerTaskQ.eq("student_outreach.campus_id", filters.campusId);
+  if (filters.type) partnerTaskQ = partnerTaskQ.eq("student_outreach.stakeholder_type", filters.type);
+  const { data: partnerTasks } = await partnerTaskQ;
+  const partnerWithTaskSet = new Set<string>();
+  for (const t of (partnerTasks ?? []) as Array<{ outreach_id: string }>) {
+    partnerWithTaskSet.add(t.outreach_id);
+  }
+  counts.partners = partnerWithTaskSet.size;
+  unread.partners = 0;
+  for (const id of partnerWithTaskSet) if (unreadIds.has(id)) unread.partners++;
 
   // Meetings count: among in-progress rows, those whose most-recent
   // meeting-related touchpoint is in_flight or scheduled. Also: rows
@@ -363,53 +478,219 @@ async function computeTabCounts(
   // v8.10.6: stale-derived rows are dropped from Replies and added to
   // Archive — same rebalancing pattern as scheduled meetings.
   if (inProgressIds.length > 0) {
-    const { meetings, scheduled, stale } = await countMeetingsAmongRows(db, inProgressIds);
+    const { meetings, scheduled, stale, meetingIds, scheduledIds, staleIds } =
+      await countMeetingsAmongRows(db, inProgressIds);
     counts.meetings = meetings;
     counts.replies = Math.max(0, counts.replies - scheduled - stale);
     counts.archive += stale;
+    // v9.0 Phase 4: rebalance unread the same way the totals were
+    // rebalanced — meeting + scheduled + stale rows pull out of replies.
+    for (const id of meetingIds) if (unreadIds.has(id)) unread.meetings++;
+    for (const id of scheduledIds) if (unreadIds.has(id)) unread.replies = Math.max(0, unread.replies - 1);
+    for (const id of staleIds) {
+      if (unreadIds.has(id)) {
+        unread.replies = Math.max(0, unread.replies - 1);
+        unread.archive++;
+      }
+    }
   }
 
-  // v8.10.42: Candidates = LIVE student profiles visible to providers
-  // on the job board. Subset of Signups (Candidates ⊂ Signups). Filter
-  // matches /api/medjobs/candidates: type=student + is_active=true +
-  // metadata.application_completed=true. Campus filter narrows by
-  // metadata.university name match.
-  let candidateCampusName: string | null = null;
-  if (filters.campusId) {
-    const { data: campus } = await db
-      .from("student_outreach_campuses")
-      .select("name")
-      .eq("id", filters.campusId)
-      .single();
-    candidateCampusName = (campus as { name: string } | null)?.name ?? null;
-  }
-  if (candidateCampusName) {
-    // Campus filter active — fetch metadata so we can match university
-    // case-insensitively in JS (JSONB ilike is awkward in PostgREST).
-    const { data: profiles } = await db
-      .from("business_profiles")
-      .select("metadata")
-      .eq("type", "student")
-      .eq("is_active", true)
-      .contains("metadata", { application_completed: true });
-    const lower = candidateCampusName.toLowerCase();
-    counts.candidates = (
-      (profiles ?? []) as Array<{ metadata: Record<string, unknown> | null }>
-    ).filter((p) => {
-      const u = typeof p.metadata?.university === "string" ? p.metadata.university : null;
-      return u !== null && u.toLowerCase() === lower;
-    }).length;
-  } else {
-    const { count: candidatesCount } = await db
-      .from("business_profiles")
-      .select("id", { count: "exact", head: true })
-      .eq("type", "student")
-      .eq("is_active", true)
-      .contains("metadata", { application_completed: true });
-    counts.candidates = candidatesCount ?? 0;
+  // v9.0 Phase 7 Commit O: In Basket Clients/Candidates/Sites tab
+  // counts. Total = distinct entities with ≥1 pending task. Unread =
+  // subset whose latest pending task was created after the entity's
+  // last viewed_at (or never viewed). Same predicate as
+  // sidebar-counts so the two surfaces stay aligned.
+  const [
+    { data: clientTaskRows },
+    { data: candidateTaskRows },
+    { data: siteTaskRows },
+  ] = await Promise.all([
+    db
+      .from("business_profile_tasks")
+      .select("business_profile_id, created_at")
+      .eq("status", "pending")
+      .eq("kind", "client"),
+    db
+      .from("business_profile_tasks")
+      .select("business_profile_id, created_at")
+      .eq("status", "pending")
+      .eq("kind", "candidate"),
+    db
+      .from("site_tasks")
+      .select("campus_id, created_at")
+      .eq("status", "pending"),
+  ]);
+
+  const latestClientTaskByProfile = new Map<string, string>();
+  for (const r of (clientTaskRows ?? []) as Array<{
+    business_profile_id: string;
+    created_at: string;
+  }>) {
+    const cur = latestClientTaskByProfile.get(r.business_profile_id);
+    if (!cur || r.created_at > cur)
+      latestClientTaskByProfile.set(r.business_profile_id, r.created_at);
   }
 
-  return counts;
+  const latestCandidateTaskByProfile = new Map<string, string>();
+  for (const r of (candidateTaskRows ?? []) as Array<{
+    business_profile_id: string;
+    created_at: string;
+  }>) {
+    const cur = latestCandidateTaskByProfile.get(r.business_profile_id);
+    if (!cur || r.created_at > cur)
+      latestCandidateTaskByProfile.set(r.business_profile_id, r.created_at);
+  }
+
+  const latestSiteTaskByCampus = new Map<string, string>();
+  for (const r of (siteTaskRows ?? []) as Array<{
+    campus_id: string;
+    created_at: string;
+  }>) {
+    const cur = latestSiteTaskByCampus.get(r.campus_id);
+    if (!cur || r.created_at > cur)
+      latestSiteTaskByCampus.set(r.campus_id, r.created_at);
+  }
+
+  // Fetch entity viewed_at for the entities-with-tasks subset to
+  // compute unread.
+  const clientIds = Array.from(latestClientTaskByProfile.keys());
+  const candidateIds = Array.from(latestCandidateTaskByProfile.keys());
+  const siteIds = Array.from(latestSiteTaskByCampus.keys());
+
+  // v9.0 Phase 7 Commit Q: filter each entity-task set to entities that
+  // actually pass the dedicated page's validity check. Without this,
+  // an orphan task on an inactive/deleted entity inflates the queue
+  // count above what the sidebar + dedicated page render — exactly
+  // the "Sites 1/1 in tab but 0 cards on the page" mismatch.
+  //
+  //   Sites      → student_outreach_campuses with is_active=true
+  //   Clients    → business_profiles in (organization|caregiver) with
+  //                T&C accepted OR active subscription
+  //   Candidates → business_profiles type=student, is_active=true,
+  //                metadata.application_completed=true
+  const [
+    { data: clientProfiles },
+    { data: candidateProfiles },
+    { data: campusViews },
+  ] = await Promise.all([
+    clientIds.length > 0
+      ? db
+          .from("business_profiles")
+          .select("id, metadata")
+          .in("id", clientIds)
+          .in("type", ["organization", "caregiver"])
+      : Promise.resolve({ data: [] as Array<{ id: string; metadata: Record<string, unknown> | null }> }),
+    candidateIds.length > 0
+      ? db
+          .from("business_profiles")
+          .select("id, metadata")
+          .in("id", candidateIds)
+          .eq("type", "student")
+          .eq("is_active", true)
+          .contains("metadata", { application_completed: true })
+      : Promise.resolve({ data: [] as Array<{ id: string; metadata: Record<string, unknown> | null }> }),
+    siteIds.length > 0
+      ? db
+          .from("student_outreach_campuses")
+          .select("id, viewed_at")
+          .in("id", siteIds)
+          .eq("is_active", true)
+      : Promise.resolve({ data: [] as Array<{ id: string; viewed_at: string | null }> }),
+  ]);
+
+  // Client validity check: T&C accepted in last 90 days OR active
+  // subscription. Mirrors getClientStatus() in lib/medjobs/clients.ts
+  // — duplicating the predicate here avoids a transitive import for a
+  // 5-line check.
+  const PILOT_MS = 90 * 24 * 60 * 60 * 1000;
+  const nowMs = Date.now();
+  const isValidClient = (meta: Record<string, unknown> | null): boolean => {
+    if (!meta) return false;
+    if (meta.medjobs_subscription_active === true) return true;
+    const accepted = meta.interview_terms_accepted_at;
+    if (typeof accepted !== "string") return false;
+    const t = new Date(accepted).getTime();
+    return !isNaN(t) && nowMs - t < PILOT_MS;
+  };
+
+  const validClientIds = new Set<string>();
+  const clientViewedAt = new Map<string, string | null>();
+  for (const p of (clientProfiles ?? []) as Array<{
+    id: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    if (!isValidClient(p.metadata)) continue;
+    validClientIds.add(p.id);
+    const v = p.metadata?.admin_viewed_at;
+    clientViewedAt.set(p.id, typeof v === "string" ? v : null);
+  }
+
+  const validCandidateIds = new Set<string>();
+  const candidateViewedAt = new Map<string, string | null>();
+  for (const p of (candidateProfiles ?? []) as Array<{
+    id: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    validCandidateIds.add(p.id);
+    const v = p.metadata?.admin_viewed_at;
+    candidateViewedAt.set(p.id, typeof v === "string" ? v : null);
+  }
+
+  const validSiteIds = new Set<string>();
+  const siteViewedAt = new Map<string, string | null>();
+  for (const c of (campusViews ?? []) as Array<{ id: string; viewed_at: string | null }>) {
+    validSiteIds.add(c.id);
+    siteViewedAt.set(c.id, c.viewed_at);
+  }
+
+  // entityUnread predicate: latest pending task created after viewed_at,
+  // or viewed_at is null. Mirrors sidebar-counts.isEntityUnread.
+  const entityUnread = (
+    viewed: string | null | undefined,
+    latestTask: string | null,
+  ): boolean => {
+    if (!latestTask) return false;
+    if (!viewed) return true;
+    return latestTask > viewed;
+  };
+
+  let clientTotal = 0;
+  let clientUnread = 0;
+  for (const [id, latest] of latestClientTaskByProfile.entries()) {
+    if (!validClientIds.has(id)) continue;
+    clientTotal += 1;
+    if (entityUnread(clientViewedAt.get(id) ?? null, latest)) clientUnread += 1;
+  }
+
+  let candidateTotal = 0;
+  let candidateUnread = 0;
+  for (const [id, latest] of latestCandidateTaskByProfile.entries()) {
+    if (!validCandidateIds.has(id)) continue;
+    candidateTotal += 1;
+    if (entityUnread(candidateViewedAt.get(id) ?? null, latest)) candidateUnread += 1;
+  }
+
+  let siteTotal = 0;
+  let siteUnread = 0;
+  for (const [id, latest] of latestSiteTaskByCampus.entries()) {
+    if (!validSiteIds.has(id)) continue;
+    siteTotal += 1;
+    if (entityUnread(siteViewedAt.get(id) ?? null, latest)) siteUnread += 1;
+  }
+
+  counts.clients = clientTotal;
+  unread.clients = clientUnread;
+
+  counts.candidates = candidateTotal;
+  unread.candidates = candidateUnread;
+
+  counts.sites = siteTotal;
+  unread.sites = siteUnread;
+  // Legacy 'campuses' alias retained for queue-endpoint defenders.
+  counts.campuses = counts.sites;
+  unread.campuses = siteUnread;
+
+  return { counts, unread };
 }
 
 /**
@@ -423,10 +704,15 @@ async function computeTabCounts(
 async function countMeetingsAmongRows(
   db: DB,
   ids: string[],
-): Promise<{ meetings: number; scheduled: number; stale: number }> {
+): Promise<{
+  meetings: number;
+  scheduled: number;
+  stale: number;
+  meetingIds: string[];
+  scheduledIds: string[];
+  staleIds: string[];
+}> {
   const tpsByRow = await fetchTouchpointsByRow(db, ids);
-  // Pending email tasks per row — needed for stale derivation (a row with
-  // a pending email task isn't "stale", just mid-cadence).
   const { data: pendingEmailRows } = await db
     .from("student_outreach_tasks")
     .select("outreach_id")
@@ -439,19 +725,26 @@ async function countMeetingsAmongRows(
   let meetings = 0;
   let scheduled = 0;
   let stale = 0;
+  const meetingIds: string[] = [];
+  const scheduledIds: string[] = [];
+  const staleIds: string[] = [];
   for (const id of ids) {
     const state = deriveStateFromTouchpoints(tpsByRow.get(id) ?? []);
     if (state.meeting_state === "scheduled") {
       meetings++;
+      meetingIds.push(id);
       scheduled++;
+      scheduledIds.push(id);
     } else if (state.meeting_state === "in_flight") {
       meetings++;
+      meetingIds.push(id);
     }
     if (deriveRepliesState(state, hasPendingEmail.has(id)) === "stale") {
       stale++;
+      staleIds.push(id);
     }
   }
-  return { meetings, scheduled, stale };
+  return { meetings, scheduled, stale, meetingIds, scheduledIds, staleIds };
 }
 
 // ── Per-tab row ID fetchers ─────────────────────────────────────────────
@@ -470,36 +763,63 @@ async function fetchRowIdsForTab(
 ): Promise<string[]> {
   const { tab, campusId, type, search, showClosed, page, pageSize } = opts;
 
+  // v9.0 Phase 7 Commit K: when showClosed is true, dedicated entity
+  // pages get the active rows for this tab plus closed-status history
+  // so admins can see completed/archived items inline. Active rows
+  // come back first via the per-tab fetcher; closed rows are appended
+  // as a second query so they sort below active in the rendered list.
   switch (tab) {
-    case "prospects":
-      return await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize });
+    case "prospects": {
+      const active = await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize });
+      if (!showClosed) return active;
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      return [...active, ...closed];
+    }
     case "candidates":
     case "outbound":
     case "emails_sent":
     case "signups":
       // v8.10.33 / v8.10.37: placeholder slots — UI shows "Coming soon"
       // so the server returns no rows for these views. Real datasets ship
-      // later, each with its own query strategy:
-      //   - Candidates    = student-applicant pipeline (different table)
-      //   - Outbound      = aggregated email/outreach activity log,
-      //                     replied threads sorted to the top
-      //   - Emails Sent   = email_sent touchpoints across stakeholders
-      //   - Signups       = student-signup touchpoints / business_profiles
+      // later, each with its own query strategy.
       return [];
-    case "partners":
-      return await idsByStatus(db, PARTNER_ALL as Status[], { campusId, type, search, page, pageSize });
+    case "partners": {
+      // v9.0 Phase 6.5: In Basket Partners tab surfaces only active
+      // partners (kind != 'provider') with a pending task. The
+      // dedicated Partners entity page shows full inventory including
+      // closed partners — handled separately via /api/admin/medjobs/
+      // partners. The queue endpoint stays task-driven.
+      return await idsByPartnersWithTasks(db, { campusId, type, search, page, pageSize });
+    }
     case "all": {
       const inc = showClosed
         ? [...RESEARCH_STATUSES, ...REPLIES_STATUSES, ...PARTNER_ALL, ...CLOSED_STATUSES]
         : [...RESEARCH_STATUSES, ...REPLIES_STATUSES, ...PARTNER_ALL];
       return await idsByStatus(db, inc as Status[], { campusId, type, search, page, pageSize });
     }
-    case "replies":
-      return await idsByStatus(db, REPLIES_STATUSES, { campusId, type, search, page, pageSize });
-    case "calls":
-      return await idsByCallsDue(db, { campusId, type, search, page, pageSize });
-    case "meetings":
-      return await idsByMeetings(db, { campusId, type, search, page, pageSize });
+    case "replies": {
+      const active = await idsByStatus(db, REPLIES_STATUSES, { campusId, type, search, page, pageSize });
+      if (!showClosed) return active;
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      return [...active, ...closed];
+    }
+    case "calls": {
+      // Calls is task-driven (rows with a pending phone task). The
+      // dedicated entity page also includes recently-logged-call
+      // touchpoints — but the queue endpoint stays focused on the
+      // due-task view. Closed history on Calls means rows whose
+      // outreach already closed; we append them when showClosed.
+      const active = await idsByCallsDue(db, { campusId, type, search, page, pageSize });
+      if (!showClosed) return active;
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      return [...active, ...closed];
+    }
+    case "meetings": {
+      const active = await idsByMeetings(db, { campusId, type, search, page, pageSize });
+      if (!showClosed) return active;
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      return [...active, ...closed];
+    }
     case "archive":
       return await idsByArchive(db, { campusId, type, search, page, pageSize });
     default:
@@ -596,6 +916,42 @@ async function idsByStatus(
   return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
 }
 
+
+/**
+ * v9.0 Phase 6.5: active_partner stakeholders that have at least one
+ * pending task. Powers the In Basket Partners tab — smart-hidden when
+ * no partners have open tasks.
+ *
+ * The Stakeholders → Partners page (separate endpoint) returns ALL
+ * active_partner kind!='provider' rows, with or without tasks.
+ *
+ * Same join shape as idsByCallsDue: pull pending tasks where the
+ * stakeholder is active_partner + non-provider, dedupe on outreach_id,
+ * return up to pageSize unique stakeholder ids.
+ */
+async function idsByPartnersWithTasks(db: DB, opts: QueryOpts): Promise<string[]> {
+  let q = db
+    .from("student_outreach_tasks")
+    .select("outreach_id, due_at, student_outreach!inner(campus_id, stakeholder_type, organization_name, status, kind)")
+    .eq("status", "pending")
+    .eq("student_outreach.status", "active_partner")
+    .neq("student_outreach.kind", "provider")
+    .order("due_at", { ascending: true });
+  if (opts.campusId) q = q.eq("student_outreach.campus_id", opts.campusId);
+  if (opts.type) q = q.eq("student_outreach.stakeholder_type", opts.type);
+  if (opts.search) q = q.ilike("student_outreach.organization_name", `%${opts.search}%`);
+  const { data } = await q;
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const t of (data ?? []) as Array<{ outreach_id: string }>) {
+    if (seen.has(t.outreach_id)) continue;
+    seen.add(t.outreach_id);
+    ids.push(t.outreach_id);
+    if (ids.length >= opts.pageSize) break;
+  }
+  return ids;
+}
+
 async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
   let q = db
     .from("student_outreach_tasks")
@@ -676,7 +1032,16 @@ async function hydrateRows(
     .select("*")
     .in("id", ids);
   const rowMap = new Map<string, OutreachRow>();
-  for (const r of (rowsRaw ?? []) as OutreachRow[]) rowMap.set(r.id, r);
+  for (const r of (rowsRaw ?? []) as Array<OutreachRow & { stakeholder_type: StakeholderType | null; kind?: string }>) {
+    // v9.0 Phase 2 Tier 3.5: kind='provider' rows have stakeholder_type
+    // NULL in the DB. Coerce to 'student_org' here so the type stays
+    // non-null for the drawer's hundreds of call sites; kind-aware
+    // surfaces (StakeholderCard) read `kind` before stakeholder_type.
+    if (r.stakeholder_type == null) {
+      (r as OutreachRow).stakeholder_type = "student_org";
+    }
+    rowMap.set(r.id, r as OutreachRow);
+  }
   // Preserve order from ids.
   const orderedRows = ids.map((id) => rowMap.get(id)).filter((r): r is OutreachRow => Boolean(r));
 
@@ -835,6 +1200,12 @@ async function hydrateRows(
     };
   });
 
+  // v9.0 Phase 7 Commit K: cards sort by most-recently-queued (the
+  // existing per-tab order — last_edited_at desc, due_at asc, etc.).
+  // Unread state is purely visual (bold label + fraction); it does
+  // not change queue position. The Commit J unread-first sort was
+  // reverted because it pulled cards out of recency order, which
+  // hurt operational predictability.
   return tabRows;
 }
 

@@ -27,6 +27,7 @@
 
 import { useEffect, useState } from "react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getPreviewArm } from "@/lib/analytics/preview-mode";
 import {
   assignIntakeVariantWeighted,
   INTAKE_VARIANT_DEFAULT_WEIGHTS,
@@ -73,6 +74,14 @@ function fetchWeights(): Promise<{ weights: IntakeWeightMap; version: number }> 
 export function useIntakeVariant(): IntakeVariant | null {
   const [variant, setVariant] = useState<IntakeVariant | null>(null);
   useEffect(() => {
+    // Admin preview override — bypasses the weights fetch entirely.
+    // Components downstream check isPreviewMode() to suppress event
+    // firing, so the override never contaminates the A/B funnel.
+    const previewArm = getPreviewArm();
+    if (previewArm) {
+      setVariant(previewArm);
+      return;
+    }
     let cancelled = false;
     fetchWeights().then(({ weights, version }) => {
       if (cancelled) return;

@@ -1,0 +1,350 @@
+"use client";
+
+/**
+ * v9.0 Phase 7 Commit K: shared dedicated-entity-page layout.
+ *
+ * Each MedJobs sidebar item beyond In Basket gets a full
+ * operational repository view: stats + previous-period comparison
+ * (PulseHeader), search/filter, a running list of cards, and
+ * closed/completed history visible alongside active work.
+ *
+ * The In Basket emphasizes *active* work (smart-hidden tabs hide
+ * empty queues); the dedicated pages here show full inventory so
+ * admins can also work outside the In Basket if preferred.
+ *
+ * This component is generic over a TabKey — Replies / Meetings /
+ * Calls / Prospects / Partners all mount it with their own key, the
+ * same query endpoint (/api/admin/student-outreach/queue), and the
+ * same row-card chrome. The page asks the queue for both active and
+ * closed rows in one call (`show_closed=true`); closed rows render
+ * without a primary CTA and the ellipsis offers Reopen.
+ */
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Drawer } from "@/app/admin/student-outreach/Drawer";
+import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
+import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
+import {
+  LogMeetingModal,
+  type MeetingStatus,
+} from "@/app/admin/student-outreach/LogMeetingModal";
+import { MarkPartnerModal } from "@/app/admin/student-outreach/MarkPartnerModal";
+import PulseHeader from "@/components/admin/PulseHeader";
+import type { DateRangeValue } from "@/components/admin/DateRangePopover";
+import {
+  STOP_OUTREACH_ACTIONS,
+  STOP_OUTREACH_LABELS,
+  TAB_STATS,
+  type TabKey,
+} from "@/lib/student-outreach/tab-config";
+import type {
+  DistributionEvidence,
+  DrawerContext,
+  TabRow,
+} from "@/lib/student-outreach/types";
+import { RowCard } from "@/components/admin/medjobs/cards/StakeholderCard";
+import { useMedJobsRefresh, refreshMedJobs } from "@/hooks/useMedJobsRefresh";
+
+const CLOSED_STATUSES = new Set([
+  "no_response_closed",
+  "not_interested",
+  "do_not_contact",
+  "wrong_contact",
+]);
+
+interface Props {
+  /** Tab key the queue endpoint understands (replies, meetings, calls, prospects, partners). */
+  tab: TabKey;
+  title: string;
+  subtitle: string;
+}
+
+export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
+  const [rows, setRows] = useState<TabRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [range, setRange] = useState<DateRangeValue>({
+    preset: "30d",
+    customFrom: "",
+    customTo: "",
+  });
+  const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
+  const [callOutcomeRow, setCallOutcomeRow] = useState<TabRow | null>(null);
+  const [classifierRow, setClassifierRow] = useState<{
+    row: TabRow;
+    source: "email_reply" | "callback";
+  } | null>(null);
+  const [logMeetingRow, setLogMeetingRow] = useState<TabRow | null>(null);
+  const [partnerRow, setPartnerRow] = useState<TabRow | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      params.set("tab", tab);
+      // v9.0 Phase 7 Commit K: dedicated entity pages always include
+      // closed history alongside active rows. The In Basket version
+      // of the same tab hides closed; this page shows them inline
+      // (without a primary CTA — Reopen lives in the ellipsis).
+      params.set("show_closed", "true");
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      const res = await fetch(`/api/admin/student-outreach/queue?${params}`);
+      if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
+      const data = await res.json();
+      setRows((data.rows ?? []) as TabRow[]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load");
+    } finally {
+      setLoading(false);
+    }
+  }, [tab, debouncedSearch]);
+
+  useEffect(() => {
+    void refetch();
+  }, [refetch]);
+  useMedJobsRefresh(refetch);
+
+  const callAction = useCallback(
+    async (
+      outreachId: string,
+      action: string,
+      payload: Record<string, unknown> = {},
+    ) => {
+      const res = await fetch(`/api/admin/student-outreach/${outreachId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, ...payload }),
+      });
+      if (!res.ok) {
+        const { error: e } = await res.json().catch(() => ({ error: "Action failed" }));
+        throw new Error(e || "Action failed");
+      }
+      await refetch();
+      refreshMedJobs();
+    },
+    [refetch],
+  );
+
+  const handleDrawerAction = useCallback(
+    async (_refreshed: DrawerContext | null) => {
+      await refetch();
+    },
+    [refetch],
+  );
+
+  const tabStats = TAB_STATS[tab];
+  const statsPath = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set("metric", tabStats.metric);
+    return `/api/admin/student-outreach/stats?${params.toString()}`;
+  }, [tabStats.metric]);
+
+  const renderRow = useCallback(
+    (row: TabRow) => {
+      const isClosed = CLOSED_STATUSES.has(row.status);
+      return (
+        <RowCard
+          tab={tab}
+          row={row}
+          // v9.0 Phase 7 Commit K: closed rows suppress the primary
+          // CTA — they're history, not action surfaces. The ellipsis
+          // still offers Reopen + contextual options.
+          ctaSuppressed={isClosed}
+          onOpenDrawer={() => setOpenOutreachId(row.id)}
+          onLogCallOutcome={() => setCallOutcomeRow(row)}
+          onClassifyReply={(source) => setClassifierRow({ row, source })}
+          onMarkPartner={() => setPartnerRow(row)}
+          onStopOutreach={async (reason) => {
+            const action = STOP_OUTREACH_ACTIONS[reason];
+            const label = STOP_OUTREACH_LABELS[reason];
+            if (!window.confirm(`Stop outreach: ${label}?`)) return;
+            try {
+              await callAction(row.id, action);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Action failed");
+            }
+          }}
+          onLogMeeting={() => setLogMeetingRow(row)}
+          onSendFollowupEmail={() => {
+            const subject = encodeURIComponent(`Following up — ${row.organization_name}`);
+            const url = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
+            window.open(url, "_blank", "noopener,noreferrer");
+          }}
+          onMarkUnread={async () => {
+            try {
+              await callAction(row.id, "mark_unread");
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Action failed");
+            }
+          }}
+          onReopen={
+            isClosed
+              ? async () => {
+                  try {
+                    await callAction(row.id, "reopen");
+                  } catch (e) {
+                    setError(e instanceof Error ? e.message : "Action failed");
+                  }
+                }
+              : undefined
+          }
+        />
+      );
+    },
+    [tab, callAction],
+  );
+
+  return (
+    <div>
+      <PulseHeader
+        title={title}
+        kpiSuffix={tabStats.label}
+        statsPath={statsPath}
+        range={range}
+        onRangeChange={setRange}
+      />
+      <p className="-mt-6 mb-4 text-sm text-gray-500">{subtitle}</p>
+
+      <div className="mb-4">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by organization name…"
+          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+        />
+      </div>
+
+      {/* v9.0 Phase 7 Commit M: keep rows rendered during background
+          refetches so the page doesn't flash. "Loading…" only shows on
+          the first load (rows.length === 0). */}
+      {loading && rows.length === 0 ? (
+        <p className="py-12 text-center text-sm text-gray-400">Loading…</p>
+      ) : error ? (
+        <p className="py-12 text-center text-sm text-red-600">{error}</p>
+      ) : rows.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-12 text-center text-sm text-gray-400">
+          No rows in this view.
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {rows.map((row) => (
+            <li key={row.id}>{renderRow(row)}</li>
+          ))}
+        </ul>
+      )}
+
+      {openOutreachId && (
+        <Drawer
+          outreachId={openOutreachId}
+          onClose={() => {
+            setOpenOutreachId(null);
+            void refetch();
+          }}
+          onAction={handleDrawerAction}
+        />
+      )}
+
+      {callOutcomeRow && (
+        <LogCallOutcomeModal
+          organizationName={callOutcomeRow.organization_name}
+          contactName={callOutcomeRow.primary_contact_name}
+          contactPhone={callOutcomeRow.primary_contact_phone}
+          rowKind={callOutcomeRow.kind === "provider" ? "provider" : "stakeholder"}
+          onCancel={() => setCallOutcomeRow(null)}
+          onSubmit={async (outcome, notes, partner) => {
+            await callAction(callOutcomeRow.id, "log_call", { outcome, notes });
+            if (partner) {
+              await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
+            }
+            setCallOutcomeRow(null);
+          }}
+        />
+      )}
+
+      {classifierRow && (
+        <ReplyClassifierModal
+          organizationName={classifierRow.row.organization_name}
+          source={classifierRow.source}
+          rowKind={classifierRow.row.kind === "provider" ? "provider" : "stakeholder"}
+          onCancel={() => setClassifierRow(null)}
+          onSubmit={async (classification, payload, partner) => {
+            await callAction(classifierRow.row.id, "classify_reply", {
+              classification,
+              notes: payload.notes,
+              meeting_at: payload.meeting_at,
+            });
+            if (partner) {
+              await callAction(classifierRow.row.id, "mark_partner", { ...partner });
+            }
+            setClassifierRow(null);
+          }}
+        />
+      )}
+
+      {logMeetingRow && (
+        <LogMeetingModal
+          organizationName={logMeetingRow.organization_name}
+          contactName={logMeetingRow.primary_contact_name}
+          initialStatus={
+            logMeetingRow.meeting_state === "scheduled" ? "booked" : "finding_time"
+          }
+          initialMeetingAt={
+            logMeetingRow.meeting_at ? logMeetingRow.meeting_at.slice(0, 16) : undefined
+          }
+          onCancel={() => setLogMeetingRow(null)}
+          onSubmit={async (status: MeetingStatus, payload, partner) => {
+            try {
+              if (status === "booked") {
+                await callAction(logMeetingRow.id, "mark_meeting_scheduled", {
+                  meeting_at: payload.meeting_at,
+                  notes: payload.notes,
+                });
+              } else if (status === "finding_time") {
+                await callAction(logMeetingRow.id, "flag_wants_meeting", {
+                  notes: payload.notes,
+                });
+              } else if (status === "done_followup") {
+                await callAction(logMeetingRow.id, "mark_meeting_followup", {
+                  notes: payload.notes,
+                });
+              } else if (status === "done_partner" && partner) {
+                await callAction(logMeetingRow.id, "mark_partner", { ...partner });
+              }
+              setLogMeetingRow(null);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+
+      {partnerRow && (
+        <MarkPartnerModal
+          organizationName={partnerRow.organization_name}
+          onCancel={() => setPartnerRow(null)}
+          onConfirm={async (payload: {
+            evidence: DistributionEvidence;
+            evidence_notes: string;
+          }) => {
+            try {
+              await callAction(partnerRow.id, "mark_partner", { ...payload });
+              setPartnerRow(null);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+}

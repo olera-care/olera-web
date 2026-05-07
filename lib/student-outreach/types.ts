@@ -130,8 +130,25 @@ export interface Campus {
 export interface OutreachRow {
   id: string;
   campus_id: string;
+  /** v9.0: stakeholder_type is NULL in the DB for kind='provider' rows
+   *  (migration 073). The queue endpoint coerces NULL to 'student_org'
+   *  before the row reaches React, so the type stays non-null and the
+   *  hundreds of call sites in the workflow drawer don't need guards.
+   *  Kind-aware UIs (StakeholderCard, etc.) read `kind` first; the
+   *  legacy stakeholder_type is only a fallback label. */
   stakeholder_type: StakeholderType;
+  /** v9.0: polymorphic kind discriminator. Migration 072 added the
+   *  column with backfill from stakeholder_type, so legacy rows get
+   *  one of the four stakeholder kinds; v9.0 provider materialization
+   *  writes 'provider'. */
+  kind: StakeholderType | "provider";
+  /** v9.0: FK to business_profiles when kind='provider'. NULL otherwise. */
+  provider_business_profile_id: string | null;
   organization_name: string;
+  /** v9.0 Phase 4: per-row read state. NULL = unread (renders bold).
+   *  Set when the workflow drawer mounts; cleared by mark_unread or
+   *  by any new touchpoint via insertTouchpoint. */
+  viewed_at: string | null;
   department: string | null;
   programs: string[];
   status: Status;
@@ -296,13 +313,23 @@ export interface ResearchCampusCard {
   research_stakeholder_count: number;
   /** Most recent stakeholder created_at across this campus, regardless of status. */
   last_added_at: string | null;
+  /** v9.0 Phase 2: optional campus stage. Populated when the queue
+   *  computes catchment-derived state. UI surfaces a special banner
+   *  variant when stage='stakeholder_prospecting' to prompt research. */
+  stage?: "provider_prospecting" | "stakeholder_prospecting" | "active";
+  /** v9.0 Phase 2: count of clients currently in the campus's catchment.
+   *  Used to label the research-needed banner. */
+  client_count?: number;
 }
 
 /** v7 tab counts — one number per tab in the new workflow.
  *  v8.10.33: "prospects" is the new label for what was previously
  *  "research" (prospect/researched stakeholders being qualified).
  *  v8.10.42: "candidates" added — count of LIVE candidate profiles
- *  visible to providers on the job board (Candidates ⊂ Signups). */
+ *  visible to providers on the job board (Candidates ⊂ Signups).
+ *  v9.0: clients + campuses are optional on the type so existing queue
+ *  responses don't break before Phase 2 wires up real counts. The In
+ *  Basket page treats undefined as 0. */
 export interface TabCounts {
   candidates: number;
   prospects: number;
@@ -312,6 +339,49 @@ export interface TabCounts {
   partners: number;
   archive: number;
   all: number;
+  clients?: number;
+  campuses?: number;
+  // v9.0 Phase 5: legacy menu-tab keys retained on the type so
+  // callers indexing by TabKey type-check, even though these tabs
+  // are no longer rendered in In Basket (their content moved to
+  // All Tasks as quick filters).
+  outbound?: number;
+  emails_sent?: number;
+  signups?: number;
+  // v9.0 Phase 6: state-based In Basket tabs (legacy union members).
+  unread?: number;
+  undone?: number;
+  // v9.0 Phase 7: Sites = the renamed Campuses tab + new Site-task
+  // surfacing. Same numeric shape as campuses.
+  sites?: number;
+}
+
+/** v9.0 Phase 4: per-tab unread counts, mirroring TabCounts shape.
+ *  unread = rows in that tab where viewed_at IS NULL. Tab labels
+ *  render as `Label unread/total` and bold when unread > 0. Only
+ *  populated for tabs backed by student_outreach (Prospects /
+ *  Replies / Meetings / Calls / Partners / All / Archive); other
+ *  tabs (Clients / Candidates / Campuses) report 0. */
+export interface TabUnreadCounts {
+  candidates: number;
+  prospects: number;
+  calls: number;
+  replies: number;
+  meetings: number;
+  partners: number;
+  archive: number;
+  all: number;
+  clients?: number;
+  campuses?: number;
+  outbound?: number;
+  emails_sent?: number;
+  signups?: number;
+  // v9.0 Phase 6: state-based In Basket tabs (legacy union members).
+  unread?: number;
+  undone?: number;
+  // v9.0 Phase 7: Sites = the renamed Campuses tab + new Site-task
+  // surfacing. Same numeric shape as campuses.
+  sites?: number;
 }
 
 /** What the drawer needs to render every section. */
@@ -341,6 +411,19 @@ export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {
   advisor: "Advisor",
   professor: "Professor",
   dept_head: "Dept Head",
+};
+
+/**
+ * v9.0 Phase 2: human label for any kind (stakeholder + provider).
+ * Use this anywhere a row's kind needs to be surfaced — falls back
+ * gracefully when stakeholder_type is NULL (provider rows).
+ */
+export const KIND_LABELS: Record<StakeholderType | "provider", string> = {
+  student_org: "Student Org",
+  advisor: "Advisor",
+  professor: "Professor",
+  dept_head: "Dept Head",
+  provider: "Provider",
 };
 
 // v8.10.20: "Active Partner" → "Partner" everywhere admins see the

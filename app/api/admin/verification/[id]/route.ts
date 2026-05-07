@@ -33,11 +33,87 @@ export async function PATCH(
     const body = await request.json();
     const action = body.action as string;
 
-    if (!["approve", "reject", "unclaim"].includes(action)) {
+    if (!["approve", "reject", "unclaim", "move_to_in_progress"].includes(action)) {
       return NextResponse.json(
-        { error: "Invalid action. Must be 'approve', 'reject', or 'unclaim'." },
+        { error: "Invalid action. Must be 'approve', 'reject', 'unclaim', or 'move_to_in_progress'." },
         { status: 400 }
       );
+    }
+
+    // Handle move_to_in_progress action
+    if (action === "move_to_in_progress") {
+      const reason = body.reason as string;
+      const note = body.note as string | undefined;
+
+      if (!reason) {
+        return NextResponse.json(
+          { error: "Reason is required for moving to in progress" },
+          { status: 400 }
+        );
+      }
+
+      const db = getServiceClient();
+
+      // Fetch current profile
+      const { data: profile, error: fetchError } = await db
+        .from("business_profiles")
+        .select("display_name, metadata")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) {
+        console.error("Failed to fetch profile:", fetchError);
+        return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+      }
+
+      // Build outreach log entry
+      const outreachEntry = {
+        action: "moved_to_in_progress",
+        reason,
+        note: note || null,
+        by: user.email,
+        at: new Date().toISOString(),
+      };
+
+      // Update metadata with outreach_state and add to outreach_log
+      const currentMetadata = (profile.metadata as Record<string, unknown>) || {};
+      const existingLog = Array.isArray(currentMetadata.outreach_log)
+        ? currentMetadata.outreach_log
+        : [];
+
+      const updatedMetadata = {
+        ...currentMetadata,
+        outreach_state: "in_progress",
+        outreach_log: [...existingLog, outreachEntry],
+      };
+
+      const { error: updateError } = await db
+        .from("business_profiles")
+        .update({
+          metadata: updatedMetadata,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      if (updateError) {
+        console.error("Failed to move to in progress:", updateError);
+        return NextResponse.json({ error: "Failed to move provider" }, { status: 500 });
+      }
+
+      // Log audit action (no Slack — this is internal workflow, not a business event)
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "move_to_in_progress",
+        targetType: "business_profile",
+        targetId: id,
+        details: {
+          provider_name: profile.display_name,
+          reason,
+          note: note || null,
+        },
+      });
+
+      return NextResponse.json({ ok: true });
     }
 
     const db = getServiceClient();
@@ -86,6 +162,8 @@ export async function PATCH(
       delete cleanedMetadata.verified_at;
       delete cleanedMetadata.verification_method;
       delete cleanedMetadata.auto_verified;
+      // Clear outreach state (but keep outreach_log for historical reference)
+      delete cleanedMetadata.outreach_state;
 
       const { error: updateError } = await db
         .from("business_profiles")
@@ -147,6 +225,9 @@ export async function PATCH(
       badge_approved_at: action === "approve" ? new Date().toISOString() : null,
       badge_rejected: action === "reject",
       badge_rejected_at: action === "reject" ? new Date().toISOString() : null,
+      // Clear outreach state — provider has moved out of "in progress"
+      // (outreach_log is preserved for history)
+      outreach_state: null,
       ...(action === "approve" && {
         verified_at: new Date().toISOString(),
         verification_method: "admin_approval",
@@ -271,7 +352,33 @@ export async function PATCH(
           const { data: authUser } = await db.auth.admin.getUserById(account.user_id);
           const providerEmail = authUser?.user?.email;
           if (providerEmail) {
-            const listingUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/${profile.slug || id}`;
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+            // Fallback: public profile URL (if magic link fails)
+            let dashboardUrl = `${siteUrl}/provider/${profile.slug || id}`;
+
+            // Generate magic link for auto sign-in
+            // Include ?next=/provider so AuthProvider knows the destination
+            // (AuthProvider defaults to /portal/inbox without this param)
+            try {
+              const { data: linkData, error: linkError } = await db.auth.admin.generateLink({
+                type: "magiclink",
+                email: providerEmail,
+                options: {
+                  redirectTo: `${siteUrl}/provider?next=/provider`,
+                },
+              });
+              if (!linkError && linkData?.properties?.action_link) {
+                dashboardUrl = linkData.properties.action_link;
+              }
+            } catch (linkErr) {
+              console.error("[admin/verification] Failed to generate magic link:", linkErr);
+              // Continue with fallback URL (public profile)
+            }
+
+            // Try to get recipient name from auth user metadata, fall back to "there"
+            const recipientName = (authUser?.user?.user_metadata?.full_name as string) ||
+              (authUser?.user?.user_metadata?.name as string) ||
+              "there";
             await sendEmail({
               to: providerEmail,
               subject: action === "approve"
@@ -279,8 +386,9 @@ export async function PATCH(
                 : "Your Olera verification needs attention",
               html: verificationDecisionEmail({
                 providerName: profile.display_name || "Your organization",
+                recipientName,
                 approved: action === "approve",
-                listingUrl,
+                dashboardUrl,
               }),
               emailType: "verification_decision",
               recipientType: "provider",

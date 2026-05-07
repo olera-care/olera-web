@@ -72,7 +72,23 @@ export function useVerificationModal({
         }),
       });
 
-      const data = await response.json();
+      // Handle non-JSON responses (e.g., Vercel 413/504 errors)
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error("[useVerificationModal] Failed to parse response:", parseError);
+        // Provide friendly error messages for common HTTP errors
+        if (response.status === 413) {
+          throw new Error("Images are too large. Please use smaller screenshots (under 2MB each).");
+        } else if (response.status === 504) {
+          throw new Error("Verification timed out. Please try again.");
+        } else if (response.status >= 500) {
+          throw new Error("Server error. Please try again in a moment.");
+        } else {
+          throw new Error("Something went wrong. Please try a different method.");
+        }
+      }
 
       if (!response.ok) {
         throw new Error(data.reason || "Verification failed");

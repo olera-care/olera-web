@@ -1,32 +1,34 @@
 "use client";
 
 /**
- * LogMeetingModal — v8.10.28.
+ * v9.0 Phase 7 Commit G: LogMeetingModal.
  *
  * Universal Meetings-tab modal covering the full meeting lifecycle:
  *
  *   Before the meeting:
  *     - Still finding a time → flag_wants_meeting (note_added,
- *       reason="meeting_in_flight"). Card pill: "Finding a time".
- *     - On the calendar       → mark_meeting_scheduled with optional
- *       date. Card pill: "Booked · <date>".
+ *       reason="meeting_in_flight").
+ *     - On the calendar      → mark_meeting_scheduled with optional date.
  *
  *   After the meeting:
- *     - They're sharing it    → closes this modal and opens
- *       MarkPartnerModal so admin can capture evidence + graduate
- *       the row to active_partner. Row leaves Meetings → Partners.
- *     - Need to email more    → mark_meeting_followup (meeting_held
- *       outcome=needs_followup + note_added reason="post_meeting_followup").
- *       Row leaves Meetings → Replies as needs_followup.
+ *     - Mark as Partner ★    → expands inline with PartnerEvidencePanel;
+ *       submit fires mark_partner with the evidence payload. Replaces
+ *       the previous chained MarkPartnerModal flow.
+ *     - Need to email more   → mark_meeting_followup. Row leaves
+ *       Meetings → Replies as needs_followup.
  *
  * The modal pre-populates with the row's current state so admin can
- * tweak the date / notes without re-entering everything. The CTA
- * label on the card flips based on whether the meeting is booked
- * yet ("Log meeting" vs "Complete"), but the same modal handles
- * both flows — the admin can always pick any of the four options.
+ * tweak date/notes without re-entering everything.
  */
 
 import { useState } from "react";
+import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
+import {
+  PartnerEvidencePanel,
+  DEFAULT_PARTNER_EVIDENCE,
+  type PartnerEvidence,
+} from "@/components/admin/medjobs/PartnerEvidencePanel";
+import type { DistributionEvidence } from "@/lib/student-outreach/types";
 
 export type MeetingStatus =
   | "finding_time"
@@ -42,9 +44,16 @@ interface Props {
   /** Pre-fill the datetime input (datetime-local format YYYY-MM-DDTHH:mm). */
   initialMeetingAt?: string;
   onCancel: () => void;
+  /**
+   * Called on submit. When the admin picked done_partner, `partner`
+   * carries the evidence payload — parent should fire mark_partner
+   * with that payload (no separate meeting action is needed for the
+   * partner branch — the conversion is the log).
+   */
   onSubmit: (
     status: MeetingStatus,
     payload: { notes: string; meeting_at?: string | null },
+    partner?: PartnerEvidence,
   ) => Promise<void>;
 }
 
@@ -59,23 +68,25 @@ export function LogMeetingModal({
   const [status, setStatus] = useState<MeetingStatus>(initialStatus);
   const [meetingAt, setMeetingAt] = useState(initialMeetingAt ?? "");
   const [notes, setNotes] = useState("");
+  const [evidence, setEvidence] = useState<DistributionEvidence>(DEFAULT_PARTNER_EVIDENCE);
+  const [evidenceNotes, setEvidenceNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isPartner = status === "done_partner";
   const notesRequired = status === "done_followup";
   const notesPlaceholder =
     status === "done_followup"
       ? "What's left to do over email? (Required — so the team knows what to send next.)"
-      : status === "done_partner"
-        ? "Anything to remember? You'll add evidence on the next step."
+      : isPartner
+        ? "Anything else worth remembering? Evidence goes in the panel below."
         : "Permission notes, materials to send, ongoing thread context — anything to remember.";
 
-  const submitLabel =
-    status === "done_partner"
-      ? "Next → mark Partner"
-      : status === "done_followup"
-        ? "Send to Replies"
-        : "Save";
+  const submitLabel = isPartner
+    ? "Mark as Partner"
+    : status === "done_followup"
+      ? "Send to Replies"
+      : "Save";
 
   const titleText =
     initialStatus === "booked" ? "Update or complete meeting" : "Log meeting";
@@ -88,13 +99,19 @@ export function LogMeetingModal({
     setSubmitting(true);
     setError(null);
     try {
-      await onSubmit(status, {
-        notes: notes.trim(),
-        meeting_at:
-          status === "booked" && meetingAt
-            ? new Date(meetingAt).toISOString()
-            : null,
-      });
+      await onSubmit(
+        status,
+        {
+          notes: notes.trim(),
+          meeting_at:
+            status === "booked" && meetingAt
+              ? new Date(meetingAt).toISOString()
+              : null,
+        },
+        isPartner
+          ? { evidence, evidence_notes: evidenceNotes.trim() }
+          : undefined,
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
     } finally {
@@ -103,26 +120,34 @@ export function LogMeetingModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
-      onClick={onCancel}
+    <LogModalShell
+      title={titleText}
+      subtitle={contactName ? `${contactName} · ${organizationName}` : organizationName}
+      error={error}
+      onCancel={onCancel}
+      footer={
+        <>
+          <button
+            onClick={onCancel}
+            disabled={submitting}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={submitting}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 ${
+              isPartner
+                ? "bg-emerald-600 hover:bg-emerald-700"
+                : "bg-gray-900 hover:bg-gray-700"
+            }`}
+          >
+            {submitting ? "Saving…" : submitLabel}
+          </button>
+        </>
+      }
     >
-      <div
-        className="w-full max-w-lg rounded-xl bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">{titleText}</h3>
-          <p className="mt-0.5 text-xs text-gray-500">
-            {contactName ? `${contactName} · ${organizationName}` : organizationName}
-          </p>
-        </header>
-
-        <div className="space-y-3 px-6 py-4">
-          {error && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
-          )}
-
           <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
             Before the meeting
           </p>
@@ -148,8 +173,8 @@ export function LogMeetingModal({
             <StatusCard
               active={status === "done_partner"}
               onSelect={() => setStatus("done_partner")}
-              label="Done — they're sharing with students"
-              blurb="Meeting went great. They'll post, share, or hand out flyers."
+              label="Mark as Partner ★"
+              blurb="They committed to sharing with students. Capture the evidence below."
             />
             <StatusCard
               active={status === "done_followup"}
@@ -188,26 +213,16 @@ export function LogMeetingModal({
               className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
             />
           </label>
-        </div>
 
-        <footer className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
-          <button
-            onClick={onCancel}
-            disabled={submitting}
-            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={submit}
-            disabled={submitting}
-            className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
-          >
-            {submitting ? "Saving…" : submitLabel}
-          </button>
-        </footer>
-      </div>
-    </div>
+          {isPartner && (
+            <PartnerEvidencePanel
+              evidence={evidence}
+              notes={evidenceNotes}
+              onEvidenceChange={setEvidence}
+              onNotesChange={setEvidenceNotes}
+            />
+          )}
+    </LogModalShell>
   );
 }
 

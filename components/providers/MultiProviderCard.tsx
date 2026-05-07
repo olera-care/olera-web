@@ -388,13 +388,25 @@ export default function MultiProviderCard({
 
           {/* Card Stack */}
           <div className="relative mb-5">
-            {/* Peek card (next in stack) */}
+            {/* Peek card 2 (furthest back) */}
+            {currentIndex < similarProviders.length - 2 && (
+              <div
+                className="absolute inset-x-0 top-0 h-24 rounded-2xl bg-white border border-gray-200"
+                style={{
+                  transform: "translateY(-12px) scale(0.92)",
+                  opacity: 0.4,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                }}
+              />
+            )}
+            {/* Peek card 1 (middle) */}
             {currentIndex < similarProviders.length - 1 && (
               <div
-                className="absolute inset-x-2 top-2 h-16 rounded-xl bg-gray-100 shadow-inner -z-10"
+                className="absolute inset-x-0 top-0 h-24 rounded-2xl bg-white border border-gray-200"
                 style={{
-                  transform: "translateY(-8px) scale(0.96)",
-                  opacity: 0.6,
+                  transform: "translateY(-6px) scale(0.96)",
+                  opacity: 0.7,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
                 }}
               />
             )}
@@ -403,12 +415,15 @@ export default function MultiProviderCard({
             {currentCard && (
               <div
                 className={`
-                  relative bg-white rounded-xl border border-gray-200 shadow-lg p-5
+                  relative bg-white rounded-2xl border border-gray-200 p-5
                   transition-transform duration-300
                   ${animationDirection === "left" ? "animate-swipe-left" : ""}
                   ${animationDirection === "right" ? "animate-swipe-right" : ""}
                   ${!animationDirection && currentIndex > 0 ? "animate-card-rise" : ""}
                 `}
+                style={{
+                  boxShadow: "0 8px 24px -4px rgba(0,0,0,0.08), 0 2px 8px -2px rgba(0,0,0,0.04)",
+                }}
               >
                 {/* Provider header */}
                 <div className="flex items-start gap-3 mb-4">

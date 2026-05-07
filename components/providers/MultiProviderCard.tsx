@@ -330,6 +330,13 @@ export default function MultiProviderCard({
     return q.slice(0, maxLength).trim() + "…";
   };
 
+  // Truncate provider name to max 3 words (for narrower cards on web)
+  const truncateName = (name: string, maxWords: number = 3) => {
+    const words = name.split(/\s+/);
+    if (words.length <= maxWords) return name;
+    return words.slice(0, maxWords).join(" ") + "…";
+  };
+
   // Browse URL for success state - pre-fill location search
   const city = currentProvider.city || "";
   const browseUrl = city ? `/browse?location=${encodeURIComponent(city)}` : `/browse`;
@@ -387,7 +394,7 @@ export default function MultiProviderCard({
           </div>
 
           {/* Card Stack */}
-          <div className="relative mb-5">
+          <div className="relative mb-5 mx-8 lg:mx-12">
             {/* Peek card 2 (furthest back) */}
             {currentIndex < similarProviders.length - 2 && (
               <div
@@ -430,7 +437,7 @@ export default function MultiProviderCard({
                   <ProviderAvatar provider={currentCard} size="lg" />
                   <div className="flex-1 min-w-0">
                     <h4 className="text-[17px] font-semibold text-gray-900 truncate">
-                      {currentCard.name}
+                      {truncateName(currentCard.name)}
                     </h4>
                     <p className="text-sm text-gray-500">
                       {currentCard.city}

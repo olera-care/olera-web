@@ -330,9 +330,9 @@ export default function MultiProviderCard({
     return q.slice(0, maxLength).trim() + "…";
   };
 
-  // Browse URL for success state
-  const city = currentProvider.city || "nearby";
-  const browseUrl = `/browse/${encodeURIComponent(city.toLowerCase())}`;
+  // Browse URL for success state - pre-fill location search
+  const city = currentProvider.city || "";
+  const browseUrl = city ? `/browse?location=${encodeURIComponent(city)}` : `/browse`;
 
   // All providers who were sent questions (for email capture and success states)
   const allSentProviders = [
@@ -711,7 +711,7 @@ export default function MultiProviderCard({
                 transition-all duration-200
               "
             >
-              Keep browsing {city} providers
+              {city ? `Keep browsing ${city} providers` : "Keep browsing providers"}
             </button>
           </Link>
         </div>

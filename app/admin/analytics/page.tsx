@@ -1219,7 +1219,7 @@ function BenefitsVariantSplit({
   const activeArms = [
     { key: "availability" as const, label: "availability", description: "There's help paying for care in {state}." },
     { key: "loss" as const, label: "loss", description: "Most {state} families miss out on help paying for care." },
-    { key: "empathic" as const, label: "empathic", description: "Care is expensive." },
+    { key: "empathic" as const, label: "empathic (single-step D)", description: "Single-step capture w/ value preview. Question-anchored copy." },
     { key: "outreach" as const, label: "outreach", description: "Our care team gets pricing, availability, and how to start from the top providers — in one email.", isOutreach: true },
     { key: "qa_email_capture" as const, label: "qa_email_capture", description: "No SBF / no outreach. Q&A enrichment ON with comparison-providers value-promise.", isOutreach: true },
     { key: "multi_provider" as const, label: "multi_provider", description: "Tinder-style card stack — send question to multiple similar providers.", isOutreach: true },

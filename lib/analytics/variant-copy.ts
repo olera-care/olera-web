@@ -17,7 +17,13 @@
 //   https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d
 
 import type { BenefitsVariant, IntakeVariant } from "./variant";
+import type { QuestionIntent } from "@/lib/benefits/infer-care-need-from-question";
 
+// Legacy 3-step flow copy. availability + loss are paused (weight=0 in
+// experiment_weights) but kept here as iterable bench assets — flip the
+// weight to re-enable. empathic falls through to the new empathic_single
+// component (see EMPATHIC_INTENT_H2 below) so its 3-step entry is unused
+// at runtime; preserved for shape-compat with existing consumers.
 export const BENEFITS_VARIANT_COPY: Record<
   BenefitsVariant,
   { h2: (state: string) => string; sub: (state: string) => string }
@@ -31,11 +37,24 @@ export const BENEFITS_VARIANT_COPY: Record<
     sub: () => "$400–$900/month often goes unclaimed. Tell us what's needed.",
   },
   empathic: {
-    // Anchored to state so the punchy short H2 doesn't read naked on a
-    // provider page where the user hasn't been primed for empathy.
     h2: (state) => `Care is expensive in ${state}.`,
     sub: () => "Tell us what's needed — we'll find programs that may help.",
   },
+};
+
+// Intent-mapped H2s for the empathic_single arm (Arm D). The user's question
+// content routes through inferCareNeedAndIntent → QuestionIntent → one of
+// these strings. Each frame is retained from the paused arms it absorbs:
+//   - cost      → loss frame ($400-900/mo data point)
+//   - care-type → availability frame (warm "families like yours")
+//   - fit       → "more options than they realize" — positive recompose
+//   - default   → empathic frame (warm anchor for generic / late-funnel)
+export const EMPATHIC_INTENT_H2: Record<QuestionIntent, (state: string) => string> = {
+  cost: (state) =>
+    `In ${state}, families like yours typically qualify for $400–900/mo in benefits that lower this.`,
+  "care-type": (state) => `${state} care benefits for families like yours.`,
+  fit: (state) => `${state} families have more options than they realize.`,
+  default: (state) => `Care is expensive in ${state}.`,
 };
 
 // Outreach is structurally a different module (AgentOutreachModule), not a
@@ -83,7 +102,7 @@ export function variantSurfaceLabel(variant: IntakeVariant): string {
     case "loss":
       return "Loss framing";
     case "empathic":
-      return "Empathic framing";
+      return "Empathic — single-step (D)";
     case "outreach":
       return "Care-team outreach";
     case "qa_email_capture":
@@ -105,7 +124,7 @@ export function variantSubLabel(variant: IntakeVariant): string {
     case "loss":
       return "Benefits — loss framing";
     case "empathic":
-      return "Benefits — shared-truth framing";
+      return "Single-step capture w/ value preview";
     case "outreach":
       return "Care team gets pricing & availability";
     case "qa_email_capture":

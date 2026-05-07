@@ -462,7 +462,7 @@ export default function MultiProviderCard({
                   {currentCard.priceRange && (
                     <div className="flex-1 px-3 py-2.5 rounded-lg bg-gray-50">
                       <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-0.5">
-                        Hourly Rate
+                        {currentCard.priceRange.includes("/hr") ? "Hourly Rate" : "Monthly Rate"}
                       </div>
                       <span className="text-sm font-semibold text-gray-900">
                         {currentCard.priceRange}

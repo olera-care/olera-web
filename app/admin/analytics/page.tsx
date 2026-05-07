@@ -10,8 +10,10 @@ import {
   type DateRangeValue,
 } from "@/components/admin/DateRangePopover";
 import { useAnimatedCount } from "@/hooks/use-animated-count";
-import VariantPreviewCard from "@/components/admin/VariantPreviewCard";
 import VariantSessionsList from "@/components/admin/VariantSessionsList";
+import CollapsibleSection, { bulkCollapse } from "@/components/admin/CollapsibleSection";
+import { INTAKE_VARIANTS, type IntakeVariant } from "@/lib/analytics/variant";
+import { variantSurfaceLabel, variantSubLabel } from "@/lib/analytics/variant-copy";
 
 interface WindowedCounts {
   page_view: number;
@@ -93,13 +95,10 @@ interface BenefitsFunnelByVariant {
   // visitors. Populates impressions, started (card click), and saved (form
   // submission); middle "care need" step is N/A and renders as "—".
   outreach: BenefitsFunnel;
-  // 5th arm — H2 multi-provider comparison, click-to-send to multiple
-  // providers. Populates impressions (Q&A section viewed), started (card
-  // expanded), and saved (email submitted); care need step N/A.
-  multi_provider: BenefitsFunnel;
-  // Archived arm — inline Q&A answer expansion. Historical data only;
-  // removed from rotation 2026-05-06.
-  inline_answer: BenefitsFunnel;
+  // 5th arm (since 2026-05-05) — Q&A enrichment ON, SBF + outreach OFF.
+  // Populates impressions (QASectionV2 mount in arm) and saved (post-question
+  // email enrichment). Middle stages N/A → "—".
+  qa_email_capture: BenefitsFunnel;
   // Legacy V2 arms — historical, retained for the rollup window when V2 data
   // exists. Frozen after cutover.
   control: BenefitsFunnel;
@@ -258,14 +257,96 @@ export default function AdminAnalyticsPage() {
 
       <InsightStrip insight={summary?.insight ?? null} loading={loading} />
 
-      <WindowedCard summary={summary} loading={loading} range={range} />
-      <QaFunnelCard summary={summary} loading={loading} range={range} />
-      <BenefitsFunnelCard summary={summary} loading={loading} range={range} />
-      <EntrySourceCard summary={summary} loading={loading} range={range} />
-      <TopProvidersCard summary={summary} loading={loading} />
-      <LatestEventsCard summary={summary} loading={loading} />
+      <BulkCollapseToolbar />
+
+      {/* WindowedCard's section title is the date range itself, matching the
+          existing in-card heading so the operator's mental anchor doesn't
+          change. */}
+      <CollapsibleSection
+        title={rangeLabel(range)}
+        storageKey="windowed"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <WindowedCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Provider Q&A Email Funnel"
+        storageKey="qaFunnel"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <QaFunnelCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      {/* Every section starts collapsed; the operator opens what they
+          want and the choice persists across reloads. forceOpen still
+          pins Family Intake open when a ?variant=... drill-in URL is
+          present, so deep links never land on a closed section. */}
+      <CollapsibleSection
+        title="Family Intake"
+        storageKey="benefitsFunnel"
+        defaultCollapsed={true}
+        forceOpen={!!searchParams.get("variant")}
+        loading={loading && !!summary}
+      >
+        <BenefitsFunnelCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Submissions by Entry Source"
+        storageKey="entrySource"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <EntrySourceCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Top providers (last 7 days)"
+        storageKey="topProviders"
+        defaultCollapsed={true}
+      >
+        <TopProvidersCard summary={summary} loading={loading} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Latest 50 events"
+        storageKey="latestEvents"
+        defaultCollapsed={true}
+      >
+        <LatestEventsCard summary={summary} loading={loading} />
+      </CollapsibleSection>
 
       <FootNote summary={summary} />
+    </div>
+  );
+}
+
+// ── Bulk collapse toolbar ────────────────────────────────────────────────
+//
+// Two text buttons aligned right, minimal chrome. Sits above the first
+// CollapsibleSection so it reads as section-level control rather than
+// page-level chrome.
+
+function BulkCollapseToolbar() {
+  return (
+    <div className="flex justify-end gap-3 mb-3 -mt-1">
+      <button
+        type="button"
+        onClick={() => bulkCollapse(false)}
+        className="text-[11px] text-gray-500 hover:text-gray-900 underline underline-offset-2"
+      >
+        Expand all
+      </button>
+      <button
+        type="button"
+        onClick={() => bulkCollapse(true)}
+        className="text-[11px] text-gray-500 hover:text-gray-900 underline underline-offset-2"
+      >
+        Collapse all
+      </button>
     </div>
   );
 }
@@ -296,20 +377,14 @@ function WindowedCard({
   loading: boolean;
   range: DateRangeValue;
 }) {
+  if (loading && !summary) {
+    return <div className="h-72 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
+  }
+  if (!summary) {
+    return <p className="text-sm text-gray-400">Failed to load.</p>;
+  }
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <div className="flex items-baseline gap-3 mb-6">
-        <h2 className="text-base font-semibold text-gray-900">{rangeLabel(range)}</h2>
-        {loading && summary && (
-          <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>
-        )}
-      </div>
-      {loading && !summary ? (
-        <div className="h-72 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
-      ) : !summary ? (
-        <p className="text-sm text-gray-400">Failed to load.</p>
-      ) : (
-        <div className="space-y-8">
+    <div className="space-y-8">
           <AudienceGroup label="Care seekers" tint="bg-amber-50/70">
             <SubRow label="Discovery">
               <Stat
@@ -466,8 +541,6 @@ function WindowedCard({
               />
             </SubRow>
           </AudienceGroup>
-        </div>
-      )}
     </div>
   );
 }
@@ -484,7 +557,7 @@ function QaFunnelCard({
   range: DateRangeValue;
 }) {
   if (loading && !summary) {
-    return <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6 h-48 animate-pulse" />;
+    return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
   }
   if (!summary) return null;
 
@@ -576,11 +649,7 @@ function QaFunnelCard({
   ];
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <div className="flex items-baseline gap-3 mb-1">
-        <h2 className="text-base font-semibold text-gray-900">Provider Q&A Email Funnel</h2>
-        {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
-      </div>
+    <>
       <p className="text-xs text-gray-500 mb-5">
         Cohort: {`question_received`} emails sent {rangeLabel(range).toLowerCase()}. Step % is conversion from the previous step.
       </p>
@@ -639,7 +708,7 @@ function QaFunnelCard({
           </ul>
         )}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -731,7 +800,7 @@ function BenefitsFunnelCard({
   range: DateRangeValue;
 }) {
   if (loading && !summary) {
-    return <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6 h-48 animate-pulse" />;
+    return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
   }
   if (!summary) return null;
 
@@ -802,11 +871,7 @@ function BenefitsFunnelCard({
   ];
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <div className="flex items-baseline gap-3 mb-1">
-        <h2 className="text-base font-semibold text-gray-900">Family Intake</h2>
-        {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
-      </div>
+    <>
       <p className="text-xs text-gray-500 mb-5">
         Top-line tracks the embedded benefits-help form on a provider page {rangeLabel(range).toLowerCase()} — distinct sessions per step, with % showing conversion from the previous step. The 4-arm A/B comparison below adds the AI agent outreach module so all variants can be compared on a shared Impressions denominator.
       </p>
@@ -817,7 +882,256 @@ function BenefitsFunnelCard({
         ))}
       </div>
 
+      <TrafficAllocationControl />
+
       <BenefitsVariantSplit byVariant={summary.windowed.benefits_funnel_by_variant} range={range} />
+    </>
+  );
+}
+
+// Live dial for the intake A/B traffic split. Reads the current weights
+// + version from /api/admin/analytics/variant-weights on mount, lets
+// the operator edit per-arm percentages, and POSTs back when sum is
+// exactly 100. Saving bumps the version on the server side, which
+// reshuffles returning sessions on their next visit (assignment hash
+// is namespaced by version — see lib/analytics/variant.ts).
+//
+// Arm list is derived from INTAKE_VARIANTS so adding/removing a code-
+// level arm flows into this UI automatically. Layout uses an auto-fit
+// grid so 4 / 5 / 6+ arms all flow naturally without leaving a dangling
+// last card.
+//
+// Use cases this supports cleanly:
+//   - Even split (default).
+//   - Two-arm head-to-head: zero out the others.
+//   - Single-arm rollout: 100 on one, 0 elsewhere.
+//   - Off-but-keep-the-code-path: any 0 leaves the variant assignable
+//     in code without taking traffic.
+
+function buildEqualSplit(): Record<IntakeVariant, number> {
+  // Distribute 100 across N arms. Floor each share, then assign the
+  // remainder (100 - N*floor) to the first arm so the sum stays at
+  // exactly 100. With 4 arms this is 25/25/25/25; with 3 it's 34/33/33;
+  // with 7 it's 16/14/14/14/14/14/14. Always lands on integers, always
+  // sums to 100 — i.e. always passes the save validator without
+  // additional fiddling.
+  const n = INTAKE_VARIANTS.length;
+  const base = Math.floor(100 / n);
+  const remainder = 100 - base * n;
+  const out = Object.fromEntries(
+    INTAKE_VARIANTS.map((v, i) => [v, base + (i === 0 ? remainder : 0)]),
+  ) as Record<IntakeVariant, number>;
+  return out;
+}
+
+function TrafficAllocationControl() {
+  const [loaded, setLoaded] = useState(false);
+  const initial = useMemo(buildEqualSplit, []);
+  const [weights, setWeights] = useState<Record<IntakeVariant, number>>(initial);
+  // Saved snapshot. Used to detect "is the form dirty?" so Save is only
+  // enabled when something has actually changed AND the new sum is 100.
+  const [savedWeights, setSavedWeights] = useState<Record<IntakeVariant, number>>(initial);
+  const [version, setVersion] = useState<number>(0);
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Always reach a loaded state — even on auth failure or 500 — so the
+    // form isn't a dead zone. Show error feedback so the operator knows
+    // why the inputs hold the equal-split fallback instead of the live row.
+    fetch("/api/admin/analytics/variant-weights", { cache: "no-store" })
+      .then(async (r) => {
+        if (cancelled) return;
+        if (!r.ok) {
+          setFeedback({ kind: "err", msg: `Failed to load current allocation (${r.status}).` });
+          setLoaded(true);
+          return;
+        }
+        const data = await r.json().catch(() => null);
+        if (!data) {
+          setFeedback({ kind: "err", msg: "Failed to parse current allocation." });
+          setLoaded(true);
+          return;
+        }
+        const w = (data.weights ?? {}) as Partial<Record<IntakeVariant, number>>;
+        // Mirror the server's coerceWeights semantics: missing keys mean
+        // 0%. If a new arm has been added in code but the DB row doesn't
+        // carry it yet, the dial shows the new arm at 0 (and the existing
+        // arms still sum to 100). Operator deliberately turns it on by
+        // re-balancing and saving.
+        const merged = Object.fromEntries(
+          INTAKE_VARIANTS.map((v) => [v, typeof w[v] === "number" ? (w[v] as number) : 0]),
+        ) as Record<IntakeVariant, number>;
+        setWeights(merged);
+        setSavedWeights(merged);
+        setVersion(typeof data.version === "number" ? data.version : 0);
+        setLoaded(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setFeedback({ kind: "err", msg: "Network error loading allocation — try refreshing." });
+        setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const sum = INTAKE_VARIANTS.reduce((s, v) => s + (weights[v] || 0), 0);
+  const sumIsValid = sum === 100;
+  const isDirty = INTAKE_VARIANTS.some((v) => weights[v] !== savedWeights[v]);
+  const canSave = loaded && sumIsValid && isDirty && !saving;
+
+  const setArm = (arm: IntakeVariant, raw: string) => {
+    // Allow empty string while editing; coerce to integer 0-100 on commit.
+    const n = raw === "" ? 0 : parseInt(raw, 10);
+    if (Number.isNaN(n)) return;
+    setWeights((prev) => ({ ...prev, [arm]: Math.max(0, Math.min(100, n)) }));
+    if (feedback?.kind === "ok") setFeedback(null); // clear stale "Saved" once they edit again
+  };
+
+  const reset = () => {
+    setWeights(savedWeights);
+    setFeedback(null);
+  };
+
+  const equalize = () => {
+    setWeights(buildEqualSplit());
+    if (feedback?.kind === "ok") setFeedback(null);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/analytics/variant-weights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weights }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        setFeedback({ kind: "err", msg: body?.error || `Save failed (${res.status})` });
+      } else {
+        const w = (body?.weights ?? {}) as Partial<Record<IntakeVariant, number>>;
+        const merged = { ...weights };
+        for (const v of INTAKE_VARIANTS) {
+          if (typeof w[v] === "number") merged[v] = w[v] as number;
+        }
+        setSavedWeights(merged);
+        setWeights(merged);
+        setVersion(typeof body?.version === "number" ? body.version : version + 1);
+        setFeedback({ kind: "ok", msg: "Saved — returning sessions reshuffle on their next visit." });
+      }
+    } catch {
+      setFeedback({ kind: "err", msg: "Network error — try again." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mt-6 pt-5 border-t border-gray-100">
+      <div className="flex items-baseline justify-between mb-1">
+        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
+          Traffic allocation
+        </div>
+        <div className="text-[11px] text-gray-400 tabular-nums">
+          v{version}
+        </div>
+      </div>
+      <p className="text-[11px] text-gray-400 mb-3">
+        Live dial for the {INTAKE_VARIANTS.length}-arm intake split. Set any arm to 0 to dark it out without removing the code path; concentrate to 100 on a single arm to ramp a winner. Saves apply to new + returning sessions on their next visit (version bump invalidates the prior assignment).
+      </p>
+
+      <div
+        className="grid gap-3 mb-3"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}
+      >
+        {INTAKE_VARIANTS.map((v) => (
+          <label
+            key={v}
+            className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2"
+          >
+            <span className="text-[11px] font-medium text-gray-700">{variantSurfaceLabel(v)}</span>
+            <span className="text-[10px] text-gray-400 leading-tight">{variantSubLabel(v)}</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                disabled={!loaded || saving}
+                value={weights[v]}
+                onChange={(e) => setArm(v, e.target.value)}
+                className="w-16 text-right tabular-nums text-base font-medium text-gray-900 bg-transparent border-b border-gray-200 focus:border-gray-900 focus:outline-none disabled:opacity-50"
+              />
+              <span className="text-xs text-gray-400">%</span>
+              <a
+                href={previewUrl(v)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="ml-auto text-[10px] text-gray-400 hover:text-gray-700 underline underline-offset-2"
+                title="Open the test provider page with this arm forced. Events + submissions disabled."
+              >
+                Preview ↗
+              </a>
+            </div>
+          </label>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3 flex-wrap">
+        <span
+          className={`text-[12px] tabular-nums px-2 py-0.5 rounded ${
+            sumIsValid
+              ? "bg-emerald-50 text-emerald-700"
+              : "bg-amber-50 text-amber-700"
+          }`}
+        >
+          Sum: {sum} / 100{sumIsValid ? "" : ` (${sum > 100 ? "+" : ""}${sum - 100})`}
+        </span>
+        <button
+          type="button"
+          onClick={save}
+          disabled={!canSave}
+          className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+            canSave
+              ? "bg-gray-900 text-white hover:bg-gray-800"
+              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+          }`}
+        >
+          {saving ? "Saving…" : "Save allocation"}
+        </button>
+        <button
+          type="button"
+          onClick={equalize}
+          disabled={!loaded || saving}
+          className="text-xs text-gray-500 hover:text-gray-800 underline underline-offset-2 disabled:text-gray-300 disabled:no-underline"
+        >
+          Reset to equal split
+        </button>
+        {isDirty && !saving && (
+          <button
+            type="button"
+            onClick={reset}
+            className="text-xs text-gray-500 hover:text-gray-800 underline underline-offset-2"
+          >
+            Discard changes
+          </button>
+        )}
+        {feedback && (
+          <span
+            className={`text-[11px] ${
+              feedback.kind === "ok" ? "text-emerald-700" : "text-rose-700"
+            }`}
+          >
+            {feedback.msg}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -828,11 +1142,22 @@ const DRILLABLE_VARIANTS: ReadonlySet<VariantKey> = new Set([
   "loss",
   "empathic",
   "outreach",
-  "multi_provider",
-  "inline_answer",
+  "qa_email_capture",
   "control",
   "money_loss",
 ]);
+
+// Stable test provider used as the canvas for arm previews. Hardcoded
+// because the only person clicking these links is internal product
+// staff who want a consistent baseline page across arms — a slug
+// picker would be churn for v1. Aggie Assisted Living lives in TX,
+// so the {state} interpolations in the benefits-arm copy render
+// correctly. Update if the test page is ever migrated.
+const PREVIEW_PROVIDER_SLUG = "aggie-assisted-living-college-station-tx-t66r";
+
+function previewUrl(arm: string): string {
+  return `/provider/${PREVIEW_PROVIDER_SLUG}?preview_arm=${encodeURIComponent(arm)}`;
+}
 
 function BenefitsVariantSplit({
   byVariant,
@@ -875,8 +1200,7 @@ function BenefitsVariantSplit({
     byVariant.loss.impressions +
     byVariant.empathic.impressions +
     byVariant.outreach.impressions +
-    byVariant.multi_provider.impressions +
-    byVariant.inline_answer.impressions +
+    byVariant.qa_email_capture.impressions +
     byVariant.control.impressions +
     byVariant.money_loss.impressions;
   const waitingForFirstImpression = totalAssigned === 0;
@@ -885,19 +1209,17 @@ function BenefitsVariantSplit({
     den > 0 ? `${Math.round((num / den) * 100)}%` : "—";
 
   // Active arms. Empty rows are still shown so the layout stays stable as
-  // data trickles in. Narrow key types so VariantPreviewCard's prop
-  // signature (IntakeVariant + legacy strings) accepts them without a cast.
+  // data trickles in.
   const activeArms = [
     { key: "availability" as const, label: "availability", description: "There's help paying for care in {state}." },
     { key: "loss" as const, label: "loss", description: "Most {state} families miss out on help paying for care." },
     { key: "empathic" as const, label: "empathic", description: "Care is expensive." },
-    { key: "outreach" as const, label: "outreach", description: "Have an AI agent contact the top providers for you.", isOutreach: true },
-    { key: "multi_provider" as const, label: "multi_provider", description: "Click-to-send multi-provider comparison.", isMultiProvider: true },
+    { key: "outreach" as const, label: "outreach", description: "Our care team gets pricing, availability, and how to start from the top providers — in one email.", isOutreach: true },
+    { key: "qa_email_capture" as const, label: "qa_email_capture", description: "No SBF / no outreach. Q&A enrichment ON with comparison-providers value-promise.", isOutreach: true },
   ];
-  // Legacy/archived arms only render when they have data in the window — once
-  // the historical window rolls past their cutover, these rows disappear.
+  // Legacy V2 arms only render when they have data in the window — once the
+  // historical window rolls past V2, these rows disappear automatically.
   const legacyCandidates = [
-    { key: "inline_answer" as const, label: "inline_answer (archived)", isInlineAnswer: true },
     { key: "control" as const, label: "control (legacy V2)" },
     { key: "money_loss" as const, label: "money_loss (legacy V2)" },
   ];
@@ -915,7 +1237,7 @@ function BenefitsVariantSplit({
         A/B Test — entry-point module (5-arm)
       </div>
       <p className="text-[11px] text-gray-400 mb-3">
-        Deterministic 1/5 split by session id (djb2 hash mod 5) — 3 benefits-help copy arms + 1 AI agent outreach arm + 1 inline Q&A answer arm. Impressions = module rendered on a provider page; Started = first interactive action (care-need click for benefits, card click for outreach, question tap for inline); Submitted = email/form submission. Conversion % = Submitted / Impressions, so all five arms compare on the same denominator. Variant copy strings + commentary live in the{" "}
+        Deterministic split by session id (djb2 hash, weighted-bucket lookup against the live allocation set above) — 3 benefits-help copy arms + 1 AI agent outreach arm + 1 qa_email_capture arm (no SBF / no outreach; Q&A enrichment ON). Impressions = module rendered on a provider page; Started = first interactive action (care-need click for benefits, recommended-card click for outreach, N/A for qa_email_capture); Submitted = email/form submission (for qa_email_capture, post-question email enrichment). Conversion % = Submitted / Impressions, so all five arms compare on the same denominator. Variant copy strings + commentary live in the{" "}
         <a
           href="https://app.notion.com/p/ec27110d1c6a4cc1a76bdf991344f63d"
           target="_blank"
@@ -944,10 +1266,9 @@ function BenefitsVariantSplit({
             </tr>
           </thead>
           <tbody>
-            {activeArms.map(({ key, label, description, isOutreach, isMultiProvider }) => {
+            {activeArms.map(({ key, label, description, isOutreach }) => {
               const r = byVariant[key];
               const isExpanded = expandedVariant === key;
-              const skipCareNeed = isOutreach || isMultiProvider;
               return (
                 <Fragment key={key}>
                   <tr
@@ -966,14 +1287,24 @@ function BenefitsVariantSplit({
                           ›
                         </span>
                         <span>{label}</span>
+                        <a
+                          href={previewUrl(key)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="ml-1 text-[10px] text-gray-400 hover:text-gray-700 underline underline-offset-2"
+                          title="Open the test provider page with this arm forced. Events + submissions disabled."
+                        >
+                          Preview ↗
+                        </a>
                       </div>
                       <div className="text-[11px] font-normal text-gray-400 truncate max-w-[280px] pl-4">{description}</div>
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.impressions}</td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
-                    {/* Outreach and multi_provider arms have no middle "care need" step — show — instead of 0. */}
+                    {/* Outreach arm has no middle "care need" step — show — instead of 0. */}
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">
-                      {skipCareNeed ? <span className="text-gray-300">—</span> : r.care_need_completed}
+                      {isOutreach ? <span className="text-gray-300">—</span> : r.care_need_completed}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.saved}</td>
                     <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.saved, r.impressions)}</td>
@@ -981,10 +1312,7 @@ function BenefitsVariantSplit({
                   {isExpanded && (
                     <tr className="bg-gray-50/30">
                       <td colSpan={6} className="px-3 py-4">
-                        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
-                          <VariantPreviewCard variant={key} />
-                          <VariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
-                        </div>
+                        <VariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
                       </td>
                     </tr>
                   )}
@@ -1039,10 +1367,7 @@ function BenefitsVariantSplit({
                       {isExpanded && (
                         <tr className="bg-gray-50/30">
                           <td colSpan={6} className="px-3 py-4">
-                            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
-                              <VariantPreviewCard variant={key} />
-                              <VariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
-                            </div>
+                            <VariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
                           </td>
                         </tr>
                       )}
@@ -1078,7 +1403,7 @@ function EntrySourceCard({
   range: DateRangeValue;
 }) {
   if (loading && !summary) {
-    return <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6 h-32 animate-pulse" />;
+    return <div className="h-32 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
   }
   if (!summary) return null;
 
@@ -1097,11 +1422,7 @@ function EntrySourceCard({
   const providerDelta = delta(b.provider_total, pb?.provider_total ?? null);
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <div className="flex items-baseline gap-3 mb-1">
-        <h2 className="text-base font-semibold text-gray-900">Submissions by Entry Source</h2>
-        {loading && <span className="text-[11px] text-gray-400 animate-pulse">refreshing…</span>}
-      </div>
+    <>
       <p className="text-xs text-gray-500 mb-5">
         SBF intake submissions {rangeLabel(range).toLowerCase()}, bucketed by{" "}
         <code className="text-[11px] bg-gray-50 px-1 rounded">accounts.signup_source</code>
@@ -1151,7 +1472,7 @@ function EntrySourceCard({
           No editorial submissions yet in this window. Top articles by submission count appear here once <code className="text-[10px] bg-gray-50 px-1 rounded">/caregiver-support/[slug]</code> mounts start producing tagged accounts.
         </p>
       ) : null}
-    </div>
+    </>
   );
 }
 
@@ -1379,8 +1700,7 @@ function TopProvidersCard({
   }, [summary, sortKey]);
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <h2 className="text-base font-semibold text-gray-900 mb-4">Top providers (last 7 days)</h2>
+    <>
       {loading && !summary ? (
         <div className="h-32 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
       ) : !summary || sorted.length === 0 ? (
@@ -1444,7 +1764,7 @@ function TopProvidersCard({
           </table>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -1489,8 +1809,7 @@ function LatestEventsCard({
   loading: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6 mb-6">
-      <h2 className="text-base font-semibold text-gray-900 mb-4">Latest 50 events</h2>
+    <>
       {loading && !summary ? (
         <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
       ) : !summary || summary.latestEvents.length === 0 ? (
@@ -1533,7 +1852,7 @@ function LatestEventsCard({
           </table>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

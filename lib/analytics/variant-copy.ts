@@ -1,14 +1,16 @@
 // Variant copy strings for the Family Intake A/B test.
 //
-// Two consumers:
+// Consumers:
 //   1. components/providers/BenefitsDiscoveryModule — the live module on
 //      provider pages. Imports VARIANT_COPY for the 3 benefits arms.
-//   2. components/admin/VariantPreviewCard — the static admin preview
-//      rendered inside the admin analytics drill-in. Imports the same
-//      strings + the outreach copy below.
+//   2. components/providers/AgentOutreachModule — uses OUTREACH_VARIANT_COPY.
+//   3. /admin/analytics — variantSurfaceLabel + variantSubLabel for the
+//      traffic-allocation dial cards. Live arm previews open in a new tab
+//      via ?preview_arm=<variant> on the test provider page (no static
+//      preview rendering on this surface anymore).
 //
-// Single source of truth so changing copy in one place updates both
-// surfaces. Strings also live in the SBF Copy Variants Notion DB; that
+// Single source of truth so changing copy in one place updates every
+// surface. Strings also live in the SBF Copy Variants Notion DB; that
 // remains the durable record of what each arm earned (commentary,
 // rationale, dates), but the actual rendered string is here.
 //
@@ -42,9 +44,9 @@ export const BENEFITS_VARIANT_COPY: Record<
 // pieces plus city-specific phrasing the admin preview can stub with a
 // placeholder city name.
 export const OUTREACH_VARIANT_COPY = {
-  h2: () => "Skip the phone calls.",
+  h2: () => "Don't know which one to trust?",
   sub: (city: string) =>
-    `Have an AI agent contact the top providers in ${city} for you.`,
+    `Our care team will get pricing, availability, and how to start from the top providers in ${city} — in one email.`,
 };
 
 // Care-need card labels — identical across the 3 benefits arms. Kept in
@@ -83,8 +85,32 @@ export function variantSurfaceLabel(variant: IntakeVariant): string {
     case "empathic":
       return "Empathic framing";
     case "outreach":
-      return "AI agent outreach";
+      return "Care-team outreach";
+    case "qa_email_capture":
+      return "Q&A email capture (no SBF)";
     case "multi_provider":
       return "Multi-provider comparison";
+  }
+}
+
+// One-line description of what each arm puts in front of a visitor.
+// Used as the small sublabel under the variant name in the traffic-
+// allocation dial. Adding a new arm requires extending the switch;
+// TypeScript will flag a missing case because the input is typed as
+// IntakeVariant (the union derived from INTAKE_VARIANTS).
+export function variantSubLabel(variant: IntakeVariant): string {
+  switch (variant) {
+    case "availability":
+      return "Benefits — positive framing";
+    case "loss":
+      return "Benefits — loss framing";
+    case "empathic":
+      return "Benefits — shared-truth framing";
+    case "outreach":
+      return "Care team gets pricing & availability";
+    case "qa_email_capture":
+      return "Q&A enrichment, no SBF";
+    case "multi_provider":
+      return "Send question to multiple providers";
   }
 }

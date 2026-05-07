@@ -394,7 +394,7 @@ export default function MultiProviderCard({
           </div>
 
           {/* Card Stack */}
-          <div className="relative mb-5 mx-8 lg:mx-12">
+          <div className="relative mb-5 mx-8 lg:mx-20">
             {/* Peek card 2 (furthest back) */}
             {currentIndex < similarProviders.length - 2 && (
               <div

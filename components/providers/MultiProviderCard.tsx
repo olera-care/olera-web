@@ -372,11 +372,11 @@ export default function MultiProviderCard({
           ═══════════════════════════════════════════════════════════════ */}
       {cardState === "card_stack" && similarProviders.length > 0 && (
         <div className="p-6">
-          {/* Stack 1: Context pill */}
-          <div className="flex justify-center items-center gap-2 mb-8">
+          {/* Stack 1: Context pill + Headline */}
+          <div className="flex justify-center items-center gap-2 mb-4">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
               <span className="text-[12px] font-bold uppercase tracking-wide text-primary-700">
-                You asked {firstName}&apos;s
+                You asked
               </span>
               <span className="text-[13px] font-medium italic text-gray-600 truncate max-w-[220px]">
                 &ldquo;{truncateQuestion(question)}&rdquo;
@@ -384,14 +384,13 @@ export default function MultiProviderCard({
             </span>
           </div>
 
-          {/* Stack 2: Headline + Cards */}
-          <div className="mb-4 text-center">
+          <div className="mb-8 text-center">
             <h3 className="font-display text-2xl text-gray-900 leading-tight">
               Ask <span className="font-bold">more providers</span> the same question?
             </h3>
           </div>
 
-          {/* Card Stack */}
+          {/* Stack 2: Card Stack (standalone) */}
           <div className="relative mb-8 mx-8 lg:mx-20">
             {/* Peek card 2 (furthest back) - rotated left */}
             {currentIndex < similarProviders.length - 2 && (

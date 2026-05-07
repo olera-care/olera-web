@@ -391,7 +391,7 @@ export default function MultiProviderCard({
           </div>
 
           {/* Stack 2: Card Stack (standalone) */}
-          <div className="relative mb-8 mx-8 lg:mx-20">
+          <div className="relative mb-8 mx-5 lg:mx-20">
             {/* Peek card 2 (furthest back) - rotated left */}
             {currentIndex < similarProviders.length - 2 && (
               <div
@@ -588,14 +588,14 @@ export default function MultiProviderCard({
             <>
               {/* Header with reply count */}
               <div className="flex items-center justify-center gap-2 mb-4">
-                <span className="w-2 h-2 rounded-full bg-success-500" />
-                <span className="text-[12px] font-semibold uppercase tracking-wide text-primary-700">
+                <span className="w-2 h-2 rounded-full bg-success-500 animate-pulse" />
+                <span className="text-[11px] font-bold uppercase tracking-wide text-gray-600">
                   {totalAsked} {totalAsked === 1 ? "reply" : "replies"} on the way
                 </span>
               </div>
 
               {/* Provider list with "Replying" animation */}
-              <div className="space-y-2 mb-5">
+              <div className="space-y-2 mb-5 mx-5 lg:mx-20">
                 {allSentProviders.map((provider) => (
                   <div
                     key={provider.id}
@@ -608,9 +608,9 @@ export default function MultiProviderCard({
                     <span className="flex items-center gap-1 text-sm text-gray-500">
                       <span className="italic">Replying</span>
                       <span className="flex gap-0.5">
-                        <span className="w-1 h-1 rounded-full bg-gray-400 typing-dot-1" />
-                        <span className="w-1 h-1 rounded-full bg-gray-400 typing-dot-2" />
-                        <span className="w-1 h-1 rounded-full bg-gray-400 typing-dot-3" />
+                        <span className="w-1 h-1 rounded-full bg-amber-600 typing-dot-1" />
+                        <span className="w-1 h-1 rounded-full bg-amber-600 typing-dot-2" />
+                        <span className="w-1 h-1 rounded-full bg-amber-600 typing-dot-3" />
                       </span>
                     </span>
                   </div>
@@ -618,12 +618,20 @@ export default function MultiProviderCard({
               </div>
 
               {/* Headline */}
-              <h3 className="font-display text-xl font-bold text-gray-900 text-center mb-5">
+              <h3 className="font-display text-2xl font-normal text-gray-900 text-center mb-5">
                 Don&apos;t miss what they say.
               </h3>
 
-              {/* Email form */}
-              <div className="flex gap-2">
+              {/* Email form - inset button pattern */}
+              <div
+                className={`
+                  flex items-center gap-2 p-1.5
+                  bg-white border rounded-full
+                  transition-all duration-200
+                  focus-within:ring-2 focus-within:ring-primary-200 focus-within:border-primary-400
+                  ${emailError ? "border-red-300 ring-2 ring-red-50" : "border-gray-300"}
+                `}
+              >
                 <input
                   ref={inputRef}
                   type="email"
@@ -636,24 +644,21 @@ export default function MultiProviderCard({
                   placeholder="you@email.com"
                   autoComplete="email"
                   disabled={isSubmitting}
-                  className={`
-                    flex-1 px-4 py-3
+                  className="
+                    flex-1 min-w-0 px-4 py-2
                     text-sm text-gray-900 placeholder-gray-400
-                    bg-white border rounded-xl
-                    transition-all duration-200
-                    focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400
+                    bg-transparent border-none outline-none
                     disabled:opacity-50
-                    ${emailError ? "border-red-300 ring-2 ring-red-50" : "border-gray-200"}
-                  `}
+                  "
                 />
                 <button
                   type="button"
                   onClick={handleEmailSubmit}
                   disabled={isSubmitting || !email.trim()}
                   className="
-                    shrink-0 px-4 py-3
+                    shrink-0 px-5 py-2.5
                     text-sm font-semibold text-white
-                    bg-gray-900 rounded-xl
+                    bg-gray-900 rounded-full
                     hover:bg-gray-800
                     transition-all duration-200
                     disabled:opacity-40 disabled:cursor-not-allowed

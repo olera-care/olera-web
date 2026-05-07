@@ -476,8 +476,8 @@ export default function MultiProviderCard({
                     }}
                     disabled={isAnimating || isSendingQuestion}
                     className="
-                      flex-shrink-0 px-5 py-2.5
-                      text-sm font-medium text-gray-700
+                      flex-shrink-0 px-5 py-3
+                      text-[15px] font-medium text-gray-700
                       bg-white border-2 border-gray-300 rounded-xl
                       hover:border-gray-400 hover:bg-gray-50
                       transition-all duration-200
@@ -491,8 +491,8 @@ export default function MultiProviderCard({
                     onClick={handleAsk}
                     disabled={isAnimating || isSendingQuestion}
                     className="
-                      flex-1 px-5 py-2.5
-                      text-sm font-semibold text-white
+                      flex-1 px-5 py-3
+                      text-[15px] font-semibold text-white
                       bg-primary-600 rounded-xl
                       hover:bg-primary-700
                       transition-all duration-200

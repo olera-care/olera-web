@@ -454,7 +454,7 @@ export default function MultiProviderCard({
                       <div className="flex items-center gap-1">
                         <Star size={14} weight="fill" className="text-amber-400" />
                         <span className="text-sm font-semibold text-gray-900">
-                          {currentCard.rating.toFixed(1)}/5
+                          {currentCard.rating.toFixed(1)}
                         </span>
                       </div>
                     </div>
@@ -465,7 +465,7 @@ export default function MultiProviderCard({
                         {currentCard.priceRange.includes("/hr") ? "Hourly Rate" : "Monthly Rate"}
                       </div>
                       <span className="text-sm font-semibold text-gray-900">
-                        {currentCard.priceRange}
+                        {currentCard.priceRange.replace(/\/(hr|mo)$/, '')}
                       </span>
                     </div>
                   )}

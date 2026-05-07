@@ -56,6 +56,8 @@ export default function MultiProviderCard({
   const [askedProviders, setAskedProviders] = useState<SimilarProviderForMulti[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationDirection, setAnimationDirection] = useState<"left" | "right" | null>(null);
+  const [isSendingQuestion, setIsSendingQuestion] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -158,6 +160,20 @@ export default function MultiProviderCard({
     }
   }, [cardState, isLoggedIn, onCollapse]);
 
+  // Track conversion for logged-in users (they skip email submit flow)
+  const loggedInConversionTrackedRef = useRef(false);
+  useEffect(() => {
+    if (cardState === "email_capture" && isLoggedIn && !loggedInConversionTrackedRef.current) {
+      loggedInConversionTrackedRef.current = true;
+      const allSentProviderIds = [currentProvider.id, ...askedProviders.map((p) => p.id)];
+      trackActivity("multi_provider_converted", {
+        sent_count: allSentProviderIds.length,
+        provider_ids: allSentProviderIds,
+        logged_in: true,
+      });
+    }
+  }, [cardState, isLoggedIn, currentProvider.id, askedProviders]);
+
   // Note: QASectionV2 now guards against empty similarProviders by not rendering
   // this component when there are no similar providers to show.
 
@@ -183,15 +199,15 @@ export default function MultiProviderCard({
   };
 
   const handleAsk = async () => {
-    if (isAnimating || !currentCard) return;
-    setIsAnimating(true);
-    setAnimationDirection("right");
+    if (isAnimating || isSendingQuestion || !currentCard) return;
+    setSendError(null);
+    setIsSendingQuestion(true);
 
     try {
       // Send question immediately (existing API)
       await onProviderSelect(currentCard.id, currentCard.name);
 
-      // Add to asked list
+      // Success - add to asked list and animate away
       setAskedProviders((prev) => [...prev, currentCard]);
 
       trackActivity("multi_provider_asked", {
@@ -199,19 +215,26 @@ export default function MultiProviderCard({
         position: currentIndex,
         sent_count: askedProviders.length + 2, // current + this + original
       });
-    } catch {
-      // On failure, still move to next card but don't add to asked list
-    }
 
-    setTimeout(() => {
-      if (isLastCard || currentIndex >= similarProviders.length - 1) {
-        setCardState("email_capture");
-      } else {
-        setCurrentIndex((prev) => prev + 1);
-      }
-      setAnimationDirection(null);
-      setIsAnimating(false);
-    }, 300);
+      // Animate card away
+      setIsAnimating(true);
+      setAnimationDirection("right");
+
+      setTimeout(() => {
+        if (isLastCard || currentIndex >= similarProviders.length - 1) {
+          setCardState("email_capture");
+        } else {
+          setCurrentIndex((prev) => prev + 1);
+        }
+        setAnimationDirection(null);
+        setIsAnimating(false);
+        setIsSendingQuestion(false);
+      }, 300);
+    } catch {
+      // On failure, show error and let user retry or skip
+      setSendError("Failed to send. Tap to retry or skip.");
+      setIsSendingQuestion(false);
+    }
   };
 
   const handleEmailSubmit = async () => {
@@ -428,8 +451,11 @@ export default function MultiProviderCard({
                 <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={handleSkip}
-                    disabled={isAnimating}
+                    onClick={() => {
+                      setSendError(null);
+                      handleSkip();
+                    }}
+                    disabled={isAnimating || isSendingQuestion}
                     className="
                       flex-shrink-0 px-5 py-2.5
                       text-sm font-medium text-gray-700
@@ -444,7 +470,7 @@ export default function MultiProviderCard({
                   <button
                     type="button"
                     onClick={handleAsk}
-                    disabled={isAnimating}
+                    disabled={isAnimating || isSendingQuestion}
                     className="
                       flex-1 px-5 py-2.5
                       text-sm font-semibold text-white
@@ -454,9 +480,23 @@ export default function MultiProviderCard({
                       disabled:opacity-50 disabled:cursor-not-allowed
                     "
                   >
-                    Ask them too
+                    {isSendingQuestion ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Sending...
+                      </span>
+                    ) : (
+                      "Ask them too"
+                    )}
                   </button>
                 </div>
+
+                {/* Error message */}
+                {sendError && (
+                  <p className="mt-3 text-sm text-red-600 text-center font-medium">
+                    {sendError}
+                  </p>
+                )}
               </div>
             )}
           </div>

@@ -10,7 +10,6 @@ import {
   type DateRangeValue,
 } from "@/components/admin/DateRangePopover";
 import { useAnimatedCount } from "@/hooks/use-animated-count";
-import VariantPreviewCard from "@/components/admin/VariantPreviewCard";
 import VariantSessionsList from "@/components/admin/VariantSessionsList";
 import CollapsibleSection, { bulkCollapse } from "@/components/admin/CollapsibleSection";
 import { INTAKE_VARIANTS, type IntakeVariant } from "@/lib/analytics/variant";
@@ -1210,8 +1209,7 @@ function BenefitsVariantSplit({
     den > 0 ? `${Math.round((num / den) * 100)}%` : "—";
 
   // Active arms. Empty rows are still shown so the layout stays stable as
-  // data trickles in. Narrow key types so VariantPreviewCard's prop
-  // signature (IntakeVariant + legacy strings) accepts them without a cast.
+  // data trickles in.
   const activeArms = [
     { key: "availability" as const, label: "availability", description: "There's help paying for care in {state}." },
     { key: "loss" as const, label: "loss", description: "Most {state} families miss out on help paying for care." },
@@ -1314,10 +1312,7 @@ function BenefitsVariantSplit({
                   {isExpanded && (
                     <tr className="bg-gray-50/30">
                       <td colSpan={6} className="px-3 py-4">
-                        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
-                          <VariantPreviewCard variant={key} />
-                          <VariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
-                        </div>
+                        <VariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
                       </td>
                     </tr>
                   )}
@@ -1372,10 +1367,7 @@ function BenefitsVariantSplit({
                       {isExpanded && (
                         <tr className="bg-gray-50/30">
                           <td colSpan={6} className="px-3 py-4">
-                            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
-                              <VariantPreviewCard variant={key} />
-                              <VariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
-                            </div>
+                            <VariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
                           </td>
                         </tr>
                       )}

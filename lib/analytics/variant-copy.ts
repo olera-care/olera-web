@@ -1,14 +1,16 @@
 // Variant copy strings for the Family Intake A/B test.
 //
-// Two consumers:
+// Consumers:
 //   1. components/providers/BenefitsDiscoveryModule — the live module on
 //      provider pages. Imports VARIANT_COPY for the 3 benefits arms.
-//   2. components/admin/VariantPreviewCard — the static admin preview
-//      rendered inside the admin analytics drill-in. Imports the same
-//      strings + the outreach copy below.
+//   2. components/providers/AgentOutreachModule — uses OUTREACH_VARIANT_COPY.
+//   3. /admin/analytics — variantSurfaceLabel + variantSubLabel for the
+//      traffic-allocation dial cards. Live arm previews open in a new tab
+//      via ?preview_arm=<variant> on the test provider page (no static
+//      preview rendering on this surface anymore).
 //
-// Single source of truth so changing copy in one place updates both
-// surfaces. Strings also live in the SBF Copy Variants Notion DB; that
+// Single source of truth so changing copy in one place updates every
+// surface. Strings also live in the SBF Copy Variants Notion DB; that
 // remains the durable record of what each arm earned (commentary,
 // rationale, dates), but the actual rendered string is here.
 //

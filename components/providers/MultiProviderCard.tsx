@@ -379,11 +379,11 @@ export default function MultiProviderCard({
           </div>
 
           {/* Headline */}
-          <div className="mb-5">
-            <h3 className="font-display text-xl text-gray-900 leading-tight">
+          <div className="mb-5 text-center">
+            <h3 className="font-display text-2xl text-gray-900 leading-tight">
               Ask <span className="font-bold">more providers</span> the same question?
             </h3>
-            <p className="mt-1.5 text-sm text-gray-500">Compare answers side by side.</p>
+            <p className="mt-1.5 text-base text-gray-500">Compare answers side by side.</p>
           </div>
 
           {/* Card Stack */}

@@ -31,8 +31,6 @@ interface MultiProviderCardProps {
   questionSent?: boolean;
   /** If provided, user is logged in — skip email capture and show confirmation */
   userEmail?: string;
-  /** Ref to scroll to when card expands (for consistent scroll position) */
-  scrollTargetRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 type CardState = "card_stack" | "email_capture" | "success";
@@ -49,7 +47,6 @@ export default function MultiProviderCard({
   isSuccess: externalSuccess = false,
   // questionSent: not used in card stack flow
   userEmail,
-  scrollTargetRef,
 }: MultiProviderCardProps) {
   const isLoggedIn = Boolean(userEmail);
 
@@ -116,20 +113,36 @@ export default function MultiProviderCard({
     return () => clearTimeout(timer);
   }, []);
 
-  // Scroll to consistent position on mount (Q&A section top)
+  // Scroll to ensure card content is visible on mount
   useEffect(() => {
-    if (mounted) {
+    if (mounted && cardRef.current) {
       const scrollTimer = setTimeout(() => {
-        // Prefer scrolling to parent section for consistent position
-        // Fall back to card itself if no scrollTargetRef provided
-        const target = scrollTargetRef?.current || cardRef.current;
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        const card = cardRef.current;
+        if (!card) return;
+
+        // Get card position relative to viewport
+        const cardRect = card.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+
+        // We want the card to be visible with some padding from top
+        // Account for sticky headers (~60px) and breathing room (~20px)
+        const desiredTopOffset = 80;
+
+        // If card top is above the desired position or card is cut off at bottom
+        const cardTop = cardRect.top;
+        const cardBottom = cardRect.bottom;
+        const stickyBottomCTA = 80; // approximate height of sticky bottom CTA
+
+        // Calculate if we need to scroll
+        if (cardTop < desiredTopOffset || cardBottom > viewportHeight - stickyBottomCTA) {
+          // Scroll so the card starts at desiredTopOffset from viewport top
+          const scrollY = window.scrollY + cardTop - desiredTopOffset;
+          window.scrollTo({ top: scrollY, behavior: "smooth" });
         }
-      }, 100);
+      }, 150); // slightly longer delay to ensure layout is settled
       return () => clearTimeout(scrollTimer);
     }
-  }, [mounted, scrollTargetRef]);
+  }, [mounted]);
 
   // Track expansion
   useEffect(() => {

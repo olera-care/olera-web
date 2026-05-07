@@ -147,9 +147,6 @@ export default function QASectionV2({
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
 
-  // Ref for scrolling MultiProviderCard to consistent position
-  const sectionRef = useRef<HTMLDivElement>(null);
-
   // Track which suggestion card was tapped (for success state)
   const [tappedIndex, setTappedIndex] = useState<number | null>(null);
 
@@ -622,7 +619,7 @@ export default function QASectionV2({
   const isPostSubmit = !isInlineAnswerVariant && !isMultiProviderVariant && (submitStatus === "success" || showEnrichment);
 
   return (
-    <div ref={sectionRef}>
+    <div>
       {/* ── Header ── */}
       <div className="mb-6">
         <h2 className="text-[28px] md:text-[32px] font-bold text-gray-900 tracking-tight leading-tight">
@@ -934,7 +931,6 @@ export default function QASectionV2({
                         isSuccess={inlineSuccess}
                         questionSent={submitStatus === "success"}
                         userEmail={user?.email}
-                        scrollTargetRef={sectionRef}
                       />
                     )}
                   </div>

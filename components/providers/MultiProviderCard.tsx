@@ -374,12 +374,11 @@ export default function MultiProviderCard({
         <div className="p-6">
           {/* Context pill */}
           <div className="flex justify-center items-center gap-2 mb-4">
-            <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
               <span className="text-[12px] font-bold uppercase tracking-wide text-primary-700">
                 You asked {firstName}&apos;s
               </span>
-              <span className="mx-1.5 text-gray-300">·</span>
-              <span className="text-[13px] italic text-gray-500 truncate max-w-[220px]">
+              <span className="text-[13px] font-medium italic text-gray-600 truncate max-w-[220px]">
                 &ldquo;{truncateQuestion(question)}&rdquo;
               </span>
             </span>
@@ -390,7 +389,6 @@ export default function MultiProviderCard({
             <h3 className="font-display text-2xl text-gray-900 leading-tight">
               Ask <span className="font-bold">more providers</span> the same question?
             </h3>
-            <p className="mt-1.5 text-base text-gray-500">Compare answers side by side.</p>
           </div>
 
           {/* Card Stack */}
@@ -398,22 +396,22 @@ export default function MultiProviderCard({
             {/* Peek card 2 (furthest back) - rotated left */}
             {currentIndex < similarProviders.length - 2 && (
               <div
-                className="absolute inset-x-0 top-0 h-24 rounded-2xl bg-white border border-gray-200"
+                className="absolute inset-x-0 top-0 h-24 rounded-2xl bg-white border border-gray-300"
                 style={{
                   transform: "translateY(-12px) scale(0.92) rotate(-3deg)",
-                  opacity: 0.4,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                  opacity: 0.5,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
                 }}
               />
             )}
             {/* Peek card 1 (middle) - rotated right */}
             {currentIndex < similarProviders.length - 1 && (
               <div
-                className="absolute inset-x-0 top-0 h-24 rounded-2xl bg-white border border-gray-200"
+                className="absolute inset-x-0 top-0 h-24 rounded-2xl bg-white border border-gray-300"
                 style={{
                   transform: "translateY(-6px) scale(0.96) rotate(2deg)",
-                  opacity: 0.7,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+                  opacity: 0.8,
+                  boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
                 }}
               />
             )}
@@ -422,14 +420,14 @@ export default function MultiProviderCard({
             {currentCard && (
               <div
                 className={`
-                  relative bg-white rounded-2xl border border-gray-200 p-5
+                  relative bg-white rounded-2xl border border-gray-300 p-5
                   transition-transform duration-300
                   ${animationDirection === "left" ? "animate-swipe-left" : ""}
                   ${animationDirection === "right" ? "animate-swipe-right" : ""}
                   ${!animationDirection && currentIndex > 0 ? "animate-card-rise" : ""}
                 `}
                 style={{
-                  boxShadow: "0 8px 24px -4px rgba(0,0,0,0.08), 0 2px 8px -2px rgba(0,0,0,0.04)",
+                  boxShadow: "0 12px 32px -4px rgba(0,0,0,0.15), 0 4px 12px -2px rgba(0,0,0,0.08)",
                 }}
               >
                 {/* Provider header */}

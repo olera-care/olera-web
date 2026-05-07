@@ -395,23 +395,23 @@ export default function MultiProviderCard({
 
           {/* Card Stack */}
           <div className="relative mb-5 mx-8 lg:mx-20">
-            {/* Peek card 2 (furthest back) */}
+            {/* Peek card 2 (furthest back) - rotated left */}
             {currentIndex < similarProviders.length - 2 && (
               <div
                 className="absolute inset-x-0 top-0 h-24 rounded-2xl bg-white border border-gray-200"
                 style={{
-                  transform: "translateY(-12px) scale(0.92)",
+                  transform: "translateY(-12px) scale(0.92) rotate(-3deg)",
                   opacity: 0.4,
                   boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                 }}
               />
             )}
-            {/* Peek card 1 (middle) */}
+            {/* Peek card 1 (middle) - rotated right */}
             {currentIndex < similarProviders.length - 1 && (
               <div
                 className="absolute inset-x-0 top-0 h-24 rounded-2xl bg-white border border-gray-200"
                 style={{
-                  transform: "translateY(-6px) scale(0.96)",
+                  transform: "translateY(-6px) scale(0.96) rotate(2deg)",
                   opacity: 0.7,
                   boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
                 }}
@@ -485,7 +485,7 @@ export default function MultiProviderCard({
                     className="
                       flex-shrink-0 px-5 py-3
                       text-[15px] font-medium text-gray-700
-                      bg-white border-2 border-gray-300 rounded-xl
+                      bg-white border-2 border-gray-300 rounded-full
                       hover:border-gray-400 hover:bg-gray-50
                       transition-all duration-200
                       disabled:opacity-50 disabled:cursor-not-allowed
@@ -500,8 +500,8 @@ export default function MultiProviderCard({
                     className="
                       flex-1 px-5 py-3
                       text-[15px] font-semibold text-white
-                      bg-primary-600 rounded-xl
-                      hover:bg-primary-700
+                      bg-gray-900 rounded-full
+                      hover:bg-gray-800
                       transition-all duration-200
                       disabled:opacity-50 disabled:cursor-not-allowed
                     "
@@ -528,7 +528,7 @@ export default function MultiProviderCard({
           </div>
 
           {/* Progress tracker */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center gap-3">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-success-500 animate-pulse" />
               <span className="text-[11px] font-bold uppercase tracking-wide text-gray-600">

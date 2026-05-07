@@ -371,27 +371,24 @@ export default function MultiProviderCard({
           STATE 1: CARD STACK — Swipe through similar providers
           ═══════════════════════════════════════════════════════════════ */}
       {cardState === "card_stack" && similarProviders.length > 0 && (
-        <div className="p-6">
+        <div className="p-4 lg:p-6">
           {/* Stack 1: Context pill + Headline */}
           <div className="flex justify-center items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
-              <span className="text-[10px] font-bold uppercase tracking-wide text-primary-700 whitespace-nowrap">
-                You asked {firstName}&apos;s
-              </span>
-              <span className="text-[13px] font-medium italic text-gray-600 truncate max-w-[220px]">
-                &ldquo;{truncateQuestion(question)}&rdquo;
+            <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
+              <span className="text-sm italic text-gray-600">
+                You just asked {currentProvider.name} a question.
               </span>
             </span>
           </div>
 
           <div className="mb-8 text-center">
             <h3 className="font-display text-2xl font-normal text-gray-900 leading-tight">
-              Don&apos;t settle on the first answer.
+              Others might answer differently.
             </h3>
           </div>
 
           {/* Stack 2: Card Stack (standalone) */}
-          <div className="relative mb-8 mx-4 lg:mx-20">
+          <div className="relative mb-8 mx-2 lg:mx-20">
             {/* Peek card 2 (furthest back) - rotated left */}
             {currentIndex < similarProviders.length - 2 && (
               <div
@@ -556,7 +553,7 @@ export default function MultiProviderCard({
           STATE 2: EMAIL CAPTURE — Collect email after all cards processed
           ═══════════════════════════════════════════════════════════════ */}
       {cardState === "email_capture" && (
-        <div className="p-6">
+        <div className="p-4 lg:p-6">
           {isLoggedIn ? (
             /* Logged-in user: show confirmation */
             <div className="text-center py-4">
@@ -595,7 +592,7 @@ export default function MultiProviderCard({
               </div>
 
               {/* Provider list with "Replying" animation */}
-              <div className="space-y-2 mb-8 mx-4 lg:mx-20">
+              <div className="space-y-2 mb-8 mx-2 lg:mx-20">
                 {allSentProviders.map((provider) => (
                   <div
                     key={provider.id}
@@ -646,7 +643,7 @@ export default function MultiProviderCard({
                   disabled={isSubmitting}
                   className="
                     flex-1 min-w-0 px-4 py-2
-                    text-sm text-gray-900 placeholder-gray-400
+                    text-sm text-gray-900 placeholder-gray-500
                     bg-transparent border-none outline-none
                     disabled:opacity-50
                   "

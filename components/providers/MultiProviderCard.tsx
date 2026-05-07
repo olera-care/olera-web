@@ -386,7 +386,7 @@ export default function MultiProviderCard({
 
           <div className="mb-8 text-center">
             <h3 className="font-display text-2xl text-gray-900 leading-tight">
-              Ask <span className="font-bold">more providers</span> the same question?
+              Get answers from <span className="font-bold">other providers</span> in {currentProvider.city || "your area"}?
             </h3>
           </div>
 

@@ -22,6 +22,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { careNeedLabel } from "@/lib/analytics/variant-copy";
+import SessionDetailDrawer from "@/components/admin/SessionDetailDrawer";
 
 type Stage = "impression" | "started" | "care_need" | "submitted";
 
@@ -99,6 +100,11 @@ export default function VariantSessionsList({
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Stage filter — "all" by default, switching to a specific stage
+  // makes the most-converted-arms-with-1024-rows case scannable.
+  // Server-side filter so we don't have to load every page just to
+  // find the 3 Submitted rows.
+  const [stageFilter, setStageFilter] = useState<Stage | "all">("all");
   // Delete state — pendingDelete holds the row the operator clicked the
   // trash icon on; we render a confirmation modal until they confirm or
   // cancel. deleteError surfaces backend failures inline in the modal so
@@ -106,6 +112,9 @@ export default function VariantSessionsList({
   const [pendingDelete, setPendingDelete] = useState<SessionRow | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  // Detail drawer — clicking anywhere on a row (other than the inner
+  // provider link or trash icon) opens it.
+  const [detailRow, setDetailRow] = useState<SessionRow | null>(null);
 
   const fetchPage = useCallback(
     async (offset: number, append: boolean) => {
@@ -118,6 +127,7 @@ export default function VariantSessionsList({
         params.set("variant", variant);
         if (dateFrom) params.set("date_from", dateFrom);
         if (dateTo) params.set("date_to", dateTo);
+        if (stageFilter !== "all") params.set("stage", stageFilter);
         params.set("limit", String(PAGE_SIZE));
         params.set("offset", String(offset));
         const res = await fetch(`/api/admin/analytics/variant-sessions?${params.toString()}`);
@@ -132,10 +142,10 @@ export default function VariantSessionsList({
         else setLoadingMore(false);
       }
     },
-    [variant, dateFrom, dateTo],
+    [variant, dateFrom, dateTo, stageFilter],
   );
 
-  // Refetch from scratch whenever variant or window changes.
+  // Refetch from scratch whenever variant, window, or stage filter changes.
   useEffect(() => {
     fetchPage(0, false);
   }, [fetchPage]);
@@ -171,9 +181,22 @@ export default function VariantSessionsList({
 
   const hasMore = total !== null && sessions.length < total;
 
+  // Stage filter chip definitions. "All" is always present; the four
+  // stages mirror STAGE_LABEL so the filter naming is consistent with
+  // what the rows display. Some stages won't have data for some arms
+  // (e.g. outreach has no care_need step) — empty result is acceptable
+  // there, the empty state handles it.
+  const STAGE_CHIPS: Array<{ key: Stage | "all"; label: string }> = [
+    { key: "all", label: "All" },
+    { key: "impression", label: "Impression" },
+    { key: "started", label: "Started" },
+    { key: "care_need", label: "Care need ✓" },
+    { key: "submitted", label: "Submitted" },
+  ];
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
-      <div className="px-5 py-3 border-b border-gray-100 flex items-baseline justify-between gap-3">
+      <div className="px-5 py-3 border-b border-gray-100 flex items-baseline justify-between gap-3 flex-wrap">
         <div>
           <div className="text-[11px] font-medium uppercase tracking-wider text-gray-400">
             Sessions in this arm
@@ -181,8 +204,30 @@ export default function VariantSessionsList({
           {total !== null && (
             <div className="text-xs text-gray-600 mt-0.5">
               Showing {sessions.length} of {total}
+              {stageFilter !== "all" && (
+                <span className="text-gray-400"> · filtered to {STAGE_LABEL[stageFilter]}</span>
+              )}
             </div>
           )}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {STAGE_CHIPS.map(({ key, label }) => {
+            const active = stageFilter === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setStageFilter(key)}
+                className={`text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors ${
+                  active
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -219,7 +264,11 @@ export default function VariantSessionsList({
               </thead>
               <tbody>
                 {sessions.map((s) => (
-                  <tr key={s.session_id} className="group border-b border-gray-50 last:border-b-0 hover:bg-gray-50/40">
+                  <tr
+                    key={s.session_id}
+                    className="group border-b border-gray-50 last:border-b-0 hover:bg-gray-50/40 cursor-pointer"
+                    onClick={() => setDetailRow(s)}
+                  >
                     <td className="px-5 py-2">
                       <span
                         className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full ${STAGE_BADGE_CLASS[s.furthest_stage]}`}
@@ -234,6 +283,7 @@ export default function VariantSessionsList({
                             href={`/admin/care-seekers/${s.submitter_link_id}`}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
                             className="font-medium text-gray-900 underline-offset-2 hover:underline hover:text-gray-700"
                             title="Open care seeker profile (new tab)"
                           >
@@ -254,6 +304,7 @@ export default function VariantSessionsList({
                           href={`/provider/${s.provider_id}`}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
                           className="text-gray-700 hover:text-gray-900 underline-offset-2 hover:underline truncate inline-block max-w-[280px]"
                         >
                           {s.provider_id}
@@ -271,7 +322,7 @@ export default function VariantSessionsList({
                     <td className="px-2 py-2 w-8 text-right">
                       <button
                         type="button"
-                        onClick={() => { setDeleteError(null); setPendingDelete(s); }}
+                        onClick={(e) => { e.stopPropagation(); setDeleteError(null); setPendingDelete(s); }}
                         className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
                         aria-label="Delete this session"
                         title="Delete this session and its data"
@@ -377,6 +428,21 @@ export default function VariantSessionsList({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Detail drawer — fetches the full session timeline + arm-specific
+          submission detail when opened. Stays mounted in the analytics
+          page so closing returns the operator to the same drill-in
+          state (filter, scroll, expanded variant). */}
+      {detailRow && (
+        <SessionDetailDrawer
+          sessionId={detailRow.session_id}
+          variant={variant}
+          stage={detailRow.furthest_stage}
+          providerId={detailRow.provider_id}
+          firstSeen={detailRow.first_seen}
+          onClose={() => setDetailRow(null)}
+        />
       )}
     </div>
   );

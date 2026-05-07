@@ -523,8 +523,8 @@ export default function MultiProviderCard({
           {/* Progress tracker */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-success-500" />
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              <span className="w-2 h-2 rounded-full bg-success-500 animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-wide text-gray-600">
                 Question sent to · {totalAsked} provider{totalAsked !== 1 ? "s" : ""}
               </span>
             </div>

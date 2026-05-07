@@ -14,7 +14,9 @@
  *   3. Compute matchingPrograms from inferred careNeed.
  *   4. Render: echo (12px) → intent-mapped H2 → 2 program chips
  *      → [one-click for authed users OR email field] → dynamic CTA → trust.
- *   5. On submit: POST /api/benefits/save-results, open ResultsSheet on success.
+ *   5. On submit: POST /api/benefits/save-results, replace the form with
+ *      an inline success state (no sheet). Match list lives in the email
+ *      so the page stays anchored on the provider the user came to see.
  *
  * The "Submitted" funnel event mirrors the legacy 3-step flow so dashboard
  * continuity is preserved (benefits_step_completed step=contact). A new
@@ -142,7 +144,7 @@ export default function EmpathicSingleStep({
     [allPrograms, inferred.careNeed],
   );
 
-  // Top 2 visible chips. The success state shows the full list via ResultsSheet.
+  // Top 2 visible chips on the form. The full list goes in the post-submit email.
   const previewPrograms = useMemo(() => matchingPrograms.slice(0, 2), [matchingPrograms]);
 
   // ─── Form state ───────────────────────────────────────────────────────

@@ -41,7 +41,7 @@ import {
 } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { trackBenefitsEvent, type BenefitsStepEvent } from "@/lib/analytics/track-step";
-import { isPreviewMode } from "@/lib/analytics/preview-mode";
+import { getPreviewArm, isPreviewMode } from "@/lib/analytics/preview-mode";
 import { assignBenefitsVariant, type BenefitsVariant } from "@/lib/analytics/variant";
 import { BENEFITS_VARIANT_COPY } from "@/lib/analytics/variant-copy";
 import { matchesCareNeed, type CareNeed } from "@/lib/benefits/match-care-need";
@@ -194,6 +194,16 @@ export default function BenefitsDiscoveryModule({
   useEffect(() => {
     const sid = getOrCreateSessionId();
     setSessionId(sid);
+    // Admin preview override: when ?preview_arm=availability|loss|empathic
+    // is on the URL, force the copy variant to match. The production 3-arm
+    // hash (assignBenefitsVariant) stays uncorrelated from the 5-arm page-
+    // level split by design (gcd(3,5)=1) — preview mode is the only path
+    // that bypasses that independence so the URL does what it says.
+    const previewArm = getPreviewArm();
+    if (previewArm === "availability" || previewArm === "loss" || previewArm === "empathic") {
+      setVariant(previewArm);
+      return;
+    }
     setVariant(assignBenefitsVariant(sid));
   }, []);
 

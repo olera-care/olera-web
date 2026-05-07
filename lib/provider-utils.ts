@@ -495,6 +495,7 @@ export async function getSimilarProvidersForMulti(
   const supabase = await createClient();
 
   // Pass 1: Same state and category (preferred - local results)
+  // Note: Use same filter as getSimilarProviders (only exclude by provider_id, not slug)
   if (state) {
     try {
       const { data, error } = await supabase
@@ -504,7 +505,6 @@ export async function getSimilarProvidersForMulti(
         .ilike("provider_category", `%${supabaseCategory}%`)
         .eq("state", state)
         .neq("provider_id", excludeSlug)
-        .neq("slug", excludeSlug)
         .order("google_rating", { ascending: false, nullsFirst: false })
         .limit(20);
 
@@ -524,7 +524,6 @@ export async function getSimilarProvidersForMulti(
       .not("deleted", "is", true)
       .ilike("provider_category", `%${supabaseCategory}%`)
       .neq("provider_id", excludeSlug)
-      .neq("slug", excludeSlug)
       .order("google_rating", { ascending: false, nullsFirst: false })
       .limit(20);
 

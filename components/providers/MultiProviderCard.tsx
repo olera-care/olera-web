@@ -595,17 +595,17 @@ export default function MultiProviderCard({
               </div>
 
               {/* Provider list with "Replying" animation */}
-              <div className="space-y-2 mb-8 mx-2 lg:mx-20">
+              <div className="space-y-2 mb-8 mx-2 lg:mx-[100px]">
                 {allSentProviders.map((provider) => (
                   <div
                     key={provider.id}
-                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-gray-50"
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-gray-50 min-w-0"
                   >
-                    <ProviderAvatar provider={provider} size="sm" />
-                    <span className="flex-1 text-sm font-medium text-gray-900 truncate">
+                    <ProviderAvatar provider={provider} size="sm" className="shrink-0" />
+                    <span className="flex-1 min-w-0 text-sm font-medium text-gray-900 truncate">
                       {provider.name}
                     </span>
-                    <span className="flex items-center gap-1 text-sm text-gray-500">
+                    <span className="flex items-center gap-1.5 text-sm text-gray-500 shrink-0 ml-3">
                       <span className="italic">Replying</span>
                       <span className="flex gap-0.5">
                         <span className="w-1 h-1 rounded-full bg-amber-600 typing-dot-1" />

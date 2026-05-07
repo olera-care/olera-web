@@ -22,9 +22,23 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
-import { assignIntakeVariant } from "@/lib/analytics/variant";
+import { assignIntakeVariant, type IntakeVariant } from "@/lib/analytics/variant";
 import AgentOutreachModule from "@/components/providers/AgentOutreachModule";
 import type { ProviderCardData } from "@/lib/types/provider";
+
+/**
+ * Helper to get the effective variant, respecting URL override for testing.
+ */
+function getEffectiveVariant(): IntakeVariant {
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlVariant = urlParams.get("variant") as IntakeVariant | null;
+  const validVariants: IntakeVariant[] = ["availability", "loss", "empathic", "outreach", "multi_provider"];
+
+  if (urlVariant && validVariants.includes(urlVariant)) {
+    return urlVariant;
+  }
+  return assignIntakeVariant(getOrCreateSessionId());
+}
 
 /**
  * Wraps the BenefitsDiscoveryModule section. Renders children unless the
@@ -33,7 +47,7 @@ import type { ProviderCardData } from "@/lib/types/provider";
 export function BenefitsArmGate({ children }: { children: ReactNode }) {
   const [hide, setHide] = useState(false);
   useEffect(() => {
-    const variant = assignIntakeVariant(getOrCreateSessionId());
+    const variant = getEffectiveVariant();
     if (variant === "outreach" || variant === "multi_provider") setHide(true);
   }, []);
   if (hide) return null;
@@ -55,7 +69,7 @@ export function AgentOutreachSlot(props: {
 }) {
   const [show, setShow] = useState(false);
   useEffect(() => {
-    if (assignIntakeVariant(getOrCreateSessionId()) === "outreach") setShow(true);
+    if (getEffectiveVariant() === "outreach") setShow(true);
   }, []);
   if (!show) return null;
   if (props.topProviders.length === 0) return null; // graceful fallback (no candidates)

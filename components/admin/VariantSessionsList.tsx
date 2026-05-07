@@ -27,6 +27,7 @@ type SessionRow = {
   first_seen: string;
   care_need_selected: string | null;
   submitter: string | null;
+  submitter_link_id: string | null;
 };
 
 type ApiResponse = {
@@ -166,7 +167,17 @@ export default function VariantSessionsList({
                     </td>
                     <td className="px-3 py-2 text-gray-700">
                       {s.submitter ? (
-                        <span className="font-medium text-gray-900">{s.submitter}</span>
+                        s.submitter_link_id ? (
+                          <a
+                            href={`/admin/care-seekers/${s.submitter_link_id}`}
+                            className="font-medium text-gray-900 underline-offset-2 hover:underline hover:text-gray-700"
+                            title="Open care seeker profile"
+                          >
+                            {s.submitter}
+                          </a>
+                        ) : (
+                          <span className="font-medium text-gray-900">{s.submitter}</span>
+                        )
                       ) : (
                         <span className="text-gray-400 font-mono text-[11px]">
                           {s.session_id.slice(0, 8)}…

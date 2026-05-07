@@ -3,14 +3,19 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 // One row in the drill-in table — the journey of a single session through
 // the Family Intake funnel for one A/B arm. The shape is intentionally the
-// same for benefits arms and the outreach arm so the admin UI can render
-// one component for both. `submitter` is populated only when the session
-// reached the Submitted stage:
-//   benefits arms → accounts.display_name (the firstName captured at submit)
-//   outreach arm  → agent_outreach_requests.seeker_email
-// Two different fields because the two surfaces collect different first-
-// signal: the benefits form asks for first name + email, while the
-// outreach module asks for email only. Showing whichever is available.
+// same across all arms so the admin UI can render one component for both.
+// `submitter` is populated only when the session reached the Submitted
+// stage; we always surface the email (the operator's spot-check signal)
+// regardless of arm:
+//   benefits arms     → accounts.email
+//   outreach arm      → agent_outreach_requests.seeker_email
+//   qa_email_capture  → provider_questions.asker_email
+//
+// `submitter_link_id` is only populated for benefits arms, where the
+// email belongs to a family business_profile that has a dedicated admin
+// detail page at /admin/care-seekers/[id]. The frontend uses this to
+// linkify the email for benefit submissions; outreach + qa_email_capture
+// stay as plain text since they have no equivalent detail surface.
 export type VariantSessionRow = {
   session_id: string;
   furthest_stage: "impression" | "started" | "care_need" | "submitted";
@@ -18,6 +23,7 @@ export type VariantSessionRow = {
   first_seen: string;            // ISO timestamp of the earliest event in window
   care_need_selected: string | null;
   submitter: string | null;
+  submitter_link_id: string | null;
 };
 
 export type VariantSessionsResponse = {
@@ -117,6 +123,7 @@ export async function GET(request: NextRequest) {
           first_seen: created_at,
           care_need_selected: careNeed,
           submitter: null,
+          submitter_link_id: null,
         });
         return;
       }
@@ -320,27 +327,33 @@ export async function GET(request: NextRequest) {
         upgrade(sid, stage, row.created_at, providerId, careNeed);
       }
 
-      // Submitter name join — accounts.display_name (the firstName the
-      // family entered at submit) keyed by accounts.session_id (post-
-      // migration #067). Pre-migration rows have NULL session_id and
-      // won't link; their drill-in row shows "—" for submitter.
+      // Submitter join — accounts.email (the spot-check signal — operator
+      // wants to verify a real address, not just see a first name) plus
+      // accounts.active_profile_id so the email can deep-link to the
+      // family's detail page at /admin/care-seekers/[id]. Keyed by
+      // accounts.session_id (post-migration #067). Pre-migration rows
+      // have NULL session_id and won't link; their drill-in row shows
+      // "—" for submitter.
       const submittedSids = [...sessions.values()]
         .filter((s) => s.furthest_stage === "submitted")
         .map((s) => s.session_id);
       if (submittedSids.length > 0) {
         const acctRes = await db
           .from("accounts")
-          .select("session_id, display_name")
+          .select("session_id, email, active_profile_id")
           .in("session_id", submittedSids)
           .limit(submittedSids.length);
         if (!acctRes.error) {
           for (const row of (acctRes.data ?? []) as Array<{
             session_id: string | null;
-            display_name: string | null;
+            email: string | null;
+            active_profile_id: string | null;
           }>) {
-            if (!row.session_id || !row.display_name) continue;
+            if (!row.session_id) continue;
             const session = sessions.get(row.session_id);
-            if (session) session.submitter = row.display_name;
+            if (!session) continue;
+            if (row.email) session.submitter = row.email;
+            if (row.active_profile_id) session.submitter_link_id = row.active_profile_id;
           }
         }
       }

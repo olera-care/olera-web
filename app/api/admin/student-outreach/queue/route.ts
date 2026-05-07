@@ -557,45 +557,89 @@ async function computeTabCounts(
   const candidateIds = Array.from(latestCandidateTaskByProfile.keys());
   const siteIds = Array.from(latestSiteTaskByCampus.keys());
 
+  // v9.0 Phase 7 Commit Q: filter each entity-task set to entities that
+  // actually pass the dedicated page's validity check. Without this,
+  // an orphan task on an inactive/deleted entity inflates the queue
+  // count above what the sidebar + dedicated page render — exactly
+  // the "Sites 1/1 in tab but 0 cards on the page" mismatch.
+  //
+  //   Sites      → student_outreach_campuses with is_active=true
+  //   Clients    → business_profiles in (organization|caregiver) with
+  //                T&C accepted OR active subscription
+  //   Candidates → business_profiles type=student, is_active=true,
+  //                metadata.application_completed=true
   const [
     { data: clientProfiles },
     { data: candidateProfiles },
     { data: campusViews },
   ] = await Promise.all([
     clientIds.length > 0
-      ? db.from("business_profiles").select("id, metadata").in("id", clientIds)
+      ? db
+          .from("business_profiles")
+          .select("id, metadata")
+          .in("id", clientIds)
+          .in("type", ["organization", "caregiver"])
       : Promise.resolve({ data: [] as Array<{ id: string; metadata: Record<string, unknown> | null }> }),
     candidateIds.length > 0
-      ? db.from("business_profiles").select("id, metadata").in("id", candidateIds)
+      ? db
+          .from("business_profiles")
+          .select("id, metadata")
+          .in("id", candidateIds)
+          .eq("type", "student")
+          .eq("is_active", true)
+          .contains("metadata", { application_completed: true })
       : Promise.resolve({ data: [] as Array<{ id: string; metadata: Record<string, unknown> | null }> }),
     siteIds.length > 0
       ? db
           .from("student_outreach_campuses")
           .select("id, viewed_at")
           .in("id", siteIds)
+          .eq("is_active", true)
       : Promise.resolve({ data: [] as Array<{ id: string; viewed_at: string | null }> }),
   ]);
 
+  // Client validity check: T&C accepted in last 90 days OR active
+  // subscription. Mirrors getClientStatus() in lib/medjobs/clients.ts
+  // — duplicating the predicate here avoids a transitive import for a
+  // 5-line check.
+  const PILOT_MS = 90 * 24 * 60 * 60 * 1000;
+  const nowMs = Date.now();
+  const isValidClient = (meta: Record<string, unknown> | null): boolean => {
+    if (!meta) return false;
+    if (meta.medjobs_subscription_active === true) return true;
+    const accepted = meta.interview_terms_accepted_at;
+    if (typeof accepted !== "string") return false;
+    const t = new Date(accepted).getTime();
+    return !isNaN(t) && nowMs - t < PILOT_MS;
+  };
+
+  const validClientIds = new Set<string>();
   const clientViewedAt = new Map<string, string | null>();
   for (const p of (clientProfiles ?? []) as Array<{
     id: string;
     metadata: Record<string, unknown> | null;
   }>) {
+    if (!isValidClient(p.metadata)) continue;
+    validClientIds.add(p.id);
     const v = p.metadata?.admin_viewed_at;
     clientViewedAt.set(p.id, typeof v === "string" ? v : null);
   }
 
+  const validCandidateIds = new Set<string>();
   const candidateViewedAt = new Map<string, string | null>();
   for (const p of (candidateProfiles ?? []) as Array<{
     id: string;
     metadata: Record<string, unknown> | null;
   }>) {
+    validCandidateIds.add(p.id);
     const v = p.metadata?.admin_viewed_at;
     candidateViewedAt.set(p.id, typeof v === "string" ? v : null);
   }
 
+  const validSiteIds = new Set<string>();
   const siteViewedAt = new Map<string, string | null>();
   for (const c of (campusViews ?? []) as Array<{ id: string; viewed_at: string | null }>) {
+    validSiteIds.add(c.id);
     siteViewedAt.set(c.id, c.viewed_at);
   }
 
@@ -610,26 +654,37 @@ async function computeTabCounts(
     return latestTask > viewed;
   };
 
+  let clientTotal = 0;
   let clientUnread = 0;
   for (const [id, latest] of latestClientTaskByProfile.entries()) {
+    if (!validClientIds.has(id)) continue;
+    clientTotal += 1;
     if (entityUnread(clientViewedAt.get(id) ?? null, latest)) clientUnread += 1;
   }
+
+  let candidateTotal = 0;
   let candidateUnread = 0;
   for (const [id, latest] of latestCandidateTaskByProfile.entries()) {
+    if (!validCandidateIds.has(id)) continue;
+    candidateTotal += 1;
     if (entityUnread(candidateViewedAt.get(id) ?? null, latest)) candidateUnread += 1;
   }
+
+  let siteTotal = 0;
   let siteUnread = 0;
   for (const [id, latest] of latestSiteTaskByCampus.entries()) {
+    if (!validSiteIds.has(id)) continue;
+    siteTotal += 1;
     if (entityUnread(siteViewedAt.get(id) ?? null, latest)) siteUnread += 1;
   }
 
-  counts.clients = latestClientTaskByProfile.size;
+  counts.clients = clientTotal;
   unread.clients = clientUnread;
 
-  counts.candidates = latestCandidateTaskByProfile.size;
+  counts.candidates = candidateTotal;
   unread.candidates = candidateUnread;
 
-  counts.sites = latestSiteTaskByCampus.size;
+  counts.sites = siteTotal;
   unread.sites = siteUnread;
   // Legacy 'campuses' alias retained for queue-endpoint defenders.
   counts.campuses = counts.sites;

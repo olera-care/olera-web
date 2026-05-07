@@ -41,6 +41,7 @@ import {
 } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { trackBenefitsEvent, type BenefitsStepEvent } from "@/lib/analytics/track-step";
+import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import { assignBenefitsVariant, type BenefitsVariant } from "@/lib/analytics/variant";
 import { BENEFITS_VARIANT_COPY } from "@/lib/analytics/variant-copy";
 import { matchesCareNeed, type CareNeed } from "@/lib/benefits/match-care-need";
@@ -283,6 +284,7 @@ export default function BenefitsDiscoveryModule({
   function trackStart(selectedCareNeed: CareNeed) {
     if (startTrackedRef.current) return;
     startTrackedRef.current = true;
+    if (isPreviewMode()) return; // admin inspection — don't pollute funnel
     const label = CARE_NEED_OPTIONS.find((o) => o.value === selectedCareNeed)?.label || selectedCareNeed;
     try {
       fetch("/api/benefits/track-start", {
@@ -328,6 +330,14 @@ export default function BenefitsDiscoveryModule({
   // ─── Handle submit ────────────────────────────────────────────────────
   async function handleSubmit() {
     setError(null);
+
+    // Admin preview mode: form short-circuits with a friendly notice
+    // instead of submitting. Initial state + this notice is enough to
+    // evaluate copy + layout per the v1 preview spec.
+    if (isPreviewMode()) {
+      setError("Preview mode — submission disabled.");
+      return;
+    }
 
     // Email is always required in V3 — phone is the bonus signal.
     // Client-side gate; server re-validates strictly via validateEmailStrict.

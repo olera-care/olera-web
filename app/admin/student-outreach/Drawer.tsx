@@ -21,9 +21,13 @@ import { OutreachStepList } from "./OutreachStepList";
 import { PreFlightReviewModal } from "./PreFlightReviewModal";
 import { ReplyClassifierModal } from "./ReplyClassifierModal";
 import { LogMeetingModal } from "./LogMeetingModal";
+import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
+import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
+import { StepBoardCard } from "@/components/admin/medjobs/StepBoardCard";
+import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import {
   PARTNER_CTA_STAGES,
-  STAKEHOLDER_TYPE_LABELS,
+  KIND_LABELS,
   STATUS_LABELS,
   type Approval,
   type ApprovalStatus,
@@ -47,9 +51,22 @@ import {
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 
 interface DrawerProps {
-  outreachId: string;
+  /** v9.0 Phase 2: stakeholder mode — pass outreachId to load a
+   *  student_outreach row and render the existing workflow drawer. */
+  outreachId?: string;
+  /** v9.0 Phase 2: provider mode — pass providerId to load a
+   *  business_profiles row and render the Manage panel for a Client. */
+  providerId?: string;
+  /** v9.0 Phase 7 Commit B: site mode — pass siteId (a campus_id) to
+   *  render the Site reference + Step Board panel. */
+  siteId?: string;
+  /** v9.0 Phase 7 Commit B: candidate mode — pass candidateId (a
+   *  student business_profile id) to render the Candidate reference +
+   *  Step Board panel. */
+  candidateId?: string;
   onClose: () => void;
-  onAction: (refreshed: DrawerContext | null) => void;
+  /** Optional in non-stakeholder modes. */
+  onAction?: (refreshed: DrawerContext | null) => void;
 }
 
 type ActionFn = (action: string, payload?: Record<string, unknown>) => Promise<DrawerContext>;
@@ -69,7 +86,91 @@ const TERMINAL_STATUSES: Status[] = [
 // h3s + per-state guidance already convey orientation; the banner was
 // repeating it one row above. tabContext prop on DrawerProps was only
 // used to drive that banner, so it's gone too.
-export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
+//
+// v9.0 Phase 2: Drawer is now polymorphic — `outreachId` mounts the
+// existing stakeholder workflow drawer; `providerId` mounts the
+// provider Manage drawer (Clients tab). One drawer file, internal
+// fork on which prop is set. The two share the outer chrome (backdrop,
+// aside, ESC handler, close button) via DrawerShell.
+export function Drawer(props: DrawerProps) {
+  if (props.providerId) {
+    return <ProviderDrawer providerId={props.providerId} onClose={props.onClose} />;
+  }
+  if (props.siteId) {
+    return <SiteDrawer siteId={props.siteId} onClose={props.onClose} />;
+  }
+  if (props.candidateId) {
+    return <CandidateDrawer candidateId={props.candidateId} onClose={props.onClose} />;
+  }
+  if (!props.outreachId) {
+    return null;
+  }
+  return (
+    <StakeholderDrawer
+      outreachId={props.outreachId}
+      onClose={props.onClose}
+      onAction={props.onAction ?? (() => {})}
+    />
+  );
+}
+
+/**
+ * v9.0 Phase 4: tiny drawer-header overflow menu carrying admin
+ * actions that aren't tied to any specific row card slot. Currently
+ * just Mark as unread; future drawer-level actions land here.
+ */
+function DrawerHeaderOverflow({ onMarkUnread }: { onMarkUnread: () => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onEsc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [open]);
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((s) => !s)}
+        className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+        title="More actions"
+        aria-label="More actions"
+      >
+        <span aria-hidden>⋯</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-30 mt-1 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+          <button
+            onClick={() => {
+              setOpen(false);
+              void onMarkUnread();
+            }}
+            className="block w-full px-3 py-1.5 text-left text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Mark as unread
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StakeholderDrawer({
+  outreachId,
+  onClose,
+  onAction,
+}: {
+  outreachId: string;
+  onClose: () => void;
+  onAction: (refreshed: DrawerContext | null) => void;
+}) {
   const [ctx, setCtx] = useState<DrawerContext | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,6 +194,30 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
     return () => { cancelled = true; };
   }, [outreachId]);
 
+  // v9.0 Phase 4: mark the row read on drawer mount. Fire-and-forget;
+  // a failed mark_read shouldn't disrupt the drawer experience. The
+  // server is idempotent (only updates if viewed_at IS NULL) so this
+  // is safe to call on every mount.
+  //
+  // v9.0 Phase 7 Commit K: after mark_read lands, fire the global
+  // refresh so the In Basket hero (Queued counts) + sidebar
+  // fractions reflect the new read state in real time without
+  // waiting for the next user action.
+  useEffect(() => {
+    void (async () => {
+      try {
+        await fetch(`/api/admin/student-outreach/${outreachId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "mark_read" }),
+        });
+        refreshMedJobs();
+      } catch {
+        /* non-critical */
+      }
+    })();
+  }, [outreachId]);
+
   const action: ActionFn = useCallback(
     async (action, payload = {}) => {
       const res = await fetch(`/api/admin/student-outreach/${outreachId}`, {
@@ -109,95 +234,663 @@ export function Drawer({ outreachId, onClose, onAction }: DrawerProps) {
     [outreachId, onAction],
   );
 
+  return (
+    <DrawerShell
+      onClose={onClose}
+      header={
+        ctx ? (() => {
+          // v8.9: contact name leads everywhere. The displayed name is
+          // built from title + first + last when present, falling back
+          // to the legacy `name` column. Org/campus/type drop to the
+          // subline; if no contact exists yet, the org name takes the
+          // headline so the card isn't blank.
+          const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
+          const contactDisplay = primary
+            ? [primary.title, primary.first_name, primary.last_name]
+                .filter(Boolean)
+                .join(" ")
+                .trim() || primary.name || null
+            : null;
+          const headline = contactDisplay || ctx.outreach.organization_name;
+          const showOrgInSubline =
+            !!contactDisplay && contactDisplay !== ctx.outreach.organization_name;
+          // v8.10.37: surface a small "★ Partner since {date}" indicator
+          // for active partners. NextStepPanel is suppressed for partners,
+          // so without this header cue the drawer wouldn't show their
+          // status anywhere prominent. Date comes from the most recent
+          // distribution_confirmed touchpoint (when they were graduated).
+          const isPartner = ctx.outreach.status === "active_partner";
+          const partnerSince = isPartner
+            ? ctx.touchpoints.find((t) => t.touchpoint_type === "distribution_confirmed")
+                ?.created_at ?? null
+            : null;
+          return (
+            <>
+              <h2 className="truncate text-lg font-semibold text-gray-900">{headline}</h2>
+              <p className="truncate text-sm text-gray-500">
+                {showOrgInSubline && (
+                  <>
+                    {ctx.outreach.organization_name}
+                    {ctx.outreach.department &&
+                      ctx.outreach.department !== ctx.outreach.organization_name &&
+                      ` · ${ctx.outreach.department}`}
+                    {" · "}
+                  </>
+                )}
+                {ctx.campus.name} · {KIND_LABELS[ctx.outreach.kind ?? ctx.outreach.stakeholder_type]}
+                {primary?.role && ` · ${primary.role}`}
+              </p>
+              {isPartner && (
+                <p className="mt-1 text-xs font-medium text-emerald-700">
+                  ★ Partner
+                  {partnerSince
+                    ? ` since ${new Date(partnerSince).toLocaleDateString()}`
+                    : ""}
+                </p>
+              )}
+            </>
+          );
+        })() : (
+          <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
+        )
+      }
+      headerExtras={
+        // v9.0 Phase 4: drawer-level Mark as unread. Same semantic as
+        // the row card overflow item — resets attention so the row
+        // appears bold again in the tab.
+        <DrawerHeaderOverflow
+          onMarkUnread={async () => {
+            try {
+              await action("mark_unread");
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to mark unread");
+            }
+          }}
+        />
+      }
+    >
+      {loading ? (
+        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+      ) : error ? (
+        <p className="py-8 text-center text-sm text-red-600">{error}</p>
+      ) : ctx ? (
+        <DrawerBody ctx={ctx} action={action} setError={setError} />
+      ) : null}
+    </DrawerShell>
+  );
+}
+
+/**
+ * v9.0 Phase 2: Provider variant of the unified drawer. Mirrors the
+ * stakeholder drawer's chrome (backdrop, aside, ESC-to-close, scrollable
+ * body) but the body is the Manage panel — read-only summary of trial
+ * status, T&C acceptance, and Stripe linkage. Acknowledgement records
+ * + admin actions (extend trial, mark churned) land in subsequent v9.x.
+ */
+interface ProviderInterview {
+  id: string;
+  status: string;
+  type: string;
+  proposed_time: string;
+  confirmed_time: string | null;
+  created_at: string;
+  student: { id: string; display_name: string | null } | null;
+}
+
+interface ProviderDrawerData {
+  id: string;
+  display_name: string;
+  slug: string | null;
+  email: string | null;
+  phone: string | null;
+  city: string | null;
+  state: string | null;
+  is_active: boolean;
+  created_at: string;
+  stripe_customer_id: string | null;
+  subscription_id: string | null;
+  subscription_active: boolean;
+  interview_terms_accepted_at: string | null;
+  credits_used: number;
+  status: "in_pilot" | "pilot_expired" | "subscribed";
+  pilot_started_at: string | null;
+  pilot_ends_at: string | null;
+  days_remaining_in_pilot: number | null;
+  // v9.0 Phase 2 Tier 3.7: interview history.
+  first_interview: ProviderInterview | null;
+  recent_interviews: ProviderInterview[];
+  total_interviews: number;
+}
+
+function ProviderDrawer({
+  providerId,
+  onClose,
+}: {
+  providerId: string;
+  onClose: () => void;
+}) {
+  const [data, setData] = useState<ProviderDrawerData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/medjobs/clients/${providerId}`);
+        if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
+        const body = await res.json();
+        if (!cancelled) setData(body);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [providerId]);
+
+  // v9.0 Phase 7 Commit O: mark the client read on drawer mount —
+  // mirrors the StakeholderDrawer's mark_read effect. Fire the
+  // global refresh so In Basket + sidebar fractions update live.
+  useEffect(() => {
+    void (async () => {
+      try {
+        await fetch("/api/admin/medjobs/mark-entity-read", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind: "client", id: providerId, action: "read" }),
+        });
+        refreshMedJobs();
+      } catch {
+        /* non-critical */
+      }
+    })();
+  }, [providerId]);
 
   return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} aria-label="Close drawer" />
-      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-white shadow-2xl">
-        <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
-          {ctx ? (() => {
-            // v8.9: contact name leads everywhere. The displayed name is
-            // built from title + first + last when present, falling back
-            // to the legacy `name` column. Org/campus/type drop to the
-            // subline; if no contact exists yet, the org name takes the
-            // headline so the card isn't blank.
-            const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
-            const contactDisplay = primary
-              ? [primary.title, primary.first_name, primary.last_name]
-                  .filter(Boolean)
-                  .join(" ")
-                  .trim() || primary.name || null
-              : null;
-            const headline = contactDisplay || ctx.outreach.organization_name;
-            const showOrgInSubline =
-              !!contactDisplay && contactDisplay !== ctx.outreach.organization_name;
-            // v8.10.37: surface a small "★ Partner since {date}" indicator
-            // for active partners. NextStepPanel is suppressed for partners,
-            // so without this header cue the drawer wouldn't show their
-            // status anywhere prominent. Date comes from the most recent
-            // distribution_confirmed touchpoint (when they were graduated).
-            const isPartner = ctx.outreach.status === "active_partner";
-            const partnerSince = isPartner
-              ? ctx.touchpoints.find((t) => t.touchpoint_type === "distribution_confirmed")
-                  ?.created_at ?? null
-              : null;
-            return (
-              <div className="min-w-0 flex-1">
-                <h2 className="truncate text-lg font-semibold text-gray-900">{headline}</h2>
-                <p className="truncate text-sm text-gray-500">
-                  {showOrgInSubline && (
-                    <>
-                      {ctx.outreach.organization_name}
-                      {ctx.outreach.department &&
-                        ctx.outreach.department !== ctx.outreach.organization_name &&
-                        ` · ${ctx.outreach.department}`}
-                      {" · "}
-                    </>
-                  )}
-                  {ctx.campus.name} · {STAKEHOLDER_TYPE_LABELS[ctx.outreach.stakeholder_type]}
-                  {primary?.role && ` · ${primary.role}`}
-                </p>
-                {isPartner && (
-                  <p className="mt-1 text-xs font-medium text-emerald-700">
-                    ★ Partner
-                    {partnerSince
-                      ? ` since ${new Date(partnerSince).toLocaleDateString()}`
-                      : ""}
-                  </p>
-                )}
-              </div>
-            );
-          })() : (
-            <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
-          )}
-          <button
-            onClick={onClose}
-            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-            aria-label="Close"
-          >
-            <span aria-hidden>×</span>
-          </button>
-        </header>
+    <DrawerShell
+      onClose={onClose}
+      header={
+        data ? (
+          <>
+            <h2 className="truncate text-lg font-semibold text-gray-900">{data.display_name}</h2>
+            <p className="truncate text-sm text-gray-500">
+              {[data.city, data.state].filter(Boolean).join(", ") || "Provider"}
+              {data.email && ` · ${data.email}`}
+            </p>
+            <ProviderStatusLabel data={data} />
+          </>
+        ) : (
+          <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
+        )
+      }
+    >
+      {loading ? (
+        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+      ) : error ? (
+        <p className="py-8 text-center text-sm text-red-600">{error}</p>
+      ) : data ? (
+        <ProviderManagePanel data={data} />
+      ) : null}
+    </DrawerShell>
+  );
+}
 
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {loading ? (
-            <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
-          ) : error ? (
-            <p className="py-8 text-center text-sm text-red-600">{error}</p>
-          ) : ctx ? (
-            <DrawerBody ctx={ctx} action={action} setError={setError} />
-          ) : null}
+function ProviderStatusLabel({ data }: { data: ProviderDrawerData }) {
+  if (data.status === "subscribed") {
+    return (
+      <p className="mt-1 text-xs font-medium text-emerald-700">$ Subscribed via Stripe</p>
+    );
+  }
+  if (data.status === "pilot_expired") {
+    return <p className="mt-1 text-xs font-medium text-gray-500">Pilot ended</p>;
+  }
+  const days = data.days_remaining_in_pilot ?? 0;
+  const isUrgent = days <= 14;
+  return (
+    <p
+      className={`mt-1 text-xs font-medium ${
+        isUrgent ? "text-red-700" : "text-amber-700"
+      }`}
+    >
+      In 90-day pilot · {days === 1 ? "1 day" : `${days} days`} remaining
+    </p>
+  );
+}
+
+function ProviderManagePanel({ data }: { data: ProviderDrawerData }) {
+  const stripeUrl = data.stripe_customer_id
+    ? `https://dashboard.stripe.com/customers/${data.stripe_customer_id}`
+    : null;
+
+  return (
+    <div className="space-y-6">
+      {/* v9.0 Phase 7 Commit B: Step Board leads the panel — the
+          operational surface for client-side follow-ups (trial
+          check-ins, billing nudges, account expansion). Reference
+          sections (pilot status, subscription, interviews) follow. */}
+      <EntityStepBoard
+        kind="client"
+        entityId={data.id}
+        entityName={data.display_name}
+      />
+
+      {/* Pilot / Trial */}
+      <section>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Pilot status
+        </h3>
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
+          <Row label="Pilot started" value={formatTimestamp(data.pilot_started_at)} />
+          <Row label="Pilot ends" value={formatTimestamp(data.pilot_ends_at)} />
+          <Row
+            label="Days remaining"
+            value={
+              data.days_remaining_in_pilot === null
+                ? "—"
+                : data.days_remaining_in_pilot > 0
+                  ? `${data.days_remaining_in_pilot}`
+                  : "Expired"
+            }
+          />
+          <Row label="Interviews scheduled" value={`${data.total_interviews}`} />
+        </dl>
+      </section>
+
+      {/* v9.0 Phase 2 Tier 3.7: Acknowledgement record. The pilot starts
+          when a provider accepts T&C at first interview scheduling —
+          this section surfaces the proof. */}
+      <section>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Acknowledgement
+        </h3>
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
+          {data.interview_terms_accepted_at ? (
+            <>
+              <p className="font-medium text-gray-900">Terms &amp; conditions accepted</p>
+              <p className="mt-0.5 text-xs text-gray-500">
+                {formatTimestamp(data.interview_terms_accepted_at)} · captured at first interview scheduling
+              </p>
+              {data.first_interview && (
+                <p className="mt-2 rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-700">
+                  Linked to interview with{" "}
+                  <span className="font-medium">
+                    {data.first_interview.student?.display_name ?? "(student profile)"}
+                  </span>
+                  {" — "}
+                  proposed for {formatTimestamp(data.first_interview.proposed_time)} ({data.first_interview.type}).
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-gray-500">
+              No acknowledgement on file. T&amp;C is captured the first time the provider schedules
+              an interview through the public scheduler.
+            </p>
+          )}
         </div>
-      </aside>
+      </section>
+
+      {/* Subscription */}
+      <section>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Subscription
+        </h3>
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
+          <Row label="Status" value={data.subscription_active ? "Active" : "Not subscribed"} />
+          <Row label="Customer ID" value={data.stripe_customer_id ?? "—"} mono />
+          <Row label="Subscription ID" value={data.subscription_id ?? "—"} mono />
+        </dl>
+        {stripeUrl && (
+          <a
+            href={stripeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            View in Stripe Dashboard ↗
+          </a>
+        )}
+      </section>
+
+      {/* v9.0 Phase 2 Tier 3.7: recent interviews. Gives admin
+          pilot-utilization context — are they actively scheduling? */}
+      {data.recent_interviews.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Recent interviews ({data.total_interviews} total)
+          </h3>
+          <ul className="divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white text-sm">
+            {data.recent_interviews.map((iv) => (
+              <li key={iv.id} className="px-4 py-2.5">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="truncate font-medium text-gray-900">
+                    {iv.student?.display_name ?? "(student profile)"}
+                  </span>
+                  <span className="shrink-0 text-xs text-gray-400">
+                    {formatTimestamp(iv.proposed_time)}
+                  </span>
+                </div>
+                <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-500">
+                  <InterviewStatusPill status={iv.status} />
+                  <span>{iv.type}</span>
+                  {iv.confirmed_time && (
+                    <span className="text-emerald-700">
+                      Confirmed {formatTimestamp(iv.confirmed_time)}
+                    </span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Profile */}
+      <section>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Provider profile
+        </h3>
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
+          <Row label="Active" value={data.is_active ? "Yes" : "No"} />
+          <Row label="Phone" value={data.phone ?? "—"} />
+          <Row label="Created" value={formatTimestamp(data.created_at)} />
+          <Row label="Slug" value={data.slug ?? "—"} mono />
+        </dl>
+        {data.slug && (
+          <a
+            href={`/${data.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            View public profile ↗
+          </a>
+        )}
+      </section>
+    </div>
+  );
+}
+
+// ── Site + Candidate drawers (v9.0 Phase 7 Commit B) ──────────────────
+//
+// Lightweight non-stakeholder drawers. Each shows a small reference
+// header + the EntityStepBoard for custom follow-up tasks. The full
+// inventory / management surfaces (campus management at
+// /admin/student-outreach/campus/[slug], candidate profile editor at
+// /admin/medjobs/[studentId]) are reachable via header links.
+
+interface SiteDrawerData {
+  id: string;
+  slug: string;
+  name: string;
+  state: string | null;
+  city: string | null;
+  research_complete: boolean;
+  is_active: boolean;
+}
+
+function SiteDrawer({ siteId, onClose }: { siteId: string; onClose: () => void }) {
+  const [data, setData] = useState<SiteDrawerData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/medjobs/campuses`);
+        if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
+        const body = await res.json();
+        const all = (body.rows ?? []) as Array<{
+          id: string;
+          slug: string;
+          name: string;
+          state: string | null;
+          city: string | null;
+          research_complete: boolean;
+        }>;
+        const found = all.find((c) => c.id === siteId);
+        if (!cancelled) {
+          if (!found) {
+            setError("Site not found");
+          } else {
+            setData({ ...found, is_active: true });
+          }
+        }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [siteId]);
+
+  // v9.0 Phase 7 Commit O: mark site read on mount.
+  useEffect(() => {
+    void (async () => {
+      try {
+        await fetch("/api/admin/medjobs/mark-entity-read", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind: "site", id: siteId, action: "read" }),
+        });
+        refreshMedJobs();
+      } catch {
+        /* non-critical */
+      }
+    })();
+  }, [siteId]);
+
+  return (
+    <DrawerShell
+      onClose={onClose}
+      header={
+        data ? (
+          <>
+            <h2 className="truncate text-lg font-semibold text-gray-900">{data.name}</h2>
+            <p className="truncate text-sm text-gray-500">
+              {[data.city, data.state].filter(Boolean).join(", ") || "Site"}
+            </p>
+            <p className="mt-1 text-xs font-medium text-gray-500">
+              {data.research_complete ? "Active" : "Research in progress"}
+            </p>
+          </>
+        ) : (
+          <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
+        )
+      }
+    >
+      {loading ? (
+        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+      ) : error ? (
+        <p className="py-8 text-center text-sm text-red-600">{error}</p>
+      ) : data ? (
+        <div className="space-y-6">
+          <EntityStepBoard kind="site" entityId={data.id} entityName={data.name} />
+          <section>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Open in
+            </h3>
+            <a
+              href={`/admin/student-outreach/campus/${data.slug}`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Site management page ↗
+            </a>
+          </section>
+        </div>
+      ) : null}
+    </DrawerShell>
+  );
+}
+
+interface CandidateDrawerData {
+  id: string;
+  display_name: string;
+  university: string | null;
+  city: string | null;
+  state: string | null;
+  program_track: string | null;
+  signed_up_at: string | null;
+}
+
+function CandidateDrawer({
+  candidateId,
+  onClose,
+}: {
+  candidateId: string;
+  onClose: () => void;
+}) {
+  const [data, setData] = useState<CandidateDrawerData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    (async () => {
+      try {
+        // Reuse the candidates list endpoint and pick the matching row.
+        // No per-candidate endpoint exists yet; the inventory list is
+        // small enough (live candidates only) to scan client-side.
+        const res = await fetch(`/api/admin/student-outreach/candidates`);
+        if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
+        const body = await res.json();
+        const all = (body.rows ?? []) as Array<{
+          id: string;
+          display_name: string;
+          university: string | null;
+          city: string | null;
+          state: string | null;
+          program_track: string | null;
+          signed_up_at: string | null;
+        }>;
+        const found = all.find((r) => r.id === candidateId);
+        if (!cancelled) {
+          if (!found) setError("Candidate not found");
+          else setData(found);
+        }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [candidateId]);
+
+  // v9.0 Phase 7 Commit O: mark candidate read on mount.
+  useEffect(() => {
+    void (async () => {
+      try {
+        await fetch("/api/admin/medjobs/mark-entity-read", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind: "candidate", id: candidateId, action: "read" }),
+        });
+        refreshMedJobs();
+      } catch {
+        /* non-critical */
+      }
+    })();
+  }, [candidateId]);
+
+  return (
+    <DrawerShell
+      onClose={onClose}
+      header={
+        data ? (
+          <>
+            <h2 className="truncate text-lg font-semibold text-gray-900">{data.display_name}</h2>
+            <p className="truncate text-sm text-gray-500">
+              {[data.university, [data.city, data.state].filter(Boolean).join(", "), data.program_track]
+                .filter(Boolean)
+                .join(" · ") || "Candidate"}
+            </p>
+          </>
+        ) : (
+          <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
+        )
+      }
+    >
+      {loading ? (
+        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+      ) : error ? (
+        <p className="py-8 text-center text-sm text-red-600">{error}</p>
+      ) : data ? (
+        <div className="space-y-6">
+          <EntityStepBoard
+            kind="candidate"
+            entityId={data.id}
+            entityName={data.display_name}
+          />
+          <section>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Open in
+            </h3>
+            <a
+              href={`/admin/medjobs/${data.id}`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Candidate profile editor ↗
+            </a>
+          </section>
+        </div>
+      ) : null}
+    </DrawerShell>
+  );
+}
+
+function InterviewStatusPill({ status }: { status: string }) {
+  const cls =
+    status === "completed"
+      ? "bg-emerald-100 text-emerald-900"
+      : status === "confirmed"
+        ? "bg-blue-100 text-blue-900"
+        : status === "proposed"
+          ? "bg-amber-100 text-amber-900"
+          : status === "cancelled" || status === "no_show"
+            ? "bg-red-100 text-red-900"
+            : "bg-gray-100 text-gray-700";
+  return (
+    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${cls}`}>
+      {status}
+    </span>
+  );
+}
+
+function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <>
+      <dt className="text-xs text-gray-500">{label}</dt>
+      <dd
+        className={`text-sm text-gray-900 ${
+          mono ? "break-all font-mono text-xs" : "truncate"
+        }`}
+      >
+        {value}
+      </dd>
     </>
   );
+}
+
+function formatTimestamp(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 /**
@@ -487,7 +1180,6 @@ function NextStepPanel({
           <StageGuidance
             ctx={ctx}
             onSchedulePreFlight={() => setShowPreFlight(true)}
-            onOpenPartnerModal={() => setShowPartner(true)}
             onLogReply={() => setShowLogReply(true)}
             onLogMeeting={() => setShowLogMeeting(true)}
             action={action}
@@ -537,7 +1229,7 @@ function NextStepPanel({
           onCancel={() => setShowPartner(false)}
           onConfirm={async (payload) => {
             try {
-              await action("mark_partner", payload);
+              await action("mark_partner", { ...payload });
               setShowPartner(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
@@ -550,22 +1242,21 @@ function NextStepPanel({
           organizationName={ctx.outreach.organization_name}
           source="email_reply"
           onCancel={() => setShowLogReply(false)}
-          onSubmit={async (classification, payload) => {
+          onSubmit={async (classification, payload, partner) => {
             try {
               await action("classify_reply", {
                 classification,
                 notes: payload.notes,
                 meeting_at: payload.meeting_at,
               });
+              if (partner) {
+                await action("mark_partner", { ...partner });
+              }
               setShowLogReply(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
               throw e;
             }
-          }}
-          onChooseCommitted={() => {
-            setShowLogReply(false);
-            setShowPartner(true);
           }}
         />
       )}
@@ -576,24 +1267,23 @@ function NextStepPanel({
           initialStatus={meetingInitialStatus}
           initialMeetingAt={meetingInitialAt}
           onCancel={() => setShowLogMeeting(false)}
-          onSubmit={async (mstatus, payload) => {
+          onSubmit={async (mstatus, payload, partner) => {
             try {
               if (mstatus === "booked") {
                 await action("mark_meeting_scheduled", {
                   meeting_at: payload.meeting_at,
                   notes: payload.notes,
                 });
-                setShowLogMeeting(false);
               } else if (mstatus === "finding_time") {
                 await action("flag_wants_meeting", { notes: payload.notes });
-                setShowLogMeeting(false);
               } else if (mstatus === "done_followup") {
                 await action("mark_meeting_followup", { notes: payload.notes });
-                setShowLogMeeting(false);
-              } else if (mstatus === "done_partner") {
-                setShowLogMeeting(false);
-                setShowPartner(true);
+              } else if (mstatus === "done_partner" && partner) {
+                // v9.0 Phase 7 Commit G: done_partner is now a direct
+                // mark_partner — no chained MarkPartnerModal here either.
+                await action("mark_partner", { ...partner });
               }
+              setShowLogMeeting(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
               throw e;
@@ -615,7 +1305,6 @@ function NextStepPanel({
 function StageGuidance({
   ctx,
   onSchedulePreFlight,
-  onOpenPartnerModal,
   onLogReply,
   onLogMeeting,
   action,
@@ -623,7 +1312,6 @@ function StageGuidance({
 }: {
   ctx: DrawerContext;
   onSchedulePreFlight: () => void;
-  onOpenPartnerModal?: () => void;
   onLogReply: () => void;
   onLogMeeting: () => void;
   action: ActionFn;
@@ -734,7 +1422,7 @@ function StageGuidance({
               ? `Set for ${new Date(ctx.meeting_at).toLocaleString()}.`
               : "After it happens, log how it went."
           }
-          primaryCta={{ label: "Log meeting", onClick: onLogMeeting }}
+          primaryCta={{ label: "Log", onClick: onLogMeeting }}
         />
       );
     } else if (hasOverdueCall) {
@@ -745,7 +1433,7 @@ function StageGuidance({
         <StateCard
           title="They want to meet."
           subtext="Send times over email, then log what was set."
-          primaryCta={{ label: "Log meeting", onClick: onLogMeeting }}
+          primaryCta={{ label: "Log", onClick: onLogMeeting }}
         />
       );
     } else if (r === "needs_followup") {
@@ -754,7 +1442,7 @@ function StageGuidance({
           title="Met — needs follow-up."
           subtext="Send a check-in email, then log what they say."
           notes={ctx.followup_notes}
-          primaryCta={{ label: "Log reply", onClick: onLogReply }}
+          primaryCta={{ label: "Log", onClick: onLogReply }}
         />
       );
     } else if (r === "awaiting_callback") {
@@ -765,7 +1453,7 @@ function StageGuidance({
         <StateCard
           title="Waiting on a call back."
           subtext={`${kindText} If they call or write back, log it.`}
-          primaryCta={{ label: "Log reply", onClick: onLogReply }}
+          primaryCta={{ label: "Log", onClick: onLogReply }}
         />
       );
     } else if (r === "engaged") {
@@ -773,7 +1461,7 @@ function StageGuidance({
         <StateCard
           title="They replied."
           subtext="Read it in Gmail, then log what they said."
-          primaryCta={{ label: "Log reply", onClick: onLogReply }}
+          primaryCta={{ label: "Log", onClick: onLogReply }}
         />
       );
     } else if (r === "stale") {
@@ -781,7 +1469,7 @@ function StageGuidance({
         <StateCard
           title="Cadence stalled."
           subtext="Send a custom re-engage email, or close the row if it's not moving."
-          primaryCta={{ label: "Log reply", onClick: onLogReply }}
+          primaryCta={{ label: "Log", onClick: onLogReply }}
         />
       );
     }
@@ -791,7 +1479,7 @@ function StageGuidance({
     return (
       <>
         {banner}
-        <OutreachStepList ctx={ctx} action={action} setError={setError} onOpenPartnerModal={onOpenPartnerModal} />
+        <OutreachStepList ctx={ctx} action={action} setError={setError} />
       </>
     );
   }
@@ -1624,62 +2312,12 @@ function ApprovalRow({
 // muted variant (no CTA, lighter text) so admin's operational priorities
 // lead.
 
-/**
- * v8.10.32: TaskCard — same card shape as row-card StakeholderCard
- * (white bg, gray-200 border, rounded-md, headline + subtitle + footnote
- * + pill on the left; ⋯ + CTA stacked on the right). `muted` switches to
- * a lighter chrome for passive scheduled items.
- */
-function TaskCard({
-  headline,
-  subtitle,
-  footnote,
-  pill,
-  overflow,
-  cta,
-  muted,
-}: {
-  headline: React.ReactNode;
-  subtitle?: React.ReactNode;
-  footnote?: React.ReactNode;
-  pill?: React.ReactNode;
-  overflow?: React.ReactNode;
-  cta?: React.ReactNode;
-  muted?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-lg border px-4 py-3 ${
-        muted
-          ? "border-gray-100 bg-gray-50/60"
-          : "border-gray-200 bg-white"
-      }`}
-    >
-      <div className="flex items-stretch justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className={`text-sm font-medium ${muted ? "text-gray-700" : "text-gray-900"}`}>
-            {headline}
-          </p>
-          {subtitle && (
-            <p className="mt-0.5 truncate text-xs text-gray-500">{subtitle}</p>
-          )}
-          {footnote && (
-            <p className="mt-0.5 text-[11px] text-gray-400">{footnote}</p>
-          )}
-          {pill && (
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">{pill}</div>
-          )}
-        </div>
-        {(overflow || cta) && (
-          <div className="flex shrink-0 flex-col items-end justify-between gap-2">
-            {overflow ?? <span />}
-            {cta ?? <span />}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+// v9.0 Phase 7 Commit F: TaskCard moved to StepBoardCard
+// (components/admin/medjobs/StepBoardCard.tsx) so the stakeholder
+// TaskBoardSection and the EntityStepBoard share one chrome. Local
+// alias retained so the rest of this file's call sites don't need
+// to change shape.
+const TaskCard = StepBoardCard;
 
 function TaskBoardSection({
   ctx,

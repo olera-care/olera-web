@@ -183,6 +183,19 @@ export async function GET(request: NextRequest) {
       });
     } else if (metric === "prospects_added") {
       timestamps = await fetchProspectsAddedTimestamps(db, queryStart, to, campusId);
+    } else if (metric === "clients") {
+      // v9.0 Phase 2 Tier 3.6: a provider becomes a Client when they
+      // accept T&C at first interview scheduling (writes
+      // metadata.interview_terms_accepted_at) — we use that as the
+      // conversion timestamp. Stripe-only subscribers without T&C
+      // are rare and don't carry a clean conversion timestamp; they're
+      // excluded from this metric.
+      timestamps = await fetchClientsTimestamps(db, queryStart, to);
+    } else if (metric === "campuses") {
+      // v9.0 Phase 2 Tier 3.6: campus creation timestamp = when the
+      // operational territory was assigned. Reads created_at on
+      // student_outreach_campuses.
+      timestamps = await fetchCampusesTimestamps(db, queryStart, to);
     } else if (TOUCHPOINT_METRICS[metric]) {
       timestamps = await fetchTouchpointTimestamps(
         db,
@@ -335,6 +348,64 @@ async function fetchProspectsAddedTimestamps(
 }
 
 /**
+ * v9.0 Phase 2 Tier 3.6: when did each provider become a Client?
+ * Conversion timestamp = metadata.interview_terms_accepted_at (the
+ * pilot start signal, written on first interview scheduling). A
+ * provider can also be a Client via active Stripe subscription
+ * without T&C; for time-series purposes we ignore that path because
+ * there's no clean conversion timestamp on the provider record.
+ */
+async function fetchClientsTimestamps(
+  db: DB,
+  queryStart: Date | null,
+  to: Date | null,
+): Promise<Date[]> {
+  let q = db
+    .from("business_profiles")
+    .select("metadata")
+    .in("type", ["organization", "caregiver"])
+    .limit(50000);
+  // Can't filter on metadata->>field with .gte/.lt directly; pull all
+  // matching providers and filter timestamps in JS. Provider counts
+  // are small; perf is fine.
+  const { data: rows } = await q;
+  const out: Date[] = [];
+  for (const r of (rows ?? []) as Array<{ metadata: Record<string, unknown> | null }>) {
+    const accepted = r.metadata?.interview_terms_accepted_at;
+    if (typeof accepted !== "string") continue;
+    const t = new Date(accepted);
+    if (isNaN(t.getTime())) continue;
+    if (queryStart && t < queryStart) continue;
+    if (to && t >= to) continue;
+    out.push(t);
+  }
+  return out;
+}
+
+/**
+ * v9.0 Phase 2 Tier 3.6: campus creation timestamps. The chart shows
+ * how operational territory expanded over time.
+ */
+async function fetchCampusesTimestamps(
+  db: DB,
+  queryStart: Date | null,
+  to: Date | null,
+): Promise<Date[]> {
+  let q = db
+    .from("student_outreach_campuses")
+    .select("created_at")
+    .eq("is_active", true)
+    .order("created_at", { ascending: true })
+    .limit(5000);
+  if (queryStart) q = q.gte("created_at", queryStart.toISOString());
+  if (to) q = q.lt("created_at", to.toISOString());
+  const { data: rows } = await q;
+  return ((rows ?? []) as Array<{ created_at: string }>)
+    .map((r) => new Date(r.created_at))
+    .filter((t) => !isNaN(t.getTime()));
+}
+
+/**
  * Resolve a campus filter to a list of outreach_ids. Returns:
  *   - null (filter set but no matching rows — caller returns empty)
  *   - undefined (no filter — caller skips the .in() narrowing)
@@ -377,6 +448,9 @@ const METRIC_REGISTRY: Record<string, { name: string; color: string }> = {
   emails_sent:       { name: "Emails",      color: "#14b8a6" }, // teal-500
   outbound:          { name: "Outbound",    color: "#6366f1" }, // indigo-500
   activity:          { name: "Activity",    color: "#6b7280" }, // gray-500 (broad)
+  // v9.0 Phase 2 Tier 3.6
+  clients:           { name: "Clients",     color: "#16a34a" }, // green-600 (paying side)
+  campuses:          { name: "Campuses",    color: "#a855f7" }, // purple-500 (territory)
 };
 
 /**

@@ -154,6 +154,28 @@ const nextConfig: NextConfig = {
       { source: "/waiver-library/:state/:benefit/current", destination: "/benefits/:state/:benefit", permanent: true },
       { source: "/waiver-library/:state/:benefit/checklist", destination: "/benefits/:state/:benefit", permanent: true },
       { source: "/waiver-library/:state/:benefit/forms", destination: "/benefits/:state/:benefit", permanent: true },
+
+      // ── v9.0 MedJobs reorg ──
+      // Student Outreach lives at /admin/medjobs/in-basket as the new
+      // workflow entry point. Existing bookmarks redirect through.
+      { source: "/admin/student-outreach", destination: "/admin/medjobs/in-basket", permanent: true },
+
+      // v9.0 Phase 7: completed-work → logs rename (UI only; the API
+      // endpoint /api/admin/medjobs/completed-work keeps its name).
+      // Earlier completed-tasks → completed-work and all-tasks legacy
+      // redirects collapse onto the new /logs URL.
+      { source: "/admin/medjobs/completed-work",  destination: "/admin/medjobs/logs", permanent: true },
+      { source: "/admin/medjobs/completed-tasks", destination: "/admin/medjobs/logs", permanent: true },
+      { source: "/admin/medjobs/all-tasks",       destination: "/admin/medjobs/logs", permanent: true },
+
+      // v9.0 Phase 7: campuses → sites rename (UI only; DB table +
+      // /api/admin/medjobs/campuses endpoint keep their existing names).
+      { source: "/admin/medjobs/campuses",   destination: "/admin/medjobs/sites", permanent: true },
+
+      // v9.0 Phase 7 Commit K: Prospects / Meetings / Replies / Calls
+      // exist as dedicated entity pages. The Phase 6 redirects that
+      // pointed them at /in-basket are removed — next.js now routes
+      // straight to the real pages.
     ];
   },
 

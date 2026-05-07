@@ -359,9 +359,7 @@ export default function MultiProviderCard({
     <div
       ref={cardRef}
       className={`
-        bg-white rounded-2xl
-        ring-1 ring-inset ring-primary-200 hover:ring-primary-300
-        shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)]
+        bg-transparent
         overflow-hidden
         transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
         ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"}

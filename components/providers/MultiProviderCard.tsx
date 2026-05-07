@@ -375,8 +375,12 @@ export default function MultiProviderCard({
           {/* Stack 1: Context pill + Headline */}
           <div className="flex justify-center items-center gap-2 mb-2">
             <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
-              <span className="text-sm italic text-gray-600">
-                You just asked {currentProvider.name} a question.
+              <span className="text-sm font-semibold italic text-gray-600">
+                You asked {(() => {
+                  const words = currentProvider.name.split(/\s+/);
+                  if (words.length <= 1) return currentProvider.name;
+                  return `${words[0]} ${words[1].charAt(0)}.`;
+                })()} a question.
               </span>
             </span>
           </div>
@@ -666,7 +670,7 @@ export default function MultiProviderCard({
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     </span>
                   ) : (
-                    "Send replies"
+                    "{totalAsked === 1 ? "Send reply" : "Send replies"}"
                   )}
                 </button>
               </div>

@@ -908,8 +908,8 @@ export default function QASectionV2({
                       />
                     )}
 
-                    {/* Multi-Provider Card (multi_provider variant only) */}
-                    {isMultiExpanded && (
+                    {/* Multi-Provider Card (multi_provider variant only, requires similar providers) */}
+                    {isMultiExpanded && similarProvidersForMulti.length > 0 && (
                       <MultiProviderCard
                         question={q}
                         currentProvider={{
@@ -927,6 +927,25 @@ export default function QASectionV2({
                         onEmailSubmit={handleMultiProviderEmailSubmit}
                         onSaveAll={handleMultiProviderSaveAll}
                         onCollapse={handleMultiProviderCollapse}
+                        isSubmitting={inlineSubmitting}
+                        isSuccess={inlineSuccess}
+                        questionSent={submitStatus === "success"}
+                        userEmail={user?.email}
+                      />
+                    )}
+
+                    {/* Fallback for multi_provider variant when no similar providers exist */}
+                    {isMultiExpanded && similarProvidersForMulti.length === 0 && (
+                      <InlineAnswerCard
+                        question={q}
+                        providerName={providerName}
+                        providerImage={providerImage}
+                        providerId={providerId}
+                        providerLocation={providerLocation}
+                        providerCareTypes={providerCareTypes}
+                        onEmailSubmit={handleInlineEmailSubmit}
+                        onSave={handleInlineSave}
+                        onCollapse={handleInlineCollapse}
                         isSubmitting={inlineSubmitting}
                         isSuccess={inlineSuccess}
                         questionSent={submitStatus === "success"}

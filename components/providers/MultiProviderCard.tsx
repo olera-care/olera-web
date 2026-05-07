@@ -158,13 +158,8 @@ export default function MultiProviderCard({
     }
   }, [cardState, isLoggedIn, onCollapse]);
 
-  // Handle edge case: no similar providers
-  useEffect(() => {
-    if (similarProviders.length === 0 && cardState === "card_stack") {
-      // Skip directly to email capture if no similar providers
-      setCardState("email_capture");
-    }
-  }, [similarProviders.length, cardState]);
+  // Note: QASectionV2 now guards against empty similarProviders by not rendering
+  // this component when there are no similar providers to show.
 
   const handleSkip = () => {
     if (isAnimating || !currentCard) return;

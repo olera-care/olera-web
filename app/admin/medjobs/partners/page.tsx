@@ -59,6 +59,10 @@ export default function PartnersPage() {
     setError(null);
     try {
       const params = new URLSearchParams();
+      // v9.0 Phase 7 Commit P: operational scope — partners with
+      // pending tasks only, matching sidebar + In Basket Partners
+      // tab. Quiet partners and past activity live in Logs.
+      params.set("with_pending_task", "true");
       if (debouncedSearch) params.set("search", debouncedSearch);
       const r = await fetch(`/api/admin/medjobs/partners?${params}`);
       if (!r.ok) throw new Error((await r.json()).error || "Failed to load partners");
@@ -84,7 +88,14 @@ export default function PartnersPage() {
         onRangeChange={setRange}
       />
       <p className="-mt-6 mb-4 text-sm text-gray-500">
-        Active campus partnerships distributing student profiles.
+        Partners with active Step Board work. Quiet partners and past activity live in{" "}
+        <a
+          href="/admin/medjobs/logs?source=stakeholder"
+          className="font-medium text-emerald-700 underline hover:no-underline"
+        >
+          Logs
+        </a>
+        .
       </p>
       <input
         type="text"
@@ -102,7 +113,14 @@ export default function PartnersPage() {
         <p className="py-12 text-center text-sm text-red-600">{error}</p>
       ) : rows.length === 0 ? (
         <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-12 text-center text-sm text-gray-400">
-          No active partners yet. Mark a stakeholder as Partner once they commit to sharing.
+          No partners with pending steps right now. Quiet partners and past activity live in{" "}
+          <a
+            href="/admin/medjobs/logs?source=stakeholder"
+            className="font-medium text-emerald-700 underline hover:no-underline"
+          >
+            Logs
+          </a>
+          .
         </p>
       ) : (
         <ul className="space-y-2">

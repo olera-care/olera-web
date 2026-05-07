@@ -1,15 +1,19 @@
 "use client";
 
 /**
- * v9.0 Phase 6: Clients page. Provider relationships in pilot or
- * subscribed state. List of provider business_profiles where
- * interview_terms_accepted_at is within 90 days OR
- * medjobs_subscription_active = true.
+ * v9.0 Phase 7 Commit P: Clients page — operational scope.
  *
- * Reference + management surface — not a triage queue. Triage tasks
- * for individual clients (e.g., trial ending soon) appear in In Basket
- * separately. This page is for browsing all current client
- * relationships.
+ * Shows providers with at least one pending Step Board task — the
+ * same operational denominator as the In Basket Clients tab and the
+ * sidebar Clients fraction. Quiet clients (T&C-accepted, no pending
+ * task) live in Logs (which surfaces every client that has any
+ * logged action).
+ *
+ * Brand-new clients without any task fall through; the system
+ * should auto-queue a "first check-in" task on T&C accept (separate
+ * follow-up).
+ *
+ * Past history → Logs filtered to source=client.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -40,6 +44,8 @@ export default function ClientsPage() {
     setError(null);
     try {
       const params = new URLSearchParams();
+      // v9.0 Phase 7 Commit P: operational scope.
+      params.set("with_pending_task", "true");
       if (debouncedSearch) params.set("search", debouncedSearch);
       const r = await fetch(`/api/admin/medjobs/clients?${params}`);
       if (!r.ok) throw new Error((await r.json()).error || "Failed to load clients");
@@ -65,7 +71,15 @@ export default function ClientsPage() {
         onRangeChange={setRange}
       />
       <p className="-mt-6 mb-4 text-sm text-gray-500">
-        Provider relationships in pilot or subscribed via Stripe.
+        Provider clients with active Step Board work. Quiet clients
+        and past actions live in{" "}
+        <a
+          href="/admin/medjobs/logs?source=client"
+          className="font-medium text-emerald-700 underline hover:no-underline"
+        >
+          Logs
+        </a>
+        .
       </p>
       <input
         type="text"
@@ -83,7 +97,14 @@ export default function ClientsPage() {
         <p className="py-12 text-center text-sm text-red-600">{error}</p>
       ) : rows.length === 0 ? (
         <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-12 text-center text-sm text-gray-400">
-          No clients yet. Providers enter the pilot when they accept T&amp;C at first interview scheduling.
+          No clients with pending steps right now. View past activity in{" "}
+          <a
+            href="/admin/medjobs/logs?source=client"
+            className="font-medium text-emerald-700 underline hover:no-underline"
+          >
+            Logs
+          </a>
+          .
         </p>
       ) : (
         <ul className="space-y-2">

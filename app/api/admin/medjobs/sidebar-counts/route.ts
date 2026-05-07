@@ -2,29 +2,44 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 /**
- * v9.0 Phase 7 Commit O: sidebar fraction counts.
+ * v9.0 Phase 7 Commit P: sidebar fraction counts.
  *
  * Returns per-entity { unread, total } powering the MedJobs sidebar
  * fractions. One endpoint, one round-trip, fired on sidebar mount +
  * every refreshMedJobs() invalidation.
  *
- * Counting model — one universal rule across every entity:
- *   numerator   (unread)  = active rows for this entity that have a
- *                            pending operational signal (task /
- *                            touchpoint / state) created after the
- *                            entity's last viewed_at — OR the entity
- *                            was never viewed and has any signal at all
- *   denominator (total)   = active rows for this entity (inventory
- *                            scope on the sidebar; task-driven scope
- *                            inside the In Basket horizontal tabs)
+ * Reconciled with the In Basket horizontal tab counts so the two
+ * surfaces show identical numbers per entity. The old sidebar model
+ * used inventory denominators (all clients / all candidates / all
+ * campuses) which couldn't match the In Basket's task-driven
+ * denominators. Now both surfaces use the same "active operational
+ * signal" rule.
  *
- * Storage:
- *   stakeholder  student_outreach.viewed_at column
- *   site         student_outreach_campuses.viewed_at column (mig 076)
- *   client /
- *   candidate    business_profiles.metadata.admin_viewed_at
+ * Counting model — one universal rule:
+ *   numerator   (unread)  = active operational rows where there's a
+ *                            pending signal created after viewed_at
+ *                            (or never viewed)
+ *   denominator (total)   = active operational rows for this entity
  *
- * The mark-entity-read endpoint hides the storage difference.
+ * Per-entity definitions of "active operational rows":
+ *   in_basket   active student_outreach (not closed) + pending entity
+ *               tasks
+ *   sites       campuses with operational signal: research-needed
+ *               (Stage 2 unlocked, 0 stakeholders) OR pending site_task
+ *   prospects   student_outreach in RESEARCH_STATUSES
+ *   clients     business_profiles with ≥1 pending business_profile_task
+ *               (kind=client)
+ *   partners    student_outreach in active_partner status (kind!=provider)
+ *               with ≥1 pending task
+ *   candidates  business_profiles with ≥1 pending business_profile_task
+ *               (kind=candidate)
+ *   replies     student_outreach in REPLIES_STATUSES
+ *   meetings    student_outreach with active meeting state
+ *   calls       student_outreach with pending phone task due now
+ *
+ * Quiet entities (active relationships with no pending task) live in
+ * Logs; brand-new entities surface when the system queues their
+ * first task on creation.
  */
 
 const CLOSED_STATUSES = [
@@ -71,6 +86,7 @@ export async function GET(_req: NextRequest) {
     { data: meetingTouchpoints },
     { data: pendingBpTasks },
     { data: pendingSiteTasks },
+    { data: pendingPartnerTasks },
     { data: campusRows },
     { data: clientProfiles },
     { data: candidateProfiles },
@@ -89,9 +105,6 @@ export async function GET(_req: NextRequest) {
       .gte("created_at", new Date(Date.now() - 90 * 86400_000).toISOString())
       .order("created_at", { ascending: false })
       .limit(5000),
-    // v9.0 Phase 7 Commit O: pull task data (not just count) so we
-    // can compute unread per entity by comparing task.created_at to
-    // entity.viewed_at.
     db
       .from("business_profile_tasks")
       .select("business_profile_id, kind, created_at")
@@ -100,12 +113,18 @@ export async function GET(_req: NextRequest) {
       .from("site_tasks")
       .select("campus_id, created_at")
       .eq("status", "pending"),
+    // v9.0 Phase 7 Commit P: pending stakeholder tasks. The Partners
+    // bucket counts active_partner rows that have ≥1 pending task —
+    // matching the In Basket Partners tab so the two surfaces show
+    // the same number.
+    db
+      .from("student_outreach_tasks")
+      .select("outreach_id")
+      .eq("status", "pending"),
     db
       .from("student_outreach_campuses")
       .select("id, viewed_at, is_active")
       .eq("is_active", true),
-    // Active clients (T&C-accepted providers) with metadata so we
-    // can read admin_viewed_at.
     db
       .from("business_profiles")
       .select("id, metadata")
@@ -183,7 +202,17 @@ export async function GET(_req: NextRequest) {
     calls: { unread: 0, total: 0 },
   };
 
-  // Stakeholder buckets (existing logic).
+  // ── Stakeholder buckets ──
+  // Prospects + Replies stay state-driven. Partners is task-driven now
+  // (active_partner WITH pending task) so the sidebar matches the In
+  // Basket Partners tab. Active partners with no pending task are
+  // "quiet relationships" — they live in Logs, not the operational
+  // queue.
+  const partnerOutreachWithPendingTask = new Set<string>();
+  for (const t of (pendingPartnerTasks ?? []) as Array<{ outreach_id: string }>) {
+    partnerOutreachWithPendingTask.add(t.outreach_id);
+  }
+
   for (const r of rows) {
     if (isClosed(r.status)) continue;
     counts.in_basket.total += 1;
@@ -192,7 +221,11 @@ export async function GET(_req: NextRequest) {
     if (RESEARCH_STATUSES.includes(r.status)) {
       counts.prospects.total += 1;
       if (isUnread(r)) counts.prospects.unread += 1;
-    } else if (PARTNER_STATUSES.includes(r.status) && r.kind !== "provider") {
+    } else if (
+      PARTNER_STATUSES.includes(r.status) &&
+      r.kind !== "provider" &&
+      partnerOutreachWithPendingTask.has(r.id)
+    ) {
       counts.partners.total += 1;
       if (isUnread(r)) counts.partners.unread += 1;
     } else if (REPLIES_STATUSES.includes(r.status)) {
@@ -214,46 +247,61 @@ export async function GET(_req: NextRequest) {
     if (isUnread(r)) counts.calls.unread += 1;
   }
 
-  // ── Sites (inventory + per-site unread) ──
+  // ── Sites (task-driven: campuses with pending site_task) ──
+  // Build a viewed_at lookup from active campuses; iterate over
+  // campuses that have at least one pending task to compute per-site
+  // unread.
+  const campusViewedAtMap = new Map<string, string | null>();
   for (const c of (campusRows ?? []) as Array<{
     id: string;
     viewed_at: string | null;
     is_active: boolean;
   }>) {
+    campusViewedAtMap.set(c.id, c.viewed_at);
+  }
+  for (const [id, latestTaskCreated] of latestSiteTaskByCampus.entries()) {
+    if (!campusViewedAtMap.has(id)) continue; // skip inactive
     counts.sites.total += 1;
-    const latestTaskCreated = latestSiteTaskByCampus.get(c.id) ?? null;
-    if (isEntityUnread(c.viewed_at, latestTaskCreated)) {
+    if (isEntityUnread(campusViewedAtMap.get(id) ?? null, latestTaskCreated)) {
       counts.sites.unread += 1;
     }
   }
 
-  // ── Clients (inventory + per-profile unread via metadata.admin_viewed_at) ──
+  // ── Clients (task-driven: business_profiles with pending client task) ──
+  const clientMetadataMap = new Map<string, Record<string, unknown> | null>();
   for (const p of (clientProfiles ?? []) as Array<{
     id: string;
     metadata: Record<string, unknown> | null;
   }>) {
+    clientMetadataMap.set(p.id, p.metadata);
+  }
+  for (const [id, latestTaskCreated] of latestClientTaskByProfile.entries()) {
     counts.clients.total += 1;
+    const meta = clientMetadataMap.get(id) ?? null;
     const adminViewedAt =
-      typeof p.metadata?.admin_viewed_at === "string"
-        ? (p.metadata.admin_viewed_at as string)
+      typeof meta?.admin_viewed_at === "string"
+        ? (meta.admin_viewed_at as string)
         : null;
-    const latestTaskCreated = latestClientTaskByProfile.get(p.id) ?? null;
     if (isEntityUnread(adminViewedAt, latestTaskCreated)) {
       counts.clients.unread += 1;
     }
   }
 
-  // ── Candidates (inventory + per-profile unread) ──
+  // ── Candidates (task-driven: business_profiles with pending candidate task) ──
+  const candidateMetadataMap = new Map<string, Record<string, unknown> | null>();
   for (const p of (candidateProfiles ?? []) as Array<{
     id: string;
     metadata: Record<string, unknown> | null;
   }>) {
+    candidateMetadataMap.set(p.id, p.metadata);
+  }
+  for (const [id, latestTaskCreated] of latestCandidateTaskByProfile.entries()) {
     counts.candidates.total += 1;
+    const meta = candidateMetadataMap.get(id) ?? null;
     const adminViewedAt =
-      typeof p.metadata?.admin_viewed_at === "string"
-        ? (p.metadata.admin_viewed_at as string)
+      typeof meta?.admin_viewed_at === "string"
+        ? (meta.admin_viewed_at as string)
         : null;
-    const latestTaskCreated = latestCandidateTaskByProfile.get(p.id) ?? null;
     if (isEntityUnread(adminViewedAt, latestTaskCreated)) {
       counts.candidates.unread += 1;
     }

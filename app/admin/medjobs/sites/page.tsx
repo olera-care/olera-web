@@ -45,7 +45,11 @@ export default function SitesPage() {
       const res = await fetch("/api/admin/medjobs/campuses");
       if (!res.ok) throw new Error((await res.json()).error || "Failed to load sites");
       const data = await res.json();
-      setRows((data.rows ?? []) as CampusRow[]);
+      // v9.0 Phase 7 Commit P: operational scope — only sites with
+      // pending site_tasks (matches sidebar + In Basket). Quiet sites
+      // and past activity live in Logs.
+      const all = (data.rows ?? []) as CampusRow[];
+      setRows(all.filter((c) => c.has_pending_task === true));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -74,9 +78,14 @@ export default function SitesPage() {
         }
       />
       <p className="-mt-6 mb-6 text-sm text-gray-500">
-        Activated university territories. Provider prospects in each catchment
-        surface as virtual rows in In Basket; once a provider converts,
-        student-stakeholder research unlocks.
+        Sites with active Step Board work. Quiet sites and past activity live in{" "}
+        <a
+          href="/admin/medjobs/logs?source=site"
+          className="font-medium text-emerald-700 underline hover:no-underline"
+        >
+          Logs
+        </a>
+        .
       </p>
 
       {/* v9.0 Phase 7 Commit M: keep rows rendered during background
@@ -87,9 +96,19 @@ export default function SitesPage() {
         <p className="py-12 text-center text-sm text-red-600">{error}</p>
       ) : rows.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-12 text-center">
-          <p className="text-sm font-medium text-gray-700">No sites yet.</p>
+          <p className="text-sm font-medium text-gray-700">
+            No sites with pending steps right now.
+          </p>
           <p className="mt-1 text-xs text-gray-500">
-            Click <strong>+ Add Site</strong> to activate a university territory.
+            Click <strong>+ Add Site</strong> to activate a university territory,
+            or view past activity in{" "}
+            <a
+              href="/admin/medjobs/logs?source=site"
+              className="font-medium text-emerald-700 underline hover:no-underline"
+            >
+              Logs
+            </a>
+            .
           </p>
         </div>
       ) : (

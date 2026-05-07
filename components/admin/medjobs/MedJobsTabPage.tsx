@@ -157,19 +157,14 @@ export function MedJobsTabPage({
         if (r.ok) {
           const d = await r.json();
           // v9.0 Phase 7 Commit N: In Basket Sites tab surfaces sites
-          // with active operational work — either Stage-2-unlocked
-          // research-needed prompts OR sites with a pending
-          // site_task. The full inventory lives on /admin/medjobs/
-          // sites.
+          // v9.0 Phase 7 Commit P: In Basket Sites tab content =
+          // sites with pending site_tasks only (matches the queue
+          // counts.sites + sidebar Sites fraction). Research-needed
+          // sites are still surfaced when admin manually queues a
+          // site_task on them; the auto-prompting model is deferred
+          // to a follow-up auto-queue trigger.
           const all = (d.rows ?? []) as CampusRow[];
-          setCampusBanners(
-            all.filter(
-              (c) =>
-                (c.stage === "stakeholder_prospecting" &&
-                  c.stakeholder_count === 0) ||
-                c.has_pending_task === true,
-            ),
-          );
+          setCampusBanners(all.filter((c) => c.has_pending_task === true));
         } else {
           setCampusBanners([]);
         }

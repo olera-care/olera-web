@@ -10,9 +10,16 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  * Clients surface (whether or not they're paying), never in Partners.
  *
  * Query params:
- *   campus=<slug>  → filter to one campus
- *   search=<str>   → ilike on organization_name
- *   limit=<n>      → max rows (default 100, max 500)
+ *   campus=<slug>           → filter to one campus
+ *   search=<str>            → ilike on organization_name
+ *   limit=<n>               → max rows (default 100, max 500)
+ *   with_pending_task=true  → narrow to active partners with ≥1
+ *                             pending student_outreach_task. Used by
+ *                             the dedicated Partners page so its
+ *                             scope matches the In Basket Partners
+ *                             tab + sidebar Partners fraction. Quiet
+ *                             active partners (no pending task) live
+ *                             in Logs.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -25,8 +32,25 @@ export async function GET(request: NextRequest) {
     const campusSlug = searchParams.get("campus")?.trim() || null;
     const search = searchParams.get("search")?.trim() ?? "";
     const limit = Math.min(500, Math.max(1, parseInt(searchParams.get("limit") || "100", 10)));
+    const withPendingTask = searchParams.get("with_pending_task") === "true";
 
     const db = getServiceClient();
+
+    // v9.0 Phase 7 Commit P: when with_pending_task=true, narrow the
+    // result set to active_partner outreach with ≥1 pending task.
+    let partnersWithPendingTask: Set<string> | null = null;
+    if (withPendingTask) {
+      const { data: tasks } = await db
+        .from("student_outreach_tasks")
+        .select("outreach_id")
+        .eq("status", "pending");
+      partnersWithPendingTask = new Set(
+        ((tasks ?? []) as Array<{ outreach_id: string }>).map((t) => t.outreach_id),
+      );
+      if (partnersWithPendingTask.size === 0) {
+        return NextResponse.json({ rows: [], total: 0 });
+      }
+    }
 
     let q = db
       .from("student_outreach")
@@ -38,6 +62,9 @@ export async function GET(request: NextRequest) {
       .order("last_edited_at", { ascending: false })
       .limit(limit);
 
+    if (partnersWithPendingTask) {
+      q = q.in("id", Array.from(partnersWithPendingTask));
+    }
     if (search) q = q.ilike("organization_name", `%${search}%`);
 
     if (campusSlug) {

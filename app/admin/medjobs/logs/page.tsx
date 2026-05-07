@@ -20,6 +20,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import {
   CompletedTaskCard,
@@ -31,11 +32,6 @@ import { resolveRange } from "@/components/admin/DateRangePopover";
 import { CHART_SERIES_OPTIONS } from "@/lib/student-outreach/tab-config";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 
-// v9.0 Phase 7 Commit J: lightweight client-side filters. The
-// completed-work endpoint already returns up to 100 rows narrowed by
-// date — search + type filter narrow further without a server
-// round-trip. Heavier filters (campus, kind) can move server-side
-// when the dataset grows.
 type TypeFilter = "all" | "calls" | "emails" | "meetings" | "replies" | "notes";
 
 const TYPE_FILTERS: Array<{ key: TypeFilter; label: string; types: ReadonlySet<string> }> = [
@@ -47,7 +43,32 @@ const TYPE_FILTERS: Array<{ key: TypeFilter; label: string; types: ReadonlySet<s
   { key: "notes",    label: "Notes",    types: new Set(["note_added"]) },
 ];
 
+// v9.0 Phase 7 Commit P: source filter narrows the unified Logs feed
+// to one entity type. Entity pages link to /admin/medjobs/logs?source=
+// <kind> so admin lands here pre-filtered for the entity they came
+// from. Stakeholder = student_outreach touchpoints (Prospects /
+// Replies / Meetings / Calls / Partners).
+type SourceFilter = "all" | "stakeholder" | "client" | "candidate" | "site";
+
+const SOURCE_FILTERS: Array<{ key: SourceFilter; label: string }> = [
+  { key: "all",         label: "All entities" },
+  { key: "stakeholder", label: "Stakeholders" },
+  { key: "client",      label: "Clients" },
+  { key: "candidate",   label: "Candidates" },
+  { key: "site",        label: "Sites" },
+];
+
 export default function LogsPage() {
+  const searchParams = useSearchParams();
+  const sourceParam = searchParams?.get("source");
+  const initialSource: SourceFilter =
+    sourceParam === "stakeholder" ||
+    sourceParam === "client" ||
+    sourceParam === "candidate" ||
+    sourceParam === "site"
+      ? sourceParam
+      : "all";
+
   const [rows, setRows] = useState<CompletedTaskRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +81,7 @@ export default function LogsPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>(initialSource);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
   // v9.0 Phase 7 Commit O: Logs feed is unified — entity-task
   // completions can also surface here. Each gets its own drawer mode.
@@ -121,13 +143,21 @@ export default function LogsPage() {
       if (typeSet && typeSet.size > 0 && !typeSet.has(r.touchpoint_type)) {
         return false;
       }
+      // v9.0 Phase 7 Commit P: source filter narrows by entity type.
+      // Stakeholder rows have source_kind="stakeholder" (or undefined
+      // for legacy touchpoints); entity-task completions carry their
+      // own source_kind.
+      if (sourceFilter !== "all") {
+        const rowSource = r.source_kind ?? "stakeholder";
+        if (rowSource !== sourceFilter) return false;
+      }
       if (debouncedSearch) {
         const hay = (r.organization_name || "").toLowerCase();
         if (!hay.includes(debouncedSearch)) return false;
       }
       return true;
     });
-  }, [rows, typeFilter, debouncedSearch]);
+  }, [rows, typeFilter, sourceFilter, debouncedSearch]);
 
   return (
     <div>
@@ -157,6 +187,29 @@ export default function LogsPage() {
       <p className="-mt-2 mb-3 text-sm text-gray-500">
         Every logged action across MedJobs. Click any row to open it for context.
       </p>
+
+      {/* v9.0 Phase 7 Commit P: source filter — narrows the unified
+          feed to one entity type. Auto-set from ?source= URL param
+          when admin lands here from an entity page's "View past
+          history" link. */}
+      <div className="mb-3 flex flex-wrap items-center gap-1 rounded-md border border-gray-200 bg-white p-0.5">
+        {SOURCE_FILTERS.map((f) => {
+          const active = sourceFilter === f.key;
+          return (
+            <button
+              key={f.key}
+              onClick={() => setSourceFilter(f.key)}
+              className={`rounded px-2.5 py-1 text-xs transition-colors ${
+                active
+                  ? "bg-gray-900 font-semibold text-white"
+                  : "font-medium text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {f.label}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Filter / search bar. Search by organization name; type pills
           narrow to a single channel (calls / emails / meetings /

@@ -1,10 +1,12 @@
 "use client";
 
 /**
- * v9.0 Phase 6: Candidates page. Live student profiles visible to
- * providers on the job board (Candidates ⊂ Signups). Reference
- * inventory view — admins browse the live supply, click into
- * individual candidate profiles for detail.
+ * v9.0 Phase 7 Commit P: Candidates page — operational scope.
+ *
+ * Shows candidates with at least one pending Step Board task — same
+ * operational denominator as the In Basket Candidates tab and the
+ * sidebar Candidates fraction. Past actions live in Logs filtered
+ * to source=candidate.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -27,7 +29,11 @@ export default function CandidatesPage() {
     setLoading(true);
     setError(null);
     try {
-      const r = await fetch("/api/admin/student-outreach/candidates");
+      // v9.0 Phase 7 Commit P: operational scope — candidates with
+      // pending tasks only. Quiet candidates live in Logs.
+      const r = await fetch(
+        "/api/admin/student-outreach/candidates?with_pending_task=true",
+      );
       if (!r.ok) throw new Error((await r.json()).error || "Failed to load candidates");
       const d = await r.json();
       setRows(d.rows ?? []);
@@ -51,7 +57,14 @@ export default function CandidatesPage() {
         onRangeChange={setRange}
       />
       <p className="-mt-6 mb-6 text-sm text-gray-500">
-        Live student profiles visible to providers on the job board.
+        Live candidates with active Step Board work. Past actions live in{" "}
+        <a
+          href="/admin/medjobs/logs?source=candidate"
+          className="font-medium text-emerald-700 underline hover:no-underline"
+        >
+          Logs
+        </a>
+        .
       </p>
 
       {/* v9.0 Phase 7 Commit M: keep rows rendered during background
@@ -62,7 +75,14 @@ export default function CandidatesPage() {
         <p className="py-12 text-center text-sm text-red-600">{error}</p>
       ) : rows.length === 0 ? (
         <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-12 text-center text-sm text-gray-400">
-          No live candidates yet.
+          No candidates with pending steps right now. View past activity in{" "}
+          <a
+            href="/admin/medjobs/logs?source=candidate"
+            className="font-medium text-emerald-700 underline hover:no-underline"
+          >
+            Logs
+          </a>
+          .
         </p>
       ) : (
         <ul className="space-y-2">

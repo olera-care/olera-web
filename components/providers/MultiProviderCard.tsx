@@ -31,6 +31,8 @@ interface MultiProviderCardProps {
   questionSent?: boolean;
   /** If provided, user is logged in — skip email capture and show confirmation */
   userEmail?: string;
+  /** Ref to scroll to when card expands (for consistent scroll position) */
+  scrollTargetRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 type CardState = "card_stack" | "email_capture" | "success";
@@ -47,6 +49,7 @@ export default function MultiProviderCard({
   isSuccess: externalSuccess = false,
   // questionSent: not used in card stack flow
   userEmail,
+  scrollTargetRef,
 }: MultiProviderCardProps) {
   const isLoggedIn = Boolean(userEmail);
 
@@ -113,15 +116,20 @@ export default function MultiProviderCard({
     return () => clearTimeout(timer);
   }, []);
 
-  // Scroll into view on mount
+  // Scroll to consistent position on mount (Q&A section top)
   useEffect(() => {
-    if (mounted && cardRef.current) {
+    if (mounted) {
       const scrollTimer = setTimeout(() => {
-        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        // Prefer scrolling to parent section for consistent position
+        // Fall back to card itself if no scrollTargetRef provided
+        const target = scrollTargetRef?.current || cardRef.current;
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       }, 100);
       return () => clearTimeout(scrollTimer);
     }
-  }, [mounted]);
+  }, [mounted, scrollTargetRef]);
 
   // Track expansion
   useEffect(() => {
@@ -330,13 +338,6 @@ export default function MultiProviderCard({
     return q.slice(0, maxLength).trim() + "…";
   };
 
-  // Truncate provider name to max 3 words (for narrower cards on web)
-  const truncateName = (name: string, maxWords: number = 3) => {
-    const words = name.split(/\s+/);
-    if (words.length <= maxWords) return name;
-    return words.slice(0, maxWords).join(" ") + "…";
-  };
-
   // Browse URL for success state - pre-fill location search
   const city = currentProvider.city || "";
   const browseUrl = city ? `/browse?location=${encodeURIComponent(city)}` : `/browse`;
@@ -433,7 +434,7 @@ export default function MultiProviderCard({
                   <ProviderAvatar provider={currentCard} size="lg" />
                   <div className="flex-1 min-w-0">
                     <h4 className="text-[17px] font-semibold text-gray-900 truncate">
-                      {truncateName(currentCard.name)}
+                      {currentCard.name}
                     </h4>
                     <p className="text-sm text-gray-500">
                       {currentCard.city}

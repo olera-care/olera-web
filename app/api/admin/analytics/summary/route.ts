@@ -134,7 +134,7 @@ type BenefitsFunnelByVariant = {
   loss: BenefitsVariantRow;
   empathic: BenefitsVariantRow;
   outreach: BenefitsVariantRow;        // 4th arm: AI outreach module (H1 demand test)
-  inline_answer: BenefitsVariantRow;   // 5th arm: inline Q&A answer expansion (H2 UX test)
+  qa_email_capture: BenefitsVariantRow;   // 5th arm: inline Q&A answer expansion (H2 UX test)
   multi_provider: BenefitsVariantRow;  // 6th arm: multi-provider comparison
   control: BenefitsVariantRow;         // legacy V2
   money_loss: BenefitsVariantRow;      // legacy V2
@@ -244,7 +244,7 @@ const EMPTY_BENEFITS_FUNNEL_BY_VARIANT = (): BenefitsFunnelByVariant => ({
   loss: EMPTY_BENEFITS_FUNNEL(),
   empathic: EMPTY_BENEFITS_FUNNEL(),
   outreach: EMPTY_BENEFITS_FUNNEL(),        // 4th arm
-  inline_answer: EMPTY_BENEFITS_FUNNEL(),   // 5th arm
+  qa_email_capture: EMPTY_BENEFITS_FUNNEL(),   // 5th arm
   multi_provider: EMPTY_BENEFITS_FUNNEL(),  // 6th arm
   control: EMPTY_BENEFITS_FUNNEL(),         // legacy V2
   money_loss: EMPTY_BENEFITS_FUNNEL(),      // legacy V2
@@ -370,7 +370,7 @@ async function fetchWindow(
   // Inline answer 5th-arm funnel. Lives in provider_activity like benefits.
   // Event types: inline_answer_viewed (impression), inline_answer_expanded
   // (started), inline_answer_converted (submitted). Bucketed by metadata.variant
-  // = "inline_answer".
+  // = "qa_email_capture".
   let inlineAnswerQ = db
     .from("provider_activity")
     .select("event_type, metadata")
@@ -425,7 +425,7 @@ async function fetchWindow(
   if (openersRes.error) return { error: "Q&A email openers query failed" };
   if (funnelRes.error) return { error: "Q&A funnel query failed" };
   if (outreachRes.error) return { error: "outreach funnel query failed" };
-  if (inlineAnswerRes.error) return { error: "inline_answer funnel query failed" };
+  if (inlineAnswerRes.error) return { error: "qa_email_capture funnel query failed" };
   if (multiProviderRes.error) return { error: "multi_provider funnel query failed" };
   if (issuesEventsRes.error) return { error: "Q&A issues query failed" };
   if (benefitsRes.error) return { error: "benefits funnel query failed" };
@@ -620,7 +620,7 @@ async function fetchWindow(
     | "loss"
     | "empathic"
     | "outreach"        // 4th arm
-    | "inline_answer"   // 5th arm
+    | "qa_email_capture"   // 5th arm
     | "multi_provider"  // 6th arm
     | "control"         // legacy V2
     | "money_loss"      // legacy V2
@@ -639,7 +639,7 @@ async function fetchWindow(
     loss: emptyStages(),
     empathic: emptyStages(),
     outreach: emptyStages(),
-    inline_answer: emptyStages(),
+    qa_email_capture: emptyStages(),
     multi_provider: emptyStages(),
     control: emptyStages(),
     money_loss: emptyStages(),
@@ -661,7 +661,7 @@ async function fetchWindow(
     "availability",
     "loss",
     "empathic",
-    "inline_answer",
+    "qa_email_capture",
     "multi_provider",
     "control",
     "money_loss",
@@ -729,10 +729,10 @@ async function fetchWindow(
       : r.event_type === "inline_answer_converted" ? "saved"
       : undefined;
     if (!stage) continue;
-    benefitsByVariantSets.inline_answer[stage].add(sid);
+    benefitsByVariantSets.qa_email_capture[stage].add(sid);
   }
 
-  // Multi-provider 6th-arm: same structure as inline_answer.
+  // Multi-provider 6th-arm: same structure as qa_email_capture.
   // Event mapping:
   //   multi_provider_expanded      → impressions + started (card opened)
   //   multi_provider_question_sent → started (engagement, not separate stage)
@@ -781,7 +781,7 @@ async function fetchWindow(
     loss: sizesFor("loss"),
     empathic: sizesFor("empathic"),
     outreach: sizesFor("outreach"),
-    inline_answer: sizesFor("inline_answer"),
+    qa_email_capture: sizesFor("qa_email_capture"),
     multi_provider: sizesFor("multi_provider"),
     control: sizesFor("control"),
     money_loss: sizesFor("money_loss"),

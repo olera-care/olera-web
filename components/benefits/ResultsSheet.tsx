@@ -27,7 +27,7 @@
  *   - Desktop side panel uses panel-in-right animation (300ms same curve).
  */
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { X, ArrowRight, ArrowUpRight } from "@phosphor-icons/react";
@@ -64,25 +64,7 @@ export interface ResultsSheetProps {
   /** Channel + masked destination, drives the footer copy. */
   contactChannel?: "email" | "sms";
   contactDestination?: string | null;
-
-  /** When true, render a soft 4-pill relationship enrichment row in the
-   *  hero. Used by the empathic_single arm where relationship isn't asked
-   *  pre-submit. Tap → POST /api/benefits/update-relationship to backfill
-   *  the family profile. The legacy 3-step flow already captures relationship
-   *  upstream and leaves this off (default false). */
-  showRelationshipPills?: boolean;
-  /** Session id used to find the family profile when persisting the pill
-   *  selection. Required when showRelationshipPills=true. */
-  sessionId?: string | null;
 }
-
-type Relationship = "my-parent" | "my-spouse" | "myself" | "other-family";
-const RELATIONSHIP_PILLS: Array<{ value: Relationship; label: string }> = [
-  { value: "my-parent", label: "My parent" },
-  { value: "my-spouse", label: "My spouse" },
-  { value: "myself", label: "Me" },
-  { value: "other-family", label: "Family member" },
-];
 
 // ─── Savings parsing — converts the raw range string to a tight inline label.
 function formatSavings(range?: string): string | null {
@@ -127,39 +109,10 @@ export default function ResultsSheet({
   providerSlug = null,
   contactChannel,
   contactDestination,
-  showRelationshipPills = false,
-  sessionId = null,
 }: ResultsSheetProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
-
-  // ─── Relationship enrichment (empathic_single arm) ──────────────────
-  // Soft, skippable. Tapping a pill backfills the family profile via a
-  // lightweight session-id-keyed endpoint. UI only renders when the parent
-  // arm explicitly opts in via showRelationshipPills.
-  const [selectedRelationship, setSelectedRelationship] = useState<Relationship | null>(null);
-  const [relationshipSaving, setRelationshipSaving] = useState(false);
-  const handleRelationshipPick = useCallback(
-    async (value: Relationship) => {
-      if (!sessionId || relationshipSaving) return;
-      setSelectedRelationship(value);
-      setRelationshipSaving(true);
-      try {
-        await fetch("/api/benefits/update-relationship", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId, relationship: value }),
-          keepalive: true,
-        });
-      } catch {
-        // best-effort — don't surface errors here, the lead is already captured
-      } finally {
-        setRelationshipSaving(false);
-      }
-    },
-    [sessionId, relationshipSaving],
-  );
 
   const handleClose = useCallback(() => {
     const active = document.activeElement;
@@ -257,40 +210,6 @@ export default function ResultsSheet({
           <p className="mt-3 text-[15px] leading-relaxed text-gray-500">
             Based on what you shared — <span className="text-gray-700">{careLabel}</span>.
           </p>
-
-          {/* Soft relationship enrichment — empathic_single arm only.
-              Skippable, non-blocking. Tap = backfill the family profile via
-              session-id-keyed endpoint. After a tap, we collapse to a tiny
-              acknowledgement so users don't feel they've been form-trapped. */}
-          {showRelationshipPills && (
-            <div className="mt-5">
-              {selectedRelationship ? (
-                <p className="text-[13px] text-gray-500">
-                  Got it — saving for{" "}
-                  <span className="text-gray-700">
-                    {RELATIONSHIP_PILLS.find((r) => r.value === selectedRelationship)?.label.toLowerCase()}
-                  </span>
-                  .
-                </p>
-              ) : (
-                <>
-                  <p className="text-[13px] text-gray-500 mb-2">Quick — who is this for?</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {RELATIONSHIP_PILLS.map((pill) => (
-                      <button
-                        key={pill.value}
-                        onClick={() => handleRelationshipPick(pill.value)}
-                        disabled={relationshipSaving}
-                        className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[13px] text-gray-700 transition hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        {pill.label}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Provider tie-in (only when there's plausible overlap) */}

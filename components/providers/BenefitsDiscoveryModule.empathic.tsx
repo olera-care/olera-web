@@ -22,22 +22,27 @@
  * the structural variant in analytics.
  */
 
-import { useState, useMemo, useRef, useEffect } from "react";
-import { ArrowRight, Spinner } from "@phosphor-icons/react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { ArrowRight, Spinner, CheckCircle } from "@phosphor-icons/react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { trackBenefitsEvent } from "@/lib/analytics/track-step";
 import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import { EMPATHIC_INTENT_H2 } from "@/lib/analytics/variant-copy";
 import { matchesCareNeed } from "@/lib/benefits/match-care-need";
 import { inferCareNeedAndIntent } from "@/lib/benefits/infer-care-need-from-question";
-import type { MatchableProvider } from "@/lib/benefits/provider-tie-in";
-import type { WaiverProgram } from "@/data/waiver-library";
 import {
   useReducedMotion,
   tapHaptic,
 } from "@/components/providers/connection-card/MobileUXPrimitives";
 import { useAuth } from "@/components/auth/AuthProvider";
-import ResultsSheet from "@/components/benefits/ResultsSheet";
+
+type Relationship = "my-parent" | "my-spouse" | "myself" | "other-family";
+const RELATIONSHIP_PILLS: Array<{ value: Relationship; label: string }> = [
+  { value: "my-parent", label: "My parent" },
+  { value: "my-spouse", label: "My spouse" },
+  { value: "myself", label: "Me" },
+  { value: "other-family", label: "Family member" },
+];
 
 interface BenefitsProgram {
   id: string;
@@ -183,11 +188,37 @@ export default function EmpathicSingleStep({
   // sticky-bar suppression covers the thumb-zone need for v1.
   const moduleRef = useRef<HTMLElement>(null);
 
-  // ─── Post-submit overlay state ────────────────────────────────────────
-  const [overlayOpen, setOverlayOpen] = useState(false);
-  const [overlayMatches, setOverlayMatches] = useState<WaiverProgram[]>([]);
-  const [overlayMatchCount, setOverlayMatchCount] = useState(0);
-  const [overlayContactDest, setOverlayContactDest] = useState<string | null>(null);
+  // ─── Post-submit success state (inline, not a sheet) ─────────────────
+  // Stays inside the empathic section so the provider context isn't
+  // disrupted. The full match list + provider tie-in + benefit-detail
+  // links live in the email instead — page UI keeps the user on the
+  // provider they came to see.
+  const [submitted, setSubmitted] = useState(false);
+  const [submittedMatchCount, setSubmittedMatchCount] = useState(0);
+  const [submittedEmail, setSubmittedEmail] = useState<string>("");
+  const [selectedRelationship, setSelectedRelationship] = useState<Relationship | null>(null);
+  const [relationshipSaving, setRelationshipSaving] = useState(false);
+
+  const handleRelationshipPick = useCallback(
+    async (value: Relationship) => {
+      if (!sessionId || relationshipSaving) return;
+      setSelectedRelationship(value);
+      setRelationshipSaving(true);
+      try {
+        await fetch("/api/benefits/update-relationship", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId, relationship: value }),
+          keepalive: true,
+        });
+      } catch {
+        // best-effort — lead is already captured
+      } finally {
+        setRelationshipSaving(false);
+      }
+    },
+    [sessionId, relationshipSaving],
+  );
 
   // ─── Submit handler ───────────────────────────────────────────────────
   async function handleSubmit() {
@@ -251,11 +282,10 @@ export default function EmpathicSingleStep({
         setSaving(false);
         return;
       }
-      setOverlayMatches(matchingPrograms as unknown as WaiverProgram[]);
-      setOverlayMatchCount(typeof data.matchCount === "number" ? data.matchCount : matchingPrograms.length);
-      setOverlayContactDest(submittableEmail.toLowerCase());
+      setSubmittedMatchCount(typeof data.matchCount === "number" ? data.matchCount : matchingPrograms.length);
+      setSubmittedEmail(submittableEmail.toLowerCase());
       setSaving(false);
-      setOverlayOpen(true);
+      setSubmitted(true);
     } catch (err) {
       console.error("[EmpathicSingleStep] Submit failed:", err);
       setError("Network error. Please try again.");
@@ -268,14 +298,6 @@ export default function EmpathicSingleStep({
   // ═════════════════════════════════════════════════════════════════════
   // RENDER
   // ═════════════════════════════════════════════════════════════════════
-
-  const provider: MatchableProvider | null = providerName
-    ? {
-        display_name: providerName,
-        care_types: providerCareTypes,
-        category: providerCategory ?? null,
-      }
-    : null;
 
   const h2 = EMPATHIC_INTENT_H2[inferred.intent](stateName);
 
@@ -293,112 +315,147 @@ export default function EmpathicSingleStep({
       ref={moduleRef}
       className="benefits-discovery-module rounded-3xl border border-gray-100 bg-white px-5 py-6 sm:px-7 sm:py-8 shadow-sm"
     >
-      {/* Echo — 12px italic gray, only when user actually asked. NOT the headline. */}
-      {quotedQuestion && (
-        <p
-          className={`benefits-echo-line ${echoVisible ? "is-visible" : ""} font-display italic text-[12px] text-gray-500 mb-4 leading-relaxed`}
-        >
-          You asked: <span className="text-gray-600">&ldquo;{quotedQuestion}&rdquo;</span>
-        </p>
-      )}
+      {submitted ? (
+        // ─── Inline success state ──────────────────────────────────────
+        // Replaces the form in place. No sheet, no portal, no off-page
+        // links. Match details + provider tie-in live in the email — the
+        // page stays anchored on the provider the user came to see.
+        <div className="animate-step-in">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0" weight="fill" />
+            <p className="font-display text-[18px] font-semibold text-gray-900 leading-tight">
+              Sent — check your inbox.
+            </p>
+          </div>
+          <p className="text-[14px] text-gray-600 leading-relaxed mb-5">
+            We emailed your{" "}
+            {submittedMatchCount > 0 && (
+              <span className="text-gray-900 font-medium">
+                {submittedMatchCount} {stateName} match{submittedMatchCount === 1 ? "" : "es"}
+              </span>
+            )}
+            {submittedMatchCount === 0 && <>{stateName} matches</>} to{" "}
+            <span className="text-gray-900">{submittedEmail}</span>.
+          </p>
 
-      {/* H2 — intent-mapped. The visual hero. */}
-      <h2 className="font-display text-[22px] font-bold text-gray-900 leading-tight mb-5">
-        {h2}
-      </h2>
-
-      {/* Preview chips — 2 real programs, no "+ N more" tease. ResultsSheet shows the rest. */}
-      {previewPrograms.length > 0 && (
-        <div className="space-y-2 mb-6">
-          {previewPrograms.map((p) => (
-            <div
-              key={p.id}
-              className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-4 py-3"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="text-[14px] font-semibold text-gray-900 leading-tight truncate">
-                  {p.shortName || p.name}
-                </div>
-                {p.savingsRange && (
-                  <div className="text-[12px] text-gray-500 mt-0.5 truncate">{p.savingsRange}</div>
-                )}
+          {/* Soft relationship enrichment — skippable, single tap */}
+          {selectedRelationship ? (
+            <p className="text-[13px] text-gray-500">
+              Got it — saving for{" "}
+              <span className="text-gray-700">
+                {RELATIONSHIP_PILLS.find((r) => r.value === selectedRelationship)?.label.toLowerCase()}
+              </span>
+              .
+            </p>
+          ) : (
+            <>
+              <p className="text-[13px] text-gray-500 mb-2">Quick — who is this for?</p>
+              <div className="flex flex-wrap gap-1.5">
+                {RELATIONSHIP_PILLS.map((pill) => (
+                  <button
+                    key={pill.value}
+                    onClick={() => handleRelationshipPick(pill.value)}
+                    disabled={relationshipSaving}
+                    className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[13px] text-gray-700 transition hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {pill.label}
+                  </button>
+                ))}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Authed-user one-click path OR email field for guests */}
-      {authedEmail ? (
-        <div className="mb-3">
-          <p className="text-[12px] text-gray-500 mb-2">Signed in as {authedEmail}</p>
+            </>
+          )}
         </div>
       ) : (
-        <label className="block mb-3">
-          <span className="sr-only">Email address</span>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (error) setError(null);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !saving && emailValid) {
-                e.preventDefault();
-                handleSubmit();
-              }
-            }}
-            placeholder="you@example.com"
-            autoComplete="email"
-            inputMode="email"
-            disabled={saving}
-            className="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-[16px] text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-0 transition disabled:opacity-50"
-          />
-        </label>
+        <>
+          {/* Echo — 12px italic gray, only when user actually asked. NOT the headline. */}
+          {quotedQuestion && (
+            <p
+              className={`benefits-echo-line ${echoVisible ? "is-visible" : ""} font-display italic text-[12px] text-gray-500 mb-4 leading-relaxed`}
+            >
+              You asked: <span className="text-gray-600">&ldquo;{quotedQuestion}&rdquo;</span>
+            </p>
+          )}
+
+          {/* H2 — intent-mapped. The visual hero. */}
+          <h2 className="font-display text-[22px] font-bold text-gray-900 leading-tight mb-5">
+            {h2}
+          </h2>
+
+          {/* Preview chips — 2 real programs. Email gets the full list. */}
+          {previewPrograms.length > 0 && (
+            <div className="space-y-2 mb-6">
+              {previewPrograms.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-4 py-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[14px] font-semibold text-gray-900 leading-tight truncate">
+                      {p.shortName || p.name}
+                    </div>
+                    {p.savingsRange && (
+                      <div className="text-[12px] text-gray-500 mt-0.5 truncate">{p.savingsRange}</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Authed-user one-click path OR email field for guests */}
+          {authedEmail ? (
+            <div className="mb-3">
+              <p className="text-[12px] text-gray-500 mb-2">Signed in as {authedEmail}</p>
+            </div>
+          ) : (
+            <label className="block mb-3">
+              <span className="sr-only">Email address</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error) setError(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !saving && emailValid) {
+                    e.preventDefault();
+                    handleSubmit();
+                  }
+                }}
+                placeholder="you@example.com"
+                autoComplete="email"
+                inputMode="email"
+                disabled={saving}
+                className="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-[16px] text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-0 transition disabled:opacity-50"
+              />
+            </label>
+          )}
+
+          {error && (
+            <p className="mt-2 text-[13px] text-red-600 mb-2" role="alert">
+              {error}
+            </p>
+          )}
+
+          {/* Primary CTA — dynamic copy, scale-feedback when valid, transitions on press */}
+          <button
+            onClick={handleSubmit}
+            disabled={saving || !emailValid}
+            className={`mt-1 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 text-[15px] font-semibold transition-all duration-200 ${
+              saving || !emailValid
+                ? "bg-gray-200 text-gray-400 cursor-default"
+                : "bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98]"
+            }`}
+          >
+            {saving ? <Spinner className="h-4 w-4 animate-spin" weight="bold" /> : null}
+            {ctaLabel}
+            {!saving && emailValid && <ArrowRight className="h-4 w-4" weight="bold" />}
+          </button>
+
+          <p className="mt-3 text-[12px] text-gray-400 text-center">No spam.</p>
+        </>
       )}
-
-      {error && (
-        <p className="mt-2 text-[13px] text-red-600 mb-2" role="alert">
-          {error}
-        </p>
-      )}
-
-      {/* Primary CTA — dynamic copy, scale-feedback when valid, transitions on press */}
-      <button
-        onClick={handleSubmit}
-        disabled={saving || !emailValid}
-        className={`mt-1 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 text-[15px] font-semibold transition-all duration-200 ${
-          saving || !emailValid
-            ? "bg-gray-200 text-gray-400 cursor-default"
-            : "bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98]"
-        }`}
-      >
-        {saving ? (
-          <Spinner className="h-4 w-4 animate-spin" weight="bold" />
-        ) : null}
-        {ctaLabel}
-        {!saving && emailValid && <ArrowRight className="h-4 w-4" weight="bold" />}
-      </button>
-
-      <p className="mt-3 text-[12px] text-gray-400 text-center">No spam.</p>
-
-      {/* Post-submit overlay */}
-      <ResultsSheet
-        mode="overlay"
-        isOpen={overlayOpen}
-        onClose={() => setOverlayOpen(false)}
-        matches={overlayMatches}
-        matchCount={overlayMatchCount}
-        careNeed={inferred.careNeed}
-        state={{ name: stateName, slug: stateId }}
-        provider={provider}
-        providerSlug={providerSlug ?? null}
-        contactChannel="email"
-        contactDestination={overlayContactDest}
-        showRelationshipPills
-        sessionId={sessionId || null}
-      />
     </section>
   );
 }

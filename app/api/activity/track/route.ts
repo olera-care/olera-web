@@ -45,19 +45,27 @@ const FAMILY_EVENT_TYPES = [
 // Anonymous events are care-seeker-driven but lack a known profile_id.
 // They write to provider_activity (not seeker_activity) keyed on the
 // related provider's slug; session_id (in metadata) enables nightly dedup.
+//
+// New events here MUST also be added to provider_activity_event_type_check
+// in a migration — otherwise inserts silently fail at the DB layer
+// (fire-and-forget tracker swallows the rejection). See migration 077.
 const ANONYMOUS_EVENT_TYPES = [
   "page_view",
   "search_click",
   "cta_click_public",
   "benefits_started",
-  // inline_answer variant A/B test events
-  "inline_answer_viewed",
-  "inline_answer_expanded",
-  "inline_answer_converted",
-  "inline_answer_saved",
-  // multi_provider variant A/B test events
-  "multi_provider_expanded",
-  "multi_provider_question_sent",
+  // multi_provider variant A/B test events. Names mirror what
+  // MultiProviderCard + QASectionWithVariant actually fire.
+  //   _viewed       — wrapper mount in arm (impression denominator)
+  //   _card_shown   — card stack rendered after a question (started)
+  //   _asked        — user sent question to a provider in the stack
+  //   _skipped      — user skipped a card
+  //   _converted    — email captured at end of flow (saved)
+  //   _save_all     — secondary save action (logged-in flow)
+  "multi_provider_viewed",
+  "multi_provider_card_shown",
+  "multi_provider_asked",
+  "multi_provider_skipped",
   "multi_provider_converted",
   "multi_provider_save_all",
 ] as const;
@@ -169,13 +177,15 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Send Slack alert for Q&A variant conversions
-      if (event_type === "inline_answer_converted" || event_type === "multi_provider_converted") {
+      // Send Slack alert for multi_provider conversions. Awaited so the
+      // Vercel serverless runtime doesn't kill the pending Promise after
+      // the response returns (see feedback_serverless_fire_and_forget.md).
+      if (event_type === "multi_provider_converted") {
         try {
           const { sendSlackAlert, slackVariantConverted } = await import("@/lib/slack");
           const meta = (metadata as Record<string, unknown>) || {};
           const alert = slackVariantConverted({
-            variant: event_type === "inline_answer_converted" ? "inline_answer" : "multi_provider",
+            variant: "multi_provider",
             email: (meta.email as string) || "unknown",
             providerName: (meta.provider_name as string) || related_provider_id,
             questionText: meta.question_text as string | undefined,

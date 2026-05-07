@@ -355,37 +355,38 @@ async function fetchWindow(
   if (from) benefitsQ = benefitsQ.gte("created_at", from);
   if (to) benefitsQ = benefitsQ.lt("created_at", to);
 
-  // Agent outreach 4th-arm funnel. Different table (seeker_activity) and
-  // different shape — no middle steps, just impression → submission. Bucketed
-  // into the `outreach` variant row by definition (the events are unique to
-  // that arm, no metadata.variant needed).
+  // Outreach 4th-arm + qa_email_capture 5th-arm funnel. Different table
+  // (seeker_activity), different shape from the SBF arms.
+  //   outreach          — impression → card click → submit
+  //   qa_email_capture  — impression → (question_asked from POST /api/questions)
+  //                       → question_email_enriched
+  // Both arm sets bucketed by event_type below; metadata.variant is set on
+  // qa_email_capture events but not strictly needed for bucketing.
   let outreachQ = db
     .from("seeker_activity")
     .select("event_type, metadata")
-    .in("event_type", ["outreach_module_impression", "outreach_card_clicked", "outreach_request_submitted"])
+    .in("event_type", [
+      "outreach_module_impression",
+      "outreach_card_clicked",
+      "outreach_request_submitted",
+      "qa_email_capture_impression",
+      "question_email_enriched",
+    ])
     .limit(50000);
   if (from) outreachQ = outreachQ.gte("created_at", from);
   if (to) outreachQ = outreachQ.lt("created_at", to);
 
-  // Inline answer 5th-arm funnel. Lives in provider_activity like benefits.
-  // Event types: inline_answer_viewed (impression), inline_answer_expanded
-  // (started), inline_answer_converted (submitted). Bucketed by metadata.variant
-  // = "qa_email_capture".
-  let inlineAnswerQ = db
-    .from("provider_activity")
-    .select("event_type, metadata")
-    .in("event_type", ["inline_answer_viewed", "inline_answer_expanded", "inline_answer_converted"])
-    .limit(50000);
-  if (from) inlineAnswerQ = inlineAnswerQ.gte("created_at", from);
-  if (to) inlineAnswerQ = inlineAnswerQ.lt("created_at", to);
-
-  // Multi-provider 6th-arm funnel. Lives in provider_activity.
-  // Event types: multi_provider_expanded (impression/started),
-  // multi_provider_question_sent (engagement), multi_provider_converted (submitted).
+  // Multi-provider 6th-arm funnel. Lives in provider_activity (anonymous
+  // events). Event mapping:
+  //   multi_provider_viewed     → impressions  (wrapper mount in arm)
+  //   multi_provider_card_shown → started      (card stack rendered after a question)
+  //   multi_provider_converted  → saved        (email captured)
+  // Other multi_provider_* events (asked, skipped, save_all) are kept in
+  // the allowlist for downstream analysis but don't drive the canonical funnel.
   let multiProviderQ = db
     .from("provider_activity")
     .select("event_type, metadata")
-    .in("event_type", ["multi_provider_expanded", "multi_provider_question_sent", "multi_provider_converted"])
+    .in("event_type", ["multi_provider_viewed", "multi_provider_card_shown", "multi_provider_converted"])
     .limit(50000);
   if (from) multiProviderQ = multiProviderQ.gte("created_at", from);
   if (to) multiProviderQ = multiProviderQ.lt("created_at", to);
@@ -405,7 +406,7 @@ async function fetchWindow(
   if (from) accountsQ = accountsQ.gte("created_at", from);
   if (to) accountsQ = accountsQ.lt("created_at", to);
 
-  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes, benefitsRes, outreachRes, inlineAnswerRes, multiProviderRes, accountsRes] = await Promise.all([
+  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes, benefitsRes, outreachRes, multiProviderRes, accountsRes] = await Promise.all([
     providerQ,
     seekerQ,
     distinctQ,
@@ -414,7 +415,6 @@ async function fetchWindow(
     issuesEventsQ,
     benefitsQ,
     outreachQ,
-    inlineAnswerQ,
     multiProviderQ,
     accountsQ,
   ]);
@@ -425,7 +425,6 @@ async function fetchWindow(
   if (openersRes.error) return { error: "Q&A email openers query failed" };
   if (funnelRes.error) return { error: "Q&A funnel query failed" };
   if (outreachRes.error) return { error: "outreach funnel query failed" };
-  if (inlineAnswerRes.error) return { error: "qa_email_capture funnel query failed" };
   if (multiProviderRes.error) return { error: "multi_provider funnel query failed" };
   if (issuesEventsRes.error) return { error: "Q&A issues query failed" };
   if (benefitsRes.error) return { error: "benefits funnel query failed" };
@@ -690,53 +689,49 @@ async function fetchWindow(
     benefitsStageSets[stage].add(sid);
     benefitsByVariantSets[bucket][stage].add(sid);
   }
-  // Bucket outreach events by distinct session_id into the "outreach" arm.
-  // These events are unique to that arm (no metadata.variant needed — the
-  // event_type is the variant). Stage mapping mirrors the benefits arms so
-  // the funnel reads apples-to-apples:
-  //   outreach_module_impression  → impressions  (passive: module rendered)
-  //   outreach_card_clicked       → started      (first interactive action)
-  //   outreach_request_submitted  → saved        (form submitted)
+  // Bucket outreach + qa_email_capture events by distinct session_id into
+  // their respective arm. These events are unique per arm (event_type IS
+  // the variant signal). Stage mapping mirrors the SBF arms so the funnel
+  // reads apples-to-apples on a shared impressions denominator:
+  //
+  //   outreach arm:
+  //     outreach_module_impression   → impressions  (passive: module rendered)
+  //     outreach_card_clicked        → started      (first interactive action)
+  //     outreach_request_submitted   → saved        (form submitted)
+  //
+  //   qa_email_capture arm:
+  //     qa_email_capture_impression  → impressions  (Q&A section rendered for arm)
+  //     question_email_enriched      → saved        (email captured post-question)
+  //     no `started` middle stage; arm collapses impressions → saved
   for (const r of (outreachRes.data ?? []) as Array<{
     event_type: string;
     metadata: Record<string, unknown> | null;
   }>) {
-    const sid = r.metadata?.session_id;
-    if (typeof sid !== "string" || !sid) continue;
-    const stage: keyof BenefitsFunnel | undefined =
-      r.event_type === "outreach_module_impression" ? "impressions"
-      : r.event_type === "outreach_card_clicked" ? "started"
-      : r.event_type === "outreach_request_submitted" ? "saved"
-      : undefined;
-    if (!stage) continue;
-    benefitsByVariantSets.outreach[stage].add(sid);
+    const sid = typeof r.metadata?.session_id === "string" ? r.metadata.session_id : null;
+    if (r.event_type === "outreach_module_impression") {
+      if (sid) benefitsByVariantSets.outreach.impressions.add(sid);
+    } else if (r.event_type === "outreach_card_clicked") {
+      if (sid) benefitsByVariantSets.outreach.started.add(sid);
+    } else if (r.event_type === "outreach_request_submitted") {
+      if (sid) benefitsByVariantSets.outreach.saved.add(sid);
+    } else if (r.event_type === "qa_email_capture_impression") {
+      if (sid) benefitsByVariantSets.qa_email_capture.impressions.add(sid);
+    } else if (r.event_type === "question_email_enriched") {
+      // The PATCH route doesn't carry session_id directly when it lacks
+      // a client; metadata.session_id is set by the client-side enrichment
+      // call. Use question_id as the dedup fallback so each question's
+      // enrichment counts once per question even when session_id is missing.
+      const qid = typeof r.metadata?.question_id === "string" ? r.metadata.question_id : null;
+      const key = qid || sid || `${r.event_type}-${Math.random()}`;
+      benefitsByVariantSets.qa_email_capture.saved.add(key);
+    }
   }
 
-  // Inline answer 5th-arm: same structure as outreach but lives in
-  // provider_activity. Event mapping:
-  //   inline_answer_viewed     → impressions  (passive: module rendered)
-  //   inline_answer_expanded   → started      (first interactive action)
-  //   inline_answer_converted  → saved        (email submitted)
-  for (const r of (inlineAnswerRes.data ?? []) as Array<{
-    event_type: string;
-    metadata: Record<string, unknown> | null;
-  }>) {
-    const sid = r.metadata?.session_id;
-    if (typeof sid !== "string" || !sid) continue;
-    const stage: keyof BenefitsFunnel | undefined =
-      r.event_type === "inline_answer_viewed" ? "impressions"
-      : r.event_type === "inline_answer_expanded" ? "started"
-      : r.event_type === "inline_answer_converted" ? "saved"
-      : undefined;
-    if (!stage) continue;
-    benefitsByVariantSets.qa_email_capture[stage].add(sid);
-  }
-
-  // Multi-provider 6th-arm: same structure as qa_email_capture.
+  // Multi-provider 6th-arm. Lives in provider_activity (anonymous events).
   // Event mapping:
-  //   multi_provider_expanded      → impressions + started (card opened)
-  //   multi_provider_question_sent → started (engagement, not separate stage)
-  //   multi_provider_converted     → saved (email submitted)
+  //   multi_provider_viewed     → impressions (wrapper mount in arm)
+  //   multi_provider_card_shown → started     (card stack rendered)
+  //   multi_provider_converted  → saved       (email captured)
   for (const r of (multiProviderRes.data ?? []) as Array<{
     event_type: string;
     metadata: Record<string, unknown> | null;
@@ -744,14 +739,11 @@ async function fetchWindow(
     const sid = r.metadata?.session_id;
     if (typeof sid !== "string" || !sid) continue;
     const stage: keyof BenefitsFunnel | undefined =
-      r.event_type === "multi_provider_expanded" ? "started"
+      r.event_type === "multi_provider_viewed" ? "impressions"
+      : r.event_type === "multi_provider_card_shown" ? "started"
       : r.event_type === "multi_provider_converted" ? "saved"
       : undefined;
     if (!stage) continue;
-    // For expanded, also count as impression
-    if (r.event_type === "multi_provider_expanded") {
-      benefitsByVariantSets.multi_provider.impressions.add(sid);
-    }
     benefitsByVariantSets.multi_provider[stage].add(sid);
   }
 

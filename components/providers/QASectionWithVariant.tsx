@@ -2,9 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import QASectionV2 from "@/components/providers/QASectionV2";
+import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useIntakeVariant } from "@/hooks/use-intake-variant";
-import type { IntakeVariant } from "@/lib/analytics/variant";
+import type { ProviderCardData } from "@/lib/types/provider";
 import type { SimilarProviderForMulti } from "@/lib/provider-utils";
 
 interface QAEntry {
@@ -34,6 +35,11 @@ interface QASectionWithVariantProps {
   hasBenefitsData: boolean;
   /** Similar providers for multi_provider variant */
   similarProvidersForMulti?: SimilarProviderForMulti[];
+  /** Top providers in same city + category. qa_email_capture arm uses these
+   *  for the "Top N [Category] in [City]" cards in the post-question prompt. */
+  alternativeProviders?: ProviderCardData[];
+  /** Display-ready category for the qa_email_capture arm headline. */
+  providerCategory?: string | null;
 }
 
 /**
@@ -62,30 +68,33 @@ export default function QASectionWithVariant({
   suggestedQuestions,
   hasBenefitsData,
   similarProvidersForMulti,
+  alternativeProviders,
+  providerCategory,
 }: QASectionWithVariantProps) {
   // Use the shared hook to get the variant — this ensures we stay in sync
   // with BenefitsArmGate and AgentOutreachSlot (all use the same weighted
   // assignment from the admin dial). Returns null while loading.
   const hookVariant = useIntakeVariant();
 
-  // Track multi_provider impression once variant resolves
+  // Track multi_provider impression once variant resolves. Skip in admin
+  // preview so inspection doesn't pollute the funnel.
   const impressionTrackedRef = useRef(false);
   useEffect(() => {
-    if (hookVariant === "multi_provider" && !impressionTrackedRef.current) {
-      impressionTrackedRef.current = true;
-      fetch("/api/activity/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          actor_type: "anonymous",
-          event_type: "multi_provider_viewed",
-          related_provider_id: providerId,
-          session_id: getOrCreateSessionId(),
-          metadata: { variant: "multi_provider" },
-        }),
-        keepalive: true,
-      }).catch(() => {});
-    }
+    if (hookVariant !== "multi_provider" || impressionTrackedRef.current) return;
+    impressionTrackedRef.current = true;
+    if (isPreviewMode()) return;
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "anonymous",
+        event_type: "multi_provider_viewed",
+        related_provider_id: providerId,
+        session_id: getOrCreateSessionId(),
+        metadata: { variant: "multi_provider" },
+      }),
+      keepalive: true,
+    }).catch(() => {});
   }, [hookVariant, providerId]);
 
   // Derived: for outreach, qa_email_capture, and multi_provider variants,
@@ -115,6 +124,8 @@ export default function QASectionWithVariant({
       hasBenefitsSection={hasBenefitsSection}
       variant={hookVariant ?? undefined}
       similarProvidersForMulti={similarProvidersForMulti}
+      alternativeProviders={alternativeProviders}
+      providerCategory={providerCategory}
     />
   );
 }

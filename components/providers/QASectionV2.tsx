@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { Star } from "@phosphor-icons/react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders, type SaveProviderData } from "@/hooks/use-saved-providers";
-import InlineAnswerCard from "@/components/providers/InlineAnswerCard";
 import MultiProviderCard from "@/components/providers/MultiProviderCard";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import type { IntakeVariant } from "@/lib/analytics/variant";
+import { getCategoryDisplayName, type ProviderCardData } from "@/lib/types/provider";
 import type { SimilarProviderForMulti } from "@/lib/provider-utils";
 
 interface QAEntry {
@@ -41,10 +43,16 @@ interface QASectionProps {
   hasBenefitsSection?: boolean;
   // Variant for A/B test — determines which experience to render.
   // "multi_provider" variant shows click-to-send multi-provider comparison.
-  // (Note: "inline_answer" was archived to a separate branch 2026-05-06)
+  // "qa_email_capture" variant shows redesigned Top-N comparison cards + email capture.
   variant?: IntakeVariant;
   // Similar providers for multi_provider variant
   similarProvidersForMulti?: SimilarProviderForMulti[];
+  /** Top providers in same city + category. qa_email_capture arm renders
+   *  these as "Top N [Category] in [City]" cards in the post-question
+   *  enrichment prompt. Empty array → fallback "save your spot" prompt. */
+  alternativeProviders?: ProviderCardData[];
+  /** Display-ready category for the qa_email_capture arm headline. */
+  providerCategory?: string | null;
 }
 
 // More menu icon component
@@ -138,6 +146,8 @@ export default function QASectionV2({
   hasBenefitsSection = false,
   variant,
   similarProvidersForMulti = [],
+  alternativeProviders = [],
+  providerCategory = null,
 }: QASectionProps) {
   const { user, openAuth } = useAuth();
   const { toggleSave, isSaved } = useSavedProviders();
@@ -162,9 +172,30 @@ export default function QASectionV2({
   const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
   const [inlineSubmitting, setInlineSubmitting] = useState(false);
   const [inlineSuccess, setInlineSuccess] = useState(false);
-  // inline_answer variant archived 2026-05-06 — code kept for reference, always false
-  const isInlineAnswerVariant = false;
   const isMultiProviderVariant = variant === "multi_provider";
+  const isQaCaptureArm = variant === "qa_email_capture";
+
+  // qa_email_capture arm: fire impression once when the variant resolves so
+  // the funnel comparison has a denominator. Skip in admin preview to keep
+  // inspection out of the funnel.
+  const variantImpressionFiredRef = useRef(false);
+  useEffect(() => {
+    if (!isQaCaptureArm || variantImpressionFiredRef.current) return;
+    variantImpressionFiredRef.current = true;
+    if (isPreviewMode()) return;
+    const sid = getOrCreateSessionId();
+    void fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "family",
+        event_type: "qa_email_capture_impression",
+        related_provider_id: providerId,
+        metadata: { session_id: sid, variant: "qa_email_capture" },
+      }),
+      keepalive: true,
+    }).catch(() => {});
+  }, [isQaCaptureArm, providerId]);
 
   // Edit question state
   const [editingQuestion, setEditingQuestion] = useState<QAEntry | null>(null);
@@ -210,6 +241,11 @@ export default function QASectionV2({
   const submitQuestion = useCallback(async (questionText: string, suggestionIndex?: number) => {
     if (!questionText.trim()) return;
 
+    // Admin preview mode: silent no-op. PreviewModeBanner already tells the
+    // operator submissions are disabled — re-stating it via an error toast
+    // would conflict with "Something went wrong" which implies system failure.
+    if (isPreviewMode()) return;
+
     setSubmitting(true);
     setSubmitStatus("idle");
     if (suggestionIndex !== undefined) setTappedIndex(suggestionIndex);
@@ -238,9 +274,8 @@ export default function QASectionV2({
         // For guests: show enrichment prompt after successful submit.
         // SKIP when:
         //   - Page has a benefits module (spotlight handoff owns the moment)
-        //   - Inline answer variant (InlineAnswerCard handles email capture)
         //   - Multi-provider variant (MultiProviderCard handles email capture)
-        if (!user && data.question.id && !hasBenefitsSection && !isInlineAnswerVariant && !isMultiProviderVariant) {
+        if (!user && data.question.id && !hasBenefitsSection && !isMultiProviderVariant) {
           setEnrichQuestionId(data.question.id);
           setShowEnrichment(true);
         }
@@ -253,8 +288,8 @@ export default function QASectionV2({
       // The Q&A moment is peak intent — the caregiver just articulated
       // their exact worry. Pass the question text to the benefits module
       // so it can quietly bring itself into focus.
-      // SKIP for inline_answer and multi_provider variants — they own the moment.
-      if (typeof window !== "undefined" && !isInlineAnswerVariant && !isMultiProviderVariant) {
+      // SKIP for multi_provider variant — it owns the moment.
+      if (typeof window !== "undefined" && !isMultiProviderVariant) {
         window.dispatchEvent(
           new CustomEvent("olera:question-submitted", {
             detail: { question: questionText.trim() },
@@ -275,7 +310,7 @@ export default function QASectionV2({
     } finally {
       setSubmitting(false);
     }
-  }, [providerId, user, honeypot, hasBenefitsSection, isInlineAnswerVariant, isMultiProviderVariant]);
+  }, [providerId, user, honeypot, hasBenefitsSection, isMultiProviderVariant]);
 
   // Handle submit from chat bar
   const handleChatSubmit = () => {
@@ -286,6 +321,8 @@ export default function QASectionV2({
   // Enrich anonymous question with email (optional, post-submit)
   const handleEnrich = async () => {
     if (!enrichQuestionId) return;
+    // Admin preview mode: silent no-op (matches submitQuestion behavior).
+    if (isPreviewMode()) return;
     setGuestError("");
 
     // Honeypot
@@ -315,6 +352,7 @@ export default function QASectionV2({
         body: JSON.stringify({
           id: enrichQuestionId,
           asker_email: guestEmail.trim().toLowerCase(),
+          session_id: getOrCreateSessionId(),
         }),
       });
     } catch {
@@ -334,97 +372,6 @@ export default function QASectionV2({
     setGuestEmail("");
     setTimeout(() => { setSubmitStatus("idle"); setTappedIndex(null); }, 2000);
   };
-
-  // ─── Inline Answer Variant Handlers ────────────────────────────────────────
-
-  const handleInlineQuestionTap = useCallback(async (questionText: string, index: number) => {
-    if (!isInlineAnswerVariant) return;
-
-    // Accordion: collapse current if tapping the same question
-    if (expandedQuestion === questionText) {
-      setExpandedQuestion(null);
-      return;
-    }
-
-    // First, submit the question (existing behavior)
-    submitQuestion(questionText, index);
-
-    // Then expand the inline answer card
-    setExpandedQuestion(questionText);
-    setInlineSuccess(false);
-  }, [isInlineAnswerVariant, expandedQuestion, submitQuestion]);
-
-  const handleInlineEmailSubmit = useCallback(async (email: string) => {
-    if (!expandedQuestion) return;
-
-    setInlineSubmitting(true);
-
-    try {
-      // Capture email via dedicated inline-answer endpoint (handles user creation + welcome email)
-      const captureRes = await fetch("/api/inline-answer/capture-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          providerId,
-          providerName,
-          questionText: expandedQuestion,
-          sessionId: getOrCreateSessionId(),
-        }),
-      });
-
-      if (!captureRes.ok) {
-        const data = await captureRes.json();
-        // Throw error so InlineAnswerCard can display it
-        throw new Error(data.error || "Something went wrong. Please try again.");
-      }
-
-      // Track conversion (fire-and-forget)
-      fetch("/api/activity/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          actor_type: "anonymous",
-          event_type: "inline_answer_converted",
-          related_provider_id: providerId,
-          session_id: getOrCreateSessionId(),
-          metadata: {
-            question_text: expandedQuestion,
-            email,
-            variant: "inline_answer",
-            provider_name: providerName,
-          },
-        }),
-        keepalive: true,
-      }).catch(() => {});
-
-      setInlineSuccess(true);
-    } catch (err) {
-      // Re-throw so InlineAnswerCard can catch and display the error
-      throw err;
-    } finally {
-      setInlineSubmitting(false);
-    }
-  }, [expandedQuestion, providerId, providerName]);
-
-  const handleInlineSave = useCallback(() => {
-    const saveData: SaveProviderData = {
-      providerId,
-      slug: providerSlug || providerId,
-      name: providerName,
-      location: providerLocation,
-      careTypes: providerCareTypes,
-      image: providerImage || null,
-    };
-    toggleSave(saveData);
-    // Collapse the card after saving
-    setExpandedQuestion(null);
-  }, [providerId, providerSlug, providerName, providerLocation, providerCareTypes, providerImage, toggleSave]);
-
-  const handleInlineCollapse = useCallback(() => {
-    setExpandedQuestion(null);
-    setInlineSuccess(false);
-  }, []);
 
   // ─── Multi-Provider Variant Handlers ────────────────────────────────────────
 
@@ -614,9 +561,9 @@ export default function QASectionV2({
   const answeredCount = questions.filter((q) => q.status === "answered" || q.answer).length;
 
   // Determine if we're in post-submit state (success or enrichment)
-  // For inline_answer and multi_provider variants, they handle everything inline,
-  // so we never show the old post-submit enrichment UI.
-  const isPostSubmit = !isInlineAnswerVariant && !isMultiProviderVariant && (submitStatus === "success" || showEnrichment);
+  // For multi_provider variant, the card handles everything inline, so we
+  // never show the old post-submit enrichment UI.
+  const isPostSubmit = !isMultiProviderVariant && (submitStatus === "success" || showEnrichment);
 
   return (
     <div>
@@ -782,8 +729,187 @@ export default function QASectionV2({
             </div>
           </div>
 
-          {/* Guest enrichment — single email field */}
-          {showEnrichment && (
+          {/* Guest enrichment — qa_email_capture arm renders the redesigned
+              compact prompt with 3 inline provider cards as preview-before-email.
+              Other arms keep the legacy gray-box prompt unchanged. */}
+          {showEnrichment && isQaCaptureArm && (
+            <>
+              {alternativeProviders.length > 0 ? (
+                <div className="mt-4 pt-6 border-t border-zinc-100">
+                  {/* Headline — "Top N [Category] in [City]" implies curation
+                      (we ranked them), specificity (this kind of care) and
+                      relevance (where the user is). */}
+                  <h3 className="text-[20px] md:text-2xl font-semibold text-zinc-900 tracking-tight leading-tight">
+                    Top {alternativeProviders.length}
+                    {providerCategory ? ` ${getCategoryDisplayName(providerCategory)}` : ""}
+                    {providerCity ? ` in ${providerCity}` : " nearby"}.
+                  </h3>
+                  <p className="mt-1.5 text-[13px] text-zinc-500">
+                    Plus, we&apos;ll email when {providerName} replies.
+                  </p>
+
+                  <ul className="mt-3 space-y-1.5">
+                    {alternativeProviders.slice(0, 3).map((alt) => {
+                      const metaParts: string[] = [];
+                      if (alt.rating > 0) {
+                        metaParts.push(
+                          alt.reviewCount && alt.reviewCount > 0
+                            ? `${alt.rating.toFixed(1)} (${alt.reviewCount})`
+                            : alt.rating.toFixed(1),
+                        );
+                      }
+                      if (alt.address) metaParts.push(alt.address);
+                      return (
+                        <li key={alt.id}>
+                          <a
+                            href={`/provider/${alt.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block rounded-lg border border-zinc-200 bg-white px-3.5 py-2.5 hover:border-zinc-300 transition"
+                          >
+                            <div className="text-[14px] font-medium text-zinc-900 leading-snug truncate">
+                              {alt.name}
+                            </div>
+                            <div className="mt-0.5 flex items-center gap-1 text-[12px] text-zinc-500 truncate">
+                              {alt.rating > 0 && (
+                                <Star size={11} weight="fill" className="text-amber-500 shrink-0" />
+                              )}
+                              <span className="truncate">{metaParts.join(" · ")}</span>
+                            </div>
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="email"
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && !enriching) { e.preventDefault(); handleEnrich(); } }}
+                      placeholder="your@email.com"
+                      autoComplete="email"
+                      inputMode="email"
+                      autoFocus
+                      className={`flex-1 min-w-0 px-4 py-3 border rounded-lg text-[15px] text-zinc-900 placeholder-zinc-400 bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 transition ${
+                        guestError ? "border-red-300" : "border-zinc-300"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleEnrich}
+                      disabled={enriching || !guestEmail.trim()}
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 px-5 py-3 text-[15px] font-semibold text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {enriching && (
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      )}
+                      Email me these
+                    </button>
+                  </div>
+
+                  <input
+                    type="text"
+                    name="website"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    style={{ display: "none" }}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                  />
+
+                  {guestError ? (
+                    <p className="mt-2 text-[12px] text-red-500" role="alert">{guestError}</p>
+                  ) : (
+                    <p className="mt-2 text-[12px] text-zinc-500">Free. No spam.</p>
+                  )}
+
+                  <div className="mt-4 text-center">
+                    <button
+                      type="button"
+                      onClick={handleDismissEnrichment}
+                      className="text-[12px] text-zinc-400 hover:text-zinc-600 transition"
+                    >
+                      Skip
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Empty-alternatives fallback — small cities / rare categories
+                   with 0 candidates. Drop the cards framing; lean on the
+                   reply-notification value alone. */
+                <div className="mt-4 pt-6 border-t border-zinc-100">
+                  <h3 className="text-[20px] md:text-2xl font-semibold text-zinc-900 tracking-tight leading-tight">
+                    Save your spot.
+                  </h3>
+                  <p className="mt-1.5 text-[14px] text-zinc-600">
+                    We&apos;ll email when {providerName} replies.
+                  </p>
+
+                  <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="email"
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && !enriching) { e.preventDefault(); handleEnrich(); } }}
+                      placeholder="your@email.com"
+                      autoComplete="email"
+                      inputMode="email"
+                      autoFocus
+                      className={`flex-1 min-w-0 px-4 py-3 border rounded-lg text-[15px] text-zinc-900 placeholder-zinc-400 bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 transition ${
+                        guestError ? "border-red-300" : "border-zinc-300"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleEnrich}
+                      disabled={enriching || !guestEmail.trim()}
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 px-5 py-3 text-[15px] font-semibold text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {enriching && (
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      )}
+                      Send
+                    </button>
+                  </div>
+
+                  <input
+                    type="text"
+                    name="website"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    style={{ display: "none" }}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                  />
+
+                  {guestError ? (
+                    <p className="mt-2 text-[12px] text-red-500" role="alert">{guestError}</p>
+                  ) : (
+                    <p className="mt-2 text-[12px] text-zinc-500">Free. No spam.</p>
+                  )}
+
+                  <div className="mt-4 text-center">
+                    <button
+                      type="button"
+                      onClick={handleDismissEnrichment}
+                      className="text-[12px] text-zinc-400 hover:text-zinc-600 transition"
+                    >
+                      Skip
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Legacy enrichment prompt — non-qa_email_capture arms that hit
+              !hasBenefitsSection (rare: pages without benefits data). Kept
+              for backwards compat. */}
+          {showEnrichment && !isQaCaptureArm && (
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
               <p className="text-[14px] font-medium text-gray-800 mb-1">
                 Get notified when they reply
@@ -851,10 +977,9 @@ export default function QASectionV2({
             <div className="space-y-2 mb-4">
               {suggestedQuestions.map((q, i) => {
                 const isTapped = tappedIndex === i;
-                const isInlineExpanded = isInlineAnswerVariant && expandedQuestion === q;
                 const isMultiExpanded = isMultiProviderVariant && expandedQuestion === q;
-                const isExpanded = isInlineExpanded || isMultiExpanded;
-                const isOtherExpanded = (isInlineAnswerVariant || isMultiProviderVariant) && expandedQuestion && expandedQuestion !== q;
+                const isExpanded = isMultiExpanded;
+                const isOtherExpanded = isMultiProviderVariant && expandedQuestion && expandedQuestion !== q;
 
                 return (
                   <div key={i}>
@@ -862,9 +987,7 @@ export default function QASectionV2({
                       type="button"
                       onClick={() => {
                         if (submitting) return;
-                        if (isInlineAnswerVariant) {
-                          handleInlineQuestionTap(q, i);
-                        } else if (isMultiProviderVariant) {
+                        if (isMultiProviderVariant) {
                           handleMultiProviderQuestionTap(q, i);
                         } else {
                           submitQuestion(q, i);
@@ -888,25 +1011,6 @@ export default function QASectionV2({
                         <ArrowIcon />
                       )}
                     </button>
-
-                    {/* Inline Answer Card (inline_answer variant only) */}
-                    {isInlineExpanded && (
-                      <InlineAnswerCard
-                        question={q}
-                        providerName={providerName}
-                        providerImage={providerImage}
-                        providerId={providerId}
-                        providerLocation={providerLocation}
-                        providerCareTypes={providerCareTypes}
-                        onEmailSubmit={handleInlineEmailSubmit}
-                        onSave={handleInlineSave}
-                        onCollapse={handleInlineCollapse}
-                        isSubmitting={inlineSubmitting}
-                        isSuccess={inlineSuccess}
-                        questionSent={submitStatus === "success"}
-                        userEmail={user?.email}
-                      />
-                    )}
 
                     {/* Multi-Provider Card (multi_provider variant only) */}
                     {isMultiExpanded && (

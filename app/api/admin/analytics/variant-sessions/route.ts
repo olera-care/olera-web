@@ -31,7 +31,7 @@ const VALID_VARIANTS = new Set([
   "loss",
   "empathic",
   "outreach",
-  "inline_answer",    // archived, historical data only
+  "qa_email_capture",
   "multi_provider",
   "control",          // legacy V2
   "money_loss",       // legacy V2
@@ -194,17 +194,83 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-    } else if (variant === "inline_answer") {
-      // Inline answer arm — events live in provider_activity but use unique
-      // event types (inline_answer_viewed, inline_answer_expanded, inline_answer_converted).
-      // Similar structure to outreach but different table.
+    } else if (variant === "qa_email_capture") {
+      // qa_email_capture arm — events live in seeker_activity. Impression
+      // carries metadata.session_id; enrichment carries metadata.question_id
+      // and (post-this-deploy) metadata.session_id. Bucket by session_id
+      // when present, fall back to question_id for legacy enrichments
+      // that predate session_id threading. Submitter email comes from
+      // provider_questions.asker_email keyed on question_id.
+      let q = db
+        .from("seeker_activity")
+        .select("event_type, metadata, related_provider_id, created_at")
+        .in("event_type", ["qa_email_capture_impression", "question_email_enriched"])
+        .order("created_at", { ascending: false })
+        .limit(20000);
+      if (from) q = q.gte("created_at", from);
+      if (to) q = q.lt("created_at", to);
+
+      const res = await q;
+      if (res.error) {
+        console.error("[variant-sessions] qa_email_capture query failed:", res.error);
+        return NextResponse.json({ error: "Query failed" }, { status: 500 });
+      }
+
+      const rowKeyByQuestionId = new Map<string, string>();
+
+      for (const row of (res.data ?? []) as Array<{
+        event_type: string;
+        metadata: Record<string, unknown> | null;
+        related_provider_id: string | null;
+        created_at: string;
+      }>) {
+        const sid = typeof row.metadata?.session_id === "string" ? row.metadata.session_id : null;
+        const qid = typeof row.metadata?.question_id === "string" ? row.metadata.question_id : null;
+        const providerId = row.related_provider_id ?? null;
+
+        if (row.event_type === "qa_email_capture_impression") {
+          if (!sid) continue;
+          upgrade(sid, "impression", row.created_at, providerId, null);
+        } else if (row.event_type === "question_email_enriched") {
+          if (!qid) continue;
+          const rowKey = sid || qid;
+          upgrade(rowKey, "submitted", row.created_at, providerId, null);
+          rowKeyByQuestionId.set(qid, rowKey);
+        }
+      }
+
+      if (rowKeyByQuestionId.size > 0) {
+        const qids = [...rowKeyByQuestionId.keys()];
+        const emailRes = await db
+          .from("provider_questions")
+          .select("id, asker_email")
+          .in("id", qids)
+          .limit(qids.length);
+        if (!emailRes.error) {
+          for (const row of (emailRes.data ?? []) as Array<{ id: string; asker_email: string | null }>) {
+            if (!row.asker_email) continue;
+            const rowKey = rowKeyByQuestionId.get(row.id);
+            if (!rowKey) continue;
+            const session = sessions.get(rowKey);
+            if (session) session.submitter = row.asker_email;
+          }
+        }
+      }
+    } else if (variant === "multi_provider") {
+      // multi_provider arm — events live in provider_activity (anonymous).
+      // Stage mapping mirrors the analytics summary route:
+      //   multi_provider_viewed     → impression
+      //   multi_provider_card_shown → started
+      //   multi_provider_converted  → submitted
+      // Submitter email is on the _converted event metadata directly
+      // (capture flow stores it before/with the activity insert).
       let q = db
         .from("provider_activity")
         .select("event_type, metadata, created_at, provider_id")
         .in("event_type", [
-          "inline_answer_viewed",
-          "inline_answer_expanded",
-          "inline_answer_converted",
+          "multi_provider_viewed",
+          "multi_provider_card_shown",
+          "multi_provider_converted",
         ])
         .order("created_at", { ascending: false })
         .limit(20000);
@@ -213,7 +279,7 @@ export async function GET(request: NextRequest) {
 
       const res = await q;
       if (res.error) {
-        console.error("[variant-sessions] inline_answer query failed:", res.error);
+        console.error("[variant-sessions] multi_provider query failed:", res.error);
         return NextResponse.json({ error: "Query failed" }, { status: 500 });
       }
       for (const row of (res.data ?? []) as Array<{
@@ -225,37 +291,17 @@ export async function GET(request: NextRequest) {
         const sid = row.metadata?.session_id;
         if (typeof sid !== "string" || !sid) continue;
         const stage: VariantSessionRow["furthest_stage"] | null =
-          row.event_type === "inline_answer_viewed" ? "impression"
-          : row.event_type === "inline_answer_expanded" ? "started"
-          : row.event_type === "inline_answer_converted" ? "submitted"
+          row.event_type === "multi_provider_viewed" ? "impression"
+          : row.event_type === "multi_provider_card_shown" ? "started"
+          : row.event_type === "multi_provider_converted" ? "submitted"
           : null;
         if (!stage) continue;
         const providerId = row.provider_id ?? null;
         upgrade(sid, stage, row.created_at, providerId, null);
-      }
-
-      // Inline answer submitter join — the email is captured via the inline
-      // answer flow. For now, we don't have a separate table for it, but
-      // the event metadata may contain the email.
-      const submittedSids = [...sessions.values()]
-        .filter((s) => s.furthest_stage === "submitted")
-        .map((s) => s.session_id);
-      if (submittedSids.length > 0) {
-        // Try to get emails from the conversion events themselves
-        const emailQ = db
-          .from("provider_activity")
-          .select("metadata")
-          .eq("event_type", "inline_answer_converted")
-          .in("session_id", submittedSids)
-          .limit(submittedSids.length);
-        const emailRes = await emailQ;
-        if (!emailRes.error) {
-          for (const row of (emailRes.data ?? []) as Array<{
-            metadata: Record<string, unknown> | null;
-          }>) {
-            const sid = row.metadata?.session_id;
-            const email = row.metadata?.email;
-            if (typeof sid !== "string" || !sid || typeof email !== "string") continue;
+        // Capture email at the same point the row is upgraded to submitted.
+        if (row.event_type === "multi_provider_converted") {
+          const email = row.metadata?.email;
+          if (typeof email === "string" && email) {
             const session = sessions.get(sid);
             if (session) session.submitter = email;
           }

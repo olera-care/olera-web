@@ -204,7 +204,7 @@ export async function POST(req: Request) {
           user_id: userId,
           display_name: displayName,
           onboarding_completed: false,
-          signup_source: "inline_answer",
+          signup_source: "multi_provider",
           session_id: sessionId || null,
         })
         .select("id")
@@ -260,7 +260,7 @@ export async function POST(req: Request) {
         email: normalizedEmail,
         claim_state: "claimed",
         verification_state: "unverified",
-        source: sentProviderIds ? "multi_provider" : "inline_answer",
+        source: "multi_provider",
         metadata: {
           signup_context: signupContext,
         },
@@ -352,13 +352,12 @@ export async function POST(req: Request) {
   // 5. Slack notification (awaited to survive serverless teardown)
   // ═══════════════════════════════════════════════════════════════════
   try {
-    const isMultiProvider = sentProviderIds && sentProviderIds.length > 0;
     const alert = slackVariantConverted({
-      variant: isMultiProvider ? "multi_provider" : "inline_answer",
+      variant: "multi_provider",
       email: normalizedEmail,
       providerName: providerName || "Unknown Provider",
       questionText: questionText || undefined,
-      sentCount: isMultiProvider ? sentCount : undefined,
+      sentCount: sentCount,
       providerSlug: providerId,
     });
     await sendSlackAlert(alert.text, alert.blocks);

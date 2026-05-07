@@ -1223,7 +1223,7 @@ export function slackSaveNudgeConverted(opts: {
 }
 
 export function slackVariantConverted(opts: {
-  variant: "inline_answer" | "multi_provider";
+  variant: "multi_provider";
   email: string;
   providerName: string;
   questionText?: string;
@@ -1232,11 +1232,8 @@ export function slackVariantConverted(opts: {
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
 
-  const variantLabel = opts.variant === "inline_answer"
-    ? "Inline Answer"
-    : "Multi-Provider";
-
-  const emoji = opts.variant === "inline_answer" ? "💬" : "🔀";
+  const variantLabel = "Multi-Provider";
+  const emoji = "🔀";
 
   const headerText = opts.sentCount && opts.sentCount > 1
     ? `${emoji} Q&A Conversion: ${opts.sentCount} providers`

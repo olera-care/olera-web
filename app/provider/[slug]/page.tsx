@@ -1045,6 +1045,8 @@ export default async function ProviderPage({
                   suggestedQuestions={getSuggestedQuestions(profile.category)}
                   hasBenefitsData={hasBenefitsData && !!benefitsData}
                   similarProvidersForMulti={similarProvidersForMulti}
+                  alternativeProviders={outreachCandidates}
+                  providerCategory={outreachCategoryString}
                 />
 
                 {/* Outreach arm of the 5-way intake A/B. Slot itself renders

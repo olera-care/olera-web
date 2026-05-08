@@ -1,7 +1,8 @@
 import Image from "next/image";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { buildPowerPageUrlForDeletedProvider } from "@/lib/power-pages";
 import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, AiTrustSignals, StaffInfo } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
@@ -322,6 +323,52 @@ export default async function ProviderPage({
   } catch {
     // iOS Supabase not configured or provider not found
   }
+
+  // 1b. Reason-aware response for soft-deleted iOS providers (migration 079).
+  //     Without this, every soft-delete returns a generic 404 — that's ~40K
+  //     of the GSC "Not found" bucket bleeding link equity.
+  //     • provider_request → 404 (placeholder; HTTP 410 needs middleware)
+  //     • everything else  → 301 to the matching /{category}/{state}/{city}
+  //                          power page (preserves equity, routes to alternatives)
+  // Run the lookup inside try/catch (network can fail) but call notFound() /
+  // permanentRedirect() OUTSIDE — both throw control-flow errors that Next.js
+  // catches at the framework boundary, so wrapping them in our own catch
+  // would swallow the redirect.
+  let deletedRedirect: string | null = null;
+  let deletedHardRemoval = false;
+  if (!profile) {
+    try {
+      const supabase = await createClient();
+      const { data: deletedRow } = await supabase
+        .from("olera-providers")
+        .select("provider_category, state, city, deletion_reason")
+        .or(`slug.eq.${slug},provider_id.eq.${slug}`)
+        .eq("deleted", true)
+        .limit(1)
+        .maybeSingle<{
+          provider_category: string | null;
+          state: string | null;
+          city: string | null;
+          deletion_reason: IOSProvider["deletion_reason"];
+        }>();
+
+      if (deletedRow) {
+        if (deletedRow.deletion_reason === "provider_request") {
+          deletedHardRemoval = true;
+        } else {
+          deletedRedirect = buildPowerPageUrlForDeletedProvider({
+            category: deletedRow.provider_category,
+            state: deletedRow.state,
+            city: deletedRow.city,
+          });
+        }
+      }
+    } catch {
+      // Supabase unreachable — fall through, page will 404 below
+    }
+  }
+  if (deletedHardRemoval) notFound();
+  if (deletedRedirect) permanentRedirect(deletedRedirect);
 
   // 2. Try web business_profiles table
   if (!profile) {

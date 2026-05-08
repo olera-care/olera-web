@@ -39,6 +39,7 @@ export interface Provider {
   contact_for_price: string | null; // "True" or "False"
   deleted: boolean;
   deleted_at: string | null;
+  deletion_reason: "data_sweep" | "provider_request" | "duplicate" | "out_of_scope" | "other" | null;
   hero_image_url: string | null;
   slug: string | null; // Human-readable URL slug (populated via migration)
   google_reviews_data: GoogleReviewsData | null; // Cached Google review snippets (JSONB)

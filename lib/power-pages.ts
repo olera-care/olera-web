@@ -81,9 +81,42 @@ export const CATEGORY_ALIASES: Record<string, string> = {
 };
 
 const categoryBySlug = new Map(CATEGORY_CONFIGS.map((c) => [c.slug, c]));
+const categoryByDbValue = new Map(CATEGORY_CONFIGS.map((c) => [c.dbValue, c]));
 
 export function getCategoryBySlug(slug: string): CategoryConfig | null {
   return categoryBySlug.get(slug) ?? null;
+}
+
+/** "Assisted Living" (DB value) → "assisted-living" (URL slug). null when no match. */
+export function categoryDbValueToSlug(dbValue: string | null): string | null {
+  if (!dbValue) return null;
+  return categoryByDbValue.get(dbValue)?.slug ?? null;
+}
+
+/**
+ * Build the most-specific power page URL we can for a (category, state, city)
+ * triple. Falls through to /{category}/{state} if city is missing, then to
+ * /{category} if state is missing. Returns null if category can't be mapped —
+ * caller should fall back to a 404.
+ *
+ * Used by app/provider/[slug]/page.tsx to build the 301 target for
+ * soft-deleted providers (Project 4 / migration 079).
+ */
+export function buildPowerPageUrlForDeletedProvider(opts: {
+  category: string | null;
+  state: string | null;
+  city: string | null;
+}): string | null {
+  const categorySlug = categoryDbValueToSlug(opts.category);
+  if (!categorySlug) return null;
+
+  const stateSlug = opts.state ? stateAbbrevToSlug(opts.state) : null;
+  if (!stateSlug) return `/${categorySlug}`;
+
+  const citySlug = opts.city ? cityToSlug(opts.city) : null;
+  if (!citySlug) return `/${categorySlug}/${stateSlug}`;
+
+  return `/${categorySlug}/${stateSlug}/${citySlug}`;
 }
 
 export function getResolvedCategorySlug(slug: string): string | null {

@@ -69,6 +69,8 @@ export async function GET(request: NextRequest) {
       query = query.eq("status", "pending");
     } else if (tab === "answered") {
       query = query.eq("status", "answered");
+    } else if (tab === "removed") {
+      query = query.eq("status", "rejected");
     } else if (tab === "archived") {
       query = query.eq("status", "archived");
     }

@@ -166,6 +166,7 @@ export default function AdminQuestionsPage() {
       if (activeTab === "needs_email") params.set("tab", "needs_email");
       else if (activeTab === "unanswered") params.set("tab", "unanswered");
       else if (activeTab === "answered") params.set("tab", "answered");
+      else if (activeTab === "removed") params.set("tab", "removed");
       else if (activeTab === "archived") params.set("tab", "archived");
       else params.set("tab", "all");
 

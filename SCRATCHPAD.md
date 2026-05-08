@@ -7,6 +7,46 @@
 
 ## Current Focus
 
+### 2026-05-08 (Fri) — GSC indexing diagnostic + provider-removal hygiene (P1, planning, no code yet)
+
+Started as "why so many crawled-not-indexed pages?" Pivoted twice as the evidence reframed the question. Ended with a 4-project plan to fix removal handling end-to-end. No code shipped this session — diagnostic + planning only.
+
+**The investigation chain:**
+
+1. **GSC shows 52.4K "Crawled - currently not indexed"** trending up (rising faster than indexed line is growing). Initial framing: thin-content programmatic SEO problem. Recommended sitemap pruning + content uplift.
+2. **TJ pushed back on noindex as too drastic** for a directory. Re-read: noindex blocks navigational queries (family searches "X care center"); right move is sitemap hygiene + content uplift, not blanket noindex. Walked back the recommendation.
+3. **Pulled the full not-indexed breakdown.** 127K total not-indexed across 12 buckets. Surprising sub-buckets: 18,281 "Not found (404)" + 12,287 "Page with redirect" + 2,929 "Soft 404" = ~33K technical hygiene problems. The 52K is partly a downstream symptom of upstream URL instability.
+4. **Pulled Performance over 16mo.** Found a cliff in late August 2025 — daily traffic dropped ~40-50% (peak ~900 clicks/day → post-cliff ~300-500/day) and never recovered. Likely aligns with August 2025 Core Update. Reframed the problem: this is a traffic demotion, not just an indexing issue.
+5. **Top historical query was "mariemont care center" (1,038 clicks).** Provider-name navigational queries used to drive substantial traffic. They've collapsed post-cliff.
+6. **TJ noted Mariemont was a removal request.** Quantified: removal accounts for ~1-2% of cliff, not 50%. Cliff is still mostly unexplained — but raised the removal-handling question.
+7. **TJ confirmed ~7,000 cumulative removals** (15 provider-requested, ~7K from data-sweep cleanup processes). Investigated how removals are handled.
+
+**Key technical findings:**
+
+- **Soft-delete returns HTTP 404 with no redirect.** `app/provider/[slug]/page.tsx:294,310` filters out deleted rows; line 357 calls `notFound()` → generic 404 page. No middleware logic for deleted providers (`middleware.ts` only handles v1.0 URL redirects). Each of the ~7K deletions becomes a 404 in GSC's "Not found" bucket — explains ~39% of the 18,281 there.
+- **`app/not-found.tsx` is a generic template.** No "this provider was removed" context, no redirect to similar-in-city. Bad signal for both Google and users.
+- **Pipeline dedup IS architected correctly.** `scripts/pipeline-batch.js:645-676` loads `deletedNameSet` (name|state) + `deletedPlaceSet` (place_id) at startup, rejects matches in the city-clean step. Comment: "the pipeline never re-adds a [soft-deleted provider]."
+- **But there are gaps:** (a) name|state key has no normalization shown — misses "The Mariemont" vs "Mariemont", "Kendra's" vs "Kendras", "& vs and"; (b) place_id occasionally reassigned by Google on merges; (c) no `deletion_reason` column to distinguish provider-request (legal/ethical, never re-add) from data-sweep (could re-add with override); (d) silent skip on match — no log, no alert; (e) phone number is a stable signal not used in dedup.
+- **CRITICAL: Source-of-truth drift between Airtable and Supabase.** Two of nine visible takedown cases (Mariemount Care Center, Next Best Home) are tagged "Requested Takedown" in Airtable but `deleted=false` in Supabase. **Their pages are likely live and indexed against the providers' explicit request.** GSC removal expired Dec 22 / Nov 18 2025 respectively (temporary tool only lasts ~6 months), so they came back to public search. This is a legal/ethical issue independent of SEO and the urgent fix.
+
+**The 4-project plan:**
+
+1. **Reconcile existing drift** (~1hr): cross-check all Airtable "Requested Takedown" rows vs Supabase `deleted` flag. Flip the unhonored ones. Re-submit expired URLs to GSC Removals tool. Urgent for Mariemount + Next Best Home.
+2. **Add `deletion_reason` column + reason-aware handling** (~half day): `'data_sweep' | 'provider_request' | 'duplicate' | 'out_of_scope'`. Drives different page response: provider_request → HTTP 410 Gone with "no longer listed" + alternatives. data_sweep → 301 to `/{category}/{state}/{city}` power page. Preserves equity for ~7K bleeding 404s.
+3. **Harden pipeline dedup** (~half day): `normalizeProviderKey()` (lowercase, strip articles/punctuation/&-and, suffixes), add phone as third dedup signal, looser fuzzy match for `provider_request` rows, hard-fail loud (Slack alert) when pipeline tries to re-add a provider-request-deleted business.
+4. **Sync + audit** (~scaffold in 2hr, ongoing): Airtable→Supabase sync (one-way, single source of truth), monthly cron audit (drift detection, re-add detection, page-status check), update data-sweep skill Phase 0 to verify Airtable/Supabase consistency before any cleanup work.
+
+**Mariemount + Next Best Home is the urgent first fix** — they've had GSC-removal-expired status for months while their pages are likely live. Independent of SEO, this is honoring a takedown request the provider requested.
+
+**Resume next session here →** Start Project 1. First: query Supabase for current state of the two specific providers (verify the Airtable read), then flip `deleted=true, deletion_reason='provider_request'`. Then expand to a full reconciliation pass against the Airtable "Requested Takedown" filter. Treat this as multi-session work — large enough that we /save'd before starting.
+
+**Open diagnostic questions still on the table:**
+
+- What caused the August 2025 cliff specifically? Need GSC Performance comparison (pre-cliff vs post-cliff) on Queries tab and Pages tab, sorted by Click difference. Mariemont removal explains <2% of it; ~98% of the loss is unexplained. The hygiene fixes will repair ongoing damage but don't diagnose the original wound.
+- Did a major deletion wave happen around August 2025 (sweep before the formalized data-sweep skill)? `deleted_at` timeline analysis would correlate.
+
+---
+
 ### 2026-05-07 (Thu) — Empathic single-step (Arm D) consolidation + mobile UX foundation (P1, PR #760 awaiting merge)
 
 Reframed the empathic arm of the post-question CTA from a 3-step relay (care need → relationship → email) into a single-step capture with value preview, modeled on the only post-question mechanic that's converting (qa_email_capture). Branch `feature/empathic-single-mobile` → 6 commits → PR open to staging.
@@ -1230,6 +1270,12 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Next Up
+
+**🚨 Urgent — provider-removal hygiene (started 2026-05-08, multi-session):**
+- **Project 1: Reconcile Airtable "Requested Takedown" vs Supabase `deleted` drift.** Start with Mariemount Care Center + Next Best Home (verified unhonored takedowns, pages likely live and indexed against provider's explicit request). Then full Airtable scan for all "Requested Takedown" rows and reconcile. Re-submit expired URLs to GSC Removals tool. **Treated as legal/ethical issue independent of SEO.**
+- **Project 2: Add `deletion_reason` column** (`data_sweep | provider_request | duplicate | out_of_scope`) + reason-aware page response. provider_request → HTTP 410 Gone. data_sweep → 301 to `/{category}/{state}/{city}` power page. Stops bleeding ~7K of the 18,281 GSC "Not found" 404s into productive redirects.
+- **Project 3: Harden pipeline dedup** in `scripts/pipeline-batch.js:645-676`. Add `normalizeProviderKey()`, phone as third dedup signal, hard-fail loud on provider-request re-add attempt.
+- **Project 4: Airtable→Supabase sync + monthly audit cron.** Update data-sweep skill Phase 0 to verify drift before any cleanup work.
 
 **After PR `feat/data-sweep-skill` merges:**
 - Backfill `google_reviews_data.{places_types, business_status, country_code}` for existing 70,722 active providers (Stream B only populates this on next sync — separate one-shot script if we want it sooner).

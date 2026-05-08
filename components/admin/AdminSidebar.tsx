@@ -53,6 +53,7 @@ const navSections: NavSection[] = [
       { label: "Verification", href: "/admin/verification" },
       { label: "Disputes", href: "/admin/disputes" },
       { label: "Removals", href: "/admin/removal-requests" },
+      { label: "Removal Blocklist", href: "/admin/removal-blocklist" },
     ],
   },
   {

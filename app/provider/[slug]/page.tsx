@@ -324,16 +324,48 @@ export default async function ProviderPage({
     // iOS Supabase not configured or provider not found
   }
 
-  // 1b. Reason-aware response for soft-deleted iOS providers (migration 079).
-  //     Without this, every soft-delete returns a generic 404 — that's ~40K
-  //     of the GSC "Not found" bucket bleeding link equity.
-  //     • provider_request → 404 (placeholder; HTTP 410 needs middleware)
-  //     • everything else  → 301 to the matching /{category}/{state}/{city}
-  //                          power page (preserves equity, routes to alternatives)
-  // Run the lookup inside try/catch (network can fail) but call notFound() /
-  // permanentRedirect() OUTSIDE — both throw control-flow errors that Next.js
-  // catches at the framework boundary, so wrapping them in our own catch
-  // would swallow the redirect.
+  // 2. Try web business_profiles table
+  if (!profile) {
+    try {
+      const supabase = await createClient();
+      const { data } = await supabase
+        .from("business_profiles")
+        .select("*")
+        .eq("slug", slug)
+        .in("type", ["organization", "caregiver"])
+        .single<Profile>();
+      if (data) {
+        profile = data;
+        providerSource = "bp";
+        // Extract Google data from business_profile metadata
+        const bpMeta = data.metadata as Record<string, unknown> | null;
+        const gm = bpMeta?.google_metadata as { place_id?: string; rating?: number; review_count?: number } | undefined;
+        const bpGoogleReviews = bpMeta?.google_reviews_data as GoogleReviewsData | undefined;
+        if (bpGoogleReviews) {
+          googleReviewsData = bpGoogleReviews;
+        }
+        if (gm?.place_id) {
+          providerPlaceId = gm.place_id;
+        }
+        rawProviderId = data.id;
+      }
+    } catch {
+      // Supabase not configured — fall through to mock lookup
+    }
+  }
+
+  // 3. Reason-aware response for soft-deleted iOS providers (migration 079).
+  //    Runs AFTER both active-row lookups so a claimed business_profile
+  //    whose underlying iOS row got soft-deleted still wins. Without this,
+  //    every soft-delete falls to a generic 404 — ~40K rows bleeding into
+  //    the GSC "Not found" bucket and losing link equity.
+  //      provider_request → notFound() (placeholder for HTTP 410)
+  //      everything else  → permanentRedirect() to /{category}/{state}/{city}
+  //
+  //    Lookup runs inside try/catch (network can fail), but notFound() /
+  //    permanentRedirect() are called OUTSIDE — both throw control-flow
+  //    errors caught at the framework boundary, so a local catch would
+  //    swallow the redirect.
   let deletedRedirect: string | null = null;
   let deletedHardRemoval = false;
   if (!profile) {
@@ -369,36 +401,6 @@ export default async function ProviderPage({
   }
   if (deletedHardRemoval) notFound();
   if (deletedRedirect) permanentRedirect(deletedRedirect);
-
-  // 2. Try web business_profiles table
-  if (!profile) {
-    try {
-      const supabase = await createClient();
-      const { data } = await supabase
-        .from("business_profiles")
-        .select("*")
-        .eq("slug", slug)
-        .in("type", ["organization", "caregiver"])
-        .single<Profile>();
-      if (data) {
-        profile = data;
-        providerSource = "bp";
-        // Extract Google data from business_profile metadata
-        const bpMeta = data.metadata as Record<string, unknown> | null;
-        const gm = bpMeta?.google_metadata as { place_id?: string; rating?: number; review_count?: number } | undefined;
-        const bpGoogleReviews = bpMeta?.google_reviews_data as GoogleReviewsData | undefined;
-        if (bpGoogleReviews) {
-          googleReviewsData = bpGoogleReviews;
-        }
-        if (gm?.place_id) {
-          providerPlaceId = gm.place_id;
-        }
-        rawProviderId = data.id;
-      }
-    } catch {
-      // Supabase not configured — fall through to mock lookup
-    }
-  }
 
   if (!profile) {
     notFound();

@@ -181,16 +181,23 @@ export default function VariantSessionsList({
 
   const hasMore = total !== null && sessions.length < total;
 
-  // Stage filter chip definitions. "All" is always present; the four
-  // stages mirror STAGE_LABEL so the filter naming is consistent with
-  // what the rows display. Some stages won't have data for some arms
-  // (e.g. outreach has no care_need step) — empty result is acceptable
-  // there, the empty state handles it.
+  // Stage filter chip definitions. "All" is always present; the stage
+  // chips shown depend on which stages the variant actually has.
+  // - SBF variants (availability, loss, empathic, control, money_loss):
+  //   impression → started → care_need → submitted
+  // - outreach: impression → started → submitted (no care_need)
+  // - qa_email_capture: impression → submitted (no started, no care_need)
+  // - multi_provider: impression → started → submitted (no care_need)
+  const VARIANTS_WITHOUT_CARE_NEED = new Set(["outreach", "qa_email_capture", "multi_provider"]);
+  const VARIANTS_WITHOUT_STARTED = new Set(["qa_email_capture"]);
+
   const STAGE_CHIPS: Array<{ key: Stage | "all"; label: string }> = [
     { key: "all", label: "All" },
     { key: "impression", label: "Impression" },
-    { key: "started", label: "Started" },
-    { key: "care_need", label: "Care need ✓" },
+    // Only show "Started" for variants that have it
+    ...(!VARIANTS_WITHOUT_STARTED.has(variant) ? [{ key: "started" as const, label: "Started" }] : []),
+    // Only show "Care need" for variants that have it
+    ...(!VARIANTS_WITHOUT_CARE_NEED.has(variant) ? [{ key: "care_need" as const, label: "Care need ✓" }] : []),
     { key: "submitted", label: "Submitted" },
   ];
 
@@ -257,7 +264,9 @@ export default function VariantSessionsList({
                   <th className="px-5 py-2 font-medium">Furthest stage</th>
                   <th className="px-3 py-2 font-medium">Submitter / Session</th>
                   <th className="px-3 py-2 font-medium">Provider page</th>
-                  <th className="px-3 py-2 font-medium">Care need</th>
+                  {!VARIANTS_WITHOUT_CARE_NEED.has(variant) && (
+                    <th className="px-3 py-2 font-medium">Care need</th>
+                  )}
                   <th className="px-3 py-2 font-medium text-right">When</th>
                   <th className="px-2 py-2 font-medium w-8" aria-label="Actions" />
                 </tr>
@@ -313,9 +322,11 @@ export default function VariantSessionsList({
                         <span className="text-gray-400">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-gray-600">
-                      {careNeedLabel(s.care_need_selected) ?? <span className="text-gray-300">—</span>}
-                    </td>
+                    {!VARIANTS_WITHOUT_CARE_NEED.has(variant) && (
+                      <td className="px-3 py-2 text-gray-600">
+                        {careNeedLabel(s.care_need_selected) ?? <span className="text-gray-300">—</span>}
+                      </td>
+                    )}
                     <td className="px-3 py-2 text-right tabular-nums text-gray-500 whitespace-nowrap">
                       {formatRelativeTime(s.first_seen)}
                     </td>

@@ -54,7 +54,25 @@ Started as "why so many crawled-not-indexed pages?" Pivoted twice as the evidenc
 
 **Migration applied to production Supabase mid-session** (TJ ran it via dashboard). All 5 seed rows verified via direct REST query — normalized_name values match what the helper produces. TJ then used the admin UI to add the remaining ambiguous-but-confirmed cases (Suwanna Buntyn, Nitu Aggarwal, etc.). Blocklist is current.
 
-**Resume next session here →** Project 2 (audit script). `scripts/audit-removal-blocklist.js`: load blocklist, fuzzy-match against active `olera-providers` (deleted=false) using normalized_name + phone + place_id, alert on hits via Slack. Run cadence: weekly cron + manually after every city pipeline batch. Once Project 2's matching logic is settled, Project 3 (~30 min) wires the same check into `scripts/pipeline-batch.js` as a pre-filter alongside the existing deletedNameSet — belt-and-suspenders. Project 4 (the SEO equity fix for the 18K 404s) is independent and can ship anytime: add `deletion_reason` column to olera-providers, route soft-deleted pages to HTTP 410 (provider_request) or 301 to `/{category}/{state}/{city}` (data_sweep) instead of generic 404.
+**Tracker:** [De-indexing Recovery — 4-project plan](https://www.notion.so/35a5903a0ffe814ea770d346230207c4) (Notion, under Product Development). PR #764 merge report: [PR #764 — Add provider removal blocklist](https://www.notion.so/35a5903a0ffe8110b804d31095639281).
+
+**Resume next session here → Project 4** (re-prioritized ahead of 2/3 because it has the most direct SEO impact on the original problem). Adds `deletion_reason` column to `olera-providers` and changes the page response for soft-deleted rows: HTTP 410 Gone for `provider_request` (faster Google de-indexing), 301 redirect to `/{category-slug}/{state-slug}/{city-slug}` for `data_sweep` / `duplicate` / `out_of_scope` (preserves equity, routes users to relevant alternatives). Today every soft-deleted provider hits `notFound()` at `app/provider/[slug]/page.tsx:357` returning generic HTTP 404 — that's ~7K of the 18,281 GSC "Not found" bucket directly attributable to our deletion handling.
+
+**Project 4 scope (~half day):**
+1. **Migration 079**: `ALTER TABLE "olera-providers" ADD COLUMN deletion_reason TEXT CHECK (deletion_reason IN ('data_sweep', 'provider_request', 'duplicate', 'out_of_scope', 'other', NULL))`. Backfill from `audit_log.details.delete_reason` for existing soft-deletes (the admin PATCH at `app/api/admin/directory/[providerId]/route.ts:303` has been writing reason to audit_log all along).
+2. **`app/api/admin/directory/[providerId]/route.ts:240`**: write `_delete_reason` to `deletion_reason` column alongside the existing audit log entry.
+3. **`app/provider/[slug]/page.tsx`** (the meat): currently lines 290-321 filter `.not("deleted", "is", true)` then `notFound()` on miss. Add a third lookup *without* the deleted filter — if found and `deleted=true`, branch on `deletion_reason`. For `provider_request`: render minimal "no longer listed" component, set HTTP 410 via Next.js's `next/navigation` patterns or by returning a custom Response. For `data_sweep` / `duplicate` / `out_of_scope`: build the redirect target from the deleted row's category/state/city via `power-pages.ts` slug helpers, return 301 via `permanentRedirect()`.
+4. **Optional `data-sweep` skill update** (`.claude/commands/data-sweep.md` Phase 5): set `deletion_reason='data_sweep'` going forward. Cheap to add, prevents future audit-log lookups.
+
+**Files referenced (verified path/line in this session):** `app/provider/[slug]/page.tsx:294,310,357`; `middleware.ts` (no provider-deletion logic — confirms the 404 path); `app/api/admin/directory/[providerId]/route.ts:240,265-272,303`; `scripts/pipeline-batch.js:645-676` (existing `deletedNameSet` dedup, untouched by Project 4).
+
+**Success metric:** GSC "Not found (404)" bucket trends down over 30-60 days post-ship. Bonus signal: indexed-page count stops flatlining and starts growing again.
+
+**Project 2 + 3 still on the roadmap** but lower urgency — they prevent future re-adds, don't heal current bleeding. Periodic audit (Project 2) catches drift weekly; pipeline pre-filter (Project 3) is belt-and-suspenders alongside the existing `deletedNameSet`.
+
+**Still open from the diagnostic:**
+- What caused the August 2025 traffic cliff? Mariemont removal explains <2%; ~98% unexplained. Need GSC Performance comparison (pre-cliff vs post-cliff) on Queries + Pages tabs sorted by Click difference. Likely August 2025 Core Update.
+- Should we re-submit the 4 GSC-removal-expired URLs (Mariemont, Kendra's Place, Johnson Residential, Next Best Home) to GSC's Removals tool? Quick lever to accelerate de-indexing while Project 4 builds.
 
 **Open diagnostic questions still on the table:**
 

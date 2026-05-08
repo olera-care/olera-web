@@ -55,31 +55,8 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Build query for questions
-    let query = db
-      .from("provider_questions")
-      .select("id, provider_id, asker_name, asker_email, question, answer, status, created_at, metadata")
-      .order("created_at", { ascending: false });
-
-    // Apply tab filter
-    if (tab === "needs_email") {
-      query = query.contains("metadata", { needs_provider_email: true });
-      query = query.neq("status", "archived").neq("status", "rejected");
-    } else if (tab === "unanswered") {
-      query = query.eq("status", "pending");
-    } else if (tab === "answered") {
-      query = query.eq("status", "answered");
-    } else if (tab === "removed") {
-      query = query.eq("status", "rejected");
-    } else if (tab === "archived") {
-      query = query.eq("status", "archived");
-    }
-    // "all" has no status filter
-
-    if (dateFrom) query = query.gte("created_at", dateFrom);
-    if (dateTo) query = query.lt("created_at", dateTo);
-
     // Search by provider name requires finding matching slugs first
+    let searchSlugs: string[] | null = null;
     if (search) {
       const [{ data: bpMatches }, { data: iosMatches }] = await Promise.all([
         db.from("business_profiles").select("slug").in("type", ["organization", "caregiver"]).ilike("display_name", `%${search}%`).limit(200),
@@ -88,7 +65,7 @@ export async function GET(request: NextRequest) {
       const slugs = new Set<string>();
       for (const p of bpMatches ?? []) if (p.slug) slugs.add(p.slug);
       for (const p of iosMatches ?? []) if (p.slug) slugs.add(p.slug);
-      const searchSlugs = Array.from(slugs);
+      searchSlugs = Array.from(slugs);
       if (searchSlugs.length === 0) {
         // No matching providers, return empty CSV
         return new NextResponse("Question,Asker Name,Asker Email,Provider Name,Provider City,Provider State,Provider Phone,Provider Email,Provider Address,Status,Date\n", {
@@ -99,17 +76,56 @@ export async function GET(request: NextRequest) {
           },
         });
       }
-      query = query.in("provider_id", searchSlugs);
     }
 
-    const { data: questions, error } = await query.limit(5000);
+    // Paginated fetch — Supabase has a 1000-row default limit, so we fetch
+    // in batches to ensure we get all matching questions regardless of volume.
+    const PAGE_SIZE = 1000;
+    let allQuestions: QuestionRow[] = [];
+    let offset = 0;
+    let hasMore = true;
 
-    if (error) {
-      console.error("Questions export query error:", error);
-      return NextResponse.json({ error: "Failed to export questions" }, { status: 500 });
+    while (hasMore) {
+      let query = db
+        .from("provider_questions")
+        .select("id, provider_id, asker_name, asker_email, question, answer, status, created_at, metadata")
+        .order("created_at", { ascending: false });
+
+      // Apply tab filter
+      if (tab === "needs_email") {
+        query = query.contains("metadata", { needs_provider_email: true });
+        query = query.neq("status", "archived").neq("status", "rejected");
+      } else if (tab === "unanswered") {
+        query = query.eq("status", "pending");
+      } else if (tab === "answered") {
+        query = query.eq("status", "answered");
+      } else if (tab === "removed") {
+        query = query.eq("status", "rejected");
+      } else if (tab === "archived") {
+        query = query.eq("status", "archived");
+      }
+      // "all" has no status filter
+
+      if (dateFrom) query = query.gte("created_at", dateFrom);
+      if (dateTo) query = query.lt("created_at", dateTo);
+      if (searchSlugs) query = query.in("provider_id", searchSlugs);
+
+      query = query.range(offset, offset + PAGE_SIZE - 1);
+
+      const { data: pageData, error: pageError } = await query;
+
+      if (pageError) {
+        console.error("Questions export query error:", pageError);
+        return NextResponse.json({ error: "Failed to export questions" }, { status: 500 });
+      }
+
+      const rows = (pageData ?? []) as QuestionRow[];
+      allQuestions = allQuestions.concat(rows);
+      offset += PAGE_SIZE;
+      hasMore = rows.length === PAGE_SIZE;
     }
 
-    const questionRows = (questions ?? []) as QuestionRow[];
+    const questionRows = allQuestions;
 
     // Collect unique provider slugs
     const slugs = [...new Set(questionRows.map((q) => q.provider_id).filter(Boolean))];

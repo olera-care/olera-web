@@ -148,6 +148,55 @@ export default function AdminQuestionsPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function showToast(message: string, type: "success" | "error" = "success") {
+    if (toastRef.current) clearTimeout(toastRef.current);
+    setToast({ message, type });
+    toastRef.current = setTimeout(() => setToast(null), 3000);
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams();
+      // Map tab value for export
+      if (activeTab === "needs_email") params.set("tab", "needs_email");
+      else if (activeTab === "unanswered") params.set("tab", "unanswered");
+      else if (activeTab === "answered") params.set("tab", "answered");
+      else if (activeTab === "archived") params.set("tab", "archived");
+      else params.set("tab", "all");
+
+      const { from, to } = resolveRange(range);
+      if (from) params.set("date_from", from);
+      if (to) params.set("date_to", to);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+
+      const res = await fetch(`/api/admin/questions/export?${params}`);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.error || "Export failed", "error");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] || "olera-questions.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`Exported ${count.toLocaleString()} questions`);
+    } catch {
+      showToast("Export failed. Please try again.", "error");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
@@ -264,9 +313,9 @@ export default function AdminQuestionsPage() {
         onRangeChange={setRange}
       />
 
-      {/* Search bar */}
-      <div className="mb-6">
-        <div className="relative">
+      {/* Search bar + Export button */}
+      <div className="mb-6 flex gap-3">
+        <div className="relative flex-1">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
             xmlns="http://www.w3.org/2000/svg"
@@ -297,7 +346,25 @@ export default function AdminQuestionsPage() {
             </button>
           )}
         </div>
+        <button
+          onClick={handleExport}
+          disabled={exporting || loading}
+          className="px-4 py-2.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 whitespace-nowrap"
+        >
+          {exporting ? "Exporting..." : "Export CSV"}
+        </button>
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
+            toast.type === "error" ? "bg-red-600 text-white" : "bg-gray-900 text-white"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
 
       {error && (
         <div className="mb-5 px-4 py-3 bg-red-50 rounded-xl text-sm text-red-600">

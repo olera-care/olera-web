@@ -7,9 +7,9 @@
 
 ## Current Focus
 
-### 2026-05-08 (Fri) — GSC indexing diagnostic + provider-removal hygiene (P1, planning, no code yet)
+### 2026-05-08 (Fri) — GSC indexing diagnostic + Project 1 shipped: provider removal blocklist (P1, on `quiet-kepler`, ready for PR)
 
-Started as "why so many crawled-not-indexed pages?" Pivoted twice as the evidence reframed the question. Ended with a 4-project plan to fix removal handling end-to-end. No code shipped this session — diagnostic + planning only.
+Started as "why so many crawled-not-indexed pages?" Pivoted twice as the evidence reframed the question, ended with a 4-project plan AND shipped the foundation (Project 1: data layer + admin surface). Migration applied to production Supabase mid-session; TJ caught up the blocklist with all known provider-requested takedowns via the admin UI before the PR was opened.
 
 **The investigation chain:**
 
@@ -36,9 +36,25 @@ Started as "why so many crawled-not-indexed pages?" Pivoted twice as the evidenc
 3. **Harden pipeline dedup** (~half day): `normalizeProviderKey()` (lowercase, strip articles/punctuation/&-and, suffixes), add phone as third dedup signal, looser fuzzy match for `provider_request` rows, hard-fail loud (Slack alert) when pipeline tries to re-add a provider-request-deleted business.
 4. **Sync + audit** (~scaffold in 2hr, ongoing): Airtable→Supabase sync (one-way, single source of truth), monthly cron audit (drift detection, re-add detection, page-status check), update data-sweep skill Phase 0 to verify Airtable/Supabase consistency before any cleanup work.
 
-**Mariemount + Next Best Home is the urgent first fix** — they've had GSC-removal-expired status for months while their pages are likely live. Independent of SEO, this is honoring a takedown request the provider requested.
+**Mariemount + Next Best Home urgency dissolved** mid-session: queried Supabase by every available angle (slug, name ilike, provider_id from Airtable) — both records are gone entirely. Hard-deleted pre-soft-delete-era. Page returns 404 (notFound() in route), so the takedown was effectively honored, just via a path that left no audit trail. Legal/ethical urgency dissolves; the actual risk is the city pipeline re-discovering and re-adding via fresh Google Places search.
 
-**Resume next session here →** Start Project 1. First: query Supabase for current state of the two specific providers (verify the Airtable read), then flip `deleted=true, deletion_reason='provider_request'`. Then expand to a full reconciliation pass against the Airtable "Requested Takedown" filter. Treat this as multi-session work — large enough that we /save'd before starting.
+**TJ's pragmatic reframe:** real-time blocking is overkill — re-adds aren't instant in their effect. Google takes days to re-index, weeks to re-rank. Periodic audit catches drift before it ever becomes user-visible. Keeps architecture simple. Replaced the earlier "harden pipeline dedup with real-time check + Slack alert" with a periodic audit script approach.
+
+**What shipped (commit `08d3dcc1` on `quiet-kepler`, ready for PR):**
+
+1. **Migration `078_provider_removal_blocklist.sql`** — new `provider_removal_blocklist` table, independent of `olera-providers.deleted` so hard-deleted-era takedowns are still enforced. Columns: provider_name, normalized_name, city, state, phone, place_id, reason (provider_request | data_sweep | duplicate | out_of_scope | other), evidence, notes, added_by_email, added_at. UNIQUE(normalized_name, state). Indexes on normalized_name, phone (partial), place_id (partial), reason. RLS-on, service-role-only. Seeded with 5 confirmed provider-requested takedowns (Conejo Valley, Kendra's Place, Johnson Residential, Mariemont, Next Best Home) cross-referenced from email + GSC removals.
+
+2. **`lib/normalize-provider-name.ts`** — shared helper for symmetric matching at seed-time + check-time. Lowercase, strip leading article (the/a/an), `&→and`, strip apostrophes WITHOUT inserting a space ("Kendra's"→"kendras", caught a real bug here mid-build), other punctuation→space, strip trailing business suffixes (LLC/Inc/Corp/etc), collapse spaces. 10/10 unit cases pass including all variant equivalence (apostrophe / "The X" / "& vs and" / "LLC"). Used by both API endpoint and admin UI's live-normalization preview.
+
+3. **`app/api/admin/removal-blocklist/route.ts`** — GET (with `?q=` substring search using normalized form), POST (validates required fields, computes normalized_name, returns 409 on UNIQUE violation), DELETE (`?id=` query param, audit-logged). All wrapped in `getAdminUser()` gate matching existing admin route pattern.
+
+4. **`app/admin/removal-blocklist/page.tsx`** — table view (Provider / Location / Reason / Evidence / Added). Debounced search box that shows the live normalized form below as you type (so admins see what's being matched). Add modal with full field set. Delete with confirm. Reason badges colored: provider_request=rejected/red, data_sweep=pending/yellow, others=default/gray.
+
+5. **AdminSidebar.tsx** — "Removal Blocklist" link added under Manage section, alongside Verification / Disputes / Removals.
+
+**Migration applied to production Supabase mid-session** (TJ ran it via dashboard). All 5 seed rows verified via direct REST query — normalized_name values match what the helper produces. TJ then used the admin UI to add the remaining ambiguous-but-confirmed cases (Suwanna Buntyn, Nitu Aggarwal, etc.). Blocklist is current.
+
+**Resume next session here →** Project 2 (audit script). `scripts/audit-removal-blocklist.js`: load blocklist, fuzzy-match against active `olera-providers` (deleted=false) using normalized_name + phone + place_id, alert on hits via Slack. Run cadence: weekly cron + manually after every city pipeline batch. Once Project 2's matching logic is settled, Project 3 (~30 min) wires the same check into `scripts/pipeline-batch.js` as a pre-filter alongside the existing deletedNameSet — belt-and-suspenders. Project 4 (the SEO equity fix for the 18K 404s) is independent and can ship anytime: add `deletion_reason` column to olera-providers, route soft-deleted pages to HTTP 410 (provider_request) or 301 to `/{category}/{state}/{city}` (data_sweep) instead of generic 404.
 
 **Open diagnostic questions still on the table:**
 
@@ -1271,11 +1287,11 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
-**🚨 Urgent — provider-removal hygiene (started 2026-05-08, multi-session):**
-- **Project 1: Reconcile Airtable "Requested Takedown" vs Supabase `deleted` drift.** Start with Mariemount Care Center + Next Best Home (verified unhonored takedowns, pages likely live and indexed against provider's explicit request). Then full Airtable scan for all "Requested Takedown" rows and reconcile. Re-submit expired URLs to GSC Removals tool. **Treated as legal/ethical issue independent of SEO.**
-- **Project 2: Add `deletion_reason` column** (`data_sweep | provider_request | duplicate | out_of_scope`) + reason-aware page response. provider_request → HTTP 410 Gone. data_sweep → 301 to `/{category}/{state}/{city}` power page. Stops bleeding ~7K of the 18,281 GSC "Not found" 404s into productive redirects.
-- **Project 3: Harden pipeline dedup** in `scripts/pipeline-batch.js:645-676`. Add `normalizeProviderKey()`, phone as third dedup signal, hard-fail loud on provider-request re-add attempt.
-- **Project 4: Airtable→Supabase sync + monthly audit cron.** Update data-sweep skill Phase 0 to verify drift before any cleanup work.
+**Provider-removal hygiene (multi-session, started 2026-05-08):**
+- ✅ **Project 1: Blocklist data layer + admin surface.** Shipped on `quiet-kepler` as commit `08d3dcc1`, migration applied, blocklist caught up via admin UI. Awaiting PR open.
+- ⏳ **Project 2: Periodic audit script** — `scripts/audit-removal-blocklist.js`. Load blocklist + olera-providers, fuzzy-match (normalized_name + phone + place_id), Slack alert on hits. Weekly cron + manual run after every city pipeline batch. ~1-2 hours.
+- ⏳ **Project 3: Wire blocklist check into `scripts/pipeline-batch.js`** as pre-filter alongside existing deletedNameSet. Belt-and-suspenders. ~30 min after Project 2 settles the matching logic.
+- ⏳ **Project 4: SEO equity fix for 18K 404s** (independent, can ship anytime). Add `deletion_reason` column to olera-providers + reason-aware page response: provider_request → HTTP 410 Gone. data_sweep → 301 to `/{category}/{state}/{city}` power page. Stops the bleeding from soft-delete-as-404 pattern that's been accumulating since the data-sweep workflow began.
 
 **After PR `feat/data-sweep-skill` merges:**
 - Backfill `google_reviews_data.{places_types, business_status, country_code}` for existing 70,722 active providers (Stream B only populates this on next sync — separate one-shot script if we want it sooner).

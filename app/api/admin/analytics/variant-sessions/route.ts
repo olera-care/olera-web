@@ -393,12 +393,13 @@ export async function GET(request: NextRequest) {
     let all = [...sessions.values()].sort((a, b) =>
       a.first_seen < b.first_seen ? 1 : a.first_seen > b.first_seen ? -1 : 0,
     );
-    // Apply stage filter if provided. Uses "at least this stage" logic so
-    // filter counts match the cumulative header counts (e.g., filtering to
-    // "started" shows all sessions that reached started OR beyond).
+    // Apply stage filter if provided. Uses exact-match logic so clicking
+    // "Started" shows only sessions whose furthest stage was "Started" — not
+    // sessions that went further. This matches user expectations: if the
+    // summary table shows "Started: 50", clicking that filter shows exactly
+    // those 50 sessions.
     if (stageFilter && ["impression", "started", "care_need", "submitted"].includes(stageFilter)) {
-      const minRank = STAGE_RANK[stageFilter as VariantSessionRow["furthest_stage"]];
-      all = all.filter((s) => STAGE_RANK[s.furthest_stage] >= minRank);
+      all = all.filter((s) => s.furthest_stage === stageFilter);
     }
     const total = all.length;
     const slice = all.slice(offset, offset + limit);

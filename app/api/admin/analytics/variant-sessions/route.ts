@@ -100,6 +100,7 @@ export async function GET(request: NextRequest) {
     const to = sp.get("date_to");
     const limit = parseLimit(sp.get("limit"));
     const offset = parseOffset(sp.get("offset"));
+    const stageFilter = sp.get("stage") as VariantSessionRow["furthest_stage"] | null;
 
     const db = getServiceClient();
 
@@ -389,9 +390,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Sort newest-first by first_seen, then paginate.
-    const all = [...sessions.values()].sort((a, b) =>
+    let all = [...sessions.values()].sort((a, b) =>
       a.first_seen < b.first_seen ? 1 : a.first_seen > b.first_seen ? -1 : 0,
     );
+    // Apply stage filter if provided. Uses "at least this stage" logic so
+    // filter counts match the cumulative header counts (e.g., filtering to
+    // "started" shows all sessions that reached started OR beyond).
+    if (stageFilter && ["impression", "started", "care_need", "submitted"].includes(stageFilter)) {
+      const minRank = STAGE_RANK[stageFilter as VariantSessionRow["furthest_stage"]];
+      all = all.filter((s) => STAGE_RANK[s.furthest_stage] >= minRank);
+    }
     const total = all.length;
     const slice = all.slice(offset, offset + limit);
 

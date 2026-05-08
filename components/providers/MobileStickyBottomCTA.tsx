@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Modal from "@/components/ui/Modal";
@@ -15,6 +15,7 @@ import {
   RECIPIENT_LABELS,
   URGENCY_LABELS,
 } from "@/components/providers/connection-card/constants";
+import { getOrCreateSessionId } from "@/lib/analytics/session";
 
 // ── Mobile email form for new CTA (email-only, no intent questions) ──
 function MobileEmailForm({
@@ -210,6 +211,10 @@ interface MobileStickyBottomCTAProps {
   providerCategory?: string | null;
   providerCity?: string | null;
   providerState?: string | null;
+  // CTA variant for A/B testing
+  ctaVariant?: string | null;
+  ctaSurface?: "desktop" | "mobile";
+  ctaPreviewMode?: boolean;
 }
 
 // TODO Phase 1: wire cta_click_public for the Connect button (cta='contact'),
@@ -229,6 +234,9 @@ export default function MobileStickyBottomCTA({
   providerCategory,
   providerCity,
   providerState,
+  ctaVariant,
+  ctaSurface = "mobile",
+  ctaPreviewMode = false,
 }: MobileStickyBottomCTAProps) {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
@@ -268,6 +276,9 @@ export default function MobileStickyBottomCTA({
     careTypes,
     responseTime: null,
     onConnectionCreated: handleConnectionCreated,
+    ctaVariant,
+    ctaSurface,
+    ctaPreviewMode,
   });
 
   // ── Scroll visibility for sticky bar ──
@@ -376,12 +387,40 @@ export default function MobileStickyBottomCTA({
     };
   }, []);
 
+  // Fire cta_variant_clicked when sheet opens (only once per open)
+  const sheetClickFiredRef = useRef(false);
+  const fireSheetOpenEvent = useCallback(() => {
+    if (!ctaVariant || sheetClickFiredRef.current) return;
+    // Don't fire in preview mode (contaminates A/B data)
+    if (ctaPreviewMode) return;
+    sheetClickFiredRef.current = true;
+    // Anonymous event format
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "anonymous",
+        related_provider_id: providerSlug,
+        event_type: "cta_variant_clicked",
+        session_id: getOrCreateSessionId(),
+        metadata: {
+          variant: ctaVariant,
+          surface: "mobile",
+          action: "sheet_opened",
+        },
+      }),
+    }).catch(() => {});
+  }, [ctaVariant, providerSlug, ctaPreviewMode]);
+
   // Allow other components (e.g. ScrollToConnectionCard) to open the sheet
   useEffect(() => {
-    const openSheet = () => setSheetOpen(true);
+    const openSheet = () => {
+      fireSheetOpenEvent();
+      setSheetOpen(true);
+    };
     window.addEventListener("open-connection-sheet", openSheet);
     return () => window.removeEventListener("open-connection-sheet", openSheet);
-  }, []);
+  }, [fireSheetOpenEvent]);
 
   // ── Dynamic Modal title ──
   const sheetTitle = (() => {
@@ -587,7 +626,10 @@ export default function MobileStickyBottomCTA({
             </div>
 
             <button
-              onClick={() => setSheetOpen(true)}
+              onClick={() => {
+                fireSheetOpenEvent();
+                setSheetOpen(true);
+              }}
               className="flex-shrink-0 px-5 py-3 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[13px] font-semibold transition-colors"
             >
               Check cost

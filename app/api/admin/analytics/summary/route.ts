@@ -140,6 +140,21 @@ type BenefitsFunnelByVariant = {
   money_loss: BenefitsVariantRow;      // legacy V2
   unassigned: BenefitsVariantRow;
 };
+// CTA Variants A/B funnel. Distinct sessions per stage:
+//   impression → CTA rendered on provider page (cta_variant_impression)
+//   clicked    → user clicked to open form/sheet (cta_variant_clicked)
+//   converted  → lead submitted (lead_received with cta_variant in metadata)
+type CTAFunnel = {
+  impressions: number;
+  clicked: number;
+  converted: number;
+};
+// Per-variant breakdown. "legacy" is the only arm initially.
+type CTAVariantRow = CTAFunnel;
+type CTAFunnelByVariant = {
+  legacy: CTAVariantRow;
+  unassigned: CTAVariantRow;
+};
 // Page-view referrer breakdown — counts page_view events by traffic class
 // (ai_chat / search / social / olera_internal / direct / other). Lets us
 // watch the AI-chat slice grow as ChatGPT/Claude/Gemini/Perplexity start
@@ -176,6 +191,8 @@ type WindowResult = {
   qa_email_issues: QaEmailIssue[];
   benefits_funnel: BenefitsFunnel;
   benefits_funnel_by_variant: BenefitsFunnelByVariant;
+  cta_funnel: CTAFunnel;
+  cta_funnel_by_variant: CTAFunnelByVariant;
   referrer_breakdown: ReferrerBreakdown;
   entry_source_breakdown: EntrySourceBreakdown;
 };
@@ -249,6 +266,15 @@ const EMPTY_BENEFITS_FUNNEL_BY_VARIANT = (): BenefitsFunnelByVariant => ({
   control: EMPTY_BENEFITS_FUNNEL(),         // legacy V2
   money_loss: EMPTY_BENEFITS_FUNNEL(),      // legacy V2
   unassigned: EMPTY_BENEFITS_FUNNEL(),
+});
+const EMPTY_CTA_FUNNEL = (): CTAFunnel => ({
+  impressions: 0,
+  clicked: 0,
+  converted: 0,
+});
+const EMPTY_CTA_FUNNEL_BY_VARIANT = (): CTAFunnelByVariant => ({
+  legacy: EMPTY_CTA_FUNNEL(),
+  unassigned: EMPTY_CTA_FUNNEL(),
 });
 const EMPTY_REFERRER_BREAKDOWN = (): ReferrerBreakdown => ({
   ai_chat: 0,
@@ -406,7 +432,18 @@ async function fetchWindow(
   if (from) accountsQ = accountsQ.gte("created_at", from);
   if (to) accountsQ = accountsQ.lt("created_at", to);
 
-  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes, benefitsRes, outreachRes, multiProviderRes, accountsRes] = await Promise.all([
+  // CTA Variants A/B funnel. impression → clicked → converted.
+  // Events are on provider_activity: cta_variant_impression, cta_variant_clicked,
+  // and lead_received (with metadata.cta_variant for attribution).
+  let ctaQ = db
+    .from("provider_activity")
+    .select("event_type, metadata")
+    .in("event_type", ["cta_variant_impression", "cta_variant_clicked", "lead_received"])
+    .limit(50000);
+  if (from) ctaQ = ctaQ.gte("created_at", from);
+  if (to) ctaQ = ctaQ.lt("created_at", to);
+
+  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes, benefitsRes, outreachRes, multiProviderRes, accountsRes, ctaRes] = await Promise.all([
     providerQ,
     seekerQ,
     distinctQ,
@@ -417,6 +454,7 @@ async function fetchWindow(
     outreachQ,
     multiProviderQ,
     accountsQ,
+    ctaQ,
   ]);
 
   if (providerRes.error) return { error: "provider window query failed" };
@@ -429,6 +467,7 @@ async function fetchWindow(
   if (issuesEventsRes.error) return { error: "Q&A issues query failed" };
   if (benefitsRes.error) return { error: "benefits funnel query failed" };
   if (accountsRes.error) return { error: "accounts entry-source query failed" };
+  if (ctaRes.error) return { error: "CTA funnel query failed" };
 
   const counts = EMPTY_COUNTS();
   const uniqueSessions = new Set<string>();
@@ -805,6 +844,72 @@ async function fetchWindow(
     .slice(0, 5)
     .map(([slug, count]) => ({ slug, count }));
 
+  // CTA Variants A/B funnel rollup. Distinct sessions per stage.
+  // impression → clicked → converted (lead_received with cta_variant).
+  type CTABucket = "legacy" | "unassigned";
+  const emptyCtaStages = (): Record<keyof CTAFunnel, Set<string>> => ({
+    impressions: new Set(),
+    clicked: new Set(),
+    converted: new Set(),
+  });
+  const ctaStageSets = emptyCtaStages();
+  const ctaByVariantSets: Record<CTABucket, Record<keyof CTAFunnel, Set<string>>> = {
+    legacy: emptyCtaStages(),
+    unassigned: emptyCtaStages(),
+  };
+  const CTA_VARIANT_BUCKETS = new Set<CTABucket>(["legacy"]);
+
+  for (const r of (ctaRes.data ?? []) as Array<{
+    event_type: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    const sid = r.metadata?.session_id;
+    if (typeof sid !== "string" || !sid) continue;
+
+    // Determine the variant bucket
+    let variant: string | null = null;
+    if (r.event_type === "cta_variant_impression" || r.event_type === "cta_variant_clicked") {
+      variant = r.metadata?.variant as string | null;
+    } else if (r.event_type === "lead_received") {
+      variant = r.metadata?.cta_variant as string | null;
+    }
+
+    const bucket: CTABucket =
+      typeof variant === "string" && CTA_VARIANT_BUCKETS.has(variant as CTABucket)
+        ? (variant as CTABucket)
+        : "unassigned";
+
+    // Determine stage
+    let stage: keyof CTAFunnel | undefined;
+    if (r.event_type === "cta_variant_impression") {
+      stage = "impressions";
+    } else if (r.event_type === "cta_variant_clicked") {
+      stage = "clicked";
+    } else if (r.event_type === "lead_received" && r.metadata?.cta_variant) {
+      // Only count lead_received if it has cta_variant attribution
+      stage = "converted";
+    }
+
+    if (!stage) continue;
+    ctaStageSets[stage].add(sid);
+    ctaByVariantSets[bucket][stage].add(sid);
+  }
+
+  const ctaFunnel: CTAFunnel = {
+    impressions: ctaStageSets.impressions.size,
+    clicked: ctaStageSets.clicked.size,
+    converted: ctaStageSets.converted.size,
+  };
+  const ctaSizesFor = (b: CTABucket): CTAVariantRow => ({
+    impressions: ctaByVariantSets[b].impressions.size,
+    clicked: ctaByVariantSets[b].clicked.size,
+    converted: ctaByVariantSets[b].converted.size,
+  });
+  const ctaFunnelByVariant: CTAFunnelByVariant = {
+    legacy: ctaSizesFor("legacy"),
+    unassigned: ctaSizesFor("unassigned"),
+  };
+
   return {
     counts,
     unique_sessions_page_view: uniqueSessions.size,
@@ -814,6 +919,8 @@ async function fetchWindow(
     qa_email_issues: qaEmailIssues,
     benefits_funnel: benefitsFunnel,
     benefits_funnel_by_variant: benefitsFunnelByVariant,
+    cta_funnel: ctaFunnel,
+    cta_funnel_by_variant: ctaFunnelByVariant,
     referrer_breakdown: referrerBreakdown,
     entry_source_breakdown: entrySourceBreakdown,
   };
@@ -1040,6 +1147,8 @@ export async function GET(request: NextRequest) {
         qa_email_issues: windowedRes.qa_email_issues,
         benefits_funnel: windowedRes.benefits_funnel,
         benefits_funnel_by_variant: windowedRes.benefits_funnel_by_variant,
+        cta_funnel: windowedRes.cta_funnel,
+        cta_funnel_by_variant: windowedRes.cta_funnel_by_variant,
         referrer_breakdown: windowedRes.referrer_breakdown,
         entry_source_breakdown: windowedRes.entry_source_breakdown,
       },
@@ -1053,6 +1162,8 @@ export async function GET(request: NextRequest) {
             qa_email_issues: prior.qa_email_issues,
             benefits_funnel: prior.benefits_funnel,
             benefits_funnel_by_variant: prior.benefits_funnel_by_variant,
+            cta_funnel: prior.cta_funnel,
+            cta_funnel_by_variant: prior.cta_funnel_by_variant,
             referrer_breakdown: prior.referrer_breakdown,
             entry_source_breakdown: prior.entry_source_breakdown,
           }

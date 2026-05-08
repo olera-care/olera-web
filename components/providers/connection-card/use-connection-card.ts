@@ -81,15 +81,16 @@ function fireCTAClickEvent(
   if (!variant) return;
   // Don't fire in preview mode (contaminates A/B data)
   if (isPreview) return;
-  // Fire-and-forget POST
+  // Fire-and-forget POST (anonymous event format)
   fetch("/api/activity/track", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      provider_id: providerSlug,
+      actor_type: "anonymous",
+      related_provider_id: providerSlug,
       event_type: "cta_variant_clicked",
+      session_id: getOrCreateSessionId(),
       metadata: {
-        session_id: getOrCreateSessionId(),
         variant,
         surface,
         action,

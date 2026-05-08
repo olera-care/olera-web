@@ -49,10 +49,11 @@ function useImpressionTracking(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        provider_id: providerSlug,
+        actor_type: "anonymous",
+        related_provider_id: providerSlug,
         event_type: "cta_variant_impression",
+        session_id: getOrCreateSessionId(),
         metadata: {
-          session_id: getOrCreateSessionId(),
           variant,
           surface,
         },

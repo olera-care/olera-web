@@ -68,6 +68,9 @@ const ANONYMOUS_EVENT_TYPES = [
   "multi_provider_skipped",
   "multi_provider_converted",
   "multi_provider_save_all",
+  // CTA variant A/B test events — provider page CTA impressions and clicks
+  "cta_variant_impression",
+  "cta_variant_clicked",
 ] as const;
 
 function getServiceDb() {

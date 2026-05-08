@@ -394,14 +394,16 @@ export default function MobileStickyBottomCTA({
     // Don't fire in preview mode (contaminates A/B data)
     if (ctaPreviewMode) return;
     sheetClickFiredRef.current = true;
+    // Anonymous event format
     fetch("/api/activity/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        provider_id: providerSlug,
+        actor_type: "anonymous",
+        related_provider_id: providerSlug,
         event_type: "cta_variant_clicked",
+        session_id: getOrCreateSessionId(),
         metadata: {
-          session_id: getOrCreateSessionId(),
           variant: ctaVariant,
           surface: "mobile",
           action: "sheet_opened",

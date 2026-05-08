@@ -69,6 +69,35 @@ function buildIntentFromProfile(profile: {
   return null;
 }
 
+// Fire cta_variant_clicked event when user opens the form/sheet
+function fireCTAClickEvent(
+  providerSlug: string,
+  variant: string | null | undefined,
+  surface: "desktop" | "mobile",
+  action: "form_opened" | "form_submitted",
+  isPreview: boolean,
+) {
+  // Don't fire if no variant (happens before hook resolves or on legacy pages)
+  if (!variant) return;
+  // Don't fire in preview mode (contaminates A/B data)
+  if (isPreview) return;
+  // Fire-and-forget POST
+  fetch("/api/activity/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      provider_id: providerSlug,
+      event_type: "cta_variant_clicked",
+      metadata: {
+        session_id: getOrCreateSessionId(),
+        variant,
+        surface,
+        action,
+      },
+    }),
+  }).catch(() => {});
+}
+
 export function useConnectionCard(props: ConnectionCardProps) {
   const {
     providerId,
@@ -76,6 +105,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
     providerSlug,
     careTypes: providerCareTypes,
     onConnectionCreated,
+    ctaVariant,
+    ctaSurface = "desktop",
+    ctaPreviewMode = false,
   } = props;
 
   const router = useRouter();
@@ -531,6 +563,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
     if (enrichmentLock.current) return; // Prevent double-submit
     setError("");
 
+    // Fire CTA click event for A/B tracking
+    fireCTAClickEvent(providerSlug, ctaVariant, ctaSurface, "form_submitted", ctaPreviewMode);
+
     // ── OPTIMISTIC: Show enrichment instantly (before API) ──
     enrichmentLock.current = true;
     postEnrichmentRedirect.current = `/welcome?provider=${providerSlug}`;
@@ -562,6 +597,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
               message: "",
             },
             session_id: getOrCreateSessionId(),
+            cta_variant: ctaVariant || null,
           }),
         });
 
@@ -597,6 +633,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
               message: "",
             },
             session_id: getOrCreateSessionId(),
+            cta_variant: ctaVariant || null,
           }),
         });
 
@@ -664,7 +701,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
       console.error("Inquiry form error:", msg);
       setError(msg || "Something went wrong. Please try again.");
     }
-  }, [user, providerId, providerName, providerSlug, refreshAccountData, isFullyOnboarded]);
+  }, [user, providerId, providerName, providerSlug, refreshAccountData, isFullyOnboarded, ctaVariant, ctaSurface, ctaPreviewMode]);
 
   // ── Navigate after enrichment (save or skip) ──
   const navigatePostEnrichment = useCallback(() => {

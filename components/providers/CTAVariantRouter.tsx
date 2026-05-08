@@ -1,0 +1,198 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { useCTAVariant, isCTAPreviewMode } from "@/hooks/use-cta-variant";
+import { getOrCreateSessionId } from "@/lib/analytics/session";
+import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
+import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
+
+// Props shared by both routers — mirrors ConnectionCardWithRedirect's interface.
+export interface CTARouterProps {
+  providerId: string;
+  providerName: string;
+  providerSlug: string;
+  priceRange: string | null;
+  reviewCount: number | undefined;
+  phone: string | null;
+  acceptedPayments: string[];
+  careTypes: string[];
+  city?: string | null;
+  state?: string | null;
+  responseTime: string | null;
+  providerCategory?: string | null;
+  providerCity?: string | null;
+  providerState?: string | null;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Impression tracking — fires cta_variant_impression once per session + variant
+// ────────────────────────────────────────────────────────────────────────────
+
+function useImpressionTracking(
+  variant: string | null,
+  surface: "desktop" | "mobile",
+  providerSlug: string,
+) {
+  const firedRef = useRef(false);
+  useEffect(() => {
+    // Don't fire until variant resolves
+    if (!variant) return;
+    // Only fire once per mount
+    if (firedRef.current) return;
+    // Don't fire in preview mode (contaminates A/B data)
+    if (isCTAPreviewMode()) return;
+    firedRef.current = true;
+    // Fire-and-forget POST to the activity tracking endpoint.
+    // Using navigator.sendBeacon would be nice but is overkill for an
+    // impression that fires on visible render, not page-unload.
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        provider_id: providerSlug,
+        event_type: "cta_variant_impression",
+        metadata: {
+          session_id: getOrCreateSessionId(),
+          variant,
+          surface,
+        },
+      }),
+    }).catch(() => {
+      // Swallow — analytics failures shouldn't break the page
+    });
+  }, [variant, surface, providerSlug]);
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Desktop CTA Router
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Replaces direct use of ConnectionCardWithRedirect on the provider
+ * detail page's desktop sidebar. Wraps the existing CTA in a router
+ * that:
+ *   1. Resolves the assigned CTA variant for this session.
+ *   2. Fires a cta_variant_impression event on mount.
+ *   3. Renders the appropriate CTA component (currently only legacy).
+ *
+ * When new variants are added, extend the switch statement below.
+ */
+export function DesktopCTAVariantRouter(props: CTARouterProps) {
+  const variant = useCTAVariant();
+  useImpressionTracking(variant, "desktop", props.providerSlug);
+
+  // While variant is resolving, show the legacy CTA (avoid layout shift).
+  // Once resolved, variant can only be "legacy" for now, so we always
+  // render ConnectionCardWithRedirect. Future variants would branch here.
+  const {
+    providerId,
+    providerName,
+    providerSlug,
+    priceRange,
+    reviewCount,
+    phone,
+    acceptedPayments,
+    careTypes,
+    city,
+    state,
+    responseTime,
+    providerCategory,
+    providerCity,
+    providerState,
+  } = props;
+
+  const isPreview = isCTAPreviewMode();
+
+  switch (variant ?? "legacy") {
+    case "legacy":
+    default:
+      return (
+        <ConnectionCardWithRedirect
+          providerId={providerId}
+          providerName={providerName}
+          providerSlug={providerSlug}
+          priceRange={priceRange}
+          reviewCount={reviewCount}
+          phone={phone}
+          acceptedPayments={acceptedPayments}
+          careTypes={careTypes ?? []}
+          city={city}
+          state={state}
+          responseTime={responseTime}
+          providerCategory={providerCategory}
+          providerCity={providerCity}
+          providerState={providerState}
+          ctaVariant={variant}
+          ctaSurface="desktop"
+          ctaPreviewMode={isPreview}
+        />
+      );
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Mobile CTA Router
+// ────────────────────────────────────────────────────────────────────────────
+
+export interface MobileCTARouterProps {
+  providerName: string;
+  priceRange: string | null;
+  providerId: string;
+  providerSlug: string;
+  reviewCount: number | undefined;
+  phone: string | null;
+  acceptedPayments: string[];
+  careTypes: string[];
+  providerCategory?: string | null;
+  providerCity?: string | null;
+  providerState?: string | null;
+}
+
+/**
+ * Replaces direct use of MobileStickyBottomCTA on the provider detail
+ * page. Same router pattern as the desktop version — resolves variant,
+ * fires impression, renders the appropriate mobile CTA.
+ */
+export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
+  const variant = useCTAVariant();
+  useImpressionTracking(variant, "mobile", props.providerSlug);
+
+  const {
+    providerName,
+    priceRange,
+    providerId,
+    providerSlug,
+    reviewCount,
+    phone,
+    acceptedPayments,
+    careTypes,
+    providerCategory,
+    providerCity,
+    providerState,
+  } = props;
+
+  const isPreview = isCTAPreviewMode();
+
+  switch (variant ?? "legacy") {
+    case "legacy":
+    default:
+      return (
+        <MobileStickyBottomCTA
+          providerName={providerName}
+          priceRange={priceRange}
+          providerId={providerId}
+          providerSlug={providerSlug}
+          reviewCount={reviewCount}
+          phone={phone}
+          acceptedPayments={acceptedPayments}
+          careTypes={careTypes ?? []}
+          providerCategory={providerCategory}
+          providerCity={providerCity}
+          providerState={providerState}
+          ctaVariant={variant}
+          ctaSurface="mobile"
+          ctaPreviewMode={isPreview}
+        />
+      );
+  }
+}

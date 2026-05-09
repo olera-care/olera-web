@@ -181,8 +181,7 @@ export default function VariantSessionsList({
 
   const hasMore = total !== null && sessions.length < total;
 
-  // Stage filter chip definitions. "All" is always present; the stage
-  // chips shown depend on which stages the variant actually has.
+  // Variants that skip certain funnel stages. Used for smart empty states.
   // - SBF variants (availability, loss, empathic, control, money_loss):
   //   impression → started → care_need → submitted
   // - outreach: impression → started → submitted (no care_need)
@@ -191,15 +190,33 @@ export default function VariantSessionsList({
   const VARIANTS_WITHOUT_CARE_NEED = new Set(["outreach", "qa_email_capture", "multi_provider"]);
   const VARIANTS_WITHOUT_STARTED = new Set(["qa_email_capture"]);
 
+  // All filter buttons shown consistently for all variants.
+  // When a stage doesn't apply, we show a smart empty state instead of hiding.
   const STAGE_CHIPS: Array<{ key: Stage | "all"; label: string }> = [
     { key: "all", label: "All" },
     { key: "impression", label: "Impression" },
-    // Only show "Started" for variants that have it
-    ...(!VARIANTS_WITHOUT_STARTED.has(variant) ? [{ key: "started" as const, label: "Started" }] : []),
-    // Only show "Care need" for variants that have it
-    ...(!VARIANTS_WITHOUT_CARE_NEED.has(variant) ? [{ key: "care_need" as const, label: "Care need ✓" }] : []),
+    { key: "started", label: "Started" },
+    { key: "care_need", label: "Care need ✓" },
     { key: "submitted", label: "Submitted" },
   ];
+
+  // Helper to determine if a stage is not part of this variant's flow
+  const isStageNotApplicable = (stage: Stage): boolean => {
+    if (stage === "started" && VARIANTS_WITHOUT_STARTED.has(variant)) return true;
+    if (stage === "care_need" && VARIANTS_WITHOUT_CARE_NEED.has(variant)) return true;
+    return false;
+  };
+
+  // Generate empty state message for inapplicable stages
+  const getNotApplicableMessage = (stage: Stage): string | null => {
+    if (stage === "started" && VARIANTS_WITHOUT_STARTED.has(variant)) {
+      return `The "${variant}" flow doesn't include a "Started" step — visitors go directly from Impression → Submitted.`;
+    }
+    if (stage === "care_need" && VARIANTS_WITHOUT_CARE_NEED.has(variant)) {
+      return `The "${variant}" flow doesn't include a "Care need" step.`;
+    }
+    return null;
+  };
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
@@ -253,7 +270,16 @@ export default function VariantSessionsList({
         </div>
       ) : sessions.length === 0 ? (
         <div className="px-5 py-10 text-center text-sm text-gray-400">
-          No sessions in this window.
+          {stageFilter !== "all" && isStageNotApplicable(stageFilter) ? (
+            <div className="max-w-sm mx-auto">
+              <div className="text-gray-500 font-medium mb-1">Stage not applicable</div>
+              <div className="text-gray-400 text-xs leading-relaxed">
+                {getNotApplicableMessage(stageFilter)}
+              </div>
+            </div>
+          ) : (
+            "No sessions in this window."
+          )}
         </div>
       ) : (
         <>

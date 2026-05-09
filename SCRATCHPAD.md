@@ -25,13 +25,17 @@ Continued from this morning's session. Where we landed:
 
 That's a content-quality / page-authority problem, structurally different from removal hygiene. Likely candidates: thin programmatic provider pages (~40K providers, many sparse), power pages too similar to each other, weak unique content on benefits/waiver/state hubs. **Different causes need different fixes — don't fix blind.**
 
-**Project 5 created** as a diagnostic before any implementation work. Full plan in the Notion tracker. Steps: (1) TJ exports GSC "Crawled — currently not indexed" CSV ~5 min, saves to `~/Desktop/olera-web/data/gsc-crawled-not-indexed-2026-05-XX.csv`. (2) Next session parses the CSV, categorizes by URL pattern, samples 20–30 URLs per major bucket, and outputs a categorized report with prioritized fix levers + effort estimates. **Then TJ decides what to ship as Project 6+.**
+**Project 5 created** as a diagnostic before any implementation work. Full plan in the Notion tracker.
+
+**Step 1 already done by TJ tonight.** GSC export saved to `eager-yalow/docs/https___olera.care_-Coverage-Drilldown-2026-05-09/` — three CSVs inside (`Table.csv` is the URL list, `Chart.csv` is time series, `Metadata.csv` is filters). Note: nested in the worktree's `docs/` folder (untracked, intentional — not committed). Next session jumps straight to parsing + categorizing the URLs in `Table.csv`.
+
+**Remaining steps:** (2) Parse the CSV, categorize by URL pattern. (3) Sample 20–30 URLs per major bucket. (4) Output a categorized report with prioritized fix levers + effort estimates. **Then TJ decides what to ship as Project 6+.**
 
 **Tracker:** [De-indexing Recovery — 5-project plan](https://www.notion.so/35a5903a0ffe814ea770d346230207c4) (title bumped from 4-project this evening). PR #766 merge needs a Notion merge report next session if desired.
 
 **Resume next session here → Project 5 diagnostic.** Cold-start checklist for the next Claude:
 1. Read this SCRATCHPAD entry + the [Project 5 section in Notion](https://www.notion.so/35a5903a0ffe814ea770d346230207c4) for full context.
-2. Ask TJ for the GSC CSV path. If he hasn't exported yet, walk him through it (Search Console → Indexing → Pages → click "Crawled — currently not indexed" → Export → CSV).
+2. **CSV is already exported** — read `Table.csv` from `/Users/tfalohun/.claude-worktrees/olera-web/eager-yalow/docs/https___olera.care_-Coverage-Drilldown-2026-05-09/`. No need to ask TJ.
 3. Parse the CSV, group URLs by route shape (see Notion bucket list).
 4. Sample 20–30 URLs per major bucket, fetch live pages, inspect: word count + unique-content density, schema present (FAQPage / LocalBusiness / Review / Article), internal links pointing in, provider-specific data density (review count, photo count, description length, AI trust signals), `last-modified` / canonical / robots.
 5. Output a categorized report: URL pattern → count → likely cause → recommended fix lever → effort estimate. 5–10 example URLs per pattern with diagnostic notes. Top 3 prioritized actions.

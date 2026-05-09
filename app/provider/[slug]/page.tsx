@@ -354,7 +354,7 @@ export default async function ProviderPage({
     }
   }
 
-  // 3. Reason-aware response for soft-deleted iOS providers (migration 079).
+  // 3. Reason-aware response for soft-deleted iOS providers (migration 081).
   //    Runs AFTER both active-row lookups so a claimed business_profile
   //    whose underlying iOS row got soft-deleted still wins. Without this,
   //    every soft-delete falls to a generic 404 — ~40K rows bleeding into

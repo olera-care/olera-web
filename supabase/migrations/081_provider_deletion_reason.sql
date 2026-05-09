@@ -1,4 +1,9 @@
--- Migration 079: deletion_reason column on olera-providers
+-- Migration 081: deletion_reason column on olera-providers
+--
+-- Originally drafted as 079 and applied to production by that name on
+-- 2026-05-08; renumbered to 081 in the codebase after PR #767 took the
+-- 079/080 slots. The DB had no migration tracker (applied via Supabase
+-- dashboard), so the rename is purely for sequential file ordering.
 --
 -- Adds a structured deletion_reason to "olera-providers" so the public
 -- provider page (app/provider/[slug]/page.tsx) can serve a reason-aware

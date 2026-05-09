@@ -3,6 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
 import { sendEmail } from "@/lib/email";
 import { connectionRequestEmail } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
+import { classifyDeletionReason } from "@/lib/classify-deletion-reason";
 
 const EDITABLE_FIELDS = new Set([
   "provider_name",
@@ -262,12 +263,14 @@ export async function PATCH(
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
 
-    // Auto-set deleted_at when deleted changes
+    // Auto-set deleted_at + deletion_reason when deleted changes
     if ("deleted" in updates) {
       if (updates.deleted === true && !current.deleted) {
         updates.deleted_at = new Date().toISOString();
+        updates.deletion_reason = classifyDeletionReason(deleteReason);
       } else if (!updates.deleted && current.deleted) {
         updates.deleted_at = null;
+        updates.deletion_reason = null;
       }
     }
 

@@ -14,6 +14,9 @@ import VariantSessionsList from "@/components/admin/VariantSessionsList";
 import CollapsibleSection, { bulkCollapse } from "@/components/admin/CollapsibleSection";
 import { INTAKE_VARIANTS, type IntakeVariant } from "@/lib/analytics/variant";
 import { variantSurfaceLabel, variantSubLabel } from "@/lib/analytics/variant-copy";
+import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
+import { ctaVariantLabel, ctaVariantSubLabel } from "@/lib/analytics/cta-variant-copy";
+import CTAVariantSessionsList from "@/components/admin/CTAVariantSessionsList";
 
 interface WindowedCounts {
   page_view: number;
@@ -110,6 +113,17 @@ interface BenefitsFunnelByVariant {
   unassigned: BenefitsFunnel;
 }
 
+interface CTAFunnel {
+  impressions: number;
+  clicked: number;
+  converted: number;
+}
+
+interface CTAFunnelByVariant {
+  legacy: CTAFunnel;
+  unassigned: CTAFunnel;
+}
+
 interface ReferrerBreakdown {
   ai_chat: number;
   search: number;
@@ -145,6 +159,8 @@ interface SummaryResponse {
     qa_email_issues: QaEmailIssue[];
     benefits_funnel: BenefitsFunnel;
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
+    cta_funnel: CTAFunnel;
+    cta_funnel_by_variant: CTAFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
     entry_source_breakdown: EntrySourceBreakdown;
   };
@@ -157,6 +173,8 @@ interface SummaryResponse {
     qa_email_issues: QaEmailIssue[];
     benefits_funnel: BenefitsFunnel;
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
+    cta_funnel: CTAFunnel;
+    cta_funnel_by_variant: CTAFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
     entry_source_breakdown: EntrySourceBreakdown;
   } | null;
@@ -296,6 +314,16 @@ export default function AdminAnalyticsPage() {
         loading={loading && !!summary}
       >
         <BenefitsFunnelCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="CTA Variants"
+        storageKey="ctaFunnel"
+        defaultCollapsed={true}
+        forceOpen={!!searchParams.get("cta_variant")}
+        loading={loading && !!summary}
+      >
+        <CTAVariantsCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -1389,6 +1417,411 @@ function BenefitsVariantSplit({
       {byVariant.unassigned.impressions > 0 && (
         <p className="text-[11px] text-gray-400 mt-3">
           {byVariant.unassigned.impressions} sessions in window with no variant assigned (events fired before any A/B was wired).
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── CTA Variants ──────────────────────────────────────────────────────────
+
+function CTAVariantsCard({
+  summary,
+  loading,
+  range,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+  range: DateRangeValue;
+}) {
+  if (loading && !summary) {
+    return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
+  }
+  if (!summary) return null;
+
+  const f = summary.windowed.cta_funnel;
+  const pf = summary.prior?.cta_funnel ?? null;
+
+  const stages: Array<{
+    label: string;
+    value: number;
+    prior: number | null;
+    prev: number | null;
+    tooltip: string;
+  }> = [
+    {
+      label: "Impressions",
+      value: f.impressions,
+      prior: pf?.impressions ?? null,
+      prev: null,
+      tooltip: "Distinct sessions that saw a CTA variant render on a provider page.",
+    },
+    {
+      label: "Clicked",
+      value: f.clicked,
+      prior: pf?.clicked ?? null,
+      prev: f.impressions,
+      tooltip: "Distinct sessions that clicked the CTA to open the form/sheet.",
+    },
+    {
+      label: "Converted",
+      value: f.converted,
+      prior: pf?.converted ?? null,
+      prev: f.clicked,
+      tooltip: "Distinct sessions that submitted a lead (lead_received with cta_variant attribution).",
+    },
+  ];
+
+  return (
+    <>
+      <p className="text-xs text-gray-500 mb-5">
+        CTA A/B testing funnel {rangeLabel(range).toLowerCase()} — distinct sessions per stage. Impressions = CTA rendered; Clicked = form/sheet opened; Converted = lead submitted with cta_variant attribution.
+      </p>
+
+      <div className="grid grid-cols-3 gap-x-5 gap-y-4 mb-6">
+        {stages.map((s) => (
+          <FunnelStat key={s.label} {...s} />
+        ))}
+      </div>
+
+      <CTATrafficAllocationControl />
+
+      <CTAVariantSplit byVariant={summary.windowed.cta_funnel_by_variant} range={range} />
+    </>
+  );
+}
+
+// Traffic allocation control for CTA variants
+function buildCTAEqualSplit(): Record<CTAVariant, number> {
+  const n = CTA_VARIANTS.length;
+  const base = Math.floor(100 / n);
+  const remainder = 100 - base * n;
+  const out = Object.fromEntries(
+    CTA_VARIANTS.map((v, i) => [v, base + (i === 0 ? remainder : 0)]),
+  ) as Record<CTAVariant, number>;
+  return out;
+}
+
+function CTATrafficAllocationControl() {
+  const [loaded, setLoaded] = useState(false);
+  const initial = useMemo(buildCTAEqualSplit, []);
+  const [weights, setWeights] = useState<Record<CTAVariant, number>>(initial);
+  const [savedWeights, setSavedWeights] = useState<Record<CTAVariant, number>>(initial);
+  const [version, setVersion] = useState<number>(0);
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/analytics/cta-variant-weights", { cache: "no-store" })
+      .then(async (r) => {
+        if (cancelled) return;
+        if (!r.ok) {
+          setFeedback({ kind: "err", msg: `Failed to load current allocation (${r.status}).` });
+          setLoaded(true);
+          return;
+        }
+        const data = await r.json().catch(() => null);
+        if (!data) {
+          setFeedback({ kind: "err", msg: "Failed to parse current allocation." });
+          setLoaded(true);
+          return;
+        }
+        const w = (data.weights ?? {}) as Partial<Record<CTAVariant, number>>;
+        const merged = Object.fromEntries(
+          CTA_VARIANTS.map((v) => [v, typeof w[v] === "number" ? (w[v] as number) : 0]),
+        ) as Record<CTAVariant, number>;
+        setWeights(merged);
+        setSavedWeights(merged);
+        setVersion(typeof data.version === "number" ? data.version : 0);
+        setLoaded(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setFeedback({ kind: "err", msg: "Network error loading allocation — try refreshing." });
+        setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const sum = CTA_VARIANTS.reduce((s, v) => s + (weights[v] || 0), 0);
+  const sumIsValid = sum === 100;
+  const isDirty = CTA_VARIANTS.some((v) => weights[v] !== savedWeights[v]);
+  const canSave = loaded && sumIsValid && isDirty && !saving;
+
+  const setArm = (arm: CTAVariant, raw: string) => {
+    const n = raw === "" ? 0 : parseInt(raw, 10);
+    if (Number.isNaN(n)) return;
+    setWeights((prev) => ({ ...prev, [arm]: Math.max(0, Math.min(100, n)) }));
+    if (feedback?.kind === "ok") setFeedback(null);
+  };
+
+  const reset = () => {
+    setWeights(savedWeights);
+    setFeedback(null);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/analytics/cta-variant-weights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weights }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        setFeedback({ kind: "err", msg: body?.error || `Save failed (${res.status})` });
+      } else {
+        const w = (body?.weights ?? {}) as Partial<Record<CTAVariant, number>>;
+        const merged = { ...weights };
+        for (const v of CTA_VARIANTS) {
+          if (typeof w[v] === "number") merged[v] = w[v] as number;
+        }
+        setSavedWeights(merged);
+        setWeights(merged);
+        setVersion(typeof body?.version === "number" ? body.version : version + 1);
+        setFeedback({ kind: "ok", msg: "Saved — returning sessions reshuffle on their next visit." });
+      }
+    } catch {
+      setFeedback({ kind: "err", msg: "Network error — try again." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mt-6 pt-5 border-t border-gray-100">
+      <div className="flex items-baseline justify-between mb-1">
+        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
+          Traffic allocation
+        </div>
+        <div className="text-[11px] text-gray-400 tabular-nums">
+          v{version}
+        </div>
+      </div>
+      <p className="text-[11px] text-gray-400 mb-3">
+        Live dial for the CTA variant split. Set any arm to 0 to dark it out. Saves apply to new + returning sessions on their next visit.
+      </p>
+
+      <div
+        className="grid gap-3 mb-3"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}
+      >
+        {CTA_VARIANTS.map((v) => (
+          <label
+            key={v}
+            className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2"
+          >
+            <span className="text-[11px] font-medium text-gray-700">{ctaVariantLabel(v)}</span>
+            <span className="text-[10px] text-gray-400 leading-tight">{ctaVariantSubLabel(v)}</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                disabled={!loaded || saving}
+                value={weights[v]}
+                onChange={(e) => setArm(v, e.target.value)}
+                className="w-16 text-right tabular-nums text-base font-medium text-gray-900 bg-transparent border-b border-gray-200 focus:border-gray-900 focus:outline-none disabled:opacity-50"
+              />
+              <span className="text-xs text-gray-400">%</span>
+              <a
+                href={ctaPreviewUrl(v)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="ml-auto text-[10px] text-gray-400 hover:text-gray-700 underline underline-offset-2"
+                title="Open the test provider page with this CTA variant forced."
+              >
+                Preview ↗
+              </a>
+            </div>
+          </label>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3 flex-wrap">
+        <span
+          className={`text-[12px] tabular-nums px-2 py-0.5 rounded ${
+            sumIsValid
+              ? "bg-emerald-50 text-emerald-700"
+              : "bg-amber-50 text-amber-700"
+          }`}
+        >
+          Sum: {sum} / 100{sumIsValid ? "" : ` (${sum > 100 ? "+" : ""}${sum - 100})`}
+        </span>
+        <button
+          type="button"
+          onClick={save}
+          disabled={!canSave}
+          className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+            canSave
+              ? "bg-gray-900 text-white hover:bg-gray-800"
+              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+          }`}
+        >
+          {saving ? "Saving…" : "Save allocation"}
+        </button>
+        {isDirty && !saving && (
+          <button
+            type="button"
+            onClick={reset}
+            className="text-xs text-gray-500 hover:text-gray-800 underline underline-offset-2"
+          >
+            Discard changes
+          </button>
+        )}
+        {feedback && (
+          <span
+            className={`text-[11px] ${
+              feedback.kind === "ok" ? "text-emerald-700" : "text-rose-700"
+            }`}
+          >
+            {feedback.msg}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Same test provider slug for CTA previews
+const CTA_PREVIEW_PROVIDER_SLUG = "aggie-assisted-living-college-station-tx-t66r";
+
+function ctaPreviewUrl(arm: string): string {
+  return `/provider/${CTA_PREVIEW_PROVIDER_SLUG}?preview_cta=${encodeURIComponent(arm)}`;
+}
+
+type CTAVariantKey = keyof CTAFunnelByVariant;
+
+function CTAVariantSplit({
+  byVariant,
+  range,
+}: {
+  byVariant: CTAFunnelByVariant;
+  range: DateRangeValue;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const expandedRaw = searchParams.get("cta_variant");
+  const expandedVariant: CTAVariantKey | null =
+    expandedRaw && (expandedRaw === "legacy" || expandedRaw === "unassigned")
+      ? (expandedRaw as CTAVariantKey)
+      : null;
+
+  const toggleVariant = useCallback(
+    (key: CTAVariantKey) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (expandedVariant === key) {
+        params.delete("cta_variant");
+      } else {
+        params.set("cta_variant", key);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `/admin/analytics?${qs}` : "/admin/analytics", { scroll: false });
+    },
+    [searchParams, expandedVariant, router],
+  );
+
+  const resolved = resolveRange(range);
+  const dateFrom = resolved.from ?? null;
+  const dateTo = resolved.to ?? null;
+
+  const totalAssigned = byVariant.legacy.impressions;
+  const waitingForFirstImpression = totalAssigned === 0;
+
+  const rate = (num: number, den: number) =>
+    den > 0 ? `${Math.round((num / den) * 100)}%` : "—";
+
+  const arms: Array<{ key: CTAVariantKey; label: string; description: string }> = [
+    { key: "legacy", label: "Legacy CTA", description: "Current CTA design (ConnectionCardWithRedirect + MobileStickyBottomCTA)" },
+  ];
+
+  return (
+    <div className="mt-6 pt-5 border-t border-gray-100">
+      <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
+        A/B Test — CTA Variants
+      </div>
+      <p className="text-[11px] text-gray-400 mb-3">
+        Deterministic split by session id (djb2 hash, weighted-bucket lookup). Impressions = CTA rendered; Clicked = form/sheet opened; Converted = lead submitted with cta_variant attribution.
+      </p>
+      {waitingForFirstImpression && (
+        <p className="text-[12px] text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-3 py-2 mb-3">
+          Waiting for the first CTA variant impression. The numbers below populate once a cta_variant_impression fires in this window.
+        </p>
+      )}
+      <div className="overflow-x-auto -mx-1">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
+              <th className="px-3 py-2 font-medium">Variant</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Impressions</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Clicked</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Converted</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Conv%</th>
+            </tr>
+          </thead>
+          <tbody>
+            {arms.map(({ key, label, description }) => {
+              const r = byVariant[key];
+              const isExpanded = expandedVariant === key;
+              return (
+                <Fragment key={key}>
+                  <tr
+                    className={`border-b border-gray-50 cursor-pointer transition-colors ${
+                      isExpanded ? "bg-gray-50/60" : "hover:bg-gray-50/40"
+                    }`}
+                    onClick={() => toggleVariant(key)}
+                    aria-expanded={isExpanded}
+                  >
+                    <td className="px-3 py-2 font-medium text-gray-700">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`inline-block text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                          aria-hidden="true"
+                        >
+                          ›
+                        </span>
+                        <span>{label}</span>
+                        <a
+                          href={ctaPreviewUrl(key)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="ml-1 text-[10px] text-gray-400 hover:text-gray-700 underline underline-offset-2"
+                          title="Open the test provider page with this CTA variant forced."
+                        >
+                          Preview ↗
+                        </a>
+                      </div>
+                      <div className="text-[11px] font-normal text-gray-400 truncate max-w-[340px] pl-4">{description}</div>
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.impressions}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.clicked}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.converted}</td>
+                    <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.converted, r.impressions)}</td>
+                  </tr>
+                  {isExpanded && (
+                    <tr className="bg-gray-50/30">
+                      <td colSpan={5} className="px-3 py-4">
+                        <CTAVariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {byVariant.unassigned.impressions > 0 && (
+        <p className="text-[11px] text-gray-400 mt-3">
+          {byVariant.unassigned.impressions} sessions in window with no variant assigned (events fired before CTA A/B was wired).
         </p>
       )}
     </div>

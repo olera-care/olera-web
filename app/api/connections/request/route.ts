@@ -55,6 +55,9 @@ interface GuestConnectionParams {
    *  cannibalization analysis. Optional because legacy callers don't send
    *  it; null is a valid value in metadata. */
   sessionId?: string | null;
+  /** CTA variant for A/B testing attribution. Passed from the frontend
+   *  CTAVariantRouter so conversions can be attributed to a variant arm. */
+  ctaVariant?: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   admin: any;
 }
@@ -68,6 +71,7 @@ async function handleGuestConnection({
   providerSlug,
   intentData,
   sessionId,
+  ctaVariant,
   admin,
 }: GuestConnectionParams) {
   // Validate email format
@@ -748,6 +752,8 @@ async function handleGuestConnection({
       // session_id makes leads joinable back to arm impressions in
       // seeker_activity / provider_activity for cannibalization analysis.
       session_id: sessionId || null,
+      // cta_variant for CTA A/B testing attribution
+      cta_variant: ctaVariant || null,
     },
   });
 
@@ -1121,6 +1127,7 @@ export async function POST(request: Request) {
       formData,
       website, // Honeypot field
       session_id: sessionId,
+      cta_variant: ctaVariant,
     } = body as {
       providerId: string;
       providerName: string;
@@ -1137,6 +1144,7 @@ export async function POST(request: Request) {
       formData?: { fullName?: string; phone?: string; message?: string };
       website?: string; // Honeypot
       session_id?: string;
+      cta_variant?: string;
     };
 
     if (!providerId || !providerName) {
@@ -1169,6 +1177,7 @@ export async function POST(request: Request) {
         providerSlug,
         intentData,
         sessionId,
+        ctaVariant,
         admin,
       });
     }
@@ -1627,6 +1636,8 @@ export async function POST(request: Request) {
         // session_id makes leads joinable back to arm impressions in
         // seeker_activity / provider_activity for cannibalization analysis.
         session_id: sessionId || null,
+        // cta_variant for CTA A/B testing attribution
+        cta_variant: ctaVariant || null,
       },
     });
 

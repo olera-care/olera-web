@@ -1,11 +1,12 @@
 import Image from "next/image";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { buildPowerPageUrlForDeletedProvider } from "@/lib/power-pages";
 import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, AiTrustSignals, StaffInfo } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
-import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
+import { DesktopCTAVariantRouter, MobileCTAVariantRouter } from "@/components/providers/CTAVariantRouter";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
@@ -17,7 +18,6 @@ import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
 import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBar";
-import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
 import MobileClaimLink from "@/components/providers/MobileClaimLink";
 import PriceEstimate from "@/components/providers/PriceEstimate";
 import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
@@ -352,6 +352,54 @@ export default async function ProviderPage({
       // Supabase not configured — fall through to mock lookup
     }
   }
+
+  // 3. Reason-aware response for soft-deleted iOS providers (migration 081).
+  //    Runs AFTER both active-row lookups so a claimed business_profile
+  //    whose underlying iOS row got soft-deleted still wins. Without this,
+  //    every soft-delete falls to a generic 404 — ~40K rows bleeding into
+  //    the GSC "Not found" bucket and losing link equity.
+  //      provider_request → notFound() (placeholder for HTTP 410)
+  //      everything else  → permanentRedirect() to /{category}/{state}/{city}
+  //
+  //    Lookup runs inside try/catch (network can fail), but notFound() /
+  //    permanentRedirect() are called OUTSIDE — both throw control-flow
+  //    errors caught at the framework boundary, so a local catch would
+  //    swallow the redirect.
+  let deletedRedirect: string | null = null;
+  let deletedHardRemoval = false;
+  if (!profile) {
+    try {
+      const supabase = await createClient();
+      const { data: deletedRow } = await supabase
+        .from("olera-providers")
+        .select("provider_category, state, city, deletion_reason")
+        .or(`slug.eq.${slug},provider_id.eq.${slug}`)
+        .eq("deleted", true)
+        .limit(1)
+        .maybeSingle<{
+          provider_category: string | null;
+          state: string | null;
+          city: string | null;
+          deletion_reason: IOSProvider["deletion_reason"];
+        }>();
+
+      if (deletedRow) {
+        if (deletedRow.deletion_reason === "provider_request") {
+          deletedHardRemoval = true;
+        } else {
+          deletedRedirect = buildPowerPageUrlForDeletedProvider({
+            category: deletedRow.provider_category,
+            state: deletedRow.state,
+            city: deletedRow.city,
+          });
+        }
+      }
+    } catch {
+      // Supabase unreachable — fall through, page will 404 below
+    }
+  }
+  if (deletedHardRemoval) notFound();
+  if (deletedRedirect) permanentRedirect(deletedRedirect);
 
   if (!profile) {
     notFound();
@@ -1295,7 +1343,7 @@ export default async function ProviderPage({
           {/* ========== Right Column — Sticky Sidebar (hidden on mobile) ========== */}
           <div className="hidden md:block lg:col-span-1 self-stretch">
             <div id="connection-card" className="sticky top-24">
-              <ConnectionCardWithRedirect
+              <DesktopCTAVariantRouter
                 providerId={profile.id}
                 providerName={profile.display_name}
                 providerSlug={profile.slug}
@@ -1303,7 +1351,7 @@ export default async function ProviderPage({
                 reviewCount={reviewCount}
                 phone={profile.phone}
                 acceptedPayments={acceptedPayments}
-                careTypes={profile.care_types}
+                careTypes={profile.care_types ?? []}
                 city={profile.city}
                 state={profile.state}
                 responseTime={null}
@@ -1336,7 +1384,7 @@ export default async function ProviderPage({
       </div>
 
       {/* Mobile sticky bottom CTA — opens bottom sheet with ConnectionCard */}
-      <MobileStickyBottomCTA
+      <MobileCTAVariantRouter
         providerName={profile.display_name}
         priceRange={priceRange}
         providerId={profile.id}
@@ -1344,7 +1392,7 @@ export default async function ProviderPage({
         reviewCount={reviewCount}
         phone={profile.phone}
         acceptedPayments={acceptedPayments}
-        careTypes={profile.care_types}
+        careTypes={profile.care_types ?? []}
         providerCategory={profile.category}
         providerCity={profile.city}
         providerState={profile.state}

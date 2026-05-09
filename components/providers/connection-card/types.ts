@@ -52,4 +52,10 @@ export interface ConnectionCardProps {
   responseTime: string | null; // null in v1
   /** Called after a new connection is successfully created (not on duplicates). */
   onConnectionCreated?: (connectionId: string) => void;
+  /** CTA variant for A/B testing tracking. Passed by CTAVariantRouter. */
+  ctaVariant?: string | null;
+  /** CTA surface for A/B tracking. "desktop" for ConnectionCard, "mobile" for MobileStickyBottomCTA. */
+  ctaSurface?: "desktop" | "mobile";
+  /** Whether the CTA is in preview mode (admin testing). Events are suppressed. */
+  ctaPreviewMode?: boolean;
 }

@@ -7,6 +7,49 @@
 
 ## Current Focus
 
+### 2026-05-08 (Fri evening) — Project 4 shipped same-day, Project 5 added when TJ flagged we missed the biggest GSC bucket
+
+Continued from this morning's session. Where we landed:
+
+**Project 4 shipped (PR #766, merged to staging at `bc8dd8bf`).** Adds `deletion_reason` column to `olera-providers` + reason-aware response in `app/provider/[slug]/page.tsx`. Soft-deleted providers now redirect (HTTP 308) to `/{category}/{state}/{city}` instead of returning a generic 404. Volume of impact: 40,240 deleted rows total — much larger than the original ~7K estimate. Of GSC's 18,281 "Not found" bucket, an estimated 10–15K should transition to 301s once Google recrawls (30–60 days).
+
+**Files in PR #766** (commits `1594b6c1`, `e650cf7f`, `c8935c67`, `d7cf067f` on staging):
+- Migration `081_provider_deletion_reason.sql` (originally drafted as 079, renumbered after PR #767 took the slot mid-session). Applied to production by TJ via Supabase dashboard before the rename — DB had no migration tracker so the rename was purely codebase hygiene.
+- `lib/classify-deletion-reason.ts` — keyword classifier mirroring the migration regex; reused by admin PATCH so future deletes get structured reasons.
+- `lib/power-pages.ts` — added `buildPowerPageUrlForDeletedProvider()` that walks category → state → city, falling back to `/{category}/{state}` when city is missing.
+- `app/api/admin/directory/[providerId]/route.ts` — writes `deletion_reason` on the same UPDATE that toggles `deleted=true` (NULL on restore).
+- `app/provider/[slug]/page.tsx` — third lookup without the deleted filter, branches on reason. **Critical ordering: runs AFTER the business_profiles lookup** so a claimed page whose underlying iOS row got soft-deleted still wins. (Caught this in pre-test review — fixed in commit `c8935c67`.)
+- Page response logic: `provider_request` → `notFound()` (404 placeholder; HTTP 410 needs middleware refactor — deferred since 0 rows currently in this bucket; the 5 confirmed takedowns are pre-soft-delete-era, tracked in `provider_removal_blocklist` from PR #764). Everything else (incl. NULL) → `permanentRedirect()` to power page.
+
+**The course-correction that prompted Project 5 (the most important moment of the evening):** After PR #766 merged, TJ asked "do any of our projects actually address the currently-not-indexed problem?" — and they don't. The 4-project plan was 100% focused on the 18K "Not found" bucket. The 52.4K "Crawled — currently not indexed" bucket — the **largest** GSC bucket — was completely untouched.
+
+That's a content-quality / page-authority problem, structurally different from removal hygiene. Likely candidates: thin programmatic provider pages (~40K providers, many sparse), power pages too similar to each other, weak unique content on benefits/waiver/state hubs. **Different causes need different fixes — don't fix blind.**
+
+**Project 5 created** as a diagnostic before any implementation work. Full plan in the Notion tracker. Steps: (1) TJ exports GSC "Crawled — currently not indexed" CSV ~5 min, saves to `~/Desktop/olera-web/data/gsc-crawled-not-indexed-2026-05-XX.csv`. (2) Next session parses the CSV, categorizes by URL pattern, samples 20–30 URLs per major bucket, and outputs a categorized report with prioritized fix levers + effort estimates. **Then TJ decides what to ship as Project 6+.**
+
+**Tracker:** [De-indexing Recovery — 5-project plan](https://www.notion.so/35a5903a0ffe814ea770d346230207c4) (title bumped from 4-project this evening). PR #766 merge needs a Notion merge report next session if desired.
+
+**Resume next session here → Project 5 diagnostic.** Cold-start checklist for the next Claude:
+1. Read this SCRATCHPAD entry + the [Project 5 section in Notion](https://www.notion.so/35a5903a0ffe814ea770d346230207c4) for full context.
+2. Ask TJ for the GSC CSV path. If he hasn't exported yet, walk him through it (Search Console → Indexing → Pages → click "Crawled — currently not indexed" → Export → CSV).
+3. Parse the CSV, group URLs by route shape (see Notion bucket list).
+4. Sample 20–30 URLs per major bucket, fetch live pages, inspect: word count + unique-content density, schema present (FAQPage / LocalBusiness / Review / Article), internal links pointing in, provider-specific data density (review count, photo count, description length, AI trust signals), `last-modified` / canonical / robots.
+5. Output a categorized report: URL pattern → count → likely cause → recommended fix lever → effort estimate. 5–10 example URLs per pattern with diagnostic notes. Top 3 prioritized actions.
+6. Ship the report as a Notion sub-page under the tracker + a SCRATCHPAD entry. **Do NOT start implementation work in this session — TJ wants to see the diagnostic first and decide.**
+
+**Files the next session should read for context:** `app/sitemap.ts` (current sitemap structure), `app/provider/[slug]/page.tsx` (provider detail render — most likely thin bucket), `app/[category]/[state]/[city]/page.tsx` (3-tier power page), `lib/provider-highlights.ts` (content density signals), `lib/power-pages.ts` (query/render utilities). Plus this SCRATCHPAD entry and the Notion tracker.
+
+**Behavioral guidance for next session:** TJ pushed back hard this morning when I recommended noindex as a fix for the 52K bucket — called it "too drastic for a directory" since noindex blocks navigational queries (families searching specific provider names). The right framing for any fix recommendation is to favor uplift > sitemap pruning > consolidation > noindex (last resort). Sitemap pruning is the gentler version of noindex; noindex itself stays off the table unless TJ raises it.
+
+**Open follow-ups (lower priority than Project 5):**
+- Re-submit the 4 GSC-removal-expired URLs (Mariemont, Kendra's, Johnson, Next Best Home) to GSC's Removals tool — ~5 min lever to accelerate de-indexing.
+- Diagnose the August 2025 traffic cliff (~98% unexplained). May actually overlap with Project 5 — if the demotion was content-quality driven, fixing the 52K bucket is also the cliff fix.
+- Project 2 (periodic audit) + Project 3 (pipeline pre-filter) — prevent future re-adds, don't heal current bleeding. Schedule when convenient.
+
+**Diagnostic on the bigger picture:** The 4-project plan addressed an SEO hygiene problem (deletion handling). The August 2025 cliff + 52K not-indexed are an SEO authority problem (content quality, page authority). Different domain. The hygiene work was necessary but not sufficient — Project 5 starts the pivot to the authority side.
+
+---
+
 ### 2026-05-08 (Fri) — GSC indexing diagnostic + Project 1 shipped: provider removal blocklist (P1, on `quiet-kepler`, ready for PR)
 
 Started as "why so many crawled-not-indexed pages?" Pivoted twice as the evidence reframed the question, ended with a 4-project plan AND shipped the foundation (Project 1: data layer + admin surface). Migration applied to production Supabase mid-session; TJ caught up the blocklist with all known provider-requested takedowns via the admin UI before the PR was opened.

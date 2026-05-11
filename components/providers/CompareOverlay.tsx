@@ -77,7 +77,7 @@ export default function CompareOverlay({
 
       {/* Overlay panel - full height, with left/right margins */}
       <div
-        className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[calc(100%-80px)] max-w-5xl bg-white shadow-2xl flex flex-col"
+        className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[calc(100%-80px)] max-w-6xl bg-white shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sticky Header */}

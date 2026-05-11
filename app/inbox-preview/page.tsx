@@ -385,24 +385,26 @@ function InboxPreviewContent() {
                 </div>
               ) : user ? (
                 /* Logged-in user — one-click send */
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-600">
-                      Send as <span className="font-medium text-gray-900">{user.email}</span>
-                    </p>
+                <div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-600">
+                        Send as <span className="font-medium text-gray-900">{user.email}</span>
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={submitting}
+                      className="px-6 py-2.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 disabled:opacity-70"
+                    >
+                      {submitting && (
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      )}
+                      {submitting ? "Sending..." : "Send Message"}
+                    </button>
                   </div>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="px-6 py-2.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 disabled:opacity-70"
-                  >
-                    {submitting && (
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    )}
-                    {submitting ? "Sending..." : "Send Message"}
-                  </button>
                   {error && (
-                    <p className="text-xs text-red-600" role="alert">{error}</p>
+                    <p className="text-xs text-red-600 mt-2" role="alert">{error}</p>
                   )}
                 </div>
               ) : (

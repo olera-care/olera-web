@@ -240,7 +240,7 @@ export default function CompareBottomSheet({
         ref={sheetRef}
         className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl animate-sheet-up flex flex-col"
         style={{
-          maxHeight: "88dvh",
+          maxHeight: "92dvh",
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
       >
@@ -287,7 +287,7 @@ export default function CompareBottomSheet({
           className="flex-1 overflow-x-auto overflow-y-auto snap-x snap-mandatory scrollbar-hide overscroll-x-contain"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          <div className="flex gap-3 px-4 pb-4">
+          <div className="flex gap-3 px-5 pb-4">
             {allProviders.map((provider, index) => (
               <CompareCard
                 key={provider.id}
@@ -296,7 +296,7 @@ export default function CompareBottomSheet({
                 badge={badges[provider.id]}
               />
             ))}
-            <div className="w-4 shrink-0" />
+            <div className="w-5 shrink-0" />
           </div>
         </div>
 

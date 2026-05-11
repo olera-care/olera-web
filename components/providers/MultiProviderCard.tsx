@@ -185,13 +185,14 @@ export default function MultiProviderCard({
     }
   }, [cardState, isLoggedIn, onCollapse]);
 
-  // Track conversion for logged-in users (they skip email submit flow)
-  const loggedInConversionTrackedRef = useRef(false);
+  // Track flow completion for logged-in users (engagement metric, NOT conversion)
+  // Conversions only count when a guest user submits their email and creates an account
+  const loggedInFlowTrackedRef = useRef(false);
   useEffect(() => {
-    if (cardState === "email_capture" && isLoggedIn && !loggedInConversionTrackedRef.current) {
-      loggedInConversionTrackedRef.current = true;
+    if (cardState === "email_capture" && isLoggedIn && !loggedInFlowTrackedRef.current) {
+      loggedInFlowTrackedRef.current = true;
       const allSentProviderIds = [currentProvider.id, ...askedProviders.map((p) => p.id)];
-      trackActivity("multi_provider_converted", {
+      trackActivity("multi_provider_flow_completed", {
         sent_count: allSentProviderIds.length,
         provider_ids: allSentProviderIds,
         logged_in: true,

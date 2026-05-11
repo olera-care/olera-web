@@ -1358,6 +1358,23 @@ export default async function ProviderPage({
                 providerCategory={profile.category}
                 providerCity={profile.city}
                 providerState={profile.state}
+                providerImage={images[0] || null}
+                rating={rating}
+                highlights={highlights.map((h) => h.label)}
+                similarProviders={similarProviders.providers.slice(0, 2).map((p) => ({
+                  id: p.id,
+                  slug: p.slug,
+                  name: p.name,
+                  image: p.image || null,
+                  category: profile.category,
+                  city: p.address?.split(", ")[0] || null,
+                  state: p.address?.split(", ")[1] || null,
+                  rating: p.rating || null,
+                  reviewCount: p.reviewCount || null,
+                  priceRange: p.priceRange || null,
+                  services: p.careTypes || [],
+                  highlights: p.highlights || [],
+                }))}
               />
             </div>
           </div>
@@ -1396,6 +1413,23 @@ export default async function ProviderPage({
         providerCategory={profile.category}
         providerCity={profile.city}
         providerState={profile.state}
+        providerImage={images[0] || null}
+        rating={rating}
+        highlights={highlights.map((h) => h.label)}
+        similarProviders={similarProviders.providers.slice(0, 2).map((p) => ({
+          id: p.id,
+          slug: p.slug,
+          name: p.name,
+          image: p.image || null,
+          category: profile.category, // Use same category as current provider
+          city: p.address?.split(", ")[0] || null,
+          state: p.address?.split(", ")[1] || null,
+          rating: p.rating || null,
+          reviewCount: p.reviewCount || null,
+          priceRange: p.priceRange || null,
+          services: p.careTypes || [],
+          highlights: p.highlights || [],
+        }))}
       />
     </div>
   );

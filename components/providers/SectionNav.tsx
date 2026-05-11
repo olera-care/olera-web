@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { useCTAVariant } from "@/hooks/use-cta-variant";
 
 export interface SectionItem {
   id: string;
@@ -33,6 +34,7 @@ export default function SectionNav({
   const [connectionId, setConnectionId] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const { profiles } = useAuth();
+  const ctaVariant = useCTAVariant();
 
   // Show the section nav after the user scrolls past the identity / image area
   // We use 400px as threshold — roughly past the breadcrumbs + name + image
@@ -150,27 +152,29 @@ export default function SectionNav({
               })}
             </nav>
 
-            {/* Right: Provider name + CTA */}
-            <div className="hidden md:flex items-center gap-4 flex-shrink-0 pl-6">
-              <span className="text-[14px] font-semibold text-gray-900 truncate max-w-[200px]">
-                {providerName}
-              </span>
-              {isConnected ? (
-                <Link
-                  href={connectionId ? `/portal/inbox?id=${connectionId}` : "/portal/inbox"}
-                  className="px-4 py-2 text-[13px] font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  Message
-                </Link>
-              ) : isActive ? (
-                <button
-                  onClick={() => scrollTo("connection-card")}
-                  className="px-4 py-2 text-[13px] font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  Connect
-                </button>
-              ) : null}
-            </div>
+            {/* Right: Provider name + CTA (hidden for compare variant — sidebar CTA is already sticky) */}
+            {ctaVariant !== "compare" && (
+              <div className="hidden md:flex items-center gap-4 flex-shrink-0 pl-6">
+                <span className="text-[14px] font-semibold text-gray-900 truncate max-w-[200px]">
+                  {providerName}
+                </span>
+                {isConnected ? (
+                  <Link
+                    href={connectionId ? `/portal/inbox?id=${connectionId}` : "/portal/inbox"}
+                    className="px-4 py-2 text-[13px] font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    Message
+                  </Link>
+                ) : isActive ? (
+                  <button
+                    onClick={() => scrollTo("connection-card")}
+                    className="px-4 py-2 text-[13px] font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    Connect
+                  </button>
+                ) : null}
+              </div>
+            )}
           </div>
         </div>
       </div>

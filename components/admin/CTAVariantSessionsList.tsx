@@ -10,6 +10,11 @@
  * One row per session, not per event. Furthest stage is the deepest stage
  * the session reached during the time window. For Converted-stage sessions,
  * `submitter` carries the email captured at lead submission.
+ *
+ * Per-row trash icon hard-deletes the session's tracking events from
+ * provider_activity (DELETE handler in /api/admin/analytics/cta-variant-sessions).
+ * Used for cleaning up admin test traffic that would otherwise pollute
+ * conversion counts.
  */
 
 import { useEffect, useState, useCallback } from "react";
@@ -44,6 +49,13 @@ const STAGE_BADGE_CLASS: Record<Stage, string> = {
   converted: "bg-emerald-50 text-emerald-800",
 };
 
+// Plain-English description of what hard-deleting this session will cascade to.
+function cascadeSummary(stage: Stage): string {
+  const eventsLine = "tracking events for this session (impressions, clicks)";
+  if (stage !== "converted") return `Removes ${eventsLine}.`;
+  return `Removes the lead_received event + ${eventsLine}. Does NOT delete the connection or account.`;
+}
+
 function formatRelativeTime(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime();
   if (ms < 60_000) return "just now";
@@ -67,6 +79,11 @@ export default function CTAVariantSessionsList({
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stageFilter, setStageFilter] = useState<Stage | "all">("all");
+  // Delete state — pendingDelete holds the row the operator clicked the
+  // trash icon on; we render a confirmation modal until they confirm or cancel.
+  const [pendingDelete, setPendingDelete] = useState<SessionRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const fetchPage = useCallback(
     async (offset: number, append: boolean) => {
@@ -100,6 +117,32 @@ export default function CTAVariantSessionsList({
   useEffect(() => {
     fetchPage(0, false);
   }, [fetchPage]);
+
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/admin/analytics/cta-variant-sessions", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: pendingDelete.session_id, variant }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || `Delete failed (${res.status})`);
+      }
+      // Remove the deleted row locally
+      const removedId = pendingDelete.session_id;
+      setSessions((prev) => prev.filter((s) => s.session_id !== removedId));
+      setTotal((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
+      setPendingDelete(null);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
+  }, [pendingDelete, variant]);
 
   const hasMore = total !== null && sessions.length < total;
 
@@ -174,6 +217,7 @@ export default function CTAVariantSessionsList({
                   <th className="px-3 py-2 font-medium">Submitter / Session</th>
                   <th className="px-3 py-2 font-medium">Provider page</th>
                   <th className="px-3 py-2 font-medium text-right">When</th>
+                  <th className="px-2 py-2 font-medium w-8" aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
@@ -215,6 +259,19 @@ export default function CTAVariantSessionsList({
                     <td className="px-3 py-2 text-right tabular-nums text-gray-500 whitespace-nowrap">
                       {formatRelativeTime(s.first_seen)}
                     </td>
+                    <td className="px-2 py-2 w-8 text-right">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setDeleteError(null); setPendingDelete(s); }}
+                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
+                        aria-label="Delete this session"
+                        title="Delete this session and its data"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -233,6 +290,79 @@ export default function CTAVariantSessionsList({
             </div>
           )}
         </>
+      )}
+
+      {/* Delete confirmation modal */}
+      {pendingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-session-title"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3
+              id="delete-session-title"
+              className="text-base font-semibold text-gray-900 mb-3"
+            >
+              Delete this session?
+            </h3>
+            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Submitter</dt>
+                <dd className="text-gray-900 break-all">
+                  {pendingDelete.submitter ?? (
+                    <span className="font-mono text-[12px] text-gray-500">
+                      {pendingDelete.session_id.slice(0, 8)}…
+                    </span>
+                  )}
+                </dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Arm</dt>
+                <dd className="text-gray-900">{variant}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Stage</dt>
+                <dd className="text-gray-900">
+                  {STAGE_LABEL[pendingDelete.furthest_stage]}
+                </dd>
+              </div>
+              {pendingDelete.provider_id && (
+                <div className="flex gap-2">
+                  <dt className="w-20 shrink-0 text-gray-400">Page</dt>
+                  <dd className="text-gray-700 break-all">
+                    {pendingDelete.provider_id}
+                  </dd>
+                </div>
+              )}
+            </dl>
+            <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
+              {cascadeSummary(pendingDelete.furthest_stage)} This cannot be undone.
+            </p>
+            {deleteError && (
+              <p className="text-[12px] text-red-600 mb-3">{deleteError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => { setPendingDelete(null); setDeleteError(null); }}
+                disabled={deleting}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                {deleting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -5,6 +5,9 @@ import { useCTAVariant, isCTAPreviewMode } from "@/hooks/use-cta-variant";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
 import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
+import { CompareCard } from "@/components/providers/cta-variants";
+import MobileStickyCompare from "@/components/providers/MobileStickyCompare";
+import type { CompareProvider } from "@/components/providers/CompareBottomSheet";
 
 // Props shared by both routers — mirrors ConnectionCardWithRedirect's interface.
 export interface CTARouterProps {
@@ -22,6 +25,13 @@ export interface CTARouterProps {
   providerCategory?: string | null;
   providerCity?: string | null;
   providerState?: string | null;
+  providerImage?: string | null;
+  /** Rating for compare variant */
+  rating?: number | null;
+  /** Highlights for compare variant */
+  highlights?: string[];
+  /** Similar providers for compare variant */
+  similarProviders?: CompareProvider[];
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -100,11 +110,36 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
     providerCategory,
     providerCity,
     providerState,
+    providerImage,
+    rating,
+    highlights,
+    similarProviders,
   } = props;
 
   const isPreview = isCTAPreviewMode();
 
   switch (variant ?? "legacy") {
+    case "compare":
+      return (
+        <CompareCard
+          providerId={providerId}
+          providerName={providerName}
+          providerSlug={providerSlug}
+          providerCategory={providerCategory}
+          providerCity={providerCity}
+          providerState={providerState}
+          providerPhone={phone}
+          providerImage={providerImage}
+          priceRange={priceRange}
+          rating={rating}
+          reviewCount={reviewCount}
+          services={careTypes}
+          highlights={highlights}
+          similarProviders={similarProviders}
+          ctaVariant={variant}
+          ctaPreviewMode={isPreview}
+        />
+      );
     case "legacy":
     default:
       return (
@@ -147,6 +182,13 @@ export interface MobileCTARouterProps {
   providerCategory?: string | null;
   providerCity?: string | null;
   providerState?: string | null;
+  providerImage?: string | null;
+  /** Rating for compare variant */
+  rating?: number | null;
+  /** Highlights for compare variant */
+  highlights?: string[];
+  /** Similar providers for compare variant */
+  similarProviders?: CompareProvider[];
 }
 
 /**
@@ -170,11 +212,36 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
     providerCategory,
     providerCity,
     providerState,
+    providerImage,
+    rating,
+    highlights,
+    similarProviders,
   } = props;
 
   const isPreview = isCTAPreviewMode();
 
   switch (variant ?? "legacy") {
+    case "compare":
+      return (
+        <MobileStickyCompare
+          providerName={providerName}
+          providerId={providerId}
+          providerSlug={providerSlug}
+          providerCategory={providerCategory}
+          providerCity={providerCity}
+          providerState={providerState}
+          providerPhone={phone}
+          providerImage={providerImage}
+          priceRange={priceRange}
+          rating={rating}
+          reviewCount={reviewCount}
+          services={careTypes}
+          highlights={highlights}
+          similarProviders={similarProviders}
+          ctaVariant={variant}
+          ctaPreviewMode={isPreview}
+        />
+      );
     case "legacy":
     default:
       return (

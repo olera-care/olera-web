@@ -47,6 +47,19 @@ export interface TemplateContext {
    * substitution still uses the {salutation} placeholder.
    */
   contacts?: Contact[];
+  /**
+   * v9 Phase 9 per-recipient variant. Provider templates branch
+   * on this; stakeholder templates ignore it.
+   *   "general" → body composed for the General Office contact:
+   *               "Hello," + optional team reference; no
+   *               first-name interpolation.
+   *   "named"   → body composed for a named recipient: greeting
+   *               uses {first_name} placeholder that planSequence
+   *               substitutes per-recipient at queue time.
+   * Default: "general" (safest fallback when caller doesn't
+   * specify).
+   */
+  variant?: "general" | "named";
 }
 
 /** All outreach emails offer a 15-min call with Logan via this Calendly. */
@@ -378,14 +391,33 @@ export const followupEmail = followupLightEmail;
 // is the university whose students would be placed.
 
 export function providerIntroEmail(
-  _ctx: TemplateContext,
+  ctx: TemplateContext,
   contacts: Contact[] | undefined,
 ): EmailDraft {
-  const greeting = providerSalutation(contacts);
+  const variant = ctx.variant ?? "general";
+  const subject = `Caregivers at ${PLACEHOLDER.orgName} from ${PLACEHOLDER.campus} students`;
+  if (variant === "named") {
+    return {
+      subject,
+      body: [
+        `Hi ${PLACEHOLDER.firstName},`,
+        ``,
+        `I'm reaching out from Olera. We connect pre-health students at ${PLACEHOLDER.campus} with home-care agencies in their area looking for reliable caregivers — flexible scheduling around coursework, motivated workers, real patient-care experience for them.`,
+        ``,
+        `Would you be open to a quick 15-min intro to see if there's a fit?`,
+        ``,
+        `Best,`,
+        `${PLACEHOLDER.adminName}`,
+        ``,
+        SIGN_OFF,
+      ].join("\n"),
+    };
+  }
+  // general variant — team greeting at snapshot-build time.
   return {
-    subject: `Caregivers at ${PLACEHOLDER.orgName} from ${PLACEHOLDER.campus} students`,
+    subject,
     body: [
-      greeting,
+      providerSalutation(contacts),
       ``,
       `I'm reaching out from Olera. We connect pre-health students at ${PLACEHOLDER.campus} with home-care agencies in their area looking for reliable caregivers — flexible scheduling around coursework, motivated workers, real patient-care experience for them.`,
       ``,
@@ -400,14 +432,30 @@ export function providerIntroEmail(
 }
 
 export function providerFollowupEmail(
-  _ctx: TemplateContext,
+  ctx: TemplateContext,
   contacts: Contact[] | undefined,
 ): EmailDraft {
-  const greeting = providerSalutation(contacts);
+  const variant = ctx.variant ?? "general";
+  const subject = `Re: Olera caregivers for ${PLACEHOLDER.orgName}`;
+  if (variant === "named") {
+    return {
+      subject,
+      body: [
+        `Hi ${PLACEHOLDER.firstName},`,
+        ``,
+        `Following up on my earlier note. We have pre-health students at ${PLACEHOLDER.campus} looking for caregiver placements — happy to share a one-pager or jump on a quick call if useful.`,
+        ``,
+        `Best,`,
+        `${PLACEHOLDER.adminName}`,
+        ``,
+        SIGN_OFF,
+      ].join("\n"),
+    };
+  }
   return {
-    subject: `Re: Olera caregivers for ${PLACEHOLDER.orgName}`,
+    subject,
     body: [
-      greeting,
+      providerSalutation(contacts),
       ``,
       `Just bubbling this up in case it got buried. We have pre-health students at ${PLACEHOLDER.campus} looking for caregiver placements — happy to share a one-pager or jump on a quick call if helpful.`,
       ``,
@@ -420,14 +468,31 @@ export function providerFollowupEmail(
 }
 
 export function providerFinalEmail(
-  _ctx: TemplateContext,
+  ctx: TemplateContext,
   contacts: Contact[] | undefined,
 ): EmailDraft {
-  const greeting = providerSalutation(contacts);
+  const variant = ctx.variant ?? "general";
+  const subject = `Last note — Olera caregivers for ${PLACEHOLDER.orgName}`;
+  if (variant === "named") {
+    return {
+      subject,
+      body: [
+        `Hi ${PLACEHOLDER.firstName},`,
+        ``,
+        `Closing the loop here. If now isn't the right time for an intro, totally understand — happy to circle back later.`,
+        ``,
+        `Either way, thanks for your time.`,
+        ``,
+        `${PLACEHOLDER.adminName}`,
+        ``,
+        SIGN_OFF,
+      ].join("\n"),
+    };
+  }
   return {
-    subject: `Last note — Olera caregivers for ${PLACEHOLDER.orgName}`,
+    subject,
     body: [
-      greeting,
+      providerSalutation(contacts),
       ``,
       `Closing the loop here. If there's a better person to reach about hiring caregivers, happy to redirect.`,
       ``,

@@ -333,6 +333,67 @@ export function defaultSnapshotsFor(
   return result;
 }
 
+/**
+ * v9 Phase 9: dual-variant snapshot builder for per-recipient mode.
+ * Returns both general + named variants for every email day in the
+ * cadence. PreFlight seeds the editor with these; admin edits each
+ * variant independently; planSequence picks the right variant per
+ * recipient at queue time.
+ *
+ * Stakeholder cadence keys still get both variants populated but
+ * they collapse to the same body — the templates ignore the
+ * variant param. Use defaultSnapshotsFor() for stakeholder paths.
+ */
+export function defaultSnapshotsByVariant(
+  type: CadenceKey,
+  ctx: {
+    organization_name: string;
+    campus_name: string;
+    admin_first_name?: string;
+    contacts?: Contact[];
+  },
+): { general: EmailSnapshot[]; named: EmailSnapshot[] } {
+  const days = OUTREACH_DAYS_BY_TYPE[type];
+  const general: EmailSnapshot[] = [];
+  const named: EmailSnapshot[] = [];
+  const templateStakeholderType: StakeholderType =
+    type === "provider" ? "student_org" : type;
+  for (const day of days) {
+    for (const step of day.steps) {
+      if (step.channel !== "email" || !step.template) continue;
+      const generalTpl = getTemplate(step.template, {
+        stakeholder_type: templateStakeholderType,
+        organization_name: ctx.organization_name,
+        campus_name: ctx.campus_name,
+        admin_first_name: ctx.admin_first_name,
+        contacts: ctx.contacts,
+        variant: "general",
+      });
+      general.push({
+        day: day.day,
+        template: step.template,
+        subject: generalTpl.subject,
+        body: generalTpl.body,
+      });
+      const namedTpl = getTemplate(step.template, {
+        stakeholder_type: templateStakeholderType,
+        organization_name: ctx.organization_name,
+        campus_name: ctx.campus_name,
+        admin_first_name: ctx.admin_first_name,
+        contacts: ctx.contacts,
+        variant: "named",
+      });
+      named.push({
+        day: day.day,
+        template: step.template,
+        subject: namedTpl.subject,
+        body: namedTpl.body,
+      });
+    }
+  }
+  return { general, named };
+}
+
 /** Used by tests + UI to know the cadence structure for a given type. */
 export function describeCadence(type: CadenceKey): OutreachDay[] {
   return OUTREACH_DAYS_BY_TYPE[type];

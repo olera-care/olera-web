@@ -223,18 +223,6 @@ export default function CompareOverlay({
             </svg>
             Back to {firstName}
           </button>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
-              Share
-            </button>
-          </div>
         </div>
 
         {/* Scrollable Content */}
@@ -264,7 +252,9 @@ export default function CompareOverlay({
                 {allProviders.map((provider, index) => (
                   <div
                     key={provider.id}
-                    className={`p-4 ${index === 0 ? "bg-[#4a7c72]/5" : "bg-white"} ${
+                    className={`p-4 bg-white ${
+                      index === 0 ? "border-l-4 border-l-gray-900" : ""
+                    } ${
                       index < allProviders.length - 1 ? "border-r border-gray-200" : ""
                     }`}
                   >
@@ -400,7 +390,7 @@ export default function CompareOverlay({
           ) : footerState === "submitting" ? (
             /* Submitting state - centered spinner */
             <div className="flex items-center justify-center py-4">
-              <div className="w-6 h-6 border-2 border-gray-300 border-t-[#4a7c72] rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
             </div>
           ) : footerState === "initial" ? (
             /* Initial state - button to start */
@@ -413,7 +403,7 @@ export default function CompareOverlay({
               <button
                 type="button"
                 onClick={handleSaveClick}
-                className="flex items-center gap-2 px-6 py-3 bg-[#4a7c72] hover:bg-[#3d6860] text-white rounded-xl font-semibold transition-colors"
+                className="flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-semibold transition-colors"
               >
                 Save this comparison
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -445,7 +435,7 @@ export default function CompareOverlay({
                     }}
                     placeholder="you@email.com"
                     className={`w-full px-4 py-3 rounded-xl border ${
-                      error ? "border-red-300 focus:ring-red-500" : "border-gray-200 focus:ring-[#4a7c72]"
+                      error ? "border-red-300 focus:ring-red-500" : "border-gray-200 focus:ring-gray-900"
                     } focus:outline-none focus:ring-2 text-[15px]`}
                     autoFocus
                   />
@@ -455,7 +445,7 @@ export default function CompareOverlay({
                 </div>
                 <button
                   type="submit"
-                  className="flex-shrink-0 px-6 py-3 bg-[#4a7c72] hover:bg-[#3d6860] text-white rounded-xl font-semibold transition-colors whitespace-nowrap"
+                  className="flex-shrink-0 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-semibold transition-colors whitespace-nowrap"
                 >
                   Save my comparison
                 </button>
@@ -492,7 +482,7 @@ function CompareRow({
     >
       {/* Label cell */}
       <div className="p-4 bg-gray-50 flex items-start">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#4a7c72]">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
           {label}
         </span>
       </div>
@@ -501,7 +491,9 @@ function CompareRow({
       {providers.map((provider, index) => (
         <div
           key={provider.id}
-          className={`p-4 ${index === 0 ? "bg-[#4a7c72]/5" : "bg-white"} ${
+          className={`p-4 bg-white ${
+            index === 0 ? "border-l-4 border-l-gray-900" : ""
+          } ${
             index < providers.length - 1 ? "border-r border-gray-200" : ""
           }`}
         >

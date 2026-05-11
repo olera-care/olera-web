@@ -53,6 +53,7 @@ import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifi
 import { LogMeetingModal } from "@/app/admin/student-outreach/LogMeetingModal";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
 import { MarkPartnerModal } from "@/app/admin/student-outreach/MarkPartnerModal";
+import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
 
 type ActionFn = (
   actionName: string,
@@ -317,40 +318,97 @@ function ProspectBody({
   beforeLaunch?: () => Promise<void>;
 }) {
   const [showPreFlight, setShowPreFlight] = useState(false);
+  const [showCallForEmail, setShowCallForEmail] = useState(false);
   const cadenceKey: CadenceKey =
     ctx.outreach.kind === "provider"
       ? "provider"
       : (ctx.outreach.stakeholder_type ?? "student_org");
 
+  // v9 Phase 4: when a provider prospect has no email but has a
+  // phone, surface a "Call to obtain email" path so the drawer isn't
+  // a dead end. Counter pulls from existing call_* touchpoints so
+  // admins can see prior attempts at a glance ("3 calls logged ·
+  // try again or close").
+  const isProviderProspect = ctx.outreach.kind === "provider";
+  const providerPhone = ctx.provider_business_profile?.phone ?? null;
+  const callAttempts = ctx.touchpoints.filter((t) =>
+    [
+      "call_no_answer",
+      "call_voicemail",
+      "call_connected",
+      "call_wrong_number",
+    ].includes(t.touchpoint_type),
+  ).length;
+  const showCallForEmailCta =
+    isProviderProspect && !launchEnabled && Boolean(providerPhone);
+
   return (
     <>
-      <p className="text-sm text-gray-700">
-        {launchEnabled
-          ? "Ready to launch the outreach cadence. Review the emails before sending."
-          : launchDisabledReason ??
-            "Complete the required fields above to enable launch."}
-      </p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button
-          onClick={async () => {
-            if (!launchEnabled) {
-              setError(launchDisabledReason ?? "Not ready to launch yet.");
-              return;
-            }
-            try {
-              if (beforeLaunch) await beforeLaunch();
-              setShowPreFlight(true);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Failed to prepare launch");
-            }
-          }}
-          disabled={!launchEnabled}
-          title={launchEnabled ? "Open the cadence pre-flight review." : launchDisabledReason}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Launch outreach →
-        </button>
-      </div>
+      {showCallForEmailCta ? (
+        <>
+          <p className="text-sm text-gray-700">
+            No email on file. Call the provider to obtain one before launching outreach.
+          </p>
+          {callAttempts > 0 && (
+            <p className="mt-1 text-xs text-gray-500">
+              {callAttempts} call attempt{callAttempts === 1 ? "" : "s"} logged.
+              Try again or close as wrong contact if exhausted.
+            </p>
+          )}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setShowCallForEmail(true)}
+              className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+            >
+              📞 Call to obtain email →
+            </button>
+            <span className="text-xs text-gray-500">
+              <a
+                href={`tel:${providerPhone}`}
+                className="font-medium text-emerald-700 hover:underline"
+              >
+                {providerPhone}
+              </a>
+            </span>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-gray-700">
+            {launchEnabled
+              ? "Ready to launch the outreach cadence. Review the emails before sending."
+              : launchDisabledReason ??
+                "Complete the required fields above to enable launch."}
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              onClick={async () => {
+                if (!launchEnabled) {
+                  setError(launchDisabledReason ?? "Not ready to launch yet.");
+                  return;
+                }
+                try {
+                  if (beforeLaunch) await beforeLaunch();
+                  setShowPreFlight(true);
+                } catch (e) {
+                  setError(
+                    e instanceof Error ? e.message : "Failed to prepare launch",
+                  );
+                }
+              }}
+              disabled={!launchEnabled}
+              title={
+                launchEnabled
+                  ? "Open the cadence pre-flight review."
+                  : launchDisabledReason
+              }
+              className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Launch outreach →
+            </button>
+          </div>
+        </>
+      )}
 
       {showPreFlight && (
         <PreFlightReviewModal
@@ -368,6 +426,16 @@ function ProspectBody({
               throw e;
             }
           }}
+        />
+      )}
+      {showCallForEmail && (
+        <CallForEmailModal
+          organizationName={ctx.outreach.organization_name}
+          phone={providerPhone}
+          action={action}
+          onCancel={() => setShowCallForEmail(false)}
+          onDone={() => setShowCallForEmail(false)}
+          setError={setError}
         />
       )}
     </>

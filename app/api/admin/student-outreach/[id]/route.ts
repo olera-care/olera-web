@@ -219,6 +219,16 @@ export async function POST(
         await handleQueueManualTask(db, row, body, user.id);
         break;
 
+      // v9 Phase 4: log a research call when there's no pending call
+      // task (e.g. admin calling to obtain an email pre-launch).
+      // Distinct from log_call because that handler claims a pending
+      // task + applies stage transitions per outcome — this one just
+      // emits the touchpoint, no other side effects. Lets the row
+      // stay in prospect while admin works through call attempts.
+      case "log_research_call":
+        await handleLogResearchCall(db, row, body, user.id);
+        break;
+
       // v9 Make Client — provider conversion. Writes
       // business_profiles.metadata.interview_terms_accepted_at,
       // transitions the outreach row to active_partner so its
@@ -2114,6 +2124,47 @@ async function handleRescheduleTask(
     .eq("id", body.task_id)
     .eq("outreach_id", row.id)
     .eq("status", "pending");
+  await touchOutreach(db, row.id, userId);
+}
+
+/**
+ * v9 Phase 4: log a research-phase call attempt. Used when admin is
+ * calling a provider to obtain a hiring email (or any other
+ * pre-launch research call). No task claim, no stage transition —
+ * just emits the appropriate call_* touchpoint with a research_call
+ * marker in the payload so the timeline + drawer can distinguish
+ * from cadence-driven calls.
+ *
+ * Outcome map mirrors the existing log_call vocabulary for narration
+ * consistency:
+ *   no_answer   → call_no_answer
+ *   voicemail   → call_voicemail
+ *   connected   → call_connected
+ *   wrong_number→ call_wrong_number
+ *
+ * After log: caller decides whether to add_contact (if email was
+ * obtained) — the modal chains the two actions client-side.
+ */
+async function handleLogResearchCall(
+  db: DB,
+  row: OutreachRow,
+  body: { outcome?: string; notes?: string },
+  userId: string,
+) {
+  const outcomeMap: Record<string, TouchpointType> = {
+    no_answer: "call_no_answer",
+    voicemail: "call_voicemail",
+    connected: "call_connected",
+    wrong_number: "call_wrong_number",
+  };
+  const tpType = outcomeMap[body.outcome ?? ""];
+  if (!tpType) throw new Error("Invalid research-call outcome");
+  await insertTouchpoint(db, row.id, tpType, userId, {
+    channel: "phone",
+    outcome: body.outcome,
+    notes: body.notes ?? null,
+    payload: { reason: "research_call" },
+  });
   await touchOutreach(db, row.id, userId);
 }
 

@@ -1125,6 +1125,25 @@ interface DigestOpts {
   leadsReceived: number;
   questionsReceived: number;
   topSource: string | null;
+  /**
+   * When present, the digest leads with this unanswered question + a one-click
+   * answer button. Pass alongside `answerUrl`. Set both to switch the email
+   * into the demand-led variant; leave both null/omitted for the analytics-only
+   * variant (existing behavior, unchanged).
+   */
+  unansweredQuestion?: { id: string; question: string; totalCount: number } | null;
+  /** Pre-built one-click answer URL from generateNotificationUrl(). Required when unansweredQuestion is set. */
+  answerUrl?: string | null;
+}
+
+/** Minimal HTML escape for user-submitted text rendered into email bodies. */
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function humanCategoryLabel(category: string | null): string {
@@ -1172,9 +1191,62 @@ function digestLead(opts: DigestOpts): string {
 }
 
 /**
- * Provider weekly analytics digest — Monday morning return path.
+ * Demand-led variant of the weekly digest. Leads with the newest unanswered
+ * question + a one-click answer button. Optional page-views line below when
+ * the provider has real traffic this week (never deflates -- below the bar,
+ * we just don't mention views).
+ */
+function providerDemandDigestEmail(
+  opts: DigestOpts,
+  q: { id: string; question: string; totalCount: number },
+  answerUrl: string,
+): string {
+  const analyticsUnsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
+  const safeQuestion = escapeHtml(q.question);
+
+  // View number never deflates — only mention if non-zero. The signal gate
+  // upstream already ensured we have something honest to say (a question
+  // and/or non-zero traffic).
+  const viewLead =
+    opts.viewsThisWeek > 0
+      ? `<p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">Your page got ${opts.viewsThisWeek.toLocaleString()} ${opts.viewsThisWeek === 1 ? "visit" : "visits"} this week, and a family asked you this:</p>`
+      : `<p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">A family on Olera asked you this:</p>`;
+
+  const moreCount = q.totalCount - 1;
+  const moreCountLine =
+    moreCount > 0
+      ? `<p style="font-size:13px;color:#9ca3af;margin:0 0 24px;line-height:1.5;">${moreCount} more ${moreCount === 1 ? "question is" : "questions are"} also waiting on your page.</p>`
+      : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 12px;line-height:1.3;">A family has a question about ${opts.providerName}</h1>
+    ${viewLead}
+    <div style="background:#f9fafb;padding:16px;border-radius:12px;margin:0 0 16px;">
+      <p style="font-size:15px;color:#111827;margin:0;line-height:1.5;font-style:italic;">&ldquo;${safeQuestion}&rdquo;</p>
+    </div>
+    ${moreCountLine}
+    <div>${button("View and respond", answerUrl)}</div>
+    <p style="font-size:13px;color:#6b7280;margin:24px 0 0;line-height:1.5;">Answering helps families see your expertise and builds trust with people actively looking for care.</p>
+    <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">${secondaryLink("Stop these weekly digests", analyticsUnsubUrl)}</p>
+    </div>
+  `);
+}
+
+/**
+ * Provider weekly digest — Monday morning return path.
+ *
+ * Two variants share this entry point:
+ *   1. Demand-led (when `unansweredQuestion` + `answerUrl` are set): leads
+ *      with the newest open question and a one-click answer button. This
+ *      is the audience-expansion path -- ~2,700 providers with backlog.
+ *   2. Analytics-only (default): the original tier-aware analytics digest.
  */
 export function providerWeeklyDigestEmail(opts: DigestOpts): string {
+  if (opts.unansweredQuestion && opts.answerUrl) {
+    return providerDemandDigestEmail(opts, opts.unansweredQuestion, opts.answerUrl);
+  }
+
   const headline = digestHeadline(opts);
   const lead = digestLead(opts);
   const dashboardUrl = `${BASE_URL}/provider`;

@@ -210,6 +210,36 @@ export async function POST(request: Request) {
           }
 
           userId = userId! || "";
+
+          // Check if this auth user has a provider profile on their account
+          // If so, block them instead of creating a family profile
+          if (userId) {
+            const { data: existingAccount } = await db
+              .from("accounts")
+              .select("id")
+              .eq("user_id", userId)
+              .single();
+
+            if (existingAccount) {
+              const { data: providerProfiles } = await db
+                .from("business_profiles")
+                .select("id, type")
+                .eq("account_id", existingAccount.id)
+                .in("type", ["organization", "caregiver", "student"])
+                .limit(1);
+
+              if (providerProfiles && providerProfiles.length > 0) {
+                return NextResponse.json(
+                  {
+                    error: "This email is linked to a provider account. Please use a different email.",
+                    code: "PROVIDER_EMAIL",
+                  },
+                  { status: 409 }
+                );
+              }
+            }
+          }
+
           const slug = await generateUniqueSlugFromName(db, displayName);
           const { data: newProfile, error: profileErr } = await db
             .from("business_profiles")

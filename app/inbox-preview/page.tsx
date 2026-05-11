@@ -151,10 +151,8 @@ function InboxPreviewContent() {
         });
       }
 
-      // Navigate to welcome page
-      router.push(
-        `/welcome?connection=${data.connectionId}&provider=${providerSlug}`
-      );
+      // Navigate directly to portal inbox (skip welcome page for seamless experience)
+      router.push(`/portal/inbox?id=${data.connectionId}`);
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err

@@ -113,10 +113,6 @@ export default function MobileStickyCompare({
     clickFiredRef.current = false;
   }, []);
 
-  const handleSaveComparison = useCallback(() => {
-    // TODO: Implement save comparison (triggers email capture)
-    console.log("[compare] Save comparison - next step TBD");
-  }, []);
 
   // Scroll visibility with hysteresis
   const handleScroll = useCallback(() => {
@@ -257,7 +253,6 @@ export default function MobileStickyCompare({
         onClose={handleCloseSheet}
         currentProvider={currentProvider}
         similarProviders={similarProviders}
-        onSaveComparison={handleSaveComparison}
       />
     </>
   );

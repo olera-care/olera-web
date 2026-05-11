@@ -2,7 +2,10 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
+import { createClient } from "@/lib/supabase/client";
+import { getOrCreateSessionId } from "@/lib/analytics/session";
 
 export interface CompareProvider {
   id: string;
@@ -25,8 +28,9 @@ interface CompareBottomSheetProps {
   onClose: () => void;
   currentProvider: CompareProvider;
   similarProviders: CompareProvider[];
-  onSaveComparison?: () => void;
 }
+
+type FooterState = "initial" | "email_capture" | "submitting" | "success";
 
 /**
  * Mobile comparison bottom sheet with horizontal swipeable cards.
@@ -38,12 +42,16 @@ export default function CompareBottomSheet({
   onClose,
   currentProvider,
   similarProviders,
-  onSaveComparison,
 }: CompareBottomSheetProps) {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [footerState, setFooterState] = useState<FooterState>("initial");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
 
   // All providers: current first, then similar
   const allProviders = [currentProvider, ...similarProviders.slice(0, 2)];
@@ -66,7 +74,6 @@ export default function CompareBottomSheet({
   const handleScroll = () => {
     if (!scrollRef.current) return;
     const scrollLeft = scrollRef.current.scrollLeft;
-    // Card width is 78vw + gap (12px)
     const cardWidth = window.innerWidth * 0.78 + 12;
     const newIndex = Math.round(scrollLeft / cardWidth);
     setCurrentIndex(Math.min(newIndex, totalProviders - 1));
@@ -75,17 +82,18 @@ export default function CompareBottomSheet({
   // Scroll to specific card
   const scrollToCard = (index: number) => {
     if (!scrollRef.current) return;
-    // Card width is 78vw + gap (12px)
     const cardWidth = window.innerWidth * 0.78 + 12;
     scrollRef.current.scrollTo({ left: index * cardWidth, behavior: "smooth" });
   };
 
-  // Handle escape key
+  // Handle escape key (disabled during submitting/success)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && footerState !== "submitting" && footerState !== "success") {
+        onClose();
+      }
     },
-    [onClose]
+    [onClose, footerState]
   );
 
   // Mount tracking for portal
@@ -93,14 +101,16 @@ export default function CompareBottomSheet({
     setMounted(true);
   }, []);
 
-  // Reset scroll position when sheet opens + lock body scroll
+  // Reset state when sheet opens/closes
   useEffect(() => {
     if (isOpen) {
       if (scrollRef.current) {
         scrollRef.current.scrollTo({ left: 0, behavior: "instant" });
         setCurrentIndex(0);
       }
-      // Lock body scroll
+      setFooterState("initial");
+      setEmail("");
+      setError(null);
       document.body.style.overflow = "hidden";
       document.addEventListener("keydown", handleKeyDown);
     }
@@ -110,14 +120,89 @@ export default function CompareBottomSheet({
     };
   }, [isOpen, handleKeyDown]);
 
+  // Focus email input when entering email capture state
+  useEffect(() => {
+    if (footerState === "email_capture" && emailInputRef.current) {
+      emailInputRef.current.focus();
+    }
+  }, [footerState]);
+
+  // Handle save button click
+  const handleSaveClick = () => {
+    setFooterState("email_capture");
+  };
+
+  // Handle email submit
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!email.trim()) {
+      setError("Please enter your email.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setFooterState("submitting");
+
+    try {
+      const response = await fetch("/api/connections/compare-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          providers: allProviders.map((p) => ({
+            id: p.id,
+            slug: p.slug,
+            name: p.name,
+          })),
+          sessionId: getOrCreateSessionId(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Something went wrong. Please try again.");
+        setFooterState("email_capture");
+        return;
+      }
+
+      // Set session if tokens returned
+      if (data.accessToken && data.refreshToken) {
+        const supabase = createClient();
+        await supabase.auth.setSession({
+          access_token: data.accessToken,
+          refresh_token: data.refreshToken,
+        });
+      }
+
+      // Show success state
+      setFooterState("success");
+
+      // Redirect to inbox after brief delay
+      setTimeout(() => {
+        router.push("/portal/inbox");
+      }, 1500);
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setFooterState("email_capture");
+    }
+  };
+
   if (!isOpen || !mounted) return null;
 
   const sheetContent = (
-    <div className="fixed inset-0 z-[60]">
+    <div className="fixed inset-0 z-[60] md:hidden">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40 animate-fade-in"
-        onClick={onClose}
+        onClick={footerState === "submitting" || footerState === "success" ? undefined : onClose}
       />
 
       {/* Bottom Sheet */}
@@ -135,15 +220,18 @@ export default function CompareBottomSheet({
         </div>
 
         {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors z-10"
-          aria-label="Close"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        {footerState !== "success" && (
+          <button
+            onClick={onClose}
+            disabled={footerState === "submitting"}
+            className="absolute top-3 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors z-10 disabled:opacity-50"
+            aria-label="Close"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
 
         {/* Header */}
         <div className="px-5 pb-3 shrink-0">
@@ -162,7 +250,7 @@ export default function CompareBottomSheet({
           </p>
         </div>
 
-        {/* Horizontal scrolling cards - NO px padding on container for edge-to-edge cards */}
+        {/* Horizontal scrolling cards */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -178,7 +266,6 @@ export default function CompareBottomSheet({
                 badge={badges[provider.id]}
               />
             ))}
-            {/* Spacer at end so last card can scroll to center */}
             <div className="w-4 shrink-0" />
           </div>
         </div>
@@ -198,21 +285,85 @@ export default function CompareBottomSheet({
           ))}
         </div>
 
-        {/* Sticky footer */}
+        {/* Footer - State Machine */}
         <div className="px-5 py-3 border-t border-gray-200 bg-white shrink-0">
-          <button
-            type="button"
-            onClick={onSaveComparison}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#4a7c72] hover:bg-[#3d6860] text-white rounded-xl text-[15px] font-semibold transition-colors"
-          >
-            Save this comparison
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-            </svg>
-          </button>
-          <p className="text-center text-xs text-gray-500 mt-2">
-            Message any of them when you&apos;re ready
-          </p>
+          {footerState === "initial" && (
+            <>
+              <button
+                type="button"
+                onClick={handleSaveClick}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#4a7c72] hover:bg-[#3d6860] text-white rounded-xl text-[15px] font-semibold transition-colors"
+              >
+                Save this comparison
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </button>
+              <p className="text-center text-xs text-gray-500 mt-2">
+                Message any of them when you&apos;re ready
+              </p>
+            </>
+          )}
+
+          {(footerState === "email_capture" || footerState === "submitting") && (
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <h3 className="text-lg font-bold text-gray-900">Save this comparison</h3>
+                <p className="text-sm text-gray-500">Add your email so you don&apos;t lose it.</p>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <input
+                  ref={emailInputRef}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  disabled={footerState === "submitting"}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4a7c72]/20 focus:border-[#4a7c72] disabled:opacity-50 disabled:bg-gray-50"
+                />
+
+                {error && (
+                  <p className="text-sm text-red-600">{error}</p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={footerState === "submitting"}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#4a7c72] hover:bg-[#3d6860] text-white rounded-xl text-[15px] font-semibold transition-colors disabled:opacity-70"
+                >
+                  {footerState === "submitting" ? (
+                    <>
+                      <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      Save my comparison
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {footerState === "success" && (
+            <div className="py-4 text-center">
+              <div className="w-12 h-12 bg-[#4a7c72] rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Saved.</h3>
+              <p className="text-sm text-gray-500 mt-1">Taking you to your saved comparison...</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -234,8 +385,6 @@ interface CompareCardProps {
 function CompareCard({ provider, isCurrentProvider, badge }: CompareCardProps) {
   const locationStr = [provider.city, provider.state].filter(Boolean).join(", ");
   const categoryLocationStr = [provider.category, locationStr].filter(Boolean).join(" · ");
-
-  // Format services for display (truncate if too many)
   const servicesDisplay = provider.services?.slice(0, 3).join(", ") || "—";
 
   return (
@@ -246,7 +395,6 @@ function CompareCard({ provider, isCurrentProvider, badge }: CompareCardProps) {
     >
       {/* Provider header */}
       <div className="flex items-start gap-3 mb-3">
-        {/* Avatar */}
         {provider.image ? (
           <Image
             src={provider.image}
@@ -263,7 +411,6 @@ function CompareCard({ provider, isCurrentProvider, badge }: CompareCardProps) {
           </div>
         )}
 
-        {/* Name and location */}
         <div className="flex-1 min-w-0">
           <h3 className="text-[15px] font-bold text-gray-900 leading-tight">
             {provider.name}
@@ -332,20 +479,19 @@ function CompareRow({ label, value }: { label: string; value: string }) {
 function calculateBadges(providers: CompareProvider[]): Record<string, string | null> {
   const badges: Record<string, string | null> = {};
 
-  // Initialize all as null
-  providers.forEach(p => { badges[p.id] = null; });
+  providers.forEach((p) => {
+    badges[p.id] = null;
+  });
 
   if (providers.length < 2) return badges;
 
-  // Find highest rated
-  const withRatings = providers.filter(p => p.rating != null);
+  const withRatings = providers.filter((p) => p.rating != null);
   if (withRatings.length > 0) {
     const highest = withRatings.reduce((a, b) => (a.rating! > b.rating! ? a : b));
     badges[highest.id] = "HIGHEST RATED";
   }
 
-  // Find best price (lowest starting price)
-  const withPrices = providers.filter(p => p.priceRange);
+  const withPrices = providers.filter((p) => p.priceRange);
   if (withPrices.length > 0) {
     const parseMinPrice = (range: string) => {
       const match = range.match(/\$?([\d,]+)/);
@@ -354,19 +500,16 @@ function calculateBadges(providers: CompareProvider[]): Record<string, string | 
     const cheapest = withPrices.reduce((a, b) =>
       parseMinPrice(a.priceRange!) < parseMinPrice(b.priceRange!) ? a : b
     );
-    // Only assign if not already highest rated
     if (!badges[cheapest.id]) {
       badges[cheapest.id] = "BEST PRICE";
     }
   }
 
-  // Find most services
-  const withServices = providers.filter(p => p.services && p.services.length > 0);
+  const withServices = providers.filter((p) => p.services && p.services.length > 0);
   if (withServices.length > 0) {
     const most = withServices.reduce((a, b) =>
       (a.services?.length || 0) > (b.services?.length || 0) ? a : b
     );
-    // Only assign if not already has a badge
     if (!badges[most.id]) {
       badges[most.id] = "MOST SERVICES";
     }

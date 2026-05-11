@@ -1,16 +1,21 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { getOrCreateSessionId } from "@/lib/analytics/session";
 import type { CompareProvider } from "./CompareBottomSheet";
+
+type FooterState = "initial" | "email_capture" | "submitting" | "success";
 
 interface CompareOverlayProps {
   isOpen: boolean;
   onClose: () => void;
   currentProvider: CompareProvider;
   similarProviders: CompareProvider[];
-  onSaveComparison?: () => void;
 }
 
 /**
@@ -22,8 +27,13 @@ export default function CompareOverlay({
   onClose,
   currentProvider,
   similarProviders,
-  onSaveComparison,
 }: CompareOverlayProps) {
+  const router = useRouter();
+  const [footerState, setFooterState] = useState<FooterState>("initial");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
   // All providers: current first, then similar (max 2)
   const allProviders = [currentProvider, ...similarProviders.slice(0, 2)];
 
@@ -40,19 +50,87 @@ export default function CompareOverlay({
   // Calculate badges
   const badges = calculateBadges(allProviders);
 
-  // Handle escape key to close
+  // Handle email submission
+  const handleSubmit = useCallback(async () => {
+    if (!email.trim()) {
+      setError("Please enter your email");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setError("Please enter a valid email");
+      return;
+    }
+
+    setError(null);
+    setFooterState("submitting");
+
+    try {
+      const res = await fetch("/api/connections/compare-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          providers: allProviders.map((p) => ({
+            id: p.id,
+            slug: p.slug,
+            name: p.name,
+          })),
+          sessionId: getOrCreateSessionId(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Something went wrong");
+        setFooterState("email_capture");
+        return;
+      }
+
+      // Set session using Supabase client (not raw cookies)
+      if (data.accessToken && data.refreshToken) {
+        const supabase = createClient();
+        await supabase.auth.setSession({
+          access_token: data.accessToken,
+          refresh_token: data.refreshToken,
+        });
+      }
+
+      setFooterState("success");
+
+      // Redirect to inbox after brief delay
+      setTimeout(() => {
+        router.push("/portal/inbox");
+      }, 1500);
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setFooterState("email_capture");
+    }
+  }, [email, allProviders, router]);
+
+  // Handle escape key to close (disabled during submitting/success)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === "Escape" && footerState !== "submitting" && footerState !== "success") {
         onClose();
       }
     },
-    [onClose]
+    [onClose, footerState]
   );
 
-  // Lock body scroll when open
+  // Track mount for portal
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll and reset state when opened
   useEffect(() => {
     if (isOpen) {
+      // Reset state when opening
+      setFooterState("initial");
+      setEmail("");
+      setError(null);
       document.body.style.overflow = "hidden";
       document.addEventListener("keydown", handleKeyDown);
     } else {
@@ -64,14 +142,14 @@ export default function CompareOverlay({
     };
   }, [isOpen, handleKeyDown]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100]">
-      {/* Backdrop - click to close */}
+  const overlayContent = (
+    <div className="fixed inset-0 z-[200] hidden md:block">
+      {/* Backdrop - click to close (disabled during submit/success) */}
       <div
-        className="absolute inset-0 bg-black/40"
-        onClick={onClose}
+        className="absolute inset-0 bg-black/50"
+        onClick={footerState === "submitting" || footerState === "success" ? undefined : onClose}
         aria-hidden="true"
       />
 
@@ -85,7 +163,8 @@ export default function CompareOverlay({
           <button
             type="button"
             onClick={onClose}
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            disabled={footerState === "submitting" || footerState === "success"}
+            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -252,26 +331,91 @@ export default function CompareOverlay({
         </div>
 
         {/* Sticky Footer */}
-        <div className="shrink-0 px-6 py-4 border-t border-gray-200 bg-white flex items-center justify-between">
-          <p className="text-gray-600">
-            <span className="font-semibold text-gray-900">Save this comparison</span>
-            {" · "}
-            Message any of them when you&apos;re ready
-          </p>
-          <button
-            type="button"
-            onClick={onSaveComparison}
-            className="flex items-center gap-2 px-6 py-3 bg-[#4a7c72] hover:bg-[#3d6860] text-white rounded-xl font-semibold transition-colors"
-          >
-            Save this comparison
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-            </svg>
-          </button>
+        <div className="shrink-0 px-6 py-4 border-t border-gray-200 bg-white">
+          {footerState === "success" ? (
+            /* Success state - centered */
+            <div className="flex flex-col items-center justify-center py-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-lg font-semibold text-gray-900">Saved.</span>
+              </div>
+              <p className="text-sm text-gray-500">Taking you to your saved comparison...</p>
+            </div>
+          ) : footerState === "submitting" ? (
+            /* Submitting state - centered spinner */
+            <div className="flex items-center justify-center py-4">
+              <div className="w-6 h-6 border-2 border-gray-300 border-t-[#4a7c72] rounded-full animate-spin" />
+            </div>
+          ) : footerState === "initial" ? (
+            /* Initial state - button to start */
+            <div className="flex items-center justify-between">
+              <p className="text-gray-600">
+                <span className="font-semibold text-gray-900">Save this comparison</span>
+                {" · "}
+                Message any of them when you&apos;re ready
+              </p>
+              <button
+                type="button"
+                onClick={() => setFooterState("email_capture")}
+                className="flex items-center gap-2 px-6 py-3 bg-[#4a7c72] hover:bg-[#3d6860] text-white rounded-xl font-semibold transition-colors"
+              >
+                Save this comparison
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </button>
+            </div>
+          ) : (
+            /* Email capture state - inline form */
+            <div className="flex items-center justify-between gap-6">
+              <div className="flex-shrink-0">
+                <p className="font-semibold text-gray-900">Save this comparison</p>
+                <p className="text-sm text-gray-500">Add your email so you don&apos;t lose it.</p>
+              </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSubmit();
+                }}
+                className="flex items-center gap-3 flex-1 max-w-md"
+              >
+                <div className="flex-1 relative">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (error) setError(null);
+                    }}
+                    placeholder="you@email.com"
+                    className={`w-full px-4 py-3 rounded-xl border ${
+                      error ? "border-red-300 focus:ring-red-500" : "border-gray-200 focus:ring-[#4a7c72]"
+                    } focus:outline-none focus:ring-2 text-[15px]`}
+                    autoFocus
+                  />
+                  {error && (
+                    <p className="absolute -bottom-5 left-0 text-xs text-red-500">{error}</p>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  className="flex-shrink-0 px-6 py-3 bg-[#4a7c72] hover:bg-[#3d6860] text-white rounded-xl font-semibold transition-colors whitespace-nowrap"
+                >
+                  Save my comparison
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
+
+  return createPortal(overlayContent, document.body);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

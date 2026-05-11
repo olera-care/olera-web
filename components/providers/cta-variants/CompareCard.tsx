@@ -18,6 +18,7 @@ interface CompareCardProps {
   rating?: number | null;
   reviewCount?: number | null;
   services?: string[];
+  highlights?: string[];
   similarProviders?: CompareProvider[];
   ctaVariant?: string | null;
   ctaPreviewMode?: boolean;
@@ -41,6 +42,7 @@ export default function CompareCard({
   rating,
   reviewCount,
   services,
+  highlights,
   similarProviders = [],
   ctaVariant,
   ctaPreviewMode = false,
@@ -60,6 +62,7 @@ export default function CompareCard({
     reviewCount,
     priceRange,
     services,
+    highlights,
   };
 
   // Extract first name

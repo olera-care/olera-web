@@ -19,8 +19,7 @@ export interface CompareProvider {
   reviewCount?: number | null;
   priceRange?: string | null;
   services?: string[];
-  specialty?: string | null;
-  availability?: string | null;
+  highlights?: string[];
 }
 
 interface CompareBottomSheetProps {
@@ -433,6 +432,7 @@ function CompareCard({ provider, isCurrentProvider, badge }: CompareCardProps) {
   const locationStr = [provider.city, provider.state].filter(Boolean).join(", ");
   const categoryLocationStr = [provider.category, locationStr].filter(Boolean).join(" · ");
   const servicesDisplay = provider.services?.slice(0, 3).join(", ") || "—";
+  const highlightsDisplay = provider.highlights?.slice(0, 2).join(" · ") || "—";
 
   return (
     <div
@@ -495,8 +495,7 @@ function CompareCard({ provider, isCurrentProvider, badge }: CompareCardProps) {
       <div className="space-y-0 divide-y divide-gray-100">
         <CompareRow label="EST. MONTHLY" value={provider.priceRange || "—"} />
         <CompareRow label="SERVICES" value={servicesDisplay} />
-        <CompareRow label="SPECIALTY" value={provider.specialty || provider.category || "—"} />
-        <CompareRow label="AVAILABILITY" value={provider.availability || "—"} />
+        <CompareRow label="HIGHLIGHTS" value={highlightsDisplay} />
       </div>
     </div>
   );

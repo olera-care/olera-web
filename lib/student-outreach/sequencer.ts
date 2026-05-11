@@ -18,7 +18,12 @@
  * for Day 0 is invoked by the API action AFTER the sequencer returns.
  */
 
-import { OUTREACH_DAYS_BY_TYPE, type OutreachDay, type TemplateKey } from "./cadence";
+import {
+  OUTREACH_DAYS_BY_TYPE,
+  type CadenceKey,
+  type OutreachDay,
+  type TemplateKey,
+} from "./cadence";
 import { onStageEnter } from "./state-machine";
 import { getTemplate } from "./templates";
 import type { StakeholderType } from "./types";
@@ -35,7 +40,12 @@ export interface EmailSnapshot {
 
 export interface SequencerInput {
   outreach_id: string;
-  stakeholder_type: StakeholderType;
+  /**
+   * Cadence template key. For stakeholder rows this is the row's
+   * stakeholder_type; for provider rows (kind='provider') callers pass
+   * the literal 'provider'. One launch path, two template families.
+   */
+  stakeholder_type: CadenceKey;
   /** Admin's edited (or unedited) snapshots for each email day in the cadence. */
   email_snapshots: EmailSnapshot[];
   user_id: string;
@@ -106,16 +116,21 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
  * pre-flight modal has something to display before admin edits.
  */
 export function defaultSnapshotsFor(
-  type: StakeholderType,
+  type: CadenceKey,
   ctx: { organization_name: string; campus_name: string; admin_first_name?: string },
 ): EmailSnapshot[] {
   const days = OUTREACH_DAYS_BY_TYPE[type];
   const result: EmailSnapshot[] = [];
+  // Templates branch on a StakeholderType for salutation; provider
+  // rows borrow student_org's first-name salutation pattern (informal,
+  // no Dr./Prof. honorific). All other variables are kind-agnostic.
+  const templateStakeholderType: StakeholderType =
+    type === "provider" ? "student_org" : type;
   for (const day of days) {
     for (const step of day.steps) {
       if (step.channel !== "email" || !step.template) continue;
       const tpl = getTemplate(step.template, {
-        stakeholder_type: type,
+        stakeholder_type: templateStakeholderType,
         organization_name: ctx.organization_name,
         campus_name: ctx.campus_name,
         admin_first_name: ctx.admin_first_name,
@@ -132,7 +147,7 @@ export function defaultSnapshotsFor(
 }
 
 /** Used by tests + UI to know the cadence structure for a given type. */
-export function describeCadence(type: StakeholderType): OutreachDay[] {
+export function describeCadence(type: CadenceKey): OutreachDay[] {
   return OUTREACH_DAYS_BY_TYPE[type];
 }
 

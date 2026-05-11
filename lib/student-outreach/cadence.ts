@@ -22,7 +22,20 @@ export type TemplateKey =
   | "followup_socialproof"
   | "followup_final"
   | "share"
-  | "seasonal";
+  | "seasonal"
+  // v9 provider cadence — distinct copy targeting agency owners /
+  // hiring managers, not university stakeholders.
+  | "provider_intro"
+  | "provider_followup"
+  | "provider_final";
+
+/**
+ * Cadence lookup key. Stakeholder rows use their StakeholderType;
+ * provider rows (kind='provider') use the explicit 'provider' key.
+ * Keeps one cadence registry serving both surfaces — the universal
+ * launch path goes through schedule_sequence regardless of kind.
+ */
+export type CadenceKey = StakeholderType | "provider";
 
 export interface OutreachStep {
   id: StepId;
@@ -43,7 +56,7 @@ export interface OutreachDay {
 
 export const CADENCE_END_DAY = 14;
 
-export const OUTREACH_DAYS_BY_TYPE: Record<StakeholderType, OutreachDay[]> = {
+export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
   student_org: [
     {
       day: 0,
@@ -182,10 +195,46 @@ export const OUTREACH_DAYS_BY_TYPE: Record<StakeholderType, OutreachDay[]> = {
       steps: [{ id: "phone", channel: "phone", required: true }],
     },
   ],
+  // v9 provider cadence. Targets non-medical home care agencies — owners
+  // / hiring managers, not university stakeholders. Shorter than the
+  // student-side cadence (3 emails + 3 calls over 7 days) since
+  // providers churn faster on cold outreach and don't need the
+  // social-proof / final-followup runway. Phone steps still gated on
+  // has_phone at queue time (planSequence skips them when absent).
+  provider: [
+    {
+      day: 0,
+      title: "Day 0 · intro email + paired call",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "provider_intro" },
+        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
+      ],
+    },
+    {
+      day: 2,
+      title: "Day 2 · call attempt",
+      steps: [{ id: "phone", channel: "phone", required: true }],
+    },
+    {
+      day: 3,
+      title: "Day 3 · light follow-up",
+      steps: [{ id: "email", channel: "email", required: true, template: "provider_followup" }],
+    },
+    {
+      day: 5,
+      title: "Day 5 · call attempt",
+      steps: [{ id: "phone", channel: "phone", required: true }],
+    },
+    {
+      day: 7,
+      title: "Day 7 · final follow-up",
+      steps: [{ id: "email", channel: "email", required: true, template: "provider_final" }],
+    },
+  ],
 };
 
 /** First day's first step — used by state-machine on enter outreach_sent. */
-export function firstCadenceStep(type: StakeholderType): { day: number; task_type: TaskType } {
+export function firstCadenceStep(type: CadenceKey): { day: number; task_type: TaskType } {
   const first = OUTREACH_DAYS_BY_TYPE[type][0];
   return {
     day: first.day,
@@ -194,12 +243,12 @@ export function firstCadenceStep(type: StakeholderType): { day: number; task_typ
 }
 
 /** Day strictly after currentDay. Returns null if cycle exhausted. */
-export function nextCadenceDay(type: StakeholderType, currentDay: number): OutreachDay | null {
+export function nextCadenceDay(type: CadenceKey, currentDay: number): OutreachDay | null {
   return OUTREACH_DAYS_BY_TYPE[type].find((d) => d.day > currentDay) ?? null;
 }
 
 /** Day matching currentDay (for the active step list). */
-export function currentCadenceDay(type: StakeholderType, currentDay: number): OutreachDay | null {
+export function currentCadenceDay(type: CadenceKey, currentDay: number): OutreachDay | null {
   return OUTREACH_DAYS_BY_TYPE[type].find((d) => d.day === currentDay) ?? null;
 }
 

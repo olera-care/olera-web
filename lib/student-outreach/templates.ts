@@ -67,6 +67,9 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
     case "followup_final": return followupFinalEmail(ctx);
     case "share": return postAgreedShareEmail(ctx);
     case "seasonal": return partnerSeasonalEmail(ctx, "Pre-Fall");
+    case "provider_intro": return providerIntroEmail(ctx);
+    case "provider_followup": return providerFollowupEmail(ctx);
+    case "provider_final": return providerFinalEmail(ctx);
   }
 }
 
@@ -297,6 +300,65 @@ export function partnerSeasonalEmail(_ctx: TemplateContext, season: string): Ema
 
 // Backward-compat alias for callers still using the old name.
 export const followupEmail = followupLightEmail;
+
+// ── Provider outreach (v9) ──────────────────────────────────────────────
+//
+// Different audience from the university templates above. The recipient
+// is the owner / hiring manager of a home-care agency in a Site's
+// catchment — pitched on hiring student caregivers we recruit from the
+// linked university. {organization_name} is the agency; {campus_name}
+// is the university whose students would be placed.
+
+export function providerIntroEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Caregivers at ${PLACEHOLDER.orgName} from ${PLACEHOLDER.campus} students`,
+    body: [
+      `Hi ${PLACEHOLDER.salutation},`,
+      ``,
+      `I'm reaching out from Olera. We connect pre-health students at ${PLACEHOLDER.campus} with home-care agencies in their area looking for reliable caregivers — flexible scheduling around coursework, motivated workers, real patient-care experience for them.`,
+      ``,
+      `Open to a quick 15-min intro to see if there's a fit at ${PLACEHOLDER.orgName}?`,
+      ``,
+      `Best,`,
+      `${PLACEHOLDER.adminName}`,
+      ``,
+      SIGN_OFF,
+    ].join("\n"),
+  };
+}
+
+export function providerFollowupEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Re: Olera caregivers for ${PLACEHOLDER.orgName}`,
+    body: [
+      `Hi ${PLACEHOLDER.salutation},`,
+      ``,
+      `Just bubbling this up in case it got buried. We have pre-health students at ${PLACEHOLDER.campus} looking for caregiver placements — happy to share a one-pager or jump on a quick call if helpful.`,
+      ``,
+      `Best,`,
+      `${PLACEHOLDER.adminName}`,
+      ``,
+      SIGN_OFF,
+    ].join("\n"),
+  };
+}
+
+export function providerFinalEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Last note — Olera caregivers for ${PLACEHOLDER.orgName}`,
+    body: [
+      `Hi ${PLACEHOLDER.salutation},`,
+      ``,
+      `Closing the loop here. If there's a better person at ${PLACEHOLDER.orgName} to reach about hiring caregivers, happy to redirect.`,
+      ``,
+      `Either way, thanks for your time.`,
+      ``,
+      `${PLACEHOLDER.adminName}`,
+      ``,
+      SIGN_OFF,
+    ].join("\n"),
+  };
+}
 
 // ── Call scripts (used in drawer; not sent anywhere) ────────────────────
 

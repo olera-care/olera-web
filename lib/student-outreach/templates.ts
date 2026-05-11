@@ -91,6 +91,13 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
  * tagged "General Inbox" (a queue isn't a person to address) and
  * stale/incorrect contacts (won't receive the email anyway).
  *
+ * "Named" requires an explicit first_name or last_name. The
+ * student_outreach_contacts.name field falls back to the
+ * organization name when admin hasn't entered a person's name —
+ * we DO NOT want "Hi HealthQuest," in the salutation. If no
+ * contact has an explicit first/last name, the greeting falls
+ * through to the no-name branch ("Hello,").
+ *
  * Branches:
  *   0 named → "Hello,"
  *   1 named → "Hi <first>,"
@@ -111,8 +118,11 @@ export function providerSalutation(contacts: Contact[] | undefined): string {
     .map((c) => {
       const first = c.first_name?.trim() || "";
       const last = c.last_name?.trim() || "";
-      const composed = [first, last].filter(Boolean).join(" ").trim();
-      return composed || c.name?.trim() || "";
+      // Only the explicit first/last fields count. The `name` column
+      // can be the org name (mirrored at materialize), which would
+      // produce "Hi <Agency Name>," — wrong tone for a person-less
+      // contact. No fallback to c.name on purpose.
+      return [first, last].filter(Boolean).join(" ").trim();
     })
     .filter((name) => name.length > 0);
 
@@ -376,7 +386,7 @@ export function providerIntroEmail(
       ``,
       `I'm reaching out from Olera. We connect pre-health students at ${PLACEHOLDER.campus} with home-care agencies in their area looking for reliable caregivers — flexible scheduling around coursework, motivated workers, real patient-care experience for them.`,
       ``,
-      `Open to a quick 15-min intro to see if there's a fit at ${PLACEHOLDER.orgName}?`,
+      `Open to a quick 15-min intro to see if there's a fit?`,
       ``,
       `Best,`,
       `${PLACEHOLDER.adminName}`,
@@ -416,7 +426,7 @@ export function providerFinalEmail(
     body: [
       greeting,
       ``,
-      `Closing the loop here. If there's a better person at ${PLACEHOLDER.orgName} to reach about hiring caregivers, happy to redirect.`,
+      `Closing the loop here. If there's a better person to reach about hiring caregivers, happy to redirect.`,
       ``,
       `Either way, thanks for your time.`,
       ``,

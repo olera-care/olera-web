@@ -245,19 +245,30 @@ async function emitOutreachTouchpoint(
   occurredAt: string,
 ): Promise<void> {
   // Find the originating email_sent touchpoint so we can read the
-  // outreach_id off its row.
+  // outreach_id off its row. v9 Phase 9: also read recipient_contact_id
+  // and contact_id from the touchpoint — these scope the bounce
+  // cancellation to a single recipient when per-recipient cadence
+  // mode is in use. Legacy (single-recipient task) sends have these
+  // null; cancel scope falls back to outreach-wide.
   const { data: sentRows } = await supabase
     .from("student_outreach_touchpoints")
-    .select("outreach_id")
+    .select("outreach_id, contact_id, payload")
     .eq("touchpoint_type", "email_sent")
     .filter("payload->>email_log_id", "eq", emailLogId)
     .limit(1);
-  const outreachId = sentRows?.[0]?.outreach_id as string | undefined;
+  const sent = sentRows?.[0] as
+    | { outreach_id: string; contact_id: string | null; payload: Record<string, unknown> | null }
+    | undefined;
+  const outreachId = sent?.outreach_id;
   if (!outreachId) {
     // No outreach row associated — likely a system / candidate /
     // other transactional email. Nothing to do operationally.
     return;
   }
+  const recipientContactId =
+    (typeof sent?.payload?.recipient_contact_id === "string"
+      ? sent.payload.recipient_contact_id
+      : null) ?? sent?.contact_id ?? null;
 
   const touchpointType: "email_bounced" | "email_complained" | "email_failed" =
     eventType === "bounced"
@@ -278,11 +289,16 @@ async function emitOutreachTouchpoint(
 
   await supabase.from("student_outreach_touchpoints").insert({
     outreach_id: outreachId,
+    contact_id: recipientContactId,
     touchpoint_type: touchpointType,
     channel: "email",
     outcome: eventType,
     payload: {
       email_log_id: emailLogId,
+      // v9 Phase 9: carry through the recipient_contact_id so the
+      // drawer Timeline can correlate the bounce row with the
+      // specific recipient's email_sent above it.
+      recipient_contact_id: recipientContactId,
       bounce_type: payload.data?.bounce?.subType ?? null,
       bounce_reason: payload.data?.bounce?.message ?? null,
       occurred_at: occurredAt,
@@ -292,15 +308,25 @@ async function emitOutreachTouchpoint(
 
   // Side effects per event type.
   if (eventType === "bounced") {
-    // Cancel any pending email sends on this outreach — the address
-    // is broken; future cadence sends would also bounce. Phone tasks
-    // stay (phone is independent of the bad email).
-    const { error: cancelErr } = await supabase
+    // v9 Phase 9: per-recipient cancellation. When the bounce maps
+    // to a specific recipient_contact_id, cancel only THAT
+    // recipient's pending email tasks; other recipients on this
+    // outreach keep their cadence. Legacy single-recipient sends
+    // (no recipient_contact_id) fall back to outreach-wide cancel.
+    let cancelQuery = supabase
       .from("student_outreach_tasks")
       .update({ status: "cancelled" })
       .eq("outreach_id", outreachId)
       .eq("status", "pending")
       .eq("task_type", "outreach_email_send");
+    if (recipientContactId) {
+      cancelQuery = cancelQuery.filter(
+        "payload->>recipient_contact_id",
+        "eq",
+        recipientContactId,
+      );
+    }
+    const { error: cancelErr } = await cancelQuery;
     if (cancelErr) {
       console.error(
         "[resend-webhook] failed to cancel pending email tasks:",

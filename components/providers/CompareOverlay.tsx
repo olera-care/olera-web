@@ -368,7 +368,7 @@ export default function CompareOverlay({
             /* Success state - centered */
             <div className="flex flex-col items-center justify-center py-2">
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-primary-600 flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>

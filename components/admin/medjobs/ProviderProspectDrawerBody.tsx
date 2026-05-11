@@ -64,7 +64,7 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   );
   const hasEmail =
     Boolean(primaryContact?.email?.includes("@")) ||
-    Boolean(ctx.provider_business_profile?.contact_email?.includes("@"));
+    Boolean(ctx.provider_business_profile?.email?.includes("@"));
 
   return (
     <div className="space-y-6">

@@ -421,7 +421,7 @@ export interface DrawerContext {
    * rows whose underlying business_profile became a Client.
    */
   provider_business_profile: {
-    contact_email: string | null;
+    email: string | null;
     display_name: string | null;
     city: string | null;
     state: string | null;

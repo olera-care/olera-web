@@ -55,13 +55,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify provider exists + is a provider type. Pull contact_email +
-    // phone too — v9 mirrors them into student_outreach_contacts so the
+    // Verify provider exists + is a provider type. Pull email + phone
+    // too — v9 mirrors them into student_outreach_contacts so the
     // unified cadence path (schedule_sequence + executeEmailTask) finds
     // a recipient without a provider-specific code branch.
     const { data: provider, error: providerErr } = await db
       .from("business_profiles")
-      .select("id, display_name, city, state, metadata, type, contact_email, phone")
+      .select("id, display_name, city, state, metadata, type, email, phone")
       .eq("id", providerId)
       .in("type", ["organization", "caregiver"])
       .maybeSingle();
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `${msg}${hint}` }, { status: 500 });
     }
 
-    // v9: mirror business_profile.contact_email + phone into a primary
+    // v9: mirror business_profile.email + phone into a primary
     // student_outreach_contacts row so the unified cadence machinery
     // (schedule_sequence → executeEmailTask) finds a recipient. Without
     // this, executeEmailTask skips with "no_recipients" because it only
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     // not people. The {salutation} placeholder resolves to "there" —
     // acceptable for the recruiting-pitch tone. Admin can fill in a
     // specific contact's name post-launch via the standard contact UI.
-    const providerEmail = (provider.contact_email ?? "").trim();
+    const providerEmail = (provider.email ?? "").trim();
     const providerPhone = (provider.phone ?? "").trim();
     if (providerEmail || providerPhone) {
       const { error: contactErr } = await db

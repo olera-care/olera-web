@@ -50,7 +50,7 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
 
   // Email + phone source: mirrored contact wins (it's what the cadence
   // pipeline reads); business_profile fallback for legacy rows.
-  const initialEmail = primaryContact?.email ?? bp?.contact_email ?? "";
+  const initialEmail = primaryContact?.email ?? bp?.email ?? "";
   const initialPhone = primaryContact?.phone ?? bp?.phone ?? "";
   const [email, setEmail] = useState<string>(initialEmail);
   const [phone, setPhone] = useState<string>(initialPhone);
@@ -59,14 +59,14 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
   const [savingContact, setSavingContact] = useState(false);
 
   useEffect(() => {
-    setEmail(primaryContact?.email ?? bp?.contact_email ?? "");
+    setEmail(primaryContact?.email ?? bp?.email ?? "");
     setPhone(primaryContact?.phone ?? bp?.phone ?? "");
     setNotes(outreach.notes ?? "");
   }, [
     outreach.id,
     primaryContact?.email,
     primaryContact?.phone,
-    bp?.contact_email,
+    bp?.email,
     bp?.phone,
     outreach.notes,
   ]);
@@ -86,7 +86,7 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
   ): Promise<void> => {
     const trimmedEmail = fieldEmail.trim();
     const trimmedPhone = fieldPhone.trim();
-    const wasEmail = primaryContact?.email ?? bp?.contact_email ?? "";
+    const wasEmail = primaryContact?.email ?? bp?.email ?? "";
     const wasPhone = primaryContact?.phone ?? bp?.phone ?? "";
     if (trimmedEmail === wasEmail && trimmedPhone === wasPhone) return;
     setSavingContact(true);

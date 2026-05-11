@@ -416,7 +416,7 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
   // v9: metadata included so NextStepCard's stage derivation can detect
   // Client conversion (interview_terms_accepted_at / medjobs_subscription_active).
   let providerBusinessProfile: {
-    contact_email: string | null;
+    email: string | null;
     display_name: string | null;
     city: string | null;
     state: string | null;
@@ -430,7 +430,7 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     const { data: bp } = await db
       .from("business_profiles")
       .select(
-        "contact_email, display_name, city, state, metadata, slug, phone, website, address",
+        "email, display_name, city, state, metadata, slug, phone, website, address",
       )
       .eq("id", row.provider_business_profile_id)
       .maybeSingle();

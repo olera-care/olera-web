@@ -15,6 +15,8 @@ export function ctaVariantLabel(variant: CTAVariant): string {
   switch (variant) {
     case "legacy":
       return "Legacy CTA";
+    case "inbox_preview":
+      return "Inbox Preview";
   }
 }
 
@@ -27,5 +29,7 @@ export function ctaVariantSubLabel(variant: CTAVariant): string {
   switch (variant) {
     case "legacy":
       return "Current CTA design";
+    case "inbox_preview":
+      return "Question selection + inbox preview";
   }
 }

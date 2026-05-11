@@ -300,7 +300,7 @@ export default function MobileStickyInboxPreview({
                 </span>
               </div>
               <p className="text-sm font-bold text-gray-900 truncate">
-                Message {providerFirstName}. No one else.
+                Message {providerName}
               </p>
             </div>
 
@@ -309,22 +309,9 @@ export default function MobileStickyInboxPreview({
                 fireSheetOpenEvent();
                 setSheetOpen(true);
               }}
-              className="flex-shrink-0 px-5 py-3 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[13px] font-semibold transition-colors flex items-center gap-1"
+              className="flex-shrink-0 px-5 py-3 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[13px] font-semibold transition-colors"
             >
-              Open
-              <svg
-                className="w-3.5 h-3.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M5 15l7-7 7 7"
-                />
-              </svg>
+              Message
             </button>
           </div>
         </div>
@@ -334,7 +321,7 @@ export default function MobileStickyInboxPreview({
       <Modal
         isOpen={sheetOpen}
         onClose={handleClose}
-        title={`Message ${providerFirstName}`}
+        title={`Message ${providerName}`}
         size="lg"
       >
         <div className="py-2">

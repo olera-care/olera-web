@@ -177,6 +177,23 @@ export default function CompareOverlay({
     };
   }, [isOpen]); // Only re-run when isOpen changes, not when handleKeyDown changes
 
+  // Close overlay when viewport switches to mobile (below md breakpoint)
+  // This prevents scroll lock from persisting when overlay is hidden via CSS
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const mediaQuery = window.matchMedia("(min-width: 768px)");
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (!e.matches) {
+        // Switched to mobile - close the desktop overlay
+        onClose();
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !mounted) return null;
 
   const overlayContent = (

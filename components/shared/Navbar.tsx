@@ -76,7 +76,7 @@ export default function Navbar() {
   }, [user]);
 
   const isPortal = pathname.startsWith("/portal");
-  const isInboxPage = pathname.startsWith("/portal/inbox");
+  const isInboxPage = pathname.startsWith("/portal/inbox") || pathname.startsWith("/inbox-preview");
   // Check if unified inbox is in provider mode - use activeProfile type instead of URL param
   // This avoids useSearchParams which requires Suspense boundary
   const isInboxProviderMode = isInboxPage && activeProfile?.type === "organization";
@@ -602,7 +602,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isPortal || isProviderPortal || pathname.startsWith("/welcome") ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
+        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isPortal || isProviderPortal || pathname.startsWith("/welcome") || pathname.startsWith("/inbox-preview") ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
         style={{
           transform: navbarVisible ? "translateY(0)" : "translateY(-100%)",
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"

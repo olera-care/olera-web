@@ -230,6 +230,19 @@ function InboxPreviewContent() {
                 </button>
               </div>
             </div>
+
+            {/* Messages / Requests tabs */}
+            <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 border-b border-gray-100">
+              <div className="flex gap-6">
+                <button className="relative pb-3 text-[15px] font-medium text-gray-900">
+                  Messages
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
+                </button>
+                <button className="relative pb-3 text-[15px] font-medium text-gray-500 hover:text-gray-700">
+                  Requests
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Conversation item - selected state */}
@@ -615,17 +628,33 @@ function InboxPreviewContent() {
                   </div>
                 )}
 
-                {/* View full profile link */}
-                <Link
-                  href={`/provider/${providerSlug}`}
-                  target="_blank"
-                  className="flex items-center justify-center gap-1.5 w-full py-3 text-[13px] font-medium text-primary-600 hover:text-primary-700 bg-white rounded-lg border border-gray-200 transition-colors"
-                >
-                  View full profile
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                  </svg>
-                </Link>
+                {/* Appointments accordion - disabled with "Coming soon" */}
+                <div className="bg-white border border-gray-200 rounded-lg opacity-60">
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full flex items-center gap-3 px-4 py-3.5 text-left cursor-not-allowed rounded-lg"
+                  >
+                    <span className="text-gray-500">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                      </svg>
+                    </span>
+                    <span className="flex-1 text-[15px] font-medium text-gray-900">Appointments</span>
+                    <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                      Coming soon
+                    </span>
+                    <svg
+                      className="w-5 h-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

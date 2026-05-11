@@ -2,23 +2,32 @@
 
 /**
  * ProviderProspectDrawerBody — focused drawer body for materialized
- * provider prospect rows (student_outreach with kind='provider'). The
- * stakeholder-side drawer (DrawerBody) assumes "Programs", department,
- * professor-approval flows etc. that don't apply to provider rows. This
- * component replaces it for kind='provider' and gives admins exactly
- * the three things they need to launch outreach:
+ * provider prospect rows (student_outreach with kind='provider').
  *
- *   1. Verify the organization name + catchment context (read-only).
- *   2. Edit research notes (persisted via update_outreach action).
- *   3. Confirm/edit the recipient email, then hit Launch outreach.
+ * v9 unified launch path: this body now calls schedule_sequence with
+ * the provider cadence template (Day 0 / 2 / 3 / 5 / 7) instead of the
+ * deprecated single-email launch_provider_outreach action. Same engine
+ * the Partner Prospect drawer uses — one launch path, two template
+ * families. Phone-aware call queueing comes for free because the
+ * primary contact is mirrored from business_profiles at materialize
+ * time (see /api/admin/medjobs/provider-prospects/materialize).
  *
- * When status is past 'researched' (outreach already sent), the panel
- * switches to a "Outreach sent" confirmation rather than the launch
- * form. History below records every send.
+ * The drawer surface stays minimal for this commit:
+ *
+ *   1. Org header (read-only) + status pill
+ *   2. Research notes textarea (persists on blur)
+ *   3. Provider email field (edits the mirrored primary contact)
+ *   4. Launch button → schedules the full provider cadence
+ *
+ * The Snapshot Card + PreFlightReviewModal + NextStepCard + Timeline
+ * land in subsequent commits per the build order. This commit's only
+ * behavior change: the click of "Launch outreach" now queues a
+ * 5-touch cadence instead of firing a single one-off email.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import { defaultSnapshotsFor } from "@/lib/student-outreach/sequencer";
 
 interface Props {
   ctx: DrawerContext;
@@ -34,18 +43,24 @@ interface Props {
 
 export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const { outreach, provider_business_profile: bp } = ctx;
-  const initialEmail = bp?.contact_email ?? "";
+  // Email source: prefer the mirrored contact row (the canonical post-
+  // materialize source); fall back to business_profile for legacy rows
+  // that pre-date the materialize-time mirror.
+  const primaryContact = useMemo(
+    () => ctx.contacts.find((c) => c.is_primary && c.status === "active"),
+    [ctx.contacts],
+  );
+  const initialEmail = primaryContact?.email ?? bp?.contact_email ?? "";
   const [email, setEmail] = useState<string>(initialEmail);
   const [notes, setNotes] = useState<string>(outreach.notes ?? "");
   const [sending, setSending] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
+  const [savingEmail, setSavingEmail] = useState(false);
 
-  // Re-seed editable state if a refetch lands new context (e.g. after
-  // launch advances status and we want the fields to mirror the row).
   useEffect(() => {
-    setEmail(bp?.contact_email ?? "");
+    setEmail(primaryContact?.email ?? bp?.contact_email ?? "");
     setNotes(outreach.notes ?? "");
-  }, [outreach.id, bp?.contact_email, outreach.notes]);
+  }, [outreach.id, primaryContact?.email, bp?.contact_email, outreach.notes]);
 
   const orgName = bp?.display_name || outreach.organization_name;
   const location =
@@ -68,6 +83,36 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
     }
   };
 
+  // Persist email edits to the primary contact row so the launch path
+  // (schedule_sequence → executeEmailTask) reads the corrected address.
+  // If no primary contact exists yet (legacy rows pre-mirror), create
+  // one. Both branches use the same contact actions that stakeholder
+  // rows use — one editor, two surfaces.
+  const saveEmail = async () => {
+    const trimmed = email.trim();
+    if (trimmed === (primaryContact?.email ?? bp?.contact_email ?? "")) return;
+    setSavingEmail(true);
+    setError(null);
+    try {
+      if (primaryContact) {
+        await action("update_contact", {
+          contact_id: primaryContact.id,
+          email: trimmed || null,
+        });
+      } else if (trimmed) {
+        await action("add_contact", {
+          name: orgName,
+          email: trimmed,
+          is_primary: true,
+        });
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save email");
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
   const launch = async () => {
     if (!hasEmail) {
       setError("Add a valid email before launching outreach.");
@@ -76,11 +121,34 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
     setSending(true);
     setError(null);
     try {
-      // Persist notes first if they're unsaved — admin loses them otherwise.
+      // Persist unsaved notes / email first — admin loses them otherwise.
       if (notes !== (outreach.notes ?? "")) {
         await action("update_outreach", { notes });
       }
-      await action("launch_provider_outreach", { email: email.trim() });
+      const trimmed = email.trim();
+      if (trimmed !== (primaryContact?.email ?? bp?.contact_email ?? "")) {
+        if (primaryContact) {
+          await action("update_contact", {
+            contact_id: primaryContact.id,
+            email: trimmed || null,
+          });
+        } else {
+          await action("add_contact", {
+            name: orgName,
+            email: trimmed,
+            is_primary: true,
+          });
+        }
+      }
+
+      // Build the default snapshot list from the 'provider' cadence
+      // template. Admin gets the cadence with default copy; a future
+      // pre-flight modal will let them edit per-day before launch.
+      const snapshots = defaultSnapshotsFor("provider", {
+        organization_name: orgName,
+        campus_name: campusName ?? "the university",
+      });
+      await action("schedule_sequence", { email_snapshots: snapshots });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to launch outreach");
     } finally {
@@ -136,6 +204,7 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onBlur={saveEmail}
           placeholder={
             initialEmail
               ? initialEmail
@@ -152,16 +221,18 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
         )}
         {initialEmail && (
           <p className="mt-1 text-[11px] text-gray-500">
-            Auto-populated from the provider directory. Edit before sending
-            if you have a better contact.
+            {savingEmail
+              ? "Saving…"
+              : "Saved on blur. Edits update the primary contact for the cadence."}
           </p>
         )}
       </section>
 
       {alreadySent ? (
         <section className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          ✓ Outreach has been launched. Replies and follow-ups will surface in
-          the Replies tab.
+          ✓ Outreach cadence scheduled. Day 0 email fires immediately;
+          follow-ups + call tasks queue per the 5-touch provider cadence.
+          Replies surface in the Replies tab.
         </section>
       ) : (
         <section className="flex items-center justify-end gap-3">
@@ -170,7 +241,7 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
             disabled={!hasEmail || sending}
             title={
               hasEmail
-                ? "Send the first outreach email now and log the touchpoint."
+                ? "Schedule the 5-touch provider cadence and fire Day 0 immediately."
                 : "Need a valid email address first."
             }
             className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"

@@ -55,10 +55,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify provider exists + is a provider type.
+    // Verify provider exists + is a provider type. Pull contact_email +
+    // phone too — v9 mirrors them into student_outreach_contacts so the
+    // unified cadence path (schedule_sequence + executeEmailTask) finds
+    // a recipient without a provider-specific code branch.
     const { data: provider, error: providerErr } = await db
       .from("business_profiles")
-      .select("id, display_name, city, state, metadata, type")
+      .select("id, display_name, city, state, metadata, type, contact_email, phone")
       .eq("id", providerId)
       .in("type", ["organization", "caregiver"])
       .maybeSingle();
@@ -135,6 +138,38 @@ export async function POST(request: NextRequest) {
         ? " — run migration 073_student_outreach_provider_kind.sql in Supabase."
         : "";
       return NextResponse.json({ error: `${msg}${hint}` }, { status: 500 });
+    }
+
+    // v9: mirror business_profile.contact_email + phone into a primary
+    // student_outreach_contacts row so the unified cadence machinery
+    // (schedule_sequence → executeEmailTask) finds a recipient. Without
+    // this, executeEmailTask skips with "no_recipients" because it only
+    // reads contacts. Admin can edit the contact later if they discover
+    // a better email/phone — same edit UX as stakeholder contacts.
+    //
+    // first_name / last_name stay null: providers are organizations,
+    // not people. The {salutation} placeholder resolves to "there" —
+    // acceptable for the recruiting-pitch tone. Admin can fill in a
+    // specific contact's name post-launch via the standard contact UI.
+    const providerEmail = (provider.contact_email ?? "").trim();
+    const providerPhone = (provider.phone ?? "").trim();
+    if (providerEmail || providerPhone) {
+      const { error: contactErr } = await db
+        .from("student_outreach_contacts")
+        .insert({
+          outreach_id: inserted.id,
+          name: orgName,
+          email: providerEmail || null,
+          phone: providerPhone || null,
+          is_primary: true,
+          status: "active",
+          created_by: user.id,
+        });
+      if (contactErr) {
+        // Non-fatal: the outreach row exists and admin can add a contact
+        // manually in the drawer. Log so we can investigate.
+        console.warn("[materialize] failed to mirror contact:", contactErr.message);
+      }
     }
 
     return NextResponse.json({ id: inserted.id, already_materialized: false });

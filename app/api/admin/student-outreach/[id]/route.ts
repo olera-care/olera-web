@@ -17,7 +17,7 @@ import {
   validateTransition,
 } from "@/lib/student-outreach/state-machine";
 import { nextSeasonalDate } from "@/lib/student-outreach/seasonal";
-import { type TemplateKey } from "@/lib/student-outreach/cadence";
+import { type CadenceKey, type TemplateKey } from "@/lib/student-outreach/cadence";
 import { getTemplate } from "@/lib/student-outreach/templates";
 import {
   planSequence,
@@ -258,17 +258,6 @@ export async function POST(
           .from("student_outreach")
           .update({ viewed_at: null, last_edited_by: user.id })
           .eq("id", row.id);
-        break;
-
-      // ── Provider Prospect: launch first outreach email ─────────────
-      // For kind='provider' rows (materialized catchment prospects).
-      // Resolves the recipient email (admin-overridden body.email if
-      // provided, otherwise business_profiles.contact_email), sends the
-      // Email 1 template via Resend, logs an email_sent touchpoint, and
-      // advances the row to outreach_sent so it drops out of the
-      // Prospects bucket and joins the Replies/cadence flow.
-      case "launch_provider_outreach":
-        await handleLaunchProviderOutreach(db, row, body, user.id);
         break;
 
       default:
@@ -644,100 +633,6 @@ async function handleAddNote(
   if (!body.notes?.trim()) throw new Error("Note text required");
   await insertTouchpoint(db, row.id, "note_added", userId, { notes: body.notes.trim() });
   await touchOutreach(db, row.id, userId);
-}
-
-/**
- * Launch the first outreach email for a materialized provider prospect
- * (kind='provider'). Resolves the recipient (admin override > stored
- * contact_email), sends Email 1 via Resend using the staffing-outreach
- * template, logs an email_sent touchpoint, and advances the row to
- * outreach_sent so it leaves the Prospects bucket.
- */
-async function handleLaunchProviderOutreach(
-  db: DB,
-  row: OutreachRow,
-  body: { email?: string },
-  userId: string,
-) {
-  if (row.kind !== "provider") {
-    throw new Error("launch_provider_outreach only valid for kind='provider' rows");
-  }
-  if (!row.provider_business_profile_id) {
-    throw new Error("Provider row missing provider_business_profile_id");
-  }
-
-  // Resolve recipient: admin override wins; otherwise pull from the
-  // linked business_profile.
-  let recipient = (body.email ?? "").trim();
-  let providerName = row.organization_name;
-  if (!recipient) {
-    const { data: bp } = await db
-      .from("business_profiles")
-      .select("contact_email, display_name")
-      .eq("id", row.provider_business_profile_id)
-      .maybeSingle();
-    recipient = (bp?.contact_email ?? "").trim();
-    if (bp?.display_name) providerName = bp.display_name;
-  }
-  if (!recipient || !recipient.includes("@")) {
-    throw new Error("No valid email address — add one before launching outreach");
-  }
-
-  // Pull the campus name + a service-area string for the template.
-  const { data: campus } = await db
-    .from("student_outreach_campuses")
-    .select("name, city, state")
-    .eq("id", row.campus_id)
-    .maybeSingle();
-  const universityName = campus?.name ?? "the university";
-  const serviceArea = [campus?.city, campus?.state].filter(Boolean).join(", ") || "the area";
-
-  const { generateEmail1 } = await import("@/lib/staffing-outreach/resend-automation");
-  const { sendEmail } = await import("@/lib/email");
-  const { subject, html } = generateEmail1({ universityName, serviceArea });
-
-  const sendResult = await sendEmail({
-    to: recipient,
-    subject,
-    html,
-    emailType: "provider_outreach_email_1",
-    recipientType: "provider",
-    providerId: row.provider_business_profile_id,
-    metadata: {
-      outreach_id: row.id,
-      campus_id: row.campus_id,
-      provider_business_profile_id: row.provider_business_profile_id,
-    },
-  });
-
-  if (!sendResult.success) {
-    throw new Error(sendResult.error || "Failed to send email");
-  }
-
-  // Log the touchpoint with the email_log_id so History narrates it.
-  await insertTouchpoint(db, row.id, "email_sent", userId, {
-    channel: "email",
-    outcome: "sent",
-    payload: {
-      recipient_email: recipient,
-      subject,
-      email_log_id: sendResult.emailLogId,
-      template: "provider_outreach_email_1",
-      provider_name: providerName,
-    },
-  });
-
-  // Advance the row out of the Prospects bucket. cadence_day=0 marks
-  // this as the first touch.
-  await db
-    .from("student_outreach")
-    .update({
-      status: "outreach_sent",
-      cadence_day: 0,
-      last_edited_by: userId,
-      last_edited_at: new Date().toISOString(),
-    })
-    .eq("id", row.id);
 }
 
 // ── Stage-specific handlers ─────────────────────────────────────────────
@@ -1443,10 +1338,18 @@ async function handleScheduleSequence(
     .limit(1);
   const hasPhone = (phoneContactRows ?? []).length > 0;
 
+  // v9 unified launch path: provider rows (kind='provider') use the
+  // 'provider' cadence template; stakeholder rows use their
+  // stakeholder_type. Provider rows have stakeholder_type=NULL by
+  // migration 073 — the kind-first check handles that cleanly without
+  // a fallback default that would silently misroute on bad data.
+  const cadenceKey: CadenceKey =
+    row.kind === "provider" ? "provider" : row.stakeholder_type;
+
   // Plan + insert tasks.
   const plan = planSequence({
     outreach_id: row.id,
-    stakeholder_type: row.stakeholder_type,
+    stakeholder_type: cadenceKey,
     email_snapshots: snapshots,
     user_id: userId,
     has_phone: hasPhone,

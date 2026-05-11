@@ -3,8 +3,9 @@
  *   - Provider Prospects sub-section = catchment providers that are
  *     not yet clients and not yet materialized as kind='provider'
  *     stakeholder rows in student_outreach.
- *   - Partner Prospects research card  = each active campus where
- *     research_complete=false (one research operational card).
+ *   - Partner Prospects research card = each active campus where
+ *     research_complete=false AND the Partner Prospect gate is
+ *     unlocked (≥1 client provider in catchment, sticky once set).
  *
  * Both buckets contribute to `counts.prospects` in the sidebar and the
  * In Basket tab bar. Centralizing the math here keeps the two surfaces
@@ -18,16 +19,27 @@
  *     always counted as unread until the admin materializes them
  *     (clicks "Start Outreach"), at which point they leave the
  *     prospect list and become a regular stakeholder row.
+ *
+ * v9.0 Phase 8: the research-card count is gated by
+ * resolvePartnerProspectUnlocks so badges match the queue endpoint's
+ * fetchResearchCampuses. Sites with research_complete=false but
+ * partner_prospect_unlocked_at IS NULL contribute zero research cards
+ * to the count.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import {
+  isClientMeta,
+  resolvePartnerProspectUnlocks,
+} from "@/lib/medjobs/partner-prospect-gate";
 
 interface CampusLite {
   id: string;
   slug: string;
   viewed_at: string | null;
   research_complete: boolean;
+  partner_prospect_unlocked_at: string | null;
 }
 
 interface ProviderLite {
@@ -44,24 +56,13 @@ export interface ProspectGeneration {
   providerProspects: { total: number; unread: number };
 }
 
-const PILOT_MS = 90 * 24 * 60 * 60 * 1000;
-
-function isClientMeta(m: Record<string, unknown> | null, now: number): boolean {
-  if (!m) return false;
-  if (m.medjobs_subscription_active === true) return true;
-  const accepted = m.interview_terms_accepted_at;
-  if (typeof accepted !== "string") return false;
-  const t = new Date(accepted).getTime();
-  return !isNaN(t) && now - t < PILOT_MS;
-}
-
 export async function countProspectGeneration(
   db: SupabaseClient,
   options: { campusId?: string | null } = {},
 ): Promise<ProspectGeneration> {
   let campusQuery = db
     .from("student_outreach_campuses")
-    .select("id, slug, viewed_at, research_complete")
+    .select("id, slug, viewed_at, research_complete, partner_prospect_unlocked_at")
     .eq("is_active", true);
   if (options.campusId) campusQuery = campusQuery.eq("id", options.campusId);
   const { data: campusData } = await campusQuery;
@@ -87,13 +88,22 @@ export async function countProspectGeneration(
       .eq("kind", "provider"),
   ]);
 
+  const providerList = (providerData ?? []) as ProviderLite[];
   const providerByCityState = new Map<string, ProviderLite[]>();
-  for (const p of (providerData ?? []) as ProviderLite[]) {
+  for (const p of providerList) {
     if (!p.city || !p.state) continue;
     const key = `${p.city.toLowerCase()}|${p.state}`;
     if (!providerByCityState.has(key)) providerByCityState.set(key, []);
     providerByCityState.get(key)!.push(p);
   }
+
+  // Resolve unlock state for the research-card gate. Side effect:
+  // persists newly-unlocked timestamps. Shared with queue/route.ts.
+  const { unlockedCampusIds } = await resolvePartnerProspectUnlocks(
+    db,
+    campuses,
+    providerList,
+  );
 
   const materializedPairs = new Set<string>();
   for (const r of (materializedData ?? []) as Array<{
@@ -112,7 +122,10 @@ export async function countProspectGeneration(
   let providerProspectsUnread = 0;
 
   for (const c of campuses) {
-    if (!c.research_complete) {
+    // Research card contributes only when unlocked AND not dismissed.
+    // Gating here keeps the badge in lock-step with the queue
+    // endpoint's fetchResearchCampuses output.
+    if (!c.research_complete && unlockedCampusIds.has(c.id)) {
       researchCardsTotal += 1;
       if (c.viewed_at == null) researchCardsUnread += 1;
     }

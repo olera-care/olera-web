@@ -38,8 +38,8 @@ import {
   type DerivedState,
   type TouchpointRow,
 } from "@/lib/student-outreach/state-derivation";
-import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import { countProspectGeneration } from "@/lib/medjobs/prospect-counts";
+import { resolvePartnerProspectUnlocks } from "@/lib/medjobs/partner-prospect-gate";
 import type {
   AwaitingCallbackKind,
   Campus,
@@ -246,19 +246,20 @@ async function fetchResearchCampuses(
 }>> {
   let q = db
     .from("student_outreach_campuses")
-    .select("id, slug, name, state, city")
+    .select("id, slug, name, state, city, partner_prospect_unlocked_at")
     .eq("is_active", true)
     .eq("research_complete", false);
   if (filterCampusId) q = q.eq("id", filterCampusId);
   const { data: rows, error } = await q;
   if (error) {
-    // Most likely cause: migration 069 (research_complete column) has not
-    // been applied to this database yet. Throw so the GET handler can
-    // surface the message to the UI instead of returning an empty list
-    // and leaving the admin staring at a blank Research tab.
+    // Most likely cause: migration 069 (research_complete column) or
+    // 077 (partner_prospect_unlocked_at column) has not been applied
+    // to this database yet. Throw so the GET handler can surface the
+    // message to the UI.
     throw new Error(
       `Failed to load campuses-in-research: ${error.message}. ` +
-        `If this references "research_complete", run migration 069_campus_research_complete.sql in Supabase.`,
+        `If this references "research_complete", run migration 069. ` +
+        `If this references "partner_prospect_unlocked_at", run migration 077.`,
     );
   }
   const campusRows = (rows ?? []) as Array<{
@@ -267,6 +268,7 @@ async function fetchResearchCampuses(
     name: string;
     state: string | null;
     city: string | null;
+    partner_prospect_unlocked_at: string | null;
   }>;
   if (campusRows.length === 0) return [];
 
@@ -294,55 +296,38 @@ async function fetchResearchCampuses(
     if (!cur || s.created_at > cur) lastAddedAt.set(s.campus_id, s.created_at);
   }
 
-  // v9.0 Phase 2: pull all organization/caregiver providers once with
-  // their metadata so we can derive each campus's stage from its
-  // catchment without N round-trips. Providers count is small
-  // (hundreds), so a single in-memory join is efficient.
+  // Pull all organization/caregiver providers once with their
+  // metadata. Used by the partner-prospect gate (catchment-client
+  // resolution) and reused for the stage derivation below.
   const { data: providers } = await db
     .from("business_profiles")
     .select("city, state, metadata")
     .in("type", ["organization", "caregiver"]);
-
-  // Index providers by lowercase city|state for O(1) catchment lookups.
-  type ProviderLite = {
+  const providerList = (providers ?? []) as Array<{
     city: string | null;
     state: string | null;
     metadata: Record<string, unknown> | null;
-  };
-  const providerIndex = new Map<string, ProviderLite[]>();
-  for (const p of (providers ?? []) as ProviderLite[]) {
-    if (!p.city || !p.state) continue;
-    const key = `${p.city.toLowerCase()}|${p.state}`;
-    if (!providerIndex.has(key)) providerIndex.set(key, []);
-    providerIndex.get(key)!.push(p);
-  }
+  }>;
 
-  const PILOT_MS = 90 * 24 * 60 * 60 * 1000;
-  const now = Date.now();
-  const isClientMeta = (m: Record<string, unknown> | null): boolean => {
-    if (!m) return false;
-    if (m.medjobs_subscription_active === true) return true;
-    const accepted = m.interview_terms_accepted_at;
-    if (typeof accepted !== "string") return false;
-    const t = new Date(accepted).getTime();
-    return !isNaN(t) && now - t < PILOT_MS;
-  };
+  // v9.0 Phase 8: gate research-card visibility on catchment-client
+  // presence. Sites without a client in their catchment don't surface
+  // a research card; once a client appears, the campus's
+  // partner_prospect_unlocked_at is set sticky. Drop campuses that
+  // remain locked from the response — the UI is supposed to render
+  // Provider Prospects only in that state.
+  const { unlockedCampusIds, clientCountByCampusId } =
+    await resolvePartnerProspectUnlocks(db, campusRows, providerList);
 
   return campusRows
+    .filter((c) => unlockedCampusIds.has(c.id))
     .map((c) => {
-      const uni = PARTNER_UNIVERSITIES.find((u) => u.slug === c.slug);
-      let clientCount = 0;
-      if (uni) {
-        for (const cc of uni.catchment) {
-          const key = `${cc.city.toLowerCase()}|${cc.state}`;
-          const list = providerIndex.get(key) ?? [];
-          for (const p of list) if (isClientMeta(p.metadata)) clientCount += 1;
-        }
-      }
+      const clientCount = clientCountByCampusId.get(c.id) ?? 0;
       const stakeholderCount = counts.get(c.id) ?? 0;
-      // research_complete=false (filter above), so stage is either
-      // provider_prospecting (no clients yet) or stakeholder_prospecting
-      // (≥1 client in catchment).
+      // research_complete=false (filter above) + unlock satisfied. We
+      // expose stakeholder_prospecting when a catchment client exists
+      // today; provider_prospecting only surfaces here for the sticky
+      // case where the last catchment client churned but research is
+      // already underway. UI uses this only for sort priority.
       const stage: "provider_prospecting" | "stakeholder_prospecting" =
         clientCount > 0 ? "stakeholder_prospecting" : "provider_prospecting";
 
@@ -358,19 +343,12 @@ async function fetchResearchCampuses(
         client_count: clientCount,
       };
     })
-    // Every active campus with research_complete=false gets a research
-    // operational card — the Site itself generates the research work
-    // the moment it's added. The old gate (≥1 stakeholder OR Stage 2
-    // unlocked) belonged to the v8.5 design where the research banner
-    // only fired after a provider partner converted; v9.0's contract
-    // is that the research card is queued from the start.
     .sort((a, b) => {
-      // v9.0 Phase 2: stakeholder_prospecting (Stage 2 unlocked) cards
-      // bubble to the top — they're the prompt admin needs to act on.
+      // stakeholder_prospecting (active catchment client) cards bubble
+      // to the top — they're the prompt admin needs to act on.
       const aPriority = a.stage === "stakeholder_prospecting" && a.research_stakeholder_count === 0 ? 0 : 1;
       const bPriority = b.stage === "stakeholder_prospecting" && b.research_stakeholder_count === 0 ? 0 : 1;
       if (aPriority !== bPriority) return aPriority - bPriority;
-      // Within tier: most recently active first.
       const aTime = a.last_added_at ? new Date(a.last_added_at).getTime() : 0;
       const bTime = b.last_added_at ? new Date(b.last_added_at).getTime() : 0;
       if (aTime !== bTime) return bTime - aTime;

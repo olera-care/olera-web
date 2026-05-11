@@ -684,8 +684,12 @@ async function verifyLinkedInWithScreenshots(
     // Analyze both screenshots with Claude Vision
     const response = await Promise.race([
       client.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 500,
+        // Short structured-JSON classification on a 20s timeout — keep it fast.
+        // Sonnet 4.6 defaults to effort "high"; this is not a reasoning task.
+        thinking: { type: "disabled" },
+        output_config: { effort: "low" },
         messages: [
           {
             role: "user",
@@ -973,8 +977,12 @@ async function verifyByDocument(
     const client = getAnthropic();
     const response = await Promise.race([
       client.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 500,
+        // Short structured-JSON classification on a 20s timeout — keep it fast.
+        // Sonnet 4.6 defaults to effort "high"; this is not a reasoning task.
+        thinking: { type: "disabled" },
+        output_config: { effort: "low" },
         messages: [
           {
             role: "user",

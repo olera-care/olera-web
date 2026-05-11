@@ -43,7 +43,7 @@ const fs = require('fs');
 const pipeline = require('./benefits-pipeline.js');
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = 'claude-sonnet-4-20250514';
+const MODEL = 'claude-sonnet-4-6';
 const BATCH_URL = 'https://api.anthropic.com/v1/messages/batches';
 const PIPELINE_ROOT = path.resolve(__dirname, '..', 'data', 'pipeline');
 

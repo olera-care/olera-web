@@ -284,10 +284,10 @@ export default function CompareBottomSheet({
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-x-auto overflow-y-auto snap-x snap-mandatory scrollbar-hide overscroll-x-contain"
+          className="flex-1 overflow-x-auto overflow-y-auto snap-x snap-mandatory scroll-pl-5 scrollbar-hide overscroll-x-contain"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          <div className="flex gap-3 px-5 pb-4">
+          <div className="flex gap-3 pl-5 pr-5 pb-4">
             {allProviders.map((provider, index) => (
               <CompareCard
                 key={provider.id}

@@ -67,6 +67,7 @@ const ANONYMOUS_EVENT_TYPES = [
   "multi_provider_asked",
   "multi_provider_skipped",
   "multi_provider_converted",
+  "multi_provider_flow_completed",  // logged-in users only (engagement, not conversion)
   "multi_provider_save_all",
   // CTA variant A/B test events — provider page CTA impressions and clicks
   "cta_variant_impression",

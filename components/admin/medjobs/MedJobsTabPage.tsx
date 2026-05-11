@@ -268,6 +268,25 @@ export function MedJobsTabPage({
         onLogCallOutcome={() => setCallOutcomeRow(row)}
         onClassifyReply={(source) => setClassifierRow({ row, source })}
         onMarkPartner={() => setPartnerRow(row)}
+        onMakeClient={async () => {
+          // Provider conversion shortcut from the row overflow.
+          // Mirrors the drawer's MakeClientFooter — confirm prompt,
+          // make_client action, lazy unlock of catchment Partner
+          // Prospects on next read. No modal because the conversion
+          // doesn't need committment-evidence payload (admin's
+          // judgment call from outreach signals).
+          if (
+            !window.confirm(
+              `Mark ${row.organization_name} as a Client?\n\nThis writes the conversion timestamp on the provider profile and surfaces Partner Prospects for any Site in this provider's catchment.`,
+            )
+          )
+            return;
+          try {
+            await callAction(row.id, "make_client");
+          } catch (e) {
+            setError(e instanceof Error ? e.message : "Action failed");
+          }
+        }}
         onStopOutreach={async (reason) => {
           const action = STOP_OUTREACH_ACTIONS[reason];
           const label = STOP_OUTREACH_LABELS[reason];

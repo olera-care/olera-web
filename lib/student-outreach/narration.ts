@@ -51,6 +51,12 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
     case "email_bounced":
       text = `Email bounced${contactSuffix}`;
       break;
+    case "email_complained":
+      text = `Marked as spam${contactSuffix} (auto-DNC)`;
+      break;
+    case "email_failed":
+      text = `Email send failed${contactSuffix}`;
+      break;
 
     case "call_no_answer":
       text = `Call: no answer${contactName}`;

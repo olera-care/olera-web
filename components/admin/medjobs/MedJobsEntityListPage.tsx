@@ -189,6 +189,19 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
           onLogCallOutcome={() => setCallOutcomeRow(row)}
           onClassifyReply={(source) => setClassifierRow({ row, source })}
           onMarkPartner={() => setPartnerRow(row)}
+          onMakeClient={async () => {
+            if (
+              !window.confirm(
+                `Mark ${row.organization_name} as a Client?\n\nThis writes the conversion timestamp on the provider profile and surfaces Partner Prospects for any Site in this provider's catchment.`,
+              )
+            )
+              return;
+            try {
+              await callAction(row.id, "make_client");
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Action failed");
+            }
+          }}
           onStopOutreach={async (reason) => {
             const action = STOP_OUTREACH_ACTIONS[reason];
             const label = STOP_OUTREACH_LABELS[reason];

@@ -334,6 +334,11 @@ export interface RowCardCallbacks {
   onLogCallOutcome: () => void;
   onClassifyReply: (source: "email_reply" | "callback") => void;
   onMarkPartner: () => void;
+  /** v9 Phase 8: provider conversion shortcut in the row card
+   *  overflow. Writes business_profiles.metadata.interview_terms_
+   *  accepted_at and transitions the outreach row — same end state
+   *  as opening the drawer and clicking Make Client there. */
+  onMakeClient?: () => void;
   onStopOutreach: (reason: StopOutreachReason) => Promise<void>;
   onLogMeeting: () => void;
   onSendFollowupEmail: () => void;

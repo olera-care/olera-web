@@ -502,17 +502,34 @@ export function buildUniversalOverflow(
   options: {
     excludeMakePartner?: boolean;
     extraItems?: OverflowItem[];
+    /** When the row is kind='provider', swap the Mark-Partner item
+     *  for Make-Client. Provider rows graduate via the Client signal
+     *  on business_profiles, not via mark_partner on the outreach
+     *  row — see lib/medjobs/partner-prospect-gate.ts. */
+    row?: TabRow;
   } = {},
 ): ReactNode {
   const items: OverflowItem[] = [];
   if (!options.excludeMakePartner) {
-    items.push({ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" });
+    const isProvider = options.row?.kind === "provider";
+    if (isProvider && cb.onMakeClient) {
+      items.push({
+        label: "Make Client ✓",
+        onClick: cb.onMakeClient,
+        tone: "celebration",
+      });
+    } else if (!isProvider) {
+      items.push({
+        label: "Make Partner ★",
+        onClick: cb.onMarkPartner,
+        tone: "celebration",
+      });
+    }
+    // Provider rows without onMakeClient handler skip the terminal
+    // CTA from the overflow — admin can still convert from the
+    // drawer footer.
   }
   if (options.extraItems) items.push(...options.extraItems);
-  // v9.0 Phase 4: every row gets a Mark as unread action so admins
-  // can reset attention if they opened it by accident or want a
-  // teammate to pick it up. Lives at the bottom of the menu so
-  // accidental clicks are unlikely.
   items.push({ label: "Mark as unread", onClick: () => void cb.onMarkUnread() });
   return <OverflowMenu items={items} onStopOutreach={cb.onStopOutreach} />;
 }
@@ -745,7 +762,7 @@ function partnersSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Log
       </PrimaryAction>
     ),
-    overflowMenu: buildUniversalOverflow(cb, { excludeMakePartner: true }),
+    overflowMenu: buildUniversalOverflow(cb, { row, excludeMakePartner: true }),
   };
 }
 
@@ -791,6 +808,6 @@ function allSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Last activity {formatRelative(row.last_activity_at)}
       </p>
     ) : null,
-    overflowMenu: buildUniversalOverflow(cb, { excludeMakePartner: isAlreadyPartner }),
+    overflowMenu: buildUniversalOverflow(cb, { row, excludeMakePartner: isAlreadyPartner }),
   };
 }

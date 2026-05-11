@@ -100,11 +100,6 @@ export default function CompareCard({
     clickFiredRef.current = false;
   }, []);
 
-  const handleSaveComparison = useCallback(() => {
-    // TODO: Implement save comparison
-    console.log("[compare] Save comparison - next step TBD");
-  }, []);
-
   return (
     <>
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
@@ -144,7 +139,6 @@ export default function CompareCard({
         onClose={handleCloseOverlay}
         currentProvider={currentProvider}
         similarProviders={similarProviders}
-        onSaveComparison={handleSaveComparison}
       />
     </>
   );

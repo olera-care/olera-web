@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "next/navigation";
 
@@ -2887,7 +2887,7 @@ function SearchBar({ selectedTypes, setSelectedTypes, priceMin, setPriceMin, pri
 
 // ── Page ──────────────────────────────────────────────────────────────
 
-export default function CareShiftsPage() {
+function CareShiftsPageInner() {
   const searchParams = useSearchParams();
   const profileId = searchParams.get("profile");
   const profileCg = profileId ? CAREGIVERS.find((c) => c.id === profileId) : null;
@@ -3498,5 +3498,13 @@ export default function CareShiftsPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function CareShiftsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <CareShiftsPageInner />
+    </Suspense>
   );
 }

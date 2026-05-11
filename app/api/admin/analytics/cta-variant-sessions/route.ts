@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { CTA_VARIANTS } from "@/lib/analytics/cta-variant";
 
 // One row in the drill-in table — the journey of a single session through
@@ -200,5 +200,128 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     console.error("[admin/analytics/cta-variant-sessions] uncaught:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/admin/analytics/cta-variant-sessions
+ *
+ * Hard-deletes a session's tracking events from provider_activity.
+ * Used for cleaning up admin test traffic that would otherwise pollute
+ * conversion counts.
+ *
+ * Body: { session_id: string, variant: string }
+ *
+ * Deletes:
+ *   - cta_variant_impression events with matching session_id + variant
+ *   - cta_variant_clicked events with matching session_id + variant
+ *   - lead_received events with matching session_id + cta_variant
+ *
+ * Does NOT delete accounts/connections — use other admin tools for that.
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    let body: { session_id?: unknown; variant?: unknown };
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+    const sessionId = typeof body.session_id === "string" ? body.session_id : "";
+    const variant = typeof body.variant === "string" ? body.variant : "";
+    if (!sessionId) {
+      return NextResponse.json({ error: "session_id required" }, { status: 400 });
+    }
+    if (!VALID_VARIANTS.has(variant as typeof CTA_VARIANTS[number])) {
+      return NextResponse.json({ error: "Invalid variant" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+    const deleted: Record<string, number> = {};
+    const errors: Array<{ table: string; message: string }> = [];
+
+    // Find the email for audit logging (from lead_received event if converted)
+    let auditEmail: string | null = null;
+    const { data: leadEvents } = await db
+      .from("provider_activity")
+      .select("metadata")
+      .eq("event_type", "lead_received")
+      .filter("metadata->>session_id", "eq", sessionId)
+      .filter("metadata->>cta_variant", "eq", variant)
+      .limit(1);
+    if (leadEvents && leadEvents.length > 0) {
+      const email = (leadEvents[0].metadata as Record<string, unknown> | null)?.email;
+      if (typeof email === "string") auditEmail = email;
+    }
+
+    // Delete cta_variant_impression and cta_variant_clicked events
+    // These have session_id and variant in metadata
+    {
+      const { error, count } = await db
+        .from("provider_activity")
+        .delete({ count: "exact" })
+        .in("event_type", ["cta_variant_impression", "cta_variant_clicked"])
+        .filter("metadata->>session_id", "eq", sessionId)
+        .filter("metadata->>variant", "eq", variant);
+      if (error) {
+        console.error("[cta-variant-sessions DELETE] impression/clicked:", error);
+        errors.push({ table: "provider_activity (impression/clicked)", message: error.message });
+      } else {
+        deleted.impression_clicked = count ?? 0;
+      }
+    }
+
+    // Delete lead_received events with matching session_id and cta_variant
+    {
+      const { error, count } = await db
+        .from("provider_activity")
+        .delete({ count: "exact" })
+        .eq("event_type", "lead_received")
+        .filter("metadata->>session_id", "eq", sessionId)
+        .filter("metadata->>cta_variant", "eq", variant);
+      if (error) {
+        console.error("[cta-variant-sessions DELETE] lead_received:", error);
+        errors.push({ table: "provider_activity (lead_received)", message: error.message });
+      } else {
+        deleted.lead_received = count ?? 0;
+      }
+    }
+
+    // If any delete errored, surface it
+    if (errors.length > 0) {
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "cta_variant_session_delete_failed",
+        targetType: "cta_variant_session",
+        targetId: sessionId,
+        details: { variant, email: auditEmail, deleted, errors },
+      });
+      return NextResponse.json(
+        {
+          error: `Delete failed: ${errors.map((e) => e.table).join(", ")}`,
+          deleted,
+          errors,
+        },
+        { status: 500 },
+      );
+    }
+
+    await logAuditAction({
+      adminUserId: adminUser.id,
+      action: "cta_variant_session_deleted",
+      targetType: "cta_variant_session",
+      targetId: sessionId,
+      details: { variant, email: auditEmail, deleted },
+    });
+
+    return NextResponse.json({ ok: true, deleted, email: auditEmail });
+  } catch (err) {
+    console.error("[admin/analytics/cta-variant-sessions] DELETE failed:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -16,6 +16,8 @@ interface CompareOverlayProps {
   onClose: () => void;
   currentProvider: CompareProvider;
   similarProviders: CompareProvider[];
+  ctaVariant?: string | null;
+  ctaPreviewMode?: boolean;
 }
 
 /**
@@ -27,6 +29,8 @@ export default function CompareOverlay({
   onClose,
   currentProvider,
   similarProviders,
+  ctaVariant,
+  ctaPreviewMode = false,
 }: CompareOverlayProps) {
   const router = useRouter();
   const [footerState, setFooterState] = useState<FooterState>("initial");
@@ -36,6 +40,28 @@ export default function CompareOverlay({
 
   // All providers: current first, then similar (max 2)
   const allProviders = [currentProvider, ...similarProviders.slice(0, 2)];
+
+  // Track "Save this comparison" button click
+  const handleSaveClick = useCallback(() => {
+    if (!ctaPreviewMode && ctaVariant) {
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          related_provider_id: currentProvider.slug,
+          event_type: "cta_variant_clicked",
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            variant: ctaVariant,
+            surface: "desktop",
+            action: "save_comparison_clicked",
+          },
+        }),
+      }).catch(() => {});
+    }
+    setFooterState("email_capture");
+  }, [ctaVariant, ctaPreviewMode, currentProvider.slug]);
 
   // Extract first name for headline
   const firstName = (() => {
@@ -360,7 +386,7 @@ export default function CompareOverlay({
               </p>
               <button
                 type="button"
-                onClick={() => setFooterState("email_capture")}
+                onClick={handleSaveClick}
                 className="flex items-center gap-2 px-6 py-3 bg-[#4a7c72] hover:bg-[#3d6860] text-white rounded-xl font-semibold transition-colors"
               >
                 Save this comparison

@@ -28,6 +28,8 @@ interface CompareBottomSheetProps {
   onClose: () => void;
   currentProvider: CompareProvider;
   similarProviders: CompareProvider[];
+  ctaVariant?: string | null;
+  ctaPreviewMode?: boolean;
 }
 
 type FooterState = "initial" | "email_capture" | "submitting" | "success";
@@ -42,6 +44,8 @@ export default function CompareBottomSheet({
   onClose,
   currentProvider,
   similarProviders,
+  ctaVariant,
+  ctaPreviewMode = false,
 }: CompareBottomSheetProps) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -127,10 +131,27 @@ export default function CompareBottomSheet({
     }
   }, [footerState]);
 
-  // Handle save button click
-  const handleSaveClick = () => {
+  // Handle save button click with tracking
+  const handleSaveClick = useCallback(() => {
+    if (!ctaPreviewMode && ctaVariant) {
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          related_provider_id: currentProvider.slug,
+          event_type: "cta_variant_clicked",
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            variant: ctaVariant,
+            surface: "mobile",
+            action: "save_comparison_clicked",
+          },
+        }),
+      }).catch(() => {});
+    }
     setFooterState("email_capture");
-  };
+  }, [ctaVariant, ctaPreviewMode, currentProvider.slug]);
 
   // Handle email submit
   const handleSubmit = async (e: React.FormEvent) => {

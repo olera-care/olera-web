@@ -49,11 +49,21 @@ const { createClient } = require('@supabase/supabase-js');
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
 if (!SUPABASE_URL || !SERVICE_KEY) {
   console.error('Missing NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY in .env.local');
   process.exit(1);
 }
+
+// Generation backend. `perplexity` (Sonar) does web search but costs ~$8/1000
+// requests; `claude` (Haiku 4.5, no web search) costs ~$1.25/1000 and is the
+// model the rest of the repo uses. The prompt works for both — for `claude`,
+// "publicly verifiable facts" just means the model's own knowledge of known
+// chains/services, which is actually a touch safer (won't confidently echo a
+// wrong scraped license number / survey date).
+const CLAUDE_MODEL = 'claude-haiku-4-5-20251001';
+const COST_PER_1K = { perplexity: 8.0, claude: 1.25 };
 
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
@@ -71,7 +81,9 @@ const strArg = (flag) => {
   const i = args.indexOf(flag);
   return i !== -1 ? args[i + 1] : null;
 };
-const CONCURRENCY = numArg('--concurrency', 8);
+const ENGINE = (strArg('--engine') || 'perplexity').toLowerCase(); // 'perplexity' | 'claude'
+if (!['perplexity', 'claude'].includes(ENGINE)) { console.error(`Unknown --engine "${ENGINE}" (use perplexity|claude)`); process.exit(1); }
+const CONCURRENCY = numArg('--concurrency', ENGINE === 'claude' ? 5 : 8);
 const LIMIT = numArg('--limit', null);
 const SAMPLE_N = numArg('--sample', 15);
 const CATEGORY_FILTER = strArg('--category');
@@ -259,6 +271,31 @@ async function perplexityChat(prompt, temperature = 0.2) {
   throw lastErr;
 }
 
+// ── Anthropic call (Haiku 4.5, no web search; SDK handles 429/overload retries) ──
+let _anthropic = null;
+function getAnthropic() {
+  if (_anthropic) return _anthropic;
+  if (!ANTHROPIC_API_KEY) throw new Error('Missing ANTHROPIC_API_KEY in .env.local');
+  const Anthropic = require('@anthropic-ai/sdk');
+  _anthropic = new (Anthropic.default || Anthropic)({ apiKey: ANTHROPIC_API_KEY, maxRetries: 6 });
+  return _anthropic;
+}
+async function anthropicChat(prompt, temperature = 0.4) {
+  const resp = await getAnthropic().messages.create({
+    model: CLAUDE_MODEL,
+    max_tokens: 400,
+    temperature,
+    messages: [{ role: 'user', content: prompt }],
+  });
+  const block = (resp.content || []).find(b => b.type === 'text');
+  return block ? block.text : '';
+}
+
+// Dispatch to the selected backend.
+async function generate(prompt) {
+  return ENGINE === 'claude' ? anthropicChat(prompt) : perplexityChat(prompt);
+}
+
 function extractDescription(content) {
   if (!content) return null;
   // Prefer the JSON object; fall back to raw text if the model skipped the wrapper.
@@ -297,9 +334,11 @@ function isSane(desc) {
 async function main() {
   console.log('=== Backfill Provider Descriptions (Project 6) ===');
   console.log(`Mode:        ${DRY_RUN ? 'DRY RUN (add --run to execute)' : 'LIVE — writing to DB'}`);
+  console.log(`Engine:      ${ENGINE === 'claude' ? `claude (${CLAUDE_MODEL}, no web search)` : 'perplexity (sonar, web search)'}`);
   console.log(`Scope:       ${INCLUDE_GEN2 ? 'Gen-1 + Gen-2 templated' : 'Gen-1 templated only'}${CATEGORY_FILTER ? ` | category="${CATEGORY_FILTER}"` : ''}${LIMIT ? ` | limit=${LIMIT}` : ''}`);
   console.log(`Concurrency: ${CONCURRENCY}`);
-  if (!PERPLEXITY_API_KEY) { console.error('Missing PERPLEXITY_API_KEY in .env.local'); process.exit(1); }
+  if (ENGINE === 'claude' && !ANTHROPIC_API_KEY) { console.error('Missing ANTHROPIC_API_KEY in .env.local'); process.exit(1); }
+  if (ENGINE === 'perplexity' && !PERPLEXITY_API_KEY) { console.error('Missing PERPLEXITY_API_KEY in .env.local'); process.exit(1); }
 
   console.log('\nFetching target rows...');
   const rows = await fetchTargetRows();
@@ -310,8 +349,8 @@ async function main() {
   for (const r of rows) byCat[r.provider_category] = (byCat[r.provider_category] || 0) + 1;
   console.log('By category:');
   for (const [k, v] of Object.entries(byCat).sort((a, b) => b[1] - a[1])) console.log(`  ${String(v).padStart(6)}  ${k}`);
-  console.log(`\nEstimated cost: ~$${(rows.length / 1000).toFixed(2)} (Perplexity Sonar, $1/1000)`);
-  console.log(`Estimated time: ~${Math.round((rows.length / CONCURRENCY) * 1.2 / 60)} min @ ${CONCURRENCY} workers`);
+  console.log(`\nEstimated cost: ~$${(rows.length / 1000 * COST_PER_1K[ENGINE]).toFixed(2)} (${ENGINE}, ~$${COST_PER_1K[ENGINE]}/1000 calls)`);
+  console.log(`Estimated time: ~${Math.round((rows.length / CONCURRENCY) * (ENGINE === 'claude' ? 2.0 : 1.2) / 60)} min @ ${CONCURRENCY} workers`);
 
   // ── Dry run: generate a handful of real rewrites and show before→after ──
   if (DRY_RUN) {
@@ -323,7 +362,7 @@ async function main() {
     for (let i = 0; i < rows.length && picks.length < n; i += step) picks.push(rows[i]);
     for (const p of picks) {
       try {
-        const content = await perplexityChat(buildPrompt(p));
+        const content = await generate(buildPrompt(p));
         const desc = extractDescription(content);
         const ok = isSane(desc);
         console.log(`● ${p.provider_name} — ${p.provider_category} — ${p.city}, ${p.state}  [${p.provider_id}]`);
@@ -347,7 +386,7 @@ async function main() {
   async function processOne(p) {
     let content;
     try {
-      content = await perplexityChat(buildPrompt(p));
+      content = await generate(buildPrompt(p));
     } catch (err) {
       errored++;
       if (errored <= 20) console.log(`  [err] ${p.provider_id} ${p.provider_name}: ${err.message}`);

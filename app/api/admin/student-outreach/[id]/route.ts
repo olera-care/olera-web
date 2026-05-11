@@ -21,6 +21,8 @@ import { type CadenceKey, type TemplateKey } from "@/lib/student-outreach/cadenc
 import { getTemplate } from "@/lib/student-outreach/templates";
 import {
   planSequence,
+  defaultSnapshotsByVariant,
+  defaultCallScriptsFor,
   type EmailSnapshot,
   type RecipientPlan,
   type CallScript,
@@ -35,6 +37,7 @@ import type {
   ApprovalStatus,
   ApprovalType,
   Campus,
+  Contact,
   ContactPermission,
   ContactStatus,
   DistributionEvidence,
@@ -229,6 +232,16 @@ export async function POST(
       // stay in prospect while admin works through call attempts.
       case "log_research_call":
         await handleLogResearchCall(db, row, body, user.id);
+        break;
+
+      // v9 Phase 9: enroll a newly-discovered contact into the
+      // already-launched cadence. Admin chooses send-now-only vs
+      // full-cadence vs informational; the handler queues the
+      // appropriate per-recipient tasks (and inline-fires any
+      // Day-0 emails) so the new recipient catches up without
+      // disturbing other recipients' in-flight cadence.
+      case "enroll_contact_in_cadence":
+        await handleEnrollContactInCadence(db, row, body, user.id);
         break;
 
       // v9 Make Client — provider conversion. Writes
@@ -2201,6 +2214,203 @@ async function handleRescheduleTask(
  * After log: caller decides whether to add_contact (if email was
  * obtained) — the modal chains the two actions client-side.
  */
+/**
+ * v9 Phase 9: enroll a newly-discovered contact into the already-
+ * launched cadence. Modes are channel-aware — UI shows only what
+ * the contact's data supports (email-only contact can't choose
+ * call modes, etc.).
+ *
+ *   send_now_email      → 1 outreach_email_send task at due_at=now;
+ *                          inline fires.
+ *   send_now_call       → 1 outreach_followup_call task at now.
+ *   send_now_both       → both above.
+ *   full_email_cadence  → planSequence per-recipient mode with
+ *                          channels.email=true, channels.phone=false;
+ *                          full cadence starting today (Day 0 fires
+ *                          inline, follow-ups queue per cadence).
+ *   full_call_cadence   → planSequence channels.email=false,
+ *                          channels.phone=true.
+ *   full_both           → planSequence both channels.
+ *   informational       → note_added touchpoint with contact_id +
+ *                          informational_only=true. No tasks. Banner
+ *                          on the contact dismisses on next refetch.
+ *
+ * Per-recipient cadence tasks use the same plan/payload shape as
+ * the original launch (step 2's planSequence), so they integrate
+ * cleanly with the existing Calls tab + drawer Timeline per-task
+ * surfaces.
+ */
+async function handleEnrollContactInCadence(
+  db: DB,
+  row: OutreachRow,
+  body: {
+    contact_id?: string;
+    mode?:
+      | "send_now_email"
+      | "send_now_call"
+      | "send_now_both"
+      | "full_email_cadence"
+      | "full_call_cadence"
+      | "full_both"
+      | "informational";
+  },
+  userId: string,
+) {
+  if (!body.contact_id) throw new Error("contact_id required");
+  if (!body.mode) throw new Error("mode required");
+
+  // Load the contact + verify it belongs to this outreach row.
+  const { data: contactData } = await db
+    .from("student_outreach_contacts")
+    .select("*")
+    .eq("id", body.contact_id)
+    .eq("outreach_id", row.id)
+    .single();
+  if (!contactData) throw new Error("Contact not found on this outreach");
+  const contact = contactData as {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    name: string;
+    role: string | null;
+    email: string | null;
+    phone: string | null;
+    mobile: string | null;
+    status: ContactStatus;
+  };
+
+  if (body.mode === "informational") {
+    await insertTouchpoint(db, row.id, "note_added", userId, {
+      payload: { contact_id: contact.id, informational_only: true },
+      notes: `${contact.name} marked informational-only — no outreach queued.`,
+    });
+    await touchOutreach(db, row.id, userId);
+    return;
+  }
+
+  const wantsEmail =
+    body.mode === "send_now_email" ||
+    body.mode === "send_now_both" ||
+    body.mode === "full_email_cadence" ||
+    body.mode === "full_both";
+  const wantsCall =
+    body.mode === "send_now_call" ||
+    body.mode === "send_now_both" ||
+    body.mode === "full_call_cadence" ||
+    body.mode === "full_both";
+
+  if (wantsEmail && !contact.email) {
+    throw new Error("Contact has no email — pick a call-only mode");
+  }
+  if (wantsCall && !contact.phone && !contact.mobile) {
+    throw new Error("Contact has no phone — pick an email-only mode");
+  }
+
+  const cadenceKey: CadenceKey =
+    row.kind === "provider" ? "provider" : row.stakeholder_type;
+
+  const isGeneral =
+    contact.role === "General Office" || contact.role === "General Inbox";
+
+  // Load the row's campus for snapshot composition.
+  const { data: campusData } = await db
+    .from("student_outreach_campuses")
+    .select("name")
+    .eq("id", row.campus_id)
+    .single();
+  const campusName = (campusData as { name: string } | null)?.name ?? "the university";
+
+  // Load ALL active contacts for the team-greeting context — the
+  // general variant body references the named contacts to date.
+  const { data: allContacts } = await db
+    .from("student_outreach_contacts")
+    .select("*")
+    .eq("outreach_id", row.id)
+    .eq("status", "active");
+
+  const snapshotsByVariant = defaultSnapshotsByVariant(cadenceKey, {
+    organization_name: row.organization_name,
+    campus_name: campusName,
+    contacts: (allContacts ?? []) as Contact[],
+  });
+  const callScripts = defaultCallScriptsFor(cadenceKey);
+
+  const recipientPlan: RecipientPlan = {
+    contact_id: contact.id,
+    variant: isGeneral ? "general" : "named",
+    channels: {
+      email: wantsEmail,
+      phone: wantsCall,
+    },
+    recipient_name:
+      [contact.first_name, contact.last_name].filter(Boolean).join(" ").trim() ||
+      contact.name,
+    recipient_first_name: contact.first_name,
+    recipient_phone: contact.phone || contact.mobile || null,
+    recipient_role: contact.role,
+  };
+
+  const fullPlan = planSequence({
+    outreach_id: row.id,
+    stakeholder_type: cadenceKey,
+    recipients: [recipientPlan],
+    email_snapshots_by_variant: snapshotsByVariant,
+    call_scripts: callScripts,
+    user_id: userId,
+  });
+
+  const isSendNow =
+    body.mode === "send_now_email" ||
+    body.mode === "send_now_call" ||
+    body.mode === "send_now_both";
+  const tasksToQueue = isSendNow
+    ? fullPlan.filter((p) => {
+        const day = (p.payload as Record<string, unknown>).day;
+        return day === 0;
+      })
+    : fullPlan;
+
+  if (tasksToQueue.length === 0) {
+    throw new Error("Nothing to queue for this enrollment mode");
+  }
+
+  const inserts = tasksToQueue.map((p) => ({
+    outreach_id: row.id,
+    task_type: p.task_type,
+    due_at: p.due_at.toISOString(),
+    payload: p.payload,
+    created_by: userId,
+  }));
+  const { data: insertedTasks, error: insertErr } = await db
+    .from("student_outreach_tasks")
+    .insert(inserts)
+    .select("id, task_type, payload, due_at");
+  if (insertErr) throw new Error(insertErr.message);
+
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    payload: { contact_id: contact.id, enrolled_mode: body.mode },
+    notes: `${contact.name} enrolled in cadence (${body.mode}).`,
+  });
+  await touchOutreach(db, row.id, userId);
+
+  // Inline-fire Day-0 email tasks if any (for send_now_email/both
+  // and full_email_cadence / full_both modes).
+  const day0EmailTasks = (insertedTasks ?? []).filter((t) => {
+    const tt = t as { task_type: string; payload: Record<string, unknown> };
+    return tt.task_type === "outreach_email_send" && tt.payload?.day === 0;
+  }) as Array<{ id: string }>;
+  if (day0EmailTasks.length > 0) {
+    const fireResults = await Promise.allSettled(
+      day0EmailTasks.map((t) => executeEmailTask(t.id)),
+    );
+    for (const r of fireResults) {
+      if (r.status === "rejected") {
+        console.error("Post-launch enrollment Day-0 send failed:", r.reason);
+      }
+    }
+  }
+}
+
 async function handleLogResearchCall(
   db: DB,
   row: OutreachRow,

@@ -197,6 +197,8 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
                   action={action}
                   setError={setError}
                   editable={isPreLaunch}
+                  hasCadenceWork={contactHasCadenceWork(c.id, ctx)}
+                  isPostLaunch={!isPreLaunch}
                 />
               </li>
             ))}
@@ -235,16 +237,57 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
 
 // ── ContactRow ──────────────────────────────────────────────────────────
 
+/**
+ * v9 Phase 9 step 8: detect whether a contact has any cadence work
+ * already (pending tasks, prior email_sent touchpoints, or an
+ * explicit informational-only marker). Used to gate the post-launch
+ * "How should we proceed?" banner — banner only shows for newly-
+ * added contacts that haven't been routed yet.
+ */
+function contactHasCadenceWork(contactId: string, ctx: DrawerContext): boolean {
+  // Pending tasks tagged with this recipient_contact_id (per-recipient
+  // cadence mode).
+  const hasPendingTask = ctx.pending_tasks.some((t) => {
+    const p = t.payload as Record<string, unknown> | null;
+    return p?.recipient_contact_id === contactId;
+  });
+  if (hasPendingTask) return true;
+  // Email sent to this contact (legacy or per-recipient).
+  const hasSentTouchpoint = ctx.touchpoints.some((t) => {
+    if (t.touchpoint_type !== "email_sent") return false;
+    if (t.contact_id === contactId) return true;
+    const p = t.payload as Record<string, unknown> | null;
+    return p?.recipient_contact_id === contactId;
+  });
+  if (hasSentTouchpoint) return true;
+  // Informational-only marker explicitly set by admin.
+  const hasInformationalMarker = ctx.touchpoints.some((t) => {
+    if (t.touchpoint_type !== "note_added") return false;
+    const p = t.payload as Record<string, unknown> | null;
+    return (
+      p?.contact_id === contactId &&
+      (p?.informational_only === true || typeof p?.enrolled_mode === "string")
+    );
+  });
+  return hasInformationalMarker;
+}
+
 function ContactRow({
   contact,
   action,
   setError,
   editable,
+  hasCadenceWork,
+  isPostLaunch,
 }: {
   contact: Contact;
   action: ActionFn;
   setError: (m: string | null) => void;
   editable: boolean;
+  /** v9 Phase 9: when false AND isPostLaunch, banner shows asking
+   *  admin how to enroll this newly-discovered contact. */
+  hasCadenceWork: boolean;
+  isPostLaunch: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [firstName, setFirstName] = useState(contact.first_name ?? "");
@@ -316,53 +359,61 @@ function ContactRow({
     }
   };
 
+  // v9 Phase 9 step 8: enrollment banner shows when outreach is
+  // already in flight AND this contact has no cadence work yet
+  // (no pending tasks, no prior sends, no informational marker).
+  // Admin picks how to route them — send-now or full cadence,
+  // gated by the contact's email/phone availability.
+  const showEnrollBanner =
+    isPostLaunch && isActive && !hasCadenceWork;
+
   if (!expanded) {
     return (
       <div
-        className={`flex items-start justify-between gap-3 rounded-md border px-3 py-2 ${
+        className={`flex flex-col gap-0 rounded-md border ${
           isActive
             ? "border-gray-200 bg-white"
             : "border-gray-100 bg-gray-50 text-gray-400"
         }`}
       >
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate text-sm font-medium text-gray-900">
-              {displayName || "(unnamed)"}
-            </span>
-            {contact.is_primary && (
-              <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
-                PRIMARY
+        <div className="flex items-start justify-between gap-3 px-3 py-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="truncate text-sm font-medium text-gray-900">
+                {displayName || "(unnamed)"}
               </span>
+              {contact.is_primary && (
+                <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
+                  PRIMARY
+                </span>
+              )}
+              {!isActive && (
+                <span className="rounded bg-gray-200 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-600">
+                  {contact.status}
+                </span>
+              )}
+            </div>
+            {contact.role && (
+              <p className="mt-0.5 truncate text-[11px] text-gray-500">
+                {contact.role}
+              </p>
             )}
-            {!isActive && (
-              <span className="rounded bg-gray-200 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-600">
-                {contact.status}
-              </span>
-            )}
-          </div>
-          {contact.role && (
-            <p className="mt-0.5 truncate text-[11px] text-gray-500">
-              {contact.role}
+            <p className="mt-0.5 truncate text-xs text-gray-600">
+              {contact.email || (
+                <span className="text-gray-400">No email</span>
+              )}
+              {contact.phone && (
+                <span className="text-gray-400">
+                  {" · "}
+                  {contact.phone}
+                  {contact.extension ? ` ext ${contact.extension}` : ""}
+                </span>
+              )}
+              {contact.mobile && (
+                <span className="text-gray-400"> · 📱 {contact.mobile}</span>
+              )}
             </p>
-          )}
-          <p className="mt-0.5 truncate text-xs text-gray-600">
-            {contact.email || (
-              <span className="text-gray-400">No email</span>
-            )}
-            {contact.phone && (
-              <span className="text-gray-400">
-                {" · "}
-                {contact.phone}
-                {contact.extension ? ` ext ${contact.extension}` : ""}
-              </span>
-            )}
-            {contact.mobile && (
-              <span className="text-gray-400"> · 📱 {contact.mobile}</span>
-            )}
-          </p>
-        </div>
-        {editable && (
+          </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
             <button
               onClick={() => setExpanded(true)}
@@ -382,6 +433,13 @@ function ContactRow({
               {isActive ? "Mark inactive" : "Reactivate"}
             </button>
           </div>
+        </div>
+        {showEnrollBanner && (
+          <EnrollmentBanner
+            contact={contact}
+            action={action}
+            setError={setError}
+          />
         )}
       </div>
     );
@@ -629,6 +687,143 @@ function CoverageRow({
       </span>
       <div className="min-w-0">{children}</div>
     </>
+  );
+}
+
+/**
+ * v9 Phase 9 step 8: post-launch enrollment banner. Shows on
+ * newly-discovered contacts (no cadence work yet) so admin can
+ * route them explicitly — never auto-sends. Channel options gate
+ * on the contact's email/phone availability.
+ */
+function EnrollmentBanner({
+  contact,
+  action,
+  setError,
+}: {
+  contact: Contact;
+  action: ActionFn;
+  setError: (m: string | null) => void;
+}) {
+  const [saving, setSaving] = useState<string | null>(null);
+  const hasEmail = Boolean(contact.email && contact.email.trim().length > 0);
+  const hasPhone = Boolean(
+    (contact.phone && contact.phone.trim().length > 0) ||
+      (contact.mobile && contact.mobile.trim().length > 0),
+  );
+
+  const dispatch = async (mode: string) => {
+    setSaving(mode);
+    setError(null);
+    try {
+      await action("enroll_contact_in_cadence", {
+        contact_id: contact.id,
+        mode,
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to enroll contact");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const buttonClass =
+    "rounded-md border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50";
+  const secondaryClass =
+    "rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50";
+
+  return (
+    <div className="border-t border-emerald-200 bg-emerald-50/40 px-3 py-2">
+      <p className="text-[11px] text-emerald-900">
+        Just added · outreach already in flight. How should we proceed?
+      </p>
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
+        {hasEmail && hasPhone && (
+          <>
+            <button
+              onClick={() => dispatch("send_now_both")}
+              disabled={saving != null}
+              className={buttonClass}
+              title="Queue one Day-0 email + one Day-0 call for this recipient now."
+            >
+              {saving === "send_now_both" ? "Queuing…" : "Send Day 0 (email + call)"}
+            </button>
+            <button
+              onClick={() => dispatch("full_both")}
+              disabled={saving != null}
+              className={buttonClass}
+              title="Queue the full provider cadence (3 emails + 3 calls) starting today."
+            >
+              {saving === "full_both" ? "Queuing…" : "Run full cadence"}
+            </button>
+          </>
+        )}
+        {hasEmail && !hasPhone && (
+          <>
+            <button
+              onClick={() => dispatch("send_now_email")}
+              disabled={saving != null}
+              className={buttonClass}
+            >
+              {saving === "send_now_email" ? "Queuing…" : "Send Day 0 email"}
+            </button>
+            <button
+              onClick={() => dispatch("full_email_cadence")}
+              disabled={saving != null}
+              className={buttonClass}
+            >
+              {saving === "full_email_cadence" ? "Queuing…" : "Run email cadence"}
+            </button>
+          </>
+        )}
+        {!hasEmail && hasPhone && (
+          <>
+            <button
+              onClick={() => dispatch("send_now_call")}
+              disabled={saving != null}
+              className={buttonClass}
+            >
+              {saving === "send_now_call" ? "Queuing…" : "Queue Day 0 call"}
+            </button>
+            <button
+              onClick={() => dispatch("full_call_cadence")}
+              disabled={saving != null}
+              className={buttonClass}
+            >
+              {saving === "full_call_cadence" ? "Queuing…" : "Run call cadence"}
+            </button>
+          </>
+        )}
+        {hasEmail && hasPhone && (
+          <>
+            <button
+              onClick={() => dispatch("full_email_cadence")}
+              disabled={saving != null}
+              className={secondaryClass}
+              title="Email cadence only — calls skipped for this recipient."
+            >
+              Email cadence only
+            </button>
+            <button
+              onClick={() => dispatch("full_call_cadence")}
+              disabled={saving != null}
+              className={secondaryClass}
+              title="Call cadence only — emails skipped for this recipient."
+            >
+              Call cadence only
+            </button>
+          </>
+        )}
+        <button
+          onClick={() => dispatch("informational")}
+          disabled={saving != null}
+          className={secondaryClass}
+          title="Keep in the contact list but don't send anything."
+        >
+          {saving === "informational" ? "Saving…" : "Informational only"}
+        </button>
+      </div>
+    </div>
   );
 }
 

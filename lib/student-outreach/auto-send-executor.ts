@@ -179,11 +179,28 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
     .eq("id", row.campus_id)
     .single();
 
-  const { data: contactRows } = await db
+  // v9 Phase 9: per-recipient mode. When the task payload pins a
+  // specific recipient_contact_id, scope the send to that single
+  // contact (and abort if the contact has gone stale/incorrect or
+  // lost their email since queue time — admin marked them or the
+  // SnapshotCard edit emptied it). Legacy multi-recipient mode
+  // (no recipient_contact_id) sends to every active contact with
+  // email — stakeholder paths still use this.
+  const payloadPeek = claimed.payload ?? {};
+  const pinnedContactId =
+    typeof payloadPeek.recipient_contact_id === "string"
+      ? payloadPeek.recipient_contact_id
+      : null;
+
+  let recipientQuery = db
     .from("student_outreach_contacts")
     .select("*")
     .eq("outreach_id", row.id)
     .eq("status", "active");
+  if (pinnedContactId) {
+    recipientQuery = recipientQuery.eq("id", pinnedContactId);
+  }
+  const { data: contactRows } = await recipientQuery;
   const recipients: EmailRecipient[] = ((contactRows ?? []) as Contact[])
     .filter((c) => c.email && c.email.trim().length > 0)
     .map((c) => ({

@@ -22,6 +22,8 @@ import { getTemplate } from "@/lib/student-outreach/templates";
 import {
   planSequence,
   type EmailSnapshot,
+  type RecipientPlan,
+  type CallScript,
 } from "@/lib/student-outreach/sequencer";
 import { executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
 import {
@@ -1375,14 +1377,44 @@ async function handleOfferCall(
 async function handleScheduleSequence(
   db: DB,
   row: OutreachRow,
-  body: { email_snapshots?: EmailSnapshot[] },
+  body: {
+    // Legacy single-snapshot mode (stakeholder paths).
+    email_snapshots?: EmailSnapshot[];
+    // v9 Phase 9 per-recipient mode (provider paths).
+    recipients?: RecipientPlan[];
+    email_snapshots_by_variant?: {
+      general?: EmailSnapshot[];
+      named?: EmailSnapshot[];
+    };
+    call_scripts?: CallScript[];
+  },
   userId: string,
 ) {
-  const snapshots = body.email_snapshots ?? [];
-  if (snapshots.length === 0) throw new Error("email_snapshots required");
-  for (const s of snapshots) {
-    if (!s.subject?.trim() || !s.body?.trim()) {
-      throw new Error(`Day ${s.day} subject and body required`);
+  const usingPerRecipient =
+    Array.isArray(body.recipients) && body.recipients.length > 0;
+
+  if (usingPerRecipient) {
+    // Validate at least one variant has at least one day's snapshot.
+    const variants = body.email_snapshots_by_variant ?? {};
+    const totalSnaps =
+      (variants.general?.length ?? 0) + (variants.named?.length ?? 0);
+    if (totalSnaps === 0) {
+      throw new Error("email_snapshots_by_variant required for per-recipient mode");
+    }
+    for (const snaps of [variants.general ?? [], variants.named ?? []]) {
+      for (const s of snaps) {
+        if (!s.subject?.trim() || !s.body?.trim()) {
+          throw new Error(`Day ${s.day} subject and body required`);
+        }
+      }
+    }
+  } else {
+    const snapshots = body.email_snapshots ?? [];
+    if (snapshots.length === 0) throw new Error("email_snapshots required");
+    for (const s of snapshots) {
+      if (!s.subject?.trim() || !s.body?.trim()) {
+        throw new Error(`Day ${s.day} subject and body required`);
+      }
     }
   }
 
@@ -1397,8 +1429,7 @@ async function handleScheduleSequence(
     throw new Error("Sequence already scheduled — cancel or wait for it to complete first");
   }
 
-  // v8.8: only queue phone tasks when at least one active contact has a
-  // phone number. Avoids phantom rows in the Calls tab.
+  // Legacy has_phone gate (multi-recipient single-task mode only).
   const { data: phoneContactRows } = await db
     .from("student_outreach_contacts")
     .select("id")
@@ -1409,19 +1440,16 @@ async function handleScheduleSequence(
     .limit(1);
   const hasPhone = (phoneContactRows ?? []).length > 0;
 
-  // v9 unified launch path: provider rows (kind='provider') use the
-  // 'provider' cadence template; stakeholder rows use their
-  // stakeholder_type. Provider rows have stakeholder_type=NULL by
-  // migration 073 — the kind-first check handles that cleanly without
-  // a fallback default that would silently misroute on bad data.
   const cadenceKey: CadenceKey =
     row.kind === "provider" ? "provider" : row.stakeholder_type;
 
-  // Plan + insert tasks.
   const plan = planSequence({
     outreach_id: row.id,
     stakeholder_type: cadenceKey,
-    email_snapshots: snapshots,
+    email_snapshots: body.email_snapshots,
+    recipients: body.recipients,
+    email_snapshots_by_variant: body.email_snapshots_by_variant,
+    call_scripts: body.call_scripts,
     user_id: userId,
     has_phone: hasPhone,
   });
@@ -1438,27 +1466,29 @@ async function handleScheduleSequence(
     .select("id, task_type, payload, due_at");
   if (insertErr) throw new Error(insertErr.message);
 
-  // Transition stage prospect/researched → outreach_sent.
   if (row.status !== "outreach_sent") {
     await transitionStage(db, row, "outreach_sent", userId, "sequence_scheduled");
   } else {
     await touchOutreach(db, row.id, userId);
   }
 
-  // Inline-fire Day 0 so admin sees immediate effect.
-  const day0Task = (insertedTasks ?? []).find((t) => {
+  // v9 Phase 9: inline-fire ALL Day-0 email tasks in parallel. With
+  // per-recipient mode this can be N sends; we want the first wave
+  // out the door while admin is still on the launch screen. Sends
+  // happen in parallel via Promise.allSettled so one failure doesn't
+  // block siblings. Cron picks up anything that didn't fire.
+  const day0Tasks = (insertedTasks ?? []).filter((t) => {
     const tt = t as { task_type: string; payload: Record<string, unknown> };
     return tt.task_type === "outreach_email_send" && tt.payload?.day === 0;
-  }) as { id: string } | undefined;
-  if (day0Task) {
-    try {
-      await executeEmailTask(day0Task.id);
-    } catch (err) {
-      // Inline send failed — task remains marked completed (claim-then-send
-      // semantics) but with no successful sends. The auto-queued
-      // manual_followup will surface this. Don't throw — admin already
-      // succeeded in scheduling, the failure surfaces in history.
-      console.error("Inline Day 0 send failed:", err);
+  }) as Array<{ id: string }>;
+  if (day0Tasks.length > 0) {
+    const fireResults = await Promise.allSettled(
+      day0Tasks.map((t) => executeEmailTask(t.id)),
+    );
+    for (const r of fireResults) {
+      if (r.status === "rejected") {
+        console.error("Inline Day 0 send failed:", r.reason);
+      }
     }
   }
 }

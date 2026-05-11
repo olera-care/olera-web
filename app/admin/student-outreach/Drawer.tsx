@@ -15,13 +15,12 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AddStakeholderTaskModal } from "./AddStakeholderTaskModal";
 import { PreFlightReviewModal } from "./PreFlightReviewModal";
 import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
-import { StepBoardCard } from "@/components/admin/medjobs/StepBoardCard";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
+import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import {
   KIND_LABELS,
@@ -33,7 +32,6 @@ import {
   type ResearchData,
   type StakeholderType,
   type Status,
-  type Task,
 } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
 import {
@@ -45,7 +43,6 @@ import {
   supportsApprovals,
   supportsMultipleContacts,
 } from "@/lib/student-outreach/presets";
-import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 
 interface DrawerProps {
   /** v9.0 Phase 2: stakeholder mode — pass outreachId to load a
@@ -947,16 +944,17 @@ function DrawerBody({
         <NextStepCard ctx={ctx} action={action} setError={setError} />
       )}
 
-      {/* v8.10.36: Step Board is the operational surface — workflow steps,
-          follow-ups, relationship-progression items. Same card hierarchy
-          as row cards on Meetings/Replies/Calls/Prospects so it reads as
-          part of the same system. For partners (where Next Step is
-          suppressed) Step Board becomes the leading section in the drawer.
-          v8.10.37: hidden for terminal closed states — adding a step to
-          a closed/DNC stakeholder doesn't fit the workflow. History +
-          Reopen (in NextStepPanel) carry those drawers. */}
+      {/* Zone 4 · OutreachTimeline — the chronological surface. Past
+          touchpoints (with email engagement chips) + future pending
+          tasks (queued emails, calls, custom events) in one stream.
+          Replaces the v8.10.36 TaskBoardSection (custom tasks now fold
+          inline) and the History section (now lives here, not in More
+          Details). Empty-state OK pre-launch.
+          v9.0 Phase 7 Commit (this): hidden for terminal closed states
+          — no future tasks, no operational surface needed; History
+          (in the timeline footer for closed rows) carries the record. */}
       {!TERMINAL_STATUSES.includes(ctx.outreach.status) && (
-        <TaskBoardSection ctx={ctx} action={action} setError={setError} />
+        <OutreachTimeline ctx={ctx} action={action} setError={setError} />
       )}
 
       <div>
@@ -969,19 +967,16 @@ function DrawerBody({
         </button>
         {showMore && (
           <div className="mt-4 space-y-6">
-            {/* v8.10.36: More Details order matches the operational
-                priority (data → history → escape hatch):
-                  1. Research details   — what we know about them
-                  2. Contacts           — who to talk to
-                  3. Approvals          — what they've granted
-                  4. History            — what's happened
-                  5. Close out          — last-resort escape hatch
+            {/* More Details: stakeholder-shape data that doesn't fit the
+                always-on timeline (research details, multi-officer
+                contacts, approval workflow) + the escape hatch. History
+                is absorbed by OutreachTimeline above; no duplicate here.
                 Research stages render ResearchSection at the top via
                 ResearchModePanel; don't duplicate it inside More Details. */}
             {!isResearch && (
               <ResearchSection ctx={ctx} action={action} setError={setError} />
             )}
-            {/* v8.7: Contacts section only for student orgs (multi-officer).
+            {/* Contacts section only for student orgs (multi-officer).
                 Single-contact types render the primary contact inline in
                 ResearchSection to avoid a redundant section. */}
             {supportsMultipleContacts(ctx.outreach.stakeholder_type) && (
@@ -990,7 +985,6 @@ function DrawerBody({
             {supportsApprovals(ctx.outreach.stakeholder_type) && (
               <ApprovalsSection ctx={ctx} action={action} setError={setError} />
             )}
-            <HistorySection ctx={ctx} />
             <DangerZone ctx={ctx} action={action} setError={setError} />
           </div>
         )}
@@ -1484,60 +1478,6 @@ function AddContactInline({
   );
 }
 
-/**
- * Small inline overflow menu for task cards. Mirrors the universal
- * OverflowMenu pattern from page.tsx (top-right ⋯ → dropdown). Closes
- * on outside click. Items support a "danger" tone for destructive
- * actions like Delete.
- */
-function TaskOverflow({
-  items,
-}: {
-  items: Array<{ label: string; onClick: () => void; tone?: "default" | "danger" }>;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const handle = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
-  }, [open]);
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen((s) => !s)}
-        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-        title="More actions"
-        aria-label="More actions"
-      >
-        <span className="text-base leading-none">⋯</span>
-      </button>
-      {open && (
-        <div className="absolute right-0 top-full z-10 mt-1 min-w-[140px] overflow-hidden rounded-md border border-gray-100 bg-white shadow-lg">
-          {items.map((item) => (
-            <button
-              key={item.label}
-              onClick={() => {
-                item.onClick();
-                setOpen(false);
-              }}
-              className={`block w-full px-3 py-1.5 text-left text-xs font-medium ${
-                item.tone === "danger"
-                  ? "text-red-700 hover:bg-red-50"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── Approvals (advisor + dept_head) ────────────────────────────────────
 
@@ -1935,322 +1875,8 @@ function ApprovalRow({
   );
 }
 
-// ── Step Board (v8.10.36) ──────────────────────────────────────────────
-//
-// Top-level drawer section listing every pending workflow step on the
-// stakeholder using the same card hierarchy as row cards. Steps are the
-// operational unit here: external task-board posts, custom follow-ups,
-// scheduled cadence emails / calls / seasonals. Each TaskCard renders
-// headline + subtitle + footnote, with ⋯ overflow top-right and the
-// per-type primary CTA bottom-right. Scheduled passive items use a
-// muted variant (no CTA, lighter text) so admin's operational priorities
-// lead.
 
-// v9.0 Phase 7 Commit F: TaskCard moved to StepBoardCard
-// (components/admin/medjobs/StepBoardCard.tsx) so the stakeholder
-// TaskBoardSection and the EntityStepBoard share one chrome. Local
-// alias retained so the rest of this file's call sites don't need
-// to change shape.
-const TaskCard = StepBoardCard;
 
-function TaskBoardSection({
-  ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
-  const [showAdd, setShowAdd] = useState(false);
-  const [editingTask, setEditingTask] = useState<{ id: string; text: string } | null>(null);
-  const actionable = useMemo(
-    () =>
-      ctx.pending_tasks.filter((t) => {
-        const reason = (t.payload as Record<string, unknown> | null)?.reason;
-        if (t.task_type === "manual_followup" && reason === "custom") return true;
-        if (t.task_type === "partner_share_update" && reason === "job_board_post") return true;
-        return false;
-      }),
-    [ctx.pending_tasks],
-  );
-  const scheduled = useMemo(
-    () =>
-      ctx.pending_tasks
-        .filter((t) => !actionable.includes(t))
-        .sort((a, b) => a.due_at.localeCompare(b.due_at)),
-    [ctx.pending_tasks, actionable],
-  );
-  const handleErr = (p: Promise<unknown>) =>
-    p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
-
-  const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
-  const contactDisplay = primary
-    ? [primary.title, primary.first_name, primary.last_name]
-        .filter(Boolean)
-        .join(" ")
-        .trim() || primary.name || null
-    : null;
-
-  const overdueTone = (
-    <span className="rounded bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-900">
-      Overdue
-    </span>
-  );
-
-  const renderActionable = (t: Task) => {
-    const reason = (t.payload as Record<string, unknown> | null)?.reason;
-    const overdue = new Date(t.due_at).getTime() < Date.now();
-    const cta = (
-      <button
-        onClick={() =>
-          handleErr(
-            t.task_type === "partner_share_update"
-              ? action("mark_job_board_posted")
-              : action("complete_task", { task_id: t.id }),
-          )
-        }
-        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
-      >
-        {t.task_type === "partner_share_update" ? "Mark posted" : "Done"}
-      </button>
-    );
-
-    if (t.task_type === "partner_share_update" && reason === "job_board_post") {
-      return (
-        <TaskCard
-          key={t.id}
-          headline={`Post to ${ctx.campus.name} task board`}
-          subtitle="Olera's clinical-experience listing"
-          footnote={`Permission granted ${relativeTime(t.created_at)}`}
-          pill={overdue ? overdueTone : undefined}
-          overflow={
-            <TaskOverflow
-              items={[
-                {
-                  label: "Delete step",
-                  onClick: () => handleErr(action("cancel_task", { task_id: t.id })),
-                  tone: "danger",
-                },
-              ]}
-            />
-          }
-          cta={cta}
-        />
-      );
-    }
-    const text = String(
-      (t.payload as Record<string, unknown> | null)?.notes ??
-        (t.payload as Record<string, unknown> | null)?.description ??
-        "(no description)",
-    );
-    return (
-      <TaskCard
-        key={t.id}
-        headline={text}
-        subtitle="Custom step"
-        footnote={`Added ${relativeTime(t.created_at)}`}
-        pill={overdue ? overdueTone : undefined}
-        overflow={
-          <TaskOverflow
-            items={[
-              { label: "Edit step", onClick: () => setEditingTask({ id: t.id, text }) },
-              {
-                label: "Delete step",
-                onClick: () => handleErr(action("cancel_task", { task_id: t.id })),
-                tone: "danger",
-              },
-            ]}
-          />
-        }
-        cta={cta}
-      />
-    );
-  };
-
-  return (
-    <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Step Board
-      </h3>
-      <div className="space-y-2">
-        {actionable.length === 0 && scheduled.length === 0 ? (
-          <p className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-xs text-gray-400">
-            No steps yet. Add one to remind yourself of a follow-up.
-          </p>
-        ) : (
-          <>
-            {actionable.map(renderActionable)}
-            {scheduled.map((t) => (
-              <TaskCard
-                key={t.id}
-                muted
-                headline={scheduledTaskLabel(t)}
-                subtitle="Auto-scheduled — runs on its own."
-                footnote={`Sends ${formatDueAt(t.due_at)}`}
-              />
-            ))}
-          </>
-        )}
-        <button
-          onClick={() => setShowAdd(true)}
-          className="w-full rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
-        >
-          + Add step
-        </button>
-      </div>
-
-      {showAdd && (
-        <AddStakeholderTaskModal
-          organizationName={ctx.outreach.organization_name}
-          contactName={contactDisplay}
-          onCancel={() => setShowAdd(false)}
-          onSubmit={async (text) => {
-            await action("queue_manual_task", {
-              task_type: "manual_followup",
-              due_at: new Date().toISOString(),
-              notes: text,
-            });
-            setShowAdd(false);
-          }}
-        />
-      )}
-      {editingTask && (
-        <AddStakeholderTaskModal
-          organizationName={ctx.outreach.organization_name}
-          contactName={contactDisplay}
-          initialText={editingTask.text}
-          onCancel={() => setEditingTask(null)}
-          onSubmit={async (text) => {
-            // Cancel-then-create. New task gets a new ID; history shows
-            // the cancellation + the new queue. For MVP this is fine —
-            // admins typically edit shortly after creating.
-            await action("cancel_task", { task_id: editingTask.id });
-            await action("queue_manual_task", {
-              task_type: "manual_followup",
-              due_at: new Date().toISOString(),
-              notes: text,
-            });
-            setEditingTask(null);
-          }}
-        />
-      )}
-    </section>
-  );
-}
-
-/**
- * v8.10.29: Human label for a scheduled (non-actionable) pending task.
- * Renders as a passive ⏳ row inside Tasks. We intentionally don't expose
- * actions here — auto-cadence emails are managed via OutreachStepList,
- * calls via the Calls tab, seasonals via the cron.
- */
-function scheduledTaskLabel(t: Task): string {
-  const payload = (t.payload ?? {}) as Record<string, unknown>;
-  switch (t.task_type) {
-    case "outreach_email_send": {
-      const day = typeof payload.day === "number" ? payload.day : null;
-      if (day === -1) {
-        const season = typeof payload.season === "string" ? payload.season : null;
-        return season ? `Seasonal email · ${season}` : "Seasonal email";
-      }
-      return day !== null ? `Cadence email · Day ${day}` : "Outreach email";
-    }
-    case "outreach_followup_call":
-      return typeof payload.day === "number"
-        ? `Follow-up call · Day ${payload.day}`
-        : "Follow-up call";
-    case "partner_seasonal_checkin":
-      return "Seasonal check-in";
-    case "partner_event_coordination":
-      return "Event coordination";
-    case "partner_share_update":
-      return "Share update";
-    case "yearly_leadership_recheck":
-      return "Yearly leadership re-check";
-    case "approval_request_followup":
-      return "Approval follow-up";
-    case "manual_followup":
-      return typeof payload.notes === "string" ? String(payload.notes) : "Follow-up";
-    default:
-      return t.task_type.replaceAll("_", " ");
-  }
-}
-
-function formatDueAt(iso: string): string {
-  const ms = new Date(iso).getTime() - Date.now();
-  if (Math.abs(ms) < 60_000) return "now";
-  const mins = Math.round(ms / 60_000);
-  if (mins < 0) {
-    const past = Math.abs(mins);
-    if (past < 60) return `${past}m overdue`;
-    const hr = Math.round(past / 60);
-    if (hr < 24) return `${hr}h overdue`;
-    const d = Math.round(hr / 24);
-    return `${d}d overdue`;
-  }
-  if (mins < 60) return `in ${mins}m`;
-  const hr = Math.round(mins / 60);
-  if (hr < 24) return `in ${hr}h`;
-  const d = Math.round(hr / 24);
-  if (d < 14) return `in ${d}d`;
-  return new Date(iso).toLocaleDateString();
-}
-
-// ── History (with narration) ───────────────────────────────────────────
-
-function HistorySection({ ctx }: { ctx: DrawerContext }) {
-  const adminFirstNames = useMemo(
-    () => new Map(Object.entries(ctx.admin_first_names ?? {})),
-    [ctx.admin_first_names],
-  );
-  const contactsById = useMemo(
-    () => new Map(ctx.contacts.map((c) => [c.id, c])),
-    [ctx.contacts],
-  );
-
-  return (
-    <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        History
-      </h3>
-      {ctx.touchpoints.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-400">
-          No touchpoints yet.
-        </p>
-      ) : (
-        <ul className="space-y-1.5">
-          {ctx.touchpoints.map((t) => {
-            const n = narrateTouchpoint(t, { adminFirstNames, contactsById });
-            return (
-              <li key={t.id} className="rounded-md border border-gray-100 bg-white px-3 py-2 text-sm">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-gray-700">{n.text}</span>
-                  <span className="shrink-0 whitespace-nowrap text-xs text-gray-400">
-                    {n.admin && <span className="mr-2 text-gray-500">{n.admin}</span>}
-                    {relativeTime(n.whenIso)}
-                  </span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-function relativeTime(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime();
-  const min = Math.round(ms / 60_000);
-  if (min < 1) return "just now";
-  if (min < 60) return `${min}m ago`;
-  const hr = Math.round(min / 60);
-  if (hr < 24) return `${hr}h ago`;
-  const d = Math.round(hr / 24);
-  if (d < 14) return `${d}d ago`;
-  return new Date(iso).toLocaleDateString();
-}
 
 // ── Danger zone ────────────────────────────────────────────────────────
 

@@ -423,6 +423,27 @@ export interface DrawerContext {
     state: string | null;
     metadata: Record<string, unknown> | null;
   } | null;
+
+  /**
+   * v9 outreach timeline: per-email engagement data, keyed by
+   * email_log.id. Hydrated server-side from email_log's denormalized
+   * columns (set by the Resend webhook). The OutreachTimeline reads
+   * these to render delivered/opened/clicked/bounced chips on each
+   * email_sent touchpoint row without a per-row client fetch.
+   *
+   * Empty object when the row has no email_sent touchpoints yet.
+   */
+  email_engagement: Record<
+    string,
+    {
+      delivered_at: string | null;
+      first_opened_at: string | null;
+      first_clicked_at: string | null;
+      bounced_at: string | null;
+      complained_at: string | null;
+      last_event_type: string | null;
+    }
+  >;
 }
 
 export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {

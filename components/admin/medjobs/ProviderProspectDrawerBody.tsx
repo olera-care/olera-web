@@ -29,6 +29,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
+import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 
 interface Props {
   ctx: DrawerContext;
@@ -227,6 +228,14 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
           </p>
         )}
       </section>
+
+      {/* Zone 4 · OutreachTimeline — chronological history + future
+          cadence + custom-event footer. Same component the Partner
+          drawer mounts. Pre-launch this renders as the empty state
+          ("No outreach activity yet.") with the +Add footer still
+          available so admin can queue manual reminders before
+          launch if desired. */}
+      <OutreachTimeline ctx={ctx} action={action} setError={setError} />
     </div>
   );
 }

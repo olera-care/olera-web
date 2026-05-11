@@ -41,6 +41,7 @@ import type {
   StakeholderType,
   Status,
   TaskType,
+  Touchpoint,
   TouchpointType,
   Channel,
 } from "@/lib/student-outreach/types";
@@ -418,6 +419,44 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     providerBusinessProfile = (bp ?? null) as typeof providerBusinessProfile;
   }
 
+  // v9 timeline engagement chips: collect email_log_ids from every
+  // email_sent touchpoint's payload, fetch their denormalized
+  // engagement columns in one query, and keyed return for the
+  // OutreachTimeline to consume. Empty when no email sends exist
+  // (pre-launch rows). Skips the fetch entirely if no log ids
+  // present — minimal cost.
+  const emailLogIds = ((touchpoints ?? []) as Touchpoint[])
+    .filter((t) => t.touchpoint_type === "email_sent")
+    .map((t) => (t.payload as Record<string, unknown> | null)?.email_log_id)
+    .filter((v): v is string => typeof v === "string");
+  const emailEngagement: DrawerContext["email_engagement"] = {};
+  if (emailLogIds.length > 0) {
+    const { data: logs } = await db
+      .from("email_log")
+      .select(
+        "id, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, last_event_type",
+      )
+      .in("id", emailLogIds);
+    for (const l of (logs ?? []) as Array<{
+      id: string;
+      delivered_at: string | null;
+      first_opened_at: string | null;
+      first_clicked_at: string | null;
+      bounced_at: string | null;
+      complained_at: string | null;
+      last_event_type: string | null;
+    }>) {
+      emailEngagement[l.id] = {
+        delivered_at: l.delivered_at,
+        first_opened_at: l.first_opened_at,
+        first_clicked_at: l.first_clicked_at,
+        bounced_at: l.bounced_at,
+        complained_at: l.complained_at,
+        last_event_type: l.last_event_type,
+      };
+    }
+  }
+
   return {
     outreach: row,
     campus: campus as Campus,
@@ -436,6 +475,7 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     awaiting_callback_at: derived.awaiting_callback_at,
     awaiting_callback_kind: derived.awaiting_callback_kind,
     provider_business_profile: providerBusinessProfile,
+    email_engagement: emailEngagement,
   };
 }
 

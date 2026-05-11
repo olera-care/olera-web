@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useCallback, useEffect } from "react";
+import { Suspense, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -11,8 +11,27 @@ import { useAuth } from "@/components/auth/AuthProvider";
 // ════════════════════════════════════════════════════════════════════════════
 // Inbox Preview Page
 // Shows the inbox layout with message "ready to send" before email capture.
-// Used by the inbox_preview CTA variant to demonstrate the messaging value prop.
+// Matches the exact styling of /portal/inbox for seamless transition.
 // ════════════════════════════════════════════════════════════════════════════
+
+/** Deterministic gradient for fallback avatars - matches ConversationList */
+function avatarGradient(name: string): string {
+  const gradients = [
+    "linear-gradient(135deg, #0ea5e9, #6366f1)",
+    "linear-gradient(135deg, #14b8a6, #0ea5e9)",
+    "linear-gradient(135deg, #8b5cf6, #ec4899)",
+    "linear-gradient(135deg, #f59e0b, #ef4444)",
+    "linear-gradient(135deg, #10b981, #14b8a6)",
+    "linear-gradient(135deg, #6366f1, #a855f7)",
+    "linear-gradient(135deg, #ec4899, #f43f5e)",
+    "linear-gradient(135deg, #0891b2, #2dd4bf)",
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return gradients[Math.abs(hash) % gradients.length];
+}
 
 function InboxPreviewContent() {
   const searchParams = useSearchParams();
@@ -51,8 +70,7 @@ function InboxPreviewContent() {
   }, []);
 
   // Derived values
-  const providerFirstName = providerName.split(" ")[0];
-  const providerInitial = providerFirstName.charAt(0).toUpperCase();
+  const providerInitial = providerName.charAt(0).toUpperCase();
   const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
 
   // Handle form submission
@@ -183,15 +201,15 @@ function InboxPreviewContent() {
     <div className="h-[calc(100dvh-64px)] bg-white">
       <div className="h-full flex">
         {/* ════════════════════════════════════════════════════════════════════
-            Left Panel — Conversation List (simplified)
+            Left Panel — Conversation List (matches ConversationList.tsx)
             ════════════════════════════════════════════════════════════════════ */}
         <div className="hidden lg:flex flex-col w-[360px] shrink-0 border-r border-gray-200">
-          {/* Header */}
+          {/* Header - matches ConversationList */}
           <div className="h-[68px] px-6 flex items-center border-b border-gray-200">
-            <h1 className="text-xl font-semibold text-gray-900">Messages</h1>
+            <h1 className="text-xl font-display font-semibold text-gray-900">Messages</h1>
           </div>
 
-          {/* Conversation item */}
+          {/* Conversation item - selected state */}
           <div className="flex-1 overflow-y-auto">
             <div className="p-2">
               <div className="flex items-center gap-3 px-4 py-3 bg-primary-50 rounded-xl cursor-default">
@@ -202,13 +220,14 @@ function InboxPreviewContent() {
                     alt={providerName}
                     width={48}
                     height={48}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover shrink-0"
                   />
                 ) : (
-                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                    <span className="text-primary-700 font-semibold">
-                      {providerInitial}
-                    </span>
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 text-white text-sm font-bold"
+                    style={{ background: avatarGradient(providerName) }}
+                  >
+                    {providerInitial}
                   </div>
                 )}
 
@@ -225,7 +244,7 @@ function InboxPreviewContent() {
                   </p>
                 </div>
 
-                {/* Unread badge */}
+                {/* Unread indicator */}
                 <div className="w-2.5 h-2.5 bg-primary-600 rounded-full shrink-0" />
               </div>
             </div>
@@ -233,15 +252,15 @@ function InboxPreviewContent() {
         </div>
 
         {/* ════════════════════════════════════════════════════════════════════
-            Middle Panel — Conversation with Email Capture
+            Middle Panel — Conversation (matches ConversationPanel.tsx)
             ════════════════════════════════════════════════════════════════════ */}
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Header */}
+          {/* Header - exact match to ConversationPanel */}
           <div className={`shrink-0 pl-4 sm:pl-6 ${detailOpen ? "pr-4 sm:pr-6" : "pr-4 sm:pr-[44px]"} h-[68px] border-b border-gray-200 flex items-center gap-3`}>
-            {/* Back button */}
+            {/* Back button (mobile) */}
             <Link
               href={`/provider/${providerSlug}`}
-              className="-ml-2 mr-1 w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+              className="lg:hidden -ml-2 mr-1 w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
               aria-label="Back to provider"
             >
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,125 +268,123 @@ function InboxPreviewContent() {
               </svg>
             </Link>
 
-            {/* Provider info */}
-            {providerImage ? (
-              <Image
-                src={providerImage}
-                alt={providerName}
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                <span className="text-primary-700 font-semibold text-sm">
+            {/* Avatar */}
+            <div className="shrink-0">
+              {providerImage ? (
+                <Image
+                  src={providerImage}
+                  alt={providerName}
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                  style={{ background: avatarGradient(providerName) }}
+                >
                   {providerInitial}
-                </span>
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-semibold text-gray-900 truncate">{providerName}</p>
-              {locationStr && (
-                <p className="text-xs text-gray-500 truncate">{locationStr}</p>
+                </div>
               )}
             </div>
 
-            {/* Toggle detail panel */}
-            <button
-              onClick={() => setDetailOpen(!detailOpen)}
-              className="hidden lg:flex w-10 h-10 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-              aria-label={detailOpen ? "Hide details" : "Show details"}
-            >
-              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Message area */}
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
-            {/* User's message bubble */}
-            <div className="flex justify-end mb-4">
-              <div className="max-w-[70%]">
-                <div className="bg-primary-600 rounded-2xl rounded-br-md px-4 py-3 shadow-sm">
-                  <p className="text-base leading-relaxed text-white">{question}</p>
-                </div>
-                <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{timeStr}</p>
-              </div>
+            {/* Name + location */}
+            <div className="flex-1 min-w-0">
+              <span className="text-lg font-display font-semibold text-gray-900 truncate block">
+                {providerName}
+              </span>
+              {locationStr && (
+                <p className="text-sm text-gray-500 truncate">{locationStr}</p>
+              )}
             </div>
 
-            {/* Ready to send status */}
-            <div className="flex items-center justify-end gap-2 text-amber-600 mb-6">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="text-sm font-medium">Ready to send</span>
+            {/* Show Details toggle - hidden on mobile, hidden when panel open */}
+            {!detailOpen && (
+              <button
+                onClick={() => setDetailOpen(true)}
+                className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Show Details
+              </button>
+            )}
+          </div>
+
+          {/* Conversation thread - exact match to ConversationPanel */}
+          <div className={`flex-1 min-h-0 overflow-y-auto px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-6 bg-white`}>
+            <div className="space-y-4">
+              {/* Date separator */}
+              <div className="flex justify-center py-3">
+                <span className="text-sm font-medium text-gray-400">
+                  {now.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </span>
+              </div>
+
+              {/* User's outgoing message - exact match to ConversationPanel outgoing style */}
+              <div className="flex justify-end">
+                <div className="max-w-[70%]">
+                  <div className="bg-primary-600 rounded-2xl rounded-br-md px-4 py-3 shadow-sm">
+                    <p className="text-base leading-relaxed text-white">{question}</p>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{timeStr}</p>
+                </div>
+              </div>
+
+              {/* Ready to send indicator */}
+              <div className="flex justify-center py-2">
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 bg-amber-50 px-4 py-2 rounded-full">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Ready to send
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Email capture footer (replaces message input) */}
-          <div
-            className="shrink-0 px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50/50"
-            style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))" }}
-          >
-            {/* Non-family profile block */}
-            {isNonFamilyProfile ? (
-              <div className="max-w-lg mx-auto text-center py-4">
-                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                  </svg>
-                </div>
-                <h4 className="text-[15px] font-semibold text-gray-900 mb-1">
-                  Family account required
-                </h4>
-                <p className="text-sm text-gray-600 mb-3">
-                  Care inquiries can only be sent from a family account.
-                </p>
-                <button
-                  onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
-                  className="px-6 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-xl text-sm font-semibold transition-colors"
-                >
-                  Create Family Account
-                </button>
-              </div>
-            ) : blockedEmail ? (
-              /* Provider email block */
-              <div className="max-w-lg mx-auto text-center py-4">
-                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                  </svg>
-                </div>
-                <h4 className="text-[15px] font-semibold text-gray-900 mb-1">
-                  Provider email detected
-                </h4>
-                <p className="text-sm text-gray-600 mb-3">
-                  The email <span className="font-medium text-gray-800">{blockedEmail}</span> is linked to a provider account.
-                </p>
-                <div className="flex gap-2 justify-center">
+          {/* Email capture footer - replaces message input */}
+          <div className="shrink-0 border-t border-gray-200 bg-white">
+            <div className={`px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-4`} style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))" }}>
+              {/* Non-family profile block */}
+              {isNonFamilyProfile ? (
+                <div className="text-center py-2">
+                  <p className="text-sm text-gray-600 mb-3">
+                    Care inquiries can only be sent from a family account.
+                  </p>
                   <button
-                    onClick={resetFromProviderEmailBlock}
-                    className="px-5 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-xl text-sm font-semibold transition-colors"
+                    onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
+                    className="px-6 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-xl text-sm font-semibold transition-colors"
                   >
-                    Use Different Email
-                  </button>
-                  <button
-                    onClick={() => openAuth({ defaultMode: "sign-in" })}
-                    className="px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-semibold border border-gray-300 transition-colors"
-                  >
-                    Sign In
+                    Create Family Account
                   </button>
                 </div>
-              </div>
-            ) : user ? (
-              /* Logged-in user — one-click send */
-              <div className="max-w-lg mx-auto">
+              ) : blockedEmail ? (
+                /* Provider email block */
+                <div className="text-center py-2">
+                  <p className="text-sm text-gray-600 mb-2">
+                    <span className="font-medium text-gray-800">{blockedEmail}</span> is linked to a provider account.
+                  </p>
+                  <div className="flex gap-2 justify-center">
+                    <button
+                      onClick={resetFromProviderEmailBlock}
+                      className="px-5 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-xl text-sm font-semibold transition-colors"
+                    >
+                      Use Different Email
+                    </button>
+                    <button
+                      onClick={() => openAuth({ defaultMode: "sign-in" })}
+                      className="px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-semibold border border-gray-300 transition-colors"
+                    >
+                      Sign In
+                    </button>
+                  </div>
+                </div>
+              ) : user ? (
+                /* Logged-in user — one-click send */
                 <div className="flex items-center gap-4">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-600">
@@ -384,25 +401,23 @@ function InboxPreviewContent() {
                     )}
                     {submitting ? "Sending..." : "Send Message"}
                   </button>
+                  {error && (
+                    <p className="text-xs text-red-600" role="alert">{error}</p>
+                  )}
                 </div>
-                {error && (
-                  <p className="text-xs text-red-600 mt-2" role="alert">{error}</p>
-                )}
-              </div>
-            ) : (
-              /* Guest — email capture */
-              <div className="max-w-lg mx-auto">
-                <p className="text-sm text-gray-600 mb-3">
-                  Enter your email to send this message to {providerFirstName}
-                </p>
-                <div className="flex gap-3">
-                  <div className="flex-1 relative">
+              ) : (
+                /* Guest — email capture styled like ConversationPanel input */
+                <div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Enter your email to send this message
+                  </p>
+                  <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" && !submitting) {
+                        if (e.key === "Enter" && !submitting && email.trim()) {
                           e.preventDefault();
                           handleSubmit();
                         }
@@ -410,8 +425,8 @@ function InboxPreviewContent() {
                       placeholder="Your email address"
                       autoComplete="email"
                       autoFocus
-                      className={`w-full px-4 py-2.5 border rounded-xl text-[15px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all ${
-                        error ? "border-red-300" : "border-gray-300"
+                      className={`w-full px-4 pt-3.5 pb-3 text-base text-gray-900 placeholder:text-gray-400 outline-none resize-none disabled:opacity-50 leading-relaxed bg-transparent ${
+                        error ? "border-red-300" : ""
                       }`}
                     />
                     {/* Honeypot */}
@@ -425,31 +440,41 @@ function InboxPreviewContent() {
                       autoComplete="off"
                       aria-hidden="true"
                     />
+                    <div className="flex items-center justify-between px-3 pb-3">
+                      <p className="text-xs text-gray-400 pl-1">
+                        Your inbox saves here
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={submitting || !email.trim()}
+                        className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
+                          email.trim()
+                            ? "bg-primary-600 text-white hover:bg-primary-700"
+                            : "bg-gray-200 text-gray-400"
+                        }`}
+                      >
+                        {submitting ? (
+                          <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19V5m0 0l-7 7m7-7l7 7" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting || !email.trim()}
-                    className="px-6 py-2.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shrink-0"
-                  >
-                    {submitting && (
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    )}
-                    {submitting ? "Sending..." : "Send"}
-                  </button>
+                  {error && (
+                    <p className="text-xs text-red-600 mt-2 pl-1" role="alert">{error}</p>
+                  )}
                 </div>
-                {error && (
-                  <p className="text-xs text-red-600 mt-2" role="alert">{error}</p>
-                )}
-                <p className="text-xs text-gray-500 mt-2">
-                  Your inbox saves here, so you can come back when they reply.
-                </p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
         {/* ════════════════════════════════════════════════════════════════════
-            Right Panel — Provider Details
+            Right Panel — Provider Details (matches ProviderDetailPanel.tsx)
             ════════════════════════════════════════════════════════════════════ */}
         <div
           className={`hidden lg:flex shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${
@@ -459,7 +484,7 @@ function InboxPreviewContent() {
           <div className="flex flex-col w-[360px] h-full border-l border-gray-200 bg-gray-50/50">
             {/* Header */}
             <div className="h-[68px] px-6 flex items-center justify-between border-b border-gray-200 bg-white">
-              <h2 className="text-[15px] font-semibold text-gray-900">Provider Details</h2>
+              <h2 className="text-[15px] font-semibold text-gray-900">Details</h2>
               <button
                 onClick={() => setDetailOpen(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
@@ -483,17 +508,18 @@ function InboxPreviewContent() {
                         alt={providerName}
                         width={64}
                         height={64}
-                        className="w-16 h-16 rounded-xl object-cover"
+                        className="w-16 h-16 rounded-xl object-cover shrink-0"
                       />
                     ) : (
-                      <div className="w-16 h-16 bg-primary-100 rounded-xl flex items-center justify-center">
-                        <span className="text-primary-700 font-bold text-xl">
-                          {providerInitial}
-                        </span>
+                      <div
+                        className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0 text-white font-bold text-xl"
+                        style={{ background: avatarGradient(providerName) }}
+                      >
+                        {providerInitial}
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-0.5">
+                      <h3 className="text-lg font-display font-semibold text-gray-900 mb-0.5">
                         {providerName}
                       </h3>
                       {providerCategory && (
@@ -509,7 +535,7 @@ function InboxPreviewContent() {
                 {/* Contact info */}
                 {providerPhone && (
                   <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Contact</p>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Contact</p>
                     <a
                       href={`tel:${providerPhone}`}
                       className="flex items-center gap-2 text-[15px] text-primary-600 hover:text-primary-700"

@@ -5,9 +5,10 @@ import { useCTAVariant, isCTAPreviewMode } from "@/hooks/use-cta-variant";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
 import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
-import { InboxPreviewCard } from "@/components/providers/cta-variants";
+import { InboxPreviewCard, CompareCard } from "@/components/providers/cta-variants";
 import MobileStickyInboxPreview from "@/components/providers/MobileStickyInboxPreview";
 import MobileStickyCompare from "@/components/providers/MobileStickyCompare";
+import type { CompareProvider } from "@/components/providers/CompareBottomSheet";
 
 // Props shared by both routers — mirrors ConnectionCardWithRedirect's interface.
 export interface CTARouterProps {
@@ -26,6 +27,10 @@ export interface CTARouterProps {
   providerCity?: string | null;
   providerState?: string | null;
   providerImage?: string | null;
+  /** Rating for compare variant */
+  rating?: number | null;
+  /** Similar providers for compare variant */
+  similarProviders?: CompareProvider[];
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -105,6 +110,8 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
     providerCity,
     providerState,
     providerImage,
+    rating,
+    similarProviders,
   } = props;
 
   const isPreview = isCTAPreviewMode();
@@ -152,6 +159,26 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
           onQuestionSelected={handleQuestionSelected}
         />
       );
+    case "compare":
+      return (
+        <CompareCard
+          providerId={providerId}
+          providerName={providerName}
+          providerSlug={providerSlug}
+          providerCategory={providerCategory}
+          providerCity={providerCity}
+          providerState={providerState}
+          providerPhone={phone}
+          providerImage={providerImage}
+          priceRange={priceRange}
+          rating={rating}
+          reviewCount={reviewCount}
+          services={careTypes}
+          similarProviders={similarProviders}
+          ctaVariant={variant}
+          ctaPreviewMode={isPreview}
+        />
+      );
     case "legacy":
     default:
       return (
@@ -195,6 +222,10 @@ export interface MobileCTARouterProps {
   providerCity?: string | null;
   providerState?: string | null;
   providerImage?: string | null;
+  /** Rating for compare variant */
+  rating?: number | null;
+  /** Similar providers for compare variant */
+  similarProviders?: CompareProvider[];
 }
 
 /**
@@ -219,6 +250,8 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
     providerCity,
     providerState,
     providerImage,
+    rating,
+    similarProviders,
   } = props;
 
   const isPreview = isCTAPreviewMode();
@@ -253,12 +286,12 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerPhone={phone}
           providerImage={providerImage}
           priceRange={priceRange}
+          rating={rating}
+          reviewCount={reviewCount}
+          services={careTypes}
+          similarProviders={similarProviders}
           ctaVariant={variant}
           ctaPreviewMode={isPreview}
-          onCompareClick={() => {
-            // Step 2 will be implemented - for now just log
-            console.log("[compare] Compare clicked - next step TBD");
-          }}
         />
       );
     case "legacy":

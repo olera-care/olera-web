@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import CompareBottomSheet, { type CompareProvider } from "./CompareBottomSheet";
 
 interface MobileStickyCompareProps {
   providerName: string;
@@ -13,16 +14,21 @@ interface MobileStickyCompareProps {
   providerPhone?: string | null;
   providerImage?: string | null;
   priceRange?: string | null;
+  rating?: number | null;
+  reviewCount?: number | null;
+  services?: string[];
+  specialty?: string | null;
+  availability?: string | null;
+  /** Similar providers to compare against */
+  similarProviders?: CompareProvider[];
   ctaVariant?: string | null;
   ctaPreviewMode?: boolean;
-  /** Called when user taps Compare - parent handles navigation/next step */
-  onCompareClick?: () => void;
 }
 
 /**
  * Mobile sticky CTA for the "compare" variant.
  * Step 1: Shows "How does [Provider] compare?" with Compare button.
- * Next steps handled by parent after onCompareClick.
+ * Step 2: Opens bottom sheet with horizontal swipeable comparison cards.
  */
 export default function MobileStickyCompare({
   providerName,
@@ -34,15 +40,38 @@ export default function MobileStickyCompare({
   providerPhone,
   providerImage,
   priceRange,
+  rating,
+  reviewCount,
+  services,
+  specialty,
+  availability,
+  similarProviders = [],
   ctaVariant,
   ctaPreviewMode = false,
-  onCompareClick,
 }: MobileStickyCompareProps) {
   const [visible, setVisible] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // Suppression flags (same as other mobile CTAs)
   const [benefitsInView, setBenefitsInView] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  // Build current provider object for comparison
+  const currentProvider: CompareProvider = {
+    id: providerId,
+    slug: providerSlug,
+    name: providerName,
+    image: providerImage,
+    category: providerCategory,
+    city: providerCity,
+    state: providerState,
+    rating,
+    reviewCount,
+    priceRange,
+    services,
+    specialty,
+    availability,
+  };
 
   // Extract first name from provider name
   const firstName = (() => {
@@ -50,6 +79,9 @@ export default function MobileStickyCompare({
     const rawFirstName = cleanName.split(/\s/)[0] || providerName?.split(/\s/)[0] || "them";
     return rawFirstName.replace(/'s$/i, "") || rawFirstName;
   })();
+
+  // Number of similar providers to show in copy
+  const nearbyCount = Math.min(similarProviders.length, 2);
 
   // Fire analytics when Compare is clicked
   const clickFiredRef = useRef(false);
@@ -72,8 +104,19 @@ export default function MobileStickyCompare({
         }),
       }).catch(() => {});
     }
-    onCompareClick?.();
-  }, [ctaVariant, ctaPreviewMode, providerSlug, onCompareClick]);
+    setSheetOpen(true);
+  }, [ctaVariant, ctaPreviewMode, providerSlug]);
+
+  const handleCloseSheet = useCallback(() => {
+    setSheetOpen(false);
+    // Reset click tracking so user can open again
+    clickFiredRef.current = false;
+  }, []);
+
+  const handleSaveComparison = useCallback(() => {
+    // TODO: Implement save comparison (triggers email capture)
+    console.log("[compare] Save comparison - next step TBD");
+  }, []);
 
   // Scroll visibility with hysteresis
   const handleScroll = useCallback(() => {
@@ -194,7 +237,7 @@ export default function MobileStickyCompare({
                 How does {firstName} compare?
               </p>
               <p className="text-[13px] text-gray-500 mt-0.5">
-                Side by side with 2 nearby homes
+                Side by side with {nearbyCount || 2} nearby home{nearbyCount !== 1 ? "s" : ""}
               </p>
             </div>
 
@@ -207,6 +250,15 @@ export default function MobileStickyCompare({
           </div>
         </div>
       </div>
+
+      {/* Comparison bottom sheet */}
+      <CompareBottomSheet
+        isOpen={sheetOpen}
+        onClose={handleCloseSheet}
+        currentProvider={currentProvider}
+        similarProviders={similarProviders}
+        onSaveComparison={handleSaveComparison}
+      />
     </>
   );
 }

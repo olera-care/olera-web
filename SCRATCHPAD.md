@@ -7,6 +7,35 @@
 
 ## Current Focus
 
+### 2026-05-11 (Mon) — `/product-led-growth --weekly` (first weekly run) + 10-view provider nudge tasks crafted
+
+First `/weekly` run after two skipped Mondays. Pulled `scripts/growth-pull.js --days 7`, read the Growth Strategy Brief / Running Thread / Command Center, measured the in-flight experiments, wrote the weekly report + Running Thread run entry, then turned to crafting the 10-view nudge task per TJ.
+
+**Weekly findings (current 5/4–5/11 vs prior 4/27–5/4):**
+
+- Demand up, provider response down. 584 questions received (+20% WoW), 10 distinct providers answered anything (down from 22). Unanswered backlog crossed **3,517** and grows ~475/wk. Open→sign-in on Q&A emails fell to ~7.5% (from ~20%). **This is the binding constraint** — and we'd shipped seven seeker-side post-question CTA arms in two weeks with zero real conversions.
+- Traffic down ~26–31% WoW (5,153 page views / 4,151 unique sessions vs 6,936 / 6,022). Cause unclear — variance + ongoing organic demotion (the 5/8 GSC diagnostic). Watch; if sessions stay sub-4.5K next week, escalate.
+- `benefits_started` −68% is an **instrumentation artifact** — the empathic_single arm renders `EmpathicSingleStep`, which fires `step_name=contact` / `empathic_single_submitted`, not `benefits_started`. `benefits_completed` only −18% (server-side). Metric is unreliable while empathic_single is live.
+- **`saves` = 0 this week vs 7 prior.** The guest-save fix shipped 5/1; zero `connections type='save'` rows in a 4,151-session week is a candidate regression. Needs a 5-min check.
+- `matches_activated` = 2 — first non-zero ever. `family_profiles_total` = **407**, not the "17" the Strategy Brief quoted (that 17 was the "let providers find me" toggle subset, not the family-profile base). +43 new family profiles this week.
+
+**Shipped:** PR #772 — `scripts/growth-pull.js` now reports seeker relational metrics (`connections type='save'` per window, `business_profiles type='family'` per window + total). We shipped save=profile on 5/1 with no way to read it from the weekly pull; this closes the gap (and immediately surfaced saves=0). Worktree at `~/Desktop/olera-web-growth-seeker-metrics`.
+
+**Notion writes:** Weekly report ("Weekly — May 4–11, 2026") created under Growth Command Center; Command Center snapshot rewritten; Running Thread got a weekly run entry + Active Experiments table updated (outreach arm → "shipped, paused (dial=0%)"; empathic_single + multi_provider arms added; post-answer-hook decide-by → 5/18); Strategy Brief Strategic Backlog #4 elevated to "Next up (active P1)".
+
+**10-view provider nudge — tasks crafted (both P1, Esther, Web App board):**
+
+1. **Parent rewritten** → "Provider nudge email — page views + an unanswered question as the hook" (`34e5903a0ffe8064b7b8c0f8cd7ff8f4`). Reframed the hook from profile-completion to "unanswered question + a real page-view count." TJ's calls baked in: **monthly (30-day) view window**, not weekly/biweekly — senior care web traffic is low and a short window means the number is almost always deflating; and **the number never deflates** — below the bar, stretch to 60/90 days or fall back to an area-level signal, zero views = don't mention views. Generic cron + send pipeline so the stale-Q backlog nudge and the Meet-the-Owner/Photos trigger reuse it. Three-section task convention (Context / What we need / Done when) + a "why now" footer.
+2. **v0 split out** → "Add a demand-signal frame to the question-received email" (`35d5903a0ffe810abf0af6603bd37d72`). Folds the demand-signal frame into the existing `questionReceivedEmail` (fires for every question already) — one copy change + one query at send time. Ships first; tells us whether the demand hook moves answer rate at all before the standalone cron gets built.
+
+Build order: v0 in `questionReceivedEmail` → measure answer-rate movement → if it moves, build the standalone monthly-view cron + add the profile-completion trigger on top.
+
+**New memory:** `feedback_senior_care_monthly_windows.md` — use 30-day rolling windows for provider-facing metrics, not weekly.
+
+**Resume next session here →** (1) Check whether the save flow regressed — `connections type='save'` = 0 this week, save fix shipped 5/1. (2) The v0 demand-signal email is the elevated priority — Esther's queue. (3) Watch traffic next Monday's `/weekly`; sub-4.5K sessions = escalate to the GSC/de-indexing track. (4) Decide-or-retire the outreach arm (darked at 0% since 5/6, merged-but-dormant reframe). (5) Post-answer hook formal read needs the `/admin/analytics` funnel columns (`qa_success_arrivals` → picker click → profile edit), not in the weekly pull. (6) Drop `benefits_started` from the weekly KPI block or re-instrument it in the empathic component.
+
+---
+
 ### 2026-05-08 (Fri) — GSC indexing diagnostic + Project 1 shipped: provider removal blocklist (P1, on `quiet-kepler`, ready for PR)
 
 Started as "why so many crawled-not-indexed pages?" Pivoted twice as the evidence reframed the question, ended with a 4-project plan AND shipped the foundation (Project 1: data layer + admin surface). Migration applied to production Supabase mid-session; TJ caught up the blocklist with all known provider-requested takedowns via the admin UI before the PR was opened.

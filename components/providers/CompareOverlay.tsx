@@ -253,11 +253,15 @@ export default function CompareOverlay({
                   <div
                     key={provider.id}
                     className={`p-4 bg-white ${
-                      index === 0 ? "border-l-4 border-l-gray-900" : ""
-                    } ${
                       index < allProviders.length - 1 ? "border-r border-gray-200" : ""
                     }`}
                   >
+                    {/* "This page" label for current provider */}
+                    {index === 0 && (
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-600 mb-2">
+                        This page
+                      </p>
+                    )}
                     <div className="flex items-start gap-3">
                       {/* Avatar */}
                       {provider.image ? (
@@ -280,7 +284,7 @@ export default function CompareOverlay({
                       <div className="flex-1 min-w-0">
                         <Link
                           href={`/provider/${provider.slug}`}
-                          className="text-[15px] font-bold text-gray-900 leading-tight hover:text-primary-600 transition-colors"
+                          className="text-[15px] font-bold text-gray-900 leading-tight hover:text-primary-600 transition-colors line-clamp-1"
                         >
                           {provider.name}
                         </Link>
@@ -478,8 +482,6 @@ function CompareRow({
         <div
           key={provider.id}
           className={`p-4 bg-white ${
-            index === 0 ? "border-l-4 border-l-gray-900" : ""
-          } ${
             index < providers.length - 1 ? "border-r border-gray-200" : ""
           }`}
         >

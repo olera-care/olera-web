@@ -36,6 +36,7 @@
 import { useMemo, useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
+import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
 
 type ActionFn = (
   actionName: string,
@@ -55,6 +56,19 @@ interface FutureRow {
   icon: string;
   title: string;
   subline: string | null;
+  /**
+   * v9 Phase 9: optional per-task call action. When present, the
+   * timeline row renders an inline Log button that opens
+   * LogCallOutcomeModal scoped to this specific task. Other future
+   * row types (email queued, custom event) leave this null.
+   */
+  callTask: {
+    taskId: string;
+    recipientName: string | null;
+    recipientPhone: string | null;
+    recipientRole: string | null;
+    cadenceDay: number | null;
+  } | null;
 }
 
 interface PastRow {
@@ -114,7 +128,12 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
       if (t.status !== "pending") continue;
       const payload = t.payload as Record<string, unknown> | null;
       const day = typeof payload?.day === "number" ? payload.day : null;
-      const title = futureTitleFor(t.task_type, day, payload);
+      const recipientName =
+        typeof payload?.recipient_name === "string"
+          ? (payload.recipient_name as string)
+          : null;
+      const title = futureTitleFor(t.task_type, day, payload, recipientName);
+      const isCallTask = t.task_type === "outreach_followup_call";
       out.push({
         kind: "future",
         key: `task-${t.id}`,
@@ -124,7 +143,26 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
         subline:
           t.task_type === "manual_followup" && payload?.reason === "custom"
             ? (typeof payload.notes === "string" ? payload.notes : null)
-            : null,
+            : isCallTask &&
+              typeof payload?.recipient_phone === "string" &&
+              payload.recipient_phone
+              ? `☎ ${payload.recipient_phone}`
+              : null,
+        callTask: isCallTask
+          ? {
+              taskId: t.id,
+              recipientName,
+              recipientPhone:
+                typeof payload?.recipient_phone === "string"
+                  ? (payload.recipient_phone as string)
+                  : null,
+              recipientRole:
+                typeof payload?.recipient_role === "string"
+                  ? (payload.recipient_role as string)
+                  : null,
+              cadenceDay: day,
+            }
+          : null,
       });
     }
 
@@ -138,6 +176,32 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
 
     return out;
   }, [ctx.touchpoints, ctx.pending_tasks, adminFirstNames, contactsById]);
+
+  // v9 Phase 9: per-task call logging state. When admin clicks Log
+  // on a call task row, we open LogCallOutcomeModal scoped to that
+  // specific recipient + task_id. The handler dispatches log_call
+  // with task_id so markCurrentCallTaskComplete claims THAT task
+  // (not the most-overdue auto-pick).
+  const [callLogTask, setCallLogTask] = useState<FutureRow["callTask"]>(null);
+
+  const submitCallLog = async (
+    outcome: string,
+    notes: string,
+  ): Promise<void> => {
+    if (!callLogTask) return;
+    try {
+      await action("log_call", {
+        outcome,
+        notes,
+        task_id: callLogTask.taskId,
+        cadence_day: callLogTask.cadenceDay ?? undefined,
+      });
+      setCallLogTask(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to log call");
+      throw e;
+    }
+  };
 
   return (
     <section>
@@ -163,12 +227,28 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
                     ? ctx.email_engagement?.[r.emailLogId] ?? null
                     : null
                 }
+                onLogCall={
+                  r.kind === "future" && r.callTask
+                    ? () => setCallLogTask(r.callTask)
+                    : undefined
+                }
               />
             ))}
           </ul>
         )}
         <AddCustomEventFooter ctx={ctx} action={action} setError={setError} />
       </div>
+
+      {callLogTask && (
+        <LogCallOutcomeModal
+          organizationName={ctx.outreach.organization_name}
+          contactName={callLogTask.recipientName}
+          contactPhone={callLogTask.recipientPhone}
+          rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
+          onCancel={() => setCallLogTask(null)}
+          onSubmit={submitCallLog}
+        />
+      )}
     </section>
   );
 }
@@ -179,15 +259,20 @@ function TimelineRow({
   row,
   showNowDivider,
   engagement,
+  onLogCall,
 }: {
   row: TimelineRow;
   showNowDivider: boolean;
   engagement: NonNullable<DrawerContext["email_engagement"]>[string] | null;
+  /** v9 Phase 9: inline Log button for per-task call rows. Optional —
+   *  only attached when the row is a future call task. */
+  onLogCall?: () => void;
 }) {
   const whenLabel =
     row.kind === "future"
       ? formatFuture(row.whenIso)
       : formatPast(row.whenIso);
+  const isCallTask = row.kind === "future" && row.callTask != null;
   return (
     <>
       {showNowDivider && (
@@ -220,12 +305,24 @@ function TimelineRow({
             )}
             {engagement && <EngagementChips e={engagement} />}
           </div>
-          <span className="shrink-0 whitespace-nowrap text-xs text-gray-400">
+          <div className="shrink-0 whitespace-nowrap text-xs text-gray-400">
             {row.kind === "past" && row.admin && (
               <span className="mr-2 text-gray-500">{row.admin}</span>
             )}
-            {whenLabel}
-          </span>
+            <span>{whenLabel}</span>
+            {isCallTask && onLogCall && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLogCall();
+                }}
+                title="Log the outcome of this specific call."
+                className="ml-3 rounded-md bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
+              >
+                Log
+              </button>
+            )}
+          </div>
         </div>
       </li>
     </>
@@ -403,15 +500,19 @@ function futureTitleFor(
   taskType: string,
   day: number | null,
   payload: Record<string, unknown> | null,
+  recipientName?: string | null,
 ): string {
   const dayLabel = day != null ? `Day ${day} ` : "";
+  const recipientSuffix = recipientName ? ` to ${recipientName}` : "";
   switch (taskType) {
     case "outreach_email_send":
-      return `${dayLabel}email queued`;
+      return `${dayLabel}email queued${recipientSuffix}`;
     case "outreach_followup_email":
-      return `${dayLabel}follow-up email queued`;
+      return `${dayLabel}follow-up email queued${recipientSuffix}`;
     case "outreach_followup_call":
-      return `${dayLabel}call queued`;
+      return recipientName
+        ? `${dayLabel}call to ${recipientName}`
+        : `${dayLabel}call queued`;
     case "outreach_day_0":
       return "Day 0 outreach queued";
     case "manual_followup": {

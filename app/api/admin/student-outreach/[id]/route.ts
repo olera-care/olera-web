@@ -1086,17 +1086,27 @@ async function markCurrentCallTaskComplete(
   db: DB,
   outreachId: string,
   userId: string,
+  pinnedTaskId?: string,
 ): Promise<{ claimed: boolean; cadence_day: number | null }> {
   const nowIso = new Date().toISOString();
-  const { data: dueRows } = await db
+  // v9 Phase 9: when admin logs a specific call task (from the
+  // OutreachTimeline per-task Log button), claim THAT task by id
+  // instead of the most-overdue auto-pick. Lets admin log calls
+  // out of due-order — e.g. they called Logan first, voicemail;
+  // then called General Office, connected. Per-task logging
+  // matches operational reality with per-recipient cadence.
+  let query = db
     .from("student_outreach_tasks")
     .select("id, payload")
     .eq("outreach_id", outreachId)
     .eq("status", "pending")
-    .eq("task_type", "outreach_followup_call")
-    .lte("due_at", nowIso)
-    .order("due_at", { ascending: false })
-    .limit(1);
+    .eq("task_type", "outreach_followup_call");
+  if (pinnedTaskId) {
+    query = query.eq("id", pinnedTaskId);
+  } else {
+    query = query.lte("due_at", nowIso).order("due_at", { ascending: false });
+  }
+  const { data: dueRows } = await query.limit(1);
   const due = (dueRows ?? []) as Array<{ id: string; payload: Record<string, unknown> | null }>;
   if (due.length === 0) return { claimed: false, cadence_day: null };
   const dayRaw = due[0].payload?.day;
@@ -1148,6 +1158,14 @@ async function handleLogCall(
      *  Server prefers this when set; otherwise it reads the day from the
      *  task that markCurrentCallTaskComplete claims. */
     cadence_day?: number;
+    /**
+     * v9 Phase 9: when admin clicks per-task Log inside the drawer
+     * Timeline, this carries the specific call task id so the claim
+     * targets that task instead of the most-overdue auto-pick. Lets
+     * admin log out-of-order calls when multiple recipients are
+     * pending simultaneously.
+     */
+    task_id?: string;
   },
   userId: string,
 ) {
@@ -1160,7 +1178,7 @@ async function handleLogCall(
   // (connected_not_interested, wrong_number) still get tagged via body
   // hint or the outermost claim — they transition stage immediately
   // afterward, which cancels remaining tasks via tasksToCancelOnExit.
-  const claim = await markCurrentCallTaskComplete(db, row.id, userId);
+  const claim = await markCurrentCallTaskComplete(db, row.id, userId, body.task_id);
   const cadence_day =
     typeof body.cadence_day === "number" ? body.cadence_day : claim.cadence_day;
   const callPayload: Record<string, unknown> = {};

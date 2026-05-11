@@ -17,8 +17,7 @@ interface MobileStickyCompareProps {
   rating?: number | null;
   reviewCount?: number | null;
   services?: string[];
-  specialty?: string | null;
-  availability?: string | null;
+  highlights?: string[];
   /** Similar providers to compare against */
   similarProviders?: CompareProvider[];
   ctaVariant?: string | null;
@@ -43,8 +42,7 @@ export default function MobileStickyCompare({
   rating,
   reviewCount,
   services,
-  specialty,
-  availability,
+  highlights,
   similarProviders = [],
   ctaVariant,
   ctaPreviewMode = false,
@@ -69,8 +67,7 @@ export default function MobileStickyCompare({
     reviewCount,
     priceRange,
     services,
-    specialty,
-    availability,
+    highlights,
   };
 
   // Extract first name from provider name

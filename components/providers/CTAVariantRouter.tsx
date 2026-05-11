@@ -28,6 +28,8 @@ export interface CTARouterProps {
   providerImage?: string | null;
   /** Rating for compare variant */
   rating?: number | null;
+  /** Highlights for compare variant */
+  highlights?: string[];
   /** Similar providers for compare variant */
   similarProviders?: CompareProvider[];
 }
@@ -110,6 +112,7 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
     providerState,
     providerImage,
     rating,
+    highlights,
     similarProviders,
   } = props;
 
@@ -131,6 +134,7 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
           rating={rating}
           reviewCount={reviewCount}
           services={careTypes}
+          highlights={highlights}
           similarProviders={similarProviders}
           ctaVariant={variant}
           ctaPreviewMode={isPreview}
@@ -181,6 +185,8 @@ export interface MobileCTARouterProps {
   providerImage?: string | null;
   /** Rating for compare variant */
   rating?: number | null;
+  /** Highlights for compare variant */
+  highlights?: string[];
   /** Similar providers for compare variant */
   similarProviders?: CompareProvider[];
 }
@@ -208,6 +214,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
     providerState,
     providerImage,
     rating,
+    highlights,
     similarProviders,
   } = props;
 
@@ -229,6 +236,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           rating={rating}
           reviewCount={reviewCount}
           services={careTypes}
+          highlights={highlights}
           similarProviders={similarProviders}
           ctaVariant={variant}
           ctaPreviewMode={isPreview}

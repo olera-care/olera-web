@@ -107,7 +107,13 @@ export default function CompareBottomSheet({
   }, []);
 
   // Reset state when sheet opens/closes
+  // Store handleKeyDown in a ref to avoid re-running this effect when footerState changes
+  const handleKeyDownRef = useRef(handleKeyDown);
+  handleKeyDownRef.current = handleKeyDown;
+
   useEffect(() => {
+    const keyHandler = (e: KeyboardEvent) => handleKeyDownRef.current(e);
+
     if (isOpen) {
       if (scrollRef.current) {
         scrollRef.current.scrollTo({ left: 0, behavior: "instant" });
@@ -118,13 +124,13 @@ export default function CompareBottomSheet({
       setError(null);
       saveClickFiredRef.current = false;
       document.body.style.overflow = "hidden";
-      document.addEventListener("keydown", handleKeyDown);
+      document.addEventListener("keydown", keyHandler);
     }
     return () => {
       document.body.style.overflow = "";
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", keyHandler);
     };
-  }, [isOpen, handleKeyDown]);
+  }, [isOpen]); // Only re-run when isOpen changes, not when handleKeyDown changes
 
   // Focus email input when entering email capture state
   useEffect(() => {

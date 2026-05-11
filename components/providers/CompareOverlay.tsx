@@ -153,7 +153,13 @@ export default function CompareOverlay({
   }, []);
 
   // Lock body scroll and reset state when opened
+  // Store handleKeyDown in a ref to avoid re-running this effect when footerState changes
+  const handleKeyDownRef = useRef(handleKeyDown);
+  handleKeyDownRef.current = handleKeyDown;
+
   useEffect(() => {
+    const keyHandler = (e: KeyboardEvent) => handleKeyDownRef.current(e);
+
     if (isOpen) {
       // Reset state when opening
       setFooterState("initial");
@@ -161,15 +167,15 @@ export default function CompareOverlay({
       setError(null);
       saveClickFiredRef.current = false;
       document.body.style.overflow = "hidden";
-      document.addEventListener("keydown", handleKeyDown);
+      document.addEventListener("keydown", keyHandler);
     } else {
       document.body.style.overflow = "";
     }
     return () => {
       document.body.style.overflow = "";
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", keyHandler);
     };
-  }, [isOpen, handleKeyDown]);
+  }, [isOpen]); // Only re-run when isOpen changes, not when handleKeyDown changes
 
   if (!isOpen || !mounted) return null;
 

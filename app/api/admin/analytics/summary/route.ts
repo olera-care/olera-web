@@ -143,16 +143,19 @@ type BenefitsFunnelByVariant = {
 // CTA Variants A/B funnel. Distinct sessions per stage:
 //   impression → CTA rendered on provider page (cta_variant_impression)
 //   clicked    → user clicked to open form/sheet (cta_variant_clicked)
+//   engaged    → user clicked "Save this comparison" (cta_variant_clicked with action=save_comparison_clicked)
 //   converted  → lead submitted (lead_received with cta_variant in metadata)
 type CTAFunnel = {
   impressions: number;
   clicked: number;
+  engaged: number;
   converted: number;
 };
-// Per-variant breakdown. "legacy" is the only arm initially.
+// Per-variant breakdown. Supports legacy, compare, and future variants.
 type CTAVariantRow = CTAFunnel;
 type CTAFunnelByVariant = {
   legacy: CTAVariantRow;
+  compare: CTAVariantRow;
   unassigned: CTAVariantRow;
 };
 // Page-view referrer breakdown — counts page_view events by traffic class
@@ -270,10 +273,12 @@ const EMPTY_BENEFITS_FUNNEL_BY_VARIANT = (): BenefitsFunnelByVariant => ({
 const EMPTY_CTA_FUNNEL = (): CTAFunnel => ({
   impressions: 0,
   clicked: 0,
+  engaged: 0,
   converted: 0,
 });
 const EMPTY_CTA_FUNNEL_BY_VARIANT = (): CTAFunnelByVariant => ({
   legacy: EMPTY_CTA_FUNNEL(),
+  compare: EMPTY_CTA_FUNNEL(),
   unassigned: EMPTY_CTA_FUNNEL(),
 });
 const EMPTY_REFERRER_BREAKDOWN = (): ReferrerBreakdown => ({
@@ -845,19 +850,21 @@ async function fetchWindow(
     .map(([slug, count]) => ({ slug, count }));
 
   // CTA Variants A/B funnel rollup. Distinct sessions per stage.
-  // impression → clicked → converted (lead_received with cta_variant).
-  type CTABucket = "legacy" | "unassigned";
+  // impression → clicked → engaged (save_comparison_clicked) → converted (lead_received with cta_variant).
+  type CTABucket = "legacy" | "compare" | "unassigned";
   const emptyCtaStages = (): Record<keyof CTAFunnel, Set<string>> => ({
     impressions: new Set(),
     clicked: new Set(),
+    engaged: new Set(),
     converted: new Set(),
   });
   const ctaStageSets = emptyCtaStages();
   const ctaByVariantSets: Record<CTABucket, Record<keyof CTAFunnel, Set<string>>> = {
     legacy: emptyCtaStages(),
+    compare: emptyCtaStages(),
     unassigned: emptyCtaStages(),
   };
-  const CTA_VARIANT_BUCKETS = new Set<CTABucket>(["legacy"]);
+  const CTA_VARIANT_BUCKETS = new Set<CTABucket>(["legacy", "compare"]);
 
   for (const r of (ctaRes.data ?? []) as Array<{
     event_type: string;
@@ -884,7 +891,13 @@ async function fetchWindow(
     if (r.event_type === "cta_variant_impression") {
       stage = "impressions";
     } else if (r.event_type === "cta_variant_clicked") {
-      stage = "clicked";
+      // Check for "engaged" stage (save_comparison_clicked action)
+      const action = r.metadata?.action as string | null;
+      if (action === "save_comparison_clicked") {
+        stage = "engaged";
+      } else {
+        stage = "clicked";
+      }
     } else if (r.event_type === "lead_received" && r.metadata?.cta_variant) {
       // Only count lead_received if it has cta_variant attribution
       stage = "converted";
@@ -898,15 +911,18 @@ async function fetchWindow(
   const ctaFunnel: CTAFunnel = {
     impressions: ctaStageSets.impressions.size,
     clicked: ctaStageSets.clicked.size,
+    engaged: ctaStageSets.engaged.size,
     converted: ctaStageSets.converted.size,
   };
   const ctaSizesFor = (b: CTABucket): CTAVariantRow => ({
     impressions: ctaByVariantSets[b].impressions.size,
     clicked: ctaByVariantSets[b].clicked.size,
+    engaged: ctaByVariantSets[b].engaged.size,
     converted: ctaByVariantSets[b].converted.size,
   });
   const ctaFunnelByVariant: CTAFunnelByVariant = {
     legacy: ctaSizesFor("legacy"),
+    compare: ctaSizesFor("compare"),
     unassigned: ctaSizesFor("unassigned"),
   };
 

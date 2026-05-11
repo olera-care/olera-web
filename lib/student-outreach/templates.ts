@@ -17,7 +17,7 @@
  *   {admin_first_name}   the admin's first name (sender)
  */
 
-import type { StakeholderType } from "./types";
+import type { Contact, StakeholderType } from "./types";
 import type { TemplateKey } from "./cadence";
 
 export interface EmailDraft {
@@ -35,6 +35,18 @@ export interface TemplateContext {
   organization_name: string;
   campus_name: string;
   admin_first_name?: string;
+  /**
+   * v9 multi-contact greeting input. Provider templates use the
+   * active-named-contact list to compose the salutation at
+   * snapshot-build time:
+   *   - 0 named contacts → "Hello,"
+   *   - 1 named         → "Hi {first_name},"
+   *   - 2+ named        → "Hello, I was hoping to reach {names},
+   *                        or another member of the leadership team,"
+   * Stakeholder templates ignore this — their per-recipient
+   * substitution still uses the {salutation} placeholder.
+   */
+  contacts?: Contact[];
 }
 
 /** All outreach emails offer a 15-min call with Logan via this Calendly. */
@@ -67,10 +79,53 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
     case "followup_final": return followupFinalEmail(ctx);
     case "share": return postAgreedShareEmail(ctx);
     case "seasonal": return partnerSeasonalEmail(ctx, "Pre-Fall");
-    case "provider_intro": return providerIntroEmail(ctx);
-    case "provider_followup": return providerFollowupEmail(ctx);
-    case "provider_final": return providerFinalEmail(ctx);
+    case "provider_intro": return providerIntroEmail(ctx, ctx.contacts);
+    case "provider_followup": return providerFollowupEmail(ctx, ctx.contacts);
+    case "provider_final": return providerFinalEmail(ctx, ctx.contacts);
   }
+}
+
+/**
+ * v9 provider greeting composer. Reads the active-and-named contact
+ * set and produces the appropriate salutation line. Skips contacts
+ * tagged "General Inbox" (a queue isn't a person to address) and
+ * stale/incorrect contacts (won't receive the email anyway).
+ *
+ * Branches:
+ *   0 named → "Hello,"
+ *   1 named → "Hi <first>,"
+ *   2 named → "Hello, I was hoping to reach <A> or <B>, or another
+ *              member of the leadership team,"
+ *   3+      → "Hello, I was hoping to reach <A>, <B>, or <C>, or
+ *              another member of the leadership team,"
+ *
+ * Called at snapshot-build time so the rendered body has the
+ * resolved greeting baked in — no per-recipient substitution
+ * needed for providers (the team greeting is the same regardless
+ * of which inbox the email lands in).
+ */
+export function providerSalutation(contacts: Contact[] | undefined): string {
+  const named = (contacts ?? [])
+    .filter((c) => c.status === "active")
+    .filter((c) => c.role !== "General Inbox")
+    .map((c) => {
+      const first = c.first_name?.trim() || "";
+      const last = c.last_name?.trim() || "";
+      const composed = [first, last].filter(Boolean).join(" ").trim();
+      return composed || c.name?.trim() || "";
+    })
+    .filter((name) => name.length > 0);
+
+  if (named.length === 0) return "Hello,";
+  if (named.length === 1) {
+    const first = named[0].split(/\s+/)[0];
+    return `Hi ${first},`;
+  }
+  const list =
+    named.length === 2
+      ? `${named[0]} or ${named[1]}`
+      : `${named.slice(0, -1).join(", ")}, or ${named[named.length - 1]}`;
+  return `Hello, I was hoping to reach ${list}, or another member of the leadership team,`;
 }
 
 /**
@@ -309,11 +364,15 @@ export const followupEmail = followupLightEmail;
 // linked university. {organization_name} is the agency; {campus_name}
 // is the university whose students would be placed.
 
-export function providerIntroEmail(_ctx: TemplateContext): EmailDraft {
+export function providerIntroEmail(
+  _ctx: TemplateContext,
+  contacts: Contact[] | undefined,
+): EmailDraft {
+  const greeting = providerSalutation(contacts);
   return {
     subject: `Caregivers at ${PLACEHOLDER.orgName} from ${PLACEHOLDER.campus} students`,
     body: [
-      `Hi ${PLACEHOLDER.salutation},`,
+      greeting,
       ``,
       `I'm reaching out from Olera. We connect pre-health students at ${PLACEHOLDER.campus} with home-care agencies in their area looking for reliable caregivers — flexible scheduling around coursework, motivated workers, real patient-care experience for them.`,
       ``,
@@ -327,11 +386,15 @@ export function providerIntroEmail(_ctx: TemplateContext): EmailDraft {
   };
 }
 
-export function providerFollowupEmail(_ctx: TemplateContext): EmailDraft {
+export function providerFollowupEmail(
+  _ctx: TemplateContext,
+  contacts: Contact[] | undefined,
+): EmailDraft {
+  const greeting = providerSalutation(contacts);
   return {
     subject: `Re: Olera caregivers for ${PLACEHOLDER.orgName}`,
     body: [
-      `Hi ${PLACEHOLDER.salutation},`,
+      greeting,
       ``,
       `Just bubbling this up in case it got buried. We have pre-health students at ${PLACEHOLDER.campus} looking for caregiver placements — happy to share a one-pager or jump on a quick call if helpful.`,
       ``,
@@ -343,11 +406,15 @@ export function providerFollowupEmail(_ctx: TemplateContext): EmailDraft {
   };
 }
 
-export function providerFinalEmail(_ctx: TemplateContext): EmailDraft {
+export function providerFinalEmail(
+  _ctx: TemplateContext,
+  contacts: Contact[] | undefined,
+): EmailDraft {
+  const greeting = providerSalutation(contacts);
   return {
     subject: `Last note — Olera caregivers for ${PLACEHOLDER.orgName}`,
     body: [
-      `Hi ${PLACEHOLDER.salutation},`,
+      greeting,
       ``,
       `Closing the loop here. If there's a better person at ${PLACEHOLDER.orgName} to reach about hiring caregivers, happy to redirect.`,
       ``,

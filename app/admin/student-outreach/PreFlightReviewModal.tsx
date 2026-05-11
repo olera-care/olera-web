@@ -82,6 +82,10 @@ export function PreFlightReviewModal({
           stakeholder_type: templateStakeholderType,
           organization_name: organizationName,
           campus_name: campusName,
+          // v9: provider templates compose the team greeting from
+          // the active-named contact set at snapshot-build time.
+          // Stakeholder templates ignore this field.
+          contacts,
         });
         result.push({
           day: d.day,

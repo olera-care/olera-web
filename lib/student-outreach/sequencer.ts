@@ -26,7 +26,7 @@ import {
 } from "./cadence";
 import { onStageEnter } from "./state-machine";
 import { getTemplate } from "./templates";
-import type { StakeholderType } from "./types";
+import type { Contact, StakeholderType } from "./types";
 
 const DAY_MS = 86_400_000;
 
@@ -114,10 +114,20 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
 /**
  * Helper: build the default snapshot list from templates so the
  * pre-flight modal has something to display before admin edits.
+ *
+ * Provider rows pass `contacts` so the multi-contact team greeting
+ * is composed at snapshot-build time (providerSalutation in
+ * templates.ts). Stakeholder rows ignore the field — their per-
+ * recipient {salutation} placeholder substitutes at send time.
  */
 export function defaultSnapshotsFor(
   type: CadenceKey,
-  ctx: { organization_name: string; campus_name: string; admin_first_name?: string },
+  ctx: {
+    organization_name: string;
+    campus_name: string;
+    admin_first_name?: string;
+    contacts?: Contact[];
+  },
 ): EmailSnapshot[] {
   const days = OUTREACH_DAYS_BY_TYPE[type];
   const result: EmailSnapshot[] = [];
@@ -134,6 +144,7 @@ export function defaultSnapshotsFor(
         organization_name: ctx.organization_name,
         campus_name: ctx.campus_name,
         admin_first_name: ctx.admin_first_name,
+        contacts: ctx.contacts,
       });
       result.push({
         day: day.day,

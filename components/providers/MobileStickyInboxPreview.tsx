@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Modal from "@/components/ui/Modal";
 import { getQuestionsForCategory, splitQuestions } from "@/lib/cta-questions";
-import { InboxPreviewMobile } from "@/components/providers/cta-variants";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 
 interface MobileStickyInboxPreviewProps {
@@ -13,6 +13,8 @@ interface MobileStickyInboxPreviewProps {
   providerCategory?: string | null;
   providerCity?: string | null;
   providerState?: string | null;
+  providerPhone?: string | null;
+  providerImage?: string | null;
   acceptedPayments: string[];
   ctaVariant?: string | null;
   ctaSurface?: "desktop" | "mobile";
@@ -31,15 +33,16 @@ export default function MobileStickyInboxPreview({
   providerCategory,
   providerCity,
   providerState,
+  providerPhone,
+  providerImage,
   acceptedPayments,
   ctaVariant,
   ctaSurface = "mobile",
   ctaPreviewMode = false,
 }: MobileStickyInboxPreviewProps) {
+  const router = useRouter();
   const [visible, setVisible] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [step, setStep] = useState<"question" | "inbox">("question");
-  const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [customQuestion, setCustomQuestion] = useState("");
 
@@ -204,74 +207,67 @@ export default function MobileStickyInboxPreview({
     return () => window.removeEventListener("open-connection-sheet", openSheet);
   }, [fireSheetOpenEvent]);
 
+  // Navigate to inbox preview page with question
+  const navigateToInboxPreview = useCallback(
+    (questionText: string) => {
+      fireQuestionSelectedEvent(questionText);
+
+      // Build URL with query params
+      const params = new URLSearchParams({
+        provider_id: providerId,
+        provider: providerSlug,
+        provider_name: providerName,
+        question: questionText,
+        cta_variant: ctaVariant || "inbox_preview",
+      });
+
+      if (providerCategory) params.set("category", providerCategory);
+      if (providerCity) params.set("city", providerCity);
+      if (providerState) params.set("state", providerState);
+      if (providerPhone) params.set("phone", providerPhone);
+      if (providerImage) params.set("image", providerImage);
+
+      // Close sheet and navigate
+      setSheetOpen(false);
+      router.push(`/inbox-preview?${params.toString()}`);
+    },
+    [
+      fireQuestionSelectedEvent,
+      providerId,
+      providerSlug,
+      providerName,
+      providerCategory,
+      providerCity,
+      providerState,
+      providerPhone,
+      providerImage,
+      ctaVariant,
+      router,
+    ]
+  );
+
   const handleQuestionClick = useCallback(
     (questionText: string) => {
-      setSelectedQuestion(questionText);
-      setStep("inbox");
-      fireQuestionSelectedEvent(questionText);
+      navigateToInboxPreview(questionText);
     },
-    [fireQuestionSelectedEvent]
+    [navigateToInboxPreview]
   );
 
   const handleCustomSubmit = useCallback(() => {
     const trimmed = customQuestion.trim();
     if (trimmed) {
-      setSelectedQuestion(trimmed);
-      setStep("inbox");
-      fireQuestionSelectedEvent(trimmed);
+      navigateToInboxPreview(trimmed);
     }
-  }, [customQuestion, fireQuestionSelectedEvent]);
-
-  const handleBack = useCallback(() => {
-    setStep("question");
-    setSelectedQuestion(null);
-  }, []);
+  }, [customQuestion, navigateToInboxPreview]);
 
   const handleClose = useCallback(() => {
     setSheetOpen(false);
-    // Reset to question step when closing
+    // Reset state when closing
     setTimeout(() => {
-      setStep("question");
-      setSelectedQuestion(null);
       setExpanded(false);
       setCustomQuestion("");
     }, 300);
   }, []);
-
-  // Step 2: Full-screen inbox preview
-  if (step === "inbox" && selectedQuestion && sheetOpen) {
-    return (
-      <>
-        {/* Spacer */}
-        <div
-          className="md:hidden"
-          aria-hidden="true"
-          style={{ height: "calc(76px + env(safe-area-inset-bottom, 0px))" }}
-        />
-
-        {/* Sticky bar hidden during inbox step */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden translate-y-full" />
-
-        {/* Full-screen inbox preview */}
-        <div className="fixed inset-0 z-50 md:hidden bg-white">
-          <InboxPreviewMobile
-            providerId={providerId}
-            providerName={providerName}
-            providerSlug={providerSlug}
-            providerCategory={providerCategory}
-            providerCity={providerCity}
-            providerState={providerState}
-            selectedQuestion={selectedQuestion}
-            onBack={handleBack}
-            onClose={handleClose}
-            ctaVariant={ctaVariant}
-            ctaSurface={ctaSurface}
-            ctaPreviewMode={ctaPreviewMode}
-          />
-        </div>
-      </>
-    );
-  }
 
   return (
     <>
@@ -336,7 +332,7 @@ export default function MobileStickyInboxPreview({
 
       {/* Question selection bottom sheet */}
       <Modal
-        isOpen={sheetOpen && step === "question"}
+        isOpen={sheetOpen}
         onClose={handleClose}
         title={`Message ${providerFirstName}`}
         size="lg"

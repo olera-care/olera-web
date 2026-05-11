@@ -260,6 +260,17 @@ export async function POST(
           .eq("id", row.id);
         break;
 
+      // ── Provider Prospect: launch first outreach email ─────────────
+      // For kind='provider' rows (materialized catchment prospects).
+      // Resolves the recipient email (admin-overridden body.email if
+      // provided, otherwise business_profiles.contact_email), sends the
+      // Email 1 template via Resend, logs an email_sent touchpoint, and
+      // advances the row to outreach_sent so it drops out of the
+      // Prospects bucket and joins the Replies/cadence flow.
+      case "launch_provider_outreach":
+        await handleLaunchProviderOutreach(db, row, body, user.id);
+        break;
+
       default:
         return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
     }
@@ -397,6 +408,24 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
       ? deriveRepliesState(derived, hasPendingEmailTask)
       : null;
 
+  // Provider-prospect drawers need the catchment provider's email to
+  // surface as auto-populated in the Launch outreach field. Fetch it
+  // only when this row represents a materialized provider prospect.
+  let providerBusinessProfile: {
+    contact_email: string | null;
+    display_name: string | null;
+    city: string | null;
+    state: string | null;
+  } | null = null;
+  if (row.kind === "provider" && row.provider_business_profile_id) {
+    const { data: bp } = await db
+      .from("business_profiles")
+      .select("contact_email, display_name, city, state")
+      .eq("id", row.provider_business_profile_id)
+      .maybeSingle();
+    providerBusinessProfile = (bp ?? null) as typeof providerBusinessProfile;
+  }
+
   return {
     outreach: row,
     campus: campus as Campus,
@@ -414,6 +443,7 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     followup_notes: derived.followup_notes,
     awaiting_callback_at: derived.awaiting_callback_at,
     awaiting_callback_kind: derived.awaiting_callback_kind,
+    provider_business_profile: providerBusinessProfile,
   };
 }
 
@@ -614,6 +644,100 @@ async function handleAddNote(
   if (!body.notes?.trim()) throw new Error("Note text required");
   await insertTouchpoint(db, row.id, "note_added", userId, { notes: body.notes.trim() });
   await touchOutreach(db, row.id, userId);
+}
+
+/**
+ * Launch the first outreach email for a materialized provider prospect
+ * (kind='provider'). Resolves the recipient (admin override > stored
+ * contact_email), sends Email 1 via Resend using the staffing-outreach
+ * template, logs an email_sent touchpoint, and advances the row to
+ * outreach_sent so it leaves the Prospects bucket.
+ */
+async function handleLaunchProviderOutreach(
+  db: DB,
+  row: OutreachRow,
+  body: { email?: string },
+  userId: string,
+) {
+  if (row.kind !== "provider") {
+    throw new Error("launch_provider_outreach only valid for kind='provider' rows");
+  }
+  if (!row.provider_business_profile_id) {
+    throw new Error("Provider row missing provider_business_profile_id");
+  }
+
+  // Resolve recipient: admin override wins; otherwise pull from the
+  // linked business_profile.
+  let recipient = (body.email ?? "").trim();
+  let providerName = row.organization_name;
+  if (!recipient) {
+    const { data: bp } = await db
+      .from("business_profiles")
+      .select("contact_email, display_name")
+      .eq("id", row.provider_business_profile_id)
+      .maybeSingle();
+    recipient = (bp?.contact_email ?? "").trim();
+    if (bp?.display_name) providerName = bp.display_name;
+  }
+  if (!recipient || !recipient.includes("@")) {
+    throw new Error("No valid email address — add one before launching outreach");
+  }
+
+  // Pull the campus name + a service-area string for the template.
+  const { data: campus } = await db
+    .from("student_outreach_campuses")
+    .select("name, city, state")
+    .eq("id", row.campus_id)
+    .maybeSingle();
+  const universityName = campus?.name ?? "the university";
+  const serviceArea = [campus?.city, campus?.state].filter(Boolean).join(", ") || "the area";
+
+  const { generateEmail1 } = await import("@/lib/staffing-outreach/resend-automation");
+  const { sendEmail } = await import("@/lib/email");
+  const { subject, html } = generateEmail1({ universityName, serviceArea });
+
+  const sendResult = await sendEmail({
+    to: recipient,
+    subject,
+    html,
+    emailType: "provider_outreach_email_1",
+    recipientType: "provider",
+    providerId: row.provider_business_profile_id,
+    metadata: {
+      outreach_id: row.id,
+      campus_id: row.campus_id,
+      provider_business_profile_id: row.provider_business_profile_id,
+    },
+  });
+
+  if (!sendResult.success) {
+    throw new Error(sendResult.error || "Failed to send email");
+  }
+
+  // Log the touchpoint with the email_log_id so History narrates it.
+  await insertTouchpoint(db, row.id, "email_sent", userId, {
+    channel: "email",
+    outcome: "sent",
+    payload: {
+      recipient_email: recipient,
+      subject,
+      email_log_id: sendResult.emailLogId,
+      template: "provider_outreach_email_1",
+      provider_name: providerName,
+    },
+  });
+
+  // Advance the row out of the Prospects bucket. cadence_day=0 marks
+  // this as the first touch.
+  await db
+    .from("student_outreach")
+    .update({
+      status: "outreach_sent",
+      cadence_day: 0,
+      last_edited_by: userId,
+      last_edited_at: new Date().toISOString(),
+    })
+    .eq("id", row.id);
 }
 
 // ── Stage-specific handlers ─────────────────────────────────────────────

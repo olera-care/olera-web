@@ -404,6 +404,18 @@ export interface DrawerContext {
   followup_notes: string | null;
   awaiting_callback_at: string | null;
   awaiting_callback_kind: AwaitingCallbackKind | null;
+  /**
+   * Provider business_profile fields, surfaced only when the outreach
+   * row is kind='provider' (a materialized catchment prospect). Lets
+   * the drawer pre-fill the Launch outreach email field without an
+   * extra round-trip.
+   */
+  provider_business_profile: {
+    contact_email: string | null;
+    display_name: string | null;
+    city: string | null;
+    state: string | null;
+  } | null;
 }
 
 export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {

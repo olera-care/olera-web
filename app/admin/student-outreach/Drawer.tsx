@@ -24,6 +24,7 @@ import { LogMeetingModal } from "./LogMeetingModal";
 import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { StepBoardCard } from "@/components/admin/medjobs/StepBoardCard";
+import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import {
   PARTNER_CTA_STAGES,
@@ -314,7 +315,15 @@ function StakeholderDrawer({
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : ctx ? (
-        <DrawerBody ctx={ctx} action={action} setError={setError} />
+        ctx.outreach.kind === "provider" ? (
+          <ProviderProspectDrawerBody
+            ctx={ctx}
+            action={action}
+            setError={setError}
+          />
+        ) : (
+          <DrawerBody ctx={ctx} action={action} setError={setError} />
+        )
       ) : null}
     </DrawerShell>
   );

@@ -69,6 +69,28 @@ const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// Some provider rows contain corrupted text (unpaired UTF-16 surrogates from a
+// bad import, stray control chars). JSON.stringify emits those as \udXXX, which
+// both the Anthropic and Perplexity request parsers reject ("no low surrogate
+// in string"). Drop any surrogate code unit that isn't part of a valid pair.
+function sanitizeText(s) {
+  if (typeof s !== 'string') return s;
+  let out = '';
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c >= 0xD800 && c <= 0xDBFF) {
+      const n = s.charCodeAt(i + 1);
+      if (n >= 0xDC00 && n <= 0xDFFF) { out += s[i] + s[i + 1]; i++; } // valid pair
+      // else: lone high surrogate — drop
+    } else if (c >= 0xDC00 && c <= 0xDFFF) {
+      // lone low surrogate — drop
+    } else {
+      out += s[i];
+    }
+  }
+  return out.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+}
+
 // ── CLI ──────────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
 const DRY_RUN = !args.includes('--run');
@@ -291,9 +313,11 @@ async function anthropicChat(prompt, temperature = 0.4) {
   return block ? block.text : '';
 }
 
-// Dispatch to the selected backend.
+// Dispatch to the selected backend (sanitizing the prompt so corrupted text in
+// a provider row can't produce a request body the API rejects as invalid JSON).
 async function generate(prompt) {
-  return ENGINE === 'claude' ? anthropicChat(prompt) : perplexityChat(prompt);
+  const p = sanitizeText(prompt);
+  return ENGINE === 'claude' ? anthropicChat(p) : perplexityChat(p);
 }
 
 function extractDescription(content) {

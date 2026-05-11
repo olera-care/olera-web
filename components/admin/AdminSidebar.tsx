@@ -94,9 +94,13 @@ const navSections: NavSection[] = [
 // unread > 0, mirroring the In Basket tab-bar pattern.
 const STAKEHOLDERS_KEY = "stakeholders";
 
+// Sites lives between Calls and Logs deliberately: it's an
+// organizational anchor (territories that generate operational work),
+// not itself an operational queue. The In Basket + the queue tabs
+// above it surface the actual triage work; Sites is the directory of
+// activated territories.
 const medjobsItems: NavItem[] = [
   { label: "In Basket",  href: "/admin/medjobs/in-basket" },
-  { label: "Sites",      href: "/admin/medjobs/sites" },
   { label: "Prospects",  href: "/admin/medjobs/prospects" },
   { label: "Clients",    href: "/admin/medjobs/clients" },
   { label: "Partners",   href: "/admin/medjobs/partners" },
@@ -104,6 +108,7 @@ const medjobsItems: NavItem[] = [
   { label: "Replies",    href: "/admin/medjobs/replies" },
   { label: "Meetings",   href: "/admin/medjobs/meetings" },
   { label: "Calls",      href: "/admin/medjobs/calls" },
+  { label: "Sites",      href: "/admin/medjobs/sites" },
   { label: "Logs",       href: "/admin/medjobs/logs" },
 ];
 
@@ -342,13 +347,21 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
                   const active = isActive(item.href);
                   const countsKey = COUNTS_KEY[item.href];
                   const entry = countsKey ? sidebarCounts?.[countsKey] : undefined;
-                  const hasUnread = !!entry && entry.unread > 0;
+                  // Sites is an organizational anchor, not a queue:
+                  // render its count flat (no fraction, no unread
+                  // bolding) so it doesn't read as triage work.
+                  const isPlainCount = item.href === "/admin/medjobs/sites";
+                  const hasUnread = !isPlainCount && !!entry && entry.unread > 0;
                   const fraction = entry
-                    ? hasUnread
-                      ? `${entry.unread}/${entry.total}`
-                      : entry.total > 0
+                    ? isPlainCount
+                      ? entry.total > 0
                         ? String(entry.total)
                         : null
+                      : hasUnread
+                        ? `${entry.unread}/${entry.total}`
+                        : entry.total > 0
+                          ? String(entry.total)
+                          : null
                     : null;
                   return (
                     <Link

@@ -53,26 +53,44 @@ export function ResearchTabContent({
   onMarkResearchComplete: (campus: ResearchCampusCard) => void;
   tabCountsAll: number;
 }) {
-  const partnerUnreadCount = useMemo(
-    () => rows.filter((r) => r.viewed_at == null).length,
+  // Split materialized rows by kind. Provider-kind rows belong with the
+  // virtual provider catchment cards; everything else is a stakeholder
+  // (advisor / professor / dept_head / student_org) that lives under
+  // Partner Prospects. Without this split, materialized provider rows
+  // leak into Partner Prospects after "Log" / Start Outreach.
+  const providerRows = useMemo(
+    () => rows.filter((r) => r.kind === "provider"),
     [rows],
   );
-  const partnerTotal = researchCampuses.length + rows.length;
+  const stakeholderRows = useMemo(
+    () => rows.filter((r) => r.kind !== "provider"),
+    [rows],
+  );
+  const partnerUnreadCount = useMemo(
+    () => stakeholderRows.filter((r) => r.viewed_at == null).length,
+    [stakeholderRows],
+  );
+  const providerUnreadCount = useMemo(
+    () => providerRows.filter((r) => r.viewed_at == null).length,
+    [providerRows],
+  );
+  const partnerTotal = researchCampuses.length + stakeholderRows.length;
+  const providerTotal = providerProspects.length + providerRows.length;
 
   // Default-open rule: Partner Prospects opens when it has unread or
   // any queued research cards; Provider Prospects opens otherwise
   // (the funnel-unlock path). Single section opens by default — the
   // other stays collapsed until admin chooses.
   const [providerOpen, setProviderOpen] = useState<boolean>(
-    partnerUnreadCount === 0 && researchCampuses.length === 0 && providerProspects.length > 0,
+    partnerUnreadCount === 0 && researchCampuses.length === 0 && providerTotal > 0,
   );
   const [partnerOpen, setPartnerOpen] = useState<boolean>(
     partnerUnreadCount > 0 ||
       researchCampuses.length > 0 ||
-      (providerProspects.length === 0 && rows.length > 0),
+      (providerTotal === 0 && stakeholderRows.length > 0),
   );
 
-  const totalAvailable = providerProspects.length + partnerTotal;
+  const totalAvailable = providerTotal + partnerTotal;
 
   if (totalAvailable === 0) {
     const headline = tabCountsAll === 0 ? "Nothing here yet." : "✓ All caught up.";
@@ -95,11 +113,11 @@ export function ResearchTabContent({
 
   return (
     <div className="space-y-3">
-      {providerProspects.length > 0 && (
+      {providerTotal > 0 && (
         <Section
           label="Provider Prospects"
-          count={providerProspects.length}
-          unread={null}
+          count={providerTotal}
+          unread={providerUnreadCount > 0 ? providerUnreadCount : null}
           open={providerOpen}
           onToggle={() => setProviderOpen((s) => !s)}
         >
@@ -127,6 +145,9 @@ export function ResearchTabContent({
                   }
                 />
               </li>
+            ))}
+            {providerRows.map((row) => (
+              <li key={row.id}>{renderRow(row)}</li>
             ))}
           </ul>
         </Section>
@@ -169,7 +190,7 @@ export function ResearchTabContent({
                 />
               </li>
             ))}
-            {rows.map((row) => (
+            {stakeholderRows.map((row) => (
               <li key={row.id}>{renderRow(row)}</li>
             ))}
           </ul>

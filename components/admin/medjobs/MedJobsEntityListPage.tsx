@@ -29,20 +29,24 @@ import {
   type MeetingStatus,
 } from "@/app/admin/student-outreach/LogMeetingModal";
 import { MarkPartnerModal } from "@/app/admin/student-outreach/MarkPartnerModal";
+import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
 import PulseHeader from "@/components/admin/PulseHeader";
 import type { DateRangeValue } from "@/components/admin/DateRangePopover";
 import {
   STOP_OUTREACH_ACTIONS,
   STOP_OUTREACH_LABELS,
   TAB_STATS,
+  type ProviderProspectRow,
   type TabKey,
 } from "@/lib/student-outreach/tab-config";
 import type {
   DistributionEvidence,
   DrawerContext,
+  ResearchCampusCard,
   TabRow,
 } from "@/lib/student-outreach/types";
 import { RowCard } from "@/components/admin/medjobs/cards/StakeholderCard";
+import { ResearchTabContent } from "@/components/admin/medjobs/lists/ResearchTabContent";
 import { useMedJobsRefresh, refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 
 const CLOSED_STATUSES = new Set([
@@ -78,6 +82,13 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
   } | null>(null);
   const [logMeetingRow, setLogMeetingRow] = useState<TabRow | null>(null);
   const [partnerRow, setPartnerRow] = useState<TabRow | null>(null);
+  // Prospects-tab-only state. Other tabs (replies / meetings / calls /
+  // partners) render a flat row list; Prospects mirrors the In Basket
+  // organization with Provider / Partner dropdowns, virtual provider
+  // catchment rows, and the queued research card per campus.
+  const [providerProspects, setProviderProspects] = useState<ProviderProspectRow[]>([]);
+  const [researchCampuses, setResearchCampuses] = useState<ResearchCampusCard[]>([]);
+  const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -100,6 +111,22 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
       if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
       const data = await res.json();
       setRows((data.rows ?? []) as TabRow[]);
+      setResearchCampuses((data.research_campuses ?? []) as ResearchCampusCard[]);
+
+      // Prospects view also pulls the virtual provider catchment rows
+      // so Provider Prospects dropdown renders alongside Partner
+      // Prospects, mirroring the In Basket tab.
+      if (tab === "prospects") {
+        const r = await fetch("/api/admin/medjobs/provider-prospects");
+        if (r.ok) {
+          const d = await r.json();
+          setProviderProspects((d.rows ?? []) as ProviderProspectRow[]);
+        } else {
+          setProviderProspects([]);
+        }
+      } else {
+        setProviderProspects([]);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -230,6 +257,55 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
         <p className="py-12 text-center text-sm text-gray-400">Loading…</p>
       ) : error ? (
         <p className="py-12 text-center text-sm text-red-600">{error}</p>
+      ) : tab === "prospects" ? (
+        // Prospects mirrors the In Basket tab structure: Provider
+        // Prospects + Partner Prospects dropdowns with the research
+        // card as the partner-side entry point. Materialized provider
+        // rows (kind='provider') stay in Provider Prospects; everything
+        // else goes under Partner Prospects.
+        <ResearchTabContent
+          rows={rows}
+          providerProspects={providerProspects}
+          researchCampuses={researchCampuses}
+          renderRow={renderRow}
+          onStartProviderOutreach={async (p) => {
+            try {
+              const res = await fetch("/api/admin/medjobs/provider-prospects/materialize", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ provider_id: p.provider_id, campus_id: p.campus_id }),
+              });
+              const body = await res.json();
+              if (!res.ok) throw new Error(body.error || "Failed to materialize");
+              await refetch();
+              setOpenOutreachId(body.id);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to start outreach");
+            }
+          }}
+          onOpenCampusResearch={(campus) => setBulkResearchCampus(campus)}
+          onMarkResearchComplete={async (campus) => {
+            try {
+              const res = await fetch(
+                `/api/admin/student-outreach/campuses/${campus.slug}`,
+                {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ research_complete: true }),
+                },
+              );
+              if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(body.error || "Failed to mark research complete");
+              }
+              await refetch();
+              refreshMedJobs();
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to mark research complete");
+            }
+          }}
+          tabCountsAll={rows.length + providerProspects.length + researchCampuses.length}
+        />
       ) : rows.length === 0 ? (
         <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-12 text-center text-sm text-gray-400">
           No rows in this view.
@@ -342,6 +418,17 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
             }
+          }}
+        />
+      )}
+      {bulkResearchCampus && (
+        <BulkResearchModal
+          campus={bulkResearchCampus}
+          onClose={() => setBulkResearchCampus(null)}
+          onSaved={async () => {
+            setBulkResearchCampus(null);
+            await refetch();
+            refreshMedJobs();
           }}
         />
       )}

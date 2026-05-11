@@ -139,6 +139,8 @@ export default function CompareCard({
         onClose={handleCloseOverlay}
         currentProvider={currentProvider}
         similarProviders={similarProviders}
+        ctaVariant={ctaVariant}
+        ctaPreviewMode={ctaPreviewMode}
       />
     </>
   );

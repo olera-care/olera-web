@@ -253,6 +253,8 @@ export default function MobileStickyCompare({
         onClose={handleCloseSheet}
         currentProvider={currentProvider}
         similarProviders={similarProviders}
+        ctaVariant={ctaVariant}
+        ctaPreviewMode={ctaPreviewMode}
       />
     </>
   );

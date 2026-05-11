@@ -161,6 +161,12 @@ export async function POST(request: NextRequest) {
           name: orgName,
           email: providerEmail || null,
           phone: providerPhone || null,
+          // v9 Phase 9: tag the mirrored contact as General Office so
+          // it's identifiable as the general destination (front desk
+          // line + info@ inbox) rather than a named person. Drives
+          // the providerSalutation logic to use the generic "Hello,"
+          // greeting + team reference.
+          role: "General Office",
           is_primary: true,
           status: "active",
           created_by: user.id,

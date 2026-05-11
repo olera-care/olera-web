@@ -70,20 +70,34 @@ export const ROLES_BY_TYPE: Record<StakeholderType, string[]> = {
  * uses these as the dropdown options when adding/editing a contact
  * on a provider outreach row. Tags the contact so future outreach
  * can address the right person (Owner vs Receptionist matters for
- * tone; General Inbox tells us we're emailing a queue, not a person).
+ * tone; General Office tells us we're emailing a queue / calling
+ * the front desk, not a named person).
  *
  * Free-text fallback via "Other" — the role field on
  * student_outreach_contacts is just TEXT, no DB check.
+ *
+ * v9 Phase 9 (current): renamed "General Inbox" → "General Office"
+ * since the role now covers both the general email destination
+ * AND the general office phone line on the same contact. Added
+ * Operator / Executive Director / Recruiter / HR / Admissions to
+ * match the operational vocabulary admins encounter.
+ *
+ * The General Office tag drives template selection in
+ * providerSalutation: contacts with this role get the "Hello,"
+ * general greeting (with optional team reference) rather than the
+ * personalized "Hi {first_name}," greeting reserved for named
+ * recipients.
  */
 export const PROVIDER_CONTACT_ROLES: string[] = [
   "Owner",
+  "Operator",
   "Hiring Manager",
+  "Executive Director",
   "Administrator",
-  "Director of Care",
-  "Director of Operations",
-  "Office Manager",
-  "Receptionist",
-  "General Inbox",
+  "Recruiter",
+  "HR",
+  "Admissions",
+  "General Office",
   OTHER,
 ];
 

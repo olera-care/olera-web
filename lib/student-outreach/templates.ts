@@ -114,7 +114,10 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
 export function providerSalutation(contacts: Contact[] | undefined): string {
   const named = (contacts ?? [])
     .filter((c) => c.status === "active")
-    .filter((c) => c.role !== "General Inbox")
+    // v9 Phase 9: General Office (or legacy General Inbox tag) is the
+    // shared-destination contact, not a named person — skip in the
+    // leadership-team reference.
+    .filter((c) => c.role !== "General Office" && c.role !== "General Inbox")
     .map((c) => {
       const first = c.first_name?.trim() || "";
       const last = c.last_name?.trim() || "";

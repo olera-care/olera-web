@@ -44,6 +44,17 @@ export type PartnerHealth = "healthy" | "at_risk" | "dormant";
 
 export type ContactStatus = "active" | "stale" | "incorrect" | "no_longer_valid";
 
+/**
+ * v9 Phase 9: callable channels on a contact. Email + phone are
+ * the primary lines; mobile + extension stack on top as optional
+ * dialing metadata.
+ *   phone     primary callable line (general office, direct, etc.)
+ *   mobile    direct cell when known
+ *   extension PBX extension dialed after phone connects (not a
+ *             separate channel — it's metadata on the phone call)
+ * Call eligibility for cadence task generation = phone OR mobile.
+ */
+
 export type TouchpointType =
   | "email_sent"
   | "email_replied"
@@ -188,6 +199,11 @@ export interface Contact {
   role: string | null;
   email: string | null;
   phone: string | null;
+  /** v9 Phase 9: direct mobile / cell when known. Optional. */
+  mobile: string | null;
+  /** v9 Phase 9: PBX extension to dial after phone connects. Optional.
+   *  Dialing metadata — admin sees "555-1000 ext 405" rendered. */
+  extension: string | null;
   instagram: string | null;
   contact_form_url: string | null;
   is_primary: boolean;

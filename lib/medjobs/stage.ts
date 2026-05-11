@@ -192,3 +192,39 @@ export const STAGE_DISPLAY: Record<
   converted: { label: "Converted", tone: "blue" },
   closed: { label: "Closed", tone: "gray" },
 };
+
+/**
+ * Adapter: derive Stage from a TabRow's pre-computed fields. The queue
+ * endpoint already hydrates these (replies_state, meeting_state, due
+ * call task, custom task indicator, status) — re-using them avoids a
+ * per-row touchpoint refetch on every card render.
+ *
+ * Mirrors the priority order in deriveStage() above. Note: bounce_fix
+ * cannot be derived from TabRow today — TabRow has no field for the
+ * latest email_bounced touchpoint. Wiring lands when the Resend
+ * webhook starts emitting touchpoints (per the build order). Until
+ * then bounce_fix is silently absent for tab cards; the drawer can
+ * still detect it via the full touchpoint stream.
+ *
+ * Imported by StakeholderCard.tsx for the canonical stage pill on
+ * every row card across every tab.
+ */
+export function deriveStageForTabRow(row: {
+  status: string;
+  kind?: string | null;
+  replies_state?: string | null;
+  meeting_state?: "none" | "in_flight" | "scheduled" | null;
+  has_custom_task?: boolean;
+  due_call_task?: { id: string; due_at: string } | null;
+}): Stage {
+  if (CLOSED_STATUSES.has(row.status)) return "closed";
+  if (PARTNER_STATUSES.has(row.status)) return "converted";
+  // bounce_fix gap — see docstring above.
+  if (row.due_call_task != null) return "call_due";
+  if (row.has_custom_task === true) return "follow_up";
+  if (row.meeting_state === "in_flight" || row.meeting_state === "scheduled") {
+    return "meeting_set";
+  }
+  if (OUTREACH_ACTIVE_STATUSES.has(row.status)) return "in_outreach";
+  return "prospect";
+}

@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { useCTAVariant, isCTAPreviewMode } from "@/hooks/use-cta-variant";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
 import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
-import { InboxPreviewCard, CompareCard } from "@/components/providers/cta-variants";
-import MobileStickyInboxPreview from "@/components/providers/MobileStickyInboxPreview";
+import { CompareCard } from "@/components/providers/cta-variants";
 import MobileStickyCompare from "@/components/providers/MobileStickyCompare";
 import type { CompareProvider } from "@/components/providers/CompareBottomSheet";
 
@@ -116,49 +115,7 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
 
   const isPreview = isCTAPreviewMode();
 
-  // Fire question_selected event for inbox_preview variant
-  const handleQuestionSelected = useCallback(
-    (questionText: string) => {
-      if (!variant || isPreview) return;
-      fetch("/api/activity/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          actor_type: "anonymous",
-          related_provider_id: providerSlug,
-          event_type: "cta_variant_clicked",
-          session_id: getOrCreateSessionId(),
-          metadata: {
-            variant,
-            surface: "desktop",
-            action: "question_selected",
-            question: questionText,
-          },
-        }),
-      }).catch(() => {});
-    },
-    [variant, providerSlug, isPreview]
-  );
-
   switch (variant ?? "legacy") {
-    case "inbox_preview":
-      return (
-        <InboxPreviewCard
-          providerId={providerId}
-          providerName={providerName}
-          providerSlug={providerSlug}
-          providerCategory={providerCategory}
-          providerCity={providerCity}
-          providerState={providerState}
-          providerPhone={phone}
-          providerImage={providerImage}
-          acceptedPayments={acceptedPayments}
-          ctaVariant={variant}
-          ctaSurface="desktop"
-          ctaPreviewMode={isPreview}
-          onQuestionSelected={handleQuestionSelected}
-        />
-      );
     case "compare":
       return (
         <CompareCard
@@ -257,23 +214,6 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
   const isPreview = isCTAPreviewMode();
 
   switch (variant ?? "legacy") {
-    case "inbox_preview":
-      return (
-        <MobileStickyInboxPreview
-          providerName={providerName}
-          providerId={providerId}
-          providerSlug={providerSlug}
-          providerCategory={providerCategory}
-          providerCity={providerCity}
-          providerState={providerState}
-          providerPhone={phone}
-          providerImage={providerImage}
-          acceptedPayments={acceptedPayments}
-          ctaVariant={variant}
-          ctaSurface="mobile"
-          ctaPreviewMode={isPreview}
-        />
-      );
     case "compare":
       return (
         <MobileStickyCompare

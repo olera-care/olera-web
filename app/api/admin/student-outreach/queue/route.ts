@@ -110,6 +110,13 @@ export interface TabRow extends OutreachRow {
   last_activity_at: string | null;
   /** Calls tab only: the due call task. */
   due_call_task: { id: string; due_at: string } | null;
+  /**
+   * v9 Phase 9: list of recipient names from pending call tasks
+   * (per-recipient mode). Populated on Calls tab. Legacy rows
+   * (single call task per outreach) produce an empty array; the
+   * card renders the row's primary contact phone instead.
+   */
+  due_call_recipients: string[];
   /** v8 Replies tab only: which state card to render. */
   replies_state: RepliesState | null;
   awaiting_callback_at: string | null;
@@ -1088,6 +1095,14 @@ async function hydrateRows(
   // + earliest pending task per row (for the Partners-tab "Next step" pill).
   const customTaskByOutreach = new Map<string, string>();
   const dueCallTaskByOutreach = new Map<string, { id: string; due_at: string }>();
+  // v9 Phase 9: per-recipient call tasks expand the Calls tab card —
+  // a single outreach row can have N pending call tasks (one per
+  // callable recipient). Collect recipient names from each pending
+  // call task so the card subline can list them ("Day 2 calls due:
+  // Logan, General Office"). Names come from task.payload.recipient_name
+  // (set by planSequence per-recipient mode); legacy single-task
+  // rows have no recipient_name — we render generic "primary contact".
+  const dueCallRecipientsByOutreach = new Map<string, string[]>();
   const hasPendingEmail = new Set<string>();
   const hasPendingJobBoard = new Set<string>();
   const earliestTaskByOutreach = new Map<string, { task_type: string; due_at: string; payload: Record<string, unknown> | null }>();
@@ -1112,6 +1127,19 @@ async function hydrateRows(
       !dueCallTaskByOutreach.has(t.outreach_id)
     ) {
       dueCallTaskByOutreach.set(t.outreach_id, { id: t.id, due_at: t.due_at });
+    }
+    if (t.task_type === "outreach_followup_call" && t.due_at <= nowIso) {
+      const list = dueCallRecipientsByOutreach.get(t.outreach_id) ?? [];
+      const name =
+        typeof t.payload?.recipient_name === "string"
+          ? (t.payload.recipient_name as string)
+          : null;
+      if (name && !list.includes(name)) {
+        list.push(name);
+        dueCallRecipientsByOutreach.set(t.outreach_id, list);
+      } else if (!list.length) {
+        dueCallRecipientsByOutreach.set(t.outreach_id, list);
+      }
     }
     if (t.task_type === "outreach_email_send") {
       hasPendingEmail.add(t.outreach_id);
@@ -1179,6 +1207,8 @@ async function hydrateRows(
       followup_at: state.followup_at,
       last_activity_at: state.last_activity_at,
       due_call_task: tab === "calls" ? dueCallTaskByOutreach.get(row.id) ?? null : null,
+      due_call_recipients:
+        tab === "calls" ? dueCallRecipientsByOutreach.get(row.id) ?? [] : [],
       replies_state: repliesState,
       awaiting_callback_at: state.awaiting_callback_at,
       awaiting_callback_kind: state.awaiting_callback_kind,

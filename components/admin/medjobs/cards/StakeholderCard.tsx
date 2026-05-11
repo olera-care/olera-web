@@ -580,12 +580,42 @@ function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
 }
 
 function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
+  // v9 Phase 9: per-recipient call tasks expand into multiple
+  // pending calls per row. The card stays one per outreach (keeps
+  // the visual surface clean) but the subline lists which
+  // recipients are owed a call so admin doesn't lose track. When
+  // 2+ calls are pending, clicking Log opens the drawer where
+  // each task gets its own per-recipient Log button in the
+  // Timeline; with a single call, the existing modal opens.
+  const recipients = row.due_call_recipients ?? [];
+  const recipientLabel =
+    recipients.length === 0
+      ? null
+      : recipients.length <= 3
+        ? recipients.join(" · ")
+        : `${recipients.slice(0, 2).join(" · ")} · +${recipients.length - 2} more`;
   return {
-    footnote: row.due_call_task ? (
-      <p className="mt-0.5 text-[11px] text-gray-400">
-        {formatDueDate(row.due_call_task.due_at)}
-      </p>
-    ) : null,
+    footnote: (
+      <>
+        {row.due_call_task && (
+          <p className="mt-0.5 text-[11px] text-gray-400">
+            {formatDueDate(row.due_call_task.due_at)}
+            {recipients.length > 1 && (
+              <>
+                {" · "}
+                <strong className="tabular-nums">{recipients.length}</strong>{" "}
+                calls pending
+              </>
+            )}
+          </p>
+        )}
+        {recipientLabel && (
+          <p className="mt-0.5 truncate text-[11px] text-gray-600">
+            {recipients.length === 1 ? "Call due:" : "Calls due:"} {recipientLabel}
+          </p>
+        )}
+      </>
+    ),
     headlineAccessory: row.primary_contact_phone ? (
       <a
         href={`tel:${row.primary_contact_phone}`}
@@ -598,8 +628,14 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     ) : null,
     cta: (
       <PrimaryAction
-        onClick={cb.onLogCallOutcome}
-        title="Log the outcome of this phone call."
+        onClick={
+          recipients.length > 1 ? cb.onOpenDrawer : cb.onLogCallOutcome
+        }
+        title={
+          recipients.length > 1
+            ? "Multiple calls pending — open drawer to log each by recipient."
+            : "Log the outcome of this phone call."
+        }
       >
         Log
       </PrimaryAction>

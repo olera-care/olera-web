@@ -303,6 +303,12 @@ export interface TabRow extends OutreachRow {
   last_activity_at: string | null;
   /** Calls tab only: the due call task to surface "Tap to dial" UX. */
   due_call_task: { id: string; due_at: string } | null;
+  /**
+   * v9 Phase 9: list of recipient names from pending call tasks
+   * (per-recipient mode). Populated on Calls tab. Legacy rows
+   * (single call task per outreach) produce an empty array.
+   */
+  due_call_recipients: string[];
   /** v8 Replies tab only: which state card to render. Null otherwise. */
   replies_state: RepliesState | null;
   /** v8: when the awaiting-callback state began (for "N days ago" copy). */

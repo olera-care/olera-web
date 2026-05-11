@@ -256,12 +256,6 @@ export default function CompareOverlay({
                       index < allProviders.length - 1 ? "border-r border-gray-200" : ""
                     }`}
                   >
-                    {/* "This page" label for current provider */}
-                    {index === 0 && (
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-600 mb-2">
-                        This page
-                      </p>
-                    )}
                     <div className="flex items-start gap-3">
                       {/* Avatar */}
                       {provider.image ? (
@@ -282,6 +276,12 @@ export default function CompareOverlay({
 
                       {/* Name and location */}
                       <div className="flex-1 min-w-0">
+                        {/* "This page" label for current provider */}
+                        {index === 0 && (
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-600 mb-0.5">
+                            This page
+                          </p>
+                        )}
                         <Link
                           href={`/provider/${provider.slug}`}
                           className="text-[15px] font-bold text-gray-900 leading-tight hover:text-primary-600 transition-colors line-clamp-1"

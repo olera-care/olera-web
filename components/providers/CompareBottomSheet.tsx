@@ -438,12 +438,6 @@ function CompareCard({ provider, isCurrentProvider, badge }: CompareCardProps) {
     <div
       className="flex-shrink-0 w-[78vw] snap-start rounded-2xl border-2 border-gray-200 p-4 bg-white"
     >
-      {/* "This page" label for current provider */}
-      {isCurrentProvider && (
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-600 mb-2">
-          This page
-        </p>
-      )}
       {/* Provider header */}
       <div className="flex items-start gap-3 mb-3">
         {provider.image ? (
@@ -463,6 +457,12 @@ function CompareCard({ provider, isCurrentProvider, badge }: CompareCardProps) {
         )}
 
         <div className="flex-1 min-w-0">
+          {/* "This page" label for current provider */}
+          {isCurrentProvider && (
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-600 mb-0.5">
+              This page
+            </p>
+          )}
           <h3 className="text-[15px] font-bold text-gray-900 leading-tight line-clamp-1">
             {provider.name}
           </h3>

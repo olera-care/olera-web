@@ -78,7 +78,7 @@ const CAREGIVERS: Caregiver[] = [
     conditions: ["Alzheimer's", "Dementia", "Parkinson's", "Sundowning", "Mild Cognitive Impairment"],
     languages: ["English", "Spanish"],
     hobbies: ["Gardening", "Cooking", "Puzzle games", "Walking"],
-    availability: { Mon: "7am - 3pm", Tue: "7am - 3pm", Wed: "7am - 3pm", Thu: "7am - 3pm", Fri: "7am - 12pm", Sat: "—", Sun: "—" },
+    availability: { Mon: "7am - 3pm", Tue: "7am - 3pm", Wed: "7am - 3pm", Thu: "—", Fri: "7am - 3pm", Sat: "—", Sun: "—" },
     reviews: [
       { author: "Linda R.", date: "Apr 2026", rating: 5, text: "Maria has been an absolute blessing for my mother. She's patient, kind, and always goes the extra mile. Mom actually looks forward to seeing her every morning." },
       { author: "James T.", date: "Mar 2026", rating: 5, text: "Extremely professional and skilled with dementia patients. Maria knows exactly how to redirect and calm my father during difficult moments." },
@@ -1059,15 +1059,6 @@ function CaregiverCard({ cg, selected, onClick, isTopPick }: { cg: Caregiver; se
           <p className="text-[11px] text-gray-400 mt-0.5">{cg.completedVisits} completed visits</p>
         )}
 
-        {/* Specialty badges */}
-        <div className="flex flex-wrap gap-1.5 mt-2">
-          {specialtyBadges.map((b) => (
-            <span key={b} className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${badgeStyle(b)}`}>
-              {b}
-            </span>
-          ))}
-        </div>
-
         {/* Availability indicator — tiered colors */}
         {cg.availabilityNote && (() => {
           const note = cg.availabilityNote;
@@ -1200,8 +1191,9 @@ function Section({ title, children }: { title: React.ReactNode; children: React.
 
 const CARE_TYPE_OPTIONS = ["Companionship", "Driving and errands", "Meal preparation", "Medication reminders", "Mobility assistance", "Light housekeeping", "Personal care"];
 
-function RequestToConnectModal({ caregiverName, open, onClose }: { caregiverName: string; open: boolean; onClose: () => void }) {
+function RequestToConnectModal({ caregiverName, open, onClose, skipSchedule, scheduleLabel }: { caregiverName: string; open: boolean; onClose: () => void; skipSchedule?: boolean; scheduleLabel?: string }) {
   const [step, setStep] = useState(1);
+  const [yourName, setYourName] = useState("");
   const [relationship, setRelationship] = useState("");
   const [relationshipOpen, setRelationshipOpen] = useState(false);
   const [recipientName, setRecipientName] = useState("");
@@ -1226,6 +1218,7 @@ function RequestToConnectModal({ caregiverName, open, onClose }: { caregiverName
   const [datePickerMonth, setDatePickerMonth] = useState(new Date().getMonth());
   const [datePickerYear, setDatePickerYear] = useState(new Date().getFullYear());
   const [zipCode, setZipCode] = useState("");
+  const [noteToCaregiver, setNoteToCaregiver] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   const toggleCareType = (type: string) => {
@@ -1243,6 +1236,7 @@ function RequestToConnectModal({ caregiverName, open, onClose }: { caregiverName
   const handleReset = () => {
     setSubmitted(false);
     setStep(1);
+    setYourName("");
     setRelationship("");
     setRecipientName("");
     setCareTypes([]);
@@ -1259,26 +1253,29 @@ function RequestToConnectModal({ caregiverName, open, onClose }: { caregiverName
     setVisitsPerDay("1");
     setSelectedDays([]);
     setZipCode("");
+    setNoteToCaregiver("");
     onClose();
   };
 
   const hasUnaddedEntry = scheduleFreq === "one-time" ? (!!startDate && !!startTime && !!endTime) : (!!chipDay && !!startTime && !!endTime);
+  const totalSteps = skipSchedule ? 2 : 3;
+  const displayStep = skipSchedule && step === 3 ? 2 : step;
   const canProceed = step === 1 ? (!!relationship && recipientName.trim().length > 0 && (careTypes.length > 0 || (isOtherCare && otherCareText.trim().length > 0))) : step === 2 ? (scheduleChips.length > 0 || hasUnaddedEntry) : zipCode.trim().length >= 5;
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center isolate" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-lg z-[1]" />
-      <div onClick={(e) => e.stopPropagation()} className="relative z-[2] bg-gradient-to-b from-primary-25 to-white rounded-2xl shadow-2xl w-[720px] border border-primary-100 max-h-[90vh] flex flex-col animate-fadeIn">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onPointerDown={handleReset} />
+      <div onPointerDown={(e) => e.stopPropagation()} className="relative z-10 bg-gradient-to-b from-primary-25 to-white rounded-2xl shadow-2xl w-[720px] border border-primary-100 max-h-[90vh] flex flex-col animate-fadeIn">
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-5 border-b border-gray-100">
           <div>
             <h3 className="text-display-xs font-semibold text-gray-900">Connect with {caregiverName}</h3>
-            <p className="text-text-sm text-gray-400 mt-0.5">Step {step} of 3</p>
+            <p className="text-text-sm text-gray-400 mt-0.5">Step {displayStep} of {totalSteps}</p>
           </div>
-          <button onClick={handleReset} className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <button type="button" onPointerDown={handleReset} className="relative z-50 w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors cursor-pointer">
+            <svg className="w-5 h-5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
           </button>
@@ -1286,7 +1283,7 @@ function RequestToConnectModal({ caregiverName, open, onClose }: { caregiverName
 
         {/* Progress bar */}
         <div className="h-1 bg-gray-100">
-          <div className="h-full bg-primary-500 transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }} />
+          <div className="h-full bg-primary-500 transition-all duration-300" style={{ width: `${(displayStep / totalSteps) * 100}%` }} />
         </div>
 
         {submitted ? (
@@ -1358,7 +1355,7 @@ function RequestToConnectModal({ caregiverName, open, onClose }: { caregiverName
                   Keep exploring care
                 </button>
                 <button
-                  onClick={handleReset}
+                  onClick={() => { window.location.href = `/care-shifts/inbox?caregiver=${encodeURIComponent(caregiverName)}${noteToCaregiver.trim() ? `&note=${encodeURIComponent(noteToCaregiver.trim())}` : ""}`; }}
                   className="flex-1 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors text-text-sm"
                 >
                   Go to inbox
@@ -1372,11 +1369,32 @@ function RequestToConnectModal({ caregiverName, open, onClose }: { caregiverName
               {/* Step 1: Who + What care */}
               {step === 1 && (
                 <div>
-                  <h4 className="text-text-xl font-semibold text-gray-900 mb-1">Tell us about the care recipient</h4>
-                  <p className="text-text-md text-gray-400 mb-6">Who will be receiving care?</p>
+                  {skipSchedule && scheduleLabel && (
+                    <div className="mb-5 px-4 py-3 rounded-xl bg-primary-25 border border-primary-100">
+                      <p className="text-text-xs font-semibold text-primary-600 uppercase tracking-wider mb-0.5">Scheduled</p>
+                      <p className="text-text-sm font-medium text-gray-800">{scheduleLabel}</p>
+                    </div>
+                  )}
+                  {/* Your name */}
+                  <div className="mb-6">
+                    <label className="text-text-sm font-semibold text-gray-700 mb-2 block">Your name</label>
+                    <input
+                      type="text"
+                      value={yourName}
+                      onChange={(e) => setYourName(e.target.value)}
+                      placeholder="e.g. Sarah"
+                      className="w-full px-4 py-3.5 rounded-xl border border-primary-200 text-text-md text-gray-900 bg-white placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 focus:outline-none transition-all"
+                    />
+                    <p className="text-text-xs text-gray-400 mt-1.5">So {caregiverName.split(" ")[0]} knows who they&apos;re speaking with</p>
+                  </div>
+
+                  <div className="mx-0 border-t border-gray-100 mb-6" />
+
+                  <h4 className="text-text-xl font-semibold text-gray-900 mb-1">{skipSchedule ? "Add a few more details" : "Tell us about the care recipient"}</h4>
+                  <p className="text-text-md text-gray-400 mb-6">{skipSchedule ? `So ${caregiverName.split(" ")[0]} understands your care needs` : "Who will be receiving care?"}</p>
 
                   <div className="grid grid-cols-2 gap-3 mb-6">
-                    <div>
+                    <div className="relative z-20">
                       <label className="text-text-sm font-semibold text-gray-700 mb-2 block">Relationship</label>
                       <div className="relative">
                         <button
@@ -1812,14 +1830,26 @@ function RequestToConnectModal({ caregiverName, open, onClose }: { caregiverName
                       autoFocus
                     />
                   </div>
+
+                  {/* Optional note */}
+                  <div className="mt-6">
+                    <h4 className="text-text-lg font-semibold text-gray-900 mb-3">Add a personal note to {caregiverName.split(" ")[0]}</h4>
+                    <input
+                      type="text"
+                      value={noteToCaregiver}
+                      onChange={(e) => setNoteToCaregiver(e.target.value)}
+                      placeholder={`Hi ${caregiverName.split(" ")[0]}! I'd love to learn more about how you work with families.`}
+                      className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 text-text-md text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none transition-colors"
+                    />
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Footer */}
             <div className="px-8 pb-8 pt-4 flex items-center gap-3 border-t border-gray-100">
-              {step > 1 && (
-                <button onClick={() => setStep(step - 1)} className="px-6 py-3.5 rounded-xl border border-gray-200 text-text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+              {((skipSchedule && step === 3) || (!skipSchedule && step > 1)) && (
+                <button onClick={() => setStep(skipSchedule ? 1 : step - 1)} className="px-6 py-3.5 rounded-xl border border-gray-200 text-text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
                   Back
                 </button>
               )}
@@ -1837,125 +1867,447 @@ function RequestToConnectModal({ caregiverName, open, onClose }: { caregiverName
                       setChipDay(""); setStartTime(""); setEndTime("");
                     }
                   }
-                  step < 3 ? setStep(step + 1) : handleSubmit();
+                  if (skipSchedule && step === 1) {
+                    setStep(3); // skip step 2, go straight to zip
+                  } else {
+                    step < 3 ? setStep(step + 1) : handleSubmit();
+                  }
                 }}
                 disabled={!canProceed}
                 className="flex-1 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors text-text-md disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {step < 3 ? "Continue" : "Send Request"}
+                {(skipSchedule ? step === 3 : step === 3) ? "Send Request" : "Continue"}
               </button>
             </div>
           </>
         )}
       </div>
+    </div>,
+    document.body
+  );
+}
+
+function parseHour(t: string): number {
+  const match = t.match(/(\d+)(am|pm)/i);
+  if (!match) return 0;
+  let h = parseInt(match[1]);
+  if (match[2].toLowerCase() === "pm" && h !== 12) h += 12;
+  if (match[2].toLowerCase() === "am" && h === 12) h = 0;
+  return h;
+}
+
+function formatTime(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  const period = h >= 12 ? "PM" : "AM";
+  const display = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${display}:${m.toString().padStart(2, "0")} ${period}`;
+}
+
+function getStartTimes(availStr: string): number[] {
+  // Parse "7am - 3pm" → generate 30-min start times from 7:00 to 14:30
+  const parts = availStr.split(/\s*[-–]\s*/);
+  const startH = parseHour(parts[0]?.trim() || "");
+  const endH = parseHour(parts[1]?.trim() || "");
+  const times: number[] = [];
+  for (let m = startH * 60; m <= (endH - 1) * 60; m += 30) {
+    times.push(m);
+  }
+  return times;
+}
+
+function getAvailEndMinutes(availStr: string): number {
+  const parts = availStr.split(/\s*[-–]\s*/);
+  return parseHour(parts[1]?.trim() || "") * 60;
+}
+
+function CustomDropdown({ label, placeholder, value, options, onSelect, disabled, icon }: {
+  label: string;
+  placeholder: string;
+  value: string | null;
+  options: { value: string | number; label: string }[];
+  onSelect: (v: string | number) => void;
+  disabled?: boolean;
+  icon?: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div className="flex-1 relative" ref={ref}>
+      <label className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-1 block">{label}</label>
+      <button
+        onClick={() => !disabled && setOpen(!open)}
+        disabled={disabled}
+        className={`w-full flex items-center justify-between border rounded-xl px-3 py-2.5 text-text-sm font-medium transition-all ${
+          disabled
+            ? "border-gray-100 bg-gray-50 text-gray-300 cursor-default"
+            : open
+              ? "border-primary-400 ring-1 ring-primary-200 bg-white text-gray-800"
+              : "border-primary-200 bg-white text-gray-800 hover:border-primary-300"
+        }`}
+      >
+        <span className="flex items-center gap-1.5">
+          {icon}
+          {value || <span className="text-primary-300">{placeholder}</span>}
+        </span>
+        <svg className={`w-3.5 h-3.5 text-primary-400 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl border border-primary-100 shadow-lg z-50 max-h-48 overflow-y-auto">
+          {options.map((opt) => {
+            const isActive = value === opt.label;
+            return (
+              <button
+                key={String(opt.value)}
+                onClick={() => { onSelect(opt.value); setOpen(false); }}
+                className={`w-full text-left px-3.5 py-2.5 text-text-sm transition-colors ${
+                  isActive ? "bg-primary-50 text-primary-700 font-semibold" : "text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
-function AvailabilityCalendar({ availability }: { availability: Record<string, string> }) {
-  const now = new Date();
-  const [monthOffset, setMonthOffset] = useState(0);
-  const [selectedDate, setSelectedDate] = useState<number | null>(null);
 
-  const viewDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+function AvailabilityCalendar({ availability, caregiverName, onRequestConnect }: { availability: Record<string, string>; caregiverName: string; onRequestConnect?: (label: string) => void }) {
+  const now = new Date();
+  const todayDate = now.getDate();
+  const todayMonth = now.getMonth();
+  const todayYear = now.getFullYear();
+  const [monthOffset, setMonthOffset] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<number | null>(todayDate);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [calEndTime, setCalEndTime] = useState<number | null>(null);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [repeating, setRepeating] = useState(false);
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+
+  const viewDate = new Date(todayYear, todayMonth + monthOffset, 1);
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
   const monthName = viewDate.toLocaleString("default", { month: "long" });
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDayOfWeek = new Date(year, month, 1).getDay();
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dayNames = ["S", "M", "T", "W", "T", "F", "S"];
   const dayKeys = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const fullDayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-  const selectedDayOfWeek = selectedDate ? dayKeys[new Date(year, month, selectedDate).getDay()] : null;
-  const selectedAvail = selectedDayOfWeek ? availability[selectedDayOfWeek] : null;
-  const isSelectedAvailable = selectedAvail && selectedAvail !== "—";
-  const selectedDateStr = selectedDate
-    ? new Date(year, month, selectedDate).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
+  const isCurrentMonth = month === todayMonth && year === todayYear;
+  const isToday = (d: number) => isCurrentMonth && d === todayDate;
+  const isPast = (d: number) => isCurrentMonth && d < todayDate;
+
+  // Build weekly availability summary from caregiver data
+  const weekdayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const weekdayFull: Record<string, string> = { Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", Sun: "Sunday" };
+  const workingDays = weekdayOrder.filter(d => availability[d] && availability[d] !== "—");
+  const workingTimes = workingDays.map(d => availability[d]);
+  const allSameTime = workingTimes.every(t => t === workingTimes[0]);
+  const summaryDays = workingDays.map(d => weekdayFull[d]).join(", ");
+  const summaryTime = allSameTime && workingTimes.length > 0 ? workingTimes[0] : "varies";
+
+  const getDayAvail = (dayNum: number) => {
+    const date = new Date(year, month, dayNum);
+    const dayOfWeek = dayKeys[date.getDay()];
+    const avail = availability[dayOfWeek];
+    return avail && avail !== "—" ? avail : null;
+  };
+
+  const selectedAvail = selectedDate ? getDayAvail(selectedDate) : null;
+  const selectedDateObj = selectedDate ? new Date(year, month, selectedDate) : null;
+  const selectedDateStr = selectedDateObj
+    ? selectedDateObj.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })
     : "";
 
+  // Find next available date from today
+  const findNextAvailable = (): { dayNum: number; monthOff: number; label: string } | null => {
+    for (let mOff = 0; mOff <= 2; mOff++) {
+      const vd = new Date(todayYear, todayMonth + mOff, 1);
+      const dim = new Date(vd.getFullYear(), vd.getMonth() + 1, 0).getDate();
+      const startDay = mOff === 0 ? todayDate : 1;
+      for (let d = startDay; d <= dim; d++) {
+        const date = new Date(vd.getFullYear(), vd.getMonth(), d);
+        const avail = availability[dayKeys[date.getDay()]];
+        if (avail && avail !== "—") {
+          const label = date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+          return { dayNum: d, monthOff: mOff, label };
+        }
+      }
+    }
+    return null;
+  };
+  const nextAvail = findNextAvailable();
+
+  // Count available days this month (future only)
+  const availDays = Array.from({ length: daysInMonth }).filter((_, i) => {
+    const d = new Date(year, month, i + 1);
+    const avail = availability[dayKeys[d.getDay()]];
+    return avail && avail !== "—" && !(isCurrentMonth && i + 1 < todayDate);
+  }).length;
+
+  const handleSelectDate = (dayNum: number) => {
+    if (repeating) {
+      const dayOfWeek = new Date(year, month, dayNum).getDay();
+      setSelectedDays(prev => prev.includes(dayOfWeek) ? prev.filter(d => d !== dayOfWeek) : [...prev, dayOfWeek]);
+    } else {
+      setSelectedDate(dayNum === selectedDate ? null : dayNum);
+      setStartTime(null);
+      setCalEndTime(null);
+      setShowTimePicker(false);
+    }
+  };
+
   return (
-      <div className="rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-        {/* Calendar title bar */}
-        <div className="bg-primary-200 px-5 py-3 flex items-center justify-between border-b border-primary-300">
-          <button onClick={() => { setMonthOffset(monthOffset - 1); setSelectedDate(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-primary-200 transition-colors">
-            <svg className="w-4 h-4 text-primary-800" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-            </svg>
-          </button>
-          <div className="text-center">
-            <h4 className="text-text-lg font-bold text-gray-900">{monthName} {year}</h4>
-            <p className="text-text-xs text-gray-600">Tap a date to see availability</p>
+      <div className="rounded-2xl border border-gray-100 bg-primary-25 shadow-sm">
+        {/* Header */}
+        <div className="px-5 pt-5 pb-3 bg-primary-100 rounded-t-2xl">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => { setMonthOffset(monthOffset - 1); setSelectedDate(null); setStartTime(null); setCalEndTime(null); }}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+              disabled={monthOffset <= 0}
+            >
+              <svg className={`w-4 h-4 ${monthOffset <= 0 ? "text-gray-200" : "text-gray-500"}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <h4 className="text-text-md font-bold text-gray-950">{caregiverName}&apos;s {monthName} availability</h4>
+            <button
+              onClick={() => { setMonthOffset(monthOffset + 1); setSelectedDate(null); setStartTime(null); setCalEndTime(null); }}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
           </div>
-          <button onClick={() => { setMonthOffset(monthOffset + 1); setSelectedDate(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-primary-200 transition-colors">
-            <svg className="w-4 h-4 text-primary-800" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-            </svg>
-          </button>
+
+          {/* Next available shortcut */}
+          {nextAvail && !selectedDate && (
+            <button
+              onClick={() => { setMonthOffset(nextAvail.monthOff); setSelectedDate(nextAvail.dayNum); }}
+              className="mt-1.5 text-text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 mx-auto transition-colors"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+              Next available: {nextAvail.label}
+            </button>
+          )}
         </div>
 
-        <div className="bg-white p-4">
+        {/* Day headers */}
+        <div className="px-4">
+          <div className="grid grid-cols-7">
+            {dayNames.map((d, i) => (
+              <div key={i} className="text-center text-[11px] font-medium text-gray-400 py-1">{d}</div>
+            ))}
+          </div>
+
+          {/* Calendar grid */}
+          <div className="grid grid-cols-7 gap-px">
+            {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+              <div key={`empty-${i}`} className="aspect-square" />
+            ))}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const dayNum = i + 1;
+              const isAvailable = !!getDayAvail(dayNum);
+              const isSelected = !repeating && dayNum === selectedDate;
+              const past = isPast(dayNum);
+              const today = isToday(dayNum);
+              const dayOfWeek = new Date(year, month, dayNum).getDay();
+              const isRepeatingSelected = repeating && selectedDate && !past && dayOfWeek === new Date(year, month, selectedDate).getDay() && dayNum !== selectedDate;
+
+              // Build class based on visual hierarchy: selected > today > past > available > unavailable
+              let cellClass = "aspect-square flex flex-col items-center justify-center rounded-xl text-text-sm transition-all duration-150 relative ";
+              if (isSelected) {
+                cellClass += "bg-primary-600 text-white font-semibold shadow-sm";
+              } else if (isRepeatingSelected) {
+                cellClass += "bg-primary-400 text-white font-semibold ring-2 ring-primary-300 cursor-pointer";
+              } else if (past) {
+                cellClass += "text-gray-300 bg-white cursor-default";
+              } else if (today && isAvailable) {
+                cellClass += "bg-[#DFF0E5] font-semibold text-gray-800 ring-2 ring-primary-400 ring-inset cursor-pointer hover:bg-[#d0e8d8]";
+              } else if (today) {
+                cellClass += "font-semibold text-gray-400 ring-1 ring-gray-300 ring-inset bg-white/80 cursor-pointer hover:bg-white";
+              } else if (isAvailable) {
+                cellClass += "bg-[#DFF0E5] text-gray-800 font-medium cursor-pointer hover:bg-[#d0e8d8]";
+              } else {
+                cellClass += "text-gray-300 bg-white cursor-pointer hover:bg-gray-50";
+              }
+
+              return (
+                <button
+                  key={dayNum}
+                  onClick={() => !past && handleSelectDate(dayNum)}
+                  disabled={past}
+                  className={cellClass}
+                >
+                  {dayNum}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Legend */}
-        <div className="flex items-center justify-center gap-4 text-text-xs text-gray-500 mb-2">
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-success-400" /> Available</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-warning-300" /> Unavailable</span>
-        </div>
-
-        {/* Calendar grid */}
-        <div className="grid grid-cols-7 gap-1">
-          {dayNames.map((d) => (
-            <div key={d} className="text-center text-text-xs font-medium text-gray-400 pb-1">{d}</div>
-          ))}
-          {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-            <div key={`empty-${i}`} />
-          ))}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const dayNum = i + 1;
-            const date = new Date(year, month, dayNum);
-            const dayOfWeek = dayKeys[date.getDay()];
-            const avail = availability[dayOfWeek];
-            const isAvailable = avail && avail !== "—";
-            const isSelected = dayNum === selectedDate;
-            return (
-              <button
-                key={dayNum}
-                onClick={() => setSelectedDate(isSelected ? null : dayNum)}
-                className={`text-center rounded-lg py-1.5 text-text-sm transition-all duration-150 ${
-                  isSelected
-                    ? "bg-primary-500 text-white font-semibold shadow-sm"
-                    : isAvailable
-                      ? "bg-success-50 text-success-700 hover:bg-success-100 cursor-pointer"
-                      : "bg-warning-50 text-warning-400 hover:bg-warning-100 cursor-pointer"
-                }`}
-              >
-                {dayNum}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Availability detail — appears when a date is selected */}
-        {selectedDate && (
-          <div className="mt-4 pt-4 border-t border-gray-100 animate-fadeIn">
-            <p className="text-text-sm font-semibold text-gray-800">{selectedDateStr}</p>
-            {isSelectedAvailable ? (
-              <div className="mt-2 flex items-center gap-2 px-4 py-3 rounded-xl bg-success-50 border border-success-100">
-                <span className="w-2 h-2 rounded-full bg-success-400 flex-shrink-0" />
-                <span className="text-text-sm text-success-700 font-medium">Available {selectedAvail}</span>
-              </div>
-            ) : (
-              <p className="text-text-xs text-warning-600 mt-2 bg-warning-50 rounded-lg px-3 py-2 border border-warning-200">
-                Not available on this day. Try another date.
-              </p>
-            )}
+        <div className="flex items-center justify-center gap-4 px-5 py-2.5">
+          <div className="flex items-center gap-4 text-text-xs text-gray-500">
+            <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded bg-[#DFF0E5] border border-[#c5e0cd]" /> Available</span>
+            <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded ring-1 ring-primary-400 bg-white" /> Today</span>
           </div>
-        )}
         </div>
+
+        {/* Selected date detail */}
+        {selectedDate && (() => {
+          const availWindow = selectedAvail;
+          const startTimes = availWindow ? getStartTimes(availWindow) : [];
+          const availEnd = availWindow ? getAvailEndMinutes(availWindow) : 0;
+          const endTime = calEndTime;
+          const isValid = startTime !== null && endTime !== null && endTime > startTime && endTime <= availEnd;
+          // Generate valid end times: every 30 min after start time, up to avail end
+          const validEndTimes: number[] = [];
+          if (startTime !== null) {
+            for (let m = startTime + 30; m <= availEnd; m += 30) {
+              validEndTimes.push(m);
+            }
+          }
+
+          return (
+            <div className="border-t border-gray-100 px-5 py-4 animate-fadeIn">
+              <div className="mb-3">
+                <div className="flex items-center gap-2">
+                  <p className="text-text-sm font-semibold text-gray-800">{selectedDateStr}</p>
+                  {isToday(selectedDate) && (
+                    <span className="text-[10px] font-semibold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">Today</span>
+                  )}
+                </div>
+                {availWindow && (
+                  <p className="text-text-xs text-primary-600 mt-1">{caregiverName} is available {availWindow}</p>
+                )}
+              </div>
+
+              {availWindow ? (
+                <div className="space-y-3">
+                  {!showTimePicker ? (
+                    <button
+                      onClick={() => setShowTimePicker(true)}
+                      className="w-full py-2.5 bg-primary-50 hover:bg-primary-100 text-primary-700 border border-primary-200 text-text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                      </svg>
+                      Send {caregiverName} a request
+                    </button>
+                  ) : (
+                  <>
+                  {/* Start time + Duration custom dropdowns */}
+                  <div className="flex gap-2 animate-fadeIn">
+                    {/* Start time */}
+                    <CustomDropdown
+                      label="Start time"
+                      placeholder="Select..."
+                      value={startTime !== null ? formatTime(startTime) : null}
+                      options={startTimes.map(m => ({ value: m, label: formatTime(m) }))}
+                      onSelect={(v) => { setStartTime(v as number); setCalEndTime(null); }}
+                      icon={<svg className="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>}
+                    />
+                    {/* End time */}
+                    <CustomDropdown
+                      label="End time"
+                      placeholder="Select..."
+                      value={calEndTime !== null ? formatTime(calEndTime) : null}
+                      options={validEndTimes.map(m => ({ value: m, label: formatTime(m) }))}
+                      onSelect={(v) => setCalEndTime(v as number)}
+                      disabled={startTime === null}
+                      icon={<svg className="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>}
+                    />
+                  </div>
+
+                  {/* Repeat weekly toggle */}
+                  {selectedDate && (() => {
+                    const selectedDayName = fullDayNames[new Date(year, month, selectedDate).getDay()];
+                    // Count how many matching weekdays remain this month
+                    const repeatCount = Array.from({ length: daysInMonth }).filter((_, i) => {
+                      const d = new Date(year, month, i + 1);
+                      return d.getDay() === new Date(year, month, selectedDate).getDay() && !isPast(i + 1);
+                    }).length;
+                    return (
+                      <label className="flex items-center gap-2.5 cursor-pointer group">
+                        <div className={`w-9 h-5 rounded-full transition-colors relative ${repeating ? "bg-primary-500" : "bg-gray-200 group-hover:bg-gray-300"}`}
+                          onClick={() => setRepeating(!repeating)}>
+                          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${repeating ? "translate-x-4" : "translate-x-0.5"}`} />
+                        </div>
+                        <span className="text-text-xs text-gray-600 font-medium">
+                          Every {selectedDayName} {repeating && <span className="text-primary-600">({repeatCount} dates)</span>}
+                        </span>
+                      </label>
+                    );
+                  })()}
+
+                  {/* Request CTA */}
+                  <button
+                    className={`w-full py-2.5 text-text-sm font-semibold rounded-xl transition-all mt-1 ${
+                      isValid
+                        ? "bg-primary-600 hover:bg-primary-700 text-white shadow-sm"
+                        : "bg-gray-100 text-gray-400 cursor-default"
+                    }`}
+                    disabled={!isValid}
+                    onClick={() => {
+                      if (isValid && onRequestConnect) {
+                        const label = repeating
+                          ? `Every ${fullDayNames[new Date(year, month, selectedDate!).getDay()]} ${formatTime(startTime!)} – ${formatTime(endTime!)}`
+                          : `${selectedDateStr} ${formatTime(startTime!)} – ${formatTime(endTime!)}`;
+                        onRequestConnect(label);
+                      }
+                    }}
+                  >
+                    {isValid
+                      ? repeating
+                        ? `Request every ${fullDayNames[new Date(year, month, selectedDate!).getDay()]} ${formatTime(startTime!)} – ${formatTime(endTime!)}`
+                        : `Request ${formatTime(startTime!)} – ${formatTime(endTime!)}`
+                      : "Select start and end time"}
+                  </button>
+                  </>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-red-50 border border-red-100">
+                  <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-3 h-3 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                  <p className="text-text-sm text-red-600 font-medium">{caregiverName} isn&apos;t available this day</p>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
   );
 }
 
 function CaregiverProfile({ cg }: { cg: Caregiver }) {
   const [connectOpen, setConnectOpen] = useState(false);
+  const [calendarConnectOpen, setCalendarConnectOpen] = useState(false);
+  const [calendarScheduleLabel, setCalendarScheduleLabel] = useState("");
   return (
     <div className="space-y-5">
       {/* Hero photo / video */}
@@ -1976,10 +2328,13 @@ function CaregiverProfile({ cg }: { cg: Caregiver }) {
           <span className="text-gray-200">|</span>
           <span className="text-text-md font-semibold text-gray-900">${cg.hourlyRate}/hr</span>
         </div>
-        <div className="flex flex-wrap gap-2 mt-4">
-          {cg.badges.map((b) => (
-            <span key={b} className={`px-3 py-1 rounded-full text-text-xs font-medium ${badgeStyle(b)}`}>
-              {b}
+        <div className="flex flex-wrap gap-3 mt-4">
+          {["Background Checked", "Verified Identity"].map((label) => (
+            <span key={label} className="flex items-center gap-1.5 text-text-xs font-medium text-gray-700">
+              <svg className="w-4 h-4 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              {label}
             </span>
           ))}
         </div>
@@ -2029,7 +2384,8 @@ function CaregiverProfile({ cg }: { cg: Caregiver }) {
 
       <hr className="border-gray-100" />
 
-      <AvailabilityCalendar availability={cg.availability} />
+      <AvailabilityCalendar availability={cg.availability} caregiverName={cg.firstName} onRequestConnect={(label) => { setCalendarScheduleLabel(label); setCalendarConnectOpen(true); }} />
+      <RequestToConnectModal caregiverName={`${cg.firstName} ${cg.lastInitial}.`} open={calendarConnectOpen} onClose={() => setCalendarConnectOpen(false)} skipSchedule scheduleLabel={calendarScheduleLabel} />
 
       <hr className="border-gray-100" />
 
@@ -2273,90 +2629,258 @@ function caregiverMatchesLocation(cg: Caregiver, query: string): boolean {
   return false;
 }
 
-function SearchBar({ zipQuery, setZipQuery, selectedTypes, setSelectedTypes, onSearch }: {
-  zipQuery: string;
-  setZipQuery: (v: string) => void;
+function DualRangeSlider({ min, max, step, valueMin, valueMax, onChange }: {
+  min: number; max: number; step: number;
+  valueMin: number; valueMax: number;
+  onChange: (min: number, max: number) => void;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const ticks = [15, 20, 25, 30, 35, 40, 45, 50];
+  const range = max - min;
+  const leftPct = ((valueMin - min) / range) * 100;
+  const rightPct = ((valueMax - min) / range) * 100;
+
+  const handlePointer = (e: React.PointerEvent, handle: "min" | "max") => {
+    e.preventDefault();
+    const track = trackRef.current!;
+    const move = (ev: PointerEvent) => {
+      const rect = track.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+      const raw = min + pct * range;
+      const snapped = Math.round(raw / step) * step;
+      const clamped = Math.max(min, Math.min(max, snapped));
+      if (handle === "min") onChange(Math.min(clamped, valueMax - step), valueMax);
+      else onChange(valueMin, Math.max(clamped, valueMin + step));
+    };
+    const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+  };
+
+  return (
+    <div className="relative pt-2 pb-6">
+      {/* Track background */}
+      <div ref={trackRef} className="relative h-2 rounded-full bg-gray-200 cursor-pointer">
+        {/* Active range fill */}
+        <div
+          className="absolute top-0 bottom-0 rounded-full bg-primary-500"
+          style={{ left: `${leftPct}%`, right: `${100 - rightPct}%` }}
+        />
+        {/* Tick marks */}
+        {ticks.map((t) => {
+          const pct = ((t - min) / range) * 100;
+          return (
+            <div key={t} className="absolute top-full mt-2 flex flex-col items-center" style={{ left: `${pct}%`, transform: "translateX(-50%)" }}>
+              <div className="w-px h-1.5 bg-gray-300" />
+              <span className="text-[10px] text-gray-400 mt-0.5">${t === 50 ? "50+" : t}</span>
+            </div>
+          );
+        })}
+        {/* Min handle */}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white border-2 border-primary-500 shadow-md cursor-grab active:cursor-grabbing hover:scale-110 transition-transform touch-none"
+          style={{ left: `${leftPct}%`, transform: `translateX(-50%) translateY(-50%)`, zIndex: valueMin === valueMax ? 30 : 20 }}
+          onPointerDown={(e) => handlePointer(e, "min")}
+        />
+        {/* Max handle */}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white border-2 border-primary-500 shadow-md cursor-grab active:cursor-grabbing hover:scale-110 transition-transform touch-none"
+          style={{ left: `${rightPct}%`, transform: "translateX(-50%) translateY(-50%)", zIndex: 20 }}
+          onPointerDown={(e) => handlePointer(e, "max")}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SearchBar({ selectedTypes, setSelectedTypes, priceMin, setPriceMin, priceMax, setPriceMax, caregivers, onSearch }: {
   selectedTypes: string[];
   setSelectedTypes: (v: string[]) => void;
+  priceMin: number;
+  setPriceMin: (v: number) => void;
+  priceMax: number;
+  setPriceMax: (v: number) => void;
+  caregivers: Caregiver[];
   onSearch: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<"care" | "price" | null>(null);
+  const [draftMin, setDraftMin] = useState(priceMin);
+  const [draftMax, setDraftMax] = useState(priceMax);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpenDropdown(null);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Sync drafts when dropdown opens
+  useEffect(() => {
+    if (openDropdown === "price") { setDraftMin(priceMin); setDraftMax(priceMax); }
+  }, [openDropdown, priceMin, priceMax]);
+
+  const isDefaultRange = priceMin <= 15 && priceMax >= 50;
+  const priceLabel = isDefaultRange ? "Any price" : priceMin <= 15 ? `Up to $${priceMax}/hr` : priceMax >= 50 ? `$${priceMin}+/hr` : `$${priceMin} – $${priceMax}/hr`;
+
+  // Live match count for draft values
+  const matchCount = caregivers.filter((cg) => {
+    const matchesPrice = (draftMin <= 15 && draftMax >= 50) || (cg.hourlyRate >= draftMin && (draftMax >= 50 || cg.hourlyRate <= draftMax));
+    const matchesCare = caregiverMatchesCareTypes(cg, selectedTypes);
+    return matchesPrice && matchesCare;
+  }).length;
+
+  const handleMinInput = (v: string) => {
+    const n = parseInt(v.replace(/\D/g, ""));
+    if (!isNaN(n)) setDraftMin(Math.max(15, Math.min(n, draftMax - 5)));
+  };
+  const handleMaxInput = (v: string) => {
+    const n = parseInt(v.replace(/\D/g, ""));
+    if (!isNaN(n)) setDraftMax(Math.max(draftMin + 5, Math.min(n, 50)));
+  };
+
   return (
-    <div className="inline-flex items-center bg-white rounded-full border border-gray-200 shadow-sm mt-5 relative">
-      {/* Zip code input */}
-      <div className="flex items-center gap-2 px-6 py-3.5 border-r border-gray-200">
-        <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-        </svg>
-        <input
-          type="text"
-          value={zipQuery}
-          onChange={(e) => setZipQuery(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") onSearch(); }}
-          placeholder="City or ZIP code"
-          className="w-52 text-text-md text-gray-800 placeholder:text-gray-400 focus:outline-none bg-transparent"
-        />
-      </div>
-      {/* Care type custom dropdown */}
-      <div ref={ref} className="relative">
-        <button
-          onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 px-6 py-3.5 text-text-md text-gray-800 hover:bg-gray-25 transition-colors"
-        >
-          {selectedTypes.length > 0 ? selectedTypes.join(", ") : "Care Type"}
-          <svg className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
-        {open && (
-          <div className="absolute top-full left-0 mt-2 w-60 bg-white rounded-xl shadow-xl py-1.5 z-50 animate-fadeIn border border-primary-100">
-            {CARE_TYPES.map((type) => {
-              const isSelected = selectedTypes.includes(type);
-              return (
+    <div className="mt-6 relative z-30" ref={ref}>
+      <p className="text-text-sm text-gray-500 mb-3">Filter to find the right caregiver</p>
+      <div className="inline-flex items-stretch bg-white rounded-full border border-gray-200 shadow-md">
+        {/* Care type section */}
+        <div className="relative">
+          <button
+            onClick={() => setOpenDropdown(openDropdown === "care" ? null : "care")}
+            className="flex items-center gap-2.5 h-full px-6 py-3 text-text-md text-gray-800 hover:bg-gray-50 transition-colors rounded-l-full"
+          >
+            {selectedTypes.length > 0 ? (
+              <span className="flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-primary-600 text-white text-[11px] font-bold flex items-center justify-center">{selectedTypes.length}</span>
+                <span className="font-medium">Care Type</span>
+              </span>
+            ) : (
+              <span className="font-medium">Care Type</span>
+            )}
+            <svg className={`w-4 h-4 text-gray-400 transition-transform ${openDropdown === "care" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          {openDropdown === "care" && (
+            <div className="absolute top-full left-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl py-3 z-50 border border-gray-100" style={{ maxHeight: "400px", overflowY: "auto" }}>
+              <p className="px-5 pb-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Select care types</p>
+              {CARE_TYPES.map((type) => {
+                const isSelected = selectedTypes.includes(type);
+                return (
+                  <button
+                    key={type}
+                    onClick={() => setSelectedTypes(isSelected ? selectedTypes.filter(s => s !== type) : [...selectedTypes, type])}
+                    className={`w-full flex items-center gap-3 px-5 py-3 text-left text-text-md font-medium transition-colors ${
+                      isSelected ? "bg-primary-50 text-primary-700" : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
+                      isSelected ? "border-primary-500 bg-primary-500" : "border-gray-300"
+                    }`}>
+                      {isSelected && (
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                      )}
+                    </span>
+                    {type}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="w-px bg-gray-200 my-2" />
+
+        {/* Price section */}
+        <div className="relative">
+          <button
+            onClick={() => setOpenDropdown(openDropdown === "price" ? null : "price")}
+            className="flex items-center gap-2.5 h-full px-6 py-3 text-text-md text-gray-800 hover:bg-gray-50 transition-colors"
+          >
+            <span className="font-medium">{priceLabel}</span>
+            <svg className={`w-4 h-4 text-gray-400 transition-transform ${openDropdown === "price" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          {openDropdown === "price" && (
+            <div className="absolute top-full right-0 mt-3 w-[340px] bg-white rounded-2xl shadow-2xl p-6 z-50 border border-gray-100">
+              <p className="text-text-md font-semibold text-gray-800 mb-4">Price range</p>
+
+              {/* Min / Max inputs */}
+              <div className="flex items-center gap-3 mb-5">
+                <div className="flex-1">
+                  <label className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-1 block">Min</label>
+                  <div className="flex items-center border border-gray-200 rounded-lg px-3 py-2 focus-within:border-primary-400 transition-colors">
+                    <span className="text-text-sm text-gray-400 mr-1">$</span>
+                    <input
+                      type="text"
+                      value={draftMin}
+                      onChange={(e) => handleMinInput(e.target.value)}
+                      className="w-full text-text-md font-semibold text-gray-800 focus:outline-none bg-transparent"
+                    />
+                  </div>
+                </div>
+                <span className="text-gray-300 mt-5">—</span>
+                <div className="flex-1">
+                  <label className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-1 block">Max</label>
+                  <div className="flex items-center border border-gray-200 rounded-lg px-3 py-2 focus-within:border-primary-400 transition-colors">
+                    <span className="text-text-sm text-gray-400 mr-1">$</span>
+                    <input
+                      type="text"
+                      value={draftMax >= 50 ? "50+" : draftMax}
+                      onChange={(e) => handleMaxInput(e.target.value)}
+                      className="w-full text-text-md font-semibold text-gray-800 focus:outline-none bg-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Dual range slider */}
+              <DualRangeSlider
+                min={15} max={50} step={5}
+                valueMin={draftMin} valueMax={draftMax}
+                onChange={(lo, hi) => { setDraftMin(lo); setDraftMax(hi); }}
+              />
+
+              {/* Live match count */}
+              <p className="text-text-sm text-gray-500 mt-2 text-center">
+                <span className="font-semibold text-primary-600">{matchCount}</span> caregiver{matchCount !== 1 ? "s" : ""} match
+              </p>
+
+              {/* Clear / Apply */}
+              <div className="flex items-center justify-between mt-5 pt-4 border-t border-gray-100">
                 <button
-                  key={type}
-                  onClick={() => setSelectedTypes(isSelected ? selectedTypes.filter(s => s !== type) : [...selectedTypes, type])}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left text-text-sm font-medium transition-colors ${
-                    isSelected ? "bg-primary-50 text-primary-700" : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                  onClick={() => { setDraftMin(15); setDraftMax(50); }}
+                  className="text-text-sm font-medium text-gray-500 hover:text-gray-800 underline transition-colors"
                 >
-                  <span className={`w-[18px] h-[18px] rounded flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
-                    isSelected ? "border-primary-500 bg-primary-500" : "border-gray-300"
-                  }`}>
-                    {isSelected && (
-                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
-                    )}
-                  </span>
-                  {type}
+                  Clear
                 </button>
-              );
-            })}
-          </div>
-        )}
+                <button
+                  onClick={() => { setPriceMin(draftMin); setPriceMax(draftMax); setOpenDropdown(null); onSearch(); }}
+                  className="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white text-text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Search button */}
+        <button
+          onClick={onSearch}
+          className="flex items-center gap-2 px-7 py-3 bg-primary-600 hover:bg-primary-700 text-white text-text-md font-semibold transition-colors rounded-r-full"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+          Search
+        </button>
       </div>
-      {/* Search button */}
-      <button
-        onClick={onSearch}
-        className="flex items-center gap-2 px-8 py-3.5 bg-primary-600 hover:bg-primary-700 text-white text-text-md font-semibold transition-colors rounded-r-full"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-        </svg>
-        Search
-      </button>
     </div>
   );
 }
@@ -2369,26 +2893,28 @@ export default function CareShiftsPage() {
   const profileCg = profileId ? CAREGIVERS.find((c) => c.id === profileId) : null;
 
   // Search / filter state
-  const [zipQuery, setZipQuery] = useState("");
   const [selectedCareTypes, setSelectedCareTypes] = useState<string[]>([]);
-  const [activeZip, setActiveZip] = useState("");
+  const [priceMin, setPriceMin] = useState(15);
+  const [priceMax, setPriceMax] = useState(50);
   const [activeCareTypes, setActiveCareTypes] = useState<string[]>([]);
 
+  const isDefaultPrice = priceMin <= 15 && priceMax >= 50;
   const filteredCaregivers = CAREGIVERS.filter((cg) =>
-    caregiverMatchesLocation(cg, activeZip) && caregiverMatchesCareTypes(cg, activeCareTypes)
+    caregiverMatchesCareTypes(cg, activeCareTypes) && (isDefaultPrice || (cg.hourlyRate >= priceMin && (priceMax >= 50 || cg.hourlyRate <= priceMax)))
   );
 
   const handleSearch = useCallback(() => {
-    setActiveZip(zipQuery);
     setActiveCareTypes([...selectedCareTypes]);
     setCurrentPage(1);
-  }, [zipQuery, selectedCareTypes]);
+  }, [selectedCareTypes]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(filteredCaregivers.length / ITEMS_PER_PAGE);
   const paginated = filteredCaregivers.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
   const [selectedId, setSelectedId] = useState(CAREGIVERS[0].id);
   const [fullProfileConnectOpen, setFullProfileConnectOpen] = useState(false);
+  const [fullProfileCalendarConnectOpen, setFullProfileCalendarConnectOpen] = useState(false);
+  const [fullProfileCalendarLabel, setFullProfileCalendarLabel] = useState("");
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [profileVideoPlaying, setProfileVideoPlaying] = useState(false);
   const profileVideoRef = useRef<HTMLVideoElement>(null);
@@ -2398,7 +2924,7 @@ export default function CareShiftsPage() {
     if (filteredCaregivers.length > 0 && !filteredCaregivers.find((c) => c.id === selectedId)) {
       setSelectedId(filteredCaregivers[0].id);
     }
-  }, [activeZip, activeCareTypes, filteredCaregivers, selectedId]);
+  }, [activeCareTypes, filteredCaregivers, selectedId]);
 
   // Reset profile expanded when switching caregivers
   useEffect(() => { setProfileExpanded(false); }, [selectedId]);
@@ -2459,10 +2985,15 @@ export default function CareShiftsPage() {
                     <span className="font-semibold text-gray-900">${cg.hourlyRate}/hr</span>
                   </div>
 
-                  {/* Badge tags */}
-                  <div className="flex flex-wrap gap-2">
-                    {cg.badges.map((b) => (
-                      <span key={b} className={`px-3 py-1 rounded-full text-text-xs font-medium ${badgeStyle(b)}`}>{b}</span>
+                  {/* Trust checks */}
+                  <div className="flex flex-wrap gap-3">
+                    {["Background Checked", "Verified Identity", "CPR Certified"].map((label) => (
+                      <span key={label} className="flex items-center gap-1.5 text-text-xs font-medium text-gray-700">
+                        <svg className="w-4 h-4 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        {label}
+                      </span>
                     ))}
                   </div>
 
@@ -2586,7 +3117,7 @@ export default function CareShiftsPage() {
             {/* ── Right Column — Scrollable content ── */}
             <div className="flex-1 min-w-0 space-y-0">
               {/* Availability */}
-              <AvailabilityCalendar availability={cg.availability} />
+              <AvailabilityCalendar availability={cg.availability} caregiverName={cg.firstName} onRequestConnect={(label) => { setFullProfileCalendarLabel(label); setFullProfileCalendarConnectOpen(true); }} />
 
               {/* Intro Video */}
               {cg.videoUrl && (
@@ -2754,59 +3285,54 @@ export default function CareShiftsPage() {
           </div>
         </div>
         <RequestToConnectModal caregiverName={`${cg.firstName} ${cg.lastInitial}.`} open={fullProfileConnectOpen} onClose={() => setFullProfileConnectOpen(false)} />
+        <RequestToConnectModal caregiverName={`${cg.firstName} ${cg.lastInitial}.`} open={fullProfileCalendarConnectOpen} onClose={() => setFullProfileCalendarConnectOpen(false)} skipSchedule scheduleLabel={fullProfileCalendarLabel} />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-vanilla-50">
-      {/* Banner */}
-      <div className="bg-primary-50 relative overflow-visible">
-        {/* Background depth — gradient wave + organic blobs */}
+      {/* Hero — two-column layout */}
+      <div className="bg-primary-50 relative overflow-x-clip">
+        {/* Background depth */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary-100/60 via-primary-50/30 to-vanilla-200/50" />
         <div className="absolute -left-16 top-1/2 -translate-y-1/2 w-[450px] h-[350px] rounded-full bg-primary-200/35 blur-3xl" />
-        <div className="absolute right-1/4 -top-10 w-[400px] h-[300px] rounded-full bg-primary-100/25 blur-3xl" />
         <div className="absolute left-1/3 -bottom-8 w-[300px] h-[200px] rounded-full bg-vanilla-300/25 blur-3xl" />
-        {/* Subtle wave shape at bottom */}
-        <svg className="absolute bottom-0 left-0 w-full h-8 text-vanilla-50" preserveAspectRatio="none" viewBox="0 0 1440 40" fill="currentColor">
-          <path d="M0,20 C360,40 720,0 1080,20 C1260,30 1380,35 1440,20 L1440,40 L0,40 Z" />
-        </svg>
-        <div className="max-w-[1600px] mx-auto px-8 py-6 relative">
-          <div className="flex items-center justify-center gap-10">
-            {/* Left — text + search + trust */}
-            <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="bg-warning-100 text-warning-700 text-text-xs font-semibold px-2.5 py-1 rounded-md uppercase tracking-wide">New in Houston</span>
-              </div>
-              <h1 className="font-display text-display-lg text-gray-900 text-center font-normal">
-                Compassionate care, half the cost.
+
+        <div className="max-w-[1600px] mx-auto px-8 relative">
+          <div className="flex">
+            {/* Left column — text, search, trust */}
+            <div className="w-[58%] py-12 lg:py-16 relative z-10">
+              <span className="inline-block bg-warning-100 text-warning-700 text-text-xs font-semibold px-2.5 py-1 rounded-md uppercase tracking-wide mb-3">New in Houston</span>
+              <h1 className="font-display text-display-lg lg:text-display-xl text-gray-900 font-normal leading-tight">
+                Compassionate care,<br />half the cost.
               </h1>
-              <p className="text-text-md text-gray-500 mt-1 text-center">
+              <p className="text-text-md lg:text-text-lg text-gray-500 mt-2 max-w-lg">
                 Verified medical students providing in-home care you can trust.
               </p>
-              <div className="mt-2">
-                <SearchBar zipQuery={zipQuery} setZipQuery={setZipQuery} selectedTypes={selectedCareTypes} setSelectedTypes={setSelectedCareTypes} onSearch={handleSearch} />
-                <p className="text-text-xs text-gray-400 mt-1.5 text-center">For a more accurate search, enter your ZIP code</p>
+              <div className="mt-5 max-w-xl">
+                <SearchBar selectedTypes={selectedCareTypes} setSelectedTypes={setSelectedCareTypes} priceMin={priceMin} setPriceMin={setPriceMin} priceMax={priceMax} setPriceMax={setPriceMax} caregivers={CAREGIVERS} onSearch={handleSearch} />
               </div>
-            </div>
-            {/* Right — hero photo + logos unified card (house shape) */}
-            <div className="hidden lg:flex flex-shrink-0">
-              <div className="bg-white px-4 pb-4 pt-4 flex flex-col items-center" style={{ borderRadius: "85px 85px 14px 14px", boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)" }}>
-                <div className="w-[150px] h-[175px] overflow-hidden" style={{ borderRadius: "75px 75px 10px 10px" }}>
-                  <img
-                    src="/images/care-shifts-banner.jpg"
-                    alt="Caregiver with senior"
-                    className="w-full h-full object-cover object-[center_25%]"
-                  />
-                </div>
-                <div className="flex items-center gap-3 mt-3">
-                  <img src="/images/universities/uh.png" alt="UH" className="h-5 object-contain opacity-70" />
-                  <img src="/images/universities/tamu.png" alt="TAMU" className="h-5 object-contain opacity-70" />
-                  <img src="/images/universities/pvamu.png" alt="PVAMU" className="h-5 object-contain opacity-70" />
+              <div className="flex items-center gap-4 mt-5">
+                <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Partnered with</span>
+                <div className="flex items-center gap-3">
+                  <img src="/images/universities/uh.png" alt="UH" className="h-5 object-contain opacity-60" />
+                  <img src="/images/universities/tamu.png" alt="TAMU" className="h-5 object-contain opacity-60" />
+                  <img src="/images/universities/pvamu.png" alt="PVAMU" className="h-5 object-contain opacity-60" />
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Right column — hero photo, positioned absolutely to fill right side */}
+        <div className="hidden lg:block absolute top-0 bottom-0 right-0 w-[42%]">
+          <img
+            src="/images/care-shifts-banner.jpg"
+            alt="Caregiver with senior"
+            className="w-full h-full object-cover object-[center_25%]"
+          />
+          <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-primary-50 to-transparent" />
         </div>
       </div>
 
@@ -2817,7 +3343,7 @@ export default function CareShiftsPage() {
           <div className="w-[58%] flex-shrink-0 relative z-0">
             <div className="flex items-center justify-between mb-4">
               <p className="text-text-sm text-gray-500">
-                Showing {filteredCaregivers.length === 0 ? "0" : `${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, filteredCaregivers.length)}`} of {filteredCaregivers.length} students{(activeZip || activeCareTypes.length > 0) && <button onClick={() => { setActiveZip(""); setActiveCareTypes([]); setZipQuery(""); setSelectedCareTypes([]); setCurrentPage(1); }} className="ml-2 text-primary-600 hover:text-primary-700 font-medium underline">Clear filters</button>}
+                Showing {filteredCaregivers.length === 0 ? "0" : `${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, filteredCaregivers.length)}`} of {filteredCaregivers.length} students{(activeCareTypes.length > 0 || !isDefaultPrice) && <button onClick={() => { setActiveCareTypes([]); setSelectedCareTypes([]); setPriceMin(15); setPriceMax(50); setCurrentPage(1); }} className="ml-2 text-primary-600 hover:text-primary-700 font-medium underline">Clear filters</button>}
               </p>
             </div>
             {filteredCaregivers.length === 0 ? (
@@ -2830,7 +3356,7 @@ export default function CareShiftsPage() {
                 <h3 className="text-text-lg font-semibold text-gray-900 mb-1">No caregivers found</h3>
                 <p className="text-text-sm text-gray-500 mb-4">Try adjusting your search or filters</p>
                 <button
-                  onClick={() => { setActiveZip(""); setActiveCareTypes([]); setZipQuery(""); setSelectedCareTypes([]); setCurrentPage(1); }}
+                  onClick={() => { setActiveCareTypes([]); setSelectedCareTypes([]); setPriceMin(15); setPriceMax(50); setCurrentPage(1); }}
                   className="text-text-sm font-semibold text-primary-600 hover:text-primary-700"
                 >
                   Clear all filters
@@ -2844,7 +3370,7 @@ export default function CareShiftsPage() {
                     cg={cg}
                     selected={cg.id === selectedId}
                     onClick={() => setSelectedId(cg.id)}
-                    isTopPick={currentPage === 1 && i === 0 && !activeZip && activeCareTypes.length === 0}
+                    isTopPick={currentPage === 1 && i === 0}
                   />
                 ))}
               </div>

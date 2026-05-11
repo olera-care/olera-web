@@ -567,14 +567,28 @@ export default function Navbar() {
 
       <div className="mx-3.5 border-t border-gray-100" />
 
-      {/* Intent actions */}
+      {/* Care Shifts nav */}
       <div className="px-1.5 pt-1">
         <button
           type="button"
           role="menuitem"
           onClick={() => {
             setIsUserMenuOpen(false);
-            router.push("/browse");
+            router.push("/care-shifts/dashboard");
+          }}
+          className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+        >
+          <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          Dashboard
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            setIsUserMenuOpen(false);
+            router.push("/care-shifts");
           }}
           className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
         >
@@ -588,30 +602,28 @@ export default function Navbar() {
           role="menuitem"
           onClick={() => {
             setIsUserMenuOpen(false);
-            // Return to current page on Exit, or /for-providers if on onboarding already
-            const returnTo = pathname.startsWith("/provider/onboarding") ? "/for-providers" : pathname;
-            router.push(`/provider/onboarding?returnTo=${encodeURIComponent(returnTo)}`);
+            router.push("/care-shifts/inbox");
           }}
           className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
         >
           <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
           </svg>
-          Find your organization
+          Inbox
         </button>
         <button
           type="button"
           role="menuitem"
           onClick={() => {
             setIsUserMenuOpen(false);
-            router.push("/medjobs");
+            router.push("/care-shifts/saved");
           }}
           className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
         >
           <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
           </svg>
-          Join as a caregiver
+          Saved
         </button>
       </div>
     </div>

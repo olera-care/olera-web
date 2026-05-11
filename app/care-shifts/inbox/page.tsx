@@ -610,6 +610,7 @@ function BookVisitModal({
     setBookDays([]);
     setBookStartTime("");
     setBookEndTime("");
+    setBookCareTypes(requestDetails?.careTypes || []);
     setRecurringStart("");
     setWpMode(null);
     setSelectedPackageId(null);

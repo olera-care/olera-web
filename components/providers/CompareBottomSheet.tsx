@@ -339,7 +339,7 @@ export default function CompareBottomSheet({
               <button
                 type="button"
                 onClick={handleSaveClick}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#4a7c72] hover:bg-[#3d6860] text-white rounded-xl text-[15px] font-semibold transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
               >
                 Save this comparison
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -367,7 +367,7 @@ export default function CompareBottomSheet({
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
                   disabled={footerState === "submitting"}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4a7c72]/20 focus:border-[#4a7c72] disabled:opacity-50 disabled:bg-gray-50"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 disabled:opacity-50 disabled:bg-gray-50"
                 />
 
                 {error && (
@@ -377,7 +377,7 @@ export default function CompareBottomSheet({
                 <button
                   type="submit"
                   disabled={footerState === "submitting"}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#4a7c72] hover:bg-[#3d6860] text-white rounded-xl text-[15px] font-semibold transition-colors disabled:opacity-70"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors disabled:opacity-70"
                 >
                   {footerState === "submitting" ? (
                     <>
@@ -402,7 +402,7 @@ export default function CompareBottomSheet({
 
           {footerState === "success" && (
             <div className="py-4 text-center">
-              <div className="w-12 h-12 bg-[#4a7c72] rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-3">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
@@ -437,7 +437,7 @@ function CompareCard({ provider, isCurrentProvider, badge }: CompareCardProps) {
   return (
     <div
       className={`flex-shrink-0 w-[78vw] snap-start rounded-2xl border-2 p-4 bg-white ${
-        isCurrentProvider ? "border-[#4a7c72]" : "border-gray-200"
+        isCurrentProvider ? "border-gray-900" : "border-gray-200"
       }`}
     >
       {/* Provider header */}

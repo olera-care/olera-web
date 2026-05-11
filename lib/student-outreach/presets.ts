@@ -65,6 +65,28 @@ export const ROLES_BY_TYPE: Record<StakeholderType, string[]> = {
   ],
 };
 
+/**
+ * v9 provider contact roles. The SnapshotCard's multi-contact list
+ * uses these as the dropdown options when adding/editing a contact
+ * on a provider outreach row. Tags the contact so future outreach
+ * can address the right person (Owner vs Receptionist matters for
+ * tone; General Inbox tells us we're emailing a queue, not a person).
+ *
+ * Free-text fallback via "Other" — the role field on
+ * student_outreach_contacts is just TEXT, no DB check.
+ */
+export const PROVIDER_CONTACT_ROLES: string[] = [
+  "Owner",
+  "Hiring Manager",
+  "Administrator",
+  "Director of Care",
+  "Director of Operations",
+  "Office Manager",
+  "Receptionist",
+  "General Inbox",
+  OTHER,
+];
+
 /** Common pre-health-relevant academic departments. */
 export const DEPARTMENTS: string[] = [
   "Biology",

@@ -1670,6 +1670,11 @@ async function handleUpdateContact(
     contact_form_url?: string | null;
     is_primary?: boolean;
     notes?: string | null;
+    // v9: status flip via the same endpoint that handles other field
+    // edits. Drives the SnapshotCard's per-contact "include in send"
+    // toggle (active ↔ stale). The dedicated mark_contact_stale
+    // action still works for stakeholder-side UX paths.
+    status?: ContactStatus;
   },
   userId: string,
 ) {
@@ -1687,7 +1692,7 @@ async function handleUpdateContact(
     last_edited_by: userId,
     last_edited_at: new Date().toISOString(),
   };
-  for (const k of ["name", "title", "first_name", "last_name", "role", "email", "phone", "instagram", "contact_form_url", "is_primary", "notes"] as const) {
+  for (const k of ["name", "title", "first_name", "last_name", "role", "email", "phone", "instagram", "contact_form_url", "is_primary", "notes", "status"] as const) {
     if (body[k] !== undefined) patch[k] = body[k];
   }
   // v8.7: keep `name` in sync with first_name + last_name when those are

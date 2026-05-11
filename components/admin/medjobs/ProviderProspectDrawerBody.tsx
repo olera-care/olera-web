@@ -56,15 +56,15 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const isPreLaunch =
     outreach.status === "prospect" || outreach.status === "researched";
 
-  // Email gate for the Next Step Card's launch CTA. Drawn from the
-  // mirrored primary contact (Snapshot edits write here); business_
-  // profile fallback for legacy rows.
-  const primaryContact = ctx.contacts.find(
-    (c) => c.is_primary && c.status === "active",
-  );
+  // Email gate for the Next Step Card's launch CTA. Provider snapshots
+  // can hold multiple contacts (Owner, Hiring Manager, General Inbox);
+  // any active contact with a valid email enables launch — the cadence
+  // pipeline sends to all of them. Business_profile fallback retained
+  // for legacy rows whose contacts haven't been mirrored yet.
   const hasEmail =
-    Boolean(primaryContact?.email?.includes("@")) ||
-    Boolean(ctx.provider_business_profile?.email?.includes("@"));
+    ctx.contacts.some(
+      (c) => c.status === "active" && Boolean(c.email?.includes("@")),
+    ) || Boolean(ctx.provider_business_profile?.email?.includes("@"));
 
   return (
     <div className="space-y-6">

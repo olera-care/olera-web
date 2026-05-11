@@ -72,6 +72,7 @@ function InboxPreviewContent() {
   // Derived values
   const providerInitial = providerName.charAt(0).toUpperCase();
   const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
+  const categoryFormatted = providerCategory?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || null;
 
   // Handle form submission
   const handleSubmit = useCallback(async () => {
@@ -203,10 +204,32 @@ function InboxPreviewContent() {
         {/* ════════════════════════════════════════════════════════════════════
             Left Panel — Conversation List (matches ConversationList.tsx)
             ════════════════════════════════════════════════════════════════════ */}
-        <div className="hidden lg:flex flex-col w-[360px] shrink-0 border-r border-gray-200">
-          {/* Header - matches ConversationList */}
-          <div className="h-[68px] px-6 flex items-center border-b border-gray-200">
-            <h1 className="text-xl font-display font-semibold text-gray-900">Messages</h1>
+        <div className="hidden lg:flex flex-col w-[360px] shrink-0 border-r border-gray-200 bg-white">
+          {/* Header - matches ConversationList exactly */}
+          <div className="shrink-0 relative z-20 bg-white">
+            <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5 flex items-center justify-between">
+              <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
+              <div className="flex items-center gap-2">
+                {/* Refresh button (visual only) */}
+                <button
+                  className="w-11 h-11 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
+                  aria-label="Refresh inbox"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+                {/* Search button (visual only) */}
+                <button
+                  className="w-11 h-11 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
+                  aria-label="Search messages"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Conversation item - selected state */}
@@ -476,74 +499,116 @@ function InboxPreviewContent() {
         </div>
 
         {/* ════════════════════════════════════════════════════════════════════
-            Right Panel — Provider Details (matches ProviderDetailPanel.tsx)
+            Right Panel — Provider Details (matches ProviderDetailPanel.tsx exactly)
             ════════════════════════════════════════════════════════════════════ */}
         <div
           className={`hidden lg:flex shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${
             detailOpen ? "w-[360px]" : "w-0"
           }`}
         >
-          <div className="flex flex-col w-[360px] h-full border-l border-gray-200 bg-gray-50/50">
-            {/* Header */}
-            <div className="h-[68px] px-6 flex items-center justify-between border-b border-gray-200 bg-white">
-              <h2 className="text-[15px] font-semibold text-gray-900">Details</h2>
+          <div className="flex flex-col w-[360px] h-full bg-white border-l border-gray-200">
+            {/* Header - NO title, just close button aligned right (matches ProviderDetailPanel) */}
+            <div className="shrink-0 px-5 h-[68px] border-b border-gray-200 flex items-center justify-end">
               <button
                 onClick={() => setDetailOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+                className="p-1.5 border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
                 aria-label="Close details"
               >
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            {/* Content */}
+            {/* Scrollable content */}
             <div className="flex-1 overflow-y-auto">
-              <div className="p-6">
-                {/* Provider card */}
-                <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
-                  <div className="flex items-start gap-4">
-                    {providerImage ? (
+              {/* Profile header - centered (matches ProviderDetailPanel) */}
+              <div className="px-5 pt-4 pb-5 text-center">
+                {/* Photo - 88x88 centered */}
+                <div className="relative w-[88px] h-[88px] mx-auto mb-3">
+                  {providerImage ? (
+                    <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-gray-100">
                       <Image
                         src={providerImage}
                         alt={providerName}
-                        width={64}
-                        height={64}
-                        className="w-16 h-16 rounded-xl object-cover shrink-0"
+                        fill
+                        sizes="88px"
+                        className="object-cover"
                       />
-                    ) : (
-                      <div
-                        className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0 text-white font-bold text-xl"
-                        style={{ background: avatarGradient(providerName) }}
-                      >
-                        {providerInitial}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-display font-semibold text-gray-900 mb-0.5">
-                        {providerName}
-                      </h3>
-                      {providerCategory && (
-                        <p className="text-sm text-gray-500 mb-1">{providerCategory}</p>
-                      )}
-                      {locationStr && (
-                        <p className="text-sm text-gray-500">{locationStr}</p>
-                      )}
                     </div>
-                  </div>
+                  ) : (
+                    <div
+                      className="w-full h-full rounded-full flex items-center justify-center text-white text-2xl font-semibold"
+                      style={{ background: avatarGradient(providerName) }}
+                    >
+                      {providerInitial}
+                    </div>
+                  )}
                 </div>
 
-                {/* Contact info */}
+                {/* Name - centered */}
+                <h2 className="text-[17px] font-semibold text-gray-900">
+                  {providerName}
+                </h2>
+
+                {/* Category with icon */}
+                {categoryFormatted && (
+                  <p className="text-[13px] text-gray-500 mt-1 flex items-center justify-center gap-1.5">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                    </svg>
+                    {categoryFormatted}
+                  </p>
+                )}
+
+                {/* Location with icon */}
+                {locationStr && (
+                  <p className="text-[13px] text-gray-500 mt-1 flex items-center justify-center gap-1.5">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                    </svg>
+                    {locationStr}
+                  </p>
+                )}
+              </div>
+
+              {/* Accordion sections (matches ProviderDetailPanel structure) */}
+              <div className="px-4 py-4 space-y-3">
+                {/* Provider Profile accordion */}
+                <div className="bg-white border border-gray-200 rounded-lg">
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors rounded-lg hover:bg-gray-50/50"
+                  >
+                    <span className="text-gray-500">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                      </svg>
+                    </span>
+                    <span className="flex-1 text-[15px] font-medium text-gray-900">Provider Profile</span>
+                    <svg
+                      className="w-5 h-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Contact info section */}
                 {providerPhone && (
-                  <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Contact</p>
+                  <div className="bg-white border border-gray-200 rounded-lg px-4 py-3.5">
+                    <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-2">Contact</p>
                     <a
                       href={`tel:${providerPhone}`}
-                      className="flex items-center gap-2 text-[15px] text-primary-600 hover:text-primary-700"
+                      className="text-[14px] text-gray-700 flex items-center gap-2 hover:text-primary-600"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                       </svg>
                       {providerPhone}
                     </a>
@@ -553,11 +618,12 @@ function InboxPreviewContent() {
                 {/* View full profile link */}
                 <Link
                   href={`/provider/${providerSlug}`}
-                  className="flex items-center justify-center gap-2 w-full py-3 text-sm font-medium text-primary-600 hover:text-primary-700 bg-white rounded-xl border border-gray-200 transition-colors"
+                  target="_blank"
+                  className="flex items-center justify-center gap-1.5 w-full py-3 text-[13px] font-medium text-primary-600 hover:text-primary-700 bg-white rounded-lg border border-gray-200 transition-colors"
                 >
                   View full profile
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                   </svg>
                 </Link>
               </div>

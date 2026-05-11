@@ -22,6 +22,7 @@ import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderP
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { DangerZone } from "@/components/admin/medjobs/DangerZone";
+import { deriveStageForTabRow, STAGE_DISPLAY } from "@/lib/medjobs/stage";
 import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import {
   KIND_LABELS,
@@ -638,6 +639,7 @@ interface SiteDrawerData {
 
 function SiteDrawer({ siteId, onClose }: { siteId: string; onClose: () => void }) {
   const [data, setData] = useState<SiteDrawerData | null>(null);
+  const [associated, setAssociated] = useState<SiteAssociatedRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -659,11 +661,25 @@ function SiteDrawer({ siteId, onClose }: { siteId: string; onClose: () => void }
           research_complete: boolean;
         }>;
         const found = all.find((c) => c.id === siteId);
-        if (!cancelled) {
-          if (!found) {
-            setError("Site not found");
-          } else {
-            setData({ ...found, is_active: true });
+        if (!found) {
+          if (!cancelled) setError("Site not found");
+          return;
+        }
+        if (!cancelled) setData({ ...found, is_active: true });
+
+        // v9 Phase 5: fetch all outreach rows scoped to this campus.
+        // The queue endpoint already supports a campus filter; tab=all
+        // + show_closed=false returns active outreach across kinds
+        // (providers + stakeholders). We derive per-row stage client
+        // side via deriveStageForTabRow so the Site drawer's roster
+        // reads the same vocabulary as everywhere else.
+        const qRes = await fetch(
+          `/api/admin/student-outreach/queue?tab=all&campus=${found.slug}&pageSize=50`,
+        );
+        if (qRes.ok) {
+          const qBody = await qRes.json();
+          if (!cancelled) {
+            setAssociated((qBody.rows ?? []) as SiteAssociatedRow[]);
           }
         }
       } catch (e) {
@@ -675,7 +691,6 @@ function SiteDrawer({ siteId, onClose }: { siteId: string; onClose: () => void }
     return () => { cancelled = true; };
   }, [siteId]);
 
-  // v9.0 Phase 7 Commit O: mark site read on mount.
   useEffect(() => {
     void (async () => {
       try {
@@ -690,6 +705,27 @@ function SiteDrawer({ siteId, onClose }: { siteId: string; onClose: () => void }
       }
     })();
   }, [siteId]);
+
+  // Derive stage breakdown for the rollup banner. Counts active rows
+  // (excluding closed) by canonical stage so admin sees the funnel
+  // shape at a glance: 3 in outreach · 1 replied · 0 converted etc.
+  const stageBreakdown = useMemo(() => {
+    const counts: Partial<Record<string, number>> = {};
+    for (const row of associated) {
+      const stage = deriveStageForTabRow(row);
+      counts[stage] = (counts[stage] ?? 0) + 1;
+    }
+    return counts;
+  }, [associated]);
+
+  const activeTotal = associated.filter(
+    (r) =>
+      !["not_interested", "do_not_contact", "wrong_contact", "redirected", "no_response_closed"].includes(
+        r.status,
+      ),
+  ).length;
+  const convertedTotal = stageBreakdown["converted"] ?? 0;
+  const closedTotal = stageBreakdown["closed"] ?? 0;
 
   return (
     <DrawerShell
@@ -716,7 +752,49 @@ function SiteDrawer({ siteId, onClose }: { siteId: string; onClose: () => void }
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : data ? (
         <div className="space-y-6">
+          {/* Operational rollup — single line summarizing the funnel
+              shape for this Site. Reads off the canonical Stage
+              derivation so it stays in lock-step with the row cards
+              in the In Basket. */}
+          <section className="rounded-lg border border-gray-200 bg-white px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              Operational rollup
+            </p>
+            <p className="mt-1.5 text-sm text-gray-700">
+              {associated.length === 0 ? (
+                <span className="text-gray-400">
+                  No outreach yet. Provider Prospects in catchment surface
+                  in In Basket → Prospects.
+                </span>
+              ) : (
+                <>
+                  <span className="font-semibold tabular-nums">{activeTotal}</span> active ·{" "}
+                  <span className="font-semibold tabular-nums">{convertedTotal}</span> converted ·{" "}
+                  <span className="tabular-nums">{closedTotal}</span> closed
+                </>
+              )}
+            </p>
+          </section>
+
+          {/* Associated entities — every outreach row on this Site
+              (providers + stakeholders) summarized as a mini-card
+              with the canonical stage pill. Click opens that row's
+              drawer; same operational vocabulary the queue uses. */}
+          {associated.length > 0 && (
+            <section>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                Associated outreach ({associated.length})
+              </h3>
+              <ul className="space-y-1.5">
+                {associated.map((row) => (
+                  <SiteAssociatedRowCard key={row.id} row={row} />
+                ))}
+              </ul>
+            </section>
+          )}
+
           <EntityStepBoard kind="site" entityId={data.id} entityName={data.name} />
+
           <section>
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
               Open in
@@ -732,6 +810,92 @@ function SiteDrawer({ siteId, onClose }: { siteId: string; onClose: () => void }
       ) : null}
     </DrawerShell>
   );
+}
+
+/**
+ * v9 Phase 5: TabRow subset returned by the queue endpoint, scoped
+ * to fields the Site drawer's roster actually renders. The full
+ * TabRow has a lot of fields we don't need here; keep this narrow
+ * so a future TabRow change doesn't force a Site-drawer rewrite.
+ */
+type SiteAssociatedRow = {
+  id: string;
+  status: string;
+  kind?: string | null;
+  organization_name: string;
+  primary_contact_name: string | null;
+  primary_contact_role: string | null;
+  campus_name: string;
+  last_activity_at: string | null;
+  has_custom_task: boolean;
+  meeting_state: "none" | "in_flight" | "scheduled";
+  meeting_at: string | null;
+  due_call_task: { id: string; due_at: string } | null;
+  replies_state: string | null;
+};
+
+function SiteAssociatedRowCard({ row }: { row: SiteAssociatedRow }) {
+  const stage = deriveStageForTabRow(row);
+  const display = STAGE_DISPLAY[stage];
+  const name = row.primary_contact_name || row.organization_name;
+  const kindLabel = row.kind === "provider" ? "Provider" : "Stakeholder";
+  const subline = [
+    kindLabel,
+    row.primary_contact_role,
+    row.last_activity_at ? `active ${formatRelativeShort(row.last_activity_at)}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  return (
+    <li className="rounded-md border border-gray-200 bg-white px-3 py-2">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-gray-900">{name}</p>
+          <p className="mt-0.5 truncate text-[11px] text-gray-500">{subline}</p>
+        </div>
+        <SiteStagePill stage={stage} label={display.label} tone={display.tone} />
+      </div>
+    </li>
+  );
+}
+
+function SiteStagePill({
+  stage: _stage,
+  label,
+  tone,
+}: {
+  stage: string;
+  label: string;
+  tone: keyof typeof STAGE_PILL_TONE_CLASSES;
+}) {
+  return (
+    <span
+      className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${STAGE_PILL_TONE_CLASSES[tone]}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+const STAGE_PILL_TONE_CLASSES: Record<string, string> = {
+  green: "bg-green-100 text-green-800",
+  emerald: "bg-emerald-100 text-emerald-800",
+  amber: "bg-amber-100 text-amber-800",
+  purple: "bg-purple-100 text-purple-800",
+  red: "bg-red-100 text-red-800",
+  blue: "bg-blue-100 text-blue-800",
+  gray: "bg-gray-100 text-gray-700",
+};
+
+function formatRelativeShort(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const min = Math.round(ms / 60_000);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const d = Math.round(hr / 24);
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
 }
 
 interface CandidateDrawerData {

@@ -7,6 +7,7 @@ import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWit
 import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
 import { InboxPreviewCard } from "@/components/providers/cta-variants";
 import MobileStickyInboxPreview from "@/components/providers/MobileStickyInboxPreview";
+import MobileStickyCompare from "@/components/providers/MobileStickyCompare";
 
 // Props shared by both routers — mirrors ConnectionCardWithRedirect's interface.
 export interface CTARouterProps {
@@ -238,6 +239,26 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           ctaVariant={variant}
           ctaSurface="mobile"
           ctaPreviewMode={isPreview}
+        />
+      );
+    case "compare":
+      return (
+        <MobileStickyCompare
+          providerName={providerName}
+          providerId={providerId}
+          providerSlug={providerSlug}
+          providerCategory={providerCategory}
+          providerCity={providerCity}
+          providerState={providerState}
+          providerPhone={phone}
+          providerImage={providerImage}
+          priceRange={priceRange}
+          ctaVariant={variant}
+          ctaPreviewMode={isPreview}
+          onCompareClick={() => {
+            // Step 2 will be implemented - for now just log
+            console.log("[compare] Compare clicked - next step TBD");
+          }}
         />
       );
     case "legacy":

@@ -56,6 +56,7 @@ export default function CompareBottomSheet({
   const scrollRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const saveClickFiredRef = useRef(false);
 
   // All providers: current first, then similar
   const allProviders = [currentProvider, ...similarProviders.slice(0, 2)];
@@ -115,6 +116,7 @@ export default function CompareBottomSheet({
       setFooterState("initial");
       setEmail("");
       setError(null);
+      saveClickFiredRef.current = false;
       document.body.style.overflow = "hidden";
       document.addEventListener("keydown", handleKeyDown);
     }
@@ -131,9 +133,10 @@ export default function CompareBottomSheet({
     }
   }, [footerState]);
 
-  // Handle save button click with tracking
+  // Handle save button click with tracking (once per sheet session)
   const handleSaveClick = useCallback(() => {
-    if (!ctaPreviewMode && ctaVariant) {
+    if (!ctaPreviewMode && ctaVariant && !saveClickFiredRef.current) {
+      saveClickFiredRef.current = true;
       fetch("/api/activity/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

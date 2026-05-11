@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendSlackAlert, slackNewLead } from "@/lib/slack";
 import { sendLoopsEvent } from "@/lib/loops";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
@@ -351,6 +352,69 @@ export async function POST(request: Request) {
       } catch {
         // Non-blocking
       }
+
+      // Welcome email (fire-and-forget for new users)
+      (async () => {
+        try {
+          const providerNames = providers.map((p) => p.name).slice(0, 3);
+          const providerListText = providerNames.length > 2
+            ? `${providerNames.slice(0, -1).join(", ")}, and ${providerNames[providerNames.length - 1]}`
+            : providerNames.join(" and ");
+
+          const subject = `Welcome to Olera — Your comparison is saved`;
+
+          const emailLogId = await reserveEmailLogId({
+            to: normalizedEmail,
+            subject,
+            emailType: "compare_save_welcome",
+            recipientType: "family",
+          });
+
+          const inboxUrl = appendTrackingParams(`${siteUrl}/portal/inbox`, emailLogId);
+
+          await sendEmail({
+            to: normalizedEmail,
+            subject,
+            html: `
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #111827; background: #ffffff;">
+  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px; color: #6b7280;">
+    Hi there,
+  </p>
+
+  <p style="font-size: 20px; line-height: 1.4; margin: 0 0 8px; color: #111827; font-weight: 600;">
+    Welcome to Olera!
+  </p>
+
+  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 20px; color: #6b7280;">
+    Your account is ready. Here's what we saved for you:
+  </p>
+
+  <div style="background: #f0fdfa; border-radius: 12px; padding: 16px; margin: 0 0 20px; border-left: 4px solid #199087;">
+    <p style="font-size: 14px; color: #199087; margin: 0 0 4px; font-weight: 600;">Comparison saved</p>
+    <p style="font-size: 14px; color: #6b7280; margin: 0;">You're comparing ${providerListText}. Message any of them when you're ready.</p>
+  </div>
+
+  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px; color: #111827;">
+    Your comparison is waiting in your inbox. Come back anytime to review or reach out.
+  </p>
+
+  <a href="${inboxUrl}" style="display: inline-block; background: #199087; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
+    View my comparison →
+  </a>
+
+  <p style="font-size: 12px; color: #9ca3af; margin: 40px 0 0; line-height: 1.6; border-top: 1px solid #f3f4f6; padding-top: 20px;">
+    Olera helps families find and connect with senior care providers. We never sell your info.
+  </p>
+</div>
+            `,
+            emailType: "compare_save_welcome",
+            recipientType: "family",
+            emailLogId: emailLogId ?? undefined,
+          });
+        } catch (emailErr) {
+          console.error("[compare-save] Failed to send welcome email:", emailErr);
+        }
+      })();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

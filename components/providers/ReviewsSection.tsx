@@ -458,6 +458,7 @@ export default function ReviewsSection({
             {canWriteReview && (
               <Link
                 href={reviewPageUrl}
+                rel="nofollow"
                 className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
               >
                 Leave a review
@@ -478,6 +479,7 @@ export default function ReviewsSection({
           {canWriteReview && (
             <Link
               href={reviewPageUrl}
+              rel="nofollow"
               className="inline-block px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
             >
               Write a review

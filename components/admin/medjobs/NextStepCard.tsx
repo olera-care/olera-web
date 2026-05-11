@@ -54,6 +54,7 @@ import { LogMeetingModal } from "@/app/admin/student-outreach/LogMeetingModal";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
 import { MarkPartnerModal } from "@/app/admin/student-outreach/MarkPartnerModal";
 import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 
 type ActionFn = (
   actionName: string,
@@ -410,7 +411,24 @@ function ProspectBody({
         </>
       )}
 
-      {showPreFlight && (
+      {showPreFlight && cadenceKey === "provider" && (
+        <ProviderPreFlightModal
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          contacts={ctx.contacts}
+          onCancel={() => setShowPreFlight(false)}
+          onSubmit={async (payload) => {
+            try {
+              await action("schedule_sequence", payload);
+              setShowPreFlight(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Schedule failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+      {showPreFlight && cadenceKey !== "provider" && (
         <PreFlightReviewModal
           stakeholderType={cadenceKey}
           organizationName={ctx.outreach.organization_name}

@@ -123,7 +123,7 @@ export async function GET(_req: NextRequest) {
       .eq("status", "pending"),
     db
       .from("student_outreach_campuses")
-      .select("id, viewed_at, is_active")
+      .select("id, viewed_at, is_active, research_complete")
       .eq("is_active", true),
     db
       .from("business_profiles")
@@ -252,12 +252,15 @@ export async function GET(_req: NextRequest) {
   // campuses that have at least one pending task to compute per-site
   // unread.
   const campusViewedAtMap = new Map<string, string | null>();
+  const researchPendingCampusIds = new Set<string>();
   for (const c of (campusRows ?? []) as Array<{
     id: string;
     viewed_at: string | null;
     is_active: boolean;
+    research_complete?: boolean;
   }>) {
     campusViewedAtMap.set(c.id, c.viewed_at);
+    if (c.research_complete === false) researchPendingCampusIds.add(c.id);
   }
   for (const [id, latestTaskCreated] of latestSiteTaskByCampus.entries()) {
     if (!campusViewedAtMap.has(id)) continue; // skip inactive
@@ -265,6 +268,16 @@ export async function GET(_req: NextRequest) {
     if (isEntityUnread(campusViewedAtMap.get(id) ?? null, latestTaskCreated)) {
       counts.sites.unread += 1;
     }
+  }
+
+  // ── Prospects: research operational cards ──
+  // Each active campus with research_complete=false surfaces as a
+  // research card in Prospects → Partner Prospects. Mirrors the queue
+  // endpoint's counts.prospects so both surfaces show the same
+  // numerator/denominator after a Site is added.
+  for (const id of researchPendingCampusIds) {
+    counts.prospects.total += 1;
+    if (campusViewedAtMap.get(id) == null) counts.prospects.unread += 1;
   }
 
   // ── Clients (task-driven: business_profiles with pending client task) ──
@@ -307,10 +320,19 @@ export async function GET(_req: NextRequest) {
     }
   }
 
-  // In Basket includes pending entity tasks in its denominator (matches
-  // the hero's "Queued" semantics).
+  // In Basket includes pending entity tasks AND virtual research cards
+  // in its denominator (matches the hero's "Queued" semantics — a
+  // freshly-added Site has one research card queued even before any
+  // concrete task rows exist).
   counts.in_basket.total +=
-    (pendingBpTasks?.length ?? 0) + (pendingSiteTasks?.length ?? 0);
+    (pendingBpTasks?.length ?? 0) +
+    (pendingSiteTasks?.length ?? 0) +
+    researchPendingCampusIds.size;
+  // Unread for in_basket follows the same rule: a research card on a
+  // never-viewed campus is unread.
+  for (const id of researchPendingCampusIds) {
+    if (campusViewedAtMap.get(id) == null) counts.in_basket.unread += 1;
+  }
 
   return NextResponse.json({ counts });
 }

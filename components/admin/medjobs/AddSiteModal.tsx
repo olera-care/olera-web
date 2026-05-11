@@ -16,6 +16,7 @@
 
 import { useState } from "react";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 
 interface Props {
   /** Slugs of universities already activated. Used to grey out rows
@@ -52,6 +53,13 @@ export function AddSiteModal({ existingSlugs, onClose, onCreated }: Props) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to add site");
+      // Adding a Site queues a research card in Prospects → Partner
+      // Prospects and exposes the site's catchment as provider
+      // prospects. Both signals flow into sidebar fractions and the
+      // In Basket counts — broadcast the refresh so every mounted
+      // MedJobs surface picks them up immediately rather than waiting
+      // for the next manual navigation.
+      refreshMedJobs();
       onCreated(uni.slug, uni.name);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");

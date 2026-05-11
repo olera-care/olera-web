@@ -14,6 +14,78 @@ import { useAuth } from "@/components/auth/AuthProvider";
 // Matches the exact styling of /portal/inbox for seamless transition.
 // ════════════════════════════════════════════════════════════════════════════
 
+/** Provider Profile Accordion - matches ProviderDetailPanel exactly */
+function ProviderProfileAccordion({
+  providerPhone,
+  providerSlug,
+}: {
+  providerPhone: string | null;
+  providerSlug: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors rounded-lg hover:bg-gray-50/50"
+      >
+        <span className="text-gray-500">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+          </svg>
+        </span>
+        <span className="flex-1 text-[15px] font-medium text-gray-900">Provider Profile</span>
+        <svg
+          className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      {isOpen && (
+        <div className="px-4 py-4 border-t border-gray-100">
+          <div className="space-y-3.5">
+            {/* Contact info */}
+            {providerPhone && (
+              <div>
+                <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">Contact</p>
+                <a
+                  href={`tel:${providerPhone}`}
+                  className="text-[14px] text-gray-700 flex items-center gap-2 hover:text-primary-600"
+                >
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                  </svg>
+                  {providerPhone}
+                </a>
+              </div>
+            )}
+
+            {/* View full profile link */}
+            <div className={providerPhone ? "pt-1" : ""}>
+              <Link
+                href={`/provider/${providerSlug}`}
+                target="_blank"
+                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-primary-600 hover:text-primary-700"
+              >
+                View full profile
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Deterministic gradient for fallback avatars - matches ConversationList */
 function avatarGradient(name: string): string {
   const gradients = [
@@ -248,7 +320,7 @@ function InboxPreviewContent() {
           {/* Conversation item - selected state */}
           <div className="flex-1 overflow-y-auto">
             <div className="p-2">
-              <div className="flex items-center gap-3 px-4 py-3 bg-primary-50 rounded-xl cursor-default">
+              <div className="flex items-center gap-3 px-4 py-3 bg-primary-50/80 rounded-xl cursor-default">
                 {/* Avatar */}
                 {providerImage ? (
                   <Image
@@ -588,45 +660,11 @@ function InboxPreviewContent() {
 
               {/* Accordion sections (matches ProviderDetailPanel structure) */}
               <div className="px-4 py-4 space-y-3">
-                {/* Provider Profile accordion */}
-                <div className="bg-white border border-gray-200 rounded-lg">
-                  <button
-                    type="button"
-                    className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors rounded-lg hover:bg-gray-50/50"
-                  >
-                    <span className="text-gray-500">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
-                      </svg>
-                    </span>
-                    <span className="flex-1 text-[15px] font-medium text-gray-900">Provider Profile</span>
-                    <svg
-                      className="w-5 h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Contact info section */}
-                {providerPhone && (
-                  <div className="bg-white border border-gray-200 rounded-lg px-4 py-3.5">
-                    <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-2">Contact</p>
-                    <a
-                      href={`tel:${providerPhone}`}
-                      className="text-[14px] text-gray-700 flex items-center gap-2 hover:text-primary-600"
-                    >
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                      </svg>
-                      {providerPhone}
-                    </a>
-                  </div>
-                )}
+                {/* Provider Profile accordion - matches ProviderDetailPanel exactly */}
+                <ProviderProfileAccordion
+                  providerPhone={providerPhone}
+                  providerSlug={providerSlug}
+                />
 
                 {/* Appointments accordion - disabled with "Coming soon" */}
                 <div className="bg-white border border-gray-200 rounded-lg opacity-60">

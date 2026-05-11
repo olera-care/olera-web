@@ -52,6 +52,7 @@ import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightRevi
 import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
 import { LogMeetingModal } from "@/app/admin/student-outreach/LogMeetingModal";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
+import { MarkPartnerModal } from "@/app/admin/student-outreach/MarkPartnerModal";
 
 type ActionFn = (
   actionName: string,
@@ -106,6 +107,19 @@ export function NextStepCard({
 
   const display = STAGE_DISPLAY[stage];
 
+  // Mark-as-Partner secondary CTA shows on active stakeholder stages
+  // (kind != 'provider'). Provider rows convert via the Make Client
+  // action (separate endpoint + button, lands in commit 10). Active
+  // stages = post-launch, not terminal: in_outreach, call_due,
+  // meeting_set, follow_up. bounce_fix is broken outreach — no
+  // partner conversion until the contact is fixed.
+  const showMarkPartner =
+    ctx.outreach.kind !== "provider" &&
+    (stage === "in_outreach" ||
+      stage === "call_due" ||
+      stage === "meeting_set" ||
+      stage === "follow_up");
+
   return (
     <section>
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -124,8 +138,60 @@ export function NextStepCard({
             stageLabel={display.label}
           />
         </div>
+        {showMarkPartner && (
+          <MarkPartnerFooter ctx={ctx} action={action} setError={setError} />
+        )}
       </div>
     </section>
+  );
+}
+
+/**
+ * Mark-as-Partner secondary action. Lives at the footer of the
+ * NextStepCard for stakeholder rows on active stages. Owns its own
+ * modal state so per-stage bodies stay focused on their primary CTA.
+ *
+ * Provider rows get the Make Client action instead — same operational
+ * intent (graduate to active relationship), different endpoint. That
+ * lands in a follow-up commit; until then, providers don't have a
+ * conversion button surfaced in the drawer.
+ */
+function MarkPartnerFooter({
+  ctx,
+  action,
+  setError,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (m: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <div className="flex flex-wrap gap-2 border-t border-gray-100 bg-gray-50/60 px-4 py-3">
+        <button
+          onClick={() => setOpen(true)}
+          title="Click when you're confident they've committed to sharing with students."
+          className="rounded-md border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+        >
+          Mark as Partner ★
+        </button>
+      </div>
+      {open && (
+        <MarkPartnerModal
+          organizationName={ctx.outreach.organization_name}
+          onCancel={() => setOpen(false)}
+          onConfirm={async (payload) => {
+            try {
+              await action("mark_partner", { ...payload });
+              setOpen(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+            }
+          }}
+        />
+      )}
+    </>
   );
 }
 

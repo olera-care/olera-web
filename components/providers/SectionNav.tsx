@@ -152,36 +152,29 @@ export default function SectionNav({
               })}
             </nav>
 
-            {/* Right: Provider name + CTA */}
-            <div className="hidden md:flex items-center gap-4 flex-shrink-0 pl-6">
-              <span className="text-[14px] font-semibold text-gray-900 truncate max-w-[200px]">
-                {providerName}
-              </span>
-              {isConnected ? (
-                <Link
-                  href={connectionId ? `/portal/inbox?id=${connectionId}` : "/portal/inbox"}
-                  className="px-4 py-2 text-[13px] font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  Message
-                </Link>
-              ) : isActive ? (
-                ctaVariant === "compare" ? (
-                  <button
-                    onClick={() => window.dispatchEvent(new CustomEvent("openCompareOverlay"))}
+            {/* Right: Provider name + CTA (hidden for compare variant — sidebar CTA is already sticky) */}
+            {ctaVariant !== "compare" && (
+              <div className="hidden md:flex items-center gap-4 flex-shrink-0 pl-6">
+                <span className="text-[14px] font-semibold text-gray-900 truncate max-w-[200px]">
+                  {providerName}
+                </span>
+                {isConnected ? (
+                  <Link
+                    href={connectionId ? `/portal/inbox?id=${connectionId}` : "/portal/inbox"}
                     className="px-4 py-2 text-[13px] font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
                   >
-                    Compare
-                  </button>
-                ) : (
+                    Message
+                  </Link>
+                ) : isActive ? (
                   <button
                     onClick={() => scrollTo("connection-card")}
                     className="px-4 py-2 text-[13px] font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
                   >
                     Connect
                   </button>
-                )
-              ) : null}
-            </div>
+                ) : null}
+              </div>
+            )}
           </div>
         </div>
       </div>

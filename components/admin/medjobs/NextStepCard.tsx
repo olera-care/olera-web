@@ -107,18 +107,16 @@ export function NextStepCard({
 
   const display = STAGE_DISPLAY[stage];
 
-  // Mark-as-Partner secondary CTA shows on active stakeholder stages
-  // (kind != 'provider'). Provider rows convert via the Make Client
-  // action (separate endpoint + button, lands in commit 10). Active
-  // stages = post-launch, not terminal: in_outreach, call_due,
-  // meeting_set, follow_up. bounce_fix is broken outreach — no
-  // partner conversion until the contact is fixed.
-  const showMarkPartner =
-    ctx.outreach.kind !== "provider" &&
-    (stage === "in_outreach" ||
-      stage === "call_due" ||
-      stage === "meeting_set" ||
-      stage === "follow_up");
+  // Terminal-CTA footer shows on active stages (post-launch, not
+  // terminal). Provider rows get Make Client; stakeholder rows get
+  // Mark Partner. bounce_fix is broken outreach — no conversion
+  // until the contact is fixed.
+  const isActiveStage =
+    stage === "in_outreach" ||
+    stage === "call_due" ||
+    stage === "meeting_set" ||
+    stage === "follow_up";
+  const isProvider = ctx.outreach.kind === "provider";
 
   return (
     <section>
@@ -138,8 +136,11 @@ export function NextStepCard({
             stageLabel={display.label}
           />
         </div>
-        {showMarkPartner && (
+        {isActiveStage && !isProvider && (
           <MarkPartnerFooter ctx={ctx} action={action} setError={setError} />
+        )}
+        {isActiveStage && isProvider && (
+          <MakeClientFooter ctx={ctx} action={action} setError={setError} />
         )}
       </div>
     </section>
@@ -192,6 +193,59 @@ function MarkPartnerFooter({
         />
       )}
     </>
+  );
+}
+
+/**
+ * Make Client footer — provider conversion CTA. Counterpart to
+ * MarkPartnerFooter for kind='provider' rows. Writes
+ * business_profiles.metadata.interview_terms_accepted_at via the
+ * make_client action; the Partner-Prospect gate auto-unlocks for
+ * catchment Sites on next read.
+ *
+ * Uses window.confirm() rather than a dedicated modal — provider
+ * conversion is admin's judgment call, no committment-evidence
+ * payload to collect like Mark-as-Partner needs. Faster path,
+ * matches the Close-out controls in DangerZone.
+ */
+function MakeClientFooter({
+  ctx,
+  action,
+  setError,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (m: string | null) => void;
+}) {
+  const [submitting, setSubmitting] = useState(false);
+  const submit = async () => {
+    if (
+      !window.confirm(
+        `Mark ${ctx.outreach.organization_name} as a Client?\n\nThis writes the conversion timestamp on the provider profile and surfaces Partner Prospects for any Site in this provider's catchment.`,
+      )
+    )
+      return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await action("make_client", {});
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  return (
+    <div className="flex flex-wrap gap-2 border-t border-gray-100 bg-gray-50/60 px-4 py-3">
+      <button
+        onClick={submit}
+        disabled={submitting}
+        title="Mark this provider as a Client. Unlocks Partner Prospects for catchment Sites."
+        className="rounded-md border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+      >
+        {submitting ? "Marking…" : "Make Client ✓"}
+      </button>
+    </div>
   );
 }
 

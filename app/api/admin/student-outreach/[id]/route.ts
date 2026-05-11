@@ -219,6 +219,18 @@ export async function POST(
         await handleQueueManualTask(db, row, body, user.id);
         break;
 
+      // v9 Make Client — provider conversion. Writes
+      // business_profiles.metadata.interview_terms_accepted_at,
+      // transitions the outreach row to active_partner so its
+      // canonical Stage derives to "converted", and logs a
+      // stage_change touchpoint. The metadata write closes the
+      // funnel loop — the Partner-Prospect gate (lib/medjobs/
+      // partner-prospect-gate.ts) auto-unlocks on the next read
+      // for any Site whose catchment includes this provider.
+      case "make_client":
+        await handleMakeClient(db, row, user.id);
+        break;
+
       // ── Snooze / redirect ───────────────────────────────────────────
       case "snooze":
         await handleSnooze(db, row, body, user.id);
@@ -2130,6 +2142,71 @@ async function handleQueueManualTask(
 }
 
 // ── Snooze ──────────────────────────────────────────────────────────────
+
+/**
+ * v9 Make Client — provider conversion handler. The provider side of
+ * the funnel terminates here: writes the Client signal on the
+ * business_profile metadata (the same field the Partner-Prospect
+ * gate reads), advances the outreach row to active_partner so its
+ * canonical Stage derives to "converted", and logs a stage_change
+ * touchpoint for the timeline.
+ *
+ * Provider rows only (kind='provider'). Stakeholder rows use the
+ * existing mark_partner action; the operational intent is the same
+ * (graduate to active relationship), the implementation differs
+ * because client-ness is stored on business_profiles, not on the
+ * outreach row.
+ *
+ * Loop closure: writing interview_terms_accepted_at fires the
+ * Partner-Prospect gate for any Site whose catchment includes this
+ * provider. The university research card surfaces in Partner
+ * Prospects on the admin's next In Basket fetch. No additional
+ * machinery — the gate is already reading from this column.
+ */
+async function handleMakeClient(db: DB, row: OutreachRow, userId: string) {
+  if (row.kind !== "provider") {
+    throw new Error("make_client only valid for kind='provider' rows");
+  }
+  if (!row.provider_business_profile_id) {
+    throw new Error("Provider row missing provider_business_profile_id");
+  }
+
+  const nowIso = new Date().toISOString();
+
+  const { data: bp } = await db
+    .from("business_profiles")
+    .select("metadata")
+    .eq("id", row.provider_business_profile_id)
+    .maybeSingle();
+  if (!bp) throw new Error("Business profile not found");
+
+  const existingMeta = (bp.metadata as Record<string, unknown> | null) ?? {};
+  const newMeta = {
+    ...existingMeta,
+    interview_terms_accepted_at: nowIso,
+  };
+
+  const { error: bpErr } = await db
+    .from("business_profiles")
+    .update({ metadata: newMeta, updated_at: nowIso })
+    .eq("id", row.provider_business_profile_id);
+  if (bpErr) throw new Error(bpErr.message);
+
+  await insertTouchpoint(db, row.id, "stage_change", userId, {
+    notes: "Marked as Client (provider conversion)",
+    payload: { to: "client", via: "admin_make_client" },
+  });
+
+  const { error: srErr } = await db
+    .from("student_outreach")
+    .update({
+      status: "active_partner",
+      last_edited_by: userId,
+      last_edited_at: nowIso,
+    })
+    .eq("id", row.id);
+  if (srErr) throw new Error(srErr.message);
+}
 
 async function handleSnooze(
   db: DB,

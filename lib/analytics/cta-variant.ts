@@ -22,7 +22,7 @@
  * copy entry in cta-variant-copy.ts and an updated default-weights map
  * below — TypeScript will flag both).
  */
-export const CTA_VARIANTS = ["legacy", "inbox_preview"] as const;
+export const CTA_VARIANTS = ["legacy", "inbox_preview", "compare"] as const;
 
 export type CTAVariant = (typeof CTA_VARIANTS)[number];
 
@@ -31,6 +31,7 @@ export type CTAVariant = (typeof CTA_VARIANTS)[number];
 export const CTA_VARIANT_DEFAULT_WEIGHTS: Record<CTAVariant, number> = {
   legacy: 100,
   inbox_preview: 0,
+  compare: 0,
 };
 
 export type CTAWeightMap = Partial<Record<CTAVariant, number>>;

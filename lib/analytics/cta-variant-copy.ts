@@ -17,6 +17,8 @@ export function ctaVariantLabel(variant: CTAVariant): string {
       return "Legacy CTA";
     case "inbox_preview":
       return "Inbox Preview";
+    case "compare":
+      return "Compare";
   }
 }
 
@@ -31,5 +33,7 @@ export function ctaVariantSubLabel(variant: CTAVariant): string {
       return "Current CTA design";
     case "inbox_preview":
       return "Question selection + inbox preview";
+    case "compare":
+      return "Compare with nearby providers";
   }
 }

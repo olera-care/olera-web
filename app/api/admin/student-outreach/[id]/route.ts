@@ -409,11 +409,17 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     city: string | null;
     state: string | null;
     metadata: Record<string, unknown> | null;
+    slug: string | null;
+    phone: string | null;
+    website: string | null;
+    address: string | null;
   } | null = null;
   if (row.kind === "provider" && row.provider_business_profile_id) {
     const { data: bp } = await db
       .from("business_profiles")
-      .select("contact_email, display_name, city, state, metadata")
+      .select(
+        "contact_email, display_name, city, state, metadata, slug, phone, website, address",
+      )
       .eq("id", row.provider_business_profile_id)
       .maybeSingle();
     providerBusinessProfile = (bp ?? null) as typeof providerBusinessProfile;

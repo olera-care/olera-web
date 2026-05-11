@@ -21,6 +21,7 @@ import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
+import { DangerZone } from "@/components/admin/medjobs/DangerZone";
 import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import {
   KIND_LABELS,
@@ -1878,47 +1879,6 @@ function ApprovalRow({
 
 
 
-// ── Danger zone ────────────────────────────────────────────────────────
-
-function DangerZone({
-  ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
-  const status = ctx.outreach.status;
-  const terminals: Status[] = ["not_interested", "do_not_contact", "wrong_contact", "redirected", "no_response_closed"];
-  if (terminals.includes(status)) return null;
-
-  const confirm = (msg: string, fn: () => Promise<unknown>) => {
-    if (window.confirm(msg)) fn().catch((e) => setError(e instanceof Error ? e.message : "Failed"));
-  };
-
-  return (
-    <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Close out
-      </h3>
-      <div className="flex flex-wrap gap-2 rounded-lg border border-gray-200 bg-white p-4">
-        <SecondaryButton onClick={() => confirm("Mark Not Interested?", () => action("mark_not_interested"))}>
-          Not interested
-        </SecondaryButton>
-        <SecondaryButton onClick={() => confirm("Close as No Response (re-open in 90d)?", () => action("mark_no_response_closed"))}>
-          Close: no response
-        </SecondaryButton>
-        <SecondaryButton onClick={() => confirm("Mark all known contacts wrong / unreachable?", () => action("mark_wrong_contact"))}>
-          Wrong contact
-        </SecondaryButton>
-        <DangerButton onClick={() => confirm("Mark Do Not Contact (hard stop)?", () => action("mark_dnc"))}>
-          DNC (hard stop)
-        </DangerButton>
-      </div>
-    </section>
-  );
-}
 
 // v8.10.30: FollowupNotesModal removed. The "needs follow-up" path is
 // now part of LogMeetingModal's done_followup outcome — admin uses the

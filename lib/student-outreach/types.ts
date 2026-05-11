@@ -422,6 +422,12 @@ export interface DrawerContext {
     city: string | null;
     state: string | null;
     metadata: Record<string, unknown> | null;
+    // v9 SnapshotCard mirror fields — admin sees the directory at a glance
+    // without leaving the drawer. Live-page link uses the slug.
+    slug: string | null;
+    phone: string | null;
+    website: string | null;
+    address: string | null;
   } | null;
 
   /**

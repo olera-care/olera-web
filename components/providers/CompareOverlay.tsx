@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { useAuth } from "@/components/auth/AuthProvider";
 import type { CompareProvider } from "./CompareBottomSheet";
 
 type FooterState = "initial" | "email_capture" | "submitting" | "success";
@@ -33,14 +34,83 @@ export default function CompareOverlay({
   ctaPreviewMode = false,
 }: CompareOverlayProps) {
   const router = useRouter();
+  const { user, activeProfile } = useAuth();
   const [footerState, setFooterState] = useState<FooterState>("initial");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const saveClickFiredRef = useRef(false);
 
+  // Check if user is logged in
+  const isLoggedIn = !!user && !!activeProfile;
+  const userEmail = user?.email || "";
+
   // All providers: current first, then similar (max 2)
   const allProviders = [currentProvider, ...similarProviders.slice(0, 2)];
+
+  // Submit for logged-in users (skip email capture)
+  const handleLoggedInSubmit = useCallback(async () => {
+    if (!userEmail) return;
+
+    // Track analytics
+    if (!ctaPreviewMode && ctaVariant && !saveClickFiredRef.current) {
+      saveClickFiredRef.current = true;
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "user",
+          related_provider_id: currentProvider.slug,
+          event_type: "cta_variant_clicked",
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            variant: ctaVariant,
+            surface: "desktop",
+            action: "save_comparison_clicked",
+            logged_in: true,
+          },
+        }),
+      }).catch(() => {});
+    }
+
+    setFooterState("submitting");
+
+    try {
+      const res = await fetch("/api/connections/compare-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userEmail,
+          providers: allProviders.map((p) => ({
+            id: p.id,
+            slug: p.slug,
+            name: p.name,
+          })),
+          sessionId: getOrCreateSessionId(),
+          isLoggedIn: true,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Something went wrong");
+        setFooterState("initial");
+        return;
+      }
+
+      setFooterState("success");
+
+      // Redirect to inbox
+      setTimeout(() => {
+        const firstConnectionId = data.connectionIds?.[0];
+        router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
+      }, 1500);
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setFooterState("initial");
+    }
+  }, [userEmail, ctaPreviewMode, ctaVariant, currentProvider.slug, allProviders, router]);
 
   // Track "Save this comparison" button click (once per overlay session)
   const handleSaveClick = useCallback(() => {
@@ -383,16 +453,21 @@ export default function CompareOverlay({
               <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
             </div>
           ) : footerState === "initial" ? (
-            /* Initial state - button to start */
+            /* Initial state - button to start (different for logged-in vs guest) */
             <div className="flex items-center justify-between">
-              <p className="text-gray-600">
-                <span className="font-semibold text-gray-900">Save this comparison</span>
-                {" · "}
-                Message any of them when you&apos;re ready
-              </p>
+              <div>
+                <p className="text-gray-600">
+                  <span className="font-semibold text-gray-900">Save this comparison</span>
+                  {" · "}
+                  Message any of them when you&apos;re ready
+                </p>
+                {isLoggedIn && (
+                  <p className="text-sm text-gray-500 mt-0.5">Saving as {userEmail}</p>
+                )}
+              </div>
               <button
                 type="button"
-                onClick={handleSaveClick}
+                onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
                 className="flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-semibold transition-colors"
               >
                 Save this comparison

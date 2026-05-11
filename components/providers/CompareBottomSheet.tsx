@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export interface CompareProvider {
   id: string;
@@ -47,6 +48,10 @@ export default function CompareBottomSheet({
   ctaPreviewMode = false,
 }: CompareBottomSheetProps) {
   const router = useRouter();
+  const { user, activeProfile } = useAuth();
+  const isLoggedIn = !!user && !!activeProfile;
+  const userEmail = user?.email || "";
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [footerState, setFooterState] = useState<FooterState>("initial");
@@ -178,6 +183,71 @@ export default function CompareBottomSheet({
     setFooterState("email_capture");
   }, [ctaVariant, ctaPreviewMode, currentProvider.slug]);
 
+  // Handle logged-in user submit (skip email capture)
+  const handleLoggedInSubmit = useCallback(async () => {
+    if (!userEmail) return;
+
+    // Track click event
+    if (!ctaPreviewMode && ctaVariant && !saveClickFiredRef.current) {
+      saveClickFiredRef.current = true;
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          related_provider_id: currentProvider.slug,
+          event_type: "cta_variant_clicked",
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            variant: ctaVariant,
+            surface: "mobile",
+            action: "save_comparison_clicked",
+            isLoggedIn: true,
+          },
+        }),
+      }).catch(() => {});
+    }
+
+    setFooterState("submitting");
+
+    try {
+      const response = await fetch("/api/connections/compare-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userEmail,
+          providers: allProviders.map((p) => ({
+            id: p.id,
+            slug: p.slug,
+            name: p.name,
+          })),
+          sessionId: getOrCreateSessionId(),
+          isLoggedIn: true,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Something went wrong. Please try again.");
+        setFooterState("initial");
+        return;
+      }
+
+      // Show success state
+      setFooterState("success");
+
+      // Redirect to inbox after brief delay
+      setTimeout(() => {
+        const firstConnectionId = data.connectionIds?.[0];
+        router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
+      }, 1500);
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setFooterState("initial");
+    }
+  }, [userEmail, ctaVariant, ctaPreviewMode, currentProvider.slug, allProviders, router]);
+
   // Handle email submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -233,7 +303,8 @@ export default function CompareBottomSheet({
 
       // Redirect to inbox after brief delay
       setTimeout(() => {
-        router.push("/portal/inbox");
+        const firstConnectionId = data.connectionIds?.[0];
+        router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
       }, 1500);
     } catch {
       setError("Something went wrong. Please try again.");
@@ -335,23 +406,67 @@ export default function CompareBottomSheet({
         <div className="px-5 py-3 border-t border-gray-200 bg-white shrink-0">
           {footerState === "initial" && (
             <>
-              <button
-                type="button"
-                onClick={handleSaveClick}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
-              >
-                Save this comparison
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-              </button>
-              <p className="text-center text-xs text-gray-500 mt-2">
-                Message any of them when you&apos;re ready
-              </p>
+              {isLoggedIn ? (
+                <>
+                  {error && (
+                    <p className="text-sm text-red-600 mb-3">{error}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleLoggedInSubmit}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
+                  >
+                    Save this comparison
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                  </button>
+                  <p className="text-center text-xs text-gray-500 mt-2">
+                    Saving as {userEmail}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleSaveClick}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
+                  >
+                    Save this comparison
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                  </button>
+                  <p className="text-center text-xs text-gray-500 mt-2">
+                    Message any of them when you&apos;re ready
+                  </p>
+                </>
+              )}
             </>
           )}
 
-          {(footerState === "email_capture" || footerState === "submitting") && (
+          {/* Logged-in user submitting state */}
+          {isLoggedIn && footerState === "submitting" && (
+            <div className="py-2">
+              <button
+                type="button"
+                disabled
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 text-white rounded-xl text-[15px] font-semibold opacity-70"
+              >
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Saving...
+              </button>
+              <p className="text-center text-xs text-gray-500 mt-2">
+                Saving as {userEmail}
+              </p>
+            </div>
+          )}
+
+          {/* Non-logged-in user email capture / submitting state */}
+          {!isLoggedIn && (footerState === "email_capture" || footerState === "submitting") && (
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <h3 className="text-lg font-bold text-gray-900">Save this comparison</h3>

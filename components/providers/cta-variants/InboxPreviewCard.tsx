@@ -272,13 +272,13 @@ export default function InboxPreviewCard({
           </div>
 
           {/* Headline */}
-          <h3 className="text-xl font-bold text-gray-900 leading-snug mb-1">
-            Message {providerFirstName}
+          <h3 className="text-xl font-bold text-gray-900 leading-snug mb-1 truncate">
+            Message {providerName}
           </h3>
 
           {/* Category + Location */}
           {categoryLocationStr && (
-            <p className="text-sm text-gray-500 mb-5">{categoryLocationStr}</p>
+            <p className="text-sm text-gray-500 mb-5 truncate">{categoryLocationStr}</p>
           )}
 
           {/* Start a message button */}
@@ -341,13 +341,13 @@ export default function InboxPreviewCard({
           </div>
 
           {/* Headline */}
-          <h3 className="text-xl font-bold text-gray-900 leading-snug mb-1">
-            Message {providerFirstName}
+          <h3 className="text-xl font-bold text-gray-900 leading-snug mb-1 truncate">
+            Message {providerName}
           </h3>
 
           {/* Category + Location */}
           {categoryLocationStr && (
-            <p className="text-sm text-gray-500 mb-4">{categoryLocationStr}</p>
+            <p className="text-sm text-gray-500 mb-4 truncate">{categoryLocationStr}</p>
           )}
 
           {/* Tap to send instruction */}
@@ -597,7 +597,7 @@ export default function InboxPreviewCard({
           /* Email capture form */
           <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
             <h4 className="text-[15px] font-semibold text-gray-900 mb-1">
-              Send your message to {providerFirstName}
+              Send your message
             </h4>
             <p className="text-sm text-gray-600 mb-4">
               A real person at {providerName} will reply — straight to your inbox.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import CompareOverlay from "@/components/providers/CompareOverlay";
 import type { CompareProvider } from "@/components/providers/CompareBottomSheet";
@@ -99,6 +99,15 @@ export default function CompareCard({
     setOverlayOpen(false);
     clickFiredRef.current = false;
   }, []);
+
+  // Listen for external requests to open the overlay (e.g., from SectionNav)
+  useEffect(() => {
+    const handleOpenRequest = () => {
+      handleCompareClick();
+    };
+    window.addEventListener("openCompareOverlay", handleOpenRequest);
+    return () => window.removeEventListener("openCompareOverlay", handleOpenRequest);
+  }, [handleCompareClick]);
 
   return (
     <>

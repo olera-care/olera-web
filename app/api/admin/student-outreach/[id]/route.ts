@@ -1628,6 +1628,9 @@ async function handleAddContact(
     role?: string;
     email?: string;
     phone?: string;
+    /** v9 Phase 9: optional cell + PBX extension. */
+    mobile?: string;
+    extension?: string;
     instagram?: string;
     contact_form_url?: string;
     is_primary?: boolean;
@@ -1668,6 +1671,8 @@ async function handleAddContact(
       role: body.role ?? null,
       email: body.email ?? null,
       phone: body.phone ?? null,
+      mobile: body.mobile ?? null,
+      extension: body.extension ?? null,
       instagram: body.instagram ?? null,
       contact_form_url: body.contact_form_url ?? null,
       is_primary: body.is_primary ?? false,
@@ -1706,6 +1711,9 @@ async function handleUpdateContact(
     role?: string | null;
     email?: string | null;
     phone?: string | null;
+    /** v9 Phase 9: optional cell + PBX extension. */
+    mobile?: string | null;
+    extension?: string | null;
     instagram?: string | null;
     contact_form_url?: string | null;
     is_primary?: boolean;
@@ -1732,7 +1740,7 @@ async function handleUpdateContact(
     last_edited_by: userId,
     last_edited_at: new Date().toISOString(),
   };
-  for (const k of ["name", "title", "first_name", "last_name", "role", "email", "phone", "instagram", "contact_form_url", "is_primary", "notes", "status"] as const) {
+  for (const k of ["name", "title", "first_name", "last_name", "role", "email", "phone", "mobile", "extension", "instagram", "contact_form_url", "is_primary", "notes", "status"] as const) {
     if (body[k] !== undefined) patch[k] = body[k];
   }
   // v8.7: keep `name` in sync with first_name + last_name when those are

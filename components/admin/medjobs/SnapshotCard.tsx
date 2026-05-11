@@ -264,6 +264,8 @@ function ContactRow({
   );
   const [email, setEmail] = useState(contact.email ?? "");
   const [phone, setPhone] = useState(contact.phone ?? "");
+  const [mobile, setMobile] = useState(contact.mobile ?? "");
+  const [extension, setExtension] = useState(contact.extension ?? "");
   const [saving, setSaving] = useState(false);
 
   const isActive = contact.status === "active";
@@ -287,6 +289,8 @@ function ContactRow({
         role: resolvedRole,
         email: email.trim() || null,
         phone: phone.trim() || null,
+        mobile: mobile.trim() || null,
+        extension: extension.trim() || null,
       });
       setExpanded(false);
     } catch (e) {
@@ -347,7 +351,14 @@ function ContactRow({
               <span className="text-gray-400">No email</span>
             )}
             {contact.phone && (
-              <span className="text-gray-400"> · {contact.phone}</span>
+              <span className="text-gray-400">
+                {" · "}
+                {contact.phone}
+                {contact.extension ? ` ext ${contact.extension}` : ""}
+              </span>
+            )}
+            {contact.mobile && (
+              <span className="text-gray-400"> · 📱 {contact.mobile}</span>
             )}
           </p>
         </div>
@@ -422,7 +433,18 @@ function ContactRow({
         )}
       </div>
       <LabeledInput label="Email" value={email} onChange={setEmail} type="email" />
-      <LabeledInput label="Phone" value={phone} onChange={setPhone} type="tel" />
+      <div className="grid grid-cols-3 gap-2">
+        <div className="col-span-2">
+          <LabeledInput label="Phone" value={phone} onChange={setPhone} type="tel" />
+        </div>
+        <LabeledInput label="Ext" value={extension} onChange={setExtension} />
+      </div>
+      <LabeledInput
+        label="Mobile (optional)"
+        value={mobile}
+        onChange={setMobile}
+        type="tel"
+      />
       <div className="flex justify-end gap-2 pt-1">
         <button
           onClick={() => setExpanded(false)}
@@ -460,6 +482,8 @@ function AddContactInline({
   const [roleOther, setRoleOther] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [extension, setExtension] = useState("");
   const [saving, setSaving] = useState(false);
 
   const submit = async () => {
@@ -479,6 +503,8 @@ function AddContactInline({
         role: resolvedRole,
         email: email.trim() || null,
         phone: phone.trim() || null,
+        mobile: mobile.trim() || null,
+        extension: extension.trim() || null,
       });
       setFirstName("");
       setLastName("");
@@ -486,6 +512,8 @@ function AddContactInline({
       setRoleOther("");
       setEmail("");
       setPhone("");
+      setMobile("");
+      setExtension("");
       setOpen(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to add contact");
@@ -546,7 +574,18 @@ function AddContactInline({
         )}
       </div>
       <LabeledInput label="Email" value={email} onChange={setEmail} type="email" />
-      <LabeledInput label="Phone" value={phone} onChange={setPhone} type="tel" />
+      <div className="grid grid-cols-3 gap-2">
+        <div className="col-span-2">
+          <LabeledInput label="Phone" value={phone} onChange={setPhone} type="tel" />
+        </div>
+        <LabeledInput label="Ext" value={extension} onChange={setExtension} />
+      </div>
+      <LabeledInput
+        label="Mobile (optional)"
+        value={mobile}
+        onChange={setMobile}
+        type="tel"
+      />
       <div className="flex justify-end gap-2 pt-1">
         <button
           onClick={() => setOpen(false)}

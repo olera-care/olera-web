@@ -71,6 +71,29 @@ export default function InboxPreviewCard({
   const isNonFamilyProfile = activeProfile &&
     (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
 
+  // Fire analytics event when "Start a message" is clicked
+  const handleStartMessage = useCallback(() => {
+    // Fire cta_variant_clicked event (matches mobile's sheet_opened)
+    if (ctaVariant && !ctaPreviewMode) {
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          related_provider_id: providerSlug,
+          event_type: "cta_variant_clicked",
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            variant: ctaVariant,
+            surface: "desktop",
+            action: "cta_started",
+          },
+        }),
+      }).catch(() => {});
+    }
+    setStep("questions");
+  }, [ctaVariant, ctaPreviewMode, providerSlug]);
+
   // Reset from provider email block
   const resetFromProviderEmailBlock = useCallback(() => {
     setBlockedEmail(null);
@@ -260,7 +283,7 @@ export default function InboxPreviewCard({
 
           {/* Start a message button */}
           <button
-            onClick={() => setStep("questions")}
+            onClick={handleStartMessage}
             className="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
           >
             <svg

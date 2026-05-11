@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import Image from "next/image";
@@ -37,13 +37,15 @@ export default function CompareOverlay({
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const saveClickFiredRef = useRef(false);
 
   // All providers: current first, then similar (max 2)
   const allProviders = [currentProvider, ...similarProviders.slice(0, 2)];
 
-  // Track "Save this comparison" button click
+  // Track "Save this comparison" button click (once per overlay session)
   const handleSaveClick = useCallback(() => {
-    if (!ctaPreviewMode && ctaVariant) {
+    if (!ctaPreviewMode && ctaVariant && !saveClickFiredRef.current) {
+      saveClickFiredRef.current = true;
       fetch("/api/activity/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -157,6 +159,7 @@ export default function CompareOverlay({
       setFooterState("initial");
       setEmail("");
       setError(null);
+      saveClickFiredRef.current = false;
       document.body.style.overflow = "hidden";
       document.addEventListener("keydown", handleKeyDown);
     } else {

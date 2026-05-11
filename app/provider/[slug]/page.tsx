@@ -1348,6 +1348,7 @@ export default async function ProviderPage({
         providerCategory={profile.category}
         providerCity={profile.city}
         providerState={profile.state}
+        providerImage={images[0] || null}
       />
     </div>
   );

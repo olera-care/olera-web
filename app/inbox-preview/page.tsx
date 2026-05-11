@@ -313,7 +313,10 @@ function InboxPreviewContent() {
           </div>
 
           {/* Email capture footer (replaces message input) */}
-          <div className="shrink-0 px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50/50">
+          <div
+            className="shrink-0 px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50/50"
+            style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))" }}
+          >
             {/* Non-family profile block */}
             {isNonFamilyProfile ? (
               <div className="max-w-lg mx-auto text-center py-4">

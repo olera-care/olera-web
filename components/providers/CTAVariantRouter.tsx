@@ -193,6 +193,7 @@ export interface MobileCTARouterProps {
   providerCategory?: string | null;
   providerCity?: string | null;
   providerState?: string | null;
+  providerImage?: string | null;
 }
 
 /**
@@ -216,6 +217,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
     providerCategory,
     providerCity,
     providerState,
+    providerImage,
   } = props;
 
   const isPreview = isCTAPreviewMode();
@@ -230,6 +232,8 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerCategory={providerCategory}
           providerCity={providerCity}
           providerState={providerState}
+          providerPhone={phone}
+          providerImage={providerImage}
           acceptedPayments={acceptedPayments}
           ctaVariant={variant}
           ctaSurface="mobile"

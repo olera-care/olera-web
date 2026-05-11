@@ -413,7 +413,7 @@ export default function CompareOverlay({
                   e.preventDefault();
                   handleSubmit();
                 }}
-                className="flex items-center gap-3 flex-1 max-w-xl"
+                className="flex items-center gap-3 flex-1 max-w-lg"
               >
                 <div className="flex-1 relative">
                   <input

@@ -54,9 +54,6 @@ export default function MobileStickyInboxPreview({
   const questions = getQuestionsForCategory(providerCategory);
   const { initial, expanded: expandedQuestions } = splitQuestions(questions);
 
-  // Extract first name
-  const providerFirstName = providerName.split(" ")[0];
-
   // Fire cta_variant_clicked when sheet opens
   const sheetClickFiredRef = useRef(false);
   const fireSheetOpenEvent = useCallback(() => {

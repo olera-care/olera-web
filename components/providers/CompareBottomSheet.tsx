@@ -132,6 +132,23 @@ export default function CompareBottomSheet({
     };
   }, [isOpen]); // Only re-run when isOpen changes, not when handleKeyDown changes
 
+  // Close sheet when viewport switches to desktop (above md breakpoint)
+  // This prevents scroll lock from persisting when sheet is hidden via CSS
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const mediaQuery = window.matchMedia("(min-width: 768px)");
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (e.matches) {
+        // Switched to desktop - close the mobile sheet
+        onClose();
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [isOpen, onClose]);
+
   // Focus email input when entering email capture state
   useEffect(() => {
     if (footerState === "email_capture" && emailInputRef.current) {

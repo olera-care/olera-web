@@ -7,6 +7,27 @@
 
 ## Current Focus
 
+### 2026-05-11 (Sun) — Project 5 diagnostic complete: the 52.4K "Crawled, not indexed" bucket is mostly junk that shouldn't be indexed
+
+Parsed the GSC export TJ pulled (`docs/https___olera.care_-Coverage-Drilldown-2026-05-09/Table.csv` — 999 URLs, ~1.9% sample of the 52,398-page bucket). Diagnostic-only session — **no code changed**. Full report shipped as a Notion sub-page under the tracker: [Project 5 Diagnostic](https://www.notion.so/35d5903a0ffe8166a3d4dc9132ac2c23).
+
+**The headline:** the bucket is not "directory too thin" — it's majority pages that should never have been indexable.
+- **`/review/[slug]` — 55% of the sample (~29K est.)** — these are the client-rendered review *submission* forms (star picker + textarea), not content pages. `"use client"` → only a spinner in initial HTML, no `noindex`. Discovered via a `<Link href="/review/{slug}">` in `ReviewsSection`, which renders on every provider page → Google crawls all ~75K of them. Not in any sitemap. **Fix: noindex the route (`app/review/layout.tsx`) + de-link / `nofollow` the `<Link>`.** Not a directory page, so TJ's "noindex too drastic" concern doesn't apply. ~30 min, zero downside, removes >half the bucket over the next recrawl cycle.
+- **`/provider/[slug]` — 34% (~18K est.)** — the real thin-content bucket. The pages are fine structurally (SSR, metadata, breadcrumb/LocalBusiness/FAQ JSON-LD). The gap is unique-content density: 76% of descriptions are 150–300 chars, 43% are literal boilerplate ("X provides [category] services for senior elders in the [City] area. To find the right care…"). Un-indexed ~18K ≈ {boilerplate} ∩ {few/no reviews} ∩ {no AI trust signals}. 75,352 active providers, all in the sitemap at flat priority 0.7. **Fix (per TJ's hierarchy uplift > prune > noindex): backfill reviews + trust signals (`scripts/backfill-highlights-data.js`) + regenerate boilerplate descriptions via the pipeline's Perplexity step, then sitemap-prune the zero-signal long tail (page stays live for navigational queries, just not submitted).** Days of backfill + ~2 hr sitemap work.
+- The rest is small: power pages + `/page/N` pagination ~5% (~2.6K), `/_next/static/chunks/*?dpl=*` ~2.7% (~1.4K, cosmetic — don't block /_next, Google needs JS/CSS), `/benefits` + `/waiver-library` stubs ~2% (~1.1K, let benefits pipeline catch up), `/browse?type=&q=` faceted-search URLs ~0.8% (~420, should be `noindex`).
+
+**Hypothesis flagged for TJ to rule out FIRST (before any code):** curl-as-Googlebot and WebFetch both got Vercel's **"Security Checkpoint"** interstitial instead of page content. Real Googlebot is IP-verified so it *should* be allowlisted — but if Vercel bot protection / Attack Challenge Mode is challenging verified Googlebot or its render-fetches, that's a site-wide indexing killer and would also explain the unexplained Aug-2025 cliff. **Check (~10 min): GSC URL Inspection → "Test Live URL" on 3 un-indexed URLs → "View tested page". If it shows the Vercel checkpoint → fix bot-protection settings. If it shows the real page → hypothesis dead.**
+
+**Sample caveat:** `/review/`'s 55% is probably inflated (linked from 75K provider pages → over-crawled → over-represented in a recency-weighted sample). Even at a conservative 30% it's ~15K and still the #1 lever. A tighter number needs the GSC API or a Bing Webmaster cross-check — not worth it; the action order doesn't change.
+
+**Top 3 actions (TJ's call which become Project 6+):** (1) noindex `/review/*` + de-link — ship first, ~30 min. (2) Verify the Vercel bot-challenge hypothesis in GSC — ~10 min. (3) Provider-page content uplift + sitemap prune — addresses the ~18K real bucket. Everything else (pagination noindex, `/browse` noindex, benefits stubs, `/_next` noise) is ≤half-a-day cleanup, schedule when convenient.
+
+**Resume next session here →** wait for TJ to decide which of the 3 (or the cleanup items) becomes Project 6. If #1 ("noindex `/review/*`"): add `app/review/layout.tsx` with `export const metadata = { robots: { index: false, follow: true } }`, change the `<Link href={reviewPageUrl}>` in `components/providers/ReviewsSection.tsx` (~L460/L480) to a button + `router.push` or add `rel="nofollow"` — leave the `window.location.href = reviewPageUrl` redirects alone (not crawlable). Branch off `staging`, PR to `staging`. Don't touch the other buckets unless TJ scopes them in.
+
+Open follow-ups carried forward: re-submit the 4 GSC-removal-expired URLs; diagnose the Aug-2025 cliff (may collapse into the Vercel-bot check or the provider-uplift work); Projects 2 + 3 (audit script + pipeline pre-filter) — still lower urgency than the de-indexing fixes.
+
+---
+
 ### 2026-05-08 (Fri evening) — Project 4 shipped same-day, Project 5 added when TJ flagged we missed the biggest GSC bucket
 
 Continued from this morning's session. Where we landed:

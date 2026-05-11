@@ -436,9 +436,7 @@ function CompareCard({ provider, isCurrentProvider, badge }: CompareCardProps) {
 
   return (
     <div
-      className={`flex-shrink-0 w-[78vw] snap-start rounded-2xl border-2 p-4 bg-white ${
-        isCurrentProvider ? "border-gray-900" : "border-gray-200"
-      }`}
+      className="flex-shrink-0 w-[78vw] snap-start rounded-2xl border-2 border-gray-200 p-4 bg-white"
     >
       {/* "This page" label for current provider */}
       {isCurrentProvider && (

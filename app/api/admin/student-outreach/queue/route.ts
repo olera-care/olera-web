@@ -39,6 +39,7 @@ import {
   type TouchpointRow,
 } from "@/lib/student-outreach/state-derivation";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import { countProspectGeneration } from "@/lib/medjobs/prospect-counts";
 import type {
   AwaitingCallbackKind,
   Campus,
@@ -357,16 +358,12 @@ async function fetchResearchCampuses(
         client_count: clientCount,
       };
     })
-    // v9.0 Phase 2: surface a campus card if it has stakeholders in
-    // research OR if Stage 2 has unlocked (≥1 client) — the latter
-    // becomes the "Campus research needed" banner. v8.5's "must have
-    // ≥1 stakeholder" filter is preserved for provider_prospecting
-    // campuses since those don't have a Stage 2 banner yet.
-    .filter(
-      (c) =>
-        c.research_stakeholder_count > 0 ||
-        c.stage === "stakeholder_prospecting",
-    )
+    // Every active campus with research_complete=false gets a research
+    // operational card — the Site itself generates the research work
+    // the moment it's added. The old gate (≥1 stakeholder OR Stage 2
+    // unlocked) belonged to the v8.5 design where the research banner
+    // only fired after a provider partner converted; v9.0's contract
+    // is that the research card is queued from the start.
     .sort((a, b) => {
       // v9.0 Phase 2: stakeholder_prospecting (Stage 2 unlocked) cards
       // bubble to the top — they're the prompt admin needs to act on.
@@ -501,24 +498,17 @@ async function computeTabCounts(
   // last viewed_at (or never viewed). Same predicate as
   // sidebar-counts so the two surfaces stay aligned.
   //
-  // Research-cards-as-prospects: campuses with research_complete=false
-  // surface as operational cards in Prospects → Partner Prospects. They
-  // must contribute to counts.prospects so the Prospects tab is
-  // reachable when the only operational work for a Site is the
-  // pending research pass (no stakeholders yet, no provider prospects
-  // materialized).
-  const researchCampusQuery = db
-    .from("student_outreach_campuses")
-    .select("id, viewed_at")
-    .eq("research_complete", false)
-    .eq("is_active", true);
-  if (filters.campusId) researchCampusQuery.eq("id", filters.campusId);
-
+  // Prospect generation: the Prospects tab content is the union of
+  // research cards (campuses with research_complete=false) and virtual
+  // provider prospects (catchment providers minus clients minus
+  // already-materialized). Both buckets contribute to counts.prospects
+  // so the badge matches what renders inside the tab. countProspectGeneration
+  // is the shared implementation also used by /api/admin/medjobs/sidebar-counts.
   const [
     { data: clientTaskRows },
     { data: candidateTaskRows },
     { data: siteTaskRows },
-    { data: researchCampusRows },
+    prospectGen,
   ] = await Promise.all([
     db
       .from("business_profile_tasks")
@@ -534,18 +524,11 @@ async function computeTabCounts(
       .from("site_tasks")
       .select("campus_id, created_at")
       .eq("status", "pending"),
-    researchCampusQuery,
+    countProspectGeneration(db, { campusId: filters.campusId }),
   ]);
 
-  // Each campus with research_complete=false is one operational
-  // research card. Unread when admin has never viewed the campus.
-  for (const row of (researchCampusRows ?? []) as Array<{
-    id: string;
-    viewed_at: string | null;
-  }>) {
-    counts.prospects += 1;
-    if (row.viewed_at == null) unread.prospects += 1;
-  }
+  counts.prospects += prospectGen.total;
+  unread.prospects += prospectGen.unread;
 
   const latestClientTaskByProfile = new Map<string, string>();
   for (const r of (clientTaskRows ?? []) as Array<{

@@ -316,6 +316,27 @@ export function MedJobsTabPage({
     if (tabFromUrl && tabFromUrl !== tab) setTab(tabFromUrl);
   }, [tabFromUrl, tab]);
 
+  // Auto-pivot: when counts arrive and the active tab has 0 work,
+  // switch to the first tab that does have work. Without this, the
+  // initialTab="clients" default on the In Basket page would anchor
+  // Clients into the bar even when the only operational work is in
+  // Prospects (or any other tab). Lets smart-hide actually hide
+  // Clients on fresh load.
+  //
+  // Skipped when the URL has an explicit ?tab=... so a deep-link to an
+  // empty tab still works. Once auto-pivot fires, setTabAndUrl writes
+  // ?tab=<picked> to the URL — subsequent count changes won't pivot
+  // again because the URL is now explicit.
+  useEffect(() => {
+    if (!tabCounts) return;
+    if (tabFromUrl != null) return;
+    if ((tabCounts[tab] ?? 0) > 0) return;
+    const firstWithWork = TABS.find((t) => (tabCounts[t.key] ?? 0) > 0);
+    if (firstWithWork && firstWithWork.key !== tab) {
+      setTabAndUrl(firstWithWork.key);
+    }
+  }, [tabCounts, tab, tabFromUrl, setTabAndUrl]);
+
   return (
     <div>
       {/* v9.0 Phase 7 Commit J: In Basket is queue-focused — title +

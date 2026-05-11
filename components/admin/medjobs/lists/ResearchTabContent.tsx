@@ -28,41 +28,51 @@
  */
 
 import { useMemo, useState, type ReactNode } from "react";
-import type { TabRow } from "@/lib/student-outreach/types";
+import type { ResearchCampusCard, TabRow } from "@/lib/student-outreach/types";
 import type { ProviderProspectRow } from "@/lib/student-outreach/tab-config";
 import { ProviderProspectCard } from "../cards/ProviderProspectCard";
+import { CampusResearchCard } from "../cards/CampusResearchCard";
 import { CardOverflowMenu } from "../cards/CardOverflowMenu";
 
 export function ResearchTabContent({
   rows,
   providerProspects,
+  researchCampuses,
   renderRow,
   onStartProviderOutreach,
+  onOpenCampusResearch,
+  onMarkResearchComplete,
   tabCountsAll,
 }: {
   rows: TabRow[];
   providerProspects: ProviderProspectRow[];
+  researchCampuses: ResearchCampusCard[];
   renderRow: (row: TabRow) => ReactNode;
   onStartProviderOutreach: (row: ProviderProspectRow) => void;
+  onOpenCampusResearch: (campus: ResearchCampusCard) => void;
+  onMarkResearchComplete: (campus: ResearchCampusCard) => void;
   tabCountsAll: number;
 }) {
   const partnerUnreadCount = useMemo(
     () => rows.filter((r) => r.viewed_at == null).length,
     [rows],
   );
+  const partnerTotal = researchCampuses.length + rows.length;
 
-  // Default-open rule: Partner Prospects opens when it has unread;
-  // Provider Prospects opens otherwise (the funnel-unlock path).
-  // Single section opens by default — the other stays collapsed
-  // until admin chooses.
+  // Default-open rule: Partner Prospects opens when it has unread or
+  // any queued research cards; Provider Prospects opens otherwise
+  // (the funnel-unlock path). Single section opens by default — the
+  // other stays collapsed until admin chooses.
   const [providerOpen, setProviderOpen] = useState<boolean>(
-    partnerUnreadCount === 0 && providerProspects.length > 0,
+    partnerUnreadCount === 0 && researchCampuses.length === 0 && providerProspects.length > 0,
   );
   const [partnerOpen, setPartnerOpen] = useState<boolean>(
-    partnerUnreadCount > 0 || (providerProspects.length === 0 && rows.length > 0),
+    partnerUnreadCount > 0 ||
+      researchCampuses.length > 0 ||
+      (providerProspects.length === 0 && rows.length > 0),
   );
 
-  const totalAvailable = providerProspects.length + rows.length;
+  const totalAvailable = providerProspects.length + partnerTotal;
 
   if (totalAvailable === 0) {
     const headline = tabCountsAll === 0 ? "Nothing here yet." : "✓ All caught up.";
@@ -122,15 +132,43 @@ export function ResearchTabContent({
         </Section>
       )}
 
-      {rows.length > 0 && (
+      {partnerTotal > 0 && (
         <Section
           label="Partner Prospects"
-          count={rows.length}
+          count={partnerTotal}
           unread={partnerUnreadCount}
           open={partnerOpen}
           onToggle={() => setPartnerOpen((s) => !s)}
         >
           <ul className="space-y-2 pt-2">
+            {researchCampuses.map((c) => (
+              <li key={`research-${c.id}`}>
+                <CampusResearchCard
+                  row={c}
+                  onOpenResearch={() => onOpenCampusResearch(c)}
+                  overflowMenu={
+                    <CardOverflowMenu
+                      items={[
+                        {
+                          label: "Mark research complete",
+                          onClick: () => onMarkResearchComplete(c),
+                        },
+                        {
+                          label: "Open site management page",
+                          onClick: () => {
+                            window.open(
+                              `/admin/student-outreach/campus/${c.slug}`,
+                              "_blank",
+                              "noopener,noreferrer",
+                            );
+                          },
+                        },
+                      ]}
+                    />
+                  }
+                />
+              </li>
+            ))}
             {rows.map((row) => (
               <li key={row.id}>{renderRow(row)}</li>
             ))}

@@ -1,33 +1,34 @@
 "use client";
 
 /**
- * ProviderProspectDrawerBody — focused drawer body for materialized
- * provider prospect rows (student_outreach with kind='provider').
+ * ProviderProspectDrawerBody — drawer body for materialized provider
+ * prospect rows (student_outreach with kind='provider').
  *
- * v9 unified launch path: this body now calls schedule_sequence with
- * the provider cadence template (Day 0 / 2 / 3 / 5 / 7) instead of the
- * deprecated single-email launch_provider_outreach action. Same engine
- * the Partner Prospect drawer uses — one launch path, two template
- * families. Phone-aware call queueing comes for free because the
- * primary contact is mirrored from business_profiles at materialize
- * time (see /api/admin/medjobs/provider-prospects/materialize).
+ * v9 architecture: composes the shared zone components (Header, Next
+ * Step Card, Snapshot — TBD, Timeline — TBD, More Details — TBD)
+ * with provider-kind-specific content where applicable. The Partner
+ * drawer (DrawerBody) will migrate to the same shared zones in a
+ * follow-up commit so both bodies stay in lock-step.
  *
- * The drawer surface stays minimal for this commit:
+ * This commit mounts:
  *
- *   1. Org header (read-only) + status pill
+ *   1. Org header (read-only) + canonical stage pill
  *   2. Research notes textarea (persists on blur)
- *   3. Provider email field (edits the mirrored primary contact)
- *   4. Launch button → schedules the full provider cadence
+ *   3. Provider email field (writes to mirrored primary contact)
+ *   4. NextStepCard — stage-driven operational card replacing the
+ *      bare "Launch outreach" button. The launch action now opens
+ *      the PreFlightReviewModal with the provider cadence so admin
+ *      reviews/edits the 3 emails before scheduling.
  *
- * The Snapshot Card + PreFlightReviewModal + NextStepCard + Timeline
- * land in subsequent commits per the build order. This commit's only
- * behavior change: the click of "Launch outreach" now queues a
- * 5-touch cadence instead of firing a single one-off email.
+ * Post-launch stages (in_outreach / call_due / meeting_set / etc.)
+ * all flow through NextStepCard's stage-specific bodies and modals.
+ * The previous "✓ Outreach launched" static banner is gone — replaced
+ * by live operational guidance.
  */
 
 import { useEffect, useMemo, useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
-import { defaultSnapshotsFor } from "@/lib/student-outreach/sequencer";
+import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 
 interface Props {
   ctx: DrawerContext;
@@ -43,9 +44,6 @@ interface Props {
 
 export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const { outreach, provider_business_profile: bp } = ctx;
-  // Email source: prefer the mirrored contact row (the canonical post-
-  // materialize source); fall back to business_profile for legacy rows
-  // that pre-date the materialize-time mirror.
   const primaryContact = useMemo(
     () => ctx.contacts.find((c) => c.is_primary && c.status === "active"),
     [ctx.contacts],
@@ -53,7 +51,6 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const initialEmail = primaryContact?.email ?? bp?.contact_email ?? "";
   const [email, setEmail] = useState<string>(initialEmail);
   const [notes, setNotes] = useState<string>(outreach.notes ?? "");
-  const [sending, setSending] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
 
@@ -68,7 +65,8 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const campusName = ctx.campus?.name ?? null;
 
   const hasEmail = email.trim().includes("@");
-  const alreadySent = outreach.status !== "prospect" && outreach.status !== "researched";
+  const isPreLaunch =
+    outreach.status === "prospect" || outreach.status === "researched";
 
   const saveNotes = async () => {
     if (notes === (outreach.notes ?? "")) return;
@@ -83,11 +81,9 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
     }
   };
 
-  // Persist email edits to the primary contact row so the launch path
-  // (schedule_sequence → executeEmailTask) reads the corrected address.
-  // If no primary contact exists yet (legacy rows pre-mirror), create
-  // one. Both branches use the same contact actions that stakeholder
-  // rows use — one editor, two surfaces.
+  // Email writes flow to the primary contact row — the same source the
+  // unified cadence pipeline reads at send time. Mirrors stakeholder
+  // contact-edit UX.
   const saveEmail = async () => {
     const trimmed = email.trim();
     if (trimmed === (primaryContact?.email ?? bp?.contact_email ?? "")) return;
@@ -113,51 +109,35 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
     }
   };
 
-  const launch = async () => {
-    if (!hasEmail) {
-      setError("Add a valid email before launching outreach.");
-      return;
+  // Pre-launch hand-off to NextStepCard: persist any pending edits
+  // (notes + email) before the PreFlight modal opens, so the cadence
+  // scheduling reads from the latest data.
+  const beforeLaunch = async () => {
+    if (notes !== (outreach.notes ?? "")) {
+      await action("update_outreach", { notes });
     }
-    setSending(true);
-    setError(null);
-    try {
-      // Persist unsaved notes / email first — admin loses them otherwise.
-      if (notes !== (outreach.notes ?? "")) {
-        await action("update_outreach", { notes });
+    const trimmed = email.trim();
+    if (trimmed !== (primaryContact?.email ?? bp?.contact_email ?? "")) {
+      if (primaryContact) {
+        await action("update_contact", {
+          contact_id: primaryContact.id,
+          email: trimmed || null,
+        });
+      } else if (trimmed) {
+        await action("add_contact", {
+          name: orgName,
+          email: trimmed,
+          is_primary: true,
+        });
       }
-      const trimmed = email.trim();
-      if (trimmed !== (primaryContact?.email ?? bp?.contact_email ?? "")) {
-        if (primaryContact) {
-          await action("update_contact", {
-            contact_id: primaryContact.id,
-            email: trimmed || null,
-          });
-        } else {
-          await action("add_contact", {
-            name: orgName,
-            email: trimmed,
-            is_primary: true,
-          });
-        }
-      }
-
-      // Build the default snapshot list from the 'provider' cadence
-      // template. Admin gets the cadence with default copy; a future
-      // pre-flight modal will let them edit per-day before launch.
-      const snapshots = defaultSnapshotsFor("provider", {
-        organization_name: orgName,
-        campus_name: campusName ?? "the university",
-      });
-      await action("schedule_sequence", { email_snapshots: snapshots });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to launch outreach");
-    } finally {
-      setSending(false);
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Zone 1 · Header — identity + stage. Stage pill comes from
+          the canonical StageDisplay below; identity is provider-
+          specific (org name, city, catchment campus). */}
       <section className="rounded-lg border border-gray-200 bg-white px-4 py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -175,10 +155,30 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
               </p>
             )}
           </div>
-          <StatusPill alreadySent={alreadySent} />
         </div>
       </section>
 
+      {/* Zone 2 · Next Step — the operational keystone. Stage-driven
+          copy + CTA. Owns the modal launchers for log actions and the
+          PreFlight modal for the pre-launch cadence review. */}
+      <NextStepCard
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        launchEnabled={hasEmail}
+        launchDisabledReason={
+          hasEmail
+            ? undefined
+            : "Add a valid email below before launching outreach."
+        }
+        beforeLaunch={beforeLaunch}
+      />
+
+      {/* Zone 3 · Snapshot (pre-launch only) — research notes + email.
+          Post-launch this content moves into the More Details collapse
+          per the architecture spec; for this commit the Snapshot stays
+          visible across all stages until the SnapshotCard component
+          lands and handles the collapse rule. */}
       <section>
         <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
           Research notes
@@ -210,10 +210,10 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
               ? initialEmail
               : "Need to find provider email — paste hiring contact here"
           }
-          disabled={alreadySent}
+          disabled={!isPreLaunch}
           className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
         />
-        {!initialEmail && !alreadySent && (
+        {!initialEmail && isPreLaunch && (
           <p className="mt-1 text-[11px] text-amber-700">
             ⚠ No email on file. Track down the hiring contact and paste it here
             before launching outreach.
@@ -227,43 +227,6 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
           </p>
         )}
       </section>
-
-      {alreadySent ? (
-        <section className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          ✓ Outreach cadence scheduled. Day 0 email fires immediately;
-          follow-ups + call tasks queue per the 5-touch provider cadence.
-          Replies surface in the Replies tab.
-        </section>
-      ) : (
-        <section className="flex items-center justify-end gap-3">
-          <button
-            onClick={launch}
-            disabled={!hasEmail || sending}
-            title={
-              hasEmail
-                ? "Schedule the 5-touch provider cadence and fire Day 0 immediately."
-                : "Need a valid email address first."
-            }
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {sending ? "Launching…" : "Launch outreach"}
-          </button>
-        </section>
-      )}
     </div>
-  );
-}
-
-function StatusPill({ alreadySent }: { alreadySent: boolean }) {
-  const label = alreadySent ? "Outreach sent" : "Ready to email";
-  const tone = alreadySent
-    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-    : "border-amber-200 bg-amber-50 text-amber-800";
-  return (
-    <span
-      className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-medium ${tone}`}
-    >
-      {label}
-    </span>
   );
 }

@@ -409,12 +409,19 @@ export interface DrawerContext {
    * row is kind='provider' (a materialized catchment prospect). Lets
    * the drawer pre-fill the Launch outreach email field without an
    * extra round-trip.
+   *
+   * v9: metadata is included so deriveStage() can detect converted
+   * providers (interview_terms_accepted_at within 90d OR
+   * medjobs_subscription_active). Without metadata, the drawer's
+   * stage derivation would miss the Client transition for provider
+   * rows whose underlying business_profile became a Client.
    */
   provider_business_profile: {
     contact_email: string | null;
     display_name: string | null;
     city: string | null;
     state: string | null;
+    metadata: Record<string, unknown> | null;
   } | null;
 }
 

@@ -400,16 +400,19 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
   // Provider-prospect drawers need the catchment provider's email to
   // surface as auto-populated in the Launch outreach field. Fetch it
   // only when this row represents a materialized provider prospect.
+  // v9: metadata included so NextStepCard's stage derivation can detect
+  // Client conversion (interview_terms_accepted_at / medjobs_subscription_active).
   let providerBusinessProfile: {
     contact_email: string | null;
     display_name: string | null;
     city: string | null;
     state: string | null;
+    metadata: Record<string, unknown> | null;
   } | null = null;
   if (row.kind === "provider" && row.provider_business_profile_id) {
     const { data: bp } = await db
       .from("business_profiles")
-      .select("contact_email, display_name, city, state")
+      .select("contact_email, display_name, city, state, metadata")
       .eq("id", row.provider_business_profile_id)
       .maybeSingle();
     providerBusinessProfile = (bp ?? null) as typeof providerBusinessProfile;

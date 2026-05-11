@@ -48,6 +48,10 @@ export type TouchpointType =
   | "email_sent"
   | "email_replied"
   | "email_bounced"
+  // v9 Phase 8: webhook-emitted on Resend complaint / soft-fail.
+  // Drive auto-DNC (complained) and admin-visible retry copy (failed).
+  | "email_complained"
+  | "email_failed"
   | "call_no_answer"
   | "call_voicemail"
   | "call_connected"

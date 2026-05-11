@@ -7,6 +7,26 @@
 
 ## Current Focus
 
+### 2026-05-11 (Sun, later) — Found AND fixed a real crawl-access bug: Vercel firewall was denying non-US Googlebot
+
+Followed up on the "Vercel bot challenge" hypothesis from the Project 5 diagnostic (below). It started looking like a dead end — then GSC Host status flipped it: **"Server connectivity: HIGH fail rate, ramping since ~April 9, growing"** (robots.txt fetch + DNS both fine, just server connectivity). That's Googlebot getting refused on a growing 5–20% of crawl attempts. Tracked it to the Vercel Firewall.
+
+**Root cause (confirmed against Vercel's docs):** Vercel WAF executes **custom rules BEFORE managed rulesets**. The managed Bot Protection ruleset auto-exempts verified bots (Googlebot, Bingbot) — but a **custom rule** doesn't. Olera has a custom rule **"Block Restricted Regions"** (created Mar 11, modified through Apr 25): `Country is not any of {Colombia, Ghana, Mauritius, Philippines, Poland, South Africa, United States} → Deny`. Googlebot does geo-distributed crawling — when it crawls from a non-US Google IP, that custom rule **403s it before the managed ruleset's verified-bot exemption ever applies**. Amplified by the Apr 3 firewall changes (Bot Protection → Challenge mode, AI Bots → Deny mode), which line up with the ~Apr 9 start of the server-connectivity ramp; the bucket's steepest jump (Apr 24→May 1, +12K) overlaps the Apr 21/25 region-rule edits. This is a *separate* problem from the content-quality bucket — two real issues stacked.
+
+**Fix shipped (TJ, in Vercel dashboard):** New custom WAF rule **"Allow verified search bots"** — `If User Agent Matches expression: Googlebot|Google-InspectionTool|bingbot|Applebot` → action **Bypass** (skips all subsequent custom + managed rules), placed **above "Block Restricted Regions"** in the custom-rules list. Published (takes effect immediately, no redeploy). This is exactly Vercel's documented pattern for allowlisting traffic blocked by your own custom rule.
+
+**Verified:** GSC URL Inspection → Test Live URL on `https://olera.care/` (run *after* publishing the bypass rule) → returns the real homepage HTML — `<title>Olera | Find Senior Care Near You</title>`, `<meta robots content="index, follow">`, full Next.js app markup, **zero "Vercel Security Checkpoint" markup**. Crawler access restored.
+
+**Still pending (lagging metric):** GSC → Settings → Crawl stats → **Host status** — "server connectivity" fail rate should fall toward ~0% over the next 3–7 days. Check next week. Also watch the 14% 404 crawl-share decline over 30–60 days (proof Project 4's deletion-redirects are working).
+
+**Decisions left for TJ:**
+- The "Block Restricted Regions" rule is an aggressive 7-country *allowlist* (Deny everything else) — also 403s real US families traveling abroad + anyone in Canada/UK/AU/etc. The bypass rule protects crawlers regardless, so not urgent, but worth reconsidering (a *denylist* of bad ASNs/countries, or switching action Deny→Challenge, would be gentler). TJ's product call.
+- Whether the Apr 3 Bot Protection (Challenge) + AI Bots (Deny) settings are worth keeping as-is — they auto-exempt verified bots so they're probably fine now that the bypass rule fronts them.
+
+**Net for de-indexing recovery:** two fixes landed this session — PR #771 (noindex `/review/*` forms, ~55% of the 52.4K not-indexed bucket) + the firewall bypass (restores intermittent-denied Googlebot crawl). Both should compound over the next 30–90 days. Next lever: action #3 — provider-page content uplift + sitemap prune for the ~18K thin-provider bucket (the content-quality half). Scope as Project 6 when TJ's ready.
+
+---
+
 ### 2026-05-11 (Sun) — Project 5 diagnostic complete: the 52.4K "Crawled, not indexed" bucket is mostly junk that shouldn't be indexed
 
 Parsed the GSC export TJ pulled (`docs/https___olera.care_-Coverage-Drilldown-2026-05-09/Table.csv` — 999 URLs, ~1.9% sample of the 52,398-page bucket). Diagnostic-only session — **no code changed**. Full report shipped as a Notion sub-page under the tracker: [Project 5 Diagnostic](https://www.notion.so/35d5903a0ffe8166a3d4dc9132ac2c23).

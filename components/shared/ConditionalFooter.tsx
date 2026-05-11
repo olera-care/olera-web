@@ -16,7 +16,6 @@ export default function ConditionalFooter() {
   // Admin, inbox, onboarding, claim wizard, removal request, match detail, and MedJobs forms — no footer
   if (
     pathname.startsWith("/admin") ||
-    pathname.startsWith("/inbox-preview") ||
     pathname.startsWith("/portal/inbox") ||
     pathname.startsWith("/provider/inbox") ||
     pathname.startsWith("/provider/onboarding") ||

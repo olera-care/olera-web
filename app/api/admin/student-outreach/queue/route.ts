@@ -500,10 +500,25 @@ async function computeTabCounts(
   // subset whose latest pending task was created after the entity's
   // last viewed_at (or never viewed). Same predicate as
   // sidebar-counts so the two surfaces stay aligned.
+  //
+  // Research-cards-as-prospects: campuses with research_complete=false
+  // surface as operational cards in Prospects → Partner Prospects. They
+  // must contribute to counts.prospects so the Prospects tab is
+  // reachable when the only operational work for a Site is the
+  // pending research pass (no stakeholders yet, no provider prospects
+  // materialized).
+  const researchCampusQuery = db
+    .from("student_outreach_campuses")
+    .select("id, viewed_at")
+    .eq("research_complete", false)
+    .eq("is_active", true);
+  if (filters.campusId) researchCampusQuery.eq("id", filters.campusId);
+
   const [
     { data: clientTaskRows },
     { data: candidateTaskRows },
     { data: siteTaskRows },
+    { data: researchCampusRows },
   ] = await Promise.all([
     db
       .from("business_profile_tasks")
@@ -519,7 +534,18 @@ async function computeTabCounts(
       .from("site_tasks")
       .select("campus_id, created_at")
       .eq("status", "pending"),
+    researchCampusQuery,
   ]);
+
+  // Each campus with research_complete=false is one operational
+  // research card. Unread when admin has never viewed the campus.
+  for (const row of (researchCampusRows ?? []) as Array<{
+    id: string;
+    viewed_at: string | null;
+  }>) {
+    counts.prospects += 1;
+    if (row.viewed_at == null) unread.prospects += 1;
+  }
 
   const latestClientTaskByProfile = new Map<string, string>();
   for (const r of (clientTaskRows ?? []) as Array<{

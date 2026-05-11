@@ -364,52 +364,57 @@ export function MedJobsTabPage({
           visible when (count > 0) OR it's the active tab. Bolded +
           fraction `unread/total` when unread > 0; muted + plain count
           otherwise. Completed rows leave the tab on status transition,
-          so counts only reflect active work. */}
-      <div className="mb-8 flex items-center border-b border-gray-100">
-        <div className="flex flex-1 items-center gap-1 overflow-x-auto">
-          {visibleTabs.map((t) => {
-            const count = tabCounts?.[t.key] ?? 0;
-            const unread = tabUnreadCounts?.[t.key] ?? 0;
-            const active = t.key === tab;
-            const isUnreadTab = unread > 0;
-            return (
-              <button
-                key={t.key}
-                onClick={() => setTabAndUrl(t.key)}
-                title={t.tooltip}
-                className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm transition-colors ${
-                  // v9.0 Phase 7 Commit E: bold the tab label AND the
-                  // fraction together when unread > 0. Inactive unread
-                  // tabs also darken so the bold actually pops against
-                  // the muted gray-400 default — bold alone on light
-                  // text barely renders. Read tabs stay font-medium +
-                  // gray-400 to keep the inactive zone calm.
-                  isUnreadTab
-                    ? active
-                      ? "border-gray-900 font-semibold text-gray-900"
-                      : "border-transparent font-semibold text-gray-900 hover:text-gray-700"
-                    : active
-                      ? "border-gray-900 font-medium text-gray-900"
-                      : "border-transparent font-medium text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                {t.label}
-                {count > 0 && (
-                  <span
-                    className={`ml-1.5 text-xs tabular-nums ${
-                      isUnreadTab
-                        ? "font-semibold text-gray-900"
-                        : "text-gray-400"
-                    }`}
-                  >
-                    {isUnreadTab ? `${unread}/${count}` : count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+          so counts only reflect active work.
+          Entirely hidden when isInboxEmpty — a fully-clean inbox has
+          no tabs, just the "Everything caught up" empty state. Tabs
+          surface only when actual operational work exists. */}
+      {!isInboxEmpty && (
+        <div className="mb-8 flex items-center border-b border-gray-100">
+          <div className="flex flex-1 items-center gap-1 overflow-x-auto">
+            {visibleTabs.map((t) => {
+              const count = tabCounts?.[t.key] ?? 0;
+              const unread = tabUnreadCounts?.[t.key] ?? 0;
+              const active = t.key === tab;
+              const isUnreadTab = unread > 0;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setTabAndUrl(t.key)}
+                  title={t.tooltip}
+                  className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm transition-colors ${
+                    // v9.0 Phase 7 Commit E: bold the tab label AND the
+                    // fraction together when unread > 0. Inactive unread
+                    // tabs also darken so the bold actually pops against
+                    // the muted gray-400 default — bold alone on light
+                    // text barely renders. Read tabs stay font-medium +
+                    // gray-400 to keep the inactive zone calm.
+                    isUnreadTab
+                      ? active
+                        ? "border-gray-900 font-semibold text-gray-900"
+                        : "border-transparent font-semibold text-gray-900 hover:text-gray-700"
+                      : active
+                        ? "border-gray-900 font-medium text-gray-900"
+                        : "border-transparent font-medium text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  {t.label}
+                  {count > 0 && (
+                    <span
+                      className={`ml-1.5 text-xs tabular-nums ${
+                        isUnreadTab
+                          ? "font-semibold text-gray-900"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      {isUnreadTab ? `${unread}/${count}` : count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Per-tab list rendering. Each tab is a workflow category;
           smart-hide already removed empty ones from the bar.

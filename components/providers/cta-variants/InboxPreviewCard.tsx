@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { getQuestionsForCategory, splitQuestions } from "@/lib/cta-questions";
-import InboxPreviewStep2 from "./InboxPreviewStep2";
 
 interface InboxPreviewCardProps {
   providerId: string;
@@ -11,6 +11,8 @@ interface InboxPreviewCardProps {
   providerCategory?: string | null;
   providerCity?: string | null;
   providerState?: string | null;
+  providerPhone?: string | null;
+  providerImage?: string | null;
   acceptedPayments: string[];
   ctaVariant?: string | null;
   ctaSurface?: "desktop" | "mobile";
@@ -25,14 +27,15 @@ export default function InboxPreviewCard({
   providerCategory,
   providerCity,
   providerState,
+  providerPhone,
+  providerImage,
   acceptedPayments,
   ctaVariant,
   ctaSurface = "desktop",
   ctaPreviewMode = false,
   onQuestionSelected,
 }: InboxPreviewCardProps) {
-  const [step, setStep] = useState<"question" | "inbox">("question");
-  const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [customQuestion, setCustomQuestion] = useState("");
 
@@ -43,49 +46,58 @@ export default function InboxPreviewCard({
   // Extract first name from provider name
   const providerFirstName = providerName.split(" ")[0];
 
+  // Navigate to inbox preview page
+  const navigateToInboxPreview = useCallback(
+    (questionText: string) => {
+      // Fire the question selected callback for analytics
+      onQuestionSelected?.(questionText);
+
+      // Build URL with query params
+      const params = new URLSearchParams({
+        provider_id: providerId,
+        provider: providerSlug,
+        provider_name: providerName,
+        question: questionText,
+        cta_variant: ctaVariant || "inbox_preview",
+      });
+
+      if (providerCategory) params.set("category", providerCategory);
+      if (providerCity) params.set("city", providerCity);
+      if (providerState) params.set("state", providerState);
+      if (providerPhone) params.set("phone", providerPhone);
+      if (providerImage) params.set("image", providerImage);
+
+      router.push(`/inbox-preview?${params.toString()}`);
+    },
+    [
+      providerId,
+      providerSlug,
+      providerName,
+      providerCategory,
+      providerCity,
+      providerState,
+      providerPhone,
+      providerImage,
+      ctaVariant,
+      onQuestionSelected,
+      router,
+    ]
+  );
+
   const handleQuestionClick = useCallback(
     (questionText: string) => {
-      setSelectedQuestion(questionText);
-      setStep("inbox");
-      onQuestionSelected?.(questionText);
+      navigateToInboxPreview(questionText);
     },
-    [onQuestionSelected]
+    [navigateToInboxPreview]
   );
 
   const handleCustomSubmit = useCallback(() => {
     const trimmed = customQuestion.trim();
     if (trimmed) {
-      setSelectedQuestion(trimmed);
-      setStep("inbox");
-      onQuestionSelected?.(trimmed);
+      navigateToInboxPreview(trimmed);
     }
-  }, [customQuestion, onQuestionSelected]);
+  }, [customQuestion, navigateToInboxPreview]);
 
-  const handleBack = useCallback(() => {
-    setStep("question");
-    setSelectedQuestion(null);
-  }, []);
-
-  // Step 2: Inbox Preview with Email Capture
-  if (step === "inbox" && selectedQuestion) {
-    return (
-      <InboxPreviewStep2
-        providerId={providerId}
-        providerName={providerName}
-        providerSlug={providerSlug}
-        providerCategory={providerCategory}
-        providerCity={providerCity}
-        providerState={providerState}
-        selectedQuestion={selectedQuestion}
-        onBack={handleBack}
-        ctaVariant={ctaVariant}
-        ctaSurface={ctaSurface}
-        ctaPreviewMode={ctaPreviewMode}
-      />
-    );
-  }
-
-  // Step 1: Question Selection
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
       {/* Header */}

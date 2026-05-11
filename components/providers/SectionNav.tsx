@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { useCTAVariant } from "@/hooks/use-cta-variant";
 
 export interface SectionItem {
   id: string;
@@ -33,6 +34,7 @@ export default function SectionNav({
   const [connectionId, setConnectionId] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const { profiles } = useAuth();
+  const ctaVariant = useCTAVariant();
 
   // Show the section nav after the user scrolls past the identity / image area
   // We use 400px as threshold — roughly past the breadcrumbs + name + image
@@ -163,12 +165,21 @@ export default function SectionNav({
                   Message
                 </Link>
               ) : isActive ? (
-                <button
-                  onClick={() => scrollTo("connection-card")}
-                  className="px-4 py-2 text-[13px] font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  Connect
-                </button>
+                ctaVariant === "compare" ? (
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent("openCompareOverlay"))}
+                    className="px-4 py-2 text-[13px] font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    Compare
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => scrollTo("connection-card")}
+                    className="px-4 py-2 text-[13px] font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    Connect
+                  </button>
+                )
               ) : null}
             </div>
           </div>

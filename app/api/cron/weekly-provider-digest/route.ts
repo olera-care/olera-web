@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServiceClient } from "@/lib/admin";
+import { getServiceClient, getAuthUser, getAdminUser } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { providerWeeklyDigestEmail } from "@/lib/email-templates";
 import { classifyTier } from "@/lib/analytics/triage";
@@ -40,12 +40,28 @@ import { generateNotificationUrl } from "@/lib/claim-tokens";
  *   ?dry_run=true — do everything except sending + writing email_logs
  *   ?limit=N      — cap provider count processed (default 500, max 5000)
  *
- * Auth: Bearer ${CRON_SECRET}. Vercel injects automatically.
+ * Auth: either `Bearer ${CRON_SECRET}` (the Vercel cron injects this
+ * automatically) or a logged-in admin session. The admin path exists so
+ * the digest can be dry-run and fired from a browser URL — the Vercel
+ * firewall's bot challenge blocks plain curl but is transparent to real
+ * browsers.
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const hasCronSecret =
+    !!process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`;
+  if (!hasCronSecret) {
+    let isAdminUser = false;
+    try {
+      const user = await getAuthUser();
+      const admin = user ? await getAdminUser(user.id) : null;
+      isAdminUser = !!admin;
+    } catch {
+      isAdminUser = false;
+    }
+    if (!isAdminUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
 
   const { searchParams } = new URL(request.url);

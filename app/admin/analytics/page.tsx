@@ -2076,16 +2076,10 @@ function ProviderResponseVariantSplit({
 function AwaitingResponseList({ leads }: { leads: AwaitingResponseLead[] }) {
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3">
         <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
           Awaiting Response
         </div>
-        <Link
-          href="/admin/leads"
-          className="text-xs text-emerald-700 hover:text-emerald-800 font-medium"
-        >
-          View all →
-        </Link>
       </div>
 
       <div className="border border-gray-200 rounded-lg overflow-hidden">

@@ -343,23 +343,27 @@ function ProspectBody({
   const showCallForEmailCta =
     isProviderProspect && !launchEnabled && Boolean(providerPhone);
 
-  // v9 final: pre-flight checklist orients admin through the
-  // research workflow. Each item links to the section below where
-  // it lives — admin doesn't have to guess what "ready to launch"
-  // requires. Four items, ordered so admin flows: clean up info,
-  // add contact data, optional notes, then launch.
-  const generalEmail =
-    ctx.outreach.research_data?.general_contact?.email ??
-    ctx.provider_business_profile?.email ??
-    null;
-  const generalPhone =
-    ctx.outreach.research_data?.general_contact?.phone ??
-    ctx.provider_business_profile?.phone ??
-    null;
-  const mailingAddress =
-    ctx.outreach.research_data?.general_contact?.mailing_address ?? "";
-  const hasZip = /\b\d{5}(?:-\d{4})?\b/.test(mailingAddress);
-  const addressVerified = Boolean(mailingAddress) && hasZip;
+  // v9 final: pre-flight checklist. Three tones:
+  //   required    → blocks launch (red ✗ when missing)
+  //   recommended → encouraged but non-blocking (amber ⚠ when missing)
+  //   optional    → admin's call (gray ○ when missing)
+  // Items reference fields in the Provider Profile section below;
+  // edits auto-save on blur.
+  const gc = ctx.outreach.research_data?.general_contact ?? {};
+  const generalEmail = gc.email ?? ctx.provider_business_profile?.email ?? null;
+  const generalPhone = gc.phone ?? ctx.provider_business_profile?.phone ?? null;
+  const generalWebsite =
+    gc.website ?? ctx.provider_business_profile?.website ?? null;
+  const street = gc.street ?? ctx.provider_business_profile?.address ?? "";
+  const cityVal = gc.city ?? ctx.provider_business_profile?.city ?? "";
+  const stateVal = gc.state ?? ctx.provider_business_profile?.state ?? "";
+  const zipVal = gc.zip ?? "";
+  const addressComplete = Boolean(
+    street.trim() &&
+      cityVal.trim() &&
+      stateVal.trim() &&
+      /^\d{5}(?:-\d{4})?$/.test(zipVal.trim()),
+  );
   const hasEmail =
     Boolean(generalEmail?.includes("@")) ||
     ctx.contacts.some(
@@ -368,12 +372,13 @@ function ProspectBody({
   const hasPhone =
     Boolean(generalPhone) ||
     ctx.contacts.some((c) => c.status === "active" && Boolean(c.phone));
-  const hasNotes = Boolean(ctx.outreach.notes?.trim());
-  const contactFormUrl =
-    ctx.outreach.research_data?.general_contact?.contact_form_url ?? "";
+  const hasWebsite = Boolean(generalWebsite?.trim());
+  const hasFax = Boolean(gc.fax?.trim());
+  const hasContactFormUrl = Boolean(gc.contact_form_url?.trim());
   const contactFormResolved = ctx.touchpoints.some(
     (t) => t.touchpoint_type === "contact_form_submitted",
   );
+  const hasNotes = Boolean(ctx.outreach.notes?.trim());
 
   return (
     <>
@@ -386,48 +391,68 @@ function ProspectBody({
       </p>
       <ul className="mt-2 space-y-1 text-xs">
         <ChecklistRow
-          done={addressVerified}
-          required
-          label="Verify mailing address"
+          done={hasWebsite}
+          tone="required"
+          label="Website"
           hint={
-            addressVerified
-              ? "Ready for snail mail."
-              : "Include ZIP — required so snail mail can route."
+            hasWebsite
+              ? "Website on file."
+              : "Required. Supports research + outreach validation."
+          }
+        />
+        <ChecklistRow
+          done={addressComplete}
+          tone="required"
+          label="Address"
+          hint={
+            addressComplete
+              ? "Street, city, state, ZIP set — ready for snail mail."
+              : "Required. Need street, city, state, and ZIP."
           }
         />
         <ChecklistRow
           done={hasEmail}
-          required
-          label="Add email"
+          tone="required"
+          label="Email"
           hint={hasEmail ? "Email on file." : "Required for outreach launch."}
         />
         <ChecklistRow
           done={hasPhone}
-          required
-          label="Add phone"
+          tone="required"
+          label="Phone"
           hint={
             hasPhone
               ? "Phone on file — call tasks queue with email."
               : "Required. Call cadence runs alongside email."
           }
         />
-        {contactFormUrl && (
-          <ChecklistRow
-            done={contactFormResolved}
-            required
-            label="Contact form decision"
-            hint={
-              contactFormResolved
+        <ChecklistRow
+          done={hasContactFormUrl && contactFormResolved}
+          tone="recommended"
+          label="Contact form"
+          hint={
+            !hasContactFormUrl
+              ? "Add the URL if the agency has a contact form — Day 0 picks it up."
+              : contactFormResolved
                 ? "Outcome logged."
-                : "Pick Submitted / Skipped / Not available below."
-            }
-          />
-        )}
+                : "URL on file — pick Submitted / Skipped / Not available below."
+          }
+        />
+        <ChecklistRow
+          done={hasFax}
+          tone="recommended"
+          label="Fax"
+          hint={
+            hasFax
+              ? "Fax on file."
+              : "Add the fax line if the agency has one (future fax cadence)."
+          }
+        />
         <ChecklistRow
           done={hasNotes}
-          required={false}
+          tone="optional"
           label="Research notes"
-          hint="Optional. Capture agency character + any context."
+          hint="Capture agency character + any context worth remembering."
         />
       </ul>
       {showCallForEmailCta && (
@@ -905,37 +930,47 @@ function closedReasonLabel(status: string): string | null {
 }
 
 /**
- * v9 final: one row in the pre-flight checklist. Three states:
- *   done=true            → green check
- *   done=false, required → red "needs"
- *   done=false, optional → gray circle (don't pressure admin into
- *                          filling optional rows)
+ * v9 final: one row in the pre-flight checklist. Four states:
+ *   done                 → green ✓
+ *   missing + required   → red ✗ (blocks launch)
+ *   missing + recommended → amber ⚠ (encouraged, doesn't block)
+ *   missing + optional   → gray ○ (admin's call)
  */
+type ChecklistTone = "required" | "recommended" | "optional";
+
 function ChecklistRow({
   done,
-  required,
+  tone,
   label,
   hint,
 }: {
   done: boolean;
-  required: boolean;
+  tone: ChecklistTone;
   label: string;
   hint: string;
 }) {
-  const icon = done ? "✓" : required ? "✗" : "○";
+  const icon = done ? "✓" : tone === "required" ? "✗" : tone === "recommended" ? "⚠" : "○";
   const iconClass = done
     ? "text-emerald-600"
-    : required
+    : tone === "required"
       ? "text-red-600"
-      : "text-gray-400";
+      : tone === "recommended"
+        ? "text-amber-600"
+        : "text-gray-400";
+  const badge =
+    done || tone === "required"
+      ? null
+      : tone === "recommended"
+        ? "recommended"
+        : "optional";
   return (
     <li className="flex items-start gap-2">
       <span className={`shrink-0 font-semibold ${iconClass}`}>{icon}</span>
       <div className="min-w-0 flex-1">
         <span className="font-medium text-gray-800">{label}</span>
-        {!required && !done && (
+        {badge && (
           <span className="ml-1 text-[10px] uppercase tracking-wide text-gray-400">
-            optional
+            {badge}
           </span>
         )}
         <span className="ml-2 text-gray-500">{hint}</span>

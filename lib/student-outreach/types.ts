@@ -140,13 +140,23 @@ export interface ResearchData {
     phone?: string | null;
     fax?: string | null;
     contact_form_url?: string | null;
-    /** v9 final: admin-verified full mailing address (multi-line,
-     *  includes street, suite, city, state, ZIP). Required for
-     *  snail-mail outreach since business_profiles only stores
-     *  street + city + state with no ZIP. Pre-launch research
-     *  step prompts admin to verify and complete this so the
-     *  later snail-mail cadence step has what it needs. */
-    mailing_address?: string | null;
+    /** v9 final: per-outreach website override. business_profiles
+     *  already has bp.website; this slot only stores a correction
+     *  when admin discovers a different operational URL than what's
+     *  in the directory. Pre-flight requires the effective website
+     *  to be set so outreach copy + future automations can link to it. */
+    website?: string | null;
+    /** v9 final: structured snail-mail address. Each slot is an
+     *  override on top of the directory record (bp.address /
+     *  bp.city / bp.state); ZIP has no bp fallback since
+     *  business_profiles lacks a ZIP column. Effective render =
+     *  override OR directory value joined into one line. Keeping
+     *  separate slots avoids the brittle free-text parsing the
+     *  earlier `mailing_address` blob required. */
+    street?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zip?: string | null;
   };
 }
 

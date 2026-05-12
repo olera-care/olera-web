@@ -745,10 +745,14 @@ async function handleUpdateGeneralContact(
     phone?: string | null;
     fax?: string | null;
     contact_form_url?: string | null;
-    /** v9 final: full snail-mail address. Multi-line text preserved
-     *  as-is (admin formats it however the postal service prefers).
-     *  Trimmed end-to-end but inner newlines kept. */
-    mailing_address?: string | null;
+    website?: string | null;
+    /** v9 final: structured address. Each field is independently
+     *  updatable so admin can fix a single ZIP without re-typing
+     *  the whole address. */
+    street?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zip?: string | null;
   },
   userId: string,
 ) {
@@ -760,7 +764,11 @@ async function handleUpdateGeneralContact(
     "phone",
     "fax",
     "contact_form_url",
-    "mailing_address",
+    "website",
+    "street",
+    "city",
+    "state",
+    "zip",
   ] as const) {
     if (body[k] === undefined) continue;
     const value = body[k];
@@ -772,6 +780,9 @@ async function handleUpdateGeneralContact(
   }
   if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())) {
     throw new Error("Invalid email");
+  }
+  if (body.zip && !/^\d{5}(?:-\d{4})?$/.test(body.zip.trim())) {
+    throw new Error("ZIP must be 5 digits (or 5+4)");
   }
   const nextResearch: ResearchData = { ...current, general_contact: nextGc };
   await touchOutreach(db, row.id, userId, { research_data: nextResearch });

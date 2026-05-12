@@ -45,29 +45,24 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const isPreLaunch =
     outreach.status === "prospect" || outreach.status === "researched";
 
-  // v9 final: pre-flight gate. ALL of these must be true to enable
-  // the Launch button:
-  //   - email present (general OR a specific contact)
-  //   - phone present (general OR a specific contact)
-  //   - mailing address override saved AND contains a ZIP (snail-mail
-  //     readiness — bp.address has no ZIP column)
-  //   - if a contact_form_url is on file, admin has logged an
-  //     outcome touchpoint (Submitted / Skipped / Not available)
-  // The first three give the cadence its operational channels; the
-  // fourth forces admin to make an explicit decision on the web
-  // form so it isn't silently missed.
-  const generalEmail =
-    ctx.outreach.research_data?.general_contact?.email ??
-    ctx.provider_business_profile?.email ??
-    null;
-  const generalPhone =
-    ctx.outreach.research_data?.general_contact?.phone ??
-    ctx.provider_business_profile?.phone ??
-    null;
-  const mailingAddress =
-    ctx.outreach.research_data?.general_contact?.mailing_address ?? "";
-  const contactFormUrl =
-    ctx.outreach.research_data?.general_contact?.contact_form_url ?? "";
+  // v9 final: pre-flight gate. ALL required items must be true to
+  // enable Launch:
+  //   - website (operationally critical: contact form discovery,
+  //     verification, research, outreach validation, automation)
+  //   - email (general OR specific contact)
+  //   - phone (general OR specific contact)
+  //   - structured address: street + city + state + valid ZIP
+  // Recommended items (contact form, fax) appear in the checklist
+  // but do NOT block launch — admin can ship without them.
+  const gc = ctx.outreach.research_data?.general_contact ?? {};
+  const generalEmail = gc.email ?? ctx.provider_business_profile?.email ?? null;
+  const generalPhone = gc.phone ?? ctx.provider_business_profile?.phone ?? null;
+  const generalWebsite =
+    gc.website ?? ctx.provider_business_profile?.website ?? null;
+  const street = gc.street ?? ctx.provider_business_profile?.address ?? "";
+  const cityVal = gc.city ?? ctx.provider_business_profile?.city ?? "";
+  const stateVal = gc.state ?? ctx.provider_business_profile?.state ?? "";
+  const zipVal = gc.zip ?? "";
 
   const hasEmail =
     Boolean(generalEmail?.includes("@")) ||
@@ -80,22 +75,23 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
       (c) =>
         c.status === "active" && Boolean(c.phone?.trim() || c.mobile?.trim()),
     );
-  const addressReady =
-    Boolean(mailingAddress) && /\b\d{5}(?:-\d{4})?\b/.test(mailingAddress);
-  const contactFormResolved =
-    !contactFormUrl ||
-    ctx.touchpoints.some((t) => t.touchpoint_type === "contact_form_submitted");
+  const hasWebsite = Boolean(generalWebsite?.trim());
+  const addressReady = Boolean(
+    street.trim() &&
+      cityVal.trim() &&
+      stateVal.trim() &&
+      /^\d{5}(?:-\d{4})?$/.test(zipVal.trim()),
+  );
 
-  const launchEnabled =
-    hasEmail && hasPhone && addressReady && contactFormResolved;
-  const launchDisabledReason = !hasEmail
-    ? "Add email before launching."
-    : !hasPhone
-      ? "Add phone before launching."
-      : !addressReady
-        ? "Verify mailing address (incl. ZIP) before launching."
-        : !contactFormResolved
-          ? "Resolve the contact form (Submitted / Skipped / Not available) before launching."
+  const launchEnabled = hasWebsite && hasEmail && hasPhone && addressReady;
+  const launchDisabledReason = !hasWebsite
+    ? "Add the website before launching."
+    : !hasEmail
+      ? "Add email before launching."
+      : !hasPhone
+        ? "Add phone before launching."
+        : !addressReady
+          ? "Complete the address (street, city, state, ZIP) before launching."
           : undefined;
 
   return (
@@ -115,14 +111,17 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
         launchDisabledReason={launchDisabledReason}
       />
 
-      {/* Zone 3 · Snapshot — prominent pre-launch only. Post-launch
+      {/* Zone 3 · Outreach Timeline (touchpoints + Day 0 activities).
+          Sits directly under Next Step so the operational flow reads:
+          (1) what to do next → (2) what's happening on the row →
+          (3) the supporting research/contact info. */}
+      <OutreachTimeline ctx={ctx} action={action} setError={setError} />
+
+      {/* Zone 4 · Snapshot — prominent pre-launch only. Post-launch
           the snapshot lives inside More Details. */}
       {isPreLaunch && (
         <ProviderSnapshotCard ctx={ctx} action={action} setError={setError} />
       )}
-
-      {/* Zone 4 · Timeline */}
-      <OutreachTimeline ctx={ctx} action={action} setError={setError} />
 
       {/* Zone 5 · More Details collapse. Post-launch: snapshot here.
           Pre-launch and post-launch alike: Danger Zone here. */}

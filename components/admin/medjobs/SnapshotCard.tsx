@@ -265,36 +265,49 @@ function GeneralContactSection({
     phone?: string | null;
     fax?: string | null;
     contact_form_url?: string | null;
-    mailing_address?: string | null;
+    website?: string | null;
+    street?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zip?: string | null;
   };
 
-  // v9 final: composed bp fallback for the mailing address. Used as
-  // the seed value when admin opens the editor. Snail-mail-ready
-  // override (with ZIP) lives in overrides.mailing_address.
-  const bpComposedAddress = useMemo(() => {
-    const lines: string[] = [];
-    if (bp?.address) lines.push(bp.address);
-    const cityState = [bp?.city, bp?.state].filter(Boolean).join(", ");
-    if (cityState) lines.push(cityState);
-    return lines.join("\n");
-  }, [bp?.address, bp?.city, bp?.state]);
-
+  // Effective values: per-outreach override OR directory fallback.
+  // The structured address slots (street/city/state) each fall back
+  // to the matching bp column; ZIP has no bp fallback since
+  // business_profiles doesn't store ZIP.
   const effective = useMemo(
     () => ({
       email: overrides.email ?? bp?.email ?? "",
       phone: overrides.phone ?? bp?.phone ?? "",
       fax: overrides.fax ?? "",
       contact_form_url: overrides.contact_form_url ?? "",
-      mailing_address: overrides.mailing_address ?? bpComposedAddress,
+      website: overrides.website ?? bp?.website ?? "",
+      street: overrides.street ?? bp?.address ?? "",
+      city: overrides.city ?? bp?.city ?? "",
+      state: overrides.state ?? bp?.state ?? "",
+      zip: overrides.zip ?? "",
     }),
-    [overrides, bp?.email, bp?.phone, bpComposedAddress],
+    [
+      overrides,
+      bp?.email,
+      bp?.phone,
+      bp?.website,
+      bp?.address,
+      bp?.city,
+      bp?.state,
+    ],
   );
 
   const [email, setEmail] = useState(effective.email);
   const [phone, setPhone] = useState(effective.phone);
   const [fax, setFax] = useState(effective.fax);
   const [contactFormUrl, setContactFormUrl] = useState(effective.contact_form_url);
-  const [mailingAddress, setMailingAddress] = useState(effective.mailing_address);
+  const [website, setWebsite] = useState(effective.website);
+  const [street, setStreet] = useState(effective.street);
+  const [city, setCity] = useState(effective.city);
+  const [stateField, setStateField] = useState(effective.state);
+  const [zip, setZip] = useState(effective.zip);
   const [saving, setSaving] = useState<string | null>(null);
 
   useEffect(() => {
@@ -302,22 +315,32 @@ function GeneralContactSection({
     setPhone(effective.phone);
     setFax(effective.fax);
     setContactFormUrl(effective.contact_form_url);
-    setMailingAddress(effective.mailing_address);
+    setWebsite(effective.website);
+    setStreet(effective.street);
+    setCity(effective.city);
+    setStateField(effective.state);
+    setZip(effective.zip);
   }, [
     effective.email,
     effective.phone,
     effective.fax,
     effective.contact_form_url,
-    effective.mailing_address,
+    effective.website,
+    effective.street,
+    effective.city,
+    effective.state,
+    effective.zip,
   ]);
 
-  const website = bp?.website || null;
-  // Snail-mail readiness: ZIP code is required. Check if the
-  // effective mailing address contains anything that looks like a
-  // 5-digit US ZIP. If not, the row stays amber so admin knows to
-  // complete the address before launch.
-  const hasZip = /\b\d{5}(?:-\d{4})?\b/.test(mailingAddress);
-  const verifiedOverride = Boolean(overrides.mailing_address);
+  // Snail-mail readiness: street + city + state + valid ZIP.
+  const hasZip = /^\d{5}(?:-\d{4})?$/.test(zip.trim());
+  const addressComplete = Boolean(
+    street.trim() && city.trim() && stateField.trim() && hasZip,
+  );
+  const composedAddress =
+    [street, [city, stateField].filter(Boolean).join(", "), zip]
+      .filter((s) => s && s.trim())
+      .join(" · ");
 
   const saveField = async (
     field:
@@ -325,7 +348,11 @@ function GeneralContactSection({
       | "phone"
       | "fax"
       | "contact_form_url"
-      | "mailing_address",
+      | "website"
+      | "street"
+      | "city"
+      | "state"
+      | "zip",
     value: string,
   ) => {
     const directoryFallback =
@@ -333,31 +360,29 @@ function GeneralContactSection({
         ? bp?.email ?? ""
         : field === "phone"
           ? bp?.phone ?? ""
-          : field === "mailing_address"
-            ? bpComposedAddress
-            : "";
-    // mailing_address preserves inner newlines — trim only the
-    // outer whitespace. Other fields are single-line so plain
-    // trim() is fine.
-    const normalized =
-      field === "mailing_address"
-        ? value.replace(/^\s+|\s+$/g, "")
-        : value.trim();
+          : field === "website"
+            ? bp?.website ?? ""
+            : field === "street"
+              ? bp?.address ?? ""
+              : field === "city"
+                ? bp?.city ?? ""
+                : field === "state"
+                  ? bp?.state ?? ""
+                  : "";
+    const trimmed = value.trim();
     const wasEffective =
       overrides[field] !== undefined && overrides[field] !== null
         ? overrides[field]
         : directoryFallback;
-    if (normalized === (wasEffective ?? "")) return;
+    if (trimmed === (wasEffective ?? "")) return;
     setSaving(field);
     setError(null);
     try {
-      // When admin clears a field, send null to drop the override
-      // and revert to the directory fallback. When admin types
-      // exactly the directory value, we still store it as an
-      // override — keeps semantics predictable (admin can re-clear
-      // to revert).
+      // Clearing → send null to drop the override (revert to bp
+      // fallback). Non-empty → save as override. Same semantics
+      // across every editable field.
       await action("update_general_contact", {
-        [field]: normalized === "" ? null : normalized,
+        [field]: trimmed === "" ? null : trimmed,
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
@@ -372,37 +397,60 @@ function GeneralContactSection({
         General Contact
       </p>
       <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
-        <CoverageRow
-          checked={verifiedOverride && hasZip}
-          label="Address"
-        >
-          {/* v9 final: editable snail-mail address. Single-line input
-              for compactness — admin types comma-separated. Check
-              turns green only when admin has saved an override AND
-              the saved value contains a ZIP. */}
+        <CoverageRow checked={addressComplete} label="Address">
+          {/* v9 final: structured address — separate slots so admin
+              fixes one field without re-typing the whole line.
+              Effective values fall back to bp.address / bp.city /
+              bp.state; ZIP has no bp fallback. Single-line render
+              when read-only. */}
           {editable ? (
-            <div>
+            <div className="space-y-1">
               <input
                 type="text"
-                value={mailingAddress.replace(/\n/g, ", ")}
-                onChange={(e) => setMailingAddress(e.target.value)}
-                onBlur={() =>
-                  saveField("mailing_address", mailingAddress)
-                }
-                placeholder="3800 Texas 6 Frontage Rd Suite 108C, College Station, TX 77845"
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+                onBlur={() => saveField("street", street)}
+                placeholder="Street + suite"
                 className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
               />
-              {(!verifiedOverride || !hasZip) && (
-                <p className="mt-0.5 text-[10px] text-gray-500">
-                  {verifiedOverride
-                    ? "Add ZIP code so snail mail can route."
-                    : "Include ZIP — required for snail mail."}
+              <div className="grid grid-cols-[1fr_56px_88px] gap-1">
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  onBlur={() => saveField("city", city)}
+                  placeholder="City"
+                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                />
+                <input
+                  type="text"
+                  value={stateField}
+                  onChange={(e) => setStateField(e.target.value.toUpperCase())}
+                  onBlur={() => saveField("state", stateField)}
+                  placeholder="ST"
+                  maxLength={2}
+                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm uppercase focus:border-gray-400 focus:outline-none"
+                />
+                <input
+                  type="text"
+                  value={zip}
+                  onChange={(e) => setZip(e.target.value)}
+                  onBlur={() => saveField("zip", zip)}
+                  placeholder="ZIP"
+                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                />
+              </div>
+              {!addressComplete && (
+                <p className="text-[10px] text-gray-500">
+                  {!hasZip
+                    ? "Add ZIP — required for snail mail."
+                    : "Fill all four fields for snail mail."}
                 </p>
               )}
             </div>
-          ) : mailingAddress ? (
+          ) : composedAddress ? (
             <span className="block truncate text-gray-700">
-              {mailingAddress.replace(/\n/g, ", ")}
+              {composedAddress}
             </span>
           ) : (
             <span className="text-gray-400">Not on file</span>
@@ -443,7 +491,16 @@ function GeneralContactSection({
           )}
         </CoverageRow>
         <CoverageRow checked={Boolean(website)} label="Website">
-          {website ? (
+          {editable ? (
+            <input
+              type="url"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              onBlur={() => saveField("website", website)}
+              placeholder="https://agency.com"
+              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          ) : website ? (
             <a
               href={website.startsWith("http") ? website : `https://${website}`}
               target="_blank"
@@ -481,9 +538,7 @@ function GeneralContactSection({
                   className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
                     lastContactFormOutcome === "submitted"
                       ? "bg-emerald-50 text-emerald-700"
-                      : lastContactFormOutcome === "skipped"
-                        ? "bg-gray-100 text-gray-600"
-                        : "bg-amber-50 text-amber-700"
+                      : "bg-gray-100 text-gray-600"
                   }`}
                 >
                   {lastContactFormOutcome === "not_available"
@@ -1148,16 +1203,16 @@ function ContactFormBanner({
     }
   };
   return (
-    <div className="rounded-md border border-purple-200 bg-purple-50/40 px-3 py-2.5">
+    <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-xs text-purple-900">
+        <p className="text-xs text-gray-700">
           Contact form on file — has it been submitted yet?
         </p>
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-[11px] font-medium text-purple-700 hover:underline"
+          className="shrink-0 text-[11px] font-medium text-emerald-700 hover:underline"
         >
           Open form ↗
         </a>
@@ -1174,7 +1229,7 @@ function ContactFormBanner({
             key={opt.value}
             onClick={() => dispatch(opt.value)}
             disabled={saving != null}
-            className="rounded-md border border-purple-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-purple-700 hover:bg-purple-50 disabled:opacity-50"
+            className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
             {saving === opt.value ? "Logging…" : opt.label}
           </button>

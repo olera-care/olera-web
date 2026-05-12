@@ -64,17 +64,8 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const stateVal = gc.state ?? ctx.provider_business_profile?.state ?? "";
   const zipVal = gc.zip ?? "";
 
-  const hasEmail =
-    Boolean(generalEmail?.includes("@")) ||
-    ctx.contacts.some(
-      (c) => c.status === "active" && Boolean(c.email?.includes("@")),
-    );
-  const hasPhone =
-    Boolean(generalPhone) ||
-    ctx.contacts.some(
-      (c) =>
-        c.status === "active" && Boolean(c.phone?.trim() || c.mobile?.trim()),
-    );
+  const hasEmail = Boolean(generalEmail?.includes("@"));
+  const hasPhone = Boolean(generalPhone);
   const hasWebsite = Boolean(generalWebsite?.trim());
   const addressReady = Boolean(
     street.trim() &&
@@ -87,9 +78,9 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const launchDisabledReason = !hasWebsite
     ? "Add the website before launching."
     : !hasEmail
-      ? "Add email before launching."
+      ? "Add a General Contact email — a Specific Contact email is not enough."
       : !hasPhone
-        ? "Add phone before launching."
+        ? "Add a General Contact phone — a Specific Contact phone is not enough."
         : !addressReady
           ? "Complete the address (street, city, state, ZIP) before launching."
           : undefined;
@@ -111,17 +102,20 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
         launchDisabledReason={launchDisabledReason}
       />
 
-      {/* Zone 3 · Outreach Timeline (touchpoints + Day 0 activities).
-          Sits directly under Next Step so the operational flow reads:
-          (1) what to do next → (2) what's happening on the row →
-          (3) the supporting research/contact info. */}
-      <OutreachTimeline ctx={ctx} action={action} setError={setError} />
-
-      {/* Zone 4 · Snapshot — prominent pre-launch only. Post-launch
+      {/* Zone 3 · Snapshot — prominent pre-launch only. Carries the
+          General Contact + Specific Contacts + research notes the
+          admin works through to complete pre-flight. Post-launch
           the snapshot lives inside More Details. */}
       {isPreLaunch && (
         <ProviderSnapshotCard ctx={ctx} action={action} setError={setError} />
       )}
+
+      {/* Zone 4 · Outreach Timeline (touchpoints + Day 0 activities).
+          Sits AFTER the snapshot so admin works through pre-flight
+          first, then sees history below. The drawer flow reads:
+          (1) what to do next → (2) general info + contacts →
+          (3) specific contacts → (4) what's happened on the row. */}
+      <OutreachTimeline ctx={ctx} action={action} setError={setError} />
 
       {/* Zone 5 · More Details collapse. Post-launch: snapshot here.
           Pre-launch and post-launch alike: Danger Zone here. */}

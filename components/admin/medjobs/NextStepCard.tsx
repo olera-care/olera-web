@@ -325,13 +325,22 @@ function ProspectBody({
       ? "provider"
       : (ctx.outreach.stakeholder_type ?? "student_org");
 
-  // v9 Phase 4: when a provider prospect has no email but has a
-  // phone, surface a "Call to obtain email" path so the drawer isn't
-  // a dead end. Counter pulls from existing call_* touchpoints so
-  // admins can see prior attempts at a glance ("3 calls logged ·
-  // try again or close").
+  // v9 Phase 4: surface research action buttons whenever pre-flight
+  // is incomplete. Two shortcuts:
+  //   - "Visit website" opens the provider's website in a new tab
+  //     (research entry point — admin scans for missing email,
+  //     phone, address, contact form, etc.)
+  //   - "Call to obtain information" launches the call-and-log
+  //     workflow when admin needs to phone the provider for any
+  //     missing piece (not just email — the modal logs the call
+  //     outcome and admin captures whatever they learned).
+  // Both surface on prospect/researched rows while launch is gated.
   const isProviderProspect = ctx.outreach.kind === "provider";
   const providerPhone = ctx.provider_business_profile?.phone ?? null;
+  const generalContactWebsite =
+    ctx.outreach.research_data?.general_contact?.website ??
+    ctx.provider_business_profile?.website ??
+    null;
   const callAttempts = ctx.touchpoints.filter((t) =>
     [
       "call_no_answer",
@@ -340,8 +349,13 @@ function ProspectBody({
       "call_wrong_number",
     ].includes(t.touchpoint_type),
   ).length;
+  // "Call to obtain information" stays available whenever the row
+  // has a phone AND launch is gated — admin uses it for email,
+  // hours, address details, anything missing.
   const showCallForEmailCta =
     isProviderProspect && !launchEnabled && Boolean(providerPhone);
+  const showVisitWebsiteCta =
+    isProviderProspect && !launchEnabled && Boolean(generalContactWebsite);
 
   // v9 final: pre-flight checklist. Three tones:
   //   required    → blocks launch (red ✗ when missing)
@@ -364,14 +378,13 @@ function ProspectBody({
       stateVal.trim() &&
       /^\d{5}(?:-\d{4})?$/.test(zipVal.trim()),
   );
-  const hasEmail =
-    Boolean(generalEmail?.includes("@")) ||
-    ctx.contacts.some(
-      (c) => c.status === "active" && Boolean(c.email?.includes("@")),
-    );
-  const hasPhone =
-    Boolean(generalPhone) ||
-    ctx.contacts.some((c) => c.status === "active" && Boolean(c.phone));
+  // v9 final: pre-flight gates on the General Contact ONLY. Provider
+  // outreach begins at the organization-level layer; named individuals
+  // (Specific Contacts) are supporting context, not the launch
+  // requirement. A Specific Contact email or phone alone does NOT
+  // unblock launch.
+  const hasEmail = Boolean(generalEmail?.includes("@"));
+  const hasPhone = Boolean(generalPhone);
   const hasWebsite = Boolean(generalWebsite?.trim());
   const hasFax = Boolean(gc.fax?.trim());
   const hasContactFormUrl = Boolean(gc.contact_form_url?.trim());
@@ -413,17 +426,21 @@ function ProspectBody({
         <ChecklistRow
           done={hasEmail}
           tone="required"
-          label="Email"
-          hint={hasEmail ? "Email on file." : "Required for outreach launch."}
+          label="General Contact email"
+          hint={
+            hasEmail
+              ? "General email on file — outreach can launch."
+              : "Required. Provider outreach begins at the org-level email."
+          }
         />
         <ChecklistRow
           done={hasPhone}
           tone="required"
-          label="Phone"
+          label="General Contact phone"
           hint={
             hasPhone
-              ? "Phone on file — call tasks queue with email."
-              : "Required. Call cadence runs alongside email."
+              ? "General phone on file — call tasks queue with email."
+              : "Required at the org level. Call cadence runs alongside email."
           }
         />
         <ChecklistRow
@@ -455,27 +472,40 @@ function ProspectBody({
           hint="Capture agency character + any context worth remembering."
         />
       </ul>
-      {showCallForEmailCta && (
+      {showCallForEmailCta && callAttempts > 0 && (
         <p className="mt-2 text-xs text-gray-500">
-          {callAttempts > 0
-            ? `${callAttempts} call attempt${callAttempts === 1 ? "" : "s"} logged.`
-            : "No email yet — phone is on file."}
+          {callAttempts} call attempt{callAttempts === 1 ? "" : "s"} logged.
         </p>
       )}
       <div className="mt-3 flex flex-wrap items-center gap-2">
+        {showVisitWebsiteCta && generalContactWebsite && (
+          <a
+            href={
+              generalContactWebsite.startsWith("http")
+                ? generalContactWebsite
+                : `https://${generalContactWebsite}`
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            title="Open the provider website in a new tab for pre-flight research."
+          >
+            🌐 Visit website to obtain information
+          </a>
+        )}
         {showCallForEmailCta && (
           <button
             onClick={() => setShowCallForEmail(true)}
-            className="rounded-md border border-emerald-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
-            title="Phone the provider to obtain an email address."
+            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            title="Phone the provider to obtain missing info — email, address details, hours, anything."
           >
-            📞 Call to obtain email
+            📞 Call to obtain information
           </button>
         )}
         <button
           onClick={async () => {
             if (!launchEnabled) {
-              setError(launchDisabledReason ?? "Add email before launching.");
+              setError(launchDisabledReason ?? "Complete the checklist before launching.");
               return;
             }
             try {
@@ -495,7 +525,7 @@ function ProspectBody({
           }
           className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {launchEnabled ? "Launch outreach →" : "Add email to enable launch"}
+          Launch outreach →
         </button>
       </div>
 

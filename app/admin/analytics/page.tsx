@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import PulseHeader from "@/components/admin/PulseHeader";
@@ -1900,6 +1900,8 @@ function ProviderResponseCard({
   loading: boolean;
   range: DateRangeValue;
 }) {
+  const { from: dateFrom, to: dateTo } = resolveRange(range);
+
   if (loading && !summary) {
     return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
   }
@@ -1908,7 +1910,6 @@ function ProviderResponseCard({
   const r = summary.windowed.provider_response;
   const pr = summary.prior?.provider_response ?? null;
   const byVariant = summary.windowed.provider_response_by_variant;
-  const awaiting = summary.windowed.awaiting_response || [];
 
   return (
     <>
@@ -1942,8 +1943,8 @@ function ProviderResponseCard({
       {/* By variant table */}
       <ProviderResponseVariantSplit byVariant={byVariant} />
 
-      {/* Awaiting response list */}
-      {awaiting.length > 0 && <AwaitingResponseList leads={awaiting} />}
+      {/* Full lead list with filters and pagination */}
+      <ResponseLeadsList dateFrom={dateFrom} dateTo={dateTo} />
     </>
   );
 }
@@ -2073,77 +2074,284 @@ function ProviderResponseVariantSplit({
   );
 }
 
-function AwaitingResponseList({ leads }: { leads: AwaitingResponseLead[] }) {
+// ResponseLeadsList — paginated list of leads with filters and nudge functionality.
+// Replaces the old static AwaitingResponseList with a full-featured drill-in.
+type ResponseLeadFilter = "all" | "awaiting" | "responded";
+
+interface ResponseLead {
+  connection_id: string;
+  family_name: string;
+  provider_name: string;
+  provider_slug: string;
+  message_preview: string;
+  created_at: string;
+  age_hours: number;
+  responded: boolean;
+  response_time_hours: number | null;
+  cta_variant: string | null;
+}
+
+const PAGE_SIZE = 50;
+
+function ResponseLeadsList({
+  dateFrom,
+  dateTo,
+}: {
+  dateFrom: string | null;
+  dateTo: string | null;
+}) {
+  const [filter, setFilter] = useState<ResponseLeadFilter>("awaiting");
+  const [leads, setLeads] = useState<ResponseLead[]>([]);
+  const [total, setTotal] = useState<number | null>(null);
+  const [truncated, setTruncated] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [nudging, setNudging] = useState<string | null>(null);
+  const [nudgeSuccess, setNudgeSuccess] = useState<string | null>(null);
+  const [nudgeError, setNudgeError] = useState<string | null>(null);
+
+  // Track timeout IDs for cleanup on unmount
+  const timeoutRefs = useRef<Set<NodeJS.Timeout>>(new Set());
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    const refs = timeoutRefs.current;
+    return () => {
+      refs.forEach((id) => clearTimeout(id));
+      refs.clear();
+    };
+  }, []);
+
+  const fetchPage = useCallback(
+    async (offset: number, append: boolean) => {
+      const isInitial = !append;
+      if (isInitial) setLoading(true);
+      else setLoadingMore(true);
+      setError(null);
+
+      try {
+        const params = new URLSearchParams();
+        if (dateFrom) params.set("date_from", dateFrom);
+        if (dateTo) params.set("date_to", dateTo);
+        params.set("filter", filter);
+        params.set("limit", String(PAGE_SIZE));
+        params.set("offset", String(offset));
+
+        const res = await fetch(`/api/admin/analytics/response-leads?${params.toString()}`);
+        if (!res.ok) throw new Error("fetch failed");
+        const data: { total: number; leads: ResponseLead[]; truncated?: boolean } = await res.json();
+        setTotal(data.total);
+        setTruncated(data.truncated ?? false);
+        setLeads((prev) => (append ? [...prev, ...data.leads] : data.leads));
+      } catch {
+        setError("Couldn't load leads. Try again.");
+      } finally {
+        if (isInitial) setLoading(false);
+        else setLoadingMore(false);
+      }
+    },
+    [dateFrom, dateTo, filter]
+  );
+
+  useEffect(() => {
+    fetchPage(0, false);
+  }, [fetchPage]);
+
+  const handleNudge = useCallback(async (connectionId: string) => {
+    setNudging(connectionId);
+    setNudgeError(null);
+    setNudgeSuccess(null);
+
+    try {
+      const res = await fetch("/api/admin/send-nudge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection_id: connectionId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send nudge");
+      }
+
+      setNudgeSuccess(connectionId);
+      // Clear success message after 3 seconds
+      const successTimeout = setTimeout(() => setNudgeSuccess(null), 3000);
+      timeoutRefs.current.add(successTimeout);
+    } catch (err) {
+      setNudgeError(err instanceof Error ? err.message : "Failed to send nudge");
+      const errorTimeout = setTimeout(() => setNudgeError(null), 5000);
+      timeoutRefs.current.add(errorTimeout);
+    } finally {
+      setNudging(null);
+    }
+  }, []);
+
+  const hasMore = total !== null && leads.length < total;
+
+  const FILTER_CHIPS: Array<{ key: ResponseLeadFilter; label: string }> = [
+    { key: "all", label: "All" },
+    { key: "awaiting", label: "Awaiting" },
+    { key: "responded", label: "Responded" },
+  ];
+
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">
-      <div className="mb-3">
-        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
-          Awaiting Response
+      {/* Header with filter chips */}
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        <div>
+          <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
+            Leads
+          </div>
+          {total !== null && (
+            <div className="text-xs text-gray-500 mt-0.5">
+              Showing {leads.length} of {total}
+              {filter !== "all" && (
+                <span className="text-gray-400">
+                  {" "}
+                  · filtered to {filter === "awaiting" ? "awaiting response" : "responded"}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {FILTER_CHIPS.map(({ key, label }) => {
+            const active = filter === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFilter(key)}
+                className={`text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors ${
+                  active
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="text-left px-4 py-2 font-medium text-gray-600">Family</th>
-              <th className="text-left px-4 py-2 font-medium text-gray-600">Provider</th>
-              <th className="text-right px-4 py-2 font-medium text-gray-600">Sent</th>
-              <th className="text-center px-4 py-2 font-medium text-gray-600">Signals</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leads.slice(0, 5).map((lead) => (
-              <tr key={lead.connection_id} className="border-b border-gray-100 last:border-0">
-                <td className="px-4 py-2.5 text-gray-900">{lead.family_name}</td>
-                <td className="px-4 py-2.5">
-                  <Link
-                    href={`/provider/${lead.provider_slug}`}
-                    className="text-emerald-700 hover:text-emerald-800"
-                  >
-                    {lead.provider_name}
-                  </Link>
-                </td>
-                <td className="px-4 py-2.5 text-right text-gray-600">
-                  {formatLeadAge(lead.age_hours)}
-                </td>
-                <td className="px-4 py-2.5 text-center">
-                  <EngagementDots signals={lead.signals} />
-                </td>
+      {/* Truncation warning */}
+      {truncated && (
+        <div className="mb-3 px-3 py-2 bg-amber-50 border border-amber-100 rounded-lg text-xs text-amber-700">
+          Results may be incomplete. Only the most recent 5,000 connections are analyzed.
+        </div>
+      )}
+
+      {/* Error/success messages */}
+      {nudgeError && (
+        <div className="mb-3 px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
+          {nudgeError}
+        </div>
+      )}
+
+      {/* Table */}
+      {loading && leads.length === 0 ? (
+        <div className="h-32 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
+      ) : error ? (
+        <div className="px-5 py-6 text-center text-sm text-red-600 border border-gray-200 rounded-lg">
+          {error}
+          <button
+            type="button"
+            onClick={() => fetchPage(0, false)}
+            className="ml-3 underline underline-offset-2 hover:text-red-800"
+          >
+            Retry
+          </button>
+        </div>
+      ) : leads.length === 0 ? (
+        <div className="px-5 py-10 text-center text-sm text-gray-400 border border-gray-200 rounded-lg">
+          No leads in this window.
+        </div>
+      ) : (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="text-left px-4 py-2 font-medium text-gray-600">Family</th>
+                <th className="text-left px-4 py-2 font-medium text-gray-600">Provider</th>
+                <th className="text-left px-4 py-2 font-medium text-gray-600">Message</th>
+                <th className="text-right px-4 py-2 font-medium text-gray-600">Sent</th>
+                <th className="text-center px-4 py-2 font-medium text-gray-600 w-24">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {leads.map((lead) => (
+                <tr
+                  key={lead.connection_id}
+                  className="group border-b border-gray-100 last:border-0 hover:bg-gray-50/40"
+                >
+                  <td className="px-4 py-2.5 text-gray-900">{lead.family_name}</td>
+                  <td className="px-4 py-2.5">
+                    {lead.provider_slug ? (
+                      <Link
+                        href={`/provider/${lead.provider_slug}`}
+                        className="text-emerald-700 hover:text-emerald-800"
+                      >
+                        {lead.provider_name}
+                      </Link>
+                    ) : (
+                      <span className="text-gray-900">{lead.provider_name}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-600 max-w-[200px]">
+                    {lead.message_preview ? (
+                      <span className="truncate block" title={lead.message_preview}>
+                        &ldquo;{lead.message_preview}&rdquo;
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-right text-gray-500 whitespace-nowrap">
+                    {formatLeadAge(lead.age_hours)}
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    {!lead.responded ? (
+                      nudgeSuccess === lead.connection_id ? (
+                        <span className="text-xs text-emerald-600">Sent</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleNudge(lead.connection_id)}
+                          disabled={nudging === lead.connection_id}
+                          className="text-xs text-amber-600 hover:text-amber-700 disabled:opacity-50"
+                          title="Send reminder to provider"
+                        >
+                          {nudging === lead.connection_id ? "..." : "Nudge"}
+                        </button>
+                      )
+                    ) : (
+                      <span className="text-xs text-emerald-600">Replied</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      <p className="mt-2 text-[11px] text-gray-400">
-        Signals: ● email clicked, ● lead opened, ● contact copied
-      </p>
-    </div>
-  );
-}
-
-function EngagementDots({ signals }: { signals: AwaitingResponseLead["signals"] }) {
-  return (
-    <div className="flex items-center justify-center gap-1">
-      <span
-        className={`w-2 h-2 rounded-full ${
-          signals.email_clicked ? "bg-emerald-500" : "bg-gray-200"
-        }`}
-        title="Email clicked"
-      />
-      <span
-        className={`w-2 h-2 rounded-full ${
-          signals.lead_opened ? "bg-emerald-500" : "bg-gray-200"
-        }`}
-        title="Lead opened"
-      />
-      <span
-        className={`w-2 h-2 rounded-full ${
-          signals.contact_revealed ? "bg-emerald-500" : "bg-gray-200"
-        }`}
-        title="Contact revealed"
-      />
+      {/* Load more */}
+      {hasMore && !loading && (
+        <div className="mt-3 text-center">
+          <button
+            type="button"
+            onClick={() => fetchPage(leads.length, true)}
+            disabled={loadingMore}
+            className="text-xs text-gray-600 hover:text-gray-900 underline underline-offset-2 disabled:opacity-50"
+          >
+            {loadingMore ? "Loading..." : `Load ${Math.min(PAGE_SIZE, total! - leads.length)} more`}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

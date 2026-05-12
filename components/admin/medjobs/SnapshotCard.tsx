@@ -97,19 +97,20 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
     }
   };
 
-  // v9 final: post-launch contact-form banner. When the outreach
-  // is already in flight AND a contact_form_url is on file AND no
-  // contact_form_submitted touchpoint exists yet, surface a one-
-  // line banner asking admin to decide on the form. Hides the
-  // moment any outcome lands.
+  // v9 final: contact-form banner. Whenever a contact_form_url is
+  // on file AND no contact_form_submitted touchpoint exists yet,
+  // surface a one-line banner asking admin to decide on the form.
+  // Shows pre-launch (admin must resolve before Launch is enabled —
+  // the pre-flight gate keys off this same touchpoint) and post-
+  // launch (URL added later, or never resolved). Hides the moment
+  // any outcome lands.
   const hasContactFormUrl = Boolean(
     (outreach.research_data?.general_contact?.contact_form_url ?? "").trim(),
   );
   const lastContactFormTp = ctx.touchpoints.find(
     (t) => t.touchpoint_type === "contact_form_submitted",
   );
-  const showContactFormBanner =
-    !isPreLaunch && hasContactFormUrl && !lastContactFormTp;
+  const showContactFormBanner = hasContactFormUrl && !lastContactFormTp;
 
   return (
     <section className="space-y-5 rounded-lg border border-gray-200 bg-white p-4">

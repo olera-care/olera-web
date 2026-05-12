@@ -74,18 +74,12 @@ interface Props {
   generalContact?: {
     email?: string | null;
     phone?: string | null;
-    contact_form_url?: string | null;
   } | null;
   onCancel: () => void;
   onSubmit: (payload: {
     recipients: RecipientPlan[];
     email_snapshots_by_variant: { general: EmailSnapshot[]; named: EmailSnapshot[] };
     call_scripts: CallScript[];
-    /** v9 final: contact-form Day 0 outcome. Set only when the
-     *  General Contact has a contact_form_url AND admin picked
-     *  an outcome before launching. */
-    contact_form_outcome?: "submitted" | "skipped" | "not_available";
-    contact_form_url?: string | null;
   }) => Promise<void>;
 }
 
@@ -257,16 +251,11 @@ export function ProviderPreFlightModal({
     }));
   });
 
-  // v9 final: contact-form Day 0 step. Only surfaced when the
-  // General Contact has a contact_form_url. Admin must pick an
-  // outcome before launching — three explicit choices keep the
-  // form from being silently skipped. The chosen outcome lands
-  // as a contact_form_submitted touchpoint at launch time so the
-  // OutreachTimeline narrates it next to the Day 0 emails.
-  const contactFormUrl = generalContact?.contact_form_url?.trim() || "";
-  const [contactFormOutcome, setContactFormOutcome] = useState<
-    "submitted" | "skipped" | "not_available" | null
-  >(null);
+  // v9 final: the contact-form decision is now collected BEFORE
+  // PreFlight (via ContactFormBanner in the SnapshotCard, gated by
+  // the pre-flight checklist). By the time admin reaches this
+  // modal, the contact_form_submitted touchpoint already exists.
+  // PreFlight stays focused on email + call recipients.
 
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -325,12 +314,8 @@ export function ProviderPreFlightModal({
 
   const submit = async () => {
     setErr(null);
-    if (queuedEmails === 0 && queuedCalls === 0 && !contactFormUrl) {
+    if (queuedEmails === 0 && queuedCalls === 0) {
       setErr("Select at least one recipient with email or phone to launch.");
-      return;
-    }
-    if (contactFormUrl && !contactFormOutcome) {
-      setErr("Pick an outcome for the Contact Form step before launching.");
       return;
     }
     // Validate snapshot copy is non-empty for the variants in use.
@@ -375,8 +360,6 @@ export function ProviderPreFlightModal({
           named: namedSnaps,
         },
         call_scripts: callScripts,
-        contact_form_outcome: contactFormOutcome ?? undefined,
-        contact_form_url: contactFormUrl || null,
       });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Schedule failed");
@@ -412,64 +395,6 @@ export function ProviderPreFlightModal({
             <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
               {err}
             </p>
-          )}
-
-          {/* v9 final: Contact Form Day 0 step. Only shown when the
-              General Contact has a contact_form_url. Forces admin to
-              make an explicit decision — no silent skipping. */}
-          {contactFormUrl && (
-            <section className="rounded-md border border-purple-200 bg-purple-50/30">
-              <header className="border-b border-purple-100 px-3 py-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-purple-700">
-                  Contact Form · Day 0
-                </p>
-              </header>
-              <div className="space-y-2 px-3 py-2.5">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="min-w-0 truncate text-xs text-gray-700">
-                    {contactFormUrl}
-                  </p>
-                  <a
-                    href={contactFormUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 rounded-md border border-purple-300 bg-white px-2 py-1 text-[11px] font-medium text-purple-700 hover:bg-purple-50"
-                  >
-                    Open form ↗
-                  </a>
-                </div>
-                <p className="text-[11px] text-gray-600">
-                  Submit it now (or decide not to) before launching email +
-                  calls. The outcome lands in History next to the Day 0
-                  emails.
-                </p>
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  {(
-                    [
-                      { value: "submitted", label: "Submitted" },
-                      { value: "skipped", label: "Skipped" },
-                      { value: "not_available", label: "Not available" },
-                    ] as const
-                  ).map((opt) => {
-                    const selected = contactFormOutcome === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setContactFormOutcome(opt.value)}
-                        className={`rounded-md px-2.5 py-1 text-[11px] font-medium ${
-                          selected
-                            ? "bg-purple-600 text-white"
-                            : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </section>
           )}
 
           {/* Recipients section */}

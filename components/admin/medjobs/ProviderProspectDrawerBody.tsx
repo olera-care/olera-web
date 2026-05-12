@@ -45,23 +45,58 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const isPreLaunch =
     outreach.status === "prospect" || outreach.status === "researched";
 
-  // Email gate for the Next Step Card's launch CTA. Provider rows
-  // can launch from either:
-  //   1. The effective General Contact email (research_data.
-  //      general_contact.email override OR business_profiles.email
-  //      fallback). This is the org-level inbox — PreFlight wraps
-  //      it as a synthetic recipient.
-  //   2. Any active Specific Contact with a valid email (Owner,
-  //      Hiring Manager, etc.).
-  // Either source is sufficient — having both is common.
-  const generalContactEmail =
+  // v9 final: pre-flight gate. ALL of these must be true to enable
+  // the Launch button:
+  //   - email present (general OR a specific contact)
+  //   - phone present (general OR a specific contact)
+  //   - mailing address override saved AND contains a ZIP (snail-mail
+  //     readiness — bp.address has no ZIP column)
+  //   - if a contact_form_url is on file, admin has logged an
+  //     outcome touchpoint (Submitted / Skipped / Not available)
+  // The first three give the cadence its operational channels; the
+  // fourth forces admin to make an explicit decision on the web
+  // form so it isn't silently missed.
+  const generalEmail =
     ctx.outreach.research_data?.general_contact?.email ??
     ctx.provider_business_profile?.email ??
     null;
+  const generalPhone =
+    ctx.outreach.research_data?.general_contact?.phone ??
+    ctx.provider_business_profile?.phone ??
+    null;
+  const mailingAddress =
+    ctx.outreach.research_data?.general_contact?.mailing_address ?? "";
+  const contactFormUrl =
+    ctx.outreach.research_data?.general_contact?.contact_form_url ?? "";
+
   const hasEmail =
+    Boolean(generalEmail?.includes("@")) ||
     ctx.contacts.some(
       (c) => c.status === "active" && Boolean(c.email?.includes("@")),
-    ) || Boolean(generalContactEmail?.includes("@"));
+    );
+  const hasPhone =
+    Boolean(generalPhone) ||
+    ctx.contacts.some(
+      (c) =>
+        c.status === "active" && Boolean(c.phone?.trim() || c.mobile?.trim()),
+    );
+  const addressReady =
+    Boolean(mailingAddress) && /\b\d{5}(?:-\d{4})?\b/.test(mailingAddress);
+  const contactFormResolved =
+    !contactFormUrl ||
+    ctx.touchpoints.some((t) => t.touchpoint_type === "contact_form_submitted");
+
+  const launchEnabled =
+    hasEmail && hasPhone && addressReady && contactFormResolved;
+  const launchDisabledReason = !hasEmail
+    ? "Add email before launching."
+    : !hasPhone
+      ? "Add phone before launching."
+      : !addressReady
+        ? "Verify mailing address (incl. ZIP) before launching."
+        : !contactFormResolved
+          ? "Resolve the contact form (Submitted / Skipped / Not available) before launching."
+          : undefined;
 
   return (
     <div className="space-y-6">
@@ -76,12 +111,8 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
         ctx={ctx}
         action={action}
         setError={setError}
-        launchEnabled={hasEmail}
-        launchDisabledReason={
-          hasEmail
-            ? undefined
-            : "Add a valid email in the snapshot below before launching outreach."
-        }
+        launchEnabled={launchEnabled}
+        launchDisabledReason={launchDisabledReason}
       />
 
       {/* Zone 3 · Snapshot — prominent pre-launch only. Post-launch

@@ -369,6 +369,11 @@ function ProspectBody({
     Boolean(generalPhone) ||
     ctx.contacts.some((c) => c.status === "active" && Boolean(c.phone));
   const hasNotes = Boolean(ctx.outreach.notes?.trim());
+  const contactFormUrl =
+    ctx.outreach.research_data?.general_contact?.contact_form_url ?? "";
+  const contactFormResolved = ctx.touchpoints.some(
+    (t) => t.touchpoint_type === "contact_form_submitted",
+  );
 
   return (
     <>
@@ -382,34 +387,42 @@ function ProspectBody({
       <ul className="mt-2 space-y-1 text-xs">
         <ChecklistRow
           done={addressVerified}
-          required={false}
+          required
           label="Verify mailing address"
           hint={
             addressVerified
               ? "Ready for snail mail."
-              : "Include ZIP for snail mail to route."
+              : "Include ZIP — required so snail mail can route."
           }
         />
         <ChecklistRow
           done={hasEmail}
           required
           label="Add email"
-          hint={
-            hasEmail
-              ? "Email on file."
-              : "Required for outreach launch."
-          }
+          hint={hasEmail ? "Email on file." : "Required for outreach launch."}
         />
         <ChecklistRow
           done={hasPhone}
-          required={false}
+          required
           label="Add phone"
           hint={
             hasPhone
               ? "Phone on file — call tasks queue with email."
-              : "Optional. Calls skip if missing."
+              : "Required. Call cadence runs alongside email."
           }
         />
+        {contactFormUrl && (
+          <ChecklistRow
+            done={contactFormResolved}
+            required
+            label="Contact form decision"
+            hint={
+              contactFormResolved
+                ? "Outcome logged."
+                : "Pick Submitted / Skipped / Not available below."
+            }
+          />
+        )}
         <ChecklistRow
           done={hasNotes}
           required={false}
@@ -474,9 +487,6 @@ function ProspectBody({
             phone:
               ctx.outreach.research_data?.general_contact?.phone ??
               ctx.provider_business_profile?.phone ??
-              null,
-            contact_form_url:
-              ctx.outreach.research_data?.general_contact?.contact_form_url ??
               null,
           }}
           onCancel={() => setShowPreFlight(false)}

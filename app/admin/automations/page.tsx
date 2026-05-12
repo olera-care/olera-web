@@ -41,22 +41,35 @@ interface Job {
   errors30d: number;
   rollup30d: Rollup | null;
 }
+interface Alert {
+  jobId: string;
+  alertKey: string;
+  severity: "error" | "warn";
+  message: string;
+  value: number | null;
+  worseIsHigher: boolean;
+  worsened?: boolean;
+  details?: Array<{ jobId: string; name: string; detail: string }>;
+}
+interface AckedAlert {
+  jobId: string;
+  alertKey: string;
+  message: string;
+  ackedBy: string;
+  ackedAt: string;
+  snoozeUntil: string | null;
+  note: string | null;
+}
 interface ApiResponse {
   windowDays: number;
   summary: { total: number; active: number; paused: number; errored: number; sends30d: number; bounces30d: number; complaints30d: number };
-  needsAttention: Array<{ jobId: string; name: string; severity: "error" | "warn"; message: string }>;
+  needsAttention: Alert[];
+  acknowledged: AckedAlert[];
   jobs: Job[];
   note: string;
 }
 
-const FN_CHIP: Record<Fn, { label: string; cls: string }> = {
-  nudge: { label: "nudge", cls: "bg-blue-50 text-blue-700" },
-  alert: { label: "alert", cls: "bg-purple-50 text-purple-700" },
-  digest: { label: "digest", cls: "bg-teal-50 text-teal-700" },
-  outreach: { label: "outreach", cls: "bg-indigo-50 text-indigo-700" },
-  refresh: { label: "data refresh", cls: "bg-gray-100 text-gray-600" },
-  maintenance: { label: "maintenance", cls: "bg-gray-100 text-gray-600" },
-};
+const FN_LABEL: Record<Fn, string> = { nudge: "nudge", alert: "alert", digest: "digest", outreach: "outreach", refresh: "data refresh", maintenance: "maintenance" };
 
 function timeAgo(iso: string | null): string {
   if (!iso) return "—";
@@ -80,13 +93,22 @@ function summaryLine(s: Record<string, unknown> | null): string {
   return parts.join(" · ");
 }
 function statusBadge(j: Job): { label: string; cls: string } {
-  if (j.paused) return { label: "Paused", cls: "bg-amber-100 text-amber-800 border border-amber-300" };
-  if (j.lastRun?.status === "error" || j.errors30d > 0) return { label: "Errors", cls: "bg-red-100 text-red-800 border border-red-200" };
-  return { label: "Active", cls: "bg-green-100 text-green-800 border border-green-200" };
+  if (j.paused) return { label: "Paused", cls: "bg-amber-100 text-amber-700" };
+  if (j.lastRun?.status === "error" || j.errors30d > 0) return { label: "Errors", cls: "bg-red-100 text-red-700" };
+  return { label: "Active", cls: "bg-emerald-50 text-emerald-700" };
 }
 
 const COLLAPSE_KEY = "automations:collapsed";
+const EXPLAINER_KEY = "automations:explainer-dismissed-v1";
 type Filter = "all" | "email" | "errored" | "paused";
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" className={`transition-transform ${open ? "rotate-90" : ""}`} fill="none">
+      <path d="M3 1.5 L7 5 L3 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export default function AutomationsPage() {
   const [data, setData] = useState<ApiResponse | null>(null);
@@ -94,18 +116,29 @@ export default function AutomationsPage() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [showExplainer, setShowExplainer] = useState(false);
+  const [showAcked, setShowAcked] = useState(false);
+  const [expandedAlerts, setExpandedAlerts] = useState<Record<string, boolean>>({});
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
 
-  // restore collapse state
   useEffect(() => {
     try {
       const raw = localStorage.getItem(COLLAPSE_KEY);
       if (raw) setCollapsed(JSON.parse(raw));
+      if (!localStorage.getItem(EXPLAINER_KEY)) setShowExplainer(true);
     } catch {
       /* ignore */
     }
   }, []);
+  const dismissExplainer = () => {
+    setShowExplainer(false);
+    try {
+      localStorage.setItem(EXPLAINER_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  };
   const toggleCollapse = (audience: string) => {
     setCollapsed((c) => {
       const next = { ...c, [audience]: !c[audience] };
@@ -135,33 +168,36 @@ export default function AutomationsPage() {
     load();
   }, [load]);
 
+  async function post(payload: Record<string, unknown>, busyKey: string) {
+    setBusy(busyKey);
+    try {
+      const r = await fetch("/api/admin/automations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
+      await load();
+    } catch (e) {
+      alert(`Failed: ${e instanceof Error ? e.message : e}`);
+    } finally {
+      setBusy(null);
+    }
+  }
   async function togglePause(job: Job) {
     if (job.paused) {
       if (!confirm(`Resume "${job.name}"? It will run on its normal schedule again.`)) return;
-      setBusy(job.id);
-      try {
-        const r = await fetch("/api/admin/automations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ job_id: job.id, action: "resume" }) });
-        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
-        await load();
-      } catch (e) {
-        alert(`Failed to resume: ${e instanceof Error ? e.message : e}`);
-      } finally {
-        setBusy(null);
-      }
+      await post({ job_id: job.id, action: "resume" }, `pause:${job.id}`);
     } else {
       const reason = prompt(`Pause "${job.name}"?\n\nIt stops sending/running but still logs a "skipped (paused)" entry each cycle. Auto-resumes in 30 days.\n\nReason (optional):`);
       if (reason === null) return;
-      setBusy(job.id);
-      try {
-        const r = await fetch("/api/admin/automations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ job_id: job.id, action: "pause", reason, days: 30 }) });
-        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
-        await load();
-      } catch (e) {
-        alert(`Failed to pause: ${e instanceof Error ? e.message : e}`);
-      } finally {
-        setBusy(null);
-      }
+      await post({ job_id: job.id, action: "pause", reason, days: 30 }, `pause:${job.id}`);
     }
+  }
+  async function ackAlert(a: Alert, snoozeDays: number | null) {
+    const payload: Record<string, unknown> = { action: "ack_alert", job_id: a.jobId, alert_key: a.alertKey };
+    if (snoozeDays) payload.snooze_days = snoozeDays;
+    if (a.value !== null) payload.value_at_ack = a.value;
+    await post(payload, `ack:${a.jobId}:${a.alertKey}`);
+  }
+  async function unackAlert(a: AckedAlert) {
+    await post({ action: "unack_alert", job_id: a.jobId, alert_key: a.alertKey }, `ack:${a.jobId}:${a.alertKey}`);
   }
 
   const matches = useCallback(
@@ -195,57 +231,108 @@ export default function AutomationsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl font-bold text-gray-900">Automations</h1>
-        <button onClick={load} className="text-sm text-gray-500 hover:text-gray-800">Refresh</button>
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-2xl font-semibold text-gray-900">Automations</h1>
+          {data && data.needsAttention.length > 0 && <span className="text-xs text-amber-700">{data.needsAttention.length} need{data.needsAttention.length === 1 ? "s" : ""} attention</span>}
+        </div>
+        <button onClick={load} className="text-sm text-gray-400 hover:text-gray-700">Refresh</button>
       </div>
 
       {data && (
-        <div className="text-sm text-gray-600 mb-4">
-          <span className="font-semibold text-gray-900">{data.summary.total}</span> automations ·{" "}
-          <span className="text-green-700">{data.summary.active} active</span>
+        <p className="text-sm text-gray-500 mb-4">
+          {data.summary.total} automations · <span className="text-emerald-700">{data.summary.active} active</span>
           {data.summary.paused > 0 && <> · <span className="text-amber-700">{data.summary.paused} paused</span></>}
-          {data.summary.errored > 0 && <> · <span className="text-red-600">{data.summary.errored} errored (7d)</span></>}
+          {data.summary.errored > 0 && <> · <span className="text-red-600">{data.summary.errored} errored</span></>}
           {" · "}
-          <span className="text-gray-500">
-            {data.summary.sends30d.toLocaleString()} sends / {data.summary.bounces30d} bounced
-            {data.summary.complaints30d > 0 ? ` / ${data.summary.complaints30d} complaints` : ""} (30d)
-          </span>
-          <span className="text-gray-400"> — {data.note}</span>
+          {data.summary.sends30d.toLocaleString()} sends / {data.summary.bounces30d} bounced{data.summary.complaints30d > 0 ? ` / ${data.summary.complaints30d} complaints` : ""} this month{" "}
+          <span className="text-gray-300" title={data.note}>ⓘ</span>
+        </p>
+      )}
+
+      {/* explainer card */}
+      {showExplainer && (
+        <div className="mb-5 rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-3 relative">
+          <button onClick={dismissExplainer} className="absolute top-2.5 right-3 text-gray-300 hover:text-gray-600 text-sm" aria-label="Dismiss">✕</button>
+          <div className="text-sm font-medium text-gray-800 mb-1">Reading this page</div>
+          <p className="text-sm text-gray-600 leading-relaxed pr-6">
+            Each row is a scheduled job. <strong>Run history</strong> fills in as jobs fire — note that crons only run on production, so a preview deploy will show &ldquo;no runs yet.&rdquo; <strong>Open / click</strong> rates are inflated by Apple Mail Privacy Protection — watch the trend, not the absolute. To test a job right now, open it and fire it from the detail page.
+          </p>
         </div>
       )}
 
-      {loading && <div className="text-gray-500">Loading…</div>}
+      {loading && <div className="text-gray-400 text-sm">Loading…</div>}
       {err && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{err}</div>}
 
-      {data && data.needsAttention.length > 0 && (
-        <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
-          <div className="text-xs font-semibold uppercase tracking-wide text-amber-800 mb-1.5">Needs attention</div>
-          <ul className="space-y-1">
-            {data.needsAttention.map((a, i) => (
-              <li key={i} className="text-sm">
-                <Link href={`/admin/automations/${a.jobId}`} className="font-medium text-amber-900 hover:underline">{a.name}</Link>
-                <span className={a.severity === "error" ? "text-red-700" : "text-amber-800"}> — {a.message}</span>
-              </li>
-            ))}
-          </ul>
+      {/* alerts */}
+      {data && (data.needsAttention.length > 0 || data.acknowledged.length > 0) && (
+        <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50/40 px-4 py-3">
+          {data.needsAttention.length === 0 && data.acknowledged.length > 0 && <div className="text-sm text-gray-500">Nothing needs attention right now.</div>}
+          {data.needsAttention.map((a) => {
+            const k = `${a.jobId}\x1f${a.alertKey}`;
+            const open = !!expandedAlerts[k];
+            const ackBusy = busy === `ack:${a.jobId}:${a.alertKey}`;
+            return (
+              <div key={k} className="flex items-start gap-2.5 py-1.5 text-sm">
+                <span className={`mt-0.5 ${a.severity === "error" ? "text-red-500" : "text-amber-500"}`}>{a.severity === "error" ? "●" : "▲"}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-gray-700">
+                    {a.message}
+                    {a.worsened && <span className="text-red-600"> (worsened since acknowledged)</span>}
+                    {a.details && a.details.length > 0 && (
+                      <button onClick={() => setExpandedAlerts((e) => ({ ...e, [k]: !open }))} className="ml-2 text-gray-400 hover:text-gray-600 text-xs">{open ? "hide" : `details (${a.details.length})`}</button>
+                    )}
+                  </div>
+                  {open && a.details && (
+                    <ul className="mt-1 ml-1 space-y-0.5">
+                      {a.details.map((d) => (
+                        <li key={d.jobId} className="text-xs text-gray-500">
+                          <Link href={`/admin/automations/${d.jobId}`} className="text-gray-600 hover:underline">{d.name}</Link> — {d.detail}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {a.jobId !== "group" && <Link href={`/admin/automations/${a.jobId}`} className="text-xs text-gray-400 hover:text-gray-700">open ›</Link>}
+                  <button disabled={ackBusy} onClick={() => ackAlert(a, 7)} className="text-xs text-gray-400 hover:text-gray-700 disabled:opacity-40">snooze 7d</button>
+                  <button disabled={ackBusy} onClick={() => ackAlert(a, null)} className="text-xs text-gray-400 hover:text-gray-700 disabled:opacity-40">acknowledge</button>
+                </div>
+              </div>
+            );
+          })}
+          {data.acknowledged.length > 0 && (
+            <div className="mt-1.5 pt-1.5 border-t border-amber-200/60">
+              <button onClick={() => setShowAcked((s) => !s)} className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1">
+                <Chevron open={showAcked} /> {data.acknowledged.length} acknowledged
+              </button>
+              {showAcked && (
+                <ul className="mt-1 space-y-1">
+                  {data.acknowledged.map((a) => {
+                    const ackBusy = busy === `ack:${a.jobId}:${a.alertKey}`;
+                    return (
+                      <li key={`${a.jobId}\x1f${a.alertKey}`} className="text-xs text-gray-500 flex items-start gap-2">
+                        <span className="min-w-0 flex-1">
+                          {a.message}{" "}
+                          <span className="text-gray-400">— {a.snoozeUntil ? `snoozed until ${new Date(a.snoozeUntil).toLocaleDateString()}` : "acknowledged"} by {a.ackedBy} {timeAgo(a.ackedAt)}{a.note ? ` ("${a.note}")` : ""}</span>
+                        </span>
+                        <button disabled={ackBusy} onClick={() => unackAlert(a)} className="text-gray-400 hover:text-gray-700 disabled:opacity-40 shrink-0">un-acknowledge</button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
       )}
 
+      {/* filter */}
       {data && (
         <div className="flex items-center gap-2 mb-4 flex-wrap">
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Filter automations…"
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-md w-56"
-          />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter automations…" className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg w-56 focus:border-gray-400 focus:outline-none" />
           {(["all", "email", "errored", "paused"] as Filter[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`text-xs px-2.5 py-1 rounded-full border ${filter === f ? "bg-gray-900 text-white border-gray-900" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}
-            >
+            <button key={f} onClick={() => setFilter(f)} className={`text-xs px-2.5 py-1 rounded-full ${filter === f ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"}`}>
               {f === "all" ? "All" : f === "email" ? "Email" : f === "errored" ? "Errored" : "Paused"}
             </button>
           ))}
@@ -258,59 +345,50 @@ export default function AutomationsPage() {
         groups.map(({ audience, jobs }) => {
           const isCollapsed = !!collapsed[audience];
           return (
-            <div key={audience} className="mb-6">
-              <button onClick={() => toggleCollapse(audience)} className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400 hover:text-gray-700 mb-2">
-                <span>{isCollapsed ? "▸" : "▾"}</span>
+            <div key={audience} className="mb-5">
+              <button onClick={() => toggleCollapse(audience)} className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-400 hover:text-gray-600 mb-2">
+                <Chevron open={!isCollapsed} />
                 <span>{audience}</span>
-                <span className="text-gray-300 font-normal">({jobs.length})</span>
+                <span className="text-gray-300 font-normal normal-case">· {jobs.length}</span>
               </button>
               {!isCollapsed && (
-                <div className="space-y-1.5">
+                <div className="divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden">
                   {jobs.map((job) => {
                     const badge = statusBadge(job);
-                    const chip = FN_CHIP[job.fn];
                     const r = job.rollup30d;
+                    const hasRun = !!job.lastRun;
                     return (
-                      <div key={job.id} className="rounded-lg border border-gray-200 bg-white px-4 py-2.5">
-                        <div className="flex items-start justify-between gap-3">
+                      <div key={job.id} className="group relative px-4 py-2.5 hover:bg-gray-50/70 transition-colors">
+                        <Link href={`/admin/automations/${job.id}`} className="absolute inset-0" aria-label={`Open ${job.name}`} />
+                        <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <Link href={`/admin/automations/${job.id}`} className="font-semibold text-gray-900 hover:underline">{job.name}</Link>
+                              <span className="font-medium text-gray-900">{job.name}</span>
                               <span className={`text-[10px] px-1.5 py-0.5 rounded ${badge.cls}`}>{badge.label}</span>
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${chip.cls}`}>{chip.label}</span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{FN_LABEL[job.fn]}</span>
                               <span className="text-xs text-gray-400">{job.humanSchedule}</span>
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {job.lastRun ? (
-                                <>
-                                  Last run {timeAgo(job.lastRun.startedAt)} ·{" "}
-                                  <span className={job.lastRun.status === "error" ? "text-red-600" : job.lastRun.status === "skipped_paused" ? "text-amber-700" : "text-gray-600"}>{job.lastRun.status}</span>
-                                  {job.lastRun.triggeredBy !== "cron" ? ` · ${job.lastRun.triggeredBy}` : ""}
-                                  {summaryLine(job.lastRun.summary) ? ` · ${summaryLine(job.lastRun.summary)}` : ""}
-                                  {job.runs30d > 0 ? <span className="text-gray-400"> · {job.runs30d}/30d{job.errors30d > 0 ? `, ${job.errors30d} err` : ""}</span> : null}
-                                </>
-                              ) : (
-                                <span className="text-gray-400">No runs recorded yet</span>
-                              )}
-                              {r ? (
-                                <span className="text-gray-400">
-                                  {" "}· {r.sent.toLocaleString()} sent · {pct(r.opened, r.sent)} open · {pct(r.clicked, r.sent)} click
-                                  {r.bounced > 0 ? <span className="text-red-600"> · {r.bounced} bounced</span> : null}
-                                  {r.complained > 0 ? <span className="text-red-600"> · {r.complained} complaints</span> : null}
-                                  {" (30d)"}
-                                </span>
-                              ) : null}
-                            </div>
+                            {(hasRun || r) && (
+                              <div className="text-xs text-gray-400 mt-0.5">
+                                {hasRun && (
+                                  <>
+                                    Last run {timeAgo(job.lastRun!.startedAt)} ·{" "}
+                                    <span className={job.lastRun!.status === "error" ? "text-red-600" : job.lastRun!.status === "skipped_paused" ? "text-amber-600" : "text-gray-500"}>{job.lastRun!.status}</span>
+                                    {job.lastRun!.triggeredBy !== "cron" ? ` · ${job.lastRun!.triggeredBy}` : ""}
+                                    {summaryLine(job.lastRun!.summary) ? ` · ${summaryLine(job.lastRun!.summary)}` : ""}
+                                    {job.runs30d > 0 ? ` · ${job.runs30d}/30d${job.errors30d > 0 ? `, ${job.errors30d} err` : ""}` : ""}
+                                    {r ? " · " : ""}
+                                  </>
+                                )}
+                                {r && <>{r.sent.toLocaleString()} sent · {pct(r.opened, r.sent)} open · {pct(r.clicked, r.sent)} click{r.bounced > 0 ? <span className="text-red-500"> · {r.bounced} bounced</span> : ""}{r.complained > 0 ? <span className="text-red-500"> · {r.complained} complaints</span> : ""} — 30d</>}
+                              </div>
+                            )}
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              disabled={busy === job.id}
-                              onClick={() => togglePause(job)}
-                              className={`text-xs px-2 py-1 rounded border ${job.paused ? "border-green-300 text-green-700 hover:bg-green-50" : "border-gray-300 text-gray-600 hover:bg-gray-50"} disabled:opacity-50`}
-                            >
-                              {busy === job.id ? "…" : job.paused ? "Resume" : "Pause"}
+                          <div className="relative z-10 flex items-center gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button disabled={busy === `pause:${job.id}`} onClick={() => togglePause(job)} className={`text-xs px-2 py-0.5 rounded border ${job.paused ? "border-emerald-300 text-emerald-700 hover:bg-emerald-50" : "border-gray-200 text-gray-500 hover:bg-gray-100"} disabled:opacity-40`}>
+                              {busy === `pause:${job.id}` ? "…" : job.paused ? "Resume" : "Pause"}
                             </button>
-                            <Link href={`/admin/automations/${job.id}`} className="text-xs text-teal-700 hover:underline whitespace-nowrap">Open →</Link>
+                            <span className="text-gray-300 text-sm">→</span>
                           </div>
                         </div>
                       </div>

@@ -113,6 +113,7 @@ function providerEmailTypeLabel(type: string | null): string {
     analytics_teaser_impression: "Analytics View",
     suspicious_claim: "Suspicious Claim",
     lead_opened: "Lead Opened",
+    lead_received: "Lead",
     page_view: "Page View",
   };
   return map[type] || type;
@@ -148,6 +149,7 @@ function providerEmailTypeBadgeColor(type: string | null): string {
     analytics_teaser_impression: "bg-gray-50 text-gray-500",
     suspicious_claim: "bg-red-50 text-red-700",
     lead_opened: "bg-sky-50 text-sky-700",
+    lead_received: "bg-blue-50 text-blue-700",
     page_view: "bg-gray-50 text-gray-500",
   };
   return map[type] || "bg-gray-100 text-gray-600";
@@ -696,7 +698,8 @@ const PROVIDER_EVENT_FILTER_OPTIONS = [
   { value: "", label: "All types" },
   { value: "suspicious_claim", label: "Suspicious claims" },
   { value: "email_click", label: "Email clicks" },
-  { value: "connection_request", label: "Leads" },
+  { value: "connection_request", label: "Leads (email)" },
+  { value: "lead_received", label: "Leads (all CTAs)" },
   { value: "question_responded", label: "Answered" },
   { value: "new_review", label: "Reviews" },
   { value: "contact_revealed", label: "Contact copied" },

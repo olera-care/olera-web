@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient as createServerClient } from "@/lib/supabase/server";
-import { createClient } from "@supabase/supabase-js";
+import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 /**
  * GET /api/admin/analytics/response-leads
@@ -38,46 +37,19 @@ type ThreadMessage = {
   is_auto_reply?: boolean;
 };
 
-function getServiceDb() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return null;
-  return createClient(url, serviceKey);
-}
-
 export async function GET(req: NextRequest) {
   // Admin auth check
-  const supabase = await createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Check admin role
-  const { data: profile } = await supabase
-    .from("business_profiles")
-    .select("type")
-    .eq("account_id", user.id)
-    .maybeSingle();
-
-  const isAdmin =
-    profile?.type === "admin" ||
-    user.email?.endsWith("@olera.care") ||
-    user.email?.endsWith("@anthropic.com");
-
-  if (!isAdmin) {
+  const admin = await getAdminUser(user.id);
+  if (!admin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const db = getServiceDb();
-  if (!db) {
-    return NextResponse.json(
-      { error: "Server configuration error" },
-      { status: 500 }
-    );
-  }
+  const db = getServiceClient();
 
   // Parse query params
   const { searchParams } = new URL(req.url);

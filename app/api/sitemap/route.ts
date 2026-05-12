@@ -47,8 +47,17 @@ function getSupabaseClient() {
   );
 }
 
-function xmlEntry(url: string, priority: number, changefreq: string) {
-  return `  <url>\n    <loc>${url}</loc>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+function xmlEntry(url: string, priority: number, changefreq: string, lastmod?: string | null) {
+  let day: string | null = null;
+  if (lastmod) {
+    const d = new Date(lastmod);
+    if (!isNaN(d.getTime())) day = d.toISOString().split("T")[0];
+  }
+  return (
+    `  <url>\n    <loc>${url}</loc>\n` +
+    (day ? `    <lastmod>${day}</lastmod>\n` : "") +
+    `    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`
+  );
 }
 
 export async function GET(request: Request) {
@@ -207,18 +216,30 @@ export async function GET(request: Request) {
         const SHARD_SIZE = 10_000;
         const PAGE_SIZE = 1_000;
         const shardStart = (shard - 1) * SHARD_SIZE;
+        // Honest <lastmod>: when the description was last (re)written
+        // (migration 082's description_updated_at), falling back to
+        // cleansed_at / created_at. Probe once and degrade to the minimal
+        // select if the freshness columns aren't applied on this environment.
+        let providerSelect = "provider_id, slug, description_updated_at, cleansed_at, created_at";
+        {
+          const probe = await supabase.from("olera-providers").select(providerSelect).limit(1);
+          if (probe.error) providerSelect = "provider_id, slug";
+        }
+        const lastmodOf = (p: Record<string, any>) =>
+          (p.description_updated_at || p.cleansed_at || p.created_at) as string | undefined;
         let fetched = 0;
         while (fetched < SHARD_SIZE) {
           const from = shardStart + fetched;
           const to = from + PAGE_SIZE - 1;
-          const { data: providers } = await supabase
+          const { data } = await supabase
             .from("olera-providers")
-            .select("provider_id, slug")
+            .select(providerSelect)
             .or("deleted.is.null,deleted.eq.false")
             .range(from, to);
+          const providers = data as Array<Record<string, any>> | null;
           if (!providers || providers.length === 0) break;
           for (const p of providers) {
-            entries.push(xmlEntry(`${SITE_URL}/provider/${p.slug || p.provider_id}`, 0.7, "weekly"));
+            entries.push(xmlEntry(`${SITE_URL}/provider/${p.slug || p.provider_id}`, 0.7, "weekly", lastmodOf(p)));
           }
           if (providers.length < PAGE_SIZE) break;
           fetched += providers.length;

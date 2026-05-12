@@ -466,7 +466,7 @@ export default function CompareOverlay({
                   ? "Save this provider"
                   : selectedCount === 0
                     ? "Select at least one"
-                    : "Save this comparison"}
+                    : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
@@ -487,7 +487,7 @@ export default function CompareOverlay({
             >
               <div className="mb-3">
                 <h3 className="text-lg font-bold text-gray-900">
-                  {showSimilar ? "Save this comparison" : "Save this provider"}
+                  {showSimilar ? `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}` : "Save this provider"}
                 </h3>
                 <p className="text-sm text-gray-500">Add your email so you don&apos;t lose it.</p>
               </div>
@@ -515,7 +515,7 @@ export default function CompareOverlay({
                   type="submit"
                   className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
                 >
-                  {showSimilar ? "Save this comparison" : "Save this provider"}
+                  {showSimilar ? `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}` : "Save this provider"}
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                   </svg>
@@ -546,7 +546,6 @@ interface CompareCardProps {
 function CompareCard({ provider, isCurrentProvider, isSelected, onToggle, showToggle = true }: CompareCardProps) {
   const locationStr = [provider.city, provider.state].filter(Boolean).join(", ");
   const hasRating = provider.rating != null && provider.reviewCount != null && provider.reviewCount > 0;
-  const hasPrice = !!provider.priceRange;
 
   return (
     <div
@@ -625,13 +624,9 @@ function CompareCard({ provider, isCurrentProvider, isSelected, onToggle, showTo
           )}
 
           {/* Price - simple text */}
-          {hasPrice ? (
-            <p className="text-[13px] font-semibold text-gray-900 mt-0.5">
-              {provider.priceRange}
-            </p>
-          ) : (
-            <p className="text-[13px] text-gray-400 italic mt-0.5">Pricing not listed</p>
-          )}
+          <p className="text-[13px] font-semibold text-gray-900 mt-0.5">
+            {provider.priceRange || "Contact for pricing"}
+          </p>
         </div>
       </div>
     </div>

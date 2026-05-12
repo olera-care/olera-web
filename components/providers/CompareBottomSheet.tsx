@@ -263,7 +263,7 @@ export default function CompareBottomSheet({
       setError("Something went wrong. Please try again.");
       setFooterState("initial");
     }
-  }, [userEmail, ctaVariant, ctaPreviewMode, currentProvider.slug, allProviders, router]);
+  }, [userEmail, ctaVariant, ctaPreviewMode, currentProvider.slug, allProviders, selectedProviderIds, router]);
 
   // Handle email submit
   const handleSubmit = async (e: React.FormEvent) => {

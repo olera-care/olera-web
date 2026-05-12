@@ -139,7 +139,7 @@ export default function CompareOverlay({
       setError("Something went wrong. Please try again.");
       setFooterState("initial");
     }
-  }, [userEmail, ctaPreviewMode, ctaVariant, currentProvider.slug, allProviders, router]);
+  }, [userEmail, ctaPreviewMode, ctaVariant, currentProvider.slug, allProviders, selectedProviderIds, router]);
 
   // Track "Save this comparison" button click (once per overlay session)
   const handleSaveClick = useCallback(() => {
@@ -228,7 +228,7 @@ export default function CompareOverlay({
       setError("Something went wrong. Please try again.");
       setFooterState("email_capture");
     }
-  }, [email, allProviders, router]);
+  }, [email, allProviders, selectedProviderIds, router]);
 
   // Handle escape key to close (disabled during submitting/success)
   const handleKeyDown = useCallback(

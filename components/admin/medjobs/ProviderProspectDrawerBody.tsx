@@ -42,17 +42,6 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const { outreach } = ctx;
   const [showMore, setShowMore] = useState(false);
 
-  const orgName =
-    ctx.provider_business_profile?.display_name || outreach.organization_name;
-  const location =
-    [
-      ctx.provider_business_profile?.city,
-      ctx.provider_business_profile?.state,
-    ]
-      .filter(Boolean)
-      .join(", ") || null;
-  const campusName = ctx.campus?.name ?? null;
-
   const isPreLaunch =
     outreach.status === "prospect" || outreach.status === "researched";
 
@@ -76,26 +65,11 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Zone 1 · Header */}
-      <section className="rounded-lg border border-gray-200 bg-white px-4 py-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Provider Prospect
-            </p>
-            <h3 className="mt-0.5 truncate text-base font-semibold text-gray-900">
-              {orgName}
-            </h3>
-            {(location || campusName) && (
-              <p className="mt-0.5 truncate text-xs text-gray-500">
-                {[location, campusName ? `${campusName} catchment` : null]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* The drawer's own panel header already carries the org name +
+          "Texas A&M University · Provider" subtitle. Skipping the
+          redundant inner Provider Prospect box — location + catchment
+          live in the General Contact section below, and the campus is
+          already in the panel header. */}
 
       {/* Zone 2 · Next Step */}
       <NextStepCard

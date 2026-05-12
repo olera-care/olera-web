@@ -97,6 +97,20 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
     }
   };
 
+  // v9 final: post-launch contact-form banner. When the outreach
+  // is already in flight AND a contact_form_url is on file AND no
+  // contact_form_submitted touchpoint exists yet, surface a one-
+  // line banner asking admin to decide on the form. Hides the
+  // moment any outcome lands.
+  const hasContactFormUrl = Boolean(
+    (outreach.research_data?.general_contact?.contact_form_url ?? "").trim(),
+  );
+  const lastContactFormTp = ctx.touchpoints.find(
+    (t) => t.touchpoint_type === "contact_form_submitted",
+  );
+  const showContactFormBanner =
+    !isPreLaunch && hasContactFormUrl && !lastContactFormTp;
+
   return (
     <section className="space-y-5 rounded-lg border border-gray-200 bg-white p-4">
       <header className="flex items-start justify-between gap-3">
@@ -130,7 +144,21 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
         action={action}
         setError={setError}
         editable={isPreLaunch}
+        lastContactFormOutcome={
+          (lastContactFormTp?.payload as Record<string, unknown> | null)
+            ?.outcome as string | undefined
+        }
       />
+
+      {showContactFormBanner && (
+        <ContactFormBanner
+          url={
+            outreach.research_data?.general_contact?.contact_form_url ?? ""
+          }
+          action={action}
+          setError={setError}
+        />
+      )}
 
       {/* ── 2. Specific Contacts ────────────────────────────────────
           Named individuals only (owner / hiring manager / etc.).
@@ -218,11 +246,16 @@ function GeneralContactSection({
   action,
   setError,
   editable,
+  lastContactFormOutcome,
 }: {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (msg: string | null) => void;
   editable: boolean;
+  /** v9 final: when a contact_form_submitted touchpoint exists,
+   *  show the latest outcome as a small chip next to the Contact
+   *  Form field so admin sees the decision at a glance. */
+  lastContactFormOutcome?: string;
 }) {
   const bp = ctx.provider_business_profile;
   const research = (ctx.outreach.research_data ?? {}) as Record<string, unknown>;
@@ -301,12 +334,24 @@ function GeneralContactSection({
         General Contact
       </p>
       <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
-        <CoverageRow checked={Boolean(address || cityState)} label="Address">
-          <span className="block truncate text-gray-700">
-            {[address, cityState].filter(Boolean).join(" · ") || (
-              <span className="text-gray-400">Not on file</span>
-            )}
-          </span>
+        <CoverageRow checked={Boolean(address)} label="Address">
+          {/* Render full address when present. When only city/state is on
+              file, surface the gap explicitly so admin sees the missing
+              street address rather than glossing over it. */}
+          {address ? (
+            <span className="block truncate text-gray-700">
+              {[address, cityState].filter(Boolean).join(" · ")}
+            </span>
+          ) : cityState ? (
+            <span className="block truncate text-gray-700">
+              {cityState}
+              <span className="ml-1 text-gray-400">
+                · street address not on file
+              </span>
+            </span>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
         </CoverageRow>
         <CoverageRow checked={Boolean(phone)} label="Phone">
           {editable ? (
@@ -367,14 +412,32 @@ function GeneralContactSection({
               className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
             />
           ) : contactFormUrl ? (
-            <a
-              href={contactFormUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block truncate text-emerald-700 hover:underline"
-            >
-              {contactFormUrl}
-            </a>
+            <div className="flex flex-wrap items-center gap-2">
+              <a
+                href={contactFormUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block truncate text-emerald-700 hover:underline"
+              >
+                {contactFormUrl}
+              </a>
+              {lastContactFormOutcome && (
+                <span
+                  className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                    lastContactFormOutcome === "submitted"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : lastContactFormOutcome === "skipped"
+                        ? "bg-gray-100 text-gray-600"
+                        : "bg-amber-50 text-amber-700"
+                  }`}
+                >
+                  {lastContactFormOutcome === "not_available"
+                    ? "Not available"
+                    : lastContactFormOutcome.charAt(0).toUpperCase() +
+                      lastContactFormOutcome.slice(1)}
+                </span>
+              )}
+            </div>
           ) : (
             <span className="text-gray-400">Not on file</span>
           )}
@@ -994,6 +1057,73 @@ function EnrollmentBanner({
         >
           {saving === "informational" ? "Saving…" : "Informational only"}
         </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * v9 final: post-launch contact-form banner. Shows when outreach
+ * is in flight, a contact_form_url is on file, AND no
+ * contact_form_submitted touchpoint has been logged yet. Forces
+ * admin to make an explicit decision about the form so it isn't
+ * silently missed. Clicking any outcome dispatches
+ * log_contact_form_outcome which writes the touchpoint and hides
+ * the banner on the next refresh.
+ */
+function ContactFormBanner({
+  url,
+  action,
+  setError,
+}: {
+  url: string;
+  action: ActionFn;
+  setError: (m: string | null) => void;
+}) {
+  const [saving, setSaving] = useState<string | null>(null);
+  const dispatch = async (outcome: string) => {
+    setSaving(outcome);
+    setError(null);
+    try {
+      await action("log_contact_form_outcome", { outcome, url });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to log outcome");
+    } finally {
+      setSaving(null);
+    }
+  };
+  return (
+    <div className="rounded-md border border-purple-200 bg-purple-50/40 px-3 py-2.5">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-xs text-purple-900">
+          Contact form on file — has it been submitted yet?
+        </p>
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 text-[11px] font-medium text-purple-700 hover:underline"
+        >
+          Open form ↗
+        </a>
+      </div>
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
+        {(
+          [
+            { value: "submitted", label: "Submitted" },
+            { value: "skipped", label: "Skipped" },
+            { value: "not_available", label: "Not available" },
+          ] as const
+        ).map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => dispatch(opt.value)}
+            disabled={saving != null}
+            className="rounded-md border border-purple-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-purple-700 hover:bg-purple-50 disabled:opacity-50"
+          >
+            {saving === opt.value ? "Logging…" : opt.label}
+          </button>
+        ))}
       </div>
     </div>
   );

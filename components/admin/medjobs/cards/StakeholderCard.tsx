@@ -39,7 +39,7 @@ import type {
   StopOutreachReason,
   TabKey,
 } from "@/lib/student-outreach/tab-config";
-import { deriveStageForTabRow, STAGE_DISPLAY, type Stage } from "@/lib/medjobs/stage";
+import { STAGE_DISPLAY, type Stage } from "@/lib/medjobs/stage";
 
 // ── RowCard ──────────────────────────────────────────────────────────────
 
@@ -545,24 +545,28 @@ export function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): R
   else if (tab === "archive") slots = archiveSlots(row, cb);
   else slots = allSlots(row, cb);
 
-  // v9 canonical stage pill — single source of truth across every tab.
-  // Previous per-tab pills (Replied, Booked · Fri 3pm, Stale 8d, Needs
-  // contact, Ready to email…) drifted into a tab-specific vocabulary
-  // that obscured the underlying operational state. Stage answers
-  // "what's true about this row" in one universal label; the footnote
-  // / context line carries the tab-specific operational detail
-  // (last activity, due time, meeting time, stale days). One pill, one
-  // mental model.
-  const stage = deriveStageForTabRow(row);
-  return { ...slots, pill: <StagePill stage={stage} /> };
+  // v9 final: pill removed from row cards. The pill restated entity-
+  // type / tab default (every Prospects row showed "Prospect", every
+  // Replies row showed "In Outreach") without telling the admin what
+  // to do next. The footnote already carries action-oriented copy
+  // ("Ready to launch outreach", "Reply 2d ago", "Call due Tue 3pm")
+  // which is the better operational signal. StagePill export stays
+  // for use inside the drawer's NextStepCard / status headers, but
+  // row cards run without it.
+  return slots;
 }
 
 function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // Sub-state moved from pill → footnote. The canonical stage pill in
-  // buildRowSlots already shows "Prospect"; the footnote tells the
-  // admin whether they're ready to launch or still missing data.
+  // v9 final: footnote answers "what does admin need to do?" not
+  // "what state is this row in?". Two cases:
+  //   researched → row has the data to launch; nudge toward the
+  //                review step that precedes launch.
+  //   prospect   → row is still missing operational info; tell
+  //                admin to fill it before launching.
   const subStateText =
-    row.status === "researched" ? "Ready to launch outreach" : "Needs contact + research";
+    row.status === "researched"
+      ? "Review contact info, then launch outreach"
+      : "Needs contact info before outreach";
   return {
     footnote: (
       <p className="mt-0.5 text-[11px] text-gray-500">{subStateText}</p>
@@ -665,8 +669,12 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   };
   switch (state) {
     case "mid_cadence":
+      // v9 final: drop the "Awaiting reply" prefix — the Replies tab
+      // already implies it. Keep the "last activity Xd ago" signal
+      // (criterion #4 — what changed recently) so admin sees how
+      // long the row has been quiet.
       return {
-        footnote: buildFootnote("Awaiting reply"),
+        footnote: buildFootnote(null),
         cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}
@@ -679,7 +687,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
       };
     case "engaged":
       return {
-        footnote: buildFootnote("Replied"),
+        footnote: buildFootnote("Reply received — review and log outcome"),
         cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}
@@ -692,7 +700,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
       };
     case "wants_meeting":
       return {
-        footnote: buildFootnote("Wants to meet"),
+        footnote: buildFootnote("Wants to meet — book or coordinate time"),
         cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}
@@ -716,7 +724,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
       return {
         footnote: row.followup_notes ? (
           <ExpandableNote text={row.followup_notes} />
-        ) : buildFootnote("Met — needs follow-up"),
+        ) : buildFootnote("Meeting completed — follow-up needed"),
         cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}

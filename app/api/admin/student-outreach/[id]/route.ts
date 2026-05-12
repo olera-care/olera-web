@@ -255,6 +255,16 @@ export async function POST(
         await handleUpdateGeneralContact(db, row, body, user.id);
         break;
 
+      // v9 final: log a contact-form Day 0 outcome. Admin picks
+      // Submitted / Skipped / Not available from PreFlight or from
+      // the post-launch banner. Writes a contact_form_submitted
+      // touchpoint regardless of outcome (the payload.outcome
+      // carries the distinction). Idempotency lives at the UI
+      // level — drawer hides the banner once one exists.
+      case "log_contact_form_outcome":
+        await handleLogContactFormOutcome(db, row, body, user.id);
+        break;
+
       // v9 Make Client — provider conversion. Writes
       // business_profiles.metadata.interview_terms_accepted_at,
       // transitions the outreach row to active_partner so its
@@ -755,6 +765,35 @@ async function handleUpdateGeneralContact(
   }
   const nextResearch: ResearchData = { ...current, general_contact: nextGc };
   await touchOutreach(db, row.id, userId, { research_data: nextResearch });
+}
+
+/**
+ * v9 final: log a contact-form Day 0 outcome. Three outcomes —
+ * 'submitted' (admin filled the form), 'skipped' (URL exists but
+ * admin chose not to use it), 'not_available' (no usable form on
+ * the URL). All three emit a contact_form_submitted touchpoint so
+ * the OutreachTimeline narrates it and deriveStage / drawer banners
+ * pick it up via a simple "any prior outcome?" check.
+ */
+async function handleLogContactFormOutcome(
+  db: DB,
+  row: OutreachRow,
+  body: { outcome?: string; url?: string | null; notes?: string | null },
+  userId: string,
+) {
+  const allowed = new Set(["submitted", "skipped", "not_available"]);
+  const outcome = (body.outcome ?? "").trim();
+  if (!allowed.has(outcome)) {
+    throw new Error("outcome must be submitted | skipped | not_available");
+  }
+  const url = (body.url ?? "").trim() || null;
+  await insertTouchpoint(db, row.id, "contact_form_submitted", userId, {
+    channel: "contact_form",
+    outcome,
+    notes: body.notes?.trim() || null,
+    payload: { url, outcome },
+  });
+  await touchOutreach(db, row.id, userId);
 }
 
 async function handleAddNote(
@@ -1465,6 +1504,12 @@ async function handleScheduleSequence(
       named?: EmailSnapshot[];
     };
     call_scripts?: CallScript[];
+    // v9 final: optional contact-form Day 0 outcome. PreFlight
+    // sends this when the General Contact has a contact_form_url.
+    // Emits a contact_form_submitted touchpoint as part of the
+    // launch so it lands in the timeline alongside Day 0 emails.
+    contact_form_outcome?: "submitted" | "skipped" | "not_available";
+    contact_form_url?: string | null;
   },
   userId: string,
 ) {
@@ -1568,6 +1613,29 @@ async function handleScheduleSequence(
         console.error("Inline Day 0 send failed:", r.reason);
       }
     }
+  }
+
+  // v9 final: contact-form Day 0 step. When PreFlight passed an
+  // outcome, emit the touchpoint as part of the launch so the
+  // OutreachTimeline shows the form decision next to the Day 0
+  // emails. Banner in the drawer keys off the absence of any
+  // contact_form_submitted touchpoint, so this also clears the
+  // banner on launch.
+  const cfOutcome = body.contact_form_outcome;
+  if (
+    cfOutcome === "submitted" ||
+    cfOutcome === "skipped" ||
+    cfOutcome === "not_available"
+  ) {
+    await insertTouchpoint(db, row.id, "contact_form_submitted", userId, {
+      channel: "contact_form",
+      outcome: cfOutcome,
+      payload: {
+        url: body.contact_form_url ?? null,
+        outcome: cfOutcome,
+        day: 0,
+      },
+    });
   }
 }
 

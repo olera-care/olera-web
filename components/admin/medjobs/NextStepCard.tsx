@@ -425,6 +425,9 @@ function ProspectBody({
               ctx.outreach.research_data?.general_contact?.phone ??
               ctx.provider_business_profile?.phone ??
               null,
+            contact_form_url:
+              ctx.outreach.research_data?.general_contact?.contact_form_url ??
+              null,
           }}
           onCancel={() => setShowPreFlight(false)}
           onSubmit={async (payload) => {

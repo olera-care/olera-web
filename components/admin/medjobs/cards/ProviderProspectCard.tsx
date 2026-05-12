@@ -14,7 +14,6 @@
  *   - CTA:      Start outreach (materializes the row + opens drawer)
  */
 
-import { formatRelative } from "@/lib/student-outreach/formatters";
 import type { ProviderProspectRow } from "@/lib/student-outreach/tab-config";
 import { MedjobsCard } from "./MedjobsCard";
 import { Pill } from "./StakeholderCard";
@@ -35,11 +34,15 @@ export function ProviderProspectCard({
     .filter(Boolean)
     .join(" · ");
 
+  // No footnote on virtual catchment rows. "In catchment · provider
+  // since {date}" restated the queue position + offered data trivia
+  // without telling admin anything they need to act on. Title +
+  // subtitle + Log CTA already carry the operational signal: this
+  // is a provider in the catchment, click to start.
   return (
     <MedjobsCard
       title={row.provider_name}
       subtitle={subtitle}
-      footnote={`In catchment · provider since ${formatRelative(row.created_at)}`}
       pill={<Pill title="Provider in this campus's catchment, not yet in outreach.">Provider</Pill>}
       cta={
         <button

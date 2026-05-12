@@ -519,9 +519,22 @@ export default function ProfileEditWizard({
   const handleClose = useCallback(async () => {
     // Save immediately to capture any pending changes (debounce might not have fired yet)
     await saveChanges();
+
+    // Notify all active connections that the profile was updated
+    // This adds a "Care request updated" system message to each connection thread
+    if (hasChanges && profile?.id) {
+      fetch("/api/profile/notify-connections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId: profile.id }),
+      }).catch(() => {
+        // Fire-and-forget - don't block close
+      });
+    }
+
     onSaved(); // Refresh parent data
     onClose();
-  }, [saveChanges, onSaved, onClose]);
+  }, [saveChanges, onSaved, onClose, hasChanges, profile?.id]);
 
   // Step validation (optional - for visual feedback)
   const isStep1Valid = displayName.trim().length > 0;

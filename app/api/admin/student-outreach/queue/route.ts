@@ -404,13 +404,49 @@ async function computeTabCounts(
       counts.partners++;
       if (isUnread) unread.partners++;
     } else if (replies.has(row.status)) {
-      counts.replies++;
-      if (isUnread) unread.replies++;
+      // v9 final: replies count is replaced below with per-recipient
+      // fan-out. We still collect inProgressIds for the fan-out query.
       inProgressIds.push(row.id);
     }
     if (row.status === "no_response_closed") {
       counts.archive++;
       if (isUnread) unread.archive++;
+    }
+  }
+
+  // v9 final: Replies tab fans out one card per email-sent recipient
+  // (General Contact + each Specific Contact each get their own
+  // operational card). Count distinct (outreach, recipient) pairs
+  // from email_sent touchpoints so the tab fraction matches the
+  // rendered cards. Outreach rows with no email_sent touchpoints
+  // yet (just transitioned to outreach_sent but Day 0 hasn't fired
+  // OR legacy rows) fall back to 1 card per outreach.
+  const repliesRecipientCountByOutreach = new Map<string, number>();
+  if (inProgressIds.length > 0) {
+    const { data: emailSentRows } = await db
+      .from("student_outreach_touchpoints")
+      .select("outreach_id, contact_id, payload")
+      .eq("touchpoint_type", "email_sent")
+      .in("outreach_id", inProgressIds);
+    const recipientsByOutreach = new Map<string, Set<string>>();
+    for (const tp of (emailSentRows ?? []) as Array<{
+      outreach_id: string;
+      contact_id: string | null;
+      payload: Record<string, unknown> | null;
+    }>) {
+      const key = tp.contact_id ?? "__general__";
+      let set = recipientsByOutreach.get(tp.outreach_id);
+      if (!set) {
+        set = new Set();
+        recipientsByOutreach.set(tp.outreach_id, set);
+      }
+      set.add(key);
+    }
+    for (const id of inProgressIds) {
+      const n = recipientsByOutreach.get(id)?.size ?? 1;
+      repliesRecipientCountByOutreach.set(id, n);
+      counts.replies += n;
+      if (unreadIds.has(id)) unread.replies += n;
     }
   }
 
@@ -429,13 +465,21 @@ async function computeTabCounts(
   if (filters.campusId) callQ = callQ.eq("student_outreach.campus_id", filters.campusId);
   if (filters.type) callQ = callQ.eq("student_outreach.stakeholder_type", filters.type);
   const { data: callTasks } = await callQ;
-  const callSet = new Set<string>();
-  for (const t of (callTasks ?? []) as Array<{ outreach_id: string }>) {
-    callSet.add(t.outreach_id);
-  }
-  counts.calls = callSet.size;
-  // v9.0 Phase 4: unread call rows = subset of callSet that are unread.
-  for (const id of callSet) if (unreadIds.has(id)) unread.calls++;
+  // v9 final: Calls tab fans out one card per pending call task
+  // (General Contact + each Specific Contact each get their own
+  // operational card). Counts must match the rendered cards — count
+  // tasks, not outreach rows. Earlier behavior collapsed via Set on
+  // outreach_id and showed "1/1" when two cards were rendered.
+  const callTaskRows = (callTasks ?? []) as Array<{ outreach_id: string }>;
+  counts.calls = callTaskRows.length;
+  // Unread = tasks whose outreach row is unread. The viewed_at
+  // state lives on student_outreach, so all per-recipient cards on
+  // the same outreach share that state until per-task read tracking
+  // ships.
+  for (const t of callTaskRows) if (unreadIds.has(t.outreach_id)) unread.calls++;
+  // Keep a Set form for the partners/calls invariants below — they
+  // index by outreach_id, not task.
+  const callSet = new Set(callTaskRows.map((t) => t.outreach_id));
 
   // v9.0 Phase 6.5: Partners count for the In Basket tab is task-driven
   // (smart-hide when no partners have open tasks). Override the
@@ -466,19 +510,29 @@ async function computeTabCounts(
   // we subtract them from the replies count here.
   // v8.10.6: stale-derived rows are dropped from Replies and added to
   // Archive — same rebalancing pattern as scheduled meetings.
+  // v9 final: Replies now fans per-recipient, so each scheduled /
+  // stale outreach removes N replies cards (not 1) — use the
+  // per-outreach recipient count from the fan-out pass above.
   if (inProgressIds.length > 0) {
     const { meetings, scheduled, stale, meetingIds, scheduledIds, staleIds } =
       await countMeetingsAmongRows(db, inProgressIds);
     counts.meetings = meetings;
-    counts.replies = Math.max(0, counts.replies - scheduled - stale);
     counts.archive += stale;
-    // v9.0 Phase 4: rebalance unread the same way the totals were
-    // rebalanced — meeting + scheduled + stale rows pull out of replies.
+    const replyCardsFor = (id: string) =>
+      repliesRecipientCountByOutreach.get(id) ?? 1;
     for (const id of meetingIds) if (unreadIds.has(id)) unread.meetings++;
-    for (const id of scheduledIds) if (unreadIds.has(id)) unread.replies = Math.max(0, unread.replies - 1);
-    for (const id of staleIds) {
+    for (const id of scheduledIds) {
+      const n = replyCardsFor(id);
+      counts.replies = Math.max(0, counts.replies - n);
       if (unreadIds.has(id)) {
-        unread.replies = Math.max(0, unread.replies - 1);
+        unread.replies = Math.max(0, unread.replies - n);
+      }
+    }
+    for (const id of staleIds) {
+      const n = replyCardsFor(id);
+      counts.replies = Math.max(0, counts.replies - n);
+      if (unreadIds.has(id)) {
+        unread.replies = Math.max(0, unread.replies - n);
         unread.archive++;
       }
     }
@@ -1099,7 +1153,7 @@ async function hydrateRows(
       .eq("status", "pending"),
     db
       .from("student_outreach_touchpoints")
-      .select("outreach_id, touchpoint_type, payload, notes, created_at, created_by")
+      .select("outreach_id, contact_id, touchpoint_type, payload, notes, created_at, created_by")
       .in("outreach_id", ids)
       .order("created_at", { ascending: false }),
   ]);
@@ -1242,13 +1296,60 @@ async function hydrateRows(
   // Build TabRow output.
   // v9 final: Calls tab fans out — one TabRow per pending call task
   // (General Contact + each Specific Contact each get their own ops
-  // card). Other tabs keep the one-row-per-outreach shape.
+  // card). Replies tab fans out the same way — one card per
+  // email-sent recipient. Other tabs keep one-row-per-outreach.
   const tasksByOutreach = new Map<string, DueCallTaskExpanded[]>();
   if (tab === "calls") {
     for (const t of dueCallTasks) {
       const list = tasksByOutreach.get(t.outreach_id) ?? [];
       list.push(t);
       tasksByOutreach.set(t.outreach_id, list);
+    }
+  }
+
+  // v9 final: Replies recipient fan-out from email_sent touchpoints.
+  // For each outreach in the replies tab, collect distinct
+  // recipients (specific contact_id OR synthetic 'general') with
+  // their denormalized display info. Each unique recipient becomes
+  // one Replies card scoped to that outreach.
+  interface ReplyRecipient {
+    contact_id: string | null;
+    recipient_kind: "specific" | "general";
+    name: string | null;
+    email: string | null;
+  }
+  const replyRecipientsByOutreach = new Map<string, ReplyRecipient[]>();
+  if (tab === "replies") {
+    for (const id of ids) {
+      const tps = tpsByOutreach.get(id) ?? [];
+      const seen = new Map<string, ReplyRecipient>();
+      for (const tp of tps) {
+        if (tp.touchpoint_type !== "email_sent") continue;
+        const tpAny = tp as unknown as {
+          contact_id: string | null;
+          payload: Record<string, unknown> | null;
+        };
+        const payload = tpAny.payload ?? {};
+        const recipientKind =
+          tpAny.contact_id == null ? "general" : "specific";
+        const key = tpAny.contact_id ?? "__general__";
+        if (seen.has(key)) continue;
+        seen.set(key, {
+          contact_id: tpAny.contact_id,
+          recipient_kind: recipientKind,
+          name:
+            typeof payload.recipient_name === "string"
+              ? (payload.recipient_name as string)
+              : null,
+          email:
+            typeof payload.recipient_email === "string"
+              ? (payload.recipient_email as string)
+              : null,
+        });
+      }
+      if (seen.size > 0) {
+        replyRecipientsByOutreach.set(id, Array.from(seen.values()));
+      }
     }
   }
 
@@ -1324,6 +1425,40 @@ async function hydrateRows(
           // populated for compatibility with any caller that still
           // peeks at it.
           due_call_recipients: t.recipient_name ? [t.recipient_name] : [],
+        });
+      }
+    } else if (tab === "replies") {
+      const recipients = replyRecipientsByOutreach.get(row.id) ?? [];
+      if (recipients.length === 0) {
+        // Outreach is in REPLIES_STATUSES but no email_sent
+        // touchpoints yet (just transitioned; Day 0 hasn't fired
+        // OR legacy row pre-per-recipient cadence). Render one
+        // card with the primary-contact fallback so the row
+        // isn't lost.
+        tabRows.push({
+          ...baseRow,
+          row_key: row.id,
+          primary_contact_name: primary?.name ?? null,
+          primary_contact_phone: primary?.phone ?? null,
+          primary_contact_role: primary?.role ?? null,
+          due_call_task: null,
+          due_call_recipients: [],
+        });
+        continue;
+      }
+      for (const r of recipients) {
+        const recipientKey = r.contact_id ?? "general";
+        tabRows.push({
+          ...baseRow,
+          row_key: `${row.id}-${recipientKey}`,
+          primary_contact_name: r.name ?? primary?.name ?? null,
+          primary_contact_phone: primary?.phone ?? null,
+          primary_contact_role:
+            r.recipient_kind === "general"
+              ? "General Contact"
+              : primary?.role ?? null,
+          due_call_task: null,
+          due_call_recipients: [],
         });
       }
     } else {

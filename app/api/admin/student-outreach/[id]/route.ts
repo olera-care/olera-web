@@ -1708,6 +1708,16 @@ async function handleScheduleSequence(
     await touchOutreach(db, row.id, userId);
   }
 
+  // v9 final: clear viewed_at so the row + every per-recipient card
+  // it now generates surface as unread on the Calls + Replies tabs.
+  // Admin opened the drawer pre-launch (mark_read fired then), but
+  // launching CREATES new operational work — those cards should
+  // bold + boost the tab fractions until admin acts on each.
+  await db
+    .from("student_outreach")
+    .update({ viewed_at: null })
+    .eq("id", row.id);
+
   // v9 Phase 9: inline-fire ALL Day-0 email tasks in parallel. With
   // per-recipient mode this can be N sends; we want the first wave
   // out the door while admin is still on the launch screen. Sends

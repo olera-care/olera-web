@@ -114,6 +114,14 @@ export default function CompareCard({
     <>
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
         <div className="px-5 pt-5 pb-5">
+          {/* Hook line */}
+          <div className="flex items-center gap-1.5 mb-3">
+            <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+            </svg>
+            <span className="text-sm font-semibold text-primary-600">Quick comparison</span>
+          </div>
+
           {/* Price section */}
           <div className="mb-4 pb-4 border-b border-gray-100">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
@@ -127,7 +135,7 @@ export default function CompareCard({
 
           {/* Headline */}
           <h3 className="text-2xl font-bold text-gray-900 leading-snug mb-1">
-            How does {firstName} compare?
+            How do they compare?
           </h3>
           <p className="text-sm text-gray-500 mb-5">
             Side by side with {nearbyCount || 2} nearby home{nearbyCount !== 1 ? "s" : ""}
@@ -140,6 +148,11 @@ export default function CompareCard({
           >
             Compare
           </button>
+
+          {/* Social proof */}
+          <p className="text-center text-xs text-gray-400 mt-3">
+            Takes seconds · No signup required
+          </p>
         </div>
       </div>
 

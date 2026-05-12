@@ -369,50 +369,43 @@ export default function CompareOverlay({
               );
             })}
 
-            {/* "Compare with N nearby homes" button - shown when collapsed */}
+            {/* "Compare with N more" button - shown when collapsed */}
             {!showSimilar && hasSimilarProviders && (
-              <button
-                type="button"
-                onClick={() => setShowSimilar(true)}
-                className="flex items-center gap-3 px-4 py-3.5 w-full rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group"
-              >
-                {/* Stacked avatars */}
-                <div className="flex -space-x-2">
-                  {similarProviders.slice(0, 2).map((p) =>
-                    p.image ? (
-                      <Image
-                        key={p.id}
-                        src={p.image}
-                        alt={p.name}
-                        width={28}
-                        height={28}
-                        className="w-7 h-7 rounded-full ring-2 ring-white object-cover bg-gray-100"
-                      />
-                    ) : (
-                      <div
-                        key={p.id}
-                        className="w-7 h-7 rounded-full ring-2 ring-white bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center"
-                      >
-                        <span className="text-xs font-semibold text-amber-700">
-                          {p.name.charAt(0)}
-                        </span>
-                      </div>
-                    )
-                  )}
-                </div>
-                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                  Compare with {similarProviders.length} nearby home{similarProviders.length !== 1 ? "s" : ""}
-                </span>
-                <svg
-                  className="w-4 h-4 text-gray-400 group-hover:text-gray-600 ml-auto transition-transform group-hover:translate-x-0.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
+              <div className="pt-4 pb-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSimilar(true)}
+                  className="flex items-center justify-center gap-2.5 w-full py-2 group"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+                  {/* Stacked avatars */}
+                  <div className="flex -space-x-2">
+                    {similarProviders.slice(0, 2).map((p) =>
+                      p.image ? (
+                        <Image
+                          key={p.id}
+                          src={p.image}
+                          alt={p.name}
+                          width={28}
+                          height={28}
+                          className="w-7 h-7 rounded-full ring-2 ring-white object-cover bg-gray-100"
+                        />
+                      ) : (
+                        <div
+                          key={p.id}
+                          className="w-7 h-7 rounded-full ring-2 ring-white bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center"
+                        >
+                          <span className="text-xs font-semibold text-amber-700">
+                            {p.name.charAt(0)}
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                  <span className="text-[15px] font-medium text-primary-600 group-hover:text-primary-700 transition-colors">
+                    Compare with {similarProviders.length} more
+                  </span>
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -550,11 +543,9 @@ function CompareCard({ provider, isCurrentProvider, isSelected, onToggle, showTo
   return (
     <div
       className={`relative rounded-xl border-2 p-4 transition-all ${
-        isCurrentProvider
-          ? "border-primary-500 bg-white"
-          : isSelected
-            ? "border-gray-200 bg-white"
-            : "border-gray-100 bg-gray-50/50 opacity-60"
+        isSelected
+          ? "border-gray-200 bg-white"
+          : "border-gray-100 bg-gray-50/50 opacity-60"
       }`}
     >
       {/* "THIS PAGE" badge - positioned on border */}

@@ -226,7 +226,8 @@ export default function CompareOverlay({
 
       // Redirect to inbox after brief delay
       setTimeout(() => {
-        router.push("/portal/inbox");
+        const firstConnectionId = data.connectionIds?.[0];
+        router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
       }, 1500);
     } catch {
       setError("Something went wrong. Please try again.");

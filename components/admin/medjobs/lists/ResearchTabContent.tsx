@@ -127,6 +127,14 @@ export function ResearchTabContent({
 
   const providerCardList = hasProvider ? (
     <ul className="space-y-2 pt-2">
+      {/* v9 final: materialized rows render BEFORE virtual catchment
+          rows. Newly-materialized prospects keep their visual
+          position near the top of the section rather than jumping
+          from one block to another. Catchment rows below = "still
+          to be triaged". */}
+      {providerRows.map((row) => (
+        <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
+      ))}
       {providerProspects.map((p) => (
         <li key={p.id}>
           <ProviderProspectCard
@@ -136,7 +144,7 @@ export function ResearchTabContent({
               <CardOverflowMenu
                 items={[
                   {
-                    label: "Open in Directory",
+                    label: "Open in directory ↗",
                     onClick: () => {
                       window.open(
                         `/admin/directory?providerId=${p.provider_id}`,
@@ -145,14 +153,52 @@ export function ResearchTabContent({
                       );
                     },
                   },
+                  {
+                    label: "See log history",
+                    onClick: () => {
+                      window.location.href = `/admin/medjobs/logs?provider_id=${p.provider_id}`;
+                    },
+                  },
+                  {
+                    label: "Mark as Client ✓",
+                    tone: "celebration",
+                    onClick: async () => {
+                      if (
+                        !window.confirm(
+                          `Mark ${p.provider_name} as a Client?\n\nMaterializes the outreach row and flags the provider as a Client.`,
+                        )
+                      )
+                        return;
+                      try {
+                        const res = await fetch(
+                          "/api/admin/medjobs/provider-prospects/materialize",
+                          {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              provider_id: p.provider_id,
+                              campus_id: p.campus_id,
+                            }),
+                          },
+                        );
+                        const body = await res.json();
+                        if (!res.ok) throw new Error(body.error || "Materialize failed");
+                        await fetch(`/api/admin/student-outreach/${body.id}`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ action: "make_client" }),
+                        });
+                        window.location.reload();
+                      } catch (e) {
+                        console.error(e);
+                      }
+                    },
+                  },
                 ]}
               />
             }
           />
         </li>
-      ))}
-      {providerRows.map((row) => (
-        <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
       ))}
     </ul>
   ) : null;

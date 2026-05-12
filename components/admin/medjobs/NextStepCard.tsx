@@ -221,11 +221,21 @@ function ProspectBody({
   //     workflow when admin needs to phone the provider for any
   //     missing piece (not just email — the modal logs the call
   //     outcome and admin captures whatever they learned).
-  // Both surface on prospect/researched rows while launch is gated.
+  // Both surface on prospect/researched rows whenever the
+  // corresponding data is on file. The earlier !launchEnabled gate
+  // hid the buttons once the checklist passed, which removed a
+  // useful research aid for admins double-checking info right
+  // before they hit Launch.
   const isProviderProspect = ctx.outreach.kind === "provider";
-  const providerPhone = ctx.provider_business_profile?.phone ?? null;
+  const generalContactSlot =
+    ctx.outreach.research_data?.general_contact ?? {};
+  // v9 final: effective General Contact phone (override OR bp
+  // fallback) — earlier read bp.phone only, so an admin-added
+  // phone override never lit up the call button.
+  const generalContactPhone =
+    generalContactSlot.phone ?? ctx.provider_business_profile?.phone ?? null;
   const generalContactWebsite =
-    ctx.outreach.research_data?.general_contact?.website ??
+    generalContactSlot.website ??
     ctx.provider_business_profile?.website ??
     null;
   const callAttempts = ctx.touchpoints.filter((t) =>
@@ -236,13 +246,10 @@ function ProspectBody({
       "call_wrong_number",
     ].includes(t.touchpoint_type),
   ).length;
-  // "Call to obtain information" stays available whenever the row
-  // has a phone AND launch is gated — admin uses it for email,
-  // hours, address details, anything missing.
   const showCallForEmailCta =
-    isProviderProspect && !launchEnabled && Boolean(providerPhone);
+    isProviderProspect && Boolean(generalContactPhone);
   const showVisitWebsiteCta =
-    isProviderProspect && !launchEnabled && Boolean(generalContactWebsite);
+    isProviderProspect && Boolean(generalContactWebsite);
 
   // v9 final: pre-flight checklist. Three tones:
   //   required    → blocks launch (red ✗ when missing)
@@ -289,8 +296,7 @@ function ProspectBody({
         Pre-flight checklist
       </p>
       <p className="mt-0.5 text-xs text-gray-500">
-        Clean up info, add contact, then launch. Edit fields in the
-        Provider Profile section below — saves are automatic on blur.
+        Add missing info, then launch outreach.
       </p>
       <ul className="mt-2 space-y-1 text-xs">
         <ChecklistRow
@@ -480,7 +486,7 @@ function ProspectBody({
       {showCallForEmail && (
         <CallForEmailModal
           organizationName={ctx.outreach.organization_name}
-          phone={providerPhone}
+          phone={generalContactPhone}
           action={action}
           onCancel={() => setShowCallForEmail(false)}
           onDone={() => setShowCallForEmail(false)}

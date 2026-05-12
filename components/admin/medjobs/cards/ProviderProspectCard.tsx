@@ -58,6 +58,12 @@ export function ProviderProspectCard({
       overflowMenu={overflowMenu}
       onClick={onStartOutreach}
       hoverTitle="Materialize this provider into outreach."
+      // v9 final: virtual prospects are by definition "new — never
+      // touched". Render with the unread bold-black border + bold
+      // title so admin sees them as queued work to triage. Once
+      // materialized + the drawer opens, the resulting row's
+      // viewed_at flips and the bolding clears.
+      unread
     />
   );
 }

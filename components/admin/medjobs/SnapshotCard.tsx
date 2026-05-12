@@ -171,14 +171,9 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
           No "General Office" tag — that lives at the General
           Contact section above. */}
       <div>
-        <div className="mb-1.5 flex items-baseline justify-between gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-            Specific Contacts
-          </p>
-          <span className="text-[11px] text-gray-400">
-            {activeContacts.length} active · {inactiveContacts.length} inactive
-          </span>
-        </div>
+        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          Specific Contacts
+        </p>
 
         {ctx.contacts.length === 0 ? (
           <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs text-gray-500">
@@ -319,6 +314,10 @@ function GeneralContactSection({
   const [stateField, setStateField] = useState(effective.state);
   const [zip, setZip] = useState(effective.zip);
   const [saving, setSaving] = useState<string | null>(null);
+  // v9 final: surface explicit save state at the section header so
+  // admin sees "Saving…" → "Saved" feedback after every blur. The
+  // earlier autosave was silent except for tiny per-field text.
+  const [savedAt, setSavedAt] = useState<number | null>(null);
 
   useEffect(() => {
     setEmail(effective.email);
@@ -388,12 +387,10 @@ function GeneralContactSection({
     setSaving(field);
     setError(null);
     try {
-      // Clearing → send null to drop the override (revert to bp
-      // fallback). Non-empty → save as override. Same semantics
-      // across every editable field.
       await action("update_general_contact", {
         [field]: trimmed === "" ? null : trimmed,
       });
+      setSavedAt(Date.now());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
     } finally {
@@ -403,9 +400,12 @@ function GeneralContactSection({
 
   return (
     <div>
-      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-        General Contact
-      </p>
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          General Contact
+        </p>
+        <SaveStatusBadge saving={saving} savedAt={savedAt} />
+      </div>
       <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
         <CoverageRow checked={addressComplete} label="Address">
           {/* v9 final: structured address — separate slots so admin
@@ -579,15 +579,44 @@ function GeneralContactSection({
           )}
         </CoverageRow>
       </dl>
-      <p className="mt-1.5 text-[11px] text-gray-400">
-        {saving
-          ? `Saving ${saving}…`
-          : editable
-            ? "Org-level contact info. Edits override the directory record per-outreach (saved on blur)."
-            : "Org-level contact info. Specific named contacts are managed below."}
-      </p>
     </div>
   );
+}
+
+/**
+ * v9 final: explicit save state. Three modes:
+ *   saving=field     → "Saving…"
+ *   savedAt recent   → "Saved · just now"  (≤ 3s)
+ *   savedAt older    → hidden (signal stops being noise)
+ * Mounted in the General Contact header so the cue lives next to
+ * what's being saved, not buried below.
+ */
+function SaveStatusBadge({
+  saving,
+  savedAt,
+}: {
+  saving: string | null;
+  savedAt: number | null;
+}) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!savedAt || saving) return;
+    const t = setTimeout(() => setTick((x) => x + 1), 3000);
+    return () => clearTimeout(t);
+  }, [savedAt, saving]);
+  if (saving) {
+    return (
+      <span className="text-[11px] font-medium text-gray-500">Saving…</span>
+    );
+  }
+  if (savedAt && Date.now() - savedAt < 3000) {
+    return (
+      <span className="text-[11px] font-medium text-emerald-700">
+        ✓ Saved
+      </span>
+    );
+  }
+  return null;
 }
 
 // ── ContactRow ──────────────────────────────────────────────────────────

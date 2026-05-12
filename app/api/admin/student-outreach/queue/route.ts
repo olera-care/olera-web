@@ -854,12 +854,19 @@ async function fetchRowIdsForTab(
       const inc = showClosed
         ? [...RESEARCH_STATUSES, ...REPLIES_STATUSES, ...PARTNER_ALL, ...CLOSED_STATUSES]
         : [...RESEARCH_STATUSES, ...REPLIES_STATUSES, ...PARTNER_ALL];
-      return await idsByStatus(db, inc as Status[], { campusId, type, search, page, pageSize });
+      // v9 final: stable sort — created_at desc keeps card position
+      // fixed regardless of incidental drawer activity. Matches the
+      // Prospects tab.
+      return await idsByStatus(db, inc as Status[], { campusId, type, search, page, pageSize }, "created_at");
     }
     case "replies": {
-      const active = await idsByStatus(db, REPLIES_STATUSES, { campusId, type, search, page, pageSize });
+      // v9 final: stable sort — created_at desc so opening a drawer
+      // or saving an inline edit doesn't shuffle the list. Earlier
+      // last_edited_at desc moved cards on every action which
+      // destabilized the admin's mental map of "what was where".
+      const active = await idsByStatus(db, REPLIES_STATUSES, { campusId, type, search, page, pageSize }, "created_at");
       if (!showClosed) return active;
-      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize }, "created_at");
       return [...active, ...closed];
     }
     case "calls": {
@@ -906,7 +913,7 @@ async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
     .from("student_outreach")
     .select("id")
     .in("status", ARCHIVE_STATUSES)
-    .order("last_edited_at", { ascending: false });
+    .order("created_at", { ascending: false });
   if (opts.campusId) closedQ = closedQ.eq("campus_id", opts.campusId);
   if (opts.type) closedQ = closedQ.eq("stakeholder_type", opts.type);
   if (opts.search) closedQ = closedQ.ilike("organization_name", `%${opts.search}%`);
@@ -918,7 +925,7 @@ async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
     .from("student_outreach")
     .select("id")
     .eq("status", "outreach_sent")
-    .order("last_edited_at", { ascending: false });
+    .order("created_at", { ascending: false });
   if (opts.campusId) activeQ = activeQ.eq("campus_id", opts.campusId);
   if (opts.type) activeQ = activeQ.eq("stakeholder_type", opts.type);
   if (opts.search) activeQ = activeQ.ilike("organization_name", `%${opts.search}%`);

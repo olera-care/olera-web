@@ -62,7 +62,10 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const street = gc.street ?? ctx.provider_business_profile?.address ?? "";
   const cityVal = gc.city ?? ctx.provider_business_profile?.city ?? "";
   const stateVal = gc.state ?? ctx.provider_business_profile?.state ?? "";
-  const zipVal = gc.zip ?? "";
+  // v9 final: zip falls back to bp.zip (the directory has a ZIP
+  // column the gate was ignoring) so launching isn't blocked when
+  // the directory already carries it.
+  const zipVal = gc.zip ?? ctx.provider_business_profile?.zip ?? "";
 
   const hasEmail = Boolean(generalEmail?.includes("@"));
   const hasPhone = Boolean(generalPhone);

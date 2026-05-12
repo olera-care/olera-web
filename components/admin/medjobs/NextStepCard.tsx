@@ -258,7 +258,10 @@ function ProspectBody({
   const street = gc.street ?? ctx.provider_business_profile?.address ?? "";
   const cityVal = gc.city ?? ctx.provider_business_profile?.city ?? "";
   const stateVal = gc.state ?? ctx.provider_business_profile?.state ?? "";
-  const zipVal = gc.zip ?? "";
+  // v9 final: zip falls back to bp.zip (the directory has a ZIP
+  // column the checklist was ignoring) so the row passes the
+  // address check when the directory already carries the ZIP.
+  const zipVal = gc.zip ?? ctx.provider_business_profile?.zip ?? "";
   const addressComplete = Boolean(
     street.trim() &&
       cityVal.trim() &&

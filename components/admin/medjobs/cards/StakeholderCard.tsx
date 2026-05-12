@@ -532,15 +532,23 @@ export function buildUniversalOverflow(
   if (options.extraItems) items.push(...options.extraItems);
   items.push({ label: "Mark as unread", onClick: () => void cb.onMarkUnread() });
   // v9 final: cross-surface navigation. Open in directory jumps to
-  // the public listing (provider rows). See log history filters the
-  // unified Logs feed to this row's outreach_id. Both shortcuts beat
-  // copy-pasting URLs or hunting for the row again.
+  // the public listing (provider rows only — cb.onOpenDirectory is
+  // populated server-side only when provider_slug exists). See log
+  // history filters the unified Logs feed to this row's outreach_id.
   if (cb.onOpenDirectory) {
     items.push({ label: "Open in directory ↗", onClick: cb.onOpenDirectory });
   }
   if (cb.onSeeLogHistory) {
     items.push({ label: "See log history", onClick: cb.onSeeLogHistory });
   }
+  // v9 final: Archive is a top-level shortcut for "no response —
+  // close" which is the most common close-out reason. The full
+  // Stop-outreach submenu below still covers the other reasons
+  // (not interested / wrong contact / do not contact).
+  items.push({
+    label: "Archive",
+    onClick: () => void cb.onStopOutreach("no_response_closed"),
+  });
   return <OverflowMenu items={items} onStopOutreach={cb.onStopOutreach} />;
 }
 
@@ -589,7 +597,7 @@ function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Log
       </PrimaryAction>
     ),
-    overflowMenu: buildUniversalOverflow(cb),
+    overflowMenu: buildUniversalOverflow(cb, { row }),
   };
 }
 
@@ -625,7 +633,7 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Log
       </PrimaryAction>
     ),
-    overflowMenu: buildUniversalOverflow(cb),
+    overflowMenu: buildUniversalOverflow(cb, { row }),
   };
 }
 
@@ -664,7 +672,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Log
           </PrimaryAction>
         ),
-        overflowMenu: buildUniversalOverflow(cb),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
     case "engaged":
       return {
@@ -677,7 +685,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Log
           </PrimaryAction>
         ),
-        overflowMenu: buildUniversalOverflow(cb),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
     case "wants_meeting":
       return {
@@ -690,7 +698,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Log
           </PrimaryAction>
         ),
-        overflowMenu: buildUniversalOverflow(cb),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
     case "booked":
       return {
@@ -699,7 +707,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Booked · {formatLongDate(row.meeting_at)}
           </p>
         ) : buildFootnote("Booked"),
-        overflowMenu: buildUniversalOverflow(cb),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
     case "needs_followup":
       return {
@@ -714,7 +722,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Log
           </PrimaryAction>
         ),
-        overflowMenu: buildUniversalOverflow(cb),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
     case "awaiting_callback": {
       const kindLabel =
@@ -733,7 +741,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Log
           </PrimaryAction>
         ),
-        overflowMenu: buildUniversalOverflow(cb),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
     }
     case "stale":
@@ -743,7 +751,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Stale{row.stale_days != null ? ` · ${row.stale_days}d cold` : ""}
           </p>
         ),
-        overflowMenu: buildUniversalOverflow(cb),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
   }
 }
@@ -768,7 +776,7 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Log
       </PrimaryAction>
     ),
-    overflowMenu: buildUniversalOverflow(cb),
+    overflowMenu: buildUniversalOverflow(cb, { row }),
   };
 }
 

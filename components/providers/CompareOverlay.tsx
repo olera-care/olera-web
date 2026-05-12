@@ -369,44 +369,6 @@ export default function CompareOverlay({
               );
             })}
 
-            {/* "Compare with N more" button - shown when collapsed */}
-            {!showSimilar && hasSimilarProviders && (
-              <div className="pt-4 pb-2">
-                <button
-                  type="button"
-                  onClick={() => setShowSimilar(true)}
-                  className="flex items-center justify-center gap-2.5 w-full py-2 group"
-                >
-                  {/* Stacked avatars */}
-                  <div className="flex -space-x-2">
-                    {similarProviders.slice(0, 2).map((p) =>
-                      p.image ? (
-                        <Image
-                          key={p.id}
-                          src={p.image}
-                          alt={p.name}
-                          width={28}
-                          height={28}
-                          className="w-7 h-7 rounded-full ring-2 ring-white object-cover bg-gray-100"
-                        />
-                      ) : (
-                        <div
-                          key={p.id}
-                          className="w-7 h-7 rounded-full ring-2 ring-white bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center"
-                        >
-                          <span className="text-xs font-semibold text-amber-700">
-                            {p.name.charAt(0)}
-                          </span>
-                        </div>
-                      )
-                    )}
-                  </div>
-                  <span className="text-[15px] font-medium text-primary-600 group-hover:text-primary-700 transition-colors">
-                    Compare with {similarProviders.length} more
-                  </span>
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
@@ -449,26 +411,50 @@ export default function CompareOverlay({
               {error && (
                 <p className="text-sm text-red-600 mb-3">{error}</p>
               )}
-              <button
-                type="button"
-                onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
-                disabled={showSimilar && selectedCount === 0}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
-              >
-                {!showSimilar
-                  ? "Save this provider"
-                  : selectedCount === 0
-                    ? "Select at least one"
-                    : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-              </button>
-              <p className="text-center text-xs text-gray-500 mt-2">
-                {isLoggedIn
-                  ? `Saving as ${userEmail}`
-                  : `Message ${showSimilar ? "any of them" : "them"} when you're ready`}
-              </p>
+              {/* Collapsed state: Compare is primary, Save is secondary */}
+              {!showSimilar && hasSimilarProviders ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowSimilar(true)}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
+                  >
+                    Compare with {similarProviders.length} more
+                  </button>
+                  <p className="text-center text-[13px] text-gray-500 mt-2.5">
+                    or{" "}
+                    <button
+                      type="button"
+                      onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
+                      className="text-gray-700 font-medium hover:text-gray-900 underline underline-offset-2"
+                    >
+                      just save this one
+                    </button>
+                  </p>
+                </>
+              ) : (
+                /* Expanded state OR no similar providers: Save is primary */
+                <>
+                  <button
+                    type="button"
+                    onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
+                    disabled={showSimilar && selectedCount === 0}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
+                  >
+                    {selectedCount === 0
+                      ? "Select at least one"
+                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                  </button>
+                  <p className="text-center text-xs text-gray-500 mt-2">
+                    {isLoggedIn
+                      ? `Saving as ${userEmail}`
+                      : "Save now, message when ready"}
+                  </p>
+                </>
+              )}
             </>
           ) : (
             /* Email capture state */

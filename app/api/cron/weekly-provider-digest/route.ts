@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/email";
 import { providerWeeklyDigestEmail } from "@/lib/email-templates";
 import { classifyTier } from "@/lib/analytics/triage";
 import { generateNotificationUrl } from "@/lib/claim-tokens";
+import { withCronRun } from "@/lib/crons/run";
 
 /**
  * GET /api/cron/weekly-provider-digest
@@ -50,18 +51,21 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   const hasCronSecret =
     !!process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`;
+  let triggeredBy = "cron";
   if (!hasCronSecret) {
-    let isAdminUser = false;
+    let admin = null;
+    let userEmail: string | null = null;
     try {
       const user = await getAuthUser();
-      const admin = user ? await getAdminUser(user.id) : null;
-      isAdminUser = !!admin;
+      userEmail = user?.email ?? null;
+      admin = user ? await getAdminUser(user.id) : null;
     } catch {
-      isAdminUser = false;
+      admin = null;
     }
-    if (!isAdminUser) {
+    if (!admin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    triggeredBy = userEmail ? `admin:${userEmail}` : "admin";
   }
 
   const { searchParams } = new URL(request.url);
@@ -71,8 +75,10 @@ export async function GET(request: NextRequest) {
     5000,
   );
 
-  try {
-    const db = getServiceClient();
+  return withCronRun(
+    "weekly-provider-digest",
+    async () => {
+      const db = getServiceClient();
 
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -94,7 +100,7 @@ export async function GET(request: NextRequest) {
 
     if (activityErr) {
       console.error("[weekly-provider-digest] activity query failed:", activityErr);
-      return NextResponse.json({ error: "Failed to load activity" }, { status: 500 });
+      throw new Error("Failed to load activity");
     }
 
     const events = activity ?? [];
@@ -114,7 +120,7 @@ export async function GET(request: NextRequest) {
 
     if (questionsErr) {
       console.error("[weekly-provider-digest] questions query failed:", questionsErr);
-      return NextResponse.json({ error: "Failed to load questions" }, { status: 500 });
+      throw new Error("Failed to load questions");
     }
 
     type OpenQuestion = {
@@ -214,7 +220,7 @@ export async function GET(request: NextRequest) {
     const providerIds = allIds.slice(0, maxProviders);
 
     if (providerIds.length === 0) {
-      return NextResponse.json({ ok: true, processed: 0, sent: 0, skipped: 0, reason: "no_active_providers" });
+      return { ok: true, processed: 0, sent: 0, skipped: 0, reason: "no_active_providers" };
     }
 
     // ── 2. Resolve business_profiles for these slugs ──
@@ -521,22 +527,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log(
-      `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} skipped=${skipped} reasons=${JSON.stringify(skipReasons)}`,
-    );
+      console.log(
+        `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} skipped=${skipped} reasons=${JSON.stringify(skipReasons)}`,
+      );
 
-    return NextResponse.json({
-      ok: true,
-      processed: providerIds.length,
-      sent,
-      skipped,
-      skipReasons,
-      dry_run: dryRun,
-    });
-  } catch (err) {
-    console.error("[weekly-provider-digest] fatal:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
+      return {
+        ok: true,
+        processed: providerIds.length,
+        sent,
+        skipped,
+        skipReasons,
+        dry_run: dryRun,
+      };
+    },
+    { triggeredBy },
+  );
 }
 
 function computeDeltaPct(current: number, prior: number): number | null {

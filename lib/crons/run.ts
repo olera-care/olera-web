@@ -1,0 +1,163 @@
+/**
+ * withCronRun — wraps a cron route handler so every execution is recorded in
+ * cron_runs and the job's pause state (cron_config) is honored.
+ *
+ * Usage in a cron route:
+ *
+ *   export async function GET(request: NextRequest) {
+ *     // ... auth check ...
+ *     return withCronRun("weekly-provider-digest", async () => {
+ *       // ... the work ...
+ *       return { ok: true, processed, sent, skipped };  // -> HTTP body AND cron_runs.summary
+ *     }, { triggeredBy: hasCronSecret ? "cron" : `admin:${email}` });
+ *   }
+ *
+ * The inner fn returns a plain summary object on success and THROWS on failure
+ * (no NextResponse, no try/catch inside — withCronRun owns the response and the
+ * error path). A paused job (cron_config.enabled = false, not past paused_until)
+ * short-circuits: the fn never runs, but a `skipped_paused` row is still written
+ * so the pause is visible in run history. All cron_runs/cron_config writes are
+ * best-effort — if the tables don't exist yet or a write fails, we log and keep
+ * going rather than break the job because observability broke.
+ */
+
+import { NextResponse } from "next/server";
+import { getServiceClient } from "@/lib/admin";
+
+type Summary = Record<string, unknown>;
+
+interface CronRunOpts {
+  /** Who triggered this run. Defaults to "cron" (the Vercel scheduler). Pass "admin:<email>" for manual fires. */
+  triggeredBy?: string;
+}
+
+interface PauseState {
+  paused: boolean;
+  reason: string | null;
+  pausedUntil: string | null;
+}
+
+async function readPauseState(jobId: string): Promise<PauseState> {
+  try {
+    const db = getServiceClient();
+    const { data, error } = await db
+      .from("cron_config")
+      .select("enabled, paused_reason, paused_until")
+      .eq("job_id", jobId)
+      .maybeSingle();
+    if (error || !data) return { paused: false, reason: null, pausedUntil: null };
+    if (data.enabled !== false) return { paused: false, reason: null, pausedUntil: null };
+
+    // Paused — but if paused_until has passed, auto-reenable.
+    if (data.paused_until && new Date(data.paused_until) <= new Date()) {
+      await db
+        .from("cron_config")
+        .update({
+          enabled: true,
+          paused_at: null,
+          paused_by: null,
+          paused_reason: null,
+          paused_until: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("job_id", jobId);
+      console.log(`[cron:${jobId}] pause expired — auto-reenabled`);
+      return { paused: false, reason: null, pausedUntil: null };
+    }
+    return { paused: true, reason: data.paused_reason ?? null, pausedUntil: data.paused_until ?? null };
+  } catch (err) {
+    console.error(`[cron:${jobId}] failed to read pause state (treating as not paused):`, err);
+    return { paused: false, reason: null, pausedUntil: null };
+  }
+}
+
+async function insertRun(
+  jobId: string,
+  triggeredBy: string,
+  status: "running" | "skipped_paused",
+  summary: Summary = {},
+): Promise<string | null> {
+  try {
+    const db = getServiceClient();
+    const { data, error } = await db
+      .from("cron_runs")
+      .insert({
+        job_id: jobId,
+        status,
+        triggered_by: triggeredBy,
+        summary,
+        ...(status === "skipped_paused" ? { finished_at: new Date().toISOString() } : {}),
+      })
+      .select("id")
+      .single();
+    if (error) {
+      console.error(`[cron:${jobId}] failed to insert ${status} run row:`, error);
+      return null;
+    }
+    return (data as { id: string }).id;
+  } catch (err) {
+    console.error(`[cron:${jobId}] failed to insert ${status} run row:`, err);
+    return null;
+  }
+}
+
+async function finishRun(
+  jobId: string,
+  runId: string | null,
+  status: "ok" | "error",
+  summary: Summary,
+  error: string | null,
+): Promise<void> {
+  if (!runId) return;
+  try {
+    const db = getServiceClient();
+    await db
+      .from("cron_runs")
+      .update({
+        status,
+        finished_at: new Date().toISOString(),
+        summary,
+        error,
+      })
+      .eq("id", runId);
+  } catch (err) {
+    console.error(`[cron:${jobId}] failed to finalize run ${runId}:`, err);
+  }
+}
+
+export async function withCronRun(
+  jobId: string,
+  fn: () => Promise<Summary>,
+  opts: CronRunOpts = {},
+): Promise<NextResponse> {
+  const triggeredBy = opts.triggeredBy ?? "cron";
+
+  const pause = await readPauseState(jobId);
+  if (pause.paused) {
+    await insertRun(jobId, triggeredBy, "skipped_paused", {
+      reason: pause.reason,
+      paused_until: pause.pausedUntil,
+    });
+    console.log(`[cron:${jobId}] paused — skipped (reason: ${pause.reason ?? "none"})`);
+    return NextResponse.json({
+      ok: true,
+      skipped: "paused",
+      job: jobId,
+      paused_reason: pause.reason,
+      paused_until: pause.pausedUntil,
+    });
+  }
+
+  const runId = await insertRun(jobId, triggeredBy, "running");
+
+  try {
+    const summary = (await fn()) ?? {};
+    await finishRun(jobId, runId, "ok", summary, null);
+    return NextResponse.json(summary);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[cron:${jobId}] run failed:`, err);
+    await finishRun(jobId, runId, "error", {}, message);
+    return NextResponse.json({ error: "Internal server error", job: jobId }, { status: 500 });
+  }
+}

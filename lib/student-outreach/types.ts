@@ -317,6 +317,12 @@ export type AwaitingCallbackKind = "voicemail" | "promised";
  * v8 replies sub-state, awaiting-callback details).
  */
 export interface TabRow extends OutreachRow {
+  /** v9 final: stable React key for list rendering. Defaults to
+   *  outreach `id`, but the Calls tab fans out one row per pending
+   *  call task and emits unique `${outreach_id}-${task_id}` keys
+   *  so the General Contact card and each Specific Contact card
+   *  render independently. */
+  row_key?: string;
   campus_name: string;
   campus_slug: string;
   primary_contact_name: string | null;

@@ -94,6 +94,10 @@ export interface TabCounts {
 }
 
 export interface TabRow extends OutreachRow {
+  /** v9 final: stable React key for list rendering. Defaults to
+   *  outreach `id`, but the Calls tab fans out one row per pending
+   *  call task and emits unique `${outreach_id}-${task_id}` keys. */
+  row_key?: string;
   campus_name: string;
   campus_slug: string;
   primary_contact_name: string | null;
@@ -1097,12 +1101,23 @@ async function hydrateRows(
   const dueCallTaskByOutreach = new Map<string, { id: string; due_at: string }>();
   // v9 Phase 9: per-recipient call tasks expand the Calls tab card —
   // a single outreach row can have N pending call tasks (one per
-  // callable recipient). Collect recipient names from each pending
-  // call task so the card subline can list them ("Day 2 calls due:
-  // Logan, General Office"). Names come from task.payload.recipient_name
-  // (set by planSequence per-recipient mode); legacy single-task
-  // rows have no recipient_name — we render generic "primary contact".
+  // callable recipient). v9 final: the Calls tab now emits one TabRow
+  // PER due task (General Contact + each Specific Contact get their
+  // own ops card) instead of consolidating into one row with a
+  // recipients subline. dueCallRecipientsByOutreach stays populated
+  // for legacy callers but the Calls renderer uses the per-task list.
   const dueCallRecipientsByOutreach = new Map<string, string[]>();
+  /** v9 final: every due call task. Calls tab fans the rows out across
+   *  this list; non-Calls tabs ignore it. */
+  interface DueCallTaskExpanded {
+    task_id: string;
+    outreach_id: string;
+    due_at: string;
+    recipient_name: string | null;
+    recipient_phone: string | null;
+    recipient_role: string | null;
+  }
+  const dueCallTasks: DueCallTaskExpanded[] = [];
   const hasPendingEmail = new Set<string>();
   const hasPendingJobBoard = new Set<string>();
   const earliestTaskByOutreach = new Map<string, { task_type: string; due_at: string; payload: Record<string, unknown> | null }>();
@@ -1121,25 +1136,37 @@ async function hydrateRows(
     ) {
       customTaskByOutreach.set(t.outreach_id, String(t.payload.notes ?? t.payload.description ?? "Custom task"));
     }
-    if (
-      t.task_type === "outreach_followup_call" &&
-      t.due_at <= nowIso &&
-      !dueCallTaskByOutreach.has(t.outreach_id)
-    ) {
-      dueCallTaskByOutreach.set(t.outreach_id, { id: t.id, due_at: t.due_at });
-    }
     if (t.task_type === "outreach_followup_call" && t.due_at <= nowIso) {
-      const list = dueCallRecipientsByOutreach.get(t.outreach_id) ?? [];
       const name =
         typeof t.payload?.recipient_name === "string"
           ? (t.payload.recipient_name as string)
           : null;
+      const phone =
+        typeof t.payload?.recipient_phone === "string"
+          ? (t.payload.recipient_phone as string)
+          : null;
+      const role =
+        typeof t.payload?.recipient_role === "string"
+          ? (t.payload.recipient_role as string)
+          : null;
+      dueCallTasks.push({
+        task_id: t.id,
+        outreach_id: t.outreach_id,
+        due_at: t.due_at,
+        recipient_name: name,
+        recipient_phone: phone,
+        recipient_role: role,
+      });
+      // Legacy by-outreach maps still populated so non-Calls tabs that
+      // peek at due_call_task continue to work.
+      if (!dueCallTaskByOutreach.has(t.outreach_id)) {
+        dueCallTaskByOutreach.set(t.outreach_id, { id: t.id, due_at: t.due_at });
+      }
+      const list = dueCallRecipientsByOutreach.get(t.outreach_id) ?? [];
       if (name && !list.includes(name)) {
         list.push(name);
-        dueCallRecipientsByOutreach.set(t.outreach_id, list);
-      } else if (!list.length) {
-        dueCallRecipientsByOutreach.set(t.outreach_id, list);
       }
+      dueCallRecipientsByOutreach.set(t.outreach_id, list);
     }
     if (t.task_type === "outreach_email_send") {
       hasPendingEmail.add(t.outreach_id);
@@ -1175,7 +1202,20 @@ async function hydrateRows(
   }
 
   // Build TabRow output.
-  const tabRows: TabRow[] = orderedRows.map((row) => {
+  // v9 final: Calls tab fans out — one TabRow per pending call task
+  // (General Contact + each Specific Contact each get their own ops
+  // card). Other tabs keep the one-row-per-outreach shape.
+  const tasksByOutreach = new Map<string, DueCallTaskExpanded[]>();
+  if (tab === "calls") {
+    for (const t of dueCallTasks) {
+      const list = tasksByOutreach.get(t.outreach_id) ?? [];
+      list.push(t);
+      tasksByOutreach.set(t.outreach_id, list);
+    }
+  }
+
+  const tabRows: TabRow[] = [];
+  for (const row of orderedRows) {
     const primary = primaryByOutreach.get(row.id) ?? null;
     const state = stateByOutreach.get(row.id)!;
     const camp = campusMap.get(row.campus_id);
@@ -1187,13 +1227,10 @@ async function hydrateRows(
         ? deriveRepliesState(state, hasPendingEmail.has(row.id))
         : null;
     const earliestTask = earliestTaskByOutreach.get(row.id) ?? null;
-    return {
+    const baseRow = {
       ...row,
       campus_name: camp?.name ?? "(unknown campus)",
       campus_slug: camp?.slug ?? "",
-      primary_contact_name: primary?.name ?? null,
-      primary_contact_phone: primary?.phone ?? null,
-      primary_contact_role: primary?.role ?? null,
       has_custom_task: customTaskByOutreach.has(row.id),
       custom_task_summary: customTaskByOutreach.get(row.id) ?? null,
       stale_days:
@@ -1206,16 +1243,62 @@ async function hydrateRows(
       followup_author: state.followup_author,
       followup_at: state.followup_at,
       last_activity_at: state.last_activity_at,
-      due_call_task: tab === "calls" ? dueCallTaskByOutreach.get(row.id) ?? null : null,
-      due_call_recipients:
-        tab === "calls" ? dueCallRecipientsByOutreach.get(row.id) ?? [] : [],
       replies_state: repliesState,
       awaiting_callback_at: state.awaiting_callback_at,
       awaiting_callback_kind: state.awaiting_callback_kind,
       next_step_label: deriveNextStepLabel(row.status, earliestTask),
       has_pending_job_board_task: hasPendingJobBoard.has(row.id),
     };
-  });
+
+    if (tab === "calls") {
+      const tasks = tasksByOutreach.get(row.id) ?? [];
+      if (tasks.length === 0) {
+        // Outreach made it onto the Calls tab list but has no due
+        // task (e.g. coming from a derived state). Render a single
+        // card with the legacy primary-contact fallback so the row
+        // isn't lost.
+        tabRows.push({
+          ...baseRow,
+          row_key: row.id,
+          primary_contact_name: primary?.name ?? null,
+          primary_contact_phone: primary?.phone ?? null,
+          primary_contact_role: primary?.role ?? null,
+          due_call_task: null,
+          due_call_recipients: [],
+        });
+        continue;
+      }
+      // Sort tasks oldest-due first so the most overdue call surfaces
+      // at the top of the row's group.
+      tasks.sort((a, b) => a.due_at.localeCompare(b.due_at));
+      for (const t of tasks) {
+        tabRows.push({
+          ...baseRow,
+          // Per-task synthetic key — React needs a unique value
+          // because multiple rows share outreach_id.
+          row_key: `${row.id}-${t.task_id}`,
+          primary_contact_name: t.recipient_name ?? primary?.name ?? null,
+          primary_contact_phone: t.recipient_phone ?? primary?.phone ?? null,
+          primary_contact_role: t.recipient_role ?? primary?.role ?? null,
+          due_call_task: { id: t.task_id, due_at: t.due_at },
+          // One recipient per emitted row — list is redundant but
+          // populated for compatibility with any caller that still
+          // peeks at it.
+          due_call_recipients: t.recipient_name ? [t.recipient_name] : [],
+        });
+      }
+    } else {
+      tabRows.push({
+        ...baseRow,
+        row_key: row.id,
+        primary_contact_name: primary?.name ?? null,
+        primary_contact_phone: primary?.phone ?? null,
+        primary_contact_role: primary?.role ?? null,
+        due_call_task: null,
+        due_call_recipients: [],
+      });
+    }
+  }
 
   // v9.0 Phase 7 Commit K: cards sort by most-recently-queued (the
   // existing per-tab order — last_edited_at desc, due_at asc, etc.).

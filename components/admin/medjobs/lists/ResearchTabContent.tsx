@@ -152,7 +152,7 @@ export function ResearchTabContent({
         </li>
       ))}
       {providerRows.map((row) => (
-        <li key={row.id}>{renderRow(row)}</li>
+        <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
       ))}
     </ul>
   ) : null;
@@ -188,7 +188,7 @@ export function ResearchTabContent({
         </li>
       ))}
       {stakeholderRows.map((row) => (
-        <li key={row.id}>{renderRow(row)}</li>
+        <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
       ))}
     </ul>
   ) : null;

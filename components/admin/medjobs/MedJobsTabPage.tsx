@@ -668,7 +668,7 @@ export function MedJobsTabPage({
       ) : (
         <ul className="space-y-2">
           {rows.map((row) => (
-            <li key={row.id}>{renderRow(row)}</li>
+            <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
           ))}
         </ul>
       )}
@@ -729,11 +729,15 @@ export function MedJobsTabPage({
           rowKind={callOutcomeRow.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setCallOutcomeRow(null)}
           onSubmit={async (outcome, notes, partner) => {
-            // v9.0 Phase 7 Commit G: partner branch is now self-contained
-            // — log_call lands first, then mark_partner with the evidence
-            // payload. Two POSTs back to back; the previous chained
-            // MarkPartnerModal flow is gone.
-            await callAction(callOutcomeRow.id, "log_call", { outcome, notes });
+            // v9 final: scope the log to this row's specific call task
+            // so the General Contact card and each Specific Contact
+            // card close their own tasks independently. Without
+            // task_id the server falls back to the oldest due call.
+            await callAction(callOutcomeRow.id, "log_call", {
+              outcome,
+              notes,
+              task_id: callOutcomeRow.due_call_task?.id,
+            });
             if (partner) {
               await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
             }

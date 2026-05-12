@@ -326,7 +326,7 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
       ) : (
         <ul className="space-y-2">
           {rows.map((row) => (
-            <li key={row.id}>{renderRow(row)}</li>
+            <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
           ))}
         </ul>
       )}

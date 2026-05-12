@@ -57,7 +57,7 @@ export const CRON_REGISTRY: CronJob[] = [
     description:
       "Demand email leading with a provider's newest unanswered question + a one-click answer link; page views / area demand are a personalization line. Recipients ordered by freshest question, then views.",
     recipientCohort:
-      "Every provider with a live unanswered question, plus any provider with recent page-view / lead / question activity (~2,700; ~1,300 with an email on file). Vercel cron uses limit=500; manual fires can ramp via ?limit=N.",
+      "Every provider with a live unanswered question, plus any provider with recent page-view / lead / question activity (~2,700; ~1,300 with an email on file). The Monday cron uses limit=2000 (covers the full reachable pool); a ?limit=N on a manual fire overrides it.",
     audience: "Providers",
     fn: "digest",
     schedule: "0 13 * * 1",

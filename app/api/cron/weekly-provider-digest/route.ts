@@ -25,7 +25,9 @@ import { withCronRun } from "@/lib/crons/run";
  *
  * Ordering: freshest unanswered question DESC, then views DESC. Makes
  * `?limit=N` deterministic -- the most-urgent question audience always
- * comes first. The Vercel cron uses limit=500 by default.
+ * comes first. The Vercel (Monday) cron uses limit=2000, which covers the
+ * full reachable unanswered-question pool (~1,300 with an email on file);
+ * raise the cap (5000) if the pool grows past that.
  *
  * Email variant:
  *   - Question present  -> demand-led: leads with the newest open
@@ -39,7 +41,7 @@ import { withCronRun } from "@/lib/crons/run";
  *
  * Query params (for ops):
  *   ?dry_run=true — do everything except sending + writing email_logs
- *   ?limit=N      — cap provider count processed (default 500, max 5000)
+ *   ?limit=N      — cap provider count processed (default 2000, max 5000)
  *
  * Auth: either `Bearer ${CRON_SECRET}` (the Vercel cron injects this
  * automatically) or a logged-in admin session. The admin path exists so
@@ -71,7 +73,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const dryRun = searchParams.get("dry_run") === "true";
   const maxProviders = Math.min(
-    Math.max(parseInt(searchParams.get("limit") || "500", 10) || 500, 1),
+    Math.max(parseInt(searchParams.get("limit") || "2000", 10) || 2000, 1),
     5000,
   );
 

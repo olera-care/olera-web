@@ -425,7 +425,8 @@ async function main() {
     // Re-check the row still matches (skip if another worker/run already did it).
     if (!matchesTemplate(p.provider_description)) return;
 
-    const update = { provider_description: desc };
+    // description_updated_at feeds the sitemaps' <lastmod> (migration 082).
+    const update = { provider_description: desc, description_updated_at: new Date().toISOString() };
     // Back up the original ONLY if no backup exists yet — never clobber.
     if (p.provider_description_v1_backup == null) {
       update.provider_description_v1_backup = p.provider_description;

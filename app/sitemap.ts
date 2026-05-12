@@ -232,6 +232,22 @@ export default async function sitemap({
     const entries: MetadataRoute.Sitemap = [];
 
     if (supabase) {
+      // Honest <lastmod>: emit when the provider's description was last
+      // (re)written (migration 082's description_updated_at), falling back to
+      // cleansed_at / created_at. The migration may not be applied yet on every
+      // environment (the DB has no migration tracker; cf. hero_image_url in 003)
+      // — probe once and degrade to the minimal select + a coarse lastmod if the
+      // freshness columns aren't there.
+      let providerSelect = "provider_id, slug, description_updated_at, cleansed_at, created_at";
+      {
+        const probe = await supabase.from("olera-providers").select(providerSelect).limit(1);
+        if (probe.error) providerSelect = "provider_id, slug";
+      }
+      const lastmodOf = (p: Record<string, any>): Date => {
+        const ts = (p.description_updated_at || p.cleansed_at || p.created_at) as string | undefined;
+        return ts ? new Date(ts) : new Date();
+      };
+
       // Paginate in batches of 1000 (Supabase default row limit)
       const PAGE_SIZE = 1_000;
       const shardStart = providerShard * PROVIDER_BATCH_SIZE;
@@ -239,16 +255,17 @@ export default async function sitemap({
       while (fetched < PROVIDER_BATCH_SIZE) {
         const from = shardStart + fetched;
         const to = from + PAGE_SIZE - 1;
-        const { data: providers } = await supabase
+        const { data } = await supabase
           .from("olera-providers")
-          .select("provider_id, slug")
+          .select(providerSelect)
           .or("deleted.is.null,deleted.eq.false")
           .range(from, to);
+        const providers = data as Array<Record<string, any>> | null;
         if (!providers || providers.length === 0) break;
         for (const provider of providers) {
           entries.push({
             url: `${SITE_URL}/provider/${provider.slug || provider.provider_id}`,
-            lastModified: new Date(),
+            lastModified: lastmodOf(provider),
             changeFrequency: "weekly",
             priority: 0.7,
           });

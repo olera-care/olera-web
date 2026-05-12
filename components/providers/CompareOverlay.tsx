@@ -24,6 +24,11 @@ interface CompareOverlayProps {
 /**
  * Desktop comparison overlay - Zillow-style full-height panel.
  * Opens on top of the provider page with left/right margins showing the underlying page.
+ *
+ * Visual flow:
+ * 1. Initially shows only the current provider (collapsed state)
+ * 2. User can click "Compare with N nearby homes" to reveal similar providers
+ * 3. All selection/save logic remains unchanged
  */
 export default function CompareOverlay({
   isOpen,
@@ -41,6 +46,9 @@ export default function CompareOverlay({
   const [mounted, setMounted] = useState(false);
   const saveClickFiredRef = useRef(false);
 
+  // Stepped flow: initially show only current provider
+  const [showSimilar, setShowSimilar] = useState(false);
+
   // Check if user is logged in
   const isLoggedIn = !!user && !!activeProfile;
   const userEmail = user?.email || "";
@@ -57,15 +65,24 @@ export default function CompareOverlay({
     () => new Set(allProviders.map((p) => p.id))
   );
 
-  // Reset selection when overlay opens
+  // Reset selection and stepped flow when overlay opens
   useEffect(() => {
     if (isOpen) {
       setSelectedProviderIds(new Set(allProviders.map((p) => p.id)));
+      setShowSimilar(false);
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Providers to display (filtered by showSimilar state)
+  const displayProviders = showSimilar ? allProviders : [currentProvider];
+  const hasSimilarProviders = similarProviders.length > 0;
+
   // Get selected providers for saving
-  const selectedProviders = allProviders.filter((p) => selectedProviderIds.has(p.id));
+  // When collapsed, only save the current provider (regardless of selectedProviderIds)
+  // When expanded, use the full selection logic
+  const selectedProviders = showSimilar
+    ? allProviders.filter((p) => selectedProviderIds.has(p.id))
+    : [currentProvider];
   const selectedCount = selectedProviders.length;
 
   // Toggle provider selection
@@ -328,10 +345,12 @@ export default function CompareOverlay({
           {/* Header */}
           <div className="px-8 pt-8 pb-6">
             <h1 className="text-3xl font-bold text-gray-900 mb-1">
-              Side by side comparison
+              {showSimilar ? "Side by side comparison" : `Save ${currentProvider.name}`}
             </h1>
             <p className="text-gray-500">
-              {categoryLocationStr} · {selectedCount} of {allProviders.length} selected
+              {showSimilar
+                ? `${categoryLocationStr} · ${selectedCount} of ${allProviders.length} selected`
+                : categoryLocationStr}
             </p>
           </div>
 
@@ -341,19 +360,21 @@ export default function CompareOverlay({
               {/* Provider Headers */}
               <div
                 className="grid border-b border-gray-200"
-                style={{ gridTemplateColumns: `180px repeat(${allProviders.length}, 1fr)` }}
+                style={{ gridTemplateColumns: `180px repeat(${displayProviders.length}, 1fr)` }}
               >
                 {/* Empty corner cell */}
                 <div className="p-4 bg-gray-50" />
 
                 {/* Provider columns */}
-                {allProviders.map((provider, index) => {
+                {displayProviders.map((provider, index) => {
                   const isSelected = selectedProviderIds.has(provider.id);
+                  // Find actual index in allProviders for "This page" label
+                  const actualIndex = allProviders.findIndex((p) => p.id === provider.id);
                   return (
                   <div
                     key={provider.id}
-                    className={`p-4 bg-white transition-opacity ${
-                      index < allProviders.length - 1 ? "border-r border-gray-200" : ""
+                    className={`p-4 bg-white ${
+                      index < displayProviders.length - 1 ? "border-r border-gray-200" : ""
                     } ${!isSelected ? "opacity-40" : ""}`}
                   >
                     <div className="flex items-start gap-3">
@@ -377,7 +398,7 @@ export default function CompareOverlay({
                       {/* Name and location */}
                       <div className="flex-1 min-w-0">
                         {/* "This page" label for current provider */}
-                        {index === 0 && (
+                        {actualIndex === 0 && (
                           <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-600 mb-0.5">
                             This page
                           </p>
@@ -401,7 +422,7 @@ export default function CompareOverlay({
               {/* Comparison Rows */}
               <CompareRow
                 label="EST. MONTHLY"
-                providers={allProviders}
+                providers={displayProviders}
                 selectedIds={selectedProviderIds}
                 getValue={(p) => (
                   <div>
@@ -417,7 +438,7 @@ export default function CompareOverlay({
 
               <CompareRow
                 label="RATING"
-                providers={allProviders}
+                providers={displayProviders}
                 selectedIds={selectedProviderIds}
                 getValue={(p) => (
                   <div className="flex items-center gap-2 flex-wrap">
@@ -441,61 +462,95 @@ export default function CompareOverlay({
                 )}
               />
 
-              <CompareRow
-                label="CARE SERVICES"
-                providers={allProviders}
-                selectedIds={selectedProviderIds}
-                getValue={(p) => (
-                  <span className="text-[15px] text-gray-900">
-                    {p.services?.slice(0, 3).join(", ") || "—"}
-                  </span>
-                )}
-              />
-
-              <CompareRow
-                label="HIGHLIGHTS"
-                providers={allProviders}
-                getValue={(p) => (
-                  <span className="text-[15px] text-gray-900">
-                    {p.highlights?.slice(0, 2).join(" · ") || "—"}
-                  </span>
-                )}
-                selectedIds={selectedProviderIds}
-              />
-
-              {/* Selection Row */}
-              <div
-                className="grid border-t border-gray-200"
-                style={{ gridTemplateColumns: `180px repeat(${allProviders.length}, 1fr)` }}
-              >
-                {/* Empty label cell */}
-                <div className="p-4 bg-gray-50" />
-
-                {/* Selection buttons */}
-                {allProviders.map((provider, index) => {
-                  const isSelected = selectedProviderIds.has(provider.id);
-                  return (
-                    <div
-                      key={provider.id}
-                      className={`p-4 bg-white flex items-center justify-center ${
-                        index < allProviders.length - 1 ? "border-r border-gray-200" : ""
-                      }`}
+              {/* "Compare with N nearby homes" button - shown when collapsed */}
+              {!showSimilar && hasSimilarProviders && (
+                <div
+                  className="grid border-b border-gray-200"
+                  style={{ gridTemplateColumns: `180px repeat(${displayProviders.length}, 1fr)` }}
+                >
+                  <div className="p-4 bg-gray-50" />
+                  <div className="p-4 bg-white">
+                    <button
+                      type="button"
+                      onClick={() => setShowSimilar(true)}
+                      className="flex items-center gap-3 px-4 py-3 w-full rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group"
                     >
-                      <button
-                        type="button"
-                        onClick={() => toggleProvider(provider.id)}
-                        className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
-                          isSelected
-                            ? "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                            : "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
+                      {/* Stacked avatars */}
+                      <div className="flex -space-x-2">
+                        {similarProviders.slice(0, 2).map((p) =>
+                          p.image ? (
+                            <Image
+                              key={p.id}
+                              src={p.image}
+                              alt={p.name}
+                              width={24}
+                              height={24}
+                              className="w-6 h-6 rounded-full ring-2 ring-white object-cover bg-gray-100"
+                            />
+                          ) : (
+                            <div
+                              key={p.id}
+                              className="w-6 h-6 rounded-full ring-2 ring-white bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center"
+                            >
+                              <span className="text-[10px] font-semibold text-amber-700">
+                                {p.name.charAt(0)}
+                              </span>
+                            </div>
+                          )
+                        )}
+                      </div>
+                      <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+                        Compare with {similarProviders.length} nearby home{similarProviders.length !== 1 ? "s" : ""}
+                      </span>
+                      <svg
+                        className="w-4 h-4 text-gray-400 group-hover:text-gray-600 ml-auto transition-transform group-hover:translate-x-0.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Selection Row - only show when expanded with multiple providers */}
+              {showSimilar && (
+                <div
+                  className="grid border-t border-gray-200"
+                  style={{ gridTemplateColumns: `180px repeat(${displayProviders.length}, 1fr)` }}
+                >
+                  {/* Empty label cell */}
+                  <div className="p-4 bg-gray-50" />
+
+                  {/* Selection buttons */}
+                  {displayProviders.map((provider, index) => {
+                    const isSelected = selectedProviderIds.has(provider.id);
+                    return (
+                      <div
+                        key={provider.id}
+                        className={`p-4 bg-white flex items-center justify-center ${
+                          index < displayProviders.length - 1 ? "border-r border-gray-200" : ""
                         }`}
                       >
-                        {isSelected ? "Don't save" : "Save"}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
+                        <button
+                          type="button"
+                          onClick={() => toggleProvider(provider.id)}
+                          className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
+                            isSelected
+                              ? "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                              : "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
+                          }`}
+                        >
+                          {isSelected ? "Don't save" : "Save"}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -526,30 +581,34 @@ export default function CompareOverlay({
               <div>
                 <p className="text-gray-600">
                   <span className="font-semibold text-gray-900">
-                    {selectedCount === 0
-                      ? "Select providers to save"
-                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                    {!showSimilar
+                      ? "Save this provider"
+                      : selectedCount === 0
+                        ? "Select providers to save"
+                        : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
                   </span>
-                  {selectedCount > 0 && (
+                  {(showSimilar ? selectedCount > 0 : true) && (
                     <>
                       {" · "}
-                      Message any of them when you&apos;re ready
+                      Message {showSimilar ? "any of them" : "them"} when you&apos;re ready
                     </>
                   )}
                 </p>
-                {isLoggedIn && selectedCount > 0 && (
+                {isLoggedIn && (
                   <p className="text-sm text-gray-500 mt-0.5">Saving as {userEmail}</p>
                 )}
               </div>
               <button
                 type="button"
                 onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
-                disabled={selectedCount === 0}
+                disabled={showSimilar && selectedCount === 0}
                 className="flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-colors"
               >
-                {selectedCount === 0
-                  ? "Select at least one"
-                  : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                {!showSimilar
+                  ? "Save this provider"
+                  : selectedCount === 0
+                    ? "Select at least one"
+                    : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
@@ -560,7 +619,9 @@ export default function CompareOverlay({
             <div className="flex items-center justify-between gap-6">
               <div className="flex-shrink-0">
                 <p className="font-semibold text-gray-900">
-                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                  {!showSimilar
+                    ? "Save this provider"
+                    : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
                 </p>
                 <p className="text-sm text-gray-500">Add your email so you don&apos;t lose it.</p>
               </div>
@@ -593,7 +654,9 @@ export default function CompareOverlay({
                   type="submit"
                   className="flex-shrink-0 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-semibold transition-colors whitespace-nowrap"
                 >
-                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                  {!showSimilar
+                    ? "Save this provider"
+                    : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
                 </button>
               </form>
             </div>

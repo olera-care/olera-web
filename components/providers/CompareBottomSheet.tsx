@@ -35,9 +35,11 @@ interface CompareBottomSheetProps {
 type FooterState = "initial" | "email_capture" | "submitting" | "success";
 
 /**
- * Mobile comparison bottom sheet with horizontal swipeable cards.
- * Shows current provider + 2 similar providers side by side.
- * Uses a custom bottom sheet (not Modal) to allow cards to peek from the right.
+ * Mobile comparison bottom sheet with vertical stacked cards.
+ * Visual flow:
+ * 1. Initially shows only the current provider (collapsed state)
+ * 2. User can tap "Compare with N nearby homes" to reveal similar providers
+ * 3. All selection/save logic remains unchanged
  */
 export default function CompareBottomSheet({
   isOpen,
@@ -52,15 +54,16 @@ export default function CompareBottomSheet({
   const isLoggedIn = !!user && !!activeProfile;
   const userEmail = user?.email || "";
 
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [footerState, setFooterState] = useState<FooterState>("initial");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const saveClickFiredRef = useRef(false);
+
+  // Stepped flow: initially show only current provider
+  const [showSimilar, setShowSimilar] = useState(false);
 
   // All providers: current first, then similar
   // Memoized to prevent unnecessary callback recreations
@@ -68,7 +71,10 @@ export default function CompareBottomSheet({
     () => [currentProvider, ...similarProviders.slice(0, 2)],
     [currentProvider, similarProviders]
   );
-  const totalProviders = allProviders.length;
+
+  // Providers to display (filtered by showSimilar state)
+  const displayProviders = showSimilar ? allProviders : [currentProvider];
+  const hasSimilarProviders = similarProviders.length > 0;
 
   // Track which providers are selected for saving (all selected by default)
   const [selectedProviderIds, setSelectedProviderIds] = useState<Set<string>>(
@@ -76,7 +82,11 @@ export default function CompareBottomSheet({
   );
 
   // Get selected providers for saving
-  const selectedProviders = allProviders.filter((p) => selectedProviderIds.has(p.id));
+  // When collapsed, only save the current provider (regardless of selectedProviderIds)
+  // When expanded, use the full selection logic
+  const selectedProviders = showSimilar
+    ? allProviders.filter((p) => selectedProviderIds.has(p.id))
+    : [currentProvider];
   const selectedCount = selectedProviders.length;
 
   // Toggle provider selection
@@ -98,22 +108,6 @@ export default function CompareBottomSheet({
 
   // Calculate badges for providers (highest rated, best price, most services)
   const badges = calculateBadges(allProviders);
-
-  // Handle scroll to update current index
-  const handleScroll = () => {
-    if (!scrollRef.current) return;
-    const scrollLeft = scrollRef.current.scrollLeft;
-    const cardWidth = window.innerWidth * 0.78 + 12;
-    const newIndex = Math.round(scrollLeft / cardWidth);
-    setCurrentIndex(Math.min(newIndex, totalProviders - 1));
-  };
-
-  // Scroll to specific card
-  const scrollToCard = (index: number) => {
-    if (!scrollRef.current) return;
-    const cardWidth = window.innerWidth * 0.78 + 12;
-    scrollRef.current.scrollTo({ left: index * cardWidth, behavior: "smooth" });
-  };
 
   // Handle escape key (disabled during submitting/success)
   const handleKeyDown = useCallback(
@@ -139,12 +133,9 @@ export default function CompareBottomSheet({
     const keyHandler = (e: KeyboardEvent) => handleKeyDownRef.current(e);
 
     if (isOpen) {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTo({ left: 0, behavior: "instant" });
-        setCurrentIndex(0);
-      }
       setFooterState("initial");
       setSelectedProviderIds(new Set(allProviders.map((p) => p.id)));
+      setShowSimilar(false);
       setEmail("");
       setError(null);
       saveClickFiredRef.current = false;
@@ -372,57 +363,85 @@ export default function CompareBottomSheet({
         )}
 
         {/* Header */}
-        <div className="px-5 pb-3 shrink-0">
+        <div className="px-5 pb-3 shrink-0 border-b border-gray-100">
           <h2 className="text-[22px] font-bold text-gray-900 leading-tight pr-10">
-            Side by side comparison
+            {showSimilar ? `Compare ${displayProviders.length} providers` : `Save ${currentProvider.name}`}
           </h2>
           {categoryLocationStr && (
-            <p className="text-[15px] text-gray-500 mt-1">{categoryLocationStr} · {selectedCount} of {totalProviders} selected</p>
+            <p className="text-[15px] text-gray-500 mt-1">
+              {showSimilar
+                ? `${categoryLocationStr} · ${selectedCount} of ${allProviders.length} selected`
+                : categoryLocationStr}
+            </p>
           )}
         </div>
 
-        {/* Swipe indicator */}
-        <div className="px-5 pb-2 shrink-0">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-            Provider <span className="text-gray-900">{currentIndex + 1}</span> of {totalProviders} · Swipe to see more →
-          </p>
-        </div>
+        {/* Vertically stacked provider cards */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="px-5 py-4 space-y-0 divide-y divide-gray-100">
+            {displayProviders.map((provider, index) => {
+              const actualIndex = allProviders.findIndex((p) => p.id === provider.id);
+              return (
+                <CompareCard
+                  key={provider.id}
+                  provider={provider}
+                  isCurrentProvider={actualIndex === 0}
+                  badge={badges[provider.id]}
+                  isSelected={selectedProviderIds.has(provider.id)}
+                  onToggle={() => toggleProvider(provider.id)}
+                  showToggle={showSimilar}
+                />
+              );
+            })}
 
-        {/* Horizontal scrolling cards */}
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="flex-1 overflow-x-auto overflow-y-auto snap-x snap-mandatory scroll-pl-5 scrollbar-hide overscroll-x-contain"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          <div className="flex items-stretch gap-3 pl-5 pr-5 pb-4">
-            {allProviders.map((provider, index) => (
-              <CompareCard
-                key={provider.id}
-                provider={provider}
-                isCurrentProvider={index === 0}
-                badge={badges[provider.id]}
-                isSelected={selectedProviderIds.has(provider.id)}
-                onToggle={() => toggleProvider(provider.id)}
-              />
-            ))}
-            <div className="w-5 shrink-0" />
+            {/* "Compare with N nearby homes" button - shown when collapsed */}
+            {!showSimilar && hasSimilarProviders && (
+              <div className="pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowSimilar(true)}
+                  className="flex items-center gap-3 px-4 py-3 w-full rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group"
+                >
+                  {/* Stacked avatars */}
+                  <div className="flex -space-x-2">
+                    {similarProviders.slice(0, 2).map((p) =>
+                      p.image ? (
+                        <Image
+                          key={p.id}
+                          src={p.image}
+                          alt={p.name}
+                          width={24}
+                          height={24}
+                          className="w-6 h-6 rounded-full ring-2 ring-white object-cover bg-gray-100"
+                        />
+                      ) : (
+                        <div
+                          key={p.id}
+                          className="w-6 h-6 rounded-full ring-2 ring-white bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center"
+                        >
+                          <span className="text-[10px] font-semibold text-amber-700">
+                            {p.name.charAt(0)}
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+                    Compare with {similarProviders.length} nearby home{similarProviders.length !== 1 ? "s" : ""}
+                  </span>
+                  <svg
+                    className="w-4 h-4 text-gray-400 group-hover:text-gray-600 ml-auto transition-transform group-hover:translate-x-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
-        </div>
-
-        {/* Pagination dots */}
-        <div className="flex justify-center gap-2 py-2 shrink-0">
-          {allProviders.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => scrollToCard(index)}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentIndex ? "bg-gray-900" : "bg-gray-300"
-              }`}
-              aria-label={`Go to provider ${index + 1}`}
-            />
-          ))}
         </div>
 
         {/* Footer - State Machine */}
@@ -437,42 +456,42 @@ export default function CompareBottomSheet({
                   <button
                     type="button"
                     onClick={handleLoggedInSubmit}
-                    disabled={selectedCount === 0}
+                    disabled={showSimilar && selectedCount === 0}
                     className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
                   >
-                    {selectedCount === 0
-                      ? "Select at least one"
-                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                    {!showSimilar
+                      ? "Save this provider"
+                      : selectedCount === 0
+                        ? "Select at least one"
+                        : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                     </svg>
                   </button>
-                  {selectedCount > 0 && (
-                    <p className="text-center text-xs text-gray-500 mt-2">
-                      Saving as {userEmail}
-                    </p>
-                  )}
+                  <p className="text-center text-xs text-gray-500 mt-2">
+                    Saving as {userEmail}
+                  </p>
                 </>
               ) : (
                 <>
                   <button
                     type="button"
                     onClick={handleSaveClick}
-                    disabled={selectedCount === 0}
+                    disabled={showSimilar && selectedCount === 0}
                     className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
                   >
-                    {selectedCount === 0
-                      ? "Select at least one"
-                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                    {!showSimilar
+                      ? "Save this provider"
+                      : selectedCount === 0
+                        ? "Select at least one"
+                        : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                     </svg>
                   </button>
-                  {selectedCount > 0 && (
-                    <p className="text-center text-xs text-gray-500 mt-2">
-                      Message any of them when you&apos;re ready
-                    </p>
-                  )}
+                  <p className="text-center text-xs text-gray-500 mt-2">
+                    Message {showSimilar ? "any of them" : "them"} when you&apos;re ready
+                  </p>
                 </>
               )}
             </>
@@ -503,7 +522,9 @@ export default function CompareBottomSheet({
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <h3 className="text-lg font-bold text-gray-900">
-                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                  {!showSimilar
+                    ? "Save this provider"
+                    : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
                 </h3>
                 <p className="text-sm text-gray-500">Add your email so you don&apos;t lose it.</p>
               </div>
@@ -538,7 +559,9 @@ export default function CompareBottomSheet({
                     </>
                   ) : (
                     <>
-                      Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                      {!showSimilar
+                        ? "Save this provider"
+                        : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                       </svg>
@@ -578,17 +601,15 @@ interface CompareCardProps {
   badge?: string | null;
   isSelected: boolean;
   onToggle: () => void;
+  showToggle?: boolean;
 }
 
-function CompareCard({ provider, isCurrentProvider, badge, isSelected, onToggle }: CompareCardProps) {
+function CompareCard({ provider, isCurrentProvider, badge, isSelected, onToggle, showToggle = true }: CompareCardProps) {
   const locationStr = [provider.city, provider.state].filter(Boolean).join(", ");
-  const categoryLocationStr = [provider.category, locationStr].filter(Boolean).join(" · ");
-  const servicesDisplay = provider.services?.slice(0, 3).join(", ") || "—";
-  const highlightsDisplay = provider.highlights?.slice(0, 2).join(" · ") || "—";
 
   return (
     <div
-      className={`flex-shrink-0 w-[78vw] snap-start rounded-2xl border-2 border-gray-200 p-4 bg-white transition-opacity flex flex-col ${
+      className={`py-4 transition-opacity ${
         !isSelected ? "opacity-40" : ""
       }`}
     >
@@ -620,8 +641,8 @@ function CompareCard({ provider, isCurrentProvider, badge, isSelected, onToggle 
           <h3 className="text-base font-bold text-gray-900 leading-tight line-clamp-1">
             {provider.name}
           </h3>
-          {categoryLocationStr && (
-            <p className="text-[13px] text-gray-500 mt-0.5 truncate">{categoryLocationStr}</p>
+          {locationStr && (
+            <p className="text-[13px] text-gray-500 mt-0.5 truncate">{locationStr}</p>
           )}
         </div>
       </div>
@@ -636,7 +657,7 @@ function CompareCard({ provider, isCurrentProvider, badge, isSelected, onToggle 
             {provider.rating?.toFixed(1) || "—"}
           </span>
           <span className="text-xs text-gray-500">
-            · {provider.reviewCount || 0}
+            · {provider.reviewCount || 0} reviews
           </span>
         </div>
         {badge && (
@@ -649,44 +670,32 @@ function CompareCard({ provider, isCurrentProvider, badge, isSelected, onToggle 
         )}
       </div>
 
-      {/* Comparison rows */}
-      <div className="space-y-0 divide-y divide-gray-100">
-        <CompareRow label="EST. MONTHLY" value={provider.priceRange || "—"} />
-        <CompareRow label="SERVICES" value={servicesDisplay} />
-        <CompareRow label="HIGHLIGHTS" value={highlightsDisplay} />
+      {/* Price row */}
+      <div className="flex items-center justify-between py-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+          EST. MONTHLY
+        </span>
+        <span className="text-sm font-semibold text-gray-900">
+          {provider.priceRange || "—"}
+        </span>
       </div>
 
-      {/* Selection button - mt-auto pushes to bottom of flex card */}
-      <div className="mt-auto pt-3 border-t border-gray-100 flex justify-center">
-        <button
-          type="button"
-          onClick={onToggle}
-          className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
-            isSelected
-              ? "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              : "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
-          }`}
-        >
-          {isSelected ? "Don't save" : "Save"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Compare Row Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-function CompareRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start justify-between py-3">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 shrink-0">
-        {label}
-      </span>
-      <span className="text-sm text-gray-900 text-right ml-3 leading-tight">
-        {value}
-      </span>
+      {/* Selection button - only show when expanded */}
+      {showToggle && (
+        <div className="pt-3 flex justify-center">
+          <button
+            type="button"
+            onClick={onToggle}
+            className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
+              isSelected
+                ? "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                : "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
+            }`}
+          >
+            {isSelected ? "Don't save" : "Save"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

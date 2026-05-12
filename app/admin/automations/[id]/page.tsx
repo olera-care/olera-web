@@ -112,13 +112,14 @@ export default function AutomationDetailPage() {
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
       const d: DetailResponse = await r.json();
       setData(d);
-      if (d.previewTypes.length > 0 && !previewType) setPreviewType(d.previewTypes[0]);
+      // Pick a default preview type, but don't clobber a selection the user already made.
+      setPreviewType((prev) => prev ?? (d.previewTypes[0] ?? null));
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to load");
     } finally {
       setLoading(false);
     }
-  }, [id, previewType]);
+  }, [id]);
   useEffect(() => {
     load();
   }, [load]);

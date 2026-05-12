@@ -1134,6 +1134,9 @@ interface DigestOpts {
   unansweredQuestion?: { id: string; question: string; totalCount: number } | null;
   /** Pre-built one-click answer URL from generateNotificationUrl(). Required when unansweredQuestion is set. */
   answerUrl?: string | null;
+  /** City+state-level page-view count this week (category-agnostic). Powers the
+   *  demand-led email's no-views fallback line. Null when unknown. */
+  areaDemand?: number | null;
 }
 
 /** Minimal HTML escape for user-submitted text rendered into email bodies. */
@@ -1203,14 +1206,25 @@ function providerDemandDigestEmail(
 ): string {
   const analyticsUnsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
   const safeQuestion = escapeHtml(q.question);
+  const safeCity = opts.city ? escapeHtml(opts.city) : null;
+  const leadStyle = `font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;`;
 
-  // View number never deflates — only mention if non-zero. The signal gate
-  // upstream already ensured we have something honest to say (a question
-  // and/or non-zero traffic).
-  const viewLead =
-    opts.viewsThisWeek > 0
-      ? `<p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">Your page got ${opts.viewsThisWeek.toLocaleString()} ${opts.viewsThisWeek === 1 ? "visit" : "visits"} this week, and a family asked you this:</p>`
-      : `<p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">A family on Olera asked you this:</p>`;
+  // The lead line in priority order. View number never deflates -- below the
+  // bar worth mentioning we use the area signal; with neither, the question
+  // itself carries the email. AREA_BAR keeps "2 families looked at care in
+  // Smalltown" out -- below it, fall to the plain city anchor.
+  const AREA_BAR = 5;
+  let viewLead: string;
+  if (opts.viewsThisWeek > 0) {
+    viewLead = `<p style="${leadStyle}">Your page got ${opts.viewsThisWeek.toLocaleString()} ${opts.viewsThisWeek === 1 ? "visit" : "visits"} this week, and a family asked you this:</p>`;
+  } else if (opts.areaDemand && opts.areaDemand >= AREA_BAR) {
+    const where = safeCity ? ` in ${safeCity}` : "";
+    viewLead = `<p style="${leadStyle}">${opts.areaDemand.toLocaleString()} families looked at senior care${where} this week. One of them asked you this:</p>`;
+  } else if (safeCity) {
+    viewLead = `<p style="${leadStyle}">A family looking at care near ${safeCity} asked you this:</p>`;
+  } else {
+    viewLead = `<p style="${leadStyle}">A family on Olera asked you this:</p>`;
+  }
 
   const moreCount = q.totalCount - 1;
   const moreCountLine =

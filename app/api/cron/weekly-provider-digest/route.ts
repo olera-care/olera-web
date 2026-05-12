@@ -358,9 +358,16 @@ export async function GET(request: NextRequest) {
     const cohortDemand = new Map<CohortKey, number>();
     const cohortKey = (city: string | null, state: string | null, category: string | null) =>
       `${city ?? ""}\x1f${state ?? ""}\x1f${category ?? ""}`;
+    // Also aggregate at the city+state level (category-agnostic) for the
+    // demand-led email's no-views fallback line. Synthesized unclaimed rows
+    // carry category: null, so the category-keyed cohortDemand misses them --
+    // the area signal is what those providers get instead.
+    const areaDemand = new Map<string, number>();
+    const areaKey = (city: string | null, state: string | null) => `${city ?? ""}\x1f${state ?? ""}`;
     for (const row of (cohortRows ?? []) as Array<{ city: string | null; state: string | null; category: string | null; unique_view_count: number | null }>) {
-      const k = cohortKey(row.city, row.state, row.category);
-      cohortDemand.set(k, (cohortDemand.get(k) ?? 0) + (row.unique_view_count ?? 0));
+      const views = row.unique_view_count ?? 0;
+      cohortDemand.set(cohortKey(row.city, row.state, row.category), (cohortDemand.get(cohortKey(row.city, row.state, row.category)) ?? 0) + views);
+      if (row.city) areaDemand.set(areaKey(row.city, row.state), (areaDemand.get(areaKey(row.city, row.state)) ?? 0) + views);
     }
 
     // ── 4. For each provider: gate + compose + send ──
@@ -424,6 +431,7 @@ export async function GET(request: NextRequest) {
       const tier = classifyTier(bucket.viewsThisWeek);
       const deltaPct = computeDeltaPct(bucket.viewsThisWeek, bucket.viewsPriorWeek);
       const localDemand = cohortDemand.get(cohortKey(bp.city, bp.state, bp.category)) ?? null;
+      const areaDemandCount = bp.city ? areaDemand.get(areaKey(bp.city, bp.state)) ?? null : null;
       const topSource = findTopSource(bucket.sources);
       const providerSlug = bp.slug ?? providerId;
       // Drop the slug fallback: for unclaimed rows synthesized from olera-providers,
@@ -474,6 +482,7 @@ export async function GET(request: NextRequest) {
         viewsPriorWeek: bucket.viewsPriorWeek,
         deltaPct,
         localDemand,
+        areaDemand: areaDemandCount,
         city: bp.city,
         category: bp.category,
         ctaClicks: bucket.ctaClicks,

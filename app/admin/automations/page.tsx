@@ -105,17 +105,17 @@ export default function AutomationsPage() {
       /* ignore */
     }
   }, []);
-  const toggleCollapse = (audience: string) => {
-    setCollapsed((c) => {
-      const next = { ...c, [audience]: !c[audience] };
-      try {
-        localStorage.setItem(COLLAPSE_KEY, JSON.stringify(next));
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
+  const persistCollapsed = (next: Record<string, boolean>) => {
+    setCollapsed(next);
+    try {
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
   };
+  const toggleCollapse = (audience: string) => persistCollapsed({ ...collapsed, [audience]: !collapsed[audience] });
+  const collapseAll = () => persistCollapsed(Object.fromEntries((data?.jobs ?? []).map((j) => [j.audience, true])));
+  const expandAll = () => persistCollapsed({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -216,6 +216,11 @@ export default function AutomationsPage() {
               {f === "all" ? "All" : f === "email" ? "Email" : f === "errored" ? "Errored" : "Paused"}
             </button>
           ))}
+          <div className="ml-auto flex items-center gap-2 text-xs text-gray-400">
+            <button onClick={expandAll} className="hover:text-gray-700">Expand all</button>
+            <span className="text-gray-200">·</span>
+            <button onClick={collapseAll} className="hover:text-gray-700">Collapse all</button>
+          </div>
         </div>
       )}
 

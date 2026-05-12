@@ -18,6 +18,15 @@ interface JobLastRun {
   error: string | null;
   triggeredBy: string;
 }
+interface RunRow {
+  id: string;
+  started_at: string;
+  finished_at: string | null;
+  status: string;
+  summary: Record<string, unknown> | null;
+  error: string | null;
+  triggered_by: string;
+}
 interface Job {
   id: string;
   name: string;
@@ -59,6 +68,21 @@ function pct(n: number, of: number): string {
   return `${Math.round((n / of) * 100)}%`;
 }
 
+function duration(start: string, end: string | null): string {
+  if (!end) return "—";
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  if (ms < 1000) return `${ms}ms`;
+  const s = Math.round(ms / 1000);
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m${s % 60}s`;
+}
+
+function runStatusCls(status: string): string {
+  if (status === "error") return "text-red-600";
+  if (status === "skipped_paused") return "text-amber-700";
+  if (status === "running") return "text-blue-600";
+  return "text-gray-600";
+}
+
 function statusBadge(job: Job): { label: string; cls: string } {
   if (job.paused) return { label: "Paused", cls: "bg-amber-100 text-amber-800 border border-amber-300" };
   if (job.lastRun?.status === "error" || job.errors30d > 0)
@@ -88,6 +112,7 @@ export default function AutomationsPage() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [runsCache, setRunsCache] = useState<Record<string, RunRow[] | "loading" | "error">>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -106,6 +131,17 @@ export default function AutomationsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Lazy-load run history when a job is expanded (cached per job).
+  useEffect(() => {
+    if (!expanded || expanded in runsCache) return;
+    const jobId = expanded;
+    setRunsCache((c) => ({ ...c, [jobId]: "loading" }));
+    fetch(`/api/admin/automations/runs?job=${encodeURIComponent(jobId)}&limit=20`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error())))
+      .then((d) => setRunsCache((c) => ({ ...c, [jobId]: (d.runs ?? []) as RunRow[] })))
+      .catch(() => setRunsCache((c) => ({ ...c, [jobId]: "error" })));
+  }, [expanded, runsCache]);
 
   async function togglePause(job: Job) {
     if (job.paused) {
@@ -303,9 +339,40 @@ export default function AutomationsPage() {
                               {job.pause.until ? ` · auto-resumes ${new Date(job.pause.until).toLocaleDateString()}` : ""}
                             </div>
                           )}
-                          <div className="text-gray-400">
-                            (Run-by-run history and per-recipient drill-down land in Phase 2.)
+                          <div className="pt-1">
+                            <div className="text-gray-400 mb-1">Recent runs (last 20)</div>
+                            {runsCache[job.id] === "loading" && <div className="text-gray-400">Loading…</div>}
+                            {runsCache[job.id] === "error" && (
+                              <div className="text-gray-400">Couldn&apos;t load run history.</div>
+                            )}
+                            {Array.isArray(runsCache[job.id]) && (runsCache[job.id] as RunRow[]).length === 0 && (
+                              <div className="text-gray-400">No runs recorded yet — instrumentation lands once this deploys.</div>
+                            )}
+                            {Array.isArray(runsCache[job.id]) && (runsCache[job.id] as RunRow[]).length > 0 && (
+                              <div className="space-y-0.5 font-mono text-[11px]">
+                                {(runsCache[job.id] as RunRow[]).map((run) => (
+                                  <div key={run.id} className="flex items-baseline gap-2 flex-wrap">
+                                    <span
+                                      className="text-gray-500 whitespace-nowrap"
+                                      title={new Date(run.started_at).toLocaleString()}
+                                    >
+                                      {timeAgo(run.started_at)}
+                                    </span>
+                                    <span className={runStatusCls(run.status)}>{run.status}</span>
+                                    <span className="text-gray-400">{duration(run.started_at, run.finished_at)}</span>
+                                    {run.triggered_by !== "cron" && (
+                                      <span className="text-gray-400">{run.triggered_by}</span>
+                                    )}
+                                    {summaryLine(run.summary) && (
+                                      <span className="text-gray-600">{summaryLine(run.summary)}</span>
+                                    )}
+                                    {run.error && <span className="text-red-600">· {run.error}</span>}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
+                          <div className="text-gray-400 pt-1">(Per-recipient drill-down lands in Phase 2.)</div>
                         </div>
                       )}
                     </div>

@@ -41,30 +41,9 @@ interface Job {
   errors30d: number;
   rollup30d: Rollup | null;
 }
-interface Alert {
-  jobId: string;
-  alertKey: string;
-  severity: "error" | "warn";
-  message: string;
-  value: number | null;
-  worseIsHigher: boolean;
-  worsened?: boolean;
-  details?: Array<{ jobId: string; name: string; detail: string }>;
-}
-interface AckedAlert {
-  jobId: string;
-  alertKey: string;
-  message: string;
-  ackedBy: string;
-  ackedAt: string;
-  snoozeUntil: string | null;
-  note: string | null;
-}
 interface ApiResponse {
   windowDays: number;
   summary: { total: number; active: number; paused: number; errored: number; sends30d: number; bounces30d: number; complaints30d: number };
-  needsAttention: Alert[];
-  acknowledged: AckedAlert[];
   jobs: Job[];
   note: string;
 }
@@ -115,8 +94,6 @@ export default function AutomationsPage() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [showAcked, setShowAcked] = useState(false);
-  const [expandedAlerts, setExpandedAlerts] = useState<Record<string, boolean>>({});
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
 
@@ -179,15 +156,6 @@ export default function AutomationsPage() {
       await post({ job_id: job.id, action: "pause", reason, days: 30 }, `pause:${job.id}`);
     }
   }
-  async function ackAlert(a: Alert, snoozeDays: number | null) {
-    const payload: Record<string, unknown> = { action: "ack_alert", job_id: a.jobId, alert_key: a.alertKey };
-    if (snoozeDays) payload.snooze_days = snoozeDays;
-    if (a.value !== null) payload.value_at_ack = a.value;
-    await post(payload, `ack:${a.jobId}:${a.alertKey}`);
-  }
-  async function unackAlert(a: AckedAlert) {
-    await post({ action: "unack_alert", job_id: a.jobId, alert_key: a.alertKey }, `ack:${a.jobId}:${a.alertKey}`);
-  }
 
   const matches = useCallback(
     (j: Job): boolean => {
@@ -221,10 +189,7 @@ export default function AutomationsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-baseline gap-3">
-          <h1 className="text-2xl font-semibold text-gray-900">Automations</h1>
-          {data && data.needsAttention.length > 0 && <span className="text-xs text-amber-700">{data.needsAttention.length} need{data.needsAttention.length === 1 ? "s" : ""} attention</span>}
-        </div>
+        <h1 className="text-2xl font-semibold text-gray-900">Automations</h1>
         <button onClick={load} className="text-sm text-gray-400 hover:text-gray-700">Refresh</button>
       </div>
 
@@ -241,69 +206,6 @@ export default function AutomationsPage() {
 
       {loading && <div className="text-gray-400 text-sm">Loading…</div>}
       {err && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{err}</div>}
-
-      {/* alerts */}
-      {data && (data.needsAttention.length > 0 || data.acknowledged.length > 0) && (
-        <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50/40 px-4 py-3">
-          {data.needsAttention.length === 0 && data.acknowledged.length > 0 && <div className="text-sm text-gray-500">Nothing needs attention right now.</div>}
-          {data.needsAttention.map((a) => {
-            const k = `${a.jobId}\x1f${a.alertKey}`;
-            const open = !!expandedAlerts[k];
-            const ackBusy = busy === `ack:${a.jobId}:${a.alertKey}`;
-            return (
-              <div key={k} className="flex items-start gap-2.5 py-1.5 text-sm">
-                <span className={`mt-0.5 ${a.severity === "error" ? "text-red-500" : "text-amber-500"}`}>{a.severity === "error" ? "●" : "▲"}</span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-gray-700">
-                    {a.message}
-                    {a.worsened && <span className="text-red-600"> (worsened since acknowledged)</span>}
-                    {a.details && a.details.length > 0 && (
-                      <button onClick={() => setExpandedAlerts((e) => ({ ...e, [k]: !open }))} className="ml-2 text-gray-400 hover:text-gray-600 text-xs">{open ? "hide" : `details (${a.details.length})`}</button>
-                    )}
-                  </div>
-                  {open && a.details && (
-                    <ul className="mt-1 ml-1 space-y-0.5">
-                      {a.details.map((d) => (
-                        <li key={d.jobId} className="text-xs text-gray-500">
-                          <Link href={`/admin/automations/${d.jobId}`} className="text-gray-600 hover:underline">{d.name}</Link> — {d.detail}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {a.jobId !== "group" && <Link href={`/admin/automations/${a.jobId}`} className="text-xs text-gray-400 hover:text-gray-700">open ›</Link>}
-                  <button disabled={ackBusy} onClick={() => ackAlert(a, 7)} className="text-xs text-gray-400 hover:text-gray-700 disabled:opacity-40">snooze 7d</button>
-                  <button disabled={ackBusy} onClick={() => ackAlert(a, null)} className="text-xs text-gray-400 hover:text-gray-700 disabled:opacity-40">acknowledge</button>
-                </div>
-              </div>
-            );
-          })}
-          {data.acknowledged.length > 0 && (
-            <div className="mt-1.5 pt-1.5 border-t border-amber-200/60">
-              <button onClick={() => setShowAcked((s) => !s)} className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1">
-                <Chevron open={showAcked} /> {data.acknowledged.length} acknowledged
-              </button>
-              {showAcked && (
-                <ul className="mt-1 space-y-1">
-                  {data.acknowledged.map((a) => {
-                    const ackBusy = busy === `ack:${a.jobId}:${a.alertKey}`;
-                    return (
-                      <li key={`${a.jobId}\x1f${a.alertKey}`} className="text-xs text-gray-500 flex items-start gap-2">
-                        <span className="min-w-0 flex-1">
-                          {a.message}{" "}
-                          <span className="text-gray-400">— {a.snoozeUntil ? `snoozed until ${new Date(a.snoozeUntil).toLocaleDateString()}` : "acknowledged"} by {a.ackedBy} {timeAgo(a.ackedAt)}{a.note ? ` ("${a.note}")` : ""}</span>
-                        </span>
-                        <button disabled={ackBusy} onClick={() => unackAlert(a)} className="text-gray-400 hover:text-gray-700 disabled:opacity-40 shrink-0">un-acknowledge</button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* filter */}
       {data && (

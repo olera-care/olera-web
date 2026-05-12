@@ -42,6 +42,7 @@ export default function AdminOverviewPage() {
   const [auditLog, setAuditLog] = useState<AuditEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAllStats, setShowAllStats] = useState(false);
+  const [pausedAutomations, setPausedAutomations] = useState<number>(0);
 
   useEffect(() => {
     // Fire all fetches independently — each card updates on its own
@@ -79,6 +80,12 @@ export default function AdminOverviewPage() {
       .then((r) => r.ok ? r.json() : { entries: [] })
       .then((d) => setAuditLog(d.entries ?? []))
       .catch(() => setAuditLog([]));
+
+    // Paused-automations guard — surfaces here so a forgotten pause can't hide.
+    fetch("/api/admin/automations")
+      .then((r) => (r.ok ? r.json() : { jobs: [] }))
+      .then((d) => setPausedAutomations((d.jobs ?? []).filter((j: { paused?: boolean }) => j.paused).length))
+      .catch(() => setPausedAutomations(0));
   }, []);
 
   const primaryCards: StatCard[] = [
@@ -132,6 +139,14 @@ export default function AdminOverviewPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-gray-900">Overview</h1>
       </div>
+
+      {pausedAutomations > 0 && (
+        <Link href="/admin/automations" className="block mb-6">
+          <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 hover:border-amber-400">
+            ⚠️ {pausedAutomations} automation{pausedAutomations === 1 ? "" : "s"} paused — view Automations
+          </div>
+        </Link>
+      )}
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">

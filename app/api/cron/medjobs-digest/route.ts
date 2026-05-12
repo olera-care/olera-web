@@ -5,6 +5,7 @@ import { newCandidateAlertEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert } from "@/lib/slack";
 import { getTrackLabel } from "@/lib/medjobs-helpers";
 import type { StudentMetadata } from "@/lib/types";
+import { withCronRun } from "@/lib/crons/run";
 
 /**
  * GET /api/cron/medjobs-digest
@@ -18,6 +19,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("medjobs-digest", async () => {
   try {
     const db = getServiceClient();
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -106,4 +108,5 @@ export async function GET(request: NextRequest) {
     console.error("[medjobs-digest] unexpected error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+  });
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newMessageEmail } from "@/lib/email-templates";
+import { withCronRun } from "@/lib/crons/run";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("matches-unread", async () => {
   try {
     const db = getServiceClient();
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
@@ -177,4 +179,5 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
+  });
 }

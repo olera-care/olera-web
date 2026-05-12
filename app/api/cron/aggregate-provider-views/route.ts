@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { withCronRun } from "@/lib/crons/run";
 
 /**
  * GET /api/cron/aggregate-provider-views
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("aggregate-provider-views", async () => {
   const { searchParams } = new URL(request.url);
   const dryRun = searchParams.get("dry_run") === "true";
   const dateOverride = searchParams.get("date");
@@ -176,6 +178,7 @@ export async function GET(request: NextRequest) {
     console.error("[aggregate-provider-views] Threw:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+  });
 }
 
 function resolveTargetDate(override: string | null): string {

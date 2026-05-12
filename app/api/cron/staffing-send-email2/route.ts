@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendFollowUpEmail, isResendMockMode } from "@/lib/staffing-outreach/resend-automation";
+import { withCronRun } from "@/lib/crons/run";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("staffing-send-email2", async () => {
   try {
     const db = getServiceClient();
     const now = new Date().toISOString();
@@ -145,4 +147,5 @@ export async function GET(request: NextRequest) {
     console.error("[cron/staffing-send-email2] Error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+  });
 }

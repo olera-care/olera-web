@@ -5,6 +5,7 @@ import {
   matchesNudgeEmail,
   providerIncompleteProfileEmail,
 } from "@/lib/email-templates";
+import { withCronRun } from "@/lib/crons/run";
 
 /**
  * GET /api/cron/matches-nudge
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("matches-nudge", async () => {
   try {
     const db = getServiceClient();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
@@ -182,4 +184,5 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
+  });
 }

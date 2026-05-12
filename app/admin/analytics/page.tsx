@@ -126,6 +126,35 @@ interface CTAFunnelByVariant {
   unassigned: CTAFunnel;
 }
 
+// Provider response rate tracking — closes the loop on CTA effectiveness
+interface ProviderResponseMetrics {
+  total_leads: number;
+  responded_leads: number;
+  response_rate_percent: number;
+  median_response_time_hours: number | null;
+  awaiting_response_count: number;
+}
+
+interface ProviderResponseByVariant {
+  legacy: ProviderResponseMetrics;
+  compare: ProviderResponseMetrics;
+  unassigned: ProviderResponseMetrics;
+}
+
+interface AwaitingResponseLead {
+  connection_id: string;
+  family_name: string;
+  provider_name: string;
+  provider_slug: string;
+  created_at: string;
+  age_hours: number;
+  signals: {
+    email_clicked: boolean;
+    lead_opened: boolean;
+    contact_revealed: boolean;
+  };
+}
+
 interface ReferrerBreakdown {
   ai_chat: number;
   search: number;
@@ -165,6 +194,9 @@ interface SummaryResponse {
     cta_funnel_by_variant: CTAFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
     entry_source_breakdown: EntrySourceBreakdown;
+    provider_response: ProviderResponseMetrics;
+    provider_response_by_variant: ProviderResponseByVariant;
+    awaiting_response: AwaitingResponseLead[];
   };
   prior: {
     counts: WindowedCounts;
@@ -179,6 +211,9 @@ interface SummaryResponse {
     cta_funnel_by_variant: CTAFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
     entry_source_breakdown: EntrySourceBreakdown;
+    provider_response: ProviderResponseMetrics;
+    provider_response_by_variant: ProviderResponseByVariant;
+    awaiting_response: AwaitingResponseLead[];
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -326,6 +361,15 @@ export default function AdminAnalyticsPage() {
         loading={loading && !!summary}
       >
         <CTAVariantsCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Provider Response Rates"
+        storageKey="providerResponseRates"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <ProviderResponseCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -1843,6 +1887,277 @@ function CTAVariantSplit({
       )}
     </div>
   );
+}
+
+// Provider Response Rates — tracks whether providers respond to leads generated
+// by CTAs, closing the loop: Impression → Click → Lead → Provider Response.
+function ProviderResponseCard({
+  summary,
+  loading,
+  range,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+  range: DateRangeValue;
+}) {
+  if (loading && !summary) {
+    return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
+  }
+  if (!summary) return null;
+
+  const r = summary.windowed.provider_response;
+  const pr = summary.prior?.provider_response ?? null;
+  const byVariant = summary.windowed.provider_response_by_variant;
+  const awaiting = summary.windowed.awaiting_response || [];
+
+  return (
+    <>
+      <p className="text-xs text-gray-500 mb-5">
+        Provider response metrics {rangeLabel(range).toLowerCase()} —
+        tracks whether providers reply to family leads.
+      </p>
+
+      {/* Top-level stats */}
+      <div className="grid grid-cols-3 gap-x-5 gap-y-4 mb-6">
+        <PercentStat
+          label="Response Rate"
+          value={r.response_rate_percent}
+          prior={pr?.response_rate_percent ?? null}
+          tooltip="Percentage of leads where provider sent at least one message."
+        />
+        <ResponseTimeStat
+          label="Median Response Time"
+          hours={r.median_response_time_hours}
+          priorHours={pr?.median_response_time_hours ?? null}
+          tooltip="Median hours from lead creation to first provider message."
+        />
+        <Stat
+          label="Awaiting Response"
+          value={r.awaiting_response_count}
+          prior={pr?.awaiting_response_count ?? null}
+          tooltip="Leads with no provider reply yet."
+        />
+      </div>
+
+      {/* By variant table */}
+      <ProviderResponseVariantSplit byVariant={byVariant} />
+
+      {/* Awaiting response list */}
+      {awaiting.length > 0 && <AwaitingResponseList leads={awaiting} />}
+    </>
+  );
+}
+
+function PercentStat({
+  label,
+  value,
+  prior,
+  tooltip,
+}: {
+  label: string;
+  value: number;
+  prior: number | null;
+  tooltip: string;
+}) {
+  const animated = useAnimatedCount(value, 600);
+  const isZero = value === 0;
+  const delta = computeDelta(value, prior);
+
+  return (
+    <div title={tooltip} className={`cursor-default ${isZero ? "opacity-50" : ""}`}>
+      <div
+        className={`text-[26px] font-semibold tabular-nums leading-none ${
+          isZero ? "text-gray-400 font-medium" : "text-gray-900"
+        }`}
+      >
+        {animated}%
+      </div>
+      <div className="text-xs text-gray-500 mt-1.5 leading-tight">{label}</div>
+      <DeltaLine delta={delta} />
+    </div>
+  );
+}
+
+function ResponseTimeStat({
+  label,
+  hours,
+  priorHours,
+  tooltip,
+}: {
+  label: string;
+  hours: number | null;
+  priorHours: number | null;
+  tooltip: string;
+}) {
+  const displayValue = hours != null ? `${hours.toFixed(1)} hrs` : "—";
+  const isZero = hours === null;
+
+  const delta = (() => {
+    if (priorHours === null || hours === null) return { state: "noPrior" as const, pctText: "" };
+    if (priorHours === 0 && hours === 0) return { state: "flat" as const, pctText: "no change" };
+    if (priorHours === 0 && hours > 0) return { state: "newSignal" as const, pctText: "new" };
+    const pct = ((hours - priorHours) / priorHours) * 100;
+    const rounded = Math.round(pct);
+    if (Math.abs(rounded) < 1) return { state: "flat" as const, pctText: "flat" };
+    // For response time, lower is better, so we flip the direction
+    return {
+      state: (rounded < 0 ? "up" : "down") as "up" | "down",
+      pctText: `${rounded < 0 ? "↓" : "↑"} ${Math.abs(rounded)}%`,
+    };
+  })();
+
+  return (
+    <div title={tooltip} className={`cursor-default ${isZero ? "opacity-50" : ""}`}>
+      <div
+        className={`text-[26px] font-semibold tabular-nums leading-none ${
+          isZero ? "text-gray-400 font-medium" : "text-gray-900"
+        }`}
+      >
+        {displayValue}
+      </div>
+      <div className="text-xs text-gray-500 mt-1.5 leading-tight">{label}</div>
+      <DeltaLine delta={delta} />
+    </div>
+  );
+}
+
+function ProviderResponseVariantSplit({
+  byVariant,
+}: {
+  byVariant: ProviderResponseByVariant;
+}) {
+  const arms: Array<{ key: keyof ProviderResponseByVariant; label: string }> = [
+    { key: "legacy", label: "Legacy CTA" },
+    { key: "compare", label: "Compare CTA" },
+  ];
+
+  return (
+    <div className="mt-6 pt-5 border-t border-gray-100">
+      <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-3">
+        By CTA Variant
+      </div>
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="text-left px-4 py-2 font-medium text-gray-600">Variant</th>
+              <th className="text-right px-4 py-2 font-medium text-gray-600">Leads</th>
+              <th className="text-right px-4 py-2 font-medium text-gray-600">Responded</th>
+              <th className="text-right px-4 py-2 font-medium text-gray-600">Rate</th>
+              <th className="text-right px-4 py-2 font-medium text-gray-600">Median Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {arms.map(({ key, label }) => {
+              const v = byVariant[key];
+              return (
+                <tr key={key} className="border-b border-gray-100 last:border-0">
+                  <td className="px-4 py-2.5 font-medium text-gray-900">{label}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{v.total_leads}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{v.responded_leads}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums font-medium">
+                    {v.response_rate_percent}%
+                  </td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-gray-600">
+                    {v.median_response_time_hours != null
+                      ? `${v.median_response_time_hours.toFixed(1)} hrs`
+                      : "—"}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function AwaitingResponseList({ leads }: { leads: AwaitingResponseLead[] }) {
+  return (
+    <div className="mt-6 pt-5 border-t border-gray-100">
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
+          Awaiting Response
+        </div>
+        <Link
+          href="/admin/leads"
+          className="text-xs text-emerald-700 hover:text-emerald-800 font-medium"
+        >
+          View all →
+        </Link>
+      </div>
+
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="text-left px-4 py-2 font-medium text-gray-600">Family</th>
+              <th className="text-left px-4 py-2 font-medium text-gray-600">Provider</th>
+              <th className="text-right px-4 py-2 font-medium text-gray-600">Sent</th>
+              <th className="text-center px-4 py-2 font-medium text-gray-600">Signals</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leads.slice(0, 5).map((lead) => (
+              <tr key={lead.connection_id} className="border-b border-gray-100 last:border-0">
+                <td className="px-4 py-2.5 text-gray-900">{lead.family_name}</td>
+                <td className="px-4 py-2.5">
+                  <Link
+                    href={`/provider/${lead.provider_slug}`}
+                    className="text-emerald-700 hover:text-emerald-800"
+                  >
+                    {lead.provider_name}
+                  </Link>
+                </td>
+                <td className="px-4 py-2.5 text-right text-gray-600">
+                  {formatLeadAge(lead.age_hours)}
+                </td>
+                <td className="px-4 py-2.5 text-center">
+                  <EngagementDots signals={lead.signals} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="mt-2 text-[11px] text-gray-400">
+        Signals: ● email clicked, ● lead opened, ● contact copied
+      </p>
+    </div>
+  );
+}
+
+function EngagementDots({ signals }: { signals: AwaitingResponseLead["signals"] }) {
+  return (
+    <div className="flex items-center justify-center gap-1">
+      <span
+        className={`w-2 h-2 rounded-full ${
+          signals.email_clicked ? "bg-emerald-500" : "bg-gray-200"
+        }`}
+        title="Email clicked"
+      />
+      <span
+        className={`w-2 h-2 rounded-full ${
+          signals.lead_opened ? "bg-emerald-500" : "bg-gray-200"
+        }`}
+        title="Lead opened"
+      />
+      <span
+        className={`w-2 h-2 rounded-full ${
+          signals.contact_revealed ? "bg-emerald-500" : "bg-gray-200"
+        }`}
+        title="Contact revealed"
+      />
+    </div>
+  );
+}
+
+function formatLeadAge(hours: number): string {
+  if (hours < 24) return `${Math.round(hours)}h ago`;
+  const days = Math.round(hours / 24);
+  return `${days}d ago`;
 }
 
 // Submissions bucketed by entry source. The benefits funnel above is

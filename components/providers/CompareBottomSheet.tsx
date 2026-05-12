@@ -336,6 +336,7 @@ export default function CompareBottomSheet({
         ref={sheetRef}
         className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl animate-sheet-up flex flex-col"
         style={{
+          minHeight: showSimilar ? undefined : "65dvh",
           maxHeight: "95dvh",
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
@@ -360,7 +361,7 @@ export default function CompareBottomSheet({
         )}
 
         {/* Header */}
-        <div className="px-5 pb-3 shrink-0 border-b border-gray-100">
+        <div className="px-5 pb-4 shrink-0 border-b border-gray-100">
           <h2 className="text-[22px] font-bold text-gray-900 leading-tight pr-10">
             {showSimilar
               ? `${currentProvider.name} next to ${similarProviders.length} nearby home${similarProviders.length !== 1 ? "s" : ""}`
@@ -373,7 +374,7 @@ export default function CompareBottomSheet({
 
         {/* Vertically stacked provider cards */}
         <div className="flex-1 overflow-y-auto">
-          <div className="px-5 py-4 space-y-3">
+          <div className="px-5 py-6 space-y-4">
             {displayProviders.map((provider) => {
               const isCurrentProvider = provider.id === currentProvider.id;
               return (
@@ -388,13 +389,13 @@ export default function CompareBottomSheet({
               );
             })}
 
-            {/* "Compare with N nearby homes" button - shown when collapsed */}
+            {/* "Compare with N more" button - shown when collapsed */}
             {!showSimilar && hasSimilarProviders && (
-              <div className="pt-4">
+              <div className="pt-5 pb-2">
                 <button
                   type="button"
                   onClick={() => setShowSimilar(true)}
-                  className="flex items-center gap-3 px-4 py-3 w-full rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group"
+                  className="flex items-center justify-center gap-2.5 w-full py-2 group"
                 >
                   {/* Stacked avatars */}
                   <div className="flex -space-x-2">
@@ -404,34 +405,25 @@ export default function CompareBottomSheet({
                           key={p.id}
                           src={p.image}
                           alt={p.name}
-                          width={24}
-                          height={24}
-                          className="w-6 h-6 rounded-full ring-2 ring-white object-cover bg-gray-100"
+                          width={28}
+                          height={28}
+                          className="w-7 h-7 rounded-full ring-2 ring-white object-cover bg-gray-100"
                         />
                       ) : (
                         <div
                           key={p.id}
-                          className="w-6 h-6 rounded-full ring-2 ring-white bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center"
+                          className="w-7 h-7 rounded-full ring-2 ring-white bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center"
                         >
-                          <span className="text-[10px] font-semibold text-amber-700">
+                          <span className="text-xs font-semibold text-amber-700">
                             {p.name.charAt(0)}
                           </span>
                         </div>
                       )
                     )}
                   </div>
-                  <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                    Compare with {similarProviders.length} nearby home{similarProviders.length !== 1 ? "s" : ""}
+                  <span className="text-[15px] font-medium text-primary-600 group-hover:text-primary-700 transition-colors">
+                    Compare with {similarProviders.length} more
                   </span>
-                  <svg
-                    className="w-4 h-4 text-gray-400 group-hover:text-gray-600 ml-auto transition-transform group-hover:translate-x-0.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
                 </button>
               </div>
             )}
@@ -600,11 +592,9 @@ function CompareCard({ provider, isCurrentProvider, isSelected, onToggle, showTo
   return (
     <div
       className={`relative rounded-xl border-2 p-4 transition-all ${
-        isCurrentProvider
-          ? "border-primary-500 bg-white"
-          : isSelected
-            ? "border-gray-200 bg-white"
-            : "border-gray-100 bg-gray-50/50 opacity-60"
+        isSelected
+          ? "border-gray-200 bg-white"
+          : "border-gray-100 bg-gray-50/50 opacity-60"
       }`}
     >
       {/* "THIS PAGE" badge - positioned on border */}

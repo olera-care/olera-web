@@ -567,21 +567,23 @@ export default function ConversationPanel({
         )}
       </div>
 
-      {/* Profile completion nudge - family view only */}
+      {/* Profile completion nudge - family view only, above scrollable thread */}
       {variant === "family" && familyProfile && completeness < 60 && !nudgeDismissed && connection && (
-        <ProfileCompletionNudge
-          providerName={otherName}
-          onComplete={() => setShowWizard(true)}
-          onDismiss={() => {
-            setNudgeDismissed(true);
-            try {
-              localStorage.setItem(`nudge_dismissed_${connection.id}`, "true");
-            } catch {
-              // localStorage unavailable
-            }
-          }}
-          connectionId={connection.id}
-        />
+        <div className="border-b border-gray-100">
+          <ProfileCompletionNudge
+            providerName={otherName}
+            onComplete={() => setShowWizard(true)}
+            onDismiss={() => {
+              setNudgeDismissed(true);
+              try {
+                localStorage.setItem(`nudge_dismissed_${connection.id}`, "true");
+              } catch {
+                // localStorage unavailable
+              }
+            }}
+            connectionId={connection.id}
+          />
+        </div>
       )}
 
       {/* ── Conversation thread ── */}

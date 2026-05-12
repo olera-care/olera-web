@@ -35,9 +35,11 @@ interface CompareBottomSheetProps {
 type FooterState = "initial" | "email_capture" | "submitting" | "success";
 
 /**
- * Mobile comparison bottom sheet with horizontal swipeable cards.
- * Shows current provider + 2 similar providers side by side.
- * Uses a custom bottom sheet (not Modal) to allow cards to peek from the right.
+ * Mobile comparison bottom sheet with vertical stacked cards.
+ * Visual flow:
+ * 1. Initially shows only the current provider (collapsed state)
+ * 2. User can tap "Compare with N nearby homes" to reveal similar providers
+ * 3. All selection/save logic remains unchanged
  */
 export default function CompareBottomSheet({
   isOpen,
@@ -52,15 +54,16 @@ export default function CompareBottomSheet({
   const isLoggedIn = !!user && !!activeProfile;
   const userEmail = user?.email || "";
 
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [footerState, setFooterState] = useState<FooterState>("initial");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const saveClickFiredRef = useRef(false);
+
+  // Stepped flow: initially show only current provider
+  const [showSimilar, setShowSimilar] = useState(false);
 
   // All providers: current first, then similar
   // Memoized to prevent unnecessary callback recreations
@@ -68,7 +71,10 @@ export default function CompareBottomSheet({
     () => [currentProvider, ...similarProviders.slice(0, 2)],
     [currentProvider, similarProviders]
   );
-  const totalProviders = allProviders.length;
+
+  // Providers to display (filtered by showSimilar state)
+  const displayProviders = showSimilar ? allProviders : [currentProvider];
+  const hasSimilarProviders = similarProviders.length > 0;
 
   // Track which providers are selected for saving (all selected by default)
   const [selectedProviderIds, setSelectedProviderIds] = useState<Set<string>>(
@@ -76,7 +82,11 @@ export default function CompareBottomSheet({
   );
 
   // Get selected providers for saving
-  const selectedProviders = allProviders.filter((p) => selectedProviderIds.has(p.id));
+  // When collapsed, only save the current provider (regardless of selectedProviderIds)
+  // When expanded, use the full selection logic
+  const selectedProviders = showSimilar
+    ? allProviders.filter((p) => selectedProviderIds.has(p.id))
+    : [currentProvider];
   const selectedCount = selectedProviders.length;
 
   // Toggle provider selection
@@ -95,25 +105,6 @@ export default function CompareBottomSheet({
   // Location string
   const locationStr = [currentProvider.city, currentProvider.state].filter(Boolean).join(", ");
   const categoryLocationStr = [currentProvider.category, locationStr].filter(Boolean).join(" · ");
-
-  // Calculate badges for providers (highest rated, best price, most services)
-  const badges = calculateBadges(allProviders);
-
-  // Handle scroll to update current index
-  const handleScroll = () => {
-    if (!scrollRef.current) return;
-    const scrollLeft = scrollRef.current.scrollLeft;
-    const cardWidth = window.innerWidth * 0.78 + 12;
-    const newIndex = Math.round(scrollLeft / cardWidth);
-    setCurrentIndex(Math.min(newIndex, totalProviders - 1));
-  };
-
-  // Scroll to specific card
-  const scrollToCard = (index: number) => {
-    if (!scrollRef.current) return;
-    const cardWidth = window.innerWidth * 0.78 + 12;
-    scrollRef.current.scrollTo({ left: index * cardWidth, behavior: "smooth" });
-  };
 
   // Handle escape key (disabled during submitting/success)
   const handleKeyDown = useCallback(
@@ -139,12 +130,9 @@ export default function CompareBottomSheet({
     const keyHandler = (e: KeyboardEvent) => handleKeyDownRef.current(e);
 
     if (isOpen) {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTo({ left: 0, behavior: "instant" });
-        setCurrentIndex(0);
-      }
       setFooterState("initial");
       setSelectedProviderIds(new Set(allProviders.map((p) => p.id)));
+      setShowSimilar(false);
       setEmail("");
       setError(null);
       saveClickFiredRef.current = false;
@@ -215,7 +203,7 @@ export default function CompareBottomSheet({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          actor_type: "anonymous",
+          actor_type: "user",
           related_provider_id: currentProvider.slug,
           event_type: "cta_variant_clicked",
           session_id: getOrCreateSessionId(),
@@ -223,7 +211,7 @@ export default function CompareBottomSheet({
             variant: ctaVariant,
             surface: "mobile",
             action: "save_comparison_clicked",
-            isLoggedIn: true,
+            logged_in: true,
           },
         }),
       }).catch(() => {});
@@ -267,7 +255,7 @@ export default function CompareBottomSheet({
       setError("Something went wrong. Please try again.");
       setFooterState("initial");
     }
-  }, [userEmail, ctaVariant, ctaPreviewMode, currentProvider.slug, allProviders, selectedProviderIds, router]);
+  }, [userEmail, ctaVariant, ctaPreviewMode, currentProvider.slug, selectedProviders, router]);
 
   // Handle email submit
   const handleSubmit = async (e: React.FormEvent) => {
@@ -348,6 +336,7 @@ export default function CompareBottomSheet({
         ref={sheetRef}
         className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl animate-sheet-up flex flex-col"
         style={{
+          minHeight: showSimilar ? undefined : "65dvh",
           maxHeight: "95dvh",
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
@@ -372,106 +361,106 @@ export default function CompareBottomSheet({
         )}
 
         {/* Header */}
-        <div className="px-5 pb-3 shrink-0">
+        <div className="px-5 pb-4 shrink-0 border-b border-gray-100">
           <h2 className="text-[22px] font-bold text-gray-900 leading-tight pr-10">
-            Side by side comparison
+            {showSimilar
+              ? `${currentProvider.name} next to ${similarProviders.length} nearby home${similarProviders.length !== 1 ? "s" : ""}`
+              : `Save ${currentProvider.name}`}
           </h2>
-          {categoryLocationStr && (
-            <p className="text-[15px] text-gray-500 mt-1">{categoryLocationStr} · {selectedCount} of {totalProviders} selected</p>
-          )}
-        </div>
-
-        {/* Swipe indicator */}
-        <div className="px-5 pb-2 shrink-0">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-            Provider <span className="text-gray-900">{currentIndex + 1}</span> of {totalProviders} · Swipe to see more →
+          <p className="text-[15px] text-gray-500 mt-1">
+            {categoryLocationStr}
           </p>
         </div>
 
-        {/* Horizontal scrolling cards */}
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="flex-1 overflow-x-auto overflow-y-auto snap-x snap-mandatory scroll-pl-5 scrollbar-hide overscroll-x-contain"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          <div className="flex items-stretch gap-3 pl-5 pr-5 pb-4">
-            {allProviders.map((provider, index) => (
-              <CompareCard
-                key={provider.id}
-                provider={provider}
-                isCurrentProvider={index === 0}
-                badge={badges[provider.id]}
-                isSelected={selectedProviderIds.has(provider.id)}
-                onToggle={() => toggleProvider(provider.id)}
-              />
-            ))}
-            <div className="w-5 shrink-0" />
-          </div>
-        </div>
+        {/* Vertically stacked provider cards */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="px-5 py-6 space-y-4">
+            {displayProviders.map((provider) => {
+              const isCurrentProvider = provider.id === currentProvider.id;
+              return (
+                <CompareCard
+                  key={provider.id}
+                  provider={provider}
+                  isCurrentProvider={isCurrentProvider}
+                  isSelected={selectedProviderIds.has(provider.id)}
+                  onToggle={() => toggleProvider(provider.id)}
+                  showToggle={showSimilar}
+                />
+              );
+            })}
 
-        {/* Pagination dots */}
-        <div className="flex justify-center gap-2 py-2 shrink-0">
-          {allProviders.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => scrollToCard(index)}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentIndex ? "bg-gray-900" : "bg-gray-300"
-              }`}
-              aria-label={`Go to provider ${index + 1}`}
-            />
-          ))}
+          </div>
         </div>
 
         {/* Footer - State Machine */}
         <div className="px-5 py-3 border-t border-gray-200 bg-white shrink-0">
           {footerState === "initial" && (
             <>
-              {isLoggedIn ? (
+              {/* Collapsed state: Compare is primary, Save is secondary */}
+              {!showSimilar && hasSimilarProviders ? (
                 <>
-                  {error && (
-                    <p className="text-sm text-red-600 mb-3">{error}</p>
-                  )}
                   <button
                     type="button"
-                    onClick={handleLoggedInSubmit}
-                    disabled={selectedCount === 0}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
+                    onClick={() => setShowSimilar(true)}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
                   >
-                    {selectedCount === 0
-                      ? "Select at least one"
-                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                    </svg>
+                    Compare with {similarProviders.length} more
                   </button>
-                  {selectedCount > 0 && (
-                    <p className="text-center text-xs text-gray-500 mt-2">
-                      Saving as {userEmail}
-                    </p>
-                  )}
+                  <p className="text-center text-[13px] text-gray-500 mt-2.5">
+                    or{" "}
+                    <button
+                      type="button"
+                      onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
+                      className="text-gray-700 font-medium hover:text-gray-900 underline underline-offset-2"
+                    >
+                      just save this one
+                    </button>
+                  </p>
                 </>
               ) : (
+                /* Expanded state OR no similar providers: Save is primary */
                 <>
-                  <button
-                    type="button"
-                    onClick={handleSaveClick}
-                    disabled={selectedCount === 0}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
-                  >
-                    {selectedCount === 0
-                      ? "Select at least one"
-                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                    </svg>
-                  </button>
-                  {selectedCount > 0 && (
-                    <p className="text-center text-xs text-gray-500 mt-2">
-                      Message any of them when you&apos;re ready
-                    </p>
+                  {isLoggedIn ? (
+                    <>
+                      {error && (
+                        <p className="text-sm text-red-600 mb-3">{error}</p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleLoggedInSubmit}
+                        disabled={showSimilar && selectedCount === 0}
+                        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
+                      >
+                        {selectedCount === 0
+                          ? "Select at least one"
+                          : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        </svg>
+                      </button>
+                      <p className="text-center text-xs text-gray-500 mt-2">
+                        {showSimilar ? "Save now, message when ready" : `Saving as ${userEmail}`}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleSaveClick}
+                        disabled={showSimilar && selectedCount === 0}
+                        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
+                      >
+                        {selectedCount === 0
+                          ? "Select at least one"
+                          : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        </svg>
+                      </button>
+                      <p className="text-center text-xs text-gray-500 mt-2">
+                        Save now, message when ready
+                      </p>
+                    </>
                   )}
                 </>
               )}
@@ -503,7 +492,7 @@ export default function CompareBottomSheet({
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <h3 className="text-lg font-bold text-gray-900">
-                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                  {showSimilar ? `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}` : "Save this provider"}
                 </h3>
                 <p className="text-sm text-gray-500">Add your email so you don&apos;t lose it.</p>
               </div>
@@ -538,7 +527,7 @@ export default function CompareBottomSheet({
                     </>
                   ) : (
                     <>
-                      Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                      {showSimilar ? `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}` : "Save this provider"}
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                       </svg>
@@ -575,164 +564,96 @@ export default function CompareBottomSheet({
 interface CompareCardProps {
   provider: CompareProvider;
   isCurrentProvider: boolean;
-  badge?: string | null;
   isSelected: boolean;
   onToggle: () => void;
+  showToggle?: boolean;
 }
 
-function CompareCard({ provider, isCurrentProvider, badge, isSelected, onToggle }: CompareCardProps) {
+function CompareCard({ provider, isCurrentProvider, isSelected, onToggle, showToggle = true }: CompareCardProps) {
   const locationStr = [provider.city, provider.state].filter(Boolean).join(", ");
-  const categoryLocationStr = [provider.category, locationStr].filter(Boolean).join(" · ");
-  const servicesDisplay = provider.services?.slice(0, 3).join(", ") || "—";
-  const highlightsDisplay = provider.highlights?.slice(0, 2).join(" · ") || "—";
+  const hasRating = provider.rating != null && provider.reviewCount != null && provider.reviewCount > 0;
 
   return (
     <div
-      className={`flex-shrink-0 w-[78vw] snap-start rounded-2xl border-2 border-gray-200 p-4 bg-white transition-opacity flex flex-col ${
-        !isSelected ? "opacity-40" : ""
+      className={`relative rounded-xl border-2 p-4 transition-all ${
+        isSelected
+          ? "border-gray-200 bg-white"
+          : "border-gray-100 bg-gray-50/50 opacity-60"
       }`}
     >
-      {/* Provider header */}
-      <div className="flex items-start gap-3 mb-3">
+      {/* "THIS PAGE" badge - positioned on border */}
+      {isCurrentProvider && (
+        <span className="absolute -top-2.5 left-3 px-2 py-0.5 bg-primary-600 text-white text-[10px] font-semibold uppercase tracking-wider rounded">
+          This page
+        </span>
+      )}
+
+      {/* Selection toggle - circular checkbox in top right */}
+      {showToggle && (
+        <button
+          type="button"
+          onClick={onToggle}
+          className={`absolute top-3 right-3 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+            isSelected
+              ? "border-primary-500 bg-primary-500 text-white"
+              : "border-gray-300 bg-white text-transparent hover:border-gray-400"
+          }`}
+          aria-label={isSelected ? "Remove from comparison" : "Add to comparison"}
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </button>
+      )}
+
+      {/* Provider info - compact layout */}
+      <div className="flex items-start gap-3">
+        {/* Avatar */}
         {provider.image ? (
           <Image
             src={provider.image}
             alt={provider.name}
-            width={48}
-            height={48}
-            className="w-12 h-12 rounded-lg object-cover bg-gray-100"
+            width={56}
+            height={56}
+            className="w-14 h-14 rounded-lg object-cover bg-gray-100 shrink-0"
           />
         ) : (
-          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
-            <span className="text-base font-semibold text-amber-700">
+          <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center shrink-0">
+            <span className="text-lg font-semibold text-amber-700">
               {provider.name.charAt(0)}
             </span>
           </div>
         )}
 
-        <div className="flex-1 min-w-0">
-          {/* "This page" label for current provider */}
-          {isCurrentProvider && (
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-600 mb-0.5">
-              This page
-            </p>
-          )}
-          <h3 className="text-base font-bold text-gray-900 leading-tight line-clamp-1">
+        {/* Details */}
+        <div className="flex-1 min-w-0 pr-6">
+          <h3 className="text-[15px] font-bold text-gray-900 leading-tight line-clamp-1">
             {provider.name}
           </h3>
-          {categoryLocationStr && (
-            <p className="text-[13px] text-gray-500 mt-0.5 truncate">{categoryLocationStr}</p>
+          {locationStr && (
+            <p className="text-[13px] text-gray-500 mt-0.5">{locationStr}</p>
           )}
+
+          {/* Rating - simple text */}
+          {hasRating ? (
+            <p className="text-[13px] text-gray-600 mt-1 flex items-center gap-1">
+              <svg className="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              <span className="font-semibold">{provider.rating?.toFixed(1)}</span>
+              <span className="text-gray-400">· {provider.reviewCount}</span>
+            </p>
+          ) : (
+            <p className="text-[13px] text-gray-400 italic mt-1">No reviews yet</p>
+          )}
+
+          {/* Price - simple text */}
+          <p className="text-[13px] font-semibold text-gray-900 mt-0.5">
+            {provider.priceRange || "Contact for pricing"}
+          </p>
         </div>
-      </div>
-
-      {/* Rating row with badge */}
-      <div className="flex items-center gap-2 mb-3 px-2.5 py-2 bg-amber-50/50 rounded-lg">
-        <div className="flex items-center gap-1">
-          <svg className="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-          <span className="text-base font-bold text-gray-900">
-            {provider.rating?.toFixed(1) || "—"}
-          </span>
-          <span className="text-xs text-gray-500">
-            · {provider.reviewCount || 0}
-          </span>
-        </div>
-        {badge && (
-          <span className="ml-auto text-[10px] font-semibold text-amber-700 flex items-center gap-0.5">
-            <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            {badge}
-          </span>
-        )}
-      </div>
-
-      {/* Comparison rows */}
-      <div className="space-y-0 divide-y divide-gray-100">
-        <CompareRow label="EST. MONTHLY" value={provider.priceRange || "—"} />
-        <CompareRow label="SERVICES" value={servicesDisplay} />
-        <CompareRow label="HIGHLIGHTS" value={highlightsDisplay} />
-      </div>
-
-      {/* Selection button - mt-auto pushes to bottom of flex card */}
-      <div className="mt-auto pt-3 border-t border-gray-100 flex justify-center">
-        <button
-          type="button"
-          onClick={onToggle}
-          className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
-            isSelected
-              ? "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              : "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
-          }`}
-        >
-          {isSelected ? "Don't save" : "Save"}
-        </button>
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Compare Row Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-function CompareRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start justify-between py-3">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 shrink-0">
-        {label}
-      </span>
-      <span className="text-sm text-gray-900 text-right ml-3 leading-tight">
-        {value}
-      </span>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Badge Calculation
-// ─────────────────────────────────────────────────────────────────────────────
-
-function calculateBadges(providers: CompareProvider[]): Record<string, string | null> {
-  const badges: Record<string, string | null> = {};
-
-  providers.forEach((p) => {
-    badges[p.id] = null;
-  });
-
-  if (providers.length < 2) return badges;
-
-  const withRatings = providers.filter((p) => p.rating != null);
-  if (withRatings.length > 0) {
-    const highest = withRatings.reduce((a, b) => (a.rating! > b.rating! ? a : b));
-    badges[highest.id] = "HIGHEST RATED";
-  }
-
-  const withPrices = providers.filter((p) => p.priceRange);
-  if (withPrices.length > 0) {
-    const parseMinPrice = (range: string) => {
-      const match = range.match(/\$?([\d,]+)/);
-      return match ? parseInt(match[1].replace(/,/g, ""), 10) : Infinity;
-    };
-    const cheapest = withPrices.reduce((a, b) =>
-      parseMinPrice(a.priceRange!) < parseMinPrice(b.priceRange!) ? a : b
-    );
-    if (!badges[cheapest.id]) {
-      badges[cheapest.id] = "BEST PRICE";
-    }
-  }
-
-  const withServices = providers.filter((p) => p.services && p.services.length > 0);
-  if (withServices.length > 0) {
-    const most = withServices.reduce((a, b) =>
-      (a.services?.length || 0) > (b.services?.length || 0) ? a : b
-    );
-    if (!badges[most.id]) {
-      badges[most.id] = "MOST SERVICES";
-    }
-  }
-
-  return badges;
-}

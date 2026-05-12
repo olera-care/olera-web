@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import Image from "next/image";
@@ -46,7 +46,11 @@ export default function CompareOverlay({
   const userEmail = user?.email || "";
 
   // All providers: current first, then similar (max 2)
-  const allProviders = [currentProvider, ...similarProviders.slice(0, 2)];
+  // Memoized to prevent unnecessary callback recreations
+  const allProviders = useMemo(
+    () => [currentProvider, ...similarProviders.slice(0, 2)],
+    [currentProvider, similarProviders]
+  );
 
   // Track which providers are selected for saving (all selected by default)
   const [selectedProviderIds, setSelectedProviderIds] = useState<Set<string>>(

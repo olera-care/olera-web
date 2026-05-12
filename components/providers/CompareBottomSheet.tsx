@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
@@ -63,7 +63,11 @@ export default function CompareBottomSheet({
   const saveClickFiredRef = useRef(false);
 
   // All providers: current first, then similar
-  const allProviders = [currentProvider, ...similarProviders.slice(0, 2)];
+  // Memoized to prevent unnecessary callback recreations
+  const allProviders = useMemo(
+    () => [currentProvider, ...similarProviders.slice(0, 2)],
+    [currentProvider, similarProviders]
+  );
   const totalProviders = allProviders.length;
 
   // Track which providers are selected for saving (all selected by default)

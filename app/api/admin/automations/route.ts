@@ -1,23 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { CRON_REGISTRY } from "@/lib/crons/registry";
+import { CRON_REGISTRY, isEmailJob } from "@/lib/crons/registry";
 
 /**
- * GET /api/admin/automations
+ * GET /api/admin/automations  — powers the /admin/automations cockpit:
+ *   - `summary` — top-of-page health line (counts + 30-day deliverability)
+ *   - `jobs[]`  — the registry joined with each job's latest run + 30-day run
+ *                 count + 30-day email rollup + pause state
  *
- * Powers /admin/automations. Returns the cron registry joined with, per job:
- *   - the latest run + a 30-day run count + error count (from cron_runs)
- *   - a 30-day email rollup (sends / delivered / opened / clicked / bounced /
- *     complained) for email jobs, derived from email_log's denormalized
- *     lifecycle columns keyed by email_type
- *   - pause state (from cron_config)
- *
- * cron_runs / cron_config may not exist yet (migration 082 not applied) — those
- * queries fail soft and the response just omits run/pause data.
- *
- * Open/click rates here come from Resend's tracking pixel + link wrapper, which
- * Apple Mail Privacy Protection inflates (prefetches the pixel and rewrites
- * links). Treat the absolute numbers as soft; the trend over time is the signal.
+ * Open/click come from Resend's pixel + link tracking, inflated by Apple Mail
+ * Privacy Protection — absolute numbers soft, trend real. cron_runs / cron_config
+ * may be absent (migration 082 not applied) — fail soft.
  *
  * POST /api/admin/automations  { job_id, action: "pause" | "resume", reason?, days? }
  *   Pause (default auto-expiry 30 days) or resume a job. Paused jobs still run on
@@ -25,6 +18,7 @@ import { CRON_REGISTRY } from "@/lib/crons/registry";
  */
 
 const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+const ERROR_RECENCY_MS = 7 * 24 * 60 * 60 * 1000;
 
 interface RunRow {
   job_id: string;
@@ -51,6 +45,8 @@ interface EmailLogRow {
   bounced_at: string | null;
   complained_at: string | null;
 }
+type Rollup = { sent: number; delivered: number; opened: number; clicked: number; bounced: number; complained: number };
+const emptyRollup = (): Rollup => ({ sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 });
 
 export async function GET() {
   const user = await getAuthUser();
@@ -60,8 +56,9 @@ export async function GET() {
 
   const db = getServiceClient();
   const since = new Date(Date.now() - WINDOW_MS).toISOString();
+  const now = Date.now();
 
-  // ── cron_runs (fail soft if table missing) ──
+  // ── cron_runs (fail soft) ──
   const runsByJob = new Map<string, { latest: RunRow | null; count: number; errors: number }>();
   try {
     const { data } = await db
@@ -69,36 +66,29 @@ export async function GET() {
       .select("job_id, started_at, finished_at, status, summary, error, triggered_by")
       .gte("started_at", since)
       .order("started_at", { ascending: false })
-      // 30 days of all-cron volume is ~5–6k rows (the every-15-min job alone is
-      // ~2.9k); 50k keeps low-frequency jobs from being starved of their data.
       .limit(50000);
     for (const r of (data ?? []) as RunRow[]) {
-      const bucket = runsByJob.get(r.job_id) ?? { latest: null, count: 0, errors: 0 };
-      if (!bucket.latest) bucket.latest = r; // rows are newest-first
-      bucket.count += 1;
-      if (r.status === "error") bucket.errors += 1;
-      runsByJob.set(r.job_id, bucket);
+      const b = runsByJob.get(r.job_id) ?? { latest: null, count: 0, errors: 0 };
+      if (!b.latest) b.latest = r;
+      b.count += 1;
+      if (r.status === "error") b.errors += 1;
+      runsByJob.set(r.job_id, b);
     }
   } catch {
-    /* table not yet created — leave runsByJob empty */
+    /* table absent */
   }
 
   // ── cron_config (fail soft) ──
   const configByJob = new Map<string, ConfigRow>();
   try {
-    const { data } = await db
-      .from("cron_config")
-      .select("job_id, enabled, paused_at, paused_by, paused_reason, paused_until");
+    const { data } = await db.from("cron_config").select("job_id, enabled, paused_at, paused_by, paused_reason, paused_until");
     for (const c of (data ?? []) as ConfigRow[]) configByJob.set(c.job_id, c);
   } catch {
-    /* table not yet created */
+    /* table absent */
   }
 
-  // ── 30-day email rollup, bucketed by email_type ──
-  const byType = new Map<
-    string,
-    { sent: number; delivered: number; opened: number; clicked: number; bounced: number; complained: number }
-  >();
+  // ── 30-day email rollup by email_type ──
+  const byType = new Map<string, Rollup>();
   try {
     const { data } = await db
       .from("email_log")
@@ -107,8 +97,7 @@ export async function GET() {
       .limit(200000);
     for (const e of (data ?? []) as EmailLogRow[]) {
       const t = e.email_type || "unknown";
-      const b =
-        byType.get(t) ?? { sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 };
+      const b = byType.get(t) ?? emptyRollup();
       b.sent += 1;
       if (e.delivered_at) b.delivered += 1;
       if (e.first_opened_at) b.opened += 1;
@@ -118,27 +107,17 @@ export async function GET() {
       byType.set(t, b);
     }
   } catch {
-    /* email_log missing the denormalized columns or unreadable — leave empty */
+    /* email_log unreadable */
   }
 
-  const now = Date.now();
   const jobs = CRON_REGISTRY.map((job) => {
     const runs = runsByJob.get(job.id);
     const cfg = configByJob.get(job.id);
-    const pausedActive =
-      !!cfg && cfg.enabled === false && (!cfg.paused_until || new Date(cfg.paused_until).getTime() > now);
+    const pausedActive = !!cfg && cfg.enabled === false && (!cfg.paused_until || new Date(cfg.paused_until).getTime() > now);
 
-    // Sum the rollup across this job's email types.
-    let rollup: {
-      sent: number;
-      delivered: number;
-      opened: number;
-      clicked: number;
-      bounced: number;
-      complained: number;
-    } | null = null;
+    let rollup: Rollup | null = null;
     if (job.emailTypes.length > 0) {
-      rollup = { sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 };
+      rollup = emptyRollup();
       for (const t of job.emailTypes) {
         const b = byType.get(t);
         if (!b) continue;
@@ -151,32 +130,52 @@ export async function GET() {
       }
     }
 
+    const lastRun = runs?.latest
+      ? { startedAt: runs.latest.started_at, finishedAt: runs.latest.finished_at, status: runs.latest.status, summary: runs.latest.summary, error: runs.latest.error, triggeredBy: runs.latest.triggered_by }
+      : null;
+
     return {
-      ...job,
+      id: job.id,
+      name: job.name,
+      description: job.description,
+      recipientCohort: job.recipientCohort,
+      audience: job.audience,
+      fn: job.fn,
+      schedule: job.schedule,
+      humanSchedule: job.humanSchedule,
+      path: job.path,
+      emailTypes: job.emailTypes,
+      successSignal: job.successSignal ?? null,
+      relatedAdminPath: job.relatedAdminPath ?? null,
+      isEmail: isEmailJob(job),
       paused: pausedActive,
-      pause: pausedActive
-        ? { reason: cfg!.paused_reason, by: cfg!.paused_by, at: cfg!.paused_at, until: cfg!.paused_until }
-        : null,
-      lastRun: runs?.latest
-        ? {
-            startedAt: runs.latest.started_at,
-            finishedAt: runs.latest.finished_at,
-            status: runs.latest.status,
-            summary: runs.latest.summary,
-            error: runs.latest.error,
-            triggeredBy: runs.latest.triggered_by,
-          }
-        : null,
+      pause: pausedActive ? { reason: cfg!.paused_reason, by: cfg!.paused_by, at: cfg!.paused_at, until: cfg!.paused_until } : null,
+      lastRun,
       runs30d: runs?.count ?? 0,
       errors30d: runs?.errors ?? 0,
       rollup30d: rollup,
     };
   });
 
+  // ── summary ──
+  const cronEmailTypes = new Set(CRON_REGISTRY.flatMap((j) => j.emailTypes));
+  let sends30d = 0;
+  let bounces30d = 0;
+  let complaints30d = 0;
+  for (const [t, b] of byType) {
+    if (!cronEmailTypes.has(t)) continue;
+    sends30d += b.sent;
+    bounces30d += b.bounced;
+    complaints30d += b.complained;
+  }
+  const pausedCount = jobs.filter((j) => j.paused).length;
+  const erroredCount = jobs.filter((j) => j.lastRun?.status === "error" && now - new Date(j.lastRun.startedAt).getTime() < ERROR_RECENCY_MS).length;
+
   return NextResponse.json({
     windowDays: 30,
+    summary: { total: jobs.length, paused: pausedCount, errored: erroredCount, active: jobs.length - pausedCount - erroredCount, sends30d, bounces30d, complaints30d },
     jobs,
-    note: "Open/click rates are from Resend's pixel + link tracking, inflated by Apple Mail Privacy Protection — absolute numbers are soft, the trend is the signal.",
+    note: "Open and click rates come from Resend's tracking pixel and link wrapper, which Apple Mail Privacy Protection inflates (it prefetches the pixel and rewrites links). The absolute numbers are soft; the trend over time is the signal.",
   });
 }
 
@@ -208,38 +207,15 @@ export async function POST(request: NextRequest) {
       const days = Number.isFinite(body.days) && (body.days as number) > 0 ? Math.min(body.days as number, 365) : 30;
       const pausedUntil = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
       await db.from("cron_config").upsert(
-        {
-          job_id,
-          enabled: false,
-          paused_at: nowIso,
-          paused_by: user.email ?? "admin",
-          paused_reason: (body.reason ?? "").slice(0, 500) || null,
-          paused_until: pausedUntil,
-          updated_at: nowIso,
-        },
+        { job_id, enabled: false, paused_at: nowIso, paused_by: user.email ?? "admin", paused_reason: (body.reason ?? "").slice(0, 500) || null, paused_until: pausedUntil, updated_at: nowIso },
         { onConflict: "job_id" },
       );
       return NextResponse.json({ ok: true, job_id, paused: true, paused_until: pausedUntil });
-    } else {
-      await db.from("cron_config").upsert(
-        {
-          job_id,
-          enabled: true,
-          paused_at: null,
-          paused_by: null,
-          paused_reason: null,
-          paused_until: null,
-          updated_at: nowIso,
-        },
-        { onConflict: "job_id" },
-      );
-      return NextResponse.json({ ok: true, job_id, paused: false });
     }
+    await db.from("cron_config").upsert({ job_id, enabled: true, paused_at: null, paused_by: null, paused_reason: null, paused_until: null, updated_at: nowIso }, { onConflict: "job_id" });
+    return NextResponse.json({ ok: true, job_id, paused: false });
   } catch (err) {
     console.error("[admin/automations] pause/resume failed:", err);
-    return NextResponse.json(
-      { error: "Failed to update — has migration 082 (cron_config) been applied?" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to update — has migration 082 (cron_config) been applied?" }, { status: 500 });
   }
 }

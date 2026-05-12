@@ -177,9 +177,7 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
 
         {ctx.contacts.length === 0 ? (
           <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs text-gray-500">
-            No named contacts yet. Add named individuals (owner, hiring
-            manager, etc.) here. The General Contact above is enough to
-            launch outreach.
+            No named contacts yet. Add specific people here if you find them.
           </p>
         ) : (
           <ul className="space-y-2">

@@ -913,7 +913,8 @@ async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
     .from("student_outreach")
     .select("id")
     .in("status", ARCHIVE_STATUSES)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: true });
   if (opts.campusId) closedQ = closedQ.eq("campus_id", opts.campusId);
   if (opts.type) closedQ = closedQ.eq("stakeholder_type", opts.type);
   if (opts.search) closedQ = closedQ.ilike("organization_name", `%${opts.search}%`);
@@ -925,7 +926,8 @@ async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
     .from("student_outreach")
     .select("id")
     .eq("status", "outreach_sent")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: true });
   if (opts.campusId) activeQ = activeQ.eq("campus_id", opts.campusId);
   if (opts.type) activeQ = activeQ.eq("stakeholder_type", opts.type);
   if (opts.search) activeQ = activeQ.ilike("organization_name", `%${opts.search}%`);
@@ -980,6 +982,13 @@ async function idsByStatus(
     .select("id")
     .in("status", statuses)
     .order(orderColumn, { ascending: false })
+    // v9 final: deterministic tiebreaker — without a secondary sort
+    // Postgres returns ties in arbitrary order, so refetching can
+    // shuffle rows that share the primary key value (or even
+    // ones whose timestamps differ by microseconds the JS layer
+    // can't distinguish). id is stable across refetches and
+    // independent of read/unread state.
+    .order("id", { ascending: true })
     .range(opts.page * opts.pageSize, opts.page * opts.pageSize + opts.pageSize - 1);
   if (opts.campusId) q = q.eq("campus_id", opts.campusId);
   if (opts.type) q = q.eq("stakeholder_type", opts.type);
@@ -1008,7 +1017,8 @@ async function idsByPartnersWithTasks(db: DB, opts: QueryOpts): Promise<string[]
     .eq("status", "pending")
     .eq("student_outreach.status", "active_partner")
     .neq("student_outreach.kind", "provider")
-    .order("due_at", { ascending: true });
+    .order("due_at", { ascending: true })
+    .order("id", { ascending: true });
   if (opts.campusId) q = q.eq("student_outreach.campus_id", opts.campusId);
   if (opts.type) q = q.eq("student_outreach.stakeholder_type", opts.type);
   if (opts.search) q = q.ilike("student_outreach.organization_name", `%${opts.search}%`);
@@ -1032,7 +1042,8 @@ async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
     .eq("task_type", "outreach_followup_call")
     .lte("due_at", new Date().toISOString())
     .not("student_outreach.status", "in", `(${PARTNER_ALL.map((s) => `"${s}"`).join(",")})`)
-    .order("due_at", { ascending: true });
+    .order("due_at", { ascending: true })
+    .order("id", { ascending: true });
   if (opts.campusId) q = q.eq("student_outreach.campus_id", opts.campusId);
   if (opts.type) q = q.eq("student_outreach.stakeholder_type", opts.type);
   if (opts.search) q = q.ilike("student_outreach.organization_name", `%${opts.search}%`);
@@ -1355,7 +1366,20 @@ async function hydrateRows(
         });
       }
       if (seen.size > 0) {
-        replyRecipientsByOutreach.set(id, Array.from(seen.values()));
+        // v9 final: deterministic recipient order — general first
+        // (always anchored to the top of the row's stack), then
+        // specific contacts sorted by contact_id. Without this the
+        // recipient order tracked "most recent email_sent" which
+        // shifted whenever a new Day-N send completed, looking like
+        // reordering to admin even though the underlying state was
+        // identical.
+        const sorted = Array.from(seen.values()).sort((a, b) => {
+          if (a.recipient_kind === b.recipient_kind) {
+            return (a.contact_id ?? "").localeCompare(b.contact_id ?? "");
+          }
+          return a.recipient_kind === "general" ? -1 : 1;
+        });
+        replyRecipientsByOutreach.set(id, sorted);
       }
     }
   }
@@ -1416,8 +1440,13 @@ async function hydrateRows(
         continue;
       }
       // Sort tasks oldest-due first so the most overdue call surfaces
-      // at the top of the row's group.
-      tasks.sort((a, b) => a.due_at.localeCompare(b.due_at));
+      // at the top of the row's group. v9 final: secondary sort by
+      // task_id keeps order stable when due_at ties (e.g. all Day-0
+      // tasks share a due_at near the launch moment).
+      tasks.sort((a, b) => {
+        const cmp = a.due_at.localeCompare(b.due_at);
+        return cmp !== 0 ? cmp : a.task_id.localeCompare(b.task_id);
+      });
       for (const t of tasks) {
         tabRows.push({
           ...baseRow,

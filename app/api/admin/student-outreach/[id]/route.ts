@@ -1386,6 +1386,23 @@ async function handleLogCall(
       await touchOutreach(db, row.id, userId);
       return;
     }
+    case "convert_to_client": {
+      // v9 final: provider conversion lives inside the Log workflow.
+      // Log the call touchpoint, then run handleMakeClient which
+      // writes business_profiles.metadata.interview_terms_accepted_at,
+      // transitions the row to active_partner (deriveStage maps that
+      // to 'converted' for provider rows), and unlocks Partner
+      // Prospects for catchment Sites.
+      await insertTouchpoint(db, row.id, "call_connected", userId, {
+        contact_id: body.contact_id ?? null,
+        channel: "phone",
+        outcome,
+        notes: body.notes ?? null,
+        payload: callPayload,
+      });
+      await handleMakeClient(db, row, userId);
+      return;
+    }
     case "connected_not_interested": {
       await insertTouchpoint(db, row.id, "call_connected", userId, {
         contact_id: body.contact_id ?? null,

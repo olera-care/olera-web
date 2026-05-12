@@ -272,6 +272,12 @@ function TimelineRow({
     row.kind === "future"
       ? formatFuture(row.whenIso)
       : formatPast(row.whenIso);
+  // v9 final: only surface the Log CTA when the task is actually due
+  // (due_at <= now). Future-scheduled tasks render as queued items
+  // without the button — admin shouldn't act early. The Calls tab
+  // queue still surfaces due tasks the moment they tip into active.
+  const isDueNow =
+    row.kind === "future" && new Date(row.whenIso).getTime() <= Date.now();
   const isCallTask = row.kind === "future" && row.callTask != null;
   return (
     <>
@@ -310,7 +316,7 @@ function TimelineRow({
               <span className="mr-2 text-gray-500">{row.admin}</span>
             )}
             <span>{whenLabel}</span>
-            {isCallTask && onLogCall && (
+            {isCallTask && isDueNow && onLogCall && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();

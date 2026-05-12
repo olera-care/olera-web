@@ -74,7 +74,21 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
       /^\d{5}(?:-\d{4})?$/.test(zipVal.trim()),
   );
 
-  const launchEnabled = hasWebsite && hasEmail && hasPhone && addressReady;
+  // v9 final: pre-flight gate. Required in every case:
+  //   - website (research entry point)
+  //   - General Contact email (org-level outreach lane)
+  //   - General Contact phone (call cadence)
+  //   - structured address (snail-mail readiness)
+  // Required only when a contact_form_url is on file:
+  //   - admin must mark Submitted / Skipped / Not available
+  // Recommended (non-blocking) when no URL is on file: Contact form, Fax.
+  const contactFormUrl = gc.contact_form_url ?? "";
+  const contactFormResolved =
+    !contactFormUrl ||
+    ctx.touchpoints.some((t) => t.touchpoint_type === "contact_form_submitted");
+
+  const launchEnabled =
+    hasWebsite && hasEmail && hasPhone && addressReady && contactFormResolved;
   const launchDisabledReason = !hasWebsite
     ? "Add the website before launching."
     : !hasEmail
@@ -83,7 +97,9 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
         ? "Add a General Contact phone — a Specific Contact phone is not enough."
         : !addressReady
           ? "Complete the address (street, city, state, ZIP) before launching."
-          : undefined;
+          : !contactFormResolved
+            ? "Resolve the contact form (Submitted / Skipped / Not available) before launching."
+            : undefined;
 
   return (
     <div className="space-y-6">

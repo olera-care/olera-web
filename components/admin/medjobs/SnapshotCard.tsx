@@ -151,7 +151,12 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
         }
       />
 
-      {showContactFormBanner && (
+      {/* Contact-form banner is mounted by NextStepCard pre-launch
+          where it gates the Launch button. Post-launch (after the
+          cadence is in motion), if a URL is added later or never
+          resolved, the banner appears here under the General Contact
+          section so admin still has the prompt. */}
+      {showContactFormBanner && !isPreLaunch && (
         <ContactFormBanner
           url={
             outreach.research_data?.general_contact?.contact_form_url ?? ""
@@ -1173,15 +1178,15 @@ function EnrollmentBanner({
 }
 
 /**
- * v9 final: post-launch contact-form banner. Shows when outreach
- * is in flight, a contact_form_url is on file, AND no
- * contact_form_submitted touchpoint has been logged yet. Forces
- * admin to make an explicit decision about the form so it isn't
- * silently missed. Clicking any outcome dispatches
- * log_contact_form_outcome which writes the touchpoint and hides
- * the banner on the next refresh.
+ * v9 final: contact-form pre-flight banner. Surfaces whenever a
+ * contact_form_url is on file AND no contact_form_submitted
+ * touchpoint exists. Mounted by NextStepCard pre-launch (gates the
+ * Launch button) and by the SnapshotCard post-launch (catches URLs
+ * added after the cadence is in motion). Each call to dispatch
+ * writes one log_contact_form_outcome touchpoint; the banner hides
+ * on the next refresh.
  */
-function ContactFormBanner({
+export function ContactFormBanner({
   url,
   action,
   setError,

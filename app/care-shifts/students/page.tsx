@@ -86,6 +86,15 @@ const BENEFITS = [
     title: "Supported, not alone",
     description: "Training, a care coordinator, and a community of students doing the same work.",
   },
+  {
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+      </svg>
+    ),
+    title: "1-on-1, in-home",
+    description: "Meaningful one-on-one time with seniors in a comfortable home setting.",
+  },
 ];
 
 const COMPARE_JOBS = [
@@ -189,7 +198,7 @@ export default function CareShiftStudentsPage() {
 
 
       {/* ─── How it works ─── */}
-      <section id="how-it-works" className="py-16 sm:py-24 scroll-mt-8">
+      <section id="how-it-works" className="py-8 sm:py-12 scroll-mt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
@@ -225,63 +234,99 @@ export default function CareShiftStudentsPage() {
       </section>
 
       {/* ─── Why Olera vs. other student jobs ─── */}
-      <section className="py-16 sm:py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
-                Why Olera
-              </p>
-              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                Not just another
-                <br />student job
-              </h2>
-              <p className="mt-4 text-lg text-gray-500 leading-relaxed">
-                Rideshare doesn&apos;t go on your med school application.
-                Neither does food delivery. This does.
-              </p>
-              <div className="mt-10 space-y-6">
-                {BENEFITS.map((item) => (
-                  <div key={item.title} className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white shadow-sm border border-gray-100 text-primary-600 flex items-center justify-center mt-0.5">
-                      {item.icon}
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-semibold text-gray-900">{item.title}</p>
-                      <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{item.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+      <section className="py-8 sm:py-12 bg-gray-50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
+              Why Olera
+            </p>
+            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
+              Not just another student job
+            </h2>
+            <p className="mt-3 text-lg text-gray-500 max-w-2xl mx-auto">
+              Rideshare doesn&apos;t go on your med school application.
+              Neither does food delivery. This does.
+            </p>
+          </div>
 
-            {/* Comparison table */}
-            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="grid grid-cols-3 text-sm">
-                <div className="col-span-1 p-4 bg-gray-50 border-b border-gray-100" />
-                <div className="p-4 bg-primary-50 border-b border-primary-100 text-center">
-                  <p className="font-bold text-primary-700">Olera</p>
-                </div>
-                <div className="p-4 bg-gray-50 border-b border-gray-100 text-center">
-                  <p className="font-medium text-gray-400">Typical student job</p>
-                </div>
-                {COMPARE_JOBS.map((row, i) => (
-                  <div key={row.label} className={`contents ${i < COMPARE_JOBS.length - 1 ? "[&>*]:border-b [&>*]:border-gray-100" : ""}`}>
-                    <div className="p-4 text-sm font-medium text-gray-700">{row.label}</div>
-                    <div className="p-4 text-center text-sm font-semibold text-primary-700 bg-primary-25">
-                      {row.olera}
-                    </div>
-                    <div className="p-4 text-center text-sm text-gray-400">{row.other}</div>
-                  </div>
-                ))}
+          {/* Combined comparison table with icons */}
+          <div className="bg-white rounded-3xl border border-gray-200 shadow-lg shadow-gray-200/50 overflow-hidden">
+            {/* Header row */}
+            <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-gray-200">
+              <div className="p-5 flex items-center">
+                <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Compare</p>
+              </div>
+              <div className="p-5 bg-primary-50 border-x border-primary-100 text-center">
+                <p className="text-lg font-bold text-primary-800">Olera</p>
+                <p className="text-xs text-primary-500 mt-0.5">Care Shifts</p>
+              </div>
+              <div className="p-5 text-center">
+                <p className="text-lg font-bold text-gray-400">Other jobs</p>
+                <p className="text-xs text-gray-400 mt-0.5">Rideshare, retail, etc.</p>
               </div>
             </div>
+            {/* Data rows */}
+            {COMPARE_JOBS.map((row, i) => (
+              <div key={row.label} className={`grid grid-cols-[1fr_1fr_1fr] ${i < COMPARE_JOBS.length - 1 ? "border-b border-gray-100" : ""}`}>
+                <div className="p-5 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
+                    {BENEFITS[i] ? BENEFITS[i].icon : null}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{row.label}</p>
+                    {BENEFITS[i] && <p className="text-xs text-gray-400 mt-0.5 hidden sm:block">{BENEFITS[i].description}</p>}
+                  </div>
+                </div>
+                <div className="p-5 bg-primary-25 border-x border-primary-50 flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5 text-success-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-[15px] font-bold text-gray-900">{row.olera}</p>
+                </div>
+                <div className="p-5 flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-[15px] text-gray-400">{row.other}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
+      {/* ─── Mid-page CTA ─── */}
+      <section className="relative py-8 sm:py-12 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-primary-50/30 to-primary-50/50" />
+        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight leading-tight">
+            Your classmates are already
+            <br />
+            <span className="text-primary-600">getting paid to care</span>
+          </h2>
+          <p className="mt-5 text-lg text-gray-500 max-w-xl mx-auto">
+            5-minute application. No certifications. No experience required.
+            Just show up, be kind, and get paid.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/care-shifts/students/apply"
+              className="inline-flex items-center px-8 py-3.5 bg-primary-600 text-white text-[15px] font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20"
+            >
+              Apply to become a caregiver
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+          <p className="mt-4 text-sm text-gray-400">
+            Free to join &middot; No commitment &middot; Weekly pay
+          </p>
+        </div>
+      </section>
+
       {/* ─── What you'll actually do ─── */}
-      <section className="py-16 sm:py-24">
+      <section className="py-8 sm:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Photo grid */}
@@ -358,7 +403,7 @@ export default function CareShiftStudentsPage() {
       </section>
 
       {/* ─── Student testimonials ─── */}
-      <section className="py-16 sm:py-24 bg-vanilla-50">
+      <section className="py-8 sm:py-12 bg-vanilla-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <p className="text-sm tracking-widest uppercase text-gray-400 font-medium mb-3">
@@ -413,83 +458,57 @@ export default function CareShiftStudentsPage() {
       </section>
 
       {/* ─── FAQ ─── */}
-      <section className="py-16 sm:py-24">
+      <section className="py-8 sm:py-12 bg-primary-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-              Common questions
-            </h2>
-          </div>
-          <div className="space-y-0 divide-y divide-gray-200">
-            {[
-              {
-                q: "Do I need any certifications or experience?",
-                a: "No. If you're a current college student with a compassionate attitude, you qualify. We provide free training before your first shift covering senior care basics, safety, and communication.",
-              },
-              {
-                q: "How many hours per week do I need to commit?",
-                a: "There's no minimum. Most students work 8–15 hours per week, but you can do as few as 4 or as many as 25. You set your own availability and can adjust it any time — like during finals.",
-              },
-              {
-                q: "When and how do I get paid?",
-                a: "Weekly direct deposit every Friday. Your rate depends on the type of care and your experience level, starting at $15/hr and going up to $25/hr.",
-              },
-              {
-                q: "What if I've never worked with seniors before?",
-                a: "Most of our caregivers haven't. We match you with clients who are a good fit for your comfort level, and your first few visits are supported by a care coordinator who checks in with you and the family.",
-              },
-              {
-                q: "Will this actually help my med school / PA / nursing application?",
-                a: "Yes. Every hour you work is logged as direct patient care experience. You'll have verified hours, a letter of recommendation from families you've served, and real stories to tell in interviews — not hypotheticals.",
-              },
-              {
-                q: "How is this different from a home health aide or CNA job?",
-                a: "This is companion care, not clinical care. You're not administering medications or doing wound care. You're providing companionship, light support, and human connection. It's meaningful, low-stress, and doesn't require a license.",
-              },
-            ].map((item) => (
-              <details key={item.q} className="group py-5">
-                <summary className="flex items-center justify-between cursor-pointer list-none">
-                  <h3 className="text-[15px] font-semibold text-gray-900 pr-4">{item.q}</h3>
-                  <svg className="w-5 h-5 text-gray-400 flex-shrink-0 group-open:rotate-45 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5v15m7.5-7.5h-15" />
-                  </svg>
-                </summary>
-                <p className="mt-3 text-sm text-gray-500 leading-relaxed pr-10">{item.a}</p>
-              </details>
-            ))}
+          <div className="bg-white rounded-3xl border border-primary-100 shadow-lg shadow-primary-200/30 p-6 sm:p-10">
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                </svg>
+              </div>
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-gray-900">
+                Frequently Asked Questions
+              </h2>
+            </div>
+            {/* Questions */}
+            <div className="space-y-3">
+              {[
+                {
+                  q: "Do I need any certifications or experience?",
+                  a: "No. If you're a current college student with a compassionate attitude, you qualify. We provide free training before your first shift covering senior care basics, safety, and communication.",
+                },
+                {
+                  q: "How many hours per week do I need to commit?",
+                  a: "There's no minimum. Most students work 8\u201315 hours per week, but you can do as few as 4 or as many as 25. You set your own availability and can adjust it any time \u2014 like during finals.",
+                },
+                {
+                  q: "When and how do I get paid?",
+                  a: "Weekly direct deposit every Friday. Your rate depends on the type of care and your experience level, starting at $15/hr and going up to $25/hr.",
+                },
+                {
+                  q: "What if I've never worked with seniors before?",
+                  a: "Most of our caregivers haven't. We match you with clients who are a good fit for your comfort level, and your first few visits are supported by a care coordinator who checks in with you and the family.",
+                },
+              ].map((item) => (
+                <details key={item.q} className="group bg-primary-25 border border-primary-100 rounded-xl overflow-hidden">
+                  <summary className="flex items-center justify-between cursor-pointer list-none px-5 py-4 hover:bg-primary-50 transition-colors">
+                    <h3 className="text-[15px] font-semibold text-gray-900 pr-4">{item.q}</h3>
+                    <svg className="w-5 h-5 text-primary-400 flex-shrink-0 group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </summary>
+                  <div className="px-5 pb-4">
+                    <p className="text-sm text-gray-500 leading-relaxed">{item.a}</p>
+                  </div>
+                </details>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ─── Bottom CTA ─── */}
-      <section className="relative py-16 sm:py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-primary-50/30 to-primary-50/50" />
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight leading-tight">
-            Your classmates are already
-            <br />
-            <span className="text-primary-600">getting paid to care</span>
-          </h2>
-          <p className="mt-5 text-lg text-gray-500 max-w-xl mx-auto">
-            5-minute application. No certifications. No experience required.
-            Just show up, be kind, and get paid.
-          </p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/care-shifts/students/apply"
-              className="inline-flex items-center px-8 py-3.5 bg-primary-600 text-white text-[15px] font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20"
-            >
-              Apply to become a caregiver
-              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-          </div>
-          <p className="mt-4 text-sm text-gray-400">
-            Free to join &middot; No commitment &middot; Weekly pay
-          </p>
-        </div>
-      </section>
     </main>
   );
 }

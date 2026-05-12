@@ -167,6 +167,7 @@ function familyEventTypeLabel(type: string): string {
     save_nudge_signup_clicked: "Nudge Clicked",
     save_nudge_dismissed: "Nudge Dismissed",
     save_nudge_converted: "Converted",
+    compare_cta_converted: "Compare Converted",
   };
   return map[type] || type;
 }
@@ -183,6 +184,7 @@ function familyEventTypeBadgeColor(type: string): string {
     save_nudge_signup_clicked: "bg-purple-50 text-purple-700",
     save_nudge_dismissed: "bg-gray-50 text-gray-500",
     save_nudge_converted: "bg-emerald-50 text-emerald-700",
+    compare_cta_converted: "bg-cyan-50 text-cyan-700",
   };
   return map[type] || "bg-gray-100 text-gray-600";
 }
@@ -718,6 +720,7 @@ const FAMILY_EVENT_FILTER_OPTIONS = [
   { value: "save_nudge_shown", label: "Save nudge shown" },
   { value: "save_nudge_signup_clicked", label: "Save nudge clicked" },
   { value: "save_nudge_converted", label: "Save conversions" },
+  { value: "compare_cta_converted", label: "Compare conversions" },
 ];
 
 export default function ActivityCenterPage() {

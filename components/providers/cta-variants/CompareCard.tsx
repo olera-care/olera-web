@@ -121,24 +121,24 @@ export default function CompareCard({
               Est. {unitLabel} · {providerCity || "Local"}
             </p>
             <p className="text-xl font-semibold text-gray-900">
+              {/* priceRange already includes suffix like "$1,000 - $2,000/mo" */}
               {priceRange || "Contact for pricing"}
-              {priceRange && <span className="text-base font-normal text-gray-500">{unitSuffix}</span>}
             </p>
           </div>
 
-          {/* Hook line */}
-          <div className="flex items-center gap-1.5 mb-2">
+          {/* Hook line + Headline stack (compact spacing) */}
+          <div className="flex items-center gap-1.5 mb-1">
             <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
             </svg>
-            <span className="text-sm font-semibold text-primary-600">Quick comparison</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-primary-600">Quick Comparison</span>
           </div>
 
           {/* Headline */}
-          <h3 className="text-2xl font-bold text-gray-900 leading-snug mb-1">
+          <h3 className="text-2xl font-bold text-gray-900 leading-snug">
             How do they compare?
           </h3>
-          <p className="text-sm text-gray-500 mb-5">
+          <p className="text-[15px] text-gray-500 mt-0.5 mb-5">
             Side by side with {nearbyCount || 2} nearby home{nearbyCount !== 1 ? "s" : ""}
           </p>
 
@@ -150,13 +150,13 @@ export default function CompareCard({
             Compare
           </button>
 
-          {/* Stacked avatars + Find your best fit */}
-          <div className="flex items-center justify-center gap-2.5 mt-4">
+          {/* Stacked avatars + Find your best fit (left-aligned) */}
+          <div className="flex items-center gap-2.5 mt-4">
             <div className="flex -space-x-2">
               {avatarProviders.map((provider, index) => (
                 <div
                   key={index}
-                  className="w-7 h-7 rounded-full border-2 border-white overflow-hidden bg-gray-100 flex items-center justify-center"
+                  className="w-7 h-7 rounded-full border border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center shadow-sm"
                   style={{ zIndex: avatarProviders.length - index }}
                 >
                   {provider.image ? (

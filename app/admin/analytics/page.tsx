@@ -2110,6 +2110,10 @@ function ResponseLeadsList({
   const [nudging, setNudging] = useState<string | null>(null);
   const [nudgeSuccess, setNudgeSuccess] = useState<string | null>(null);
   const [nudgeError, setNudgeError] = useState<string | null>(null);
+  // Delete state
+  const [pendingDelete, setPendingDelete] = useState<ResponseLead | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Track timeout IDs for cleanup on unmount
   const timeoutRefs = useRef<Set<NodeJS.Timeout>>(new Set());
@@ -2188,6 +2192,32 @@ function ResponseLeadsList({
       setNudging(null);
     }
   }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/admin/analytics/response-leads", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection_id: pendingDelete.connection_id }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || `Delete failed (${res.status})`);
+      }
+      // Remove the deleted row locally
+      const removedId = pendingDelete.connection_id;
+      setLeads((prev) => prev.filter((l) => l.connection_id !== removedId));
+      setTotal((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
+      setPendingDelete(null);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
+  }, [pendingDelete]);
 
   const hasMore = total !== null && leads.length < total;
 
@@ -2279,7 +2309,8 @@ function ResponseLeadsList({
                 <th className="text-left px-4 py-2 font-medium text-gray-600">Provider</th>
                 <th className="text-left px-4 py-2 font-medium text-gray-600">Message</th>
                 <th className="text-right px-4 py-2 font-medium text-gray-600">Sent</th>
-                <th className="text-center px-4 py-2 font-medium text-gray-600 w-24">Action</th>
+                <th className="text-center px-4 py-2 font-medium text-gray-600 w-20">Action</th>
+                <th className="px-2 py-2 font-medium w-8" aria-label="Delete" />
               </tr>
             </thead>
             <tbody>
@@ -2332,6 +2363,23 @@ function ResponseLeadsList({
                       <span className="text-xs text-emerald-600">Replied</span>
                     )}
                   </td>
+                  <td className="px-2 py-2.5 w-8 text-right">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteError(null);
+                        setPendingDelete(lead);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
+                      aria-label="Delete this lead"
+                      title="Delete this lead"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -2350,6 +2398,72 @@ function ResponseLeadsList({
           >
             {loadingMore ? "Loading..." : `Load ${Math.min(PAGE_SIZE, total! - leads.length)} more`}
           </button>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {pendingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-lead-title"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3
+              id="delete-lead-title"
+              className="text-base font-semibold text-gray-900 mb-3"
+            >
+              Delete this lead?
+            </h3>
+            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Family</dt>
+                <dd className="text-gray-900">{pendingDelete.family_name}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Provider</dt>
+                <dd className="text-gray-900">{pendingDelete.provider_name}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Sent</dt>
+                <dd className="text-gray-900">{formatLeadAge(pendingDelete.age_hours)}</dd>
+              </div>
+              {pendingDelete.message_preview && (
+                <div className="flex gap-2">
+                  <dt className="w-20 shrink-0 text-gray-400">Message</dt>
+                  <dd className="text-gray-700 truncate">{pendingDelete.message_preview}</dd>
+                </div>
+              )}
+            </dl>
+            <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
+              This will permanently delete the connection record. This cannot be undone.
+            </p>
+            {deleteError && (
+              <p className="text-[12px] text-red-600 mb-3">{deleteError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingDelete(null);
+                  setDeleteError(null);
+                }}
+                disabled={deleting}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

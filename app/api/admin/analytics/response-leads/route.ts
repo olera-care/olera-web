@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 
 /**
  * GET /api/admin/analytics/response-leads
@@ -135,11 +135,20 @@ export async function GET(req: NextRequest) {
     if (filter === "awaiting" && responded) continue;
     if (filter === "responded" && !responded) continue;
 
-    // Extract message preview from the connection's message or first thread message
+    // Extract message preview from the connection's message JSON or first thread message
     let messagePreview = "";
     if (conn.message) {
-      messagePreview = String(conn.message);
-    } else if (thread.length > 0 && thread[0].text) {
+      try {
+        const msgJson = JSON.parse(String(conn.message));
+        // Try common message fields in order of preference
+        messagePreview = msgJson.additional_notes || msgJson.message || msgJson.notes || "";
+      } catch {
+        // If not JSON, use as-is (legacy format)
+        messagePreview = String(conn.message);
+      }
+    }
+    // Fall back to first thread message if no direct message
+    if (!messagePreview && thread.length > 0 && thread[0].text) {
       messagePreview = thread[0].text;
     }
     // Truncate to 50 chars
@@ -176,5 +185,125 @@ export async function GET(req: NextRequest) {
     total,
     leads: paginatedLeads,
     truncated,
+  });
+}
+
+/**
+ * DELETE /api/admin/analytics/response-leads
+ *
+ * Hard-deletes a connection (lead) from the database.
+ * Used for cleaning up test data that would otherwise pollute metrics.
+ *
+ * Body: { connection_id: string }
+ *
+ * Deletes the connection record entirely. This is permanent.
+ */
+export async function DELETE(req: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const admin = await getAdminUser(user.id);
+  if (!admin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  let body: { connection_id?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const { connection_id } = body;
+  if (!connection_id) {
+    return NextResponse.json(
+      { error: "connection_id is required" },
+      { status: 400 }
+    );
+  }
+
+  const db = getServiceClient();
+
+  // Fetch connection details for audit log before deleting
+  const { data: connection, error: fetchError } = await db
+    .from("connections")
+    .select(
+      `
+      id,
+      type,
+      created_at,
+      from_profile:business_profiles!connections_from_profile_id_fkey(display_name, email),
+      to_profile:business_profiles!connections_to_profile_id_fkey(display_name, slug)
+    `
+    )
+    .eq("id", connection_id)
+    .single();
+
+  if (fetchError || !connection) {
+    return NextResponse.json(
+      { error: "Connection not found" },
+      { status: 404 }
+    );
+  }
+
+  // Normalize joined relations for audit details
+  const fromProfile = Array.isArray(connection.from_profile)
+    ? connection.from_profile[0]
+    : connection.from_profile;
+  const toProfile = Array.isArray(connection.to_profile)
+    ? connection.to_profile[0]
+    : connection.to_profile;
+
+  // Delete the connection
+  const { error: deleteError } = await db
+    .from("connections")
+    .delete()
+    .eq("id", connection_id);
+
+  if (deleteError) {
+    console.error("[response-leads DELETE] Failed:", deleteError);
+    await logAuditAction({
+      adminUserId: admin.id,
+      action: "connection_delete_failed",
+      targetType: "connection",
+      targetId: connection_id,
+      details: {
+        error: deleteError.message,
+        family: fromProfile?.display_name,
+        provider: toProfile?.display_name,
+      },
+    });
+    return NextResponse.json(
+      { error: "Failed to delete connection" },
+      { status: 500 }
+    );
+  }
+
+  // Log successful deletion
+  await logAuditAction({
+    adminUserId: admin.id,
+    action: "connection_deleted",
+    targetType: "connection",
+    targetId: connection_id,
+    details: {
+      type: connection.type,
+      created_at: connection.created_at,
+      family_name: fromProfile?.display_name,
+      family_email: fromProfile?.email,
+      provider_name: toProfile?.display_name,
+      provider_slug: toProfile?.slug,
+      deleted_by: user.email,
+    },
+  });
+
+  return NextResponse.json({
+    ok: true,
+    deleted: {
+      connection_id,
+      family: fromProfile?.display_name,
+      provider: toProfile?.display_name,
+    },
   });
 }

@@ -111,21 +111,27 @@ export async function POST(req: NextRequest) {
     (Date.now() - new Date(connection.created_at).getTime()) / (1000 * 60 * 60 * 24)
   );
 
-  // Extract message preview
+  // Extract message preview from JSON or thread
   let messagePreview: string | null = null;
   if (connection.message) {
-    messagePreview = String(connection.message);
-    if (messagePreview.length > 100) {
-      messagePreview = messagePreview.substring(0, 97) + "...";
+    try {
+      const msgJson = JSON.parse(String(connection.message));
+      messagePreview = msgJson.additional_notes || msgJson.message || msgJson.notes || null;
+    } catch {
+      // If not JSON, use as-is (legacy format)
+      messagePreview = String(connection.message);
     }
-  } else {
+  }
+  // Fall back to first thread message
+  if (!messagePreview) {
     const thread = (meta.thread as Array<{ text?: string }>) || [];
     if (thread.length > 0 && thread[0].text) {
       messagePreview = thread[0].text;
-      if (messagePreview.length > 100) {
-        messagePreview = messagePreview.substring(0, 97) + "...";
-      }
     }
+  }
+  // Truncate for email
+  if (messagePreview && messagePreview.length > 100) {
+    messagePreview = messagePreview.substring(0, 97) + "...";
   }
 
   const siteUrl = getSiteUrl();

@@ -416,6 +416,16 @@ function ProspectBody({
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus.name}
           contacts={ctx.contacts}
+          generalContact={{
+            email:
+              ctx.outreach.research_data?.general_contact?.email ??
+              ctx.provider_business_profile?.email ??
+              null,
+            phone:
+              ctx.outreach.research_data?.general_contact?.phone ??
+              ctx.provider_business_profile?.phone ??
+              null,
+          }}
           onCancel={() => setShowPreFlight(false)}
           onSubmit={async (payload) => {
             try {

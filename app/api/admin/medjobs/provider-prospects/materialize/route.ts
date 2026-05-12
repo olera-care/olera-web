@@ -140,43 +140,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `${msg}${hint}` }, { status: 500 });
     }
 
-    // v9: mirror business_profile.email + phone into a primary
-    // student_outreach_contacts row so the unified cadence machinery
-    // (schedule_sequence → executeEmailTask) finds a recipient. Without
-    // this, executeEmailTask skips with "no_recipients" because it only
-    // reads contacts. Admin can edit the contact later if they discover
-    // a better email/phone — same edit UX as stakeholder contacts.
-    //
-    // first_name / last_name stay null: providers are organizations,
-    // not people. The {salutation} placeholder resolves to "there" —
-    // acceptable for the recruiting-pitch tone. Admin can fill in a
-    // specific contact's name post-launch via the standard contact UI.
-    const providerEmail = (provider.email ?? "").trim();
-    const providerPhone = (provider.phone ?? "").trim();
-    if (providerEmail || providerPhone) {
-      const { error: contactErr } = await db
-        .from("student_outreach_contacts")
-        .insert({
-          outreach_id: inserted.id,
-          name: orgName,
-          email: providerEmail || null,
-          phone: providerPhone || null,
-          // v9 Phase 9: tag the mirrored contact as General Office so
-          // it's identifiable as the general destination (front desk
-          // line + info@ inbox) rather than a named person. Drives
-          // the providerSalutation logic to use the generic "Hello,"
-          // greeting + team reference.
-          role: "General Office",
-          is_primary: true,
-          status: "active",
-          created_by: user.id,
-        });
-      if (contactErr) {
-        // Non-fatal: the outreach row exists and admin can add a contact
-        // manually in the drawer. Log so we can investigate.
-        console.warn("[materialize] failed to mirror contact:", contactErr.message);
-      }
-    }
+    // v9 (final architecture): no auto-mirroring. The provider's
+    // directory email + phone live as the "General Contact" on the
+    // outreach row itself (effective = business_profiles fields with
+    // research_data.general_contact overrides on top). Specific
+    // Contacts (student_outreach_contacts) are reserved for NAMED
+    // individuals admin discovers — owner, hiring manager, etc.
+    // Mixing the two systems was confusing operationally; keeping
+    // them separate is the explicit user requirement.
 
     return NextResponse.json({ id: inserted.id, already_materialized: false });
   } catch (err) {

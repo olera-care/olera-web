@@ -250,6 +250,13 @@ async function emitOutreachTouchpoint(
   // cancellation to a single recipient when per-recipient cadence
   // mode is in use. Legacy (single-recipient task) sends have these
   // null; cancel scope falls back to outreach-wide.
+  //
+  // v9 final: recipient_kind='general' on the touchpoint payload
+  // marks a synthetic General Contact send (no underlying contact
+  // row). For those, scope cancellation by recipient_kind='general'
+  // instead of recipient_contact_id — there is no contact_id to
+  // match on, but the synthetic thread is its own cancellation
+  // bucket and named contacts must NOT get caught up in the bounce.
   const { data: sentRows } = await supabase
     .from("student_outreach_touchpoints")
     .select("outreach_id, contact_id, payload")
@@ -265,6 +272,10 @@ async function emitOutreachTouchpoint(
     // other transactional email. Nothing to do operationally.
     return;
   }
+  const recipientKind =
+    typeof sent?.payload?.recipient_kind === "string"
+      ? (sent.payload.recipient_kind as string)
+      : null;
   const recipientContactId =
     (typeof sent?.payload?.recipient_contact_id === "string"
       ? sent.payload.recipient_contact_id
@@ -289,7 +300,11 @@ async function emitOutreachTouchpoint(
 
   await supabase.from("student_outreach_touchpoints").insert({
     outreach_id: outreachId,
-    contact_id: recipientContactId,
+    // Synthetic General Contact sends have no contact row, so contact_id
+    // stays null. For specific recipients we mirror the original send's
+    // contact_id so the drawer Timeline correlates the bounce with the
+    // right recipient.
+    contact_id: recipientKind === "general" ? null : recipientContactId,
     touchpoint_type: touchpointType,
     channel: "email",
     outcome: eventType,
@@ -299,6 +314,9 @@ async function emitOutreachTouchpoint(
       // drawer Timeline can correlate the bounce row with the
       // specific recipient's email_sent above it.
       recipient_contact_id: recipientContactId,
+      // v9 final: stamp the kind so timeline + cancellation logic
+      // can branch without re-querying the original send.
+      recipient_kind: recipientKind ?? "specific",
       bounce_type: payload.data?.bounce?.subType ?? null,
       bounce_reason: payload.data?.bounce?.message ?? null,
       occurred_at: occurredAt,
@@ -308,18 +326,27 @@ async function emitOutreachTouchpoint(
 
   // Side effects per event type.
   if (eventType === "bounced") {
-    // v9 Phase 9: per-recipient cancellation. When the bounce maps
-    // to a specific recipient_contact_id, cancel only THAT
-    // recipient's pending email tasks; other recipients on this
-    // outreach keep their cadence. Legacy single-recipient sends
-    // (no recipient_contact_id) fall back to outreach-wide cancel.
+    // v9 Phase 9: per-recipient cancellation. Three sub-cases:
+    //   1. recipient_kind='general' (synthetic) → cancel only
+    //      pending tasks tagged recipient_kind='general'. Named
+    //      contacts on this row keep their cadence.
+    //   2. recipient_contact_id set (specific recipient) → cancel
+    //      only THAT contact's pending email tasks.
+    //   3. Neither (legacy / single-recipient send) → cancel all
+    //      pending email tasks on the outreach row.
     let cancelQuery = supabase
       .from("student_outreach_tasks")
       .update({ status: "cancelled" })
       .eq("outreach_id", outreachId)
       .eq("status", "pending")
       .eq("task_type", "outreach_email_send");
-    if (recipientContactId) {
+    if (recipientKind === "general") {
+      cancelQuery = cancelQuery.filter(
+        "payload->>recipient_kind",
+        "eq",
+        "general",
+      );
+    } else if (recipientContactId) {
       cancelQuery = cancelQuery.filter(
         "payload->>recipient_contact_id",
         "eq",

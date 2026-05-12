@@ -120,64 +120,26 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
         )}
       </header>
 
-      {/* ── 1. Directory snapshot (read-only) ─────────────────────── */}
-      <div>
-        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-          Directory
-        </p>
-        <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
-          <CoverageRow checked={Boolean(address || cityState)} label="Address">
-            <span className="block truncate text-gray-700">
-              {[address, cityState].filter(Boolean).join(" · ") || (
-                <span className="text-gray-400">Not on file</span>
-              )}
-            </span>
-          </CoverageRow>
-          <CoverageRow checked={Boolean(bp?.phone)} label="Phone">
-            {bp?.phone ? (
-              <a
-                href={`tel:${bp.phone}`}
-                className="block truncate text-emerald-700 hover:underline"
-              >
-                {bp.phone}
-              </a>
-            ) : (
-              <span className="text-gray-400">Not on file</span>
-            )}
-          </CoverageRow>
-          <CoverageRow checked={Boolean(bp?.email)} label="Email">
-            <span className="block truncate text-gray-700">
-              {bp?.email || <span className="text-gray-400">Not on file</span>}
-            </span>
-          </CoverageRow>
-          <CoverageRow checked={Boolean(website)} label="Website">
-            {website ? (
-              <a
-                href={website.startsWith("http") ? website : `https://${website}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block truncate text-emerald-700 hover:underline"
-              >
-                {website}
-              </a>
-            ) : (
-              <span className="text-gray-400">Not on file</span>
-            )}
-          </CoverageRow>
-          <CoverageRow checked={false} label="Fax">
-            <span className="text-gray-400">Not on file · coming soon</span>
-          </CoverageRow>
-        </dl>
-        <p className="mt-1.5 text-[11px] text-gray-400">
-          From the directory record. Outreach contacts are managed below.
-        </p>
-      </div>
+      {/* ── 1. General Contact ─────────────────────────────────────
+          Organization-level fallback contact info (front desk /
+          info@ / contact form). Edits write to research_data.
+          general_contact ONLY — never to student_outreach_contacts.
+          Strict separation from Specific Contacts per user spec. */}
+      <GeneralContactSection
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        editable={isPreLaunch}
+      />
 
-      {/* ── 2. Outreach Contacts (multi-contact editor) ──────────── */}
+      {/* ── 2. Specific Contacts ────────────────────────────────────
+          Named individuals only (owner / hiring manager / etc.).
+          No "General Office" tag — that lives at the General
+          Contact section above. */}
       <div>
         <div className="mb-1.5 flex items-baseline justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-            Outreach Contacts
+            Specific Contacts
           </p>
           <span className="text-[11px] text-gray-400">
             {activeContacts.length} active · {inactiveContacts.length} inactive
@@ -186,7 +148,9 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
 
         {ctx.contacts.length === 0 ? (
           <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs text-gray-500">
-            No contacts yet. Add at least one with an email to enable outreach.
+            No named contacts yet. Add named individuals (owner, hiring
+            manager, etc.) here. The General Contact above is enough to
+            launch outreach.
           </p>
         ) : (
           <ul className="space-y-2">
@@ -232,6 +196,214 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
         </p>
       </div>
     </section>
+  );
+}
+
+// ── General Contact section ─────────────────────────────────────────────
+
+/**
+ * v9 final: General Contact section — organization-level fallback
+ * contact info. Lives at the outreach row (not in
+ * student_outreach_contacts). Edits write to research_data.
+ * general_contact via the update_general_contact action; never
+ * touches student_outreach_contacts.
+ *
+ * Display values are effective overrides (research_data.general_
+ * contact.<field>) when present, else fall back to the business_
+ * profiles directory record. Address is read-only — it's a physical
+ * location, not a channel.
+ */
+function GeneralContactSection({
+  ctx,
+  action,
+  setError,
+  editable,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (msg: string | null) => void;
+  editable: boolean;
+}) {
+  const bp = ctx.provider_business_profile;
+  const research = (ctx.outreach.research_data ?? {}) as Record<string, unknown>;
+  const overrides = (research.general_contact ?? {}) as {
+    email?: string | null;
+    phone?: string | null;
+    fax?: string | null;
+    contact_form_url?: string | null;
+  };
+
+  const effective = useMemo(
+    () => ({
+      email: overrides.email ?? bp?.email ?? "",
+      phone: overrides.phone ?? bp?.phone ?? "",
+      fax: overrides.fax ?? "",
+      contact_form_url: overrides.contact_form_url ?? "",
+    }),
+    [overrides, bp?.email, bp?.phone],
+  );
+
+  const [email, setEmail] = useState(effective.email);
+  const [phone, setPhone] = useState(effective.phone);
+  const [fax, setFax] = useState(effective.fax);
+  const [contactFormUrl, setContactFormUrl] = useState(effective.contact_form_url);
+  const [saving, setSaving] = useState<string | null>(null);
+
+  useEffect(() => {
+    setEmail(effective.email);
+    setPhone(effective.phone);
+    setFax(effective.fax);
+    setContactFormUrl(effective.contact_form_url);
+  }, [effective.email, effective.phone, effective.fax, effective.contact_form_url]);
+
+  const address = bp?.address || null;
+  const cityState = [bp?.city, bp?.state].filter(Boolean).join(", ") || null;
+  const website = bp?.website || null;
+
+  const saveField = async (
+    field: "email" | "phone" | "fax" | "contact_form_url",
+    value: string,
+  ) => {
+    const directoryFallback =
+      field === "email"
+        ? bp?.email ?? ""
+        : field === "phone"
+          ? bp?.phone ?? ""
+          : "";
+    // No-op when nothing actually changed (compared to effective).
+    const trimmed = value.trim();
+    const wasEffective =
+      overrides[field] !== undefined && overrides[field] !== null
+        ? overrides[field]
+        : directoryFallback;
+    if (trimmed === (wasEffective ?? "")) return;
+    setSaving(field);
+    setError(null);
+    try {
+      // When admin clears a field, send null to drop the override
+      // and revert to the directory fallback. When admin types
+      // exactly the directory value, we still store it as an
+      // override — keeps semantics predictable (admin can re-clear
+      // to revert).
+      await action("update_general_contact", {
+        [field]: trimmed === "" ? null : trimmed,
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  return (
+    <div>
+      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+        General Contact
+      </p>
+      <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
+        <CoverageRow checked={Boolean(address || cityState)} label="Address">
+          <span className="block truncate text-gray-700">
+            {[address, cityState].filter(Boolean).join(" · ") || (
+              <span className="text-gray-400">Not on file</span>
+            )}
+          </span>
+        </CoverageRow>
+        <CoverageRow checked={Boolean(phone)} label="Phone">
+          {editable ? (
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              onBlur={() => saveField("phone", phone)}
+              placeholder="(555) 123-4567"
+              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          ) : phone ? (
+            <a href={`tel:${phone}`} className="block truncate text-emerald-700 hover:underline">
+              {phone}
+            </a>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
+        <CoverageRow checked={Boolean(email)} label="Email">
+          {editable ? (
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => saveField("email", email)}
+              placeholder="info@agency.com"
+              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          ) : (
+            <span className="block truncate text-gray-700">
+              {email || <span className="text-gray-400">Not on file</span>}
+            </span>
+          )}
+        </CoverageRow>
+        <CoverageRow checked={Boolean(website)} label="Website">
+          {website ? (
+            <a
+              href={website.startsWith("http") ? website : `https://${website}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block truncate text-emerald-700 hover:underline"
+            >
+              {website}
+            </a>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
+        <CoverageRow checked={Boolean(contactFormUrl)} label="Contact form">
+          {editable ? (
+            <input
+              type="url"
+              value={contactFormUrl}
+              onChange={(e) => setContactFormUrl(e.target.value)}
+              onBlur={() => saveField("contact_form_url", contactFormUrl)}
+              placeholder="https://agency.com/contact"
+              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          ) : contactFormUrl ? (
+            <a
+              href={contactFormUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block truncate text-emerald-700 hover:underline"
+            >
+              {contactFormUrl}
+            </a>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
+        <CoverageRow checked={Boolean(fax)} label="Fax">
+          {editable ? (
+            <input
+              type="tel"
+              value={fax}
+              onChange={(e) => setFax(e.target.value)}
+              onBlur={() => saveField("fax", fax)}
+              placeholder="(555) 123-9999"
+              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          ) : (
+            <span className="block truncate text-gray-700">
+              {fax || <span className="text-gray-400">Not on file · coming soon</span>}
+            </span>
+          )}
+        </CoverageRow>
+      </dl>
+      <p className="mt-1.5 text-[11px] text-gray-400">
+        {saving
+          ? `Saving ${saving}…`
+          : editable
+            ? "Org-level contact info. Edits override the directory record per-outreach (saved on blur)."
+            : "Org-level contact info. Specific named contacts are managed below."}
+      </p>
+    </div>
   );
 }
 

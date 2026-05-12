@@ -47,20 +47,47 @@ export interface EmailSnapshot {
  *
  * variant drives which email body the recipient receives:
  *   "general" → general-inbox copy ("Hello," with optional team
- *               reference). Used for role=General Office contacts.
+ *               reference). Used for the synthetic General Contact
+ *               row (recipient_kind='general') OR legacy
+ *               role=General Office specific contacts.
  *   "named"   → personalized copy ("Hi {first_name},"). Used for
  *               every other active contact with an explicit name.
+ *
+ * recipient_kind splits two operationally distinct recipient
+ * sources:
+ *   "specific" (default) → a row in student_outreach_contacts.
+ *                          contact_id is non-null and points to that
+ *                          contact. Bounce → cancel that contact's
+ *                          remaining tasks.
+ *   "general"            → the organization-level General Contact
+ *                          (research_data.general_contact override
+ *                          stacked on business_profiles directory
+ *                          fallback). No row in
+ *                          student_outreach_contacts; contact_id is
+ *                          null and recipient_email is denormalized
+ *                          onto the plan + every queued task payload.
+ *                          Bounce → cancel only the synthetic
+ *                          general thread (scope by recipient_kind),
+ *                          leaving named contacts unaffected.
  *
  * Call tasks denormalize the recipient's name + phone + role onto
  * the task payload so the Calls tab and drawer can render the
  * task without a contact join at read time.
  */
 export interface RecipientPlan {
-  contact_id: string;
+  /** Null when recipient_kind='general' (no underlying contact row). */
+  contact_id: string | null;
+  /** Default 'specific'. Persisted on every task payload. */
+  recipient_kind?: "specific" | "general";
   variant: "general" | "named";
   channels: { email: boolean; phone: boolean };
   recipient_name: string;
   recipient_first_name: string | null;
+  /** Required when channels.email=true and recipient_kind='general'.
+   *  Specific recipients hydrate email from the contact row at send
+   *  time; general recipients carry the denormalized address through
+   *  the queue so executeEmailTask can send without a DB read. */
+  recipient_email?: string | null;
   recipient_phone: string | null;
   recipient_role: string | null;
 }
@@ -163,6 +190,14 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
         if (step.channel === "email") {
           for (const r of input.recipients) {
             if (!r.channels.email) continue;
+            // Synthetic general recipients carry their email on the
+            // plan; specific recipients hydrate from the contact row
+            // at send time. Skip synthetics with no email — UI gate
+            // should have caught this, but defensive in case admin
+            // cleared the General Contact between PreFlight and
+            // submit.
+            const kind = r.recipient_kind ?? "specific";
+            if (kind === "general" && !r.recipient_email) continue;
             const snap =
               r.variant === "general"
                 ? generalByDay.get(day.day)
@@ -189,7 +224,15 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
                 subject: snap.subject,
                 body: personalizedBody,
                 variant: r.variant,
+                recipient_kind: kind,
+                // For specific: contact_id; for general: null. The
+                // executor branches on recipient_kind, not on the
+                // truthiness of contact_id alone — keeps semantics
+                // explicit when contact_id ever becomes optional in
+                // other flows.
                 recipient_contact_id: r.contact_id,
+                recipient_email: r.recipient_email ?? null,
+                recipient_name: r.recipient_name,
               },
             });
           }
@@ -216,6 +259,7 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
                 day: day.day,
                 label: step.label ?? "Follow-up call",
                 script: personalizedScript,
+                recipient_kind: r.recipient_kind ?? "specific",
                 recipient_contact_id: r.contact_id,
                 recipient_name: r.recipient_name,
                 recipient_phone: r.recipient_phone,

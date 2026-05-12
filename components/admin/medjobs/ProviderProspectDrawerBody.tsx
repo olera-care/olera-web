@@ -56,15 +56,23 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const isPreLaunch =
     outreach.status === "prospect" || outreach.status === "researched";
 
-  // Email gate for the Next Step Card's launch CTA. Provider snapshots
-  // can hold multiple contacts (Owner, Hiring Manager, General Inbox);
-  // any active contact with a valid email enables launch — the cadence
-  // pipeline sends to all of them. Business_profile fallback retained
-  // for legacy rows whose contacts haven't been mirrored yet.
+  // Email gate for the Next Step Card's launch CTA. Provider rows
+  // can launch from either:
+  //   1. The effective General Contact email (research_data.
+  //      general_contact.email override OR business_profiles.email
+  //      fallback). This is the org-level inbox — PreFlight wraps
+  //      it as a synthetic recipient.
+  //   2. Any active Specific Contact with a valid email (Owner,
+  //      Hiring Manager, etc.).
+  // Either source is sufficient — having both is common.
+  const generalContactEmail =
+    ctx.outreach.research_data?.general_contact?.email ??
+    ctx.provider_business_profile?.email ??
+    null;
   const hasEmail =
     ctx.contacts.some(
       (c) => c.status === "active" && Boolean(c.email?.includes("@")),
-    ) || Boolean(ctx.provider_business_profile?.email?.includes("@"));
+    ) || Boolean(generalContactEmail?.includes("@"));
 
   return (
     <div className="space-y-6">

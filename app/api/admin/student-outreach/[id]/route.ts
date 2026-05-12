@@ -43,6 +43,7 @@ import type {
   DistributionEvidence,
   DrawerContext,
   OutreachRow,
+  ResearchData,
   StakeholderType,
   Status,
   TaskType,
@@ -242,6 +243,16 @@ export async function POST(
       // disturbing other recipients' in-flight cadence.
       case "enroll_contact_in_cadence":
         await handleEnrollContactInCadence(db, row, body, user.id);
+        break;
+
+      // v9 final: per-outreach overrides for the General Contact
+      // section (email/phone/fax/contact_form_url). Writes to
+      // research_data.general_contact ONLY — never touches
+      // student_outreach_contacts. Maintains the strict separation
+      // between organization-level General Contact and named
+      // Specific Contacts per the user's architecture spec.
+      case "update_general_contact":
+        await handleUpdateGeneralContact(db, row, body, user.id);
         break;
 
       // v9 Make Client — provider conversion. Writes
@@ -708,6 +719,42 @@ async function handleUpdateOutreach(
 
   if (Object.keys(patch).length === 0) return;
   await touchOutreach(db, row.id, userId, patch);
+}
+
+/**
+ * v9 final: merge a General Contact override into research_data.
+ * Each field is null|string — null clears the override (falls back
+ * to business_profiles); string sets the override. Other research_
+ * data keys are preserved. Never touches student_outreach_contacts.
+ */
+async function handleUpdateGeneralContact(
+  db: DB,
+  row: OutreachRow,
+  body: {
+    email?: string | null;
+    phone?: string | null;
+    fax?: string | null;
+    contact_form_url?: string | null;
+  },
+  userId: string,
+) {
+  const current = (row.research_data ?? {}) as ResearchData;
+  const currentGc = current.general_contact ?? {};
+  const nextGc: ResearchData["general_contact"] = { ...currentGc };
+  for (const k of ["email", "phone", "fax", "contact_form_url"] as const) {
+    if (body[k] === undefined) continue;
+    const value = body[k];
+    if (value === null || (typeof value === "string" && value.trim() === "")) {
+      nextGc[k] = null;
+    } else if (typeof value === "string") {
+      nextGc[k] = value.trim();
+    }
+  }
+  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())) {
+    throw new Error("Invalid email");
+  }
+  const nextResearch: ResearchData = { ...current, general_contact: nextGc };
+  await touchOutreach(db, row.id, userId, { research_data: nextResearch });
 }
 
 async function handleAddNote(

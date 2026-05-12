@@ -62,6 +62,19 @@ interface Props {
   organizationName: string;
   campusName: string;
   contacts: Contact[];
+  /**
+   * v9 final: effective General Contact for the outreach row —
+   * research_data.general_contact overrides stacked on the
+   * business_profiles directory fallback. When email or phone is
+   * present, PreFlight prepends a synthetic "general" recipient
+   * row so admin can launch outreach even without a named Specific
+   * Contact. The synthetic recipient maps to recipient_kind='general'
+   * + contact_id=null at submit time.
+   */
+  generalContact?: {
+    email?: string | null;
+    phone?: string | null;
+  } | null;
   onCancel: () => void;
   onSubmit: (payload: {
     recipients: RecipientPlan[];
@@ -71,7 +84,12 @@ interface Props {
 }
 
 interface RecipientUiRow {
-  contact_id: string;
+  /** Null for the synthetic General Contact row. */
+  contact_id: string | null;
+  /** v9 final: 'general' = synthetic General Contact row (no
+   *  underlying student_outreach_contacts row). 'specific' =
+   *  a named contact. Drives recipient_kind on the queued tasks. */
+  kind: "specific" | "general";
   name: string;
   first_name: string | null;
   role: string | null;
@@ -131,40 +149,71 @@ export function ProviderPreFlightModal({
   organizationName,
   campusName,
   contacts,
+  generalContact,
   onCancel,
   onSubmit,
 }: Props) {
-  // Build the recipient roster from active contacts. Each contact
-  // becomes one row; admin toggles inclusion via the checkbox. The
-  // initial "include" state is true for every contact that has at
-  // least one channel populated (email OR phone). Contacts with
-  // neither don't enter the roster.
+  // Build the recipient roster. First slot (when present) is the
+  // synthetic General Contact row — organization-level fallback
+  // (research_data.general_contact || business_profiles fields).
+  // Subsequent rows are active Specific Contacts. Admin toggles
+  // inclusion per row; initial state includes every recipient with
+  // at least one channel populated.
   const recipientRows = useMemo<RecipientUiRow[]>(() => {
-    return contacts
-      .filter((c) => c.status === "active")
-      .map((c) => {
-        const hasEmail = Boolean(c.email && c.email.trim().length > 0);
-        const phoneOrMobile = c.phone?.trim() || c.mobile?.trim() || "";
-        const hasPhone = phoneOrMobile.length > 0;
-        return {
-          contact_id: c.id,
-          name:
-            [c.first_name, c.last_name].filter(Boolean).join(" ").trim() ||
-            c.name,
-          first_name: c.first_name?.trim() || null,
-          role: c.role || null,
-          email: c.email,
-          phone: phoneOrMobile || null,
-          is_general: GENERAL_ROLES.has(c.role ?? ""),
-          hasEmail,
-          hasPhone,
-        };
-      })
-      .filter((r) => r.hasEmail || r.hasPhone);
-  }, [contacts]);
+    const rows: RecipientUiRow[] = [];
+    const generalEmail = generalContact?.email?.trim() || "";
+    const generalPhone = generalContact?.phone?.trim() || "";
+    if (generalEmail || generalPhone) {
+      rows.push({
+        contact_id: null,
+        kind: "general",
+        // The synthetic recipient's display name = the organization
+        // name. Per user spec: the General Contact row is labeled
+        // as the organization itself, not a person.
+        name: organizationName,
+        first_name: null,
+        role: "General Contact",
+        email: generalEmail || null,
+        phone: generalPhone || null,
+        is_general: true,
+        hasEmail: Boolean(generalEmail),
+        hasPhone: Boolean(generalPhone),
+      });
+    }
+    for (const c of contacts) {
+      if (c.status !== "active") continue;
+      const hasEmail = Boolean(c.email && c.email.trim().length > 0);
+      const phoneOrMobile = c.phone?.trim() || c.mobile?.trim() || "";
+      const hasPhone = phoneOrMobile.length > 0;
+      if (!hasEmail && !hasPhone) continue;
+      rows.push({
+        contact_id: c.id,
+        kind: "specific",
+        name:
+          [c.first_name, c.last_name].filter(Boolean).join(" ").trim() ||
+          c.name,
+        first_name: c.first_name?.trim() || null,
+        role: c.role || null,
+        email: c.email,
+        phone: phoneOrMobile || null,
+        // Legacy: contacts tagged with General Office / General Inbox
+        // (pre-v9-final) still route to the general variant template.
+        // New General Contact synthetic row also uses general variant.
+        is_general: GENERAL_ROLES.has(c.role ?? ""),
+        hasEmail,
+        hasPhone,
+      });
+    }
+    return rows;
+  }, [contacts, generalContact?.email, generalContact?.phone, organizationName]);
 
+  // Inclusion keyed by a stable identifier — synthetic recipient
+  // uses the literal "general" sentinel; specific recipients use
+  // their contact_id.
+  const recipientKeyOf = (r: RecipientUiRow) =>
+    r.kind === "general" ? "__general__" : r.contact_id!;
   const [includedIds, setIncludedIds] = useState<Set<string>>(
-    () => new Set(recipientRows.map((r) => r.contact_id)),
+    () => new Set(recipientRows.map(recipientKeyOf)),
   );
 
   // Snapshots seeded from defaults. Provider templates branch per
@@ -216,7 +265,7 @@ export function ProviderPreFlightModal({
 
   // Derived state — what will the queue look like with the current
   // recipient selection?
-  const includedRows = recipientRows.filter((r) => includedIds.has(r.contact_id));
+  const includedRows = recipientRows.filter((r) => includedIds.has(recipientKeyOf(r)));
   const generalRows = includedRows.filter((r) => r.is_general);
   const namedRows = includedRows.filter((r) => !r.is_general);
   const emailRows = includedRows.filter((r) => r.hasEmail);
@@ -232,11 +281,11 @@ export function ProviderPreFlightModal({
   const queuedEmails = emailRows.length * emailDayCount;
   const queuedCalls = callRows.length * phoneDayCount;
 
-  const toggleIncluded = (id: string) => {
+  const toggleIncluded = (key: string) => {
     setIncludedIds((cur) => {
       const next = new Set(cur);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   };
@@ -283,6 +332,7 @@ export function ProviderPreFlightModal({
 
     const plans: RecipientPlan[] = includedRows.map((r) => ({
       contact_id: r.contact_id,
+      recipient_kind: r.kind,
       variant: r.is_general ? "general" : "named",
       channels: {
         email: r.hasEmail,
@@ -290,6 +340,7 @@ export function ProviderPreFlightModal({
       },
       recipient_name: r.name,
       recipient_first_name: r.first_name,
+      recipient_email: r.email,
       recipient_phone: r.phone,
       recipient_role: r.role,
     }));
@@ -355,14 +406,15 @@ export function ProviderPreFlightModal({
             ) : (
               <ul className="divide-y divide-gray-100">
                 {recipientRows.map((r) => {
-                  const included = includedIds.has(r.contact_id);
+                  const key = recipientKeyOf(r);
+                  const included = includedIds.has(key);
                   return (
-                    <li key={r.contact_id} className="px-3 py-2">
+                    <li key={key} className="px-3 py-2">
                       <label className="flex cursor-pointer items-start gap-2">
                         <input
                           type="checkbox"
                           checked={included}
-                          onChange={() => toggleIncluded(r.contact_id)}
+                          onChange={() => toggleIncluded(key)}
                           className="mt-0.5"
                         />
                         <div className="min-w-0 flex-1">

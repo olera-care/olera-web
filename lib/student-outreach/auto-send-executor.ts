@@ -179,38 +179,73 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
     .eq("id", row.campus_id)
     .single();
 
-  // v9 Phase 9: per-recipient mode. When the task payload pins a
-  // specific recipient_contact_id, scope the send to that single
-  // contact (and abort if the contact has gone stale/incorrect or
-  // lost their email since queue time — admin marked them or the
-  // SnapshotCard edit emptied it). Legacy multi-recipient mode
-  // (no recipient_contact_id) sends to every active contact with
-  // email — stakeholder paths still use this.
+  // v9 Phase 9: per-recipient mode. Three sub-modes:
+  //   - recipient_kind='general' → synthetic recipient (no contact
+  //     row). Build the recipient from payload.recipient_email +
+  //     recipient_name. Used for the General Contact row.
+  //   - recipient_contact_id set (recipient_kind='specific') → scope
+  //     send to that single contact. Abort if the contact has gone
+  //     stale/incorrect or lost their email since queue time.
+  //   - neither set (legacy) → send to every active contact with
+  //     email. Stakeholder paths still use this.
   const payloadPeek = claimed.payload ?? {};
+  const recipientKind =
+    typeof payloadPeek.recipient_kind === "string"
+      ? payloadPeek.recipient_kind
+      : null;
   const pinnedContactId =
     typeof payloadPeek.recipient_contact_id === "string"
       ? payloadPeek.recipient_contact_id
       : null;
 
-  let recipientQuery = db
-    .from("student_outreach_contacts")
-    .select("*")
-    .eq("outreach_id", row.id)
-    .eq("status", "active");
-  if (pinnedContactId) {
-    recipientQuery = recipientQuery.eq("id", pinnedContactId);
+  let recipients: EmailRecipient[];
+  if (recipientKind === "general") {
+    const syntheticEmail =
+      typeof payloadPeek.recipient_email === "string"
+        ? payloadPeek.recipient_email.trim()
+        : "";
+    if (!syntheticEmail) {
+      recipients = [];
+    } else {
+      const syntheticName =
+        (typeof payloadPeek.recipient_name === "string" &&
+          payloadPeek.recipient_name.trim()) ||
+        row.organization_name;
+      recipients = [
+        {
+          // contact_id stays empty string for the synthetic recipient —
+          // touchpoint inserts pass null for contact_id below when the
+          // kind is general, so this value is never written to the DB.
+          contact_id: "",
+          name: syntheticName,
+          first_name: null,
+          last_name: null,
+          title: null,
+          email: syntheticEmail,
+        },
+      ];
+    }
+  } else {
+    let recipientQuery = db
+      .from("student_outreach_contacts")
+      .select("*")
+      .eq("outreach_id", row.id)
+      .eq("status", "active");
+    if (pinnedContactId) {
+      recipientQuery = recipientQuery.eq("id", pinnedContactId);
+    }
+    const { data: contactRows } = await recipientQuery;
+    recipients = ((contactRows ?? []) as Contact[])
+      .filter((c) => c.email && c.email.trim().length > 0)
+      .map((c) => ({
+        contact_id: c.id,
+        name: c.name,
+        first_name: c.first_name,
+        last_name: c.last_name,
+        title: c.title,
+        email: c.email!,
+      }));
   }
-  const { data: contactRows } = await recipientQuery;
-  const recipients: EmailRecipient[] = ((contactRows ?? []) as Contact[])
-    .filter((c) => c.email && c.email.trim().length > 0)
-    .map((c) => ({
-      contact_id: c.id,
-      name: c.name,
-      first_name: c.first_name,
-      last_name: c.last_name,
-      title: c.title,
-      email: c.email!,
-    }));
 
   if (recipients.length === 0) {
     await annotateOutcome(db, taskId, "skipped_no_recipients");
@@ -270,7 +305,10 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
     template,
   });
 
-  // Per-recipient touchpoints.
+  // Per-recipient touchpoints. Synthetic general recipients have
+  // no contact_id — write null and stamp the kind on the payload
+  // so the timeline + webhook can distinguish synthetic sends from
+  // specific-contact sends.
   for (const r of result.results) {
     await insertTouchpoint(
       db,
@@ -281,6 +319,7 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
         template,
         recipient_email: r.recipient_email,
         recipient_name: r.recipient_name,
+        recipient_kind: recipientKind === "general" ? "general" : "specific",
         success: r.success,
         email_log_id: r.email_log_id,
         error: r.error,
@@ -288,7 +327,7 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
         outcome: r.success ? "sent" : "failed",
         task_id: taskId,
       },
-      r.contact_id,
+      recipientKind === "general" ? null : r.contact_id || null,
     );
   }
 

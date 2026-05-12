@@ -127,6 +127,20 @@ export interface ResearchData {
   meeting_link?: string;
   meeting_kind?: "phone" | "video" | "in_person";
   notes?: string;
+  /**
+   * v9 final: per-outreach overrides for the General Contact section
+   * (provider drawer). Each field, when present, takes precedence
+   * over the business_profiles fallback. Used when admin discovers
+   * different general office info than what's in the directory
+   * (e.g. directory has stale info@ but admin found a new hiring@).
+   * Edits write here ONLY — never to student_outreach_contacts.
+   */
+  general_contact?: {
+    email?: string | null;
+    phone?: string | null;
+    fax?: string | null;
+    contact_form_url?: string | null;
+  };
 }
 
 export interface Campus {

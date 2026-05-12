@@ -88,6 +88,13 @@ export const ROLES_BY_TYPE: Record<StakeholderType, string[]> = {
  * personalized "Hi {first_name}," greeting reserved for named
  * recipients.
  */
+/**
+ * v9 final: General Office removed. The General Contact lives at the
+ * outreach row level (business_profiles.email/phone + research_data.
+ * general_contact overrides) — not as a Specific Contact. Specific
+ * Contacts are reserved for NAMED individuals. Two cleanly separated
+ * concepts per the user's spec.
+ */
 export const PROVIDER_CONTACT_ROLES: string[] = [
   "Owner",
   "Operator",
@@ -97,7 +104,6 @@ export const PROVIDER_CONTACT_ROLES: string[] = [
   "Recruiter",
   "HR",
   "Admissions",
-  "General Office",
   OTHER,
 ];
 

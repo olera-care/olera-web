@@ -62,40 +62,56 @@ const PROVIDER_DISTINCT_EVENT_TYPES = [
 const SEEKER_RAW_EVENT_TYPES = ["benefits_completed", "matches_activated"];
 
 async function fetchWindow(fromIso, toIso) {
-  const [providerRes, seekerRes, distinctRes, openersRes] = await Promise.all([
-    db
-      .from("provider_activity")
-      .select("event_type, metadata")
-      .in("event_type", PROVIDER_RAW_EVENT_TYPES)
-      .gte("created_at", fromIso)
-      .lt("created_at", toIso)
-      .limit(50000),
-    db
-      .from("seeker_activity")
-      .select("event_type")
-      .in("event_type", SEEKER_RAW_EVENT_TYPES)
-      .gte("created_at", fromIso)
-      .lt("created_at", toIso)
-      .limit(50000),
-    db
-      .from("provider_activity")
-      .select("provider_id, event_type, metadata")
-      .in("event_type", PROVIDER_DISTINCT_EVENT_TYPES)
-      .gte("created_at", fromIso)
-      .lt("created_at", toIso)
-      .limit(50000),
-    db
-      .from("email_log")
-      .select("provider_id")
-      .eq("email_type", "question_received")
-      .eq("recipient_type", "provider")
-      .not("first_opened_at", "is", null)
-      .gte("first_opened_at", fromIso)
-      .lt("first_opened_at", toIso)
-      .limit(50000),
-  ]);
+  const [providerRes, seekerRes, distinctRes, openersRes, savesRes, familyProfilesRes] =
+    await Promise.all([
+      db
+        .from("provider_activity")
+        .select("event_type, metadata")
+        .in("event_type", PROVIDER_RAW_EVENT_TYPES)
+        .gte("created_at", fromIso)
+        .lt("created_at", toIso)
+        .limit(50000),
+      db
+        .from("seeker_activity")
+        .select("event_type")
+        .in("event_type", SEEKER_RAW_EVENT_TYPES)
+        .gte("created_at", fromIso)
+        .lt("created_at", toIso)
+        .limit(50000),
+      db
+        .from("provider_activity")
+        .select("provider_id, event_type, metadata")
+        .in("event_type", PROVIDER_DISTINCT_EVENT_TYPES)
+        .gte("created_at", fromIso)
+        .lt("created_at", toIso)
+        .limit(50000),
+      db
+        .from("email_log")
+        .select("provider_id")
+        .eq("email_type", "question_received")
+        .eq("recipient_type", "provider")
+        .not("first_opened_at", "is", null)
+        .gte("first_opened_at", fromIso)
+        .lt("first_opened_at", toIso)
+        .limit(50000),
+      // Relational layer (Strategy Brief: the writes we want families making).
+      // connections.type='save' rows created in-window; business_profiles
+      // type='family' rows created in-window (save = profile, post the 5/1 fix).
+      db
+        .from("connections")
+        .select("id", { count: "exact", head: true })
+        .eq("type", "save")
+        .gte("created_at", fromIso)
+        .lt("created_at", toIso),
+      db
+        .from("business_profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("type", "family")
+        .gte("created_at", fromIso)
+        .lt("created_at", toIso),
+    ]);
 
-  for (const r of [providerRes, seekerRes, distinctRes, openersRes]) {
+  for (const r of [providerRes, seekerRes, distinctRes, openersRes, savesRes, familyProfilesRes]) {
     if (r.error) throw new Error(`window query failed: ${r.error.message}`);
   }
 
@@ -152,6 +168,10 @@ async function fetchWindow(fromIso, toIso) {
       lead_engagers: sets.lead_engagers.size,
       teaser_clickers: sets.teaser_clickers.size,
       qa_email_openers: openers.size,
+    },
+    seeker_relational: {
+      saves: savesRes.count ?? 0,
+      family_profiles_created: familyProfilesRes.count ?? 0,
     },
   };
 }
@@ -253,14 +273,20 @@ async function fetchActions(now) {
 
 async function fetchMarketplaceHealth() {
   // Provider count is the denominator for marketplace-health ratios.
-  // Seeker-side public-profile count is an open question on the Running
-  // Thread -- the right table to query hasn't been identified yet. When it
-  // is, add a parallel query here.
-  const providersRes = await db
-    .from("olera-providers")
-    .select("slug", { count: "exact", head: true });
+  // Family-profile count is the seeker-side base we're trying to grow
+  // (Running Thread Open Question #2). business_profiles type='family' is
+  // the table: rows are created by the save flow, the benefits intake, and
+  // explicit signup. "Public" (the "let providers find me" toggle) is a
+  // metadata flag we don't break out yet -- the total is the meaningful
+  // denominator for now.
+  const [providersRes, familyProfilesRes] = await Promise.all([
+    db.from("olera-providers").select("slug", { count: "exact", head: true }),
+    db.from("business_profiles").select("id", { count: "exact", head: true }).eq("type", "family"),
+  ]);
   return {
     total_providers: providersRes.count ?? null,
+    family_profiles_total: familyProfilesRes.count ?? null,
+    // Kept for back-compat with prior report consumers; not yet broken out.
     public_seeker_profiles: null,
   };
 }

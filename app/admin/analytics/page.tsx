@@ -116,11 +116,13 @@ interface BenefitsFunnelByVariant {
 interface CTAFunnel {
   impressions: number;
   clicked: number;
+  engaged: number;
   converted: number;
 }
 
 interface CTAFunnelByVariant {
   legacy: CTAFunnel;
+  compare: CTAFunnel;
   unassigned: CTAFunnel;
 }
 
@@ -1464,10 +1466,17 @@ function CTAVariantsCard({
       tooltip: "Distinct sessions that clicked the CTA to open the form/sheet.",
     },
     {
+      label: "Engaged",
+      value: f.engaged,
+      prior: pf?.engaged ?? null,
+      prev: f.clicked,
+      tooltip: "Distinct sessions that clicked 'Save this comparison' (compare variant only).",
+    },
+    {
       label: "Converted",
       value: f.converted,
       prior: pf?.converted ?? null,
-      prev: f.clicked,
+      prev: f.clicked, // Use clicked as baseline since it's the common step across all variants
       tooltip: "Distinct sessions that submitted a lead (lead_received with cta_variant attribution).",
     },
   ];
@@ -1475,10 +1484,10 @@ function CTAVariantsCard({
   return (
     <>
       <p className="text-xs text-gray-500 mb-5">
-        CTA A/B testing funnel {rangeLabel(range).toLowerCase()} — distinct sessions per stage. Impressions = CTA rendered; Clicked = form/sheet opened; Converted = lead submitted with cta_variant attribution.
+        CTA A/B testing funnel {rangeLabel(range).toLowerCase()} — distinct sessions per stage. Impressions = CTA rendered; Clicked = form/sheet opened; Engaged = 'Save comparison' clicked; Converted = lead submitted.
       </p>
 
-      <div className="grid grid-cols-3 gap-x-5 gap-y-4 mb-6">
+      <div className="grid grid-cols-4 gap-x-5 gap-y-4 mb-6">
         {stages.map((s) => (
           <FunnelStat key={s.label} {...s} />
         ))}
@@ -1710,7 +1719,7 @@ function CTAVariantSplit({
   const searchParams = useSearchParams();
   const expandedRaw = searchParams.get("cta_variant");
   const expandedVariant: CTAVariantKey | null =
-    expandedRaw && (expandedRaw === "legacy" || expandedRaw === "unassigned")
+    expandedRaw && (expandedRaw === "legacy" || expandedRaw === "compare" || expandedRaw === "unassigned")
       ? (expandedRaw as CTAVariantKey)
       : null;
 
@@ -1732,14 +1741,18 @@ function CTAVariantSplit({
   const dateFrom = resolved.from ?? null;
   const dateTo = resolved.to ?? null;
 
-  const totalAssigned = byVariant.legacy.impressions;
+  const totalAssigned = byVariant.legacy.impressions + byVariant.compare.impressions;
   const waitingForFirstImpression = totalAssigned === 0;
 
   const rate = (num: number, den: number) =>
     den > 0 ? `${Math.round((num / den) * 100)}%` : "—";
 
+  // Variants that track the "engaged" step (save_comparison_clicked)
+  const ENGAGED_VARIANTS = new Set<CTAVariantKey>(["compare"]);
+
   const arms: Array<{ key: CTAVariantKey; label: string; description: string }> = [
     { key: "legacy", label: "Legacy CTA", description: "Current CTA design (ConnectionCardWithRedirect + MobileStickyBottomCTA)" },
+    { key: "compare", label: "Compare CTA", description: "Side-by-side comparison with 2 nearby providers (CompareCard + MobileStickyCompare)" },
   ];
 
   return (
@@ -1748,7 +1761,7 @@ function CTAVariantSplit({
         A/B Test — CTA Variants
       </div>
       <p className="text-[11px] text-gray-400 mb-3">
-        Deterministic split by session id (djb2 hash, weighted-bucket lookup). Impressions = CTA rendered; Clicked = form/sheet opened; Converted = lead submitted with cta_variant attribution.
+        Deterministic split by session id (djb2 hash, weighted-bucket lookup). Impressions = CTA rendered; Clicked = form/sheet opened; Engaged = 'Save comparison' clicked; Converted = lead submitted.
       </p>
       {waitingForFirstImpression && (
         <p className="text-[12px] text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-3 py-2 mb-3">
@@ -1762,6 +1775,7 @@ function CTAVariantSplit({
               <th className="px-3 py-2 font-medium">Variant</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Impressions</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Clicked</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Engaged</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Converted</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Conv%</th>
             </tr>
@@ -1803,12 +1817,15 @@ function CTAVariantSplit({
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.impressions}</td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.clicked}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-700">
+                      {ENGAGED_VARIANTS.has(key) ? r.engaged : "—"}
+                    </td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.converted}</td>
                     <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.converted, r.impressions)}</td>
                   </tr>
                   {isExpanded && (
                     <tr className="bg-gray-50/30">
-                      <td colSpan={5} className="px-3 py-4">
+                      <td colSpan={6} className="px-3 py-4">
                         <CTAVariantSessionsList variant={key} dateFrom={dateFrom} dateTo={dateTo} />
                       </td>
                     </tr>

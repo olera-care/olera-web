@@ -441,6 +441,7 @@ export function MedJobsTabPage({
         <ResearchTabContent
           rows={rows}
           providerProspects={providerProspects}
+          researchCampuses={researchCampuses}
           renderRow={renderRow}
           onStartProviderOutreach={async (p) => {
             try {
@@ -455,6 +456,27 @@ export function MedJobsTabPage({
               setOpenOutreachId(body.id);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Failed to start outreach");
+            }
+          }}
+          onOpenCampusResearch={(campus) => setBulkResearchCampus(campus)}
+          onMarkResearchComplete={async (campus) => {
+            try {
+              const res = await fetch(
+                `/api/admin/student-outreach/campuses/${campus.slug}`,
+                {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ research_complete: true }),
+                },
+              );
+              if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(body.error || "Failed to mark research complete");
+              }
+              await refetch();
+              refreshMedJobs();
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to mark research complete");
             }
           }}
           tabCountsAll={tabCounts?.all ?? 0}

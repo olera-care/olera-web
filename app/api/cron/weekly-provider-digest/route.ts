@@ -3,35 +3,42 @@ import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { providerWeeklyDigestEmail } from "@/lib/email-templates";
 import { classifyTier } from "@/lib/analytics/triage";
+import { generateNotificationUrl } from "@/lib/claim-tokens";
 
 /**
  * GET /api/cron/weekly-provider-digest
  *
- * Runs Mondays 8 AM ET / 13:00 UTC. Phase 1D of the provider analytics
- * initiative (plan: plans/provider-analytics-phase-1-surfaces-plan.md
- * tasks 12–14). The return-path mechanism that makes analytics a habit
- * rather than a moment.
+ * Runs Mondays 8 AM ET / 13:00 UTC. The provider-side return-path email.
  *
- * Flow:
- *   1. Find providers with at least one provider_activity event in the
- *      last 7 days (page_view, cta_click_public, lead_received,
- *      question_received, review_received).
- *   2. For each, resolve to a claimed business_profile with an account
- *      email and verify they haven't opted out
- *      (metadata.analytics_digest_unsubscribed).
- *   3. Compute the weekly stats (views this week, prior week, delta,
- *      cohort demand, source mix) and tier.
- *   4. Compose a tier-aware digest email and send via existing email
- *      infra.
+ * Audience (2026-05-11 expansion): two recipient sources, unioned and
+ * de-duped by email:
+ *   1. Providers with provider_activity events in the last 14 days
+ *      (page_view, cta_click_public, lead_received, question_received,
+ *      review_received) -- the original ~20-provider audience.
+ *   2. Providers with at least one open question (provider_questions
+ *      WHERE answered_at IS NULL AND status NOT IN archived/rejected)
+ *      -- the ~2,700-provider expansion. Resolves to email via
+ *      business_profiles (slug, source_provider_id) then olera-providers
+ *      (slug, provider_id), mirroring app/api/admin/questions/add-email
+ *      strategies 1-3.
  *
- * Idempotent within the week because email_log dedups by recipient +
- * emailType + provider_slug in metadata (if configured), but we also
- * cap per-provider to one send per 6 days as a belt-and-suspenders
- * guard (implemented via a per-run check against the email_logs table).
+ * Ordering: freshest unanswered question DESC, then views DESC. Makes
+ * `?limit=N` deterministic -- the most-urgent question audience always
+ * comes first. The Vercel cron uses limit=500 by default.
+ *
+ * Email variant:
+ *   - Question present  -> demand-led: leads with the newest open
+ *     question + a one-click answer URL (generateNotificationUrl).
+ *     Page-views line appears below the question only when non-zero.
+ *   - No question       -> analytics-only (original behavior).
+ *
+ * Skip reasons honor: no business_profile + no olera-providers match,
+ * no email on file, analytics_digest_unsubscribed=true, no signal,
+ * duplicate recipient (same email across two ID formats).
  *
  * Query params (for ops):
  *   ?dry_run=true — do everything except sending + writing email_logs
- *   ?limit=N      — cap provider count processed (default 500)
+ *   ?limit=N      — cap provider count processed (default 500, max 5000)
  *
  * Auth: Bearer ${CRON_SECRET}. Vercel injects automatically.
  */
@@ -75,6 +82,48 @@ export async function GET(request: NextRequest) {
     }
 
     const events = activity ?? [];
+
+    // ── 1b. Find providers with live unanswered questions ──
+    // Recipient source #2: every provider with at least one open question
+    // (answered_at IS NULL, status NOT IN archived/rejected). This is the
+    // ~2,700-provider audience -- a 10x expansion past activity-only.
+    // Tracks the newest unanswered question per provider for the email lead.
+    const { data: openQuestions, error: questionsErr } = await db
+      .from("provider_questions")
+      .select("id, provider_id, question, created_at, asker_name")
+      .is("answered_at", null)
+      .not("status", "in", "(archived,rejected)")
+      .order("created_at", { ascending: false })
+      .limit(50000);
+
+    if (questionsErr) {
+      console.error("[weekly-provider-digest] questions query failed:", questionsErr);
+      return NextResponse.json({ error: "Failed to load questions" }, { status: 500 });
+    }
+
+    type OpenQuestion = {
+      newest: { id: string; question: string; created_at: string };
+      count: number;
+    };
+    const openQuestionsByProvider = new Map<string, OpenQuestion>();
+    for (const q of (openQuestions ?? []) as Array<{
+      id: string;
+      provider_id: string;
+      question: string;
+      created_at: string;
+    }>) {
+      const key = String(q.provider_id);
+      const existing = openQuestionsByProvider.get(key);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        // Rows arrive newest-first, so the first one per provider IS the newest.
+        openQuestionsByProvider.set(key, {
+          newest: { id: q.id, question: q.question, created_at: q.created_at },
+          count: 1,
+        });
+      }
+    }
 
     // Group events per provider.
     type ProviderBucket = {
@@ -125,7 +174,28 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const providerIds = [...buckets.keys()].slice(0, maxProviders);
+    // Ensure a bucket exists for every provider with an open question, even
+    // those with no recent activity events. These providers ride the question
+    // through to delivery; views (if any) become a personalization line.
+    for (const id of openQuestionsByProvider.keys()) {
+      ensureBucket(id);
+    }
+
+    // Order recipients by freshest unanswered question DESC, then views DESC.
+    // Providers with no question (activity-only) fall to the bottom -- they
+    // get the existing analytics digest when their bucket has signal.
+    // This makes `?limit=N` deterministic: the most-urgent question audience
+    // is always at the top of the list.
+    const allIds = [...buckets.keys()];
+    allIds.sort((a, b) => {
+      const qa = openQuestionsByProvider.get(a)?.newest.created_at ?? "";
+      const qb = openQuestionsByProvider.get(b)?.newest.created_at ?? "";
+      if (qa !== qb) return qb.localeCompare(qa);
+      const va = buckets.get(a)?.viewsThisWeek ?? 0;
+      const vb = buckets.get(b)?.viewsThisWeek ?? 0;
+      return vb - va;
+    });
+    const providerIds = allIds.slice(0, maxProviders);
 
     if (providerIds.length === 0) {
       return NextResponse.json({ ok: true, processed: 0, sent: 0, skipped: 0, reason: "no_active_providers" });
@@ -176,6 +246,78 @@ export async function GET(request: NextRequest) {
         if (b.source_provider_id) bpByKey.set(b.source_provider_id, b);
       }
     }
+
+    // ── 2b. Fallback: synthesize BP from olera-providers for unclaimed rows ──
+    // Most providers in the unanswered-question audience are unclaimed
+    // (no business_profiles row) -- their canonical email lives on
+    // olera-providers. Mirrors strategies 1-3 in
+    // app/api/admin/questions/add-email/route.ts:
+    //   - olera-providers.slug = providerId
+    //   - olera-providers.provider_id = providerId (legacy alphanumeric)
+    type IosProvider = {
+      provider_id: string;
+      slug: string | null;
+      email: string | null;
+      provider_name: string | null;
+      city: string | null;
+      state: string | null;
+      metadata: Record<string, unknown> | null;
+    };
+    const unresolved = providerIds.filter((id) => !bpByKey.has(id));
+    if (unresolved.length > 0) {
+      for (let i = 0; i < unresolved.length; i += chunkSize) {
+        const chunk = unresolved.slice(i, i + chunkSize);
+
+        // Preserve metadata so analytics_digest_unsubscribed (written by the
+        // unsubscribe route to olera-providers.metadata for unclaimed rows)
+        // is honored on subsequent sends.
+        const { data: bySlugIos } = await db
+          .from("olera-providers")
+          .select("provider_id, slug, email, provider_name, city, state, metadata")
+          .in("slug", chunk)
+          .not("deleted", "is", true);
+        for (const ip of (bySlugIos ?? []) as IosProvider[]) {
+          if (!ip.slug) continue;
+          bpByKey.set(ip.slug, {
+            id: ip.provider_id,
+            slug: ip.slug,
+            source_provider_id: ip.provider_id,
+            display_name: ip.provider_name,
+            email: ip.email,
+            city: ip.city,
+            state: ip.state,
+            category: null,
+            metadata: ip.metadata,
+          });
+        }
+
+        const stillUnresolved = chunk.filter((id) => !bpByKey.has(id));
+        if (stillUnresolved.length === 0) continue;
+
+        const { data: byIdIos } = await db
+          .from("olera-providers")
+          .select("provider_id, slug, email, provider_name, city, state, metadata")
+          .in("provider_id", stillUnresolved)
+          .not("deleted", "is", true);
+        for (const ip of (byIdIos ?? []) as IosProvider[]) {
+          // Use the legacy alphanumeric ID as the URL slug when olera-providers.slug
+          // is null. The /provider/[slug]/onboard route resolves both formats, so
+          // the answer link works either way.
+          bpByKey.set(ip.provider_id, {
+            id: ip.provider_id,
+            slug: ip.slug ?? ip.provider_id,
+            source_provider_id: ip.provider_id,
+            display_name: ip.provider_name,
+            email: ip.email,
+            city: ip.city,
+            state: ip.state,
+            category: null,
+            metadata: ip.metadata,
+          });
+        }
+      }
+    }
+
     const bpBySlug = bpByKey;
 
     // ── 3. Cohort benchmarks for "local demand" signal ──
@@ -203,6 +345,10 @@ export async function GET(request: NextRequest) {
       skipReasons[r] = (skipReasons[r] ?? 0) + 1;
       skipped += 1;
     };
+    // Dedupe across ID formats: a provider with an activity bucket under
+    // their slug AND a question bucket under their legacy alphanumeric ID
+    // will resolve to the same email; we should only send once per address.
+    const sentEmails = new Set<string>();
 
     for (const providerId of providerIds) {
       const bucket = buckets.get(providerId)!;
@@ -217,18 +363,33 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      const emailKey = bp.email.toLowerCase();
+      if (sentEmails.has(emailKey)) {
+        bumpSkip("duplicate_recipient");
+        continue;
+      }
+
       const meta = (bp.metadata as Record<string, unknown> | null) || {};
       if (meta.analytics_digest_unsubscribed === true) {
+        // Mark this email as handled so a second bucket-key for the same
+        // physical provider (e.g. slug vs legacy ID) can't bypass the opt-out
+        // by resolving to a different record without the flag.
+        sentEmails.add(emailKey);
         bumpSkip("unsubscribed");
         continue;
       }
 
-      // Skip "quiet weeks" — nothing to say.
+      const openQ = openQuestionsByProvider.get(providerId);
+
+      // Signal gate: views, CTA clicks, leads, this-week questions, OR a live
+      // unanswered question. The question-only case is the new audience --
+      // unclaimed providers with backlog who never appear in provider_activity.
       const hasSignal =
         bucket.viewsThisWeek > 0 ||
         bucket.ctaClicks > 0 ||
         bucket.leads > 0 ||
-        bucket.questions > 0;
+        bucket.questions > 0 ||
+        !!openQ;
       if (!hasSignal) {
         bumpSkip("no_signal");
         continue;
@@ -238,10 +399,50 @@ export async function GET(request: NextRequest) {
       const deltaPct = computeDeltaPct(bucket.viewsThisWeek, bucket.viewsPriorWeek);
       const localDemand = cohortDemand.get(cohortKey(bp.city, bp.state, bp.category)) ?? null;
       const topSource = findTopSource(bucket.sources);
+      const providerSlug = bp.slug ?? providerId;
+      // Drop the slug fallback: for unclaimed rows synthesized from olera-providers,
+      // bp.slug can be a UUID, which would render as "A family has a question about
+      // abc123-..." in the subject. "your business" is the cleaner fallback.
+      const displayName = bp.display_name ?? "your business";
+
+      // Mint the one-click answer URL when there's an unanswered question.
+      // Failure here is non-fatal: the provider still gets the analytics email
+      // if they have other signal, otherwise they're skipped.
+      let answerUrl: string | null = null;
+      let unansweredQuestion: { id: string; question: string; totalCount: number } | null = null;
+      if (openQ) {
+        try {
+          answerUrl = generateNotificationUrl(
+            providerSlug,
+            bp.email,
+            "question",
+            openQ.newest.id,
+          );
+          unansweredQuestion = {
+            id: openQ.newest.id,
+            question: openQ.newest.question,
+            totalCount: openQ.count,
+          };
+        } catch (err) {
+          console.error(`[weekly-provider-digest] otk generation failed for ${providerSlug}:`, err);
+        }
+      }
+
+      // If the only signal was a question and we couldn't mint a URL, skip
+      // rather than ship a question-less email to a provider with no traffic.
+      const hasNonQuestionSignal =
+        bucket.viewsThisWeek > 0 ||
+        bucket.ctaClicks > 0 ||
+        bucket.leads > 0 ||
+        bucket.questions > 0;
+      if (!unansweredQuestion && !hasNonQuestionSignal) {
+        bumpSkip("question_url_mint_failed");
+        continue;
+      }
 
       const html = providerWeeklyDigestEmail({
-        providerName: bp.display_name ?? bp.slug ?? "your listing",
-        providerSlug: bp.slug!,
+        providerName: displayName,
+        providerSlug,
         tier,
         viewsThisWeek: bucket.viewsThisWeek,
         viewsPriorWeek: bucket.viewsPriorWeek,
@@ -253,15 +454,19 @@ export async function GET(request: NextRequest) {
         leadsReceived: bucket.leads,
         questionsReceived: bucket.questions,
         topSource,
+        unansweredQuestion,
+        answerUrl,
       });
 
-      const subject =
-        bucket.viewsThisWeek > 0
+      const subject = unansweredQuestion
+        ? `A family has a question about ${displayName}`
+        : bucket.viewsThisWeek > 0
           ? `${bucket.viewsThisWeek} ${bucket.viewsThisWeek === 1 ? "family" : "families"} viewed your page this week`
           : `Your week on Olera`;
 
       if (dryRun) {
         sent += 1;
+        sentEmails.add(emailKey);
         continue;
       }
 
@@ -274,8 +479,9 @@ export async function GET(request: NextRequest) {
           recipientType: "provider",
         });
         sent += 1;
+        sentEmails.add(emailKey);
       } catch (err) {
-        console.error(`[weekly-provider-digest] send failed for ${bp.slug}:`, err);
+        console.error(`[weekly-provider-digest] send failed for ${providerSlug}:`, err);
         bumpSkip("send_error");
       }
     }

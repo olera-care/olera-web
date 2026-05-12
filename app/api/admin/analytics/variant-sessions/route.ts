@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 
 // One row in the drill-in table — the journey of a single session through
 // the Family Intake funnel for one A/B arm. The shape is intentionally the
@@ -413,5 +413,219 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     console.error("[admin/analytics/variant-sessions] uncaught:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/admin/analytics/variant-sessions
+ *
+ * Hard-deletes a session's submission data and tracking events.
+ * Used for cleaning up admin test traffic that would otherwise pollute
+ * conversion counts.
+ *
+ * Body: { session_id: string, variant: string }
+ *
+ * Cascade scope varies by variant:
+ *   - benefits arms: deletes accounts row (cascades to business_profiles,
+ *     which cascades to connections) + seeker_activity + provider_activity
+ *   - outreach: deletes agent_outreach_requests row + seeker_activity
+ *   - qa_email_capture: deletes provider_questions rows + seeker_activity + provider_activity
+ *   - multi_provider: deletes provider_activity events only
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    let body: { session_id?: unknown; variant?: unknown };
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+    const sessionId = typeof body.session_id === "string" ? body.session_id : "";
+    const variant = typeof body.variant === "string" ? body.variant : "";
+    if (!sessionId) {
+      return NextResponse.json({ error: "session_id required" }, { status: 400 });
+    }
+    if (!VALID_VARIANTS.has(variant)) {
+      return NextResponse.json({ error: "Invalid variant" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+    const deleted: Record<string, number> = {};
+    let auditEmail: string | null = null;
+
+    // ── Phase 1: lookups (before any delete) ─────────────────────────────
+    let accountId: string | null = null;
+    let outreachRequestId: string | null = null;
+    let questionIds: string[] = [];
+
+    if (variant === "outreach") {
+      const { data: row } = await db
+        .from("agent_outreach_requests")
+        .select("id, seeker_email")
+        .eq("session_id", sessionId)
+        .maybeSingle();
+      if (row) {
+        outreachRequestId = row.id as string;
+        auditEmail = (row.seeker_email as string | null) ?? null;
+      }
+    } else if (variant === "qa_email_capture") {
+      // Find any provider_questions linked via question_email_enriched
+      // events that carry both metadata.session_id and metadata.question_id.
+      const { data: events } = await db
+        .from("seeker_activity")
+        .select("metadata")
+        .eq("event_type", "question_email_enriched")
+        .filter("metadata->>session_id", "eq", sessionId)
+        .limit(50);
+      const qidSet = new Set<string>();
+      for (const ev of (events ?? []) as Array<{ metadata: Record<string, unknown> | null }>) {
+        const qid = ev.metadata?.question_id;
+        if (typeof qid === "string" && qid) qidSet.add(qid);
+      }
+      questionIds = [...qidSet];
+      if (questionIds.length > 0) {
+        const { data: q } = await db
+          .from("provider_questions")
+          .select("asker_email")
+          .in("id", questionIds)
+          .limit(questionIds.length);
+        for (const row of (q ?? []) as Array<{ asker_email: string | null }>) {
+          if (row.asker_email) { auditEmail = row.asker_email; break; }
+        }
+      }
+    } else if (variant === "multi_provider") {
+      // multi_provider: just get email from the converted event for audit
+      const { data: events } = await db
+        .from("provider_activity")
+        .select("metadata")
+        .eq("event_type", "multi_provider_converted")
+        .filter("metadata->>session_id", "eq", sessionId)
+        .limit(1);
+      if (events && events.length > 0) {
+        const email = (events[0].metadata as Record<string, unknown> | null)?.email;
+        if (typeof email === "string") auditEmail = email;
+      }
+    } else {
+      // benefits arms (availability/loss/empathic/control/money_loss)
+      const { data: acct } = await db
+        .from("accounts")
+        .select("id, active_profile_id")
+        .eq("session_id", sessionId)
+        .maybeSingle();
+      if (acct) {
+        accountId = acct.id as string;
+        if (acct.active_profile_id) {
+          const { data: bp } = await db
+            .from("business_profiles")
+            .select("email")
+            .eq("id", acct.active_profile_id)
+            .eq("type", "family")
+            .maybeSingle();
+          if (bp) auditEmail = (bp.email as string | null) ?? null;
+        }
+      }
+    }
+
+    // ── Phase 2: cascading deletes ───────────────────────────────────────
+    const errors: Array<{ table: string; message: string }> = [];
+
+    if (accountId) {
+      const { error, count } = await db
+        .from("accounts")
+        .delete({ count: "exact" })
+        .eq("id", accountId);
+      if (error) {
+        console.error("[variant-sessions DELETE] accounts:", error);
+        errors.push({ table: "accounts", message: error.message });
+      } else {
+        deleted.accounts = count ?? 0;
+      }
+    }
+    if (outreachRequestId) {
+      const { error, count } = await db
+        .from("agent_outreach_requests")
+        .delete({ count: "exact" })
+        .eq("id", outreachRequestId);
+      if (error) {
+        console.error("[variant-sessions DELETE] agent_outreach_requests:", error);
+        errors.push({ table: "agent_outreach_requests", message: error.message });
+      } else {
+        deleted.agent_outreach_requests = count ?? 0;
+      }
+    }
+    if (questionIds.length > 0) {
+      const { error, count } = await db
+        .from("provider_questions")
+        .delete({ count: "exact" })
+        .in("id", questionIds);
+      if (error) {
+        console.error("[variant-sessions DELETE] provider_questions:", error);
+        errors.push({ table: "provider_questions", message: error.message });
+      } else {
+        deleted.provider_questions = count ?? 0;
+      }
+    }
+
+    {
+      const { error, count } = await db
+        .from("seeker_activity")
+        .delete({ count: "exact" })
+        .filter("metadata->>session_id", "eq", sessionId);
+      if (error) {
+        console.error("[variant-sessions DELETE] seeker_activity:", error);
+        errors.push({ table: "seeker_activity", message: error.message });
+      } else {
+        deleted.seeker_activity = count ?? 0;
+      }
+    }
+    {
+      const { error, count } = await db
+        .from("provider_activity")
+        .delete({ count: "exact" })
+        .filter("metadata->>session_id", "eq", sessionId);
+      if (error) {
+        console.error("[variant-sessions DELETE] provider_activity:", error);
+        errors.push({ table: "provider_activity", message: error.message });
+      } else {
+        deleted.provider_activity = count ?? 0;
+      }
+    }
+
+    // If any delete errored, surface it
+    if (errors.length > 0) {
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "variant_submission_delete_failed",
+        targetType: "variant_session",
+        targetId: sessionId,
+        details: { variant, email: auditEmail, deleted, errors },
+      });
+      return NextResponse.json(
+        {
+          error: `Delete failed in ${errors.length} table(s): ${errors.map((e) => e.table).join(", ")}`,
+          deleted,
+          errors,
+        },
+        { status: 500 },
+      );
+    }
+
+    await logAuditAction({
+      adminUserId: adminUser.id,
+      action: "variant_submission_deleted",
+      targetType: "variant_session",
+      targetId: sessionId,
+      details: { variant, email: auditEmail, deleted },
+    });
+
+    return NextResponse.json({ ok: true, deleted, email: auditEmail });
+  } catch (err) {
+    console.error("[admin/analytics/variant-sessions] DELETE failed:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getPricingConfig } from "@/lib/pricing-config";
 import CompareOverlay from "@/components/providers/CompareOverlay";
 import type { CompareProvider } from "@/components/providers/CompareBottomSheet";
 
@@ -74,6 +75,12 @@ export default function CompareCard({
   // Number of similar providers
   const nearbyCount = Math.min(similarProviders.length, 2);
 
+  // Get pricing unit from category config
+  const pricingConfig = providerCategory ? getPricingConfig(providerCategory) : null;
+  const priceUnit = pricingConfig?.unit ?? "month";
+  const unitLabel = priceUnit === "hour" ? "Hourly" : "Monthly";
+  const unitSuffix = priceUnit === "hour" ? "/hr" : "/mo";
+
   // Fire analytics
   const clickFiredRef = useRef(false);
   const handleCompareClick = useCallback(() => {
@@ -110,11 +117,11 @@ export default function CompareCard({
           {/* Price section */}
           <div className="mb-4 pb-4 border-b border-gray-100">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-              Est. Monthly · {providerCity || "Local"}
+              Est. {unitLabel} · {providerCity || "Local"}
             </p>
-            <p className="text-lg font-medium text-gray-700">
+            <p className="text-xl font-semibold text-gray-900">
               {priceRange || "Contact for pricing"}
-              {priceRange && <span className="text-base font-normal text-gray-500">/mo</span>}
+              {priceRange && <span className="text-base font-normal text-gray-500">{unitSuffix}</span>}
             </p>
           </div>
 

@@ -395,7 +395,7 @@ export default function CompareOverlay({
 
               {/* Comparison Rows */}
               <CompareRow
-                label="MONTHLY COST"
+                label="EST. MONTHLY"
                 providers={allProviders}
                 selectedIds={selectedProviderIds}
                 getValue={(p) => (

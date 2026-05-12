@@ -74,7 +74,6 @@ export default function CompareCard({
   const pricingConfig = providerCategory ? getPricingConfig(providerCategory) : null;
   const priceUnit = pricingConfig?.unit ?? "month";
   const unitLabel = priceUnit === "hour" ? "Hourly" : "Monthly";
-  const unitSuffix = priceUnit === "hour" ? "/hr" : "/mo";
 
   // Build avatar list for stacked display (current + up to 2 similar)
   const avatarProviders = [

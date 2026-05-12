@@ -62,13 +62,27 @@ export interface TemplateContext {
   variant?: "general" | "named";
 }
 
-/** All outreach emails offer a 15-min call with Logan via this Calendly. */
-export const CALENDLY_URL = "https://calendly.com/caregivers979/olera-demo";
+/**
+ * All outreach emails offer a 15-min call with Dr. Logan DuBose via this
+ * Calendly. Matches the calendar the existing strong staffing-outreach
+ * variant uses (see lib/staffing-outreach/resend-automation.ts).
+ */
+export const CALENDLY_URL = "https://calendly.com/caregivers979/home-care-agency-manager-interview";
 
+/**
+ * v9 outreach sign-off. Grazie is the sender (Dr. Logan DuBose's
+ * assistant); the body frames Dr. DuBose as the person the recipient
+ * is being invited to meet. The HTML signature block with photo +
+ * credentials is appended at send time by email-send.ts — see the
+ * loganSignatureHtml constant there. This text-only block keeps the
+ * body readable in PreFlight previews + plain-text fallbacks.
+ */
 const SIGN_OFF = [
-  `If you'd rather talk live, grab 15 min here: ${CALENDLY_URL}`,
+  `Schedule a quick call with Dr. Logan DuBose: ${CALENDLY_URL}`,
   "",
-  "— Olera Team",
+  "Best,",
+  "Grazie",
+  "Assistant to Dr. Logan DuBose",
   "https://olera.care",
   "",
   "Reply STOP if you'd like us to stop reaching out.",
@@ -218,6 +232,13 @@ export function salutationFor(
 
 export function introEmail(ctx: TemplateContext): EmailDraft {
   const { stakeholder_type } = ctx;
+  // All stakeholder intros now frame Grazie as the sender writing on
+  // behalf of Dr. Logan DuBose. Body stays stakeholder-type-specific
+  // for tone (formal for dept_head/professor; informal for advisor/
+  // student_org), but the Olera/Dr. DuBose framing + Calendly + sign-
+  // off is consistent. SIGN_OFF (defined above) carries "Best, Grazie
+  // · Assistant to Dr. Logan DuBose" so the inline closing line is
+  // gone from each body — would have been a double sign-off.
   switch (stakeholder_type) {
     case "student_org":
       return {
@@ -225,12 +246,9 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           `Hi ${PLACEHOLDER.salutation},`,
           ``,
-          `I'm reaching out from Olera. We help pre-health students earn while building real patient-care experience — flexible hours, paid, and aligned with med/PA/nursing applications.`,
+          `I work with Dr. Logan DuBose, MD MBA — Olera co-founder and Texas A&M College of Medicine alum. He's running a pilot program that connects pre-health students with paid caregiver work: flexible hours, real patient-facing experience, and aligned with med/PA/nursing applications.`,
           ``,
           `Would ${PLACEHOLDER.orgName}'s members be interested? I've attached a one-pager you can pass around to officers or post in your group chat.`,
-          ``,
-          `Best,`,
-          `${PLACEHOLDER.adminName}`,
           ``,
           SIGN_OFF,
         ].join("\n"),
@@ -241,12 +259,9 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           `Hi ${PLACEHOLDER.salutation},`,
           ``,
-          `I'm with Olera. We connect pre-health students at ${PLACEHOLDER.campus} with paid caregiver work — meaningful patient-facing hours that strengthen med/PA/nursing applications.`,
+          `I work with Dr. Logan DuBose, MD MBA at Olera. He's running a pilot pre-health student caregiver program at ${PLACEHOLDER.campus} — connecting students with paid caregiver work that gives them meaningful patient-facing hours alongside their coursework.`,
           ``,
-          `Attached is a short overview you could share with advisees. Happy to set up a quick 15-minute call if it's useful.`,
-          ``,
-          `Thanks for your time,`,
-          `${PLACEHOLDER.adminName}`,
+          `Attached is a short overview you could share with advisees. Happy to set up a quick 15-minute call with Dr. DuBose if it's useful.`,
           ``,
           SIGN_OFF,
         ].join("\n"),
@@ -257,12 +272,9 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           `Dear ${PLACEHOLDER.salutation},`,
           ``,
-          `I lead outreach at Olera. We provide paid caregiver positions tailored for pre-health students — flexible enough to work around coursework and directly relevant to clinical careers.`,
+          `I'm writing on behalf of Dr. Logan DuBose, MD MBA — Olera co-founder, NIH-funded researcher, and Texas A&M College of Medicine alum. He's running a pilot program providing paid caregiver positions tailored for pre-health students at ${PLACEHOLDER.campus}: flexible enough to work around coursework, directly relevant to clinical careers.`,
           ``,
-          `Attached is a brief overview. With your approval I'd love to make this opportunity available to your students through whichever channel you prefer.`,
-          ``,
-          `Best regards,`,
-          `${PLACEHOLDER.adminName}`,
+          `Attached is a brief overview. With your approval, Dr. DuBose would love to make this opportunity available to your students.`,
           ``,
           SIGN_OFF,
         ].join("\n"),
@@ -273,12 +285,9 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           `Dear ${PLACEHOLDER.salutation},`,
           ``,
-          `I'm reaching out from Olera with permission from your department. We offer paid caregiver work designed for pre-health students — flexible hours, real clinical exposure.`,
+          `I work with Dr. Logan DuBose, MD MBA at Olera, with permission from your department. Dr. DuBose runs a pilot pre-health caregiver program at ${PLACEHOLDER.campus} — paid caregiver work designed for students balancing coursework with real clinical exposure.`,
           ``,
           `Attached is a brief overview. Would you be open to forwarding it to your students?`,
-          ``,
-          `Thanks very much,`,
-          `${PLACEHOLDER.adminName}`,
           ``,
           SIGN_OFF,
         ].join("\n"),
@@ -294,10 +303,7 @@ export function followupLightEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Just bubbling this up in case it got buried. Happy to send a one-pager or jump on a 15-minute call — whichever is easier.`,
-      ``,
-      `Best,`,
-      `${PLACEHOLDER.adminName}`,
+      `Just bubbling this up in case it got buried. Happy to send a one-pager or set up a quick 15-min call with Dr. Logan DuBose — whichever is easier.`,
       ``,
       SIGN_OFF,
     ].join("\n"),
@@ -310,12 +316,9 @@ export function followupSocialProofEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Wanted to share a quick example: pre-health students at peer schools are picking up 8-15 hours a week alongside their coursework, with the kind of patient-facing experience that strengthens applications.`,
+      `Wanted to share a quick example from Dr. DuBose's pilot: pre-health students at peer schools are picking up 8-15 hours a week alongside their coursework, with the kind of patient-facing experience that strengthens med/PA/nursing applications.`,
       ``,
       `If you'd like the materials to forward, just reply and I'll send them right over.`,
-      ``,
-      `Thanks,`,
-      `${PLACEHOLDER.adminName}`,
       ``,
       SIGN_OFF,
     ].join("\n"),
@@ -328,13 +331,11 @@ export function followupFinalEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Closing the loop here. If now's not the right time, totally understand — I'll circle back next term. If it is, here's a one-line reply you can forward to students:`,
+      `Closing the loop here. If now's not the right time for Dr. DuBose's caregiver pilot, totally understand — we'll circle back next term. If it is, here's a one-line reply you can forward to students:`,
       ``,
       `>>> "Olera connects pre-health students with paid caregiver work that builds real clinical experience: https://olera.care/students"`,
       ``,
       `Either way, appreciate your time.`,
-      ``,
-      `${PLACEHOLDER.adminName}`,
       ``,
       SIGN_OFF,
     ].join("\n"),
@@ -349,16 +350,13 @@ export function postAgreedShareEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Thanks again for your willingness to share this with your students! Below is a short blurb plus a link they can use to learn more and apply:`,
+      `Thanks again for your willingness to share Dr. Logan DuBose's caregiver pilot with your students! Below is a short blurb plus a link they can use to learn more and apply:`,
       ``,
       `>>> Olera connects pre-health students with paid caregiver work — flexible hours,`,
       `    real patient experience, and aligned with med/PA/nursing applications.`,
       `    Learn more: https://olera.care/students`,
       ``,
       `If a longer version or PDF would be more useful, let me know and I'll send it.`,
-      ``,
-      `Appreciate it,`,
-      `${PLACEHOLDER.adminName}`,
       ``,
       SIGN_OFF,
     ].join("\n"),
@@ -371,12 +369,9 @@ export function partnerSeasonalEmail(_ctx: TemplateContext, season: string): Ema
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Hope the term is off to a good start! Wanted to circle back as we head into ${season.toLowerCase().replace("pre-", "")} — would it be helpful to share an updated one-pager with your students this cycle?`,
+      `Hope the term is off to a good start! Wanted to circle back as we head into ${season.toLowerCase().replace("pre-", "")} — would it be helpful to share an updated one-pager from Dr. DuBose's pilot with your students this cycle?`,
       ``,
       `Happy to also share metrics from last term if useful.`,
-      ``,
-      `Best,`,
-      `${PLACEHOLDER.adminName}`,
       ``,
       SIGN_OFF,
     ].join("\n"),
@@ -421,12 +416,9 @@ export function providerIntroEmail(
       body: [
         `Hi ${PLACEHOLDER.firstName},`,
         ``,
-        `I'm reaching out from Olera. We connect pre-health students at ${PLACEHOLDER.campus} with home-care agencies in their area looking for reliable caregivers — flexible scheduling around coursework, motivated workers, real patient-care experience for them.`,
+        `I work with Dr. Logan DuBose, MD MBA — Olera co-founder, NIH-funded researcher, and Texas A&M College of Medicine alum. He's running a pilot pre-health student caregiver program at ${PLACEHOLDER.campus}, connecting motivated students with home-care agencies in the area for paid caregiver placements.`,
         ``,
-        `Would you be open to a quick 15-min intro to see if there's a fit?`,
-        ``,
-        `Best,`,
-        `${PLACEHOLDER.adminName}`,
+        `Would you have 15 minutes for a quick call with Dr. DuBose to hear more about a potential fit at ${PLACEHOLDER.orgName}?`,
         ``,
         SIGN_OFF,
       ].join("\n"),
@@ -440,12 +432,9 @@ export function providerIntroEmail(
     subject,
     body: [
       ...generalIntroLines(contacts),
-      `I'm reaching out from Olera. We connect pre-health students at ${PLACEHOLDER.campus} with home-care agencies in their area looking for reliable caregivers — flexible scheduling around coursework, motivated workers, real patient-care experience for them.`,
+      `I work with Dr. Logan DuBose, MD MBA — Olera co-founder, NIH-funded researcher, and Texas A&M College of Medicine alum. He's running a pilot pre-health student caregiver program at ${PLACEHOLDER.campus}, connecting motivated students with home-care agencies in the area for paid caregiver placements.`,
       ``,
-      `Open to a quick 15-min intro to see if there's a fit?`,
-      ``,
-      `Best,`,
-      `${PLACEHOLDER.adminName}`,
+      `Would you have 15 minutes for a quick call with Dr. DuBose to hear more about a potential fit at ${PLACEHOLDER.orgName}?`,
       ``,
       SIGN_OFF,
     ].join("\n"),
@@ -464,10 +453,9 @@ export function providerFollowupEmail(
       body: [
         `Hi ${PLACEHOLDER.firstName},`,
         ``,
-        `Following up on my earlier note. We have pre-health students at ${PLACEHOLDER.campus} looking for caregiver placements — happy to share a one-pager or jump on a quick call if useful.`,
+        `Following up on my earlier note about Dr. Logan DuBose's pre-health student caregiver pilot at ${PLACEHOLDER.campus}.`,
         ``,
-        `Best,`,
-        `${PLACEHOLDER.adminName}`,
+        `Dr. DuBose is happy to share more about the program on a quick 15-min call.`,
         ``,
         SIGN_OFF,
       ].join("\n"),
@@ -477,10 +465,9 @@ export function providerFollowupEmail(
     subject,
     body: [
       ...generalIntroLines(contacts),
-      `Just bubbling this up in case it got buried. We have pre-health students at ${PLACEHOLDER.campus} looking for caregiver placements — happy to share a one-pager or jump on a quick call if helpful.`,
+      `Just bubbling up my earlier note about Dr. Logan DuBose's pre-health student caregiver pilot at ${PLACEHOLDER.campus}.`,
       ``,
-      `Best,`,
-      `${PLACEHOLDER.adminName}`,
+      `Dr. DuBose is happy to share more about the program on a quick 15-min call when convenient.`,
       ``,
       SIGN_OFF,
     ].join("\n"),
@@ -499,11 +486,9 @@ export function providerFinalEmail(
       body: [
         `Hi ${PLACEHOLDER.firstName},`,
         ``,
-        `Closing the loop here. If now isn't the right time for an intro, totally understand — happy to circle back later.`,
+        `Last note from me — Dr. Logan DuBose is happy to share more about the pre-health student caregiver pilot at ${PLACEHOLDER.campus} if there's interest. If now isn't the right time, totally understand.`,
         ``,
         `Either way, thanks for your time.`,
-        ``,
-        `${PLACEHOLDER.adminName}`,
         ``,
         SIGN_OFF,
       ].join("\n"),
@@ -513,11 +498,9 @@ export function providerFinalEmail(
     subject,
     body: [
       ...generalIntroLines(contacts),
-      `Closing the loop here. If there's a better person to reach about hiring caregivers, happy to redirect.`,
+      `Last note from me — Dr. Logan DuBose is happy to share more about the pre-health student caregiver pilot at ${PLACEHOLDER.campus} if there's interest. If there's a better person to reach about hiring caregivers at ${PLACEHOLDER.orgName}, happy to redirect.`,
       ``,
       `Either way, thanks for your time.`,
-      ``,
-      `${PLACEHOLDER.adminName}`,
       ``,
       SIGN_OFF,
     ].join("\n"),

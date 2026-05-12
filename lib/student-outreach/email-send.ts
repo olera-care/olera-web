@@ -122,6 +122,38 @@ function bodyToHtml(text: string): string {
     .join("\n");
 }
 
+/**
+ * v9: HTML signature block appended after the body. Photo +
+ * credentials for Dr. Logan DuBose; "from" identity for Grazie
+ * already lives in the body's sign-off (text). Mirrors the
+ * existing loganSignature() in lib/staffing-outreach/
+ * resend-automation.ts so v9 outreach renders the same trust
+ * scaffolding as the staffing pipeline.
+ */
+function loganSignatureHtml(): string {
+  const photoUrl = "https://olera.care/images/for-providers/team/logan.jpg";
+  const calendarUrl = "https://calendly.com/caregivers979/home-care-agency-manager-interview";
+  return `
+<table cellpadding="0" cellspacing="0" style="margin-top:24px;border-top:1px solid #e5e7eb;padding-top:20px;">
+  <tr>
+    <td style="vertical-align:top;padding-right:16px;">
+      <img src="${photoUrl}" alt="Dr. Logan DuBose" width="100" height="100" style="border-radius:8px;display:block;" />
+    </td>
+    <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
+      <p style="margin:0 0 4px;font-weight:600;color:#111827;">Dr. Logan DuBose, MD, MBA</p>
+      <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
+      <p style="margin:0 0 2px;">Affiliate Faculty, Texas A&amp;M School of Public Health</p>
+      <p style="margin:0 0 2px;">Researcher, funded by NIH SBIR Program</p>
+      <p style="margin:0 0 2px;">General Practitioner (GP), Licensed in VA</p>
+      <p style="margin:0 0 8px;">Co-founder, <a href="https://www.olera.care" style="color:#059669;">www.olera.care</a></p>
+      <p style="margin:0;">
+        <a href="${calendarUrl}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
+      </p>
+    </td>
+  </tr>
+</table>`;
+}
+
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 export async function sendOutreachEmail(
@@ -155,7 +187,10 @@ export async function sendOutreachEmail(
       salutation,
       ...staticVars,
     });
-    const html = bodyToHtml(body);
+    // v9: body body-to-HTML converted, then Dr. Logan signature
+    // appended so every outreach email lands with consistent
+    // trust scaffolding (photo + credentials + Calendly CTA).
+    const html = bodyToHtml(body) + loganSignatureHtml();
 
     try {
       const send = await sendEmail({

@@ -194,17 +194,28 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
             });
           }
         } else if (step.channel === "phone") {
-          const script = scriptsByDay.get(day.day) ?? step.label ?? "Follow-up call";
+          const rawScript = scriptsByDay.get(day.day) ?? step.label ?? "Follow-up call";
           for (const r of input.recipients) {
             if (!r.channels.phone) continue;
             if (!r.recipient_phone) continue;
+            // v9: per-recipient script substitution. {recipient_name}
+            // gets the contact's actual name; other placeholders
+            // ({organization_name}, {campus_name}, {admin_first_name})
+            // were already substituted at PreFlight time when admin
+            // saw the seeded script. Result: each call task's payload
+            // carries a ready-to-read script with no remaining
+            // placeholders.
+            const personalizedScript = rawScript.replace(
+              /\{recipient_name\}/g,
+              r.recipient_name || "the right person",
+            );
             tasks.push({
               task_type: "outreach_followup_call",
               due_at: dueAt,
               payload: {
                 day: day.day,
                 label: step.label ?? "Follow-up call",
-                script,
+                script: personalizedScript,
                 recipient_contact_id: r.contact_id,
                 recipient_name: r.recipient_name,
                 recipient_phone: r.recipient_phone,
@@ -271,20 +282,40 @@ export function defaultCallScriptsFor(type: CadenceKey): CallScript[] {
 }
 
 function defaultCallScriptForDay(type: CadenceKey, day: number): string {
-  // Provider cadence default scripts. Stakeholder paths use the
-  // generic fallback for now (admin edits in PreFlight if useful).
+  // Provider cadence default scripts. Real talking-points an admin
+  // can use verbatim or adapt. Placeholders get substituted at
+  // PreFlight time ({organization_name}, {campus_name},
+  // {admin_first_name}) and per-task at planSequence time
+  // ({recipient_name}). Stakeholder paths use the generic fallback
+  // for now (admin edits in PreFlight if useful).
   if (type === "provider") {
     if (day === 0) {
-      return "Intro call paired with Day 0 email. Ask for the hiring manager or whoever handles caregiver recruiting. If voicemail, leave a brief message referencing the email and a call-back ask. If receptionist answers and won't transfer, ask for the best direct contact (name + email + extension) to follow up.";
+      return [
+        `"Hi, this is {admin_first_name} calling on behalf of Dr. Logan DuBose at Olera. I'm trying to reach {recipient_name} about a pre-health student caregiver program connected to {campus_name}."`,
+        ``,
+        `If voicemail: leave a brief message referencing today's email from Grazie. Mention Dr. Logan DuBose, MD MBA — Olera co-founder and Texas A&M College of Medicine alum. Ask for a call back or note that they can grab time on Dr. DuBose's calendar at calendly.com/caregivers979/home-care-agency-manager-interview.`,
+        ``,
+        `If receptionist won't transfer: ask for the name + email of the right person to reach about hiring caregivers. Note that down so we can add them as an Outreach Contact for follow-up.`,
+      ].join("\n");
     }
     if (day === 2) {
-      return "Day 2 follow-up call. Reference Day 0 email + call. Gauge interest in a short intro conversation. If voicemail again, mention you've emailed and are following up.";
+      return [
+        `"Hi, {admin_first_name} from Olera again — following up on the email and call about Dr. Logan DuBose's pre-health caregiver pilot at {campus_name}. Hoping to catch {recipient_name} or whoever handles caregiver hiring at {organization_name}."`,
+        ``,
+        `If voicemail: mention we've emailed + called once already. Brief reminder of the program. Direct them to Dr. DuBose's Calendly for a 15-min call when convenient.`,
+      ].join("\n");
     }
     if (day === 5) {
-      return "Day 5 follow-up call. Final cadence call before switching to email-only. If you reach anyone, briefly recap the pitch and ask for a 15-min intro on the calendar.";
+      return [
+        `"Hi, {admin_first_name} from Olera. Final follow-up call for {recipient_name} or someone on the leadership team at {organization_name} about Dr. Logan DuBose's student caregiver program at {campus_name}."`,
+        ``,
+        `If you reach anyone: briefly recap — paid caregivers from {campus_name}, vetted by Dr. DuBose's pilot. Ask if they'd like 15 min with Dr. DuBose to talk through fit.`,
+        ``,
+        `If voicemail again: this is the last cadence call before switching to email-only. Leave Dr. DuBose's Calendly link as the easy path forward.`,
+      ].join("\n");
     }
   }
-  return `Day ${day} follow-up call. Reference prior outreach + ask for a 15-min intro.`;
+  return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} + Dr. Logan DuBose, and ask for a 15-min intro on Dr. DuBose's calendar.`;
 }
 
 /**

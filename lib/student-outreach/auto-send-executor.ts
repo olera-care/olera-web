@@ -249,10 +249,13 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
     };
   }
 
-  // The admin who scheduled isn't tracked per-task; for the
-  // {admin_first_name} placeholder we use a generic identity.
-  // Replies route via Reply-To env, not From, so this is OK.
-  const adminFirstName = "the Olera team";
+  // v9: all outreach emails are sent from Grazie (Dr. Logan DuBose's
+  // assistant). The {admin_first_name} placeholder still lives in
+  // legacy template bodies where the inline sign-off used to live;
+  // v9 templates moved the close-out into SIGN_OFF so this default
+  // mostly affects legacy text. Replies route via Reply-To env, so
+  // the identity reflected back to the recipient is consistent.
+  const adminFirstName = "Grazie";
 
   const result = await sendOutreachEmail({
     outreach_id: row.id,

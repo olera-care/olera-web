@@ -86,6 +86,47 @@ const PROVIDER_CADENCE_KEY: CadenceKey = "provider";
 
 const GENERAL_ROLES = new Set(["General Office", "General Inbox"]);
 
+/**
+ * v9: substitute the static placeholders that don't vary per
+ * recipient — used for call scripts at seed time + preview pane.
+ * Per-recipient {first_name}/{recipient_name} stay placeholders
+ * until queue time so the editor shows what's varying.
+ */
+function substituteStaticVars(
+  text: string,
+  vars: {
+    organization_name: string;
+    campus_name: string;
+    admin_first_name: string;
+  },
+): string {
+  return text
+    .replace(/\{organization_name\}/g, vars.organization_name)
+    .replace(/\{campus_name\}/g, vars.campus_name)
+    .replace(/\{admin_first_name\}/g, vars.admin_first_name);
+}
+
+/**
+ * v9: full preview substitution including a sample {first_name}.
+ * Used by VariantEditor's preview pane so admin can screen what
+ * the recipient will actually see.
+ */
+function substitutePreviewVars(
+  text: string,
+  vars: {
+    first_name: string;
+    organization_name: string;
+    campus_name: string;
+    admin_first_name: string;
+  },
+): string {
+  return text
+    .replace(/\{first_name\}/g, vars.first_name)
+    .replace(/\{organization_name\}/g, vars.organization_name)
+    .replace(/\{campus_name\}/g, vars.campus_name)
+    .replace(/\{admin_first_name\}/g, vars.admin_first_name);
+}
+
 export function ProviderPreFlightModal({
   organizationName,
   campusName,
@@ -145,9 +186,21 @@ export function ProviderPreFlightModal({
     defaults.general,
   );
   const [namedSnaps, setNamedSnaps] = useState<EmailSnapshot[]>(defaults.named);
-  const [callScripts, setCallScripts] = useState<CallScript[]>(
-    () => defaultCallScriptsFor(PROVIDER_CADENCE_KEY),
-  );
+  // v9: substitute static vars at seed time so admin sees the script
+  // with org/campus/admin filled in. {recipient_name} stays as a
+  // placeholder — planSequence substitutes per-task at queue time
+  // since each call task targets a specific recipient.
+  const [callScripts, setCallScripts] = useState<CallScript[]>(() => {
+    const seeds = defaultCallScriptsFor(PROVIDER_CADENCE_KEY);
+    return seeds.map((s) => ({
+      day: s.day,
+      script: substituteStaticVars(s.script, {
+        organization_name: organizationName,
+        campus_name: campusName,
+        admin_first_name: "Grazie",
+      }),
+    }));
+  });
 
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -410,6 +463,15 @@ export function ProviderPreFlightModal({
                         tone="blue"
                         snapshot={general}
                         onChange={(p) => updateGeneral(d.day, p)}
+                        previewVars={{
+                          first_name:
+                            namedRows[0]?.first_name ||
+                            namedRows[0]?.name?.split(/\s+/)[0] ||
+                            "there",
+                          organization_name: organizationName,
+                          campus_name: campusName,
+                          admin_first_name: "Grazie",
+                        }}
                       />
                     )}
                     {hasEmailStep && namedRows.length > 0 && named && (
@@ -418,6 +480,15 @@ export function ProviderPreFlightModal({
                         tone="emerald"
                         snapshot={named}
                         onChange={(p) => updateNamed(d.day, p)}
+                        previewVars={{
+                          first_name:
+                            namedRows[0]?.first_name ||
+                            namedRows[0]?.name?.split(/\s+/)[0] ||
+                            "there",
+                          organization_name: organizationName,
+                          campus_name: campusName,
+                          admin_first_name: "Grazie",
+                        }}
                       />
                     )}
                     {hasPhoneStep && callRows.length > 0 && script && (
@@ -480,14 +551,26 @@ function VariantEditor({
   tone,
   snapshot,
   onChange,
+  previewVars,
 }: {
   label: string;
   tone: "blue" | "emerald";
   snapshot: EmailSnapshot;
   onChange: (patch: Partial<EmailSnapshot>) => void;
+  /** v9: vars used by the preview pane so admin can screen the
+   *  rendered output (substitutions filled in) before launch. */
+  previewVars: {
+    first_name: string;
+    organization_name: string;
+    campus_name: string;
+    admin_first_name: string;
+  };
 }) {
+  const [showPreview, setShowPreview] = useState(false);
   const borderClass = tone === "blue" ? "border-blue-200" : "border-emerald-200";
   const tagBg = tone === "blue" ? "bg-blue-50 text-blue-800" : "bg-emerald-50 text-emerald-800";
+  const previewSubject = substitutePreviewVars(snapshot.subject, previewVars);
+  const previewBody = substitutePreviewVars(snapshot.body, previewVars);
   return (
     <div className={`rounded-md border ${borderClass} bg-white`}>
       <header className={`px-3 py-1.5 ${tagBg} text-[11px] font-semibold uppercase tracking-wide`}>
@@ -520,6 +603,26 @@ function VariantEditor({
             className="w-full rounded-md border border-gray-200 px-2 py-1.5 text-sm font-mono focus:border-gray-400 focus:outline-none"
           />
         </label>
+        <button
+          type="button"
+          onClick={() => setShowPreview((s) => !s)}
+          className="text-[11px] font-medium text-emerald-700 hover:underline"
+        >
+          {showPreview ? "Hide preview" : "Preview substitution"}
+        </button>
+        {showPreview && (
+          <div className="space-y-1 rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-xs">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+              Preview (sample first_name: {previewVars.first_name})
+            </p>
+            <p className="font-medium text-gray-700">Subject:</p>
+            <p className="text-gray-800">{previewSubject}</p>
+            <p className="mt-2 font-medium text-gray-700">Body:</p>
+            <pre className="whitespace-pre-wrap text-gray-800 font-sans">
+              {previewBody}
+            </pre>
+          </div>
+        )}
       </div>
     </div>
   );

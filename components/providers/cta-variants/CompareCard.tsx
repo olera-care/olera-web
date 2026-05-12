@@ -112,18 +112,18 @@ export default function CompareCard({
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
               Est. Monthly · {providerCity || "Local"}
             </p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-lg font-medium text-gray-700">
               {priceRange || "Contact for pricing"}
               {priceRange && <span className="text-base font-normal text-gray-500">/mo</span>}
             </p>
           </div>
 
           {/* Headline */}
-          <h3 className="text-xl font-bold text-gray-900 leading-snug mb-1">
-            {firstName} next to {nearbyCount || 2} nearby homes.
+          <h3 className="text-2xl font-bold text-gray-900 leading-snug mb-1">
+            How does {firstName} compare?
           </h3>
           <p className="text-sm text-gray-500 mb-5">
-            Reviews, pricing, services — side by side.
+            Side by side with {nearbyCount || 2} nearby home{nearbyCount !== 1 ? "s" : ""}
           </p>
 
           {/* Compare button */}

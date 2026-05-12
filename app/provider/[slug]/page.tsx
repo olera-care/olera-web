@@ -407,11 +407,18 @@ export default async function ProviderPage({
 
   // --- Data extraction ---
   const meta = profile.metadata as ExtendedMetadata;
+  // Build priceRange from multiple possible sources:
+  // 1. Pre-formatted price_range string (from formatIOSPriceRange)
+  // 2. hourly_rate_min/max (legacy home care format)
+  // 3. price_min/max with price_unit (fallback, e.g. when price_range wasn't set)
+  const priceUnitSuffix = meta?.price_unit === "HOUR" ? "/hr" : "/mo";
   const priceRange =
     meta?.price_range ||
     (meta?.hourly_rate_min && meta?.hourly_rate_max
       ? `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`
-      : null);
+      : meta?.price_min != null && meta?.price_max != null
+        ? `$${meta.price_min.toLocaleString()}-${meta.price_max.toLocaleString()}${priceUnitSuffix}`
+        : null);
 
   const rating = meta?.rating;
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);

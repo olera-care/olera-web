@@ -348,7 +348,7 @@ export default function CompareBottomSheet({
         ref={sheetRef}
         className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl animate-sheet-up flex flex-col"
         style={{
-          maxHeight: "92dvh",
+          maxHeight: "95dvh",
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
       >
@@ -373,11 +373,11 @@ export default function CompareBottomSheet({
 
         {/* Header */}
         <div className="px-5 pb-3 shrink-0">
-          <h2 className="text-xl font-bold text-gray-900 leading-tight pr-10">
+          <h2 className="text-[22px] font-bold text-gray-900 leading-tight pr-10">
             Side by side comparison
           </h2>
           {categoryLocationStr && (
-            <p className="text-sm text-gray-500 mt-1">{categoryLocationStr} · {selectedCount} of {totalProviders} selected</p>
+            <p className="text-[15px] text-gray-500 mt-1">{categoryLocationStr} · {selectedCount} of {totalProviders} selected</p>
           )}
         </div>
 
@@ -588,7 +588,7 @@ function CompareCard({ provider, isCurrentProvider, badge, isSelected, onToggle 
 
   return (
     <div
-      className={`flex-shrink-0 w-[78vw] snap-start rounded-2xl border-2 border-gray-200 p-4 bg-white transition-opacity ${
+      className={`flex-shrink-0 w-[78vw] snap-start rounded-2xl border-2 border-gray-200 p-4 bg-white transition-opacity flex flex-col ${
         !isSelected ? "opacity-40" : ""
       }`}
     >
@@ -617,11 +617,11 @@ function CompareCard({ provider, isCurrentProvider, badge, isSelected, onToggle 
               This page
             </p>
           )}
-          <h3 className="text-[15px] font-bold text-gray-900 leading-tight line-clamp-1">
+          <h3 className="text-base font-bold text-gray-900 leading-tight line-clamp-1">
             {provider.name}
           </h3>
           {categoryLocationStr && (
-            <p className="text-xs text-gray-500 mt-0.5 truncate">{categoryLocationStr}</p>
+            <p className="text-[13px] text-gray-500 mt-0.5 truncate">{categoryLocationStr}</p>
           )}
         </div>
       </div>
@@ -656,8 +656,8 @@ function CompareCard({ provider, isCurrentProvider, badge, isSelected, onToggle 
         <CompareRow label="HIGHLIGHTS" value={highlightsDisplay} />
       </div>
 
-      {/* Selection button */}
-      <div className="mt-3 pt-3 border-t border-gray-100 flex justify-center">
+      {/* Selection button - mt-auto pushes to bottom of flex card */}
+      <div className="mt-auto pt-3 border-t border-gray-100 flex justify-center">
         <button
           type="button"
           onClick={onToggle}
@@ -680,11 +680,11 @@ function CompareCard({ provider, isCurrentProvider, badge, isSelected, onToggle 
 
 function CompareRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between py-2.5">
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 shrink-0">
+    <div className="flex items-start justify-between py-3">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 shrink-0">
         {label}
       </span>
-      <span className="text-[13px] text-gray-900 text-right ml-3 leading-tight">
+      <span className="text-sm text-gray-900 text-right ml-3 leading-tight">
         {value}
       </span>
     </div>

@@ -745,13 +745,23 @@ async function handleUpdateGeneralContact(
     phone?: string | null;
     fax?: string | null;
     contact_form_url?: string | null;
+    /** v9 final: full snail-mail address. Multi-line text preserved
+     *  as-is (admin formats it however the postal service prefers).
+     *  Trimmed end-to-end but inner newlines kept. */
+    mailing_address?: string | null;
   },
   userId: string,
 ) {
   const current = (row.research_data ?? {}) as ResearchData;
   const currentGc = current.general_contact ?? {};
   const nextGc: ResearchData["general_contact"] = { ...currentGc };
-  for (const k of ["email", "phone", "fax", "contact_form_url"] as const) {
+  for (const k of [
+    "email",
+    "phone",
+    "fax",
+    "contact_form_url",
+    "mailing_address",
+  ] as const) {
     if (body[k] === undefined) continue;
     const value = body[k];
     if (value === null || (typeof value === "string" && value.trim() === "")) {

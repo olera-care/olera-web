@@ -140,6 +140,13 @@ export interface ResearchData {
     phone?: string | null;
     fax?: string | null;
     contact_form_url?: string | null;
+    /** v9 final: admin-verified full mailing address (multi-line,
+     *  includes street, suite, city, state, ZIP). Required for
+     *  snail-mail outreach since business_profiles only stores
+     *  street + city + state with no ZIP. Pre-launch research
+     *  step prompts admin to verify and complete this so the
+     *  later snail-mail cadence step has what it needs. */
+    mailing_address?: string | null;
   };
 }
 

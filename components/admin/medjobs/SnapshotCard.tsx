@@ -264,7 +264,19 @@ function GeneralContactSection({
     phone?: string | null;
     fax?: string | null;
     contact_form_url?: string | null;
+    mailing_address?: string | null;
   };
+
+  // v9 final: composed bp fallback for the mailing address. Used as
+  // the seed value when admin opens the editor. Snail-mail-ready
+  // override (with ZIP) lives in overrides.mailing_address.
+  const bpComposedAddress = useMemo(() => {
+    const lines: string[] = [];
+    if (bp?.address) lines.push(bp.address);
+    const cityState = [bp?.city, bp?.state].filter(Boolean).join(", ");
+    if (cityState) lines.push(cityState);
+    return lines.join("\n");
+  }, [bp?.address, bp?.city, bp?.state]);
 
   const effective = useMemo(
     () => ({
@@ -272,14 +284,16 @@ function GeneralContactSection({
       phone: overrides.phone ?? bp?.phone ?? "",
       fax: overrides.fax ?? "",
       contact_form_url: overrides.contact_form_url ?? "",
+      mailing_address: overrides.mailing_address ?? bpComposedAddress,
     }),
-    [overrides, bp?.email, bp?.phone],
+    [overrides, bp?.email, bp?.phone, bpComposedAddress],
   );
 
   const [email, setEmail] = useState(effective.email);
   const [phone, setPhone] = useState(effective.phone);
   const [fax, setFax] = useState(effective.fax);
   const [contactFormUrl, setContactFormUrl] = useState(effective.contact_form_url);
+  const [mailingAddress, setMailingAddress] = useState(effective.mailing_address);
   const [saving, setSaving] = useState<string | null>(null);
 
   useEffect(() => {
@@ -287,14 +301,30 @@ function GeneralContactSection({
     setPhone(effective.phone);
     setFax(effective.fax);
     setContactFormUrl(effective.contact_form_url);
-  }, [effective.email, effective.phone, effective.fax, effective.contact_form_url]);
+    setMailingAddress(effective.mailing_address);
+  }, [
+    effective.email,
+    effective.phone,
+    effective.fax,
+    effective.contact_form_url,
+    effective.mailing_address,
+  ]);
 
-  const address = bp?.address || null;
-  const cityState = [bp?.city, bp?.state].filter(Boolean).join(", ") || null;
   const website = bp?.website || null;
+  // Snail-mail readiness: ZIP code is required. Check if the
+  // effective mailing address contains anything that looks like a
+  // 5-digit US ZIP. If not, the row stays amber so admin knows to
+  // complete the address before launch.
+  const hasZip = /\b\d{5}(?:-\d{4})?\b/.test(mailingAddress);
+  const verifiedOverride = Boolean(overrides.mailing_address);
 
   const saveField = async (
-    field: "email" | "phone" | "fax" | "contact_form_url",
+    field:
+      | "email"
+      | "phone"
+      | "fax"
+      | "contact_form_url"
+      | "mailing_address",
     value: string,
   ) => {
     const directoryFallback =
@@ -302,14 +332,21 @@ function GeneralContactSection({
         ? bp?.email ?? ""
         : field === "phone"
           ? bp?.phone ?? ""
-          : "";
-    // No-op when nothing actually changed (compared to effective).
-    const trimmed = value.trim();
+          : field === "mailing_address"
+            ? bpComposedAddress
+            : "";
+    // mailing_address preserves inner newlines — trim only the
+    // outer whitespace. Other fields are single-line so plain
+    // trim() is fine.
+    const normalized =
+      field === "mailing_address"
+        ? value.replace(/^\s+|\s+$/g, "")
+        : value.trim();
     const wasEffective =
       overrides[field] !== undefined && overrides[field] !== null
         ? overrides[field]
         : directoryFallback;
-    if (trimmed === (wasEffective ?? "")) return;
+    if (normalized === (wasEffective ?? "")) return;
     setSaving(field);
     setError(null);
     try {
@@ -319,7 +356,7 @@ function GeneralContactSection({
       // override — keeps semantics predictable (admin can re-clear
       // to revert).
       await action("update_general_contact", {
-        [field]: trimmed === "" ? null : trimmed,
+        [field]: normalized === "" ? null : normalized,
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
@@ -334,20 +371,38 @@ function GeneralContactSection({
         General Contact
       </p>
       <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
-        <CoverageRow checked={Boolean(address)} label="Address">
-          {/* Render full address when present. When only city/state is on
-              file, surface the gap explicitly so admin sees the missing
-              street address rather than glossing over it. */}
-          {address ? (
-            <span className="block truncate text-gray-700">
-              {[address, cityState].filter(Boolean).join(" · ")}
-            </span>
-          ) : cityState ? (
-            <span className="block truncate text-gray-700">
-              {cityState}
-              <span className="ml-1 text-gray-400">
-                · street address not on file
-              </span>
+        <CoverageRow
+          checked={verifiedOverride && hasZip}
+          label="Address"
+        >
+          {/* v9 final: editable snail-mail address. Pre-launch admin
+              verifies + completes (must include ZIP) so the snail-mail
+              cadence step has what it needs. Check turns green only
+              when admin has saved an override AND the saved value
+              contains a ZIP. */}
+          {editable ? (
+            <div>
+              <textarea
+                value={mailingAddress}
+                onChange={(e) => setMailingAddress(e.target.value)}
+                onBlur={() => saveField("mailing_address", mailingAddress)}
+                rows={3}
+                placeholder={"3800 Texas 6 Frontage Rd, Suite 108C\nCollege Station, TX 77845"}
+                className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              />
+              <p className="mt-0.5 text-[10px] text-gray-500">
+                {verifiedOverride
+                  ? hasZip
+                    ? "Verified — ready for snail mail."
+                    : "Add ZIP code so snail mail can route."
+                  : mailingAddress
+                    ? "Verify + complete (incl. ZIP), then click out to save."
+                    : "Add the full mailing address — required for snail mail."}
+              </p>
+            </div>
+          ) : mailingAddress ? (
+            <span className="block whitespace-pre-line text-gray-700">
+              {mailingAddress}
             </span>
           ) : (
             <span className="text-gray-400">Not on file</span>

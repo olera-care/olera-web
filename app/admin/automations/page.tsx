@@ -99,7 +99,6 @@ function statusBadge(j: Job): { label: string; cls: string } {
 }
 
 const COLLAPSE_KEY = "automations:collapsed";
-const EXPLAINER_KEY = "automations:explainer-dismissed-v1";
 type Filter = "all" | "email" | "errored" | "paused";
 
 function Chevron({ open }: { open: boolean }) {
@@ -116,7 +115,6 @@ export default function AutomationsPage() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [showExplainer, setShowExplainer] = useState(false);
   const [showAcked, setShowAcked] = useState(false);
   const [expandedAlerts, setExpandedAlerts] = useState<Record<string, boolean>>({});
   const [q, setQ] = useState("");
@@ -126,19 +124,10 @@ export default function AutomationsPage() {
     try {
       const raw = localStorage.getItem(COLLAPSE_KEY);
       if (raw) setCollapsed(JSON.parse(raw));
-      if (!localStorage.getItem(EXPLAINER_KEY)) setShowExplainer(true);
     } catch {
       /* ignore */
     }
   }, []);
-  const dismissExplainer = () => {
-    setShowExplainer(false);
-    try {
-      localStorage.setItem(EXPLAINER_KEY, "1");
-    } catch {
-      /* ignore */
-    }
-  };
   const toggleCollapse = (audience: string) => {
     setCollapsed((c) => {
       const next = { ...c, [audience]: !c[audience] };
@@ -248,17 +237,6 @@ export default function AutomationsPage() {
           {data.summary.sends30d.toLocaleString()} sends / {data.summary.bounces30d} bounced{data.summary.complaints30d > 0 ? ` / ${data.summary.complaints30d} complaints` : ""} this month{" "}
           <span className="text-gray-300" title={data.note}>ⓘ</span>
         </p>
-      )}
-
-      {/* explainer card */}
-      {showExplainer && (
-        <div className="mb-5 rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-3 relative">
-          <button onClick={dismissExplainer} className="absolute top-2.5 right-3 text-gray-300 hover:text-gray-600 text-sm" aria-label="Dismiss">✕</button>
-          <div className="text-sm font-medium text-gray-800 mb-1">Reading this page</div>
-          <p className="text-sm text-gray-600 leading-relaxed pr-6">
-            Each row is a scheduled job. <strong>Run history</strong> fills in as jobs fire — note that crons only run on production, so a preview deploy will show &ldquo;no runs yet.&rdquo; <strong>Open / click</strong> rates are inflated by Apple Mail Privacy Protection — watch the trend, not the absolute. To test a job right now, open it and fire it from the detail page.
-          </p>
-        </div>
       )}
 
       {loading && <div className="text-gray-400 text-sm">Loading…</div>}

@@ -356,6 +356,10 @@ export interface TabRow extends OutreachRow {
   next_step_label: string | null;
   /** v8.7: stakeholder has a pending 'Post to job board' task. */
   has_pending_job_board_task: boolean;
+  /** v9 final: business_profiles.slug for kind='provider' rows.
+   *  Powers the "Open in directory ↗" overflow shortcut without an
+   *  extra fetch. Null for stakeholder rows. */
+  provider_slug?: string | null;
 }
 
 /** Legacy alias kept while cleaning up old call sites. */
@@ -491,6 +495,12 @@ export interface DrawerContext {
     phone: string | null;
     website: string | null;
     address: string | null;
+    /** v9 final: business_profiles.zip column (was missing earlier;
+     *  business_profiles HAS a ZIP column, the prior assumption that
+     *  ZIP needed override-only was wrong). Falls back to the iOS
+     *  olera-providers row via source_provider_id when bp.zip is
+     *  null. */
+    zip: string | null;
   } | null;
 
   /**

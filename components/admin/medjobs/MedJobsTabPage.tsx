@@ -303,6 +303,16 @@ export function MedJobsTabPage({
           try { await callAction(row.id, "mark_unread"); }
           catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
         }}
+        onOpenDirectory={
+          row.kind === "provider" && row.provider_slug
+            ? () => {
+                window.open(`/provider/${row.provider_slug}`, "_blank", "noopener,noreferrer");
+              }
+            : undefined
+        }
+        onSeeLogHistory={() => {
+          window.location.href = `/admin/medjobs/logs?outreach_id=${row.id}`;
+        }}
       />
     ),
     [tab, callAction],

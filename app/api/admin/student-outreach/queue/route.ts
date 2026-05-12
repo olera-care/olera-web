@@ -129,6 +129,9 @@ export interface TabRow extends OutreachRow {
   next_step_label: string | null;
   /** v8.7: pending Post-to-job-board task on this stakeholder. */
   has_pending_job_board_task: boolean;
+  /** v9 final: business_profiles.slug for kind='provider' rows.
+   *  Powers the row-card "Open in directory" shortcut. */
+  provider_slug?: string | null;
 }
 
 export async function GET(req: NextRequest) {
@@ -768,9 +771,13 @@ async function fetchRowIdsForTab(
   // as a second query so they sort below active in the rendered list.
   switch (tab) {
     case "prospects": {
-      const active = await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize });
+      // v9 final: prospects sort by created_at desc so newly-added
+      // rows stay at the top. Drawer opens / inline edits don't
+      // bump the row's position — admins can rely on the order to
+      // be stable during research.
+      const active = await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize }, "created_at");
       if (!showClosed) return active;
-      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize }, "created_at");
       return [...active, ...closed];
     }
     case "candidates":
@@ -900,12 +907,18 @@ async function idsByStatus(
   db: DB,
   statuses: Status[],
   opts: QueryOpts,
+  /** v9 final: ordering column. Defaults to last_edited_at desc
+   *  (most-recently-worked first — useful for Replies/Calls). The
+   *  Prospects tab passes "created_at" so newly-added rows stay at
+   *  the top and existing rows don't move when admin opens the
+   *  drawer or saves a research edit. */
+  orderColumn: "last_edited_at" | "created_at" = "last_edited_at",
 ): Promise<string[]> {
   let q = db
     .from("student_outreach")
     .select("id")
     .in("status", statuses)
-    .order("last_edited_at", { ascending: false })
+    .order(orderColumn, { ascending: false })
     .range(opts.page * opts.pageSize, opts.page * opts.pageSize + opts.pageSize - 1);
   if (opts.campusId) q = q.eq("campus_id", opts.campusId);
   if (opts.type) q = q.eq("stakeholder_type", opts.type);
@@ -1042,6 +1055,31 @@ async function hydrateRows(
   }
   // Preserve order from ids.
   const orderedRows = ids.map((id) => rowMap.get(id)).filter((r): r is OutreachRow => Boolean(r));
+
+  // v9 final: fetch business_profiles.slug for kind='provider' rows so
+  // the row card overflow can deep-link to the public directory page
+  // without a per-card extra fetch. One batch query keyed by the
+  // collected provider_business_profile_id values.
+  const providerSlugByOutreach = new Map<string, string>();
+  const bpIds = orderedRows
+    .filter((r) => r.kind === "provider" && r.provider_business_profile_id)
+    .map((r) => r.provider_business_profile_id!);
+  if (bpIds.length > 0) {
+    const { data: bpSlugs } = await db
+      .from("business_profiles")
+      .select("id, slug")
+      .in("id", bpIds);
+    const slugById = new Map<string, string>();
+    for (const b of (bpSlugs ?? []) as Array<{ id: string; slug: string | null }>) {
+      if (b.slug) slugById.set(b.id, b.slug);
+    }
+    for (const r of orderedRows) {
+      if (r.kind === "provider" && r.provider_business_profile_id) {
+        const slug = slugById.get(r.provider_business_profile_id);
+        if (slug) providerSlugByOutreach.set(r.id, slug);
+      }
+    }
+  }
 
   if (orderedRows.length === 0) return [];
 
@@ -1231,6 +1269,7 @@ async function hydrateRows(
       ...row,
       campus_name: camp?.name ?? "(unknown campus)",
       campus_slug: camp?.slug ?? "",
+      provider_slug: providerSlugByOutreach.get(row.id) ?? null,
       has_custom_task: customTaskByOutreach.has(row.id),
       custom_task_summary: customTaskByOutreach.get(row.id) ?? null,
       stale_days:

@@ -344,6 +344,12 @@ export interface RowCardCallbacks {
   onSendFollowupEmail: () => void;
   /** v9.0 Phase 4: reset attention. Wired to mark_unread action. */
   onMarkUnread: () => Promise<void>;
+  /** v9 final: jump to the public directory page (provider rows
+   *  only — opens /provider/[slug] in a new tab). */
+  onOpenDirectory?: () => void;
+  /** v9 final: jump to the unified Logs feed pre-filtered to this
+   *  row's outreach history. */
+  onSeeLogHistory?: () => void;
 }
 
 export interface RowSlots {

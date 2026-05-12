@@ -291,7 +291,11 @@ function GeneralContactSection({
       street: overrides.street ?? bp?.address ?? "",
       city: overrides.city ?? bp?.city ?? "",
       state: overrides.state ?? bp?.state ?? "",
-      zip: overrides.zip ?? "",
+      // v9 final: ZIP falls back to bp.zip — the directory has a ZIP
+      // column even though earlier code paths ignored it. Drops the
+      // "must save an override before it's snail-mail ready" friction
+      // when the bp record already carries the ZIP.
+      zip: overrides.zip ?? bp?.zip ?? "",
     }),
     [
       overrides,
@@ -301,6 +305,7 @@ function GeneralContactSection({
       bp?.address,
       bp?.city,
       bp?.state,
+      bp?.zip,
     ],
   );
 

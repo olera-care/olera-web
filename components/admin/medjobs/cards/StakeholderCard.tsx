@@ -531,6 +531,16 @@ export function buildUniversalOverflow(
   }
   if (options.extraItems) items.push(...options.extraItems);
   items.push({ label: "Mark as unread", onClick: () => void cb.onMarkUnread() });
+  // v9 final: cross-surface navigation. Open in directory jumps to
+  // the public listing (provider rows). See log history filters the
+  // unified Logs feed to this row's outreach_id. Both shortcuts beat
+  // copy-pasting URLs or hunting for the row again.
+  if (cb.onOpenDirectory) {
+    items.push({ label: "Open in directory ↗", onClick: cb.onOpenDirectory });
+  }
+  if (cb.onSeeLogHistory) {
+    items.push({ label: "See log history", onClick: cb.onSeeLogHistory });
+  }
   return <OverflowMenu items={items} onStopOutreach={cb.onStopOutreach} />;
 }
 

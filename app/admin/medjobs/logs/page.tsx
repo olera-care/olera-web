@@ -61,6 +61,10 @@ const SOURCE_FILTERS: Array<{ key: SourceFilter; label: string }> = [
 export default function LogsPage() {
   const searchParams = useSearchParams();
   const sourceParam = searchParams?.get("source");
+  // v9 final: ?outreach_id=UUID narrows the feed to a single
+  // outreach row's history. Used by the row-card "See log history"
+  // overflow shortcut. Stays in the URL so admin can share/bookmark.
+  const outreachIdFilter = searchParams?.get("outreach_id") ?? null;
   const initialSource: SourceFilter =
     sourceParam === "stakeholder" ||
     sourceParam === "client" ||
@@ -142,6 +146,13 @@ export default function LogsPage() {
       if (typeSet && typeSet.size > 0 && !typeSet.has(r.touchpoint_type)) {
         return false;
       }
+      // v9 final: outreach_id filter — when set, drop everything that
+      // doesn't belong to this row. Row-card "See log history" uses
+      // this to narrow the feed to a single provider's / stakeholder's
+      // activity in one click.
+      if (outreachIdFilter && r.outreach_id !== outreachIdFilter) {
+        return false;
+      }
       // v9.0 Phase 7 Commit P: source filter narrows by entity type.
       // Stakeholder rows have source_kind="stakeholder" (or undefined
       // for legacy touchpoints); entity-task completions carry their
@@ -156,7 +167,7 @@ export default function LogsPage() {
       }
       return true;
     });
-  }, [rows, typeFilter, sourceFilter, debouncedSearch]);
+  }, [rows, typeFilter, sourceFilter, debouncedSearch, outreachIdFilter]);
 
   return (
     <div>

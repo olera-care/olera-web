@@ -471,16 +471,91 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     phone: string | null;
     website: string | null;
     address: string | null;
+    zip: string | null;
   } | null = null;
   if (row.kind === "provider" && row.provider_business_profile_id) {
-    const { data: bp } = await db
+    // v9 final: pull the bp row + zip (was missing) + source_provider_id
+    // so we can fall back to the iOS olera-providers record when the
+    // bp row hasn't been enriched with a full address yet. Public
+    // provider pages already use the iOS data when available; the
+    // drawer matches that source-of-truth so admin sees the same
+    // info during pre-flight that prospects see on the live page.
+    const { data: bpRow } = await db
       .from("business_profiles")
       .select(
-        "email, display_name, city, state, metadata, slug, phone, website, address",
+        "email, display_name, city, state, zip, metadata, slug, phone, website, address, source_provider_id",
       )
       .eq("id", row.provider_business_profile_id)
       .maybeSingle();
-    providerBusinessProfile = (bp ?? null) as typeof providerBusinessProfile;
+    const bp = bpRow as
+      | {
+          email: string | null;
+          display_name: string | null;
+          city: string | null;
+          state: string | null;
+          zip: string | null;
+          metadata: Record<string, unknown> | null;
+          slug: string | null;
+          phone: string | null;
+          website: string | null;
+          address: string | null;
+          source_provider_id: string | null;
+        }
+      | null;
+
+    let iosFallback: {
+      address: string | null;
+      city: string | null;
+      state: string | null;
+      zip: string | null;
+      phone: string | null;
+      email: string | null;
+      website: string | null;
+    } | null = null;
+    if (bp?.source_provider_id) {
+      const { data: ios } = await db
+        .from("olera-providers")
+        .select("address, city, state, zipcode, phone, email, website")
+        .eq("provider_id", bp.source_provider_id)
+        .maybeSingle();
+      if (ios) {
+        const i = ios as {
+          address: string | null;
+          city: string | null;
+          state: string | null;
+          zipcode: number | string | null;
+          phone: string | null;
+          email: string | null;
+          website: string | null;
+        };
+        iosFallback = {
+          address: i.address ?? null,
+          city: i.city ?? null,
+          state: i.state ?? null,
+          zip: i.zipcode != null ? String(i.zipcode) : null,
+          phone: i.phone ?? null,
+          email: i.email ?? null,
+          website: i.website ?? null,
+        };
+      }
+    }
+
+    if (bp) {
+      // bp values win; iOS fills the gaps. Lets admin see the same
+      // operational data their target sees on the public listing.
+      providerBusinessProfile = {
+        email: bp.email ?? iosFallback?.email ?? null,
+        display_name: bp.display_name ?? null,
+        city: bp.city ?? iosFallback?.city ?? null,
+        state: bp.state ?? iosFallback?.state ?? null,
+        metadata: bp.metadata ?? null,
+        slug: bp.slug ?? null,
+        phone: bp.phone ?? iosFallback?.phone ?? null,
+        website: bp.website ?? iosFallback?.website ?? null,
+        address: bp.address ?? iosFallback?.address ?? null,
+        zip: bp.zip ?? iosFallback?.zip ?? null,
+      };
+    }
   }
 
   // v9 timeline engagement chips: collect email_log_ids from every

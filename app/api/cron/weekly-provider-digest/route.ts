@@ -270,6 +270,13 @@ export async function GET(request: NextRequest) {
     // app/api/admin/questions/add-email/route.ts:
     //   - olera-providers.slug = providerId
     //   - olera-providers.provider_id = providerId (legacy alphanumeric)
+    // NOTE: olera-providers has no `metadata` column, so the per-provider
+    // analytics_digest_unsubscribed opt-out can't be stored there -- synthesized
+    // rows carry metadata: null. (The unsubscribe route's olera-providers branch
+    // has the same limitation; a real opt-out store for unclaimed providers is a
+    // separate follow-up.) Errors are surfaced explicitly -- a bad column here
+    // silently empties the result set, which is exactly how the missing-metadata
+    // bug shipped once.
     type IosProvider = {
       provider_id: string;
       slug: string | null;
@@ -277,21 +284,21 @@ export async function GET(request: NextRequest) {
       provider_name: string | null;
       city: string | null;
       state: string | null;
-      metadata: Record<string, unknown> | null;
     };
+    const iosSelect = "provider_id, slug, email, provider_name, city, state";
     const unresolved = providerIds.filter((id) => !bpByKey.has(id));
     if (unresolved.length > 0) {
       for (let i = 0; i < unresolved.length; i += chunkSize) {
         const chunk = unresolved.slice(i, i + chunkSize);
 
-        // Preserve metadata so analytics_digest_unsubscribed (written by the
-        // unsubscribe route to olera-providers.metadata for unclaimed rows)
-        // is honored on subsequent sends.
-        const { data: bySlugIos } = await db
+        const { data: bySlugIos, error: bySlugErr } = await db
           .from("olera-providers")
-          .select("provider_id, slug, email, provider_name, city, state, metadata")
+          .select(iosSelect)
           .in("slug", chunk)
           .not("deleted", "is", true);
+        if (bySlugErr) {
+          console.error("[weekly-provider-digest] olera-providers by-slug query failed:", bySlugErr);
+        }
         for (const ip of (bySlugIos ?? []) as IosProvider[]) {
           if (!ip.slug) continue;
           bpByKey.set(ip.slug, {
@@ -303,18 +310,21 @@ export async function GET(request: NextRequest) {
             city: ip.city,
             state: ip.state,
             category: null,
-            metadata: ip.metadata,
+            metadata: null,
           });
         }
 
         const stillUnresolved = chunk.filter((id) => !bpByKey.has(id));
         if (stillUnresolved.length === 0) continue;
 
-        const { data: byIdIos } = await db
+        const { data: byIdIos, error: byIdErr } = await db
           .from("olera-providers")
-          .select("provider_id, slug, email, provider_name, city, state, metadata")
+          .select(iosSelect)
           .in("provider_id", stillUnresolved)
           .not("deleted", "is", true);
+        if (byIdErr) {
+          console.error("[weekly-provider-digest] olera-providers by-id query failed:", byIdErr);
+        }
         for (const ip of (byIdIos ?? []) as IosProvider[]) {
           // Use the legacy alphanumeric ID as the URL slug when olera-providers.slug
           // is null. The /provider/[slug]/onboard route resolves both formats, so
@@ -328,7 +338,7 @@ export async function GET(request: NextRequest) {
             city: ip.city,
             state: ip.state,
             category: null,
-            metadata: ip.metadata,
+            metadata: null,
           });
         }
       }

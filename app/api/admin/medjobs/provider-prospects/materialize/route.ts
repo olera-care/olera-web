@@ -61,7 +61,9 @@ export async function POST(request: NextRequest) {
     // a recipient without a provider-specific code branch.
     const { data: provider, error: providerErr } = await db
       .from("business_profiles")
-      .select("id, display_name, city, state, metadata, type, email, phone")
+      .select(
+        "id, display_name, city, state, metadata, type, email, phone, created_at",
+      )
       .eq("id", providerId)
       .in("type", ["organization", "caregiver"])
       .maybeSingle();
@@ -111,6 +113,15 @@ export async function POST(request: NextRequest) {
 
     const orgName = provider.display_name || "(unnamed provider)";
 
+    // v9 final: inherit created_at from the business_profile so the
+    // materialized row keeps the same rank in the Prospects sort as
+    // the virtual catchment card it replaced. Without this the new
+    // row got created_at = NOW() and jumped to the top of the list
+    // every time admin opened a virtual card — the visual "moves to
+    // the top" bug the user kept seeing.
+    const inheritedCreatedAt =
+      (provider as { created_at?: string | null }).created_at ?? null;
+
     const { data: inserted, error: insertErr } = await db
       .from("student_outreach")
       .insert({
@@ -125,6 +136,7 @@ export async function POST(request: NextRequest) {
         research_data: {},
         cadence_day: 0,
         contact_permission: "not_yet",
+        ...(inheritedCreatedAt ? { created_at: inheritedCreatedAt } : {}),
       })
       .select("id")
       .single();

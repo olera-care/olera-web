@@ -125,80 +125,97 @@ export function ResearchTabContent({
     );
   }
 
+  // v9 final: merge materialized rows + virtual catchment cards into
+  // a single list sorted by created_at desc so opening a virtual
+  // prospect (which materializes it) doesn't visually move the
+  // card. The materialize endpoint inherits bp.created_at, and
+  // both list sources sort by the same key — so the card stays at
+  // the same rank through the transition, just changing visual
+  // shape from a virtual ProviderProspectCard to a materialized
+  // StakeholderCard in place.
+  const renderVirtualProspect = (p: typeof providerProspects[number]) => (
+    <ProviderProspectCard
+      row={p}
+      onStartOutreach={() => onStartProviderOutreach(p)}
+      overflowMenu={
+        <CardOverflowMenu
+          items={[
+            {
+              label: "Open in directory ↗",
+              onClick: () => {
+                window.open(
+                  `/admin/directory?providerId=${p.provider_id}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+              },
+            },
+            {
+              label: "See log history",
+              onClick: () => {
+                window.location.href = `/admin/medjobs/logs?provider_id=${p.provider_id}`;
+              },
+            },
+            {
+              label: "Mark as Client ✓",
+              tone: "celebration",
+              onClick: async () => {
+                if (
+                  !window.confirm(
+                    `Mark ${p.provider_name} as a Client?\n\nMaterializes the outreach row and flags the provider as a Client.`,
+                  )
+                )
+                  return;
+                try {
+                  const res = await fetch(
+                    "/api/admin/medjobs/provider-prospects/materialize",
+                    {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        provider_id: p.provider_id,
+                        campus_id: p.campus_id,
+                      }),
+                    },
+                  );
+                  const body = await res.json();
+                  if (!res.ok) throw new Error(body.error || "Materialize failed");
+                  await fetch(`/api/admin/student-outreach/${body.id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "make_client" }),
+                  });
+                  window.location.reload();
+                } catch (e) {
+                  console.error(e);
+                }
+              },
+            },
+          ]}
+        />
+      }
+    />
+  );
+
+  const providerItems = hasProvider
+    ? [
+        ...providerRows.map((row) => ({
+          key: row.row_key ?? row.id,
+          sortKey: row.created_at,
+          node: renderRow(row),
+        })),
+        ...providerProspects.map((p) => ({
+          key: p.id,
+          sortKey: p.created_at,
+          node: renderVirtualProspect(p),
+        })),
+      ].sort((a, b) => b.sortKey.localeCompare(a.sortKey))
+    : [];
+
   const providerCardList = hasProvider ? (
     <ul className="space-y-2 pt-2">
-      {/* v9 final: materialized rows render BEFORE virtual catchment
-          rows. Newly-materialized prospects keep their visual
-          position near the top of the section rather than jumping
-          from one block to another. Catchment rows below = "still
-          to be triaged". */}
-      {providerRows.map((row) => (
-        <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
-      ))}
-      {providerProspects.map((p) => (
-        <li key={p.id}>
-          <ProviderProspectCard
-            row={p}
-            onStartOutreach={() => onStartProviderOutreach(p)}
-            overflowMenu={
-              <CardOverflowMenu
-                items={[
-                  {
-                    label: "Open in directory ↗",
-                    onClick: () => {
-                      window.open(
-                        `/admin/directory?providerId=${p.provider_id}`,
-                        "_blank",
-                        "noopener,noreferrer",
-                      );
-                    },
-                  },
-                  {
-                    label: "See log history",
-                    onClick: () => {
-                      window.location.href = `/admin/medjobs/logs?provider_id=${p.provider_id}`;
-                    },
-                  },
-                  {
-                    label: "Mark as Client ✓",
-                    tone: "celebration",
-                    onClick: async () => {
-                      if (
-                        !window.confirm(
-                          `Mark ${p.provider_name} as a Client?\n\nMaterializes the outreach row and flags the provider as a Client.`,
-                        )
-                      )
-                        return;
-                      try {
-                        const res = await fetch(
-                          "/api/admin/medjobs/provider-prospects/materialize",
-                          {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              provider_id: p.provider_id,
-                              campus_id: p.campus_id,
-                            }),
-                          },
-                        );
-                        const body = await res.json();
-                        if (!res.ok) throw new Error(body.error || "Materialize failed");
-                        await fetch(`/api/admin/student-outreach/${body.id}`, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ action: "make_client" }),
-                        });
-                        window.location.reload();
-                      } catch (e) {
-                        console.error(e);
-                      }
-                    },
-                  },
-                ]}
-              />
-            }
-          />
-        </li>
+      {providerItems.map((it) => (
+        <li key={it.key}>{it.node}</li>
       ))}
     </ul>
   ) : null;

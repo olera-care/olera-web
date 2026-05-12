@@ -87,7 +87,6 @@ export default function LogsPage() {
   // completions can also surface here. Each gets its own drawer mode.
   const [openProviderId, setOpenProviderId] = useState<string | null>(null);
   const [openCandidateId, setOpenCandidateId] = useState<string | null>(null);
-  const [openSiteId, setOpenSiteId] = useState<string | null>(null);
 
   // Debounce search input — small list size, no need for tight typing.
   useEffect(() => {
@@ -274,7 +273,11 @@ export default function LogsPage() {
                       if (r.source_id) setOpenCandidateId(r.source_id);
                       break;
                     case "site":
-                      if (r.source_id) setOpenSiteId(r.source_id);
+                      // v9 final: Site drawer removed. Sites are
+                      // organizational, not operational — navigate to
+                      // the Sites surface where admin can click through
+                      // to the right campus management page.
+                      window.location.href = "/admin/medjobs/sites";
                       break;
                     default:
                       setOpenOutreachId(r.outreach_id);
@@ -309,15 +312,6 @@ export default function LogsPage() {
           candidateId={openCandidateId}
           onClose={() => {
             setOpenCandidateId(null);
-            void refetch();
-          }}
-        />
-      )}
-      {openSiteId && (
-        <Drawer
-          siteId={openSiteId}
-          onClose={() => {
-            setOpenSiteId(null);
             void refetch();
           }}
         />

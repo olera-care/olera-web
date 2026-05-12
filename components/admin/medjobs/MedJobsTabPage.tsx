@@ -102,7 +102,6 @@ export function MedJobsTabPage({
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
   const [openProviderId, setOpenProviderId] = useState<string | null>(null);
   const [openCandidateId, setOpenCandidateId] = useState<string | null>(null);
-  const [openSiteId, setOpenSiteId] = useState<string | null>(null);
   const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
 
   const [callOutcomeRow, setCallOutcomeRow] = useState<TabRow | null>(null);
@@ -543,43 +542,16 @@ export function MedJobsTabPage({
           </p>
         ) : (
           <ul className="space-y-2">
-            {campusBanners.map((c) => {
-              const matching = researchCampuses.find((r) => r.id === c.id);
-              return (
-                <li key={c.id}>
-                  <SiteCard
-                    row={c}
-                    onAddStakeholders={() => {
-                      const payload = matching ?? {
-                        id: c.id,
-                        slug: c.slug,
-                        name: c.name,
-                        state: c.state,
-                        city: c.city,
-                        research_stakeholder_count: c.stakeholder_count,
-                        last_added_at: c.last_added_at,
-                      };
-                      setBulkResearchCampus(payload);
-                    }}
-                    onViewSite={() => setOpenSiteId(c.id)}
-                    overflowMenu={
-                      <CardOverflowMenu
-                        items={[
-                          {
-                            label: "Mark as unread",
-                            onClick: async () => {
-                              await markEntityUnread("site", c.id);
-                              await refetch();
-                              refreshMedJobs();
-                            },
-                          },
-                        ]}
-                      />
-                    }
-                  />
-                </li>
-              );
-            })}
+            {campusBanners.map((c) => (
+              <li key={c.id}>
+                <SiteCard
+                  row={c}
+                  onView={() => {
+                    window.location.href = `/admin/student-outreach/campus/${c.slug}`;
+                  }}
+                />
+              </li>
+            ))}
           </ul>
         )
       ) : tab === "clients" ? (
@@ -707,15 +679,6 @@ export function MedJobsTabPage({
           candidateId={openCandidateId}
           onClose={() => {
             setOpenCandidateId(null);
-            void refetch();
-          }}
-        />
-      )}
-      {openSiteId && (
-        <Drawer
-          siteId={openSiteId}
-          onClose={() => {
-            setOpenSiteId(null);
             void refetch();
           }}
         />

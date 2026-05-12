@@ -69,7 +69,9 @@ export async function GET() {
       .select("job_id, started_at, finished_at, status, summary, error, triggered_by")
       .gte("started_at", since)
       .order("started_at", { ascending: false })
-      .limit(5000);
+      // 30 days of all-cron volume is ~5–6k rows (the every-15-min job alone is
+      // ~2.9k); 50k keeps low-frequency jobs from being starved of their data.
+      .limit(50000);
     for (const r of (data ?? []) as RunRow[]) {
       const bucket = runsByJob.get(r.job_id) ?? { latest: null, count: 0, errors: 0 };
       if (!bucket.latest) bucket.latest = r; // rows are newest-first

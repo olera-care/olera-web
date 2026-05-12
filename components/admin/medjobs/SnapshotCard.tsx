@@ -375,34 +375,33 @@ function GeneralContactSection({
           checked={verifiedOverride && hasZip}
           label="Address"
         >
-          {/* v9 final: editable snail-mail address. Pre-launch admin
-              verifies + completes (must include ZIP) so the snail-mail
-              cadence step has what it needs. Check turns green only
-              when admin has saved an override AND the saved value
-              contains a ZIP. */}
+          {/* v9 final: editable snail-mail address. Single-line input
+              for compactness — admin types comma-separated. Check
+              turns green only when admin has saved an override AND
+              the saved value contains a ZIP. */}
           {editable ? (
             <div>
-              <textarea
-                value={mailingAddress}
+              <input
+                type="text"
+                value={mailingAddress.replace(/\n/g, ", ")}
                 onChange={(e) => setMailingAddress(e.target.value)}
-                onBlur={() => saveField("mailing_address", mailingAddress)}
-                rows={3}
-                placeholder={"3800 Texas 6 Frontage Rd, Suite 108C\nCollege Station, TX 77845"}
+                onBlur={() =>
+                  saveField("mailing_address", mailingAddress)
+                }
+                placeholder="3800 Texas 6 Frontage Rd Suite 108C, College Station, TX 77845"
                 className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
               />
-              <p className="mt-0.5 text-[10px] text-gray-500">
-                {verifiedOverride
-                  ? hasZip
-                    ? "Verified — ready for snail mail."
-                    : "Add ZIP code so snail mail can route."
-                  : mailingAddress
-                    ? "Verify + complete (incl. ZIP), then click out to save."
-                    : "Add the full mailing address — required for snail mail."}
-              </p>
+              {(!verifiedOverride || !hasZip) && (
+                <p className="mt-0.5 text-[10px] text-gray-500">
+                  {verifiedOverride
+                    ? "Add ZIP code so snail mail can route."
+                    : "Include ZIP — required for snail mail."}
+                </p>
+              )}
             </div>
           ) : mailingAddress ? (
-            <span className="block whitespace-pre-line text-gray-700">
-              {mailingAddress}
+            <span className="block truncate text-gray-700">
+              {mailingAddress.replace(/\n/g, ", ")}
             </span>
           ) : (
             <span className="text-gray-400">Not on file</span>

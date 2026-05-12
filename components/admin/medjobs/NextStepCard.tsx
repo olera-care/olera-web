@@ -343,73 +343,123 @@ function ProspectBody({
   const showCallForEmailCta =
     isProviderProspect && !launchEnabled && Boolean(providerPhone);
 
+  // v9 final: pre-flight checklist orients admin through the
+  // research workflow. Each item links to the section below where
+  // it lives — admin doesn't have to guess what "ready to launch"
+  // requires. Four items, ordered so admin flows: clean up info,
+  // add contact data, optional notes, then launch.
+  const generalEmail =
+    ctx.outreach.research_data?.general_contact?.email ??
+    ctx.provider_business_profile?.email ??
+    null;
+  const generalPhone =
+    ctx.outreach.research_data?.general_contact?.phone ??
+    ctx.provider_business_profile?.phone ??
+    null;
+  const mailingAddress =
+    ctx.outreach.research_data?.general_contact?.mailing_address ?? "";
+  const hasZip = /\b\d{5}(?:-\d{4})?\b/.test(mailingAddress);
+  const addressVerified = Boolean(mailingAddress) && hasZip;
+  const hasEmail =
+    Boolean(generalEmail?.includes("@")) ||
+    ctx.contacts.some(
+      (c) => c.status === "active" && Boolean(c.email?.includes("@")),
+    );
+  const hasPhone =
+    Boolean(generalPhone) ||
+    ctx.contacts.some((c) => c.status === "active" && Boolean(c.phone));
+  const hasNotes = Boolean(ctx.outreach.notes?.trim());
+
   return (
     <>
-      {showCallForEmailCta ? (
-        <>
-          <p className="text-sm text-gray-700">
-            No email on file. Call the provider to obtain one before launching outreach.
-          </p>
-          {callAttempts > 0 && (
-            <p className="mt-1 text-xs text-gray-500">
-              {callAttempts} call attempt{callAttempts === 1 ? "" : "s"} logged.
-              Try again or close as wrong contact if exhausted.
-            </p>
-          )}
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setShowCallForEmail(true)}
-              className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
-            >
-              📞 Call to obtain email →
-            </button>
-            <span className="text-xs text-gray-500">
-              <a
-                href={`tel:${providerPhone}`}
-                className="font-medium text-emerald-700 hover:underline"
-              >
-                {providerPhone}
-              </a>
-            </span>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="text-sm text-gray-700">
-            {launchEnabled
-              ? "Ready to launch the outreach cadence. Review the emails before sending."
-              : launchDisabledReason ??
-                "Complete the required fields above to enable launch."}
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <button
-              onClick={async () => {
-                if (!launchEnabled) {
-                  setError(launchDisabledReason ?? "Not ready to launch yet.");
-                  return;
-                }
-                try {
-                  if (beforeLaunch) await beforeLaunch();
-                  setShowPreFlight(true);
-                } catch (e) {
-                  setError(
-                    e instanceof Error ? e.message : "Failed to prepare launch",
-                  );
-                }
-              }}
-              disabled={!launchEnabled}
-              title={
-                launchEnabled
-                  ? "Open the cadence pre-flight review."
-                  : launchDisabledReason
-              }
-              className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Launch outreach →
-            </button>
-          </div>
-        </>
+      <p className="text-sm font-medium text-gray-900">
+        Pre-flight checklist
+      </p>
+      <p className="mt-0.5 text-xs text-gray-500">
+        Clean up info, add contact, then launch. Edit fields in the
+        Provider Profile section below — saves are automatic on blur.
+      </p>
+      <ul className="mt-2 space-y-1 text-xs">
+        <ChecklistRow
+          done={addressVerified}
+          required={false}
+          label="Verify mailing address"
+          hint={
+            addressVerified
+              ? "Ready for snail mail."
+              : "Include ZIP for snail mail to route."
+          }
+        />
+        <ChecklistRow
+          done={hasEmail}
+          required
+          label="Add email"
+          hint={
+            hasEmail
+              ? "Email on file."
+              : "Required for outreach launch."
+          }
+        />
+        <ChecklistRow
+          done={hasPhone}
+          required={false}
+          label="Add phone"
+          hint={
+            hasPhone
+              ? "Phone on file — call tasks queue with email."
+              : "Optional. Calls skip if missing."
+          }
+        />
+        <ChecklistRow
+          done={hasNotes}
+          required={false}
+          label="Research notes"
+          hint="Optional. Capture agency character + any context."
+        />
+      </ul>
+      {showCallForEmailCta && (
+        <p className="mt-2 text-xs text-gray-500">
+          {callAttempts > 0
+            ? `${callAttempts} call attempt${callAttempts === 1 ? "" : "s"} logged.`
+            : "No email yet — phone is on file."}
+        </p>
       )}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {showCallForEmailCta && (
+          <button
+            onClick={() => setShowCallForEmail(true)}
+            className="rounded-md border border-emerald-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+            title="Phone the provider to obtain an email address."
+          >
+            📞 Call to obtain email
+          </button>
+        )}
+        <button
+          onClick={async () => {
+            if (!launchEnabled) {
+              setError(launchDisabledReason ?? "Add email before launching.");
+              return;
+            }
+            try {
+              if (beforeLaunch) await beforeLaunch();
+              setShowPreFlight(true);
+            } catch (e) {
+              setError(
+                e instanceof Error ? e.message : "Failed to prepare launch",
+              );
+            }
+          }}
+          disabled={!launchEnabled}
+          title={
+            launchEnabled
+              ? "Open the cadence pre-flight review."
+              : launchDisabledReason
+          }
+          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {launchEnabled ? "Launch outreach →" : "Add email to enable launch"}
+        </button>
+      </div>
 
       {showPreFlight && cadenceKey === "provider" && (
         <ProviderPreFlightModal
@@ -842,4 +892,44 @@ function closedReasonLabel(status: string): string | null {
     default:
       return null;
   }
+}
+
+/**
+ * v9 final: one row in the pre-flight checklist. Three states:
+ *   done=true            → green check
+ *   done=false, required → red "needs"
+ *   done=false, optional → gray circle (don't pressure admin into
+ *                          filling optional rows)
+ */
+function ChecklistRow({
+  done,
+  required,
+  label,
+  hint,
+}: {
+  done: boolean;
+  required: boolean;
+  label: string;
+  hint: string;
+}) {
+  const icon = done ? "✓" : required ? "✗" : "○";
+  const iconClass = done
+    ? "text-emerald-600"
+    : required
+      ? "text-red-600"
+      : "text-gray-400";
+  return (
+    <li className="flex items-start gap-2">
+      <span className={`shrink-0 font-semibold ${iconClass}`}>{icon}</span>
+      <div className="min-w-0 flex-1">
+        <span className="font-medium text-gray-800">{label}</span>
+        {!required && !done && (
+          <span className="ml-1 text-[10px] uppercase tracking-wide text-gray-400">
+            optional
+          </span>
+        )}
+        <span className="ml-2 text-gray-500">{hint}</span>
+      </div>
+    </li>
+  );
 }

@@ -67,12 +67,6 @@ export default function CompareCard({
     highlights,
   };
 
-  // Extract first name
-  const firstName = (() => {
-    const cleanName = providerName?.replace(/^\([^)]+\)\s*/, "") || "";
-    return cleanName.split(/\s/)[0] || providerName?.split(/\s/)[0] || "Provider";
-  })();
-
   // Number of similar providers
   const nearbyCount = Math.min(similarProviders.length, 2);
 

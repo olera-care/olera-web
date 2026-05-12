@@ -135,12 +135,6 @@ export default function CompareOverlay({
     setFooterState("email_capture");
   }, [ctaVariant, ctaPreviewMode, currentProvider.slug]);
 
-  // Extract first name for headline
-  const firstName = (() => {
-    const cleanName = currentProvider.name?.replace(/^\([^)]+\)\s*/, "") || "";
-    return cleanName.split(/\s/)[0] || currentProvider.name?.split(/\s/)[0] || "Provider";
-  })();
-
   // Location string
   const locationStr = [currentProvider.city, currentProvider.state].filter(Boolean).join(", ");
   const categoryLocationStr = [currentProvider.category, locationStr].filter(Boolean).join(" · ");
@@ -291,7 +285,7 @@ export default function CompareOverlay({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Back to {firstName}
+            Back to provider
           </button>
         </div>
 
@@ -300,10 +294,10 @@ export default function CompareOverlay({
           {/* Header */}
           <div className="px-8 pt-8 pb-6">
             <h1 className="text-3xl font-bold text-gray-900 mb-1">
-              {firstName} next to {similarProviders.length} nearby home{similarProviders.length !== 1 ? "s" : ""}.
+              Side by side comparison
             </h1>
             <p className="text-gray-500">
-              {categoryLocationStr} · Reviews, pricing, services side by side
+              {categoryLocationStr} · {allProviders.length} providers compared
             </p>
           </div>
 

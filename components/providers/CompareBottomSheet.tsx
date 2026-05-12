@@ -66,12 +66,6 @@ export default function CompareBottomSheet({
   const allProviders = [currentProvider, ...similarProviders.slice(0, 2)];
   const totalProviders = allProviders.length;
 
-  // Extract first name
-  const firstName = (() => {
-    const cleanName = currentProvider.name?.replace(/^\([^)]+\)\s*/, "") || "";
-    return cleanName.split(/\s/)[0] || currentProvider.name?.split(/\s/)[0] || "Provider";
-  })();
-
   // Location string
   const locationStr = [currentProvider.city, currentProvider.state].filter(Boolean).join(", ");
   const categoryLocationStr = [currentProvider.category, locationStr].filter(Boolean).join(" · ");
@@ -353,10 +347,10 @@ export default function CompareBottomSheet({
         {/* Header */}
         <div className="px-5 pb-3 shrink-0">
           <h2 className="text-xl font-bold text-gray-900 leading-tight pr-10">
-            {firstName} next to {similarProviders.length} nearby home{similarProviders.length !== 1 ? "s" : ""}
+            Side by side comparison
           </h2>
           {categoryLocationStr && (
-            <p className="text-sm text-gray-500 mt-1">{categoryLocationStr}</p>
+            <p className="text-sm text-gray-500 mt-1">{categoryLocationStr} · {totalProviders} providers</p>
           )}
         </div>
 

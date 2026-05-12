@@ -99,59 +99,63 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
 }
 
 /**
- * v9 provider greeting composer. Reads the active-and-named contact
- * set and produces the appropriate salutation line. Skips contacts
- * tagged "General Inbox" (a queue isn't a person to address) and
- * stale/incorrect contacts (won't receive the email anyway).
+ * v9 provider greeting for the GENERAL variant. Always returns
+ * "Hello," — the general variant is addressed to the General Office
+ * contact (front-desk inbox / phone), never to a named person.
  *
- * "Named" requires an explicit first_name or last_name. The
- * student_outreach_contacts.name field falls back to the
- * organization name when admin hasn't entered a person's name —
- * we DO NOT want "Hi HealthQuest," in the salutation. If no
- * contact has an explicit first/last name, the greeting falls
- * through to the no-name branch ("Hello,").
+ * The team-reference line that mentions specific named contacts
+ * lives on its own line via providerLeadershipIntroLine() below;
+ * keeping greeting + leadership reference as two separate strings
+ * lets template bodies compose them with proper blank-line spacing.
+ *
+ * For the NAMED variant, templates use "Hi {first_name},"
+ * directly — planSequence substitutes the recipient's actual
+ * first name per task at queue time.
+ */
+export function providerSalutation(_contacts: Contact[] | undefined): string {
+  return "Hello,";
+}
+
+/**
+ * v9 provider leadership intro line. Composed alongside the
+ * general "Hello," greeting when named contacts exist on the
+ * outreach row, so the general-inbox recipient knows who admin
+ * was actually hoping to reach.
  *
  * Branches:
- *   0 named → "Hello,"
- *   1 named → "Hi <first>,"
- *   2 named → "Hello, I was hoping to reach <A> or <B>, or another
- *              member of the leadership team,"
- *   3+      → "Hello, I was hoping to reach <A>, <B>, or <C>, or
- *              another member of the leadership team,"
+ *   0 named   → null (no extra line)
+ *   1 named   → "I'm hoping to reach <name>, or another member
+ *                 of the leadership team."
+ *   2 named   → "I'm hoping to reach <A> or <B>, or another
+ *                 member of the leadership team."
+ *   3+ named  → "I'm hoping to reach <A>, <B>, or <C>, or
+ *                 another member of the leadership team."
  *
- * Called at snapshot-build time so the rendered body has the
- * resolved greeting baked in — no per-recipient substitution
- * needed for providers (the team greeting is the same regardless
- * of which inbox the email lands in).
+ * Skips contacts tagged General Office / General Inbox (those are
+ * shared destinations, not named leadership) and stale contacts.
  */
-export function providerSalutation(contacts: Contact[] | undefined): string {
+export function providerLeadershipIntroLine(
+  contacts: Contact[] | undefined,
+): string | null {
   const named = (contacts ?? [])
     .filter((c) => c.status === "active")
-    // v9 Phase 9: General Office (or legacy General Inbox tag) is the
-    // shared-destination contact, not a named person — skip in the
-    // leadership-team reference.
     .filter((c) => c.role !== "General Office" && c.role !== "General Inbox")
     .map((c) => {
       const first = c.first_name?.trim() || "";
       const last = c.last_name?.trim() || "";
-      // Only the explicit first/last fields count. The `name` column
-      // can be the org name (mirrored at materialize), which would
-      // produce "Hi <Agency Name>," — wrong tone for a person-less
-      // contact. No fallback to c.name on purpose.
       return [first, last].filter(Boolean).join(" ").trim();
     })
     .filter((name) => name.length > 0);
 
-  if (named.length === 0) return "Hello,";
+  if (named.length === 0) return null;
   if (named.length === 1) {
-    const first = named[0].split(/\s+/)[0];
-    return `Hi ${first},`;
+    return `I'm hoping to reach ${named[0]}, or another member of the leadership team.`;
   }
   const list =
     named.length === 2
       ? `${named[0]} or ${named[1]}`
       : `${named.slice(0, -1).join(", ")}, or ${named[named.length - 1]}`;
-  return `Hello, I was hoping to reach ${list}, or another member of the leadership team,`;
+  return `I'm hoping to reach ${list}, or another member of the leadership team.`;
 }
 
 /**
@@ -390,6 +394,21 @@ export const followupEmail = followupLightEmail;
 // linked university. {organization_name} is the agency; {campus_name}
 // is the university whose students would be placed.
 
+/**
+ * v9 helper: compose the general-variant body intro block —
+ * "Hello," greeting + optional leadership-team reference line +
+ * blank-line spacing. Returns an array of lines ready to spread
+ * into the template body.
+ */
+function generalIntroLines(contacts: Contact[] | undefined): string[] {
+  const lines: string[] = [providerSalutation(contacts), ``];
+  const leadership = providerLeadershipIntroLine(contacts);
+  if (leadership) {
+    lines.push(leadership, ``);
+  }
+  return lines;
+}
+
 export function providerIntroEmail(
   ctx: TemplateContext,
   contacts: Contact[] | undefined,
@@ -413,12 +432,14 @@ export function providerIntroEmail(
       ].join("\n"),
     };
   }
-  // general variant — team greeting at snapshot-build time.
+  // general variant — addressed to General Office (front-desk
+  // inbox / phone). Greeting is always "Hello," with an optional
+  // leadership-team reference line so the recipient knows who
+  // we're actually trying to reach.
   return {
     subject,
     body: [
-      providerSalutation(contacts),
-      ``,
+      ...generalIntroLines(contacts),
       `I'm reaching out from Olera. We connect pre-health students at ${PLACEHOLDER.campus} with home-care agencies in their area looking for reliable caregivers — flexible scheduling around coursework, motivated workers, real patient-care experience for them.`,
       ``,
       `Open to a quick 15-min intro to see if there's a fit?`,
@@ -455,8 +476,7 @@ export function providerFollowupEmail(
   return {
     subject,
     body: [
-      providerSalutation(contacts),
-      ``,
+      ...generalIntroLines(contacts),
       `Just bubbling this up in case it got buried. We have pre-health students at ${PLACEHOLDER.campus} looking for caregiver placements — happy to share a one-pager or jump on a quick call if helpful.`,
       ``,
       `Best,`,
@@ -492,8 +512,7 @@ export function providerFinalEmail(
   return {
     subject,
     body: [
-      providerSalutation(contacts),
-      ``,
+      ...generalIntroLines(contacts),
       `Closing the loop here. If there's a better person to reach about hiring caregivers, happy to redirect.`,
       ``,
       `Either way, thanks for your time.`,

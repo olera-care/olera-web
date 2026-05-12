@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendSlackAlert, slackNewLead } from "@/lib/slack";
+import { sendSlackAlert, slackNewLead, slackCompareCtaConverted } from "@/lib/slack";
 import { sendLoopsEvent } from "@/lib/loops";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { getSiteUrl } from "@/lib/site-url";
@@ -348,6 +348,33 @@ export async function POST(request: Request) {
           audience: "seeker",
           eventProperties: { source: "compare_save" },
           contactProperties: { firstName: "", lastName: "" },
+        });
+      } catch {
+        // Non-blocking
+      }
+
+      // Slack: conversion notification
+      try {
+        const conversionAlert = slackCompareCtaConverted({
+          email: normalizedEmail,
+          providerCount: providers.length,
+          providerNames: providers.map((p) => p.name),
+        });
+        await sendSlackAlert(conversionAlert.text, conversionAlert.blocks);
+      } catch {
+        // Non-blocking
+      }
+
+      // Activity tracking: conversion event for admin panel
+      try {
+        await db.from("seeker_activity").insert({
+          profile_id: fromProfileId,
+          event_type: "compare_cta_converted",
+          metadata: {
+            provider_count: providers.length,
+            provider_names: providers.map((p) => p.name),
+            email: normalizedEmail,
+          },
         });
       } catch {
         // Non-blocking

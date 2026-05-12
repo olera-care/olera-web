@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/email";
 import { profileIncompleteNudgeEmail, studentActivationEmail } from "@/lib/medjobs-email-templates";
 import { calculateCompleteness, getIncompleteItems } from "@/lib/medjobs-completeness";
 import type { StudentMetadata } from "@/lib/types";
+import { withCronRun } from "@/lib/crons/run";
 
 /**
  * GET /api/cron/medjobs-nudge
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("medjobs-nudge", async () => {
   try {
     const db = getServiceClient();
 
@@ -140,4 +142,5 @@ export async function GET(request: NextRequest) {
     console.error("[medjobs-nudge] unexpected error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+  });
 }

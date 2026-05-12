@@ -1284,3 +1284,57 @@ export function slackVariantConverted(opts: {
     blocks,
   };
 }
+
+/**
+ * Compare CTA conversion — fires when a guest user enters their email
+ * in the Compare overlay/bottom sheet and we create an account for them.
+ * This is the conversion event for the Compare CTA variant.
+ */
+export function slackCompareCtaConverted(opts: {
+  email: string;
+  providerCount: number;
+  providerNames: string[];
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+  const providerWord = opts.providerCount === 1 ? "provider" : "providers";
+  const providerList = opts.providerNames
+    .slice(0, 5)
+    .map((n) => `• ${n}`)
+    .join("\n");
+  const moreText =
+    opts.providerNames.length > 5
+      ? `\n_+${opts.providerNames.length - 5} more_`
+      : "";
+
+  return {
+    text: `Compare CTA Conversion: ${opts.email} signed up comparing ${opts.providerCount} ${providerWord}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🔄 Compare CTA Conversion", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Email:*\n${opts.email}` },
+          { type: "mrkdwn", text: `*Providers Compared:*\n${opts.providerCount}` },
+          { type: "mrkdwn", text: `*Source:*\nCompare CTA` },
+        ],
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*Comparing:*\n${providerList}${moreText}`,
+        },
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/admin/activity?actor=families|View Activity>` },
+        ],
+      },
+    ],
+  };
+}

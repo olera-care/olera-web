@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendSlackAlert, slackNewLead } from "@/lib/slack";
+import { sendSlackAlert, slackNewLead, slackCompareCtaConverted } from "@/lib/slack";
 import { sendLoopsEvent } from "@/lib/loops";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { getSiteUrl } from "@/lib/site-url";
@@ -353,6 +353,33 @@ export async function POST(request: Request) {
         // Non-blocking
       }
 
+      // Slack: conversion notification
+      try {
+        const conversionAlert = slackCompareCtaConverted({
+          email: normalizedEmail,
+          providerCount: providers.length,
+          providerNames: providers.map((p) => p.name),
+        });
+        await sendSlackAlert(conversionAlert.text, conversionAlert.blocks);
+      } catch {
+        // Non-blocking
+      }
+
+      // Activity tracking: conversion event for admin panel
+      try {
+        await db.from("seeker_activity").insert({
+          profile_id: fromProfileId,
+          event_type: "compare_cta_converted",
+          metadata: {
+            provider_count: providers.length,
+            provider_names: providers.map((p) => p.name),
+            email: normalizedEmail,
+          },
+        });
+      } catch {
+        // Non-blocking
+      }
+
       // Welcome email (fire-and-forget for new users)
       (async () => {
         try {
@@ -370,7 +397,25 @@ export async function POST(request: Request) {
             recipientType: "family",
           });
 
-          const inboxUrl = appendTrackingParams(`${siteUrl}/portal/inbox`, emailLogId);
+          // Generate magic link for one-click sign-in
+          const inboxPath = appendTrackingParams("/portal/inbox", emailLogId);
+          let magicLinkUrl = `${siteUrl}${inboxPath}`; // Fallback to direct URL
+
+          try {
+            const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
+              type: "magiclink",
+              email: normalizedEmail,
+              options: {
+                redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(inboxPath)}`,
+              },
+            });
+
+            if (!linkError && linkData?.properties?.action_link) {
+              magicLinkUrl = linkData.properties.action_link;
+            }
+          } catch (linkErr) {
+            console.error("[compare-save] Failed to generate magic link, using direct URL:", linkErr);
+          }
 
           await sendEmail({
             to: normalizedEmail,
@@ -395,11 +440,11 @@ export async function POST(request: Request) {
   </div>
 
   <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px; color: #111827;">
-    Your comparison is waiting in your inbox. Come back anytime to review or reach out.
+    Complete your profile to help providers respond faster — the more they know about your care needs, the better they can help.
   </p>
 
-  <a href="${inboxUrl}" style="display: inline-block; background: #199087; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
-    View my comparison →
+  <a href="${magicLinkUrl}" style="display: inline-block; background: #199087; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
+    Complete profile & view comparison →
   </a>
 
   <p style="font-size: 12px; color: #9ca3af; margin: 40px 0 0; line-height: 1.6; border-top: 1px solid #f3f4f6; padding-top: 20px;">

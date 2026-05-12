@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import Image from "next/image";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getPricingConfig } from "@/lib/pricing-config";
 import CompareOverlay from "@/components/providers/CompareOverlay";
 import type { CompareProvider } from "@/components/providers/CompareBottomSheet";
 
@@ -65,14 +67,19 @@ export default function CompareCard({
     highlights,
   };
 
-  // Extract first name
-  const firstName = (() => {
-    const cleanName = providerName?.replace(/^\([^)]+\)\s*/, "") || "";
-    return cleanName.split(/\s/)[0] || providerName?.split(/\s/)[0] || "Provider";
-  })();
-
   // Number of similar providers
   const nearbyCount = Math.min(similarProviders.length, 2);
+
+  // Get pricing unit from category config
+  const pricingConfig = providerCategory ? getPricingConfig(providerCategory) : null;
+  const priceUnit = pricingConfig?.unit ?? "month";
+  const unitLabel = priceUnit === "hour" ? "Hourly" : "Monthly";
+
+  // Build avatar list for stacked display (current + up to 2 similar)
+  const avatarProviders = [
+    { image: providerImage, name: providerName },
+    ...similarProviders.slice(0, 2).map((p) => ({ image: p.image, name: p.name })),
+  ];
 
   // Fire analytics
   const clickFiredRef = useRef(false);
@@ -110,20 +117,28 @@ export default function CompareCard({
           {/* Price section */}
           <div className="mb-4 pb-4 border-b border-gray-100">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-              Est. Monthly · {providerCity || "Local"}
+              Est. {unitLabel} · {providerCity || "Local"}
             </p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-xl font-semibold text-gray-900">
+              {/* priceRange already includes suffix like "$1,000 - $2,000/mo" */}
               {priceRange || "Contact for pricing"}
-              {priceRange && <span className="text-base font-normal text-gray-500">/mo</span>}
             </p>
           </div>
 
+          {/* Hook line + Headline stack (compact spacing) */}
+          <div className="flex items-center gap-1.5 mb-1">
+            <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+            </svg>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-primary-600">Quick Comparison</span>
+          </div>
+
           {/* Headline */}
-          <h3 className="text-xl font-bold text-gray-900 leading-snug mb-1">
-            {firstName} next to {nearbyCount || 2} nearby homes.
+          <h3 className="text-2xl font-bold text-gray-900 leading-snug">
+            How do they compare?
           </h3>
-          <p className="text-sm text-gray-500 mb-5">
-            Reviews, pricing, services — side by side.
+          <p className="text-[15px] text-gray-500 mt-0.5 mb-5">
+            Side by side with {nearbyCount || 2} nearby home{nearbyCount !== 1 ? "s" : ""}
           </p>
 
           {/* Compare button */}
@@ -133,6 +148,34 @@ export default function CompareCard({
           >
             Compare
           </button>
+
+          {/* Stacked avatars + Find your best fit (left-aligned) */}
+          <div className="flex items-center gap-2.5 mt-4">
+            <div className="flex -space-x-2">
+              {avatarProviders.map((provider, index) => (
+                <div
+                  key={index}
+                  className="w-7 h-7 rounded-full border border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center shadow-sm"
+                  style={{ zIndex: avatarProviders.length - index }}
+                >
+                  {provider.image ? (
+                    <Image
+                      src={provider.image}
+                      alt={provider.name || "Provider"}
+                      width={28}
+                      height={28}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-[10px] font-semibold text-gray-500">
+                      {(provider.name || "P").charAt(0)}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <span className="text-sm text-gray-500">Find your best fit</span>
+          </div>
         </div>
       </div>
 

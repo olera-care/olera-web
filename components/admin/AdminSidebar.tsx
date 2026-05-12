@@ -62,6 +62,7 @@ const navSections: NavSection[] = [
     defaultOpen: true,
     items: [
       { label: "Analytics", href: "/admin/analytics" },
+      { label: "Automations", href: "/admin/automations" },
       { label: "Benefits", href: "/admin/benefits" },
       { label: "Content", href: "/admin/content" },
       // v9.0 Phase 7 Commit K: Staffing Outreach retired — its

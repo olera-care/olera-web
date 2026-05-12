@@ -25,6 +25,7 @@ import {
   endOfCadenceSweep,
   executeEmailTask,
 } from "@/lib/student-outreach/auto-send-executor";
+import { withCronRun } from "@/lib/crons/run";
 
 const BATCH_SIZE = 5;
 const MAX_RUNTIME_MS = 50_000; // Vercel default is 60s; leave headroom.
@@ -50,6 +51,7 @@ async function runCron(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("student-outreach-send", async () => {
   const startedAt = Date.now();
   const db = getServiceClient();
 
@@ -89,6 +91,7 @@ async function runCron(req: NextRequest) {
     results,
     sweep,
     elapsed_ms: Date.now() - startedAt,
+  });
   });
 }
 

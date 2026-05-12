@@ -70,13 +70,6 @@ export default function MobileStickyCompare({
     highlights,
   };
 
-  // Extract first name from provider name
-  const firstName = (() => {
-    const cleanName = providerName?.replace(/^\([^)]+\)\s*/, "") || "";
-    const rawFirstName = cleanName.split(/\s/)[0] || providerName?.split(/\s/)[0] || "them";
-    return rawFirstName.replace(/'s$/i, "") || rawFirstName;
-  })();
-
   // Number of similar providers to show in copy
   const nearbyCount = Math.min(similarProviders.length, 2);
 
@@ -227,7 +220,7 @@ export default function MobileStickyCompare({
           <div className="flex items-center gap-4 px-4 py-3.5">
             <div className="flex-1 min-w-0">
               <p className="text-[15px] font-bold text-gray-900 leading-tight">
-                How does {firstName} compare?
+                How do they compare?
               </p>
               <p className="text-[13px] text-gray-500 mt-0.5">
                 Side by side with {nearbyCount || 2} nearby home{nearbyCount !== 1 ? "s" : ""}

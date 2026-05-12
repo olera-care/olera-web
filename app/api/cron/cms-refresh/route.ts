@@ -9,6 +9,7 @@ import {
   nursingHomeToCMSData,
   hospiceToCMSData,
 } from "@/lib/cms-data";
+import { withCronRun } from "@/lib/crons/run";
 
 /**
  * GET /api/cron/cms-refresh
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("cms-refresh", async () => {
   const db = getServiceClient();
 
   try {
@@ -126,4 +128,5 @@ export async function GET(request: NextRequest) {
     console.error("[cms-refresh] Unexpected error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
+  });
 }

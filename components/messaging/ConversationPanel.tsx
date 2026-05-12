@@ -3,9 +3,12 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import type { Profile } from "@/lib/types";
+import type { Profile, BusinessProfile } from "@/lib/types";
 import type { ConnectionWithProfile } from "./ConversationList";
 import { formatRedactedName } from "@/lib/utils/pii-redaction";
+import { useProfileCompleteness } from "@/components/portal/profile/completeness";
+import ProfileCompletionNudge from "@/components/portal/profile/ProfileCompletionNudge";
+import ProfileEditWizard from "@/components/portal/profile/ProfileEditWizard";
 
 interface ConversationPanelProps {
   connection: ConnectionWithProfile | null;
@@ -26,6 +29,10 @@ interface ConversationPanelProps {
   onVerifyClick?: () => void;
   /** Viewing context: "provider" for provider inbox, "family" for family inbox */
   variant?: "provider" | "family";
+  /** Family profile for profile completion checking (family view only) */
+  familyProfile?: Profile | null;
+  /** User email for profile completeness calculation */
+  userEmail?: string;
 }
 
 interface ThreadMessage {
@@ -347,6 +354,8 @@ export default function ConversationPanel({
   isVerified = true,
   onVerifyClick,
   variant = "family",
+  familyProfile,
+  userEmail,
 }: ConversationPanelProps) {
   // Use guest profile ID when activeProfile is not available
   const currentProfileId = activeProfile?.id || guestProfileId;
@@ -355,6 +364,27 @@ export default function ConversationPanel({
   const [messageText, setMessageText] = useState("");
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+
+  // Profile completion nudge state
+  const [showWizard, setShowWizard] = useState(false);
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
+
+  // Profile completeness check (family view only)
+  const { percentage: completeness } = useProfileCompleteness(
+    familyProfile as BusinessProfile | null,
+    userEmail
+  );
+
+  // Check localStorage for nudge dismissal on mount and when connection changes
+  useEffect(() => {
+    if (!connection?.id) return;
+    try {
+      const dismissed = localStorage.getItem(`nudge_dismissed_${connection.id}`);
+      setNudgeDismissed(dismissed === "true");
+    } catch {
+      // localStorage unavailable
+    }
+  }, [connection?.id]);
 
   // Provider verification gating: only applies when viewing as provider
   // Family users viewing their inbox should never see redacted names
@@ -536,6 +566,23 @@ export default function ConversationPanel({
           </button>
         )}
       </div>
+
+      {/* Profile completion nudge - family view only */}
+      {variant === "family" && familyProfile && completeness < 60 && !nudgeDismissed && connection && (
+        <ProfileCompletionNudge
+          providerName={otherName}
+          onComplete={() => setShowWizard(true)}
+          onDismiss={() => {
+            setNudgeDismissed(true);
+            try {
+              localStorage.setItem(`nudge_dismissed_${connection.id}`, "true");
+            } catch {
+              // localStorage unavailable
+            }
+          }}
+          connectionId={connection.id}
+        />
+      )}
 
       {/* ── Conversation thread ── */}
       <div
@@ -893,6 +940,19 @@ export default function ConversationPanel({
                 </div>
               </div>
         </div>
+      )}
+
+      {/* Profile Edit Wizard modal */}
+      {showWizard && familyProfile && (
+        <ProfileEditWizard
+          profile={familyProfile as BusinessProfile}
+          userEmail={userEmail}
+          onClose={() => setShowWizard(false)}
+          onSaved={() => {
+            // After profile is saved, nudge auto-hides because completeness will be >= 60%
+            setShowWizard(false);
+          }}
+        />
       )}
     </div>
   );

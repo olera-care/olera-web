@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { withCronRun } from "@/lib/crons/run";
 
 /**
  * GET /api/cron/cleanup
@@ -14,6 +15,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("cleanup", async () => {
   try {
     const db = getServiceClient();
     const results: Record<string, number> = {};
@@ -45,4 +47,5 @@ export async function GET(request: NextRequest) {
     console.error("[cron/cleanup] error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+  });
 }

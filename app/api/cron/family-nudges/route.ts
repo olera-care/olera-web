@@ -8,6 +8,7 @@ import {
   postConnectionFollowupEmail,
   dormantReengagementEmail,
 } from "@/lib/email-templates";
+import { withCronRun } from "@/lib/crons/run";
 
 /**
  * GET /api/cron/family-nudges
@@ -184,6 +185,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("family-nudges", async () => {
   try {
     const db = getServiceClient();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
@@ -488,4 +490,5 @@ export async function GET(request: NextRequest) {
     console.error("[cron/family-nudges] error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+  });
 }

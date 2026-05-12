@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { withCronRun } from "@/lib/crons/run";
 
 /**
  * GET /api/cron/staffing-sequence-check
@@ -24,6 +25,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("staffing-sequence-check", async () => {
   try {
     const db = getServiceClient();
     const now = new Date().toISOString();
@@ -138,4 +140,5 @@ export async function GET(request: NextRequest) {
     console.error("[cron/staffing-sequence-check] Error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+  });
 }

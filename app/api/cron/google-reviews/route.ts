@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { fetchGoogleReviews } from "@/lib/google-places";
 import type { GoogleReviewsData } from "@/lib/types";
+import { withCronRun } from "@/lib/crons/run";
 
 /**
  * GET /api/cron/google-reviews
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("google-reviews", async () => {
   const db = getServiceClient();
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -131,4 +133,5 @@ export async function GET(request: NextRequest) {
     console.error("[google-reviews-cron] Unexpected error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
+  });
 }

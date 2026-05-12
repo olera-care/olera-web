@@ -125,11 +125,20 @@ async function finishRun(
   }
 }
 
+/**
+ * Wrap a cron handler. `fn` may either:
+ *   - return a plain summary object (the clean pattern — that object is both the
+ *     HTTP body and the cron_runs.summary, and a thrown error marks the run as
+ *     errored), or
+ *   - return a NextResponse directly (the non-invasive retrofit pattern — the
+ *     existing handler body stays untouched; we peek the JSON body for the
+ *     summary and treat status >= 400 as an errored run).
+ */
 export async function withCronRun(
   jobId: string,
-  fn: () => Promise<Summary>,
+  fn: () => Promise<Summary | Response>,
   opts: CronRunOpts = {},
-): Promise<NextResponse> {
+): Promise<Response> {
   const triggeredBy = opts.triggeredBy ?? "cron";
 
   const pause = await readPauseState(jobId);
@@ -151,7 +160,25 @@ export async function withCronRun(
   const runId = await insertRun(jobId, triggeredBy, "running");
 
   try {
-    const summary = (await fn()) ?? {};
+    const result = await fn();
+    if (result instanceof Response) {
+      let summary: Summary = {};
+      try {
+        summary = (await result.clone().json()) as Summary;
+      } catch {
+        /* non-JSON body — leave summary empty */
+      }
+      const isErr = result.status >= 400;
+      await finishRun(
+        jobId,
+        runId,
+        isErr ? "error" : "ok",
+        summary,
+        isErr ? (typeof summary?.error === "string" ? summary.error : `HTTP ${result.status}`) : null,
+      );
+      return result;
+    }
+    const summary = (result ?? {}) as Summary;
     await finishRun(jobId, runId, "ok", summary, null);
     return NextResponse.json(summary);
   } catch (err) {

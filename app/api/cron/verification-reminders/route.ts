@@ -5,6 +5,7 @@ import {
   verificationReminder7DayEmail,
   verificationReminder21DayEmail,
 } from "@/lib/email-templates";
+import { withCronRun } from "@/lib/crons/run";
 
 /**
  * GET /api/cron/verification-reminders
@@ -32,6 +33,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("verification-reminders", async () => {
   try {
     const db = getServiceClient();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
@@ -218,4 +220,5 @@ export async function GET(request: NextRequest) {
     console.error("[cron/verification-reminders] Error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+  });
 }

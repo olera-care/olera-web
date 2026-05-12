@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newMessageEmail } from "@/lib/email-templates";
+import { withCronRun } from "@/lib/crons/run";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("unread-reminders", async () => {
   try {
     const db = getServiceClient();
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -137,4 +139,5 @@ export async function GET(request: NextRequest) {
     console.error("[cron/unread-reminders] error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+  });
 }

@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "check:crons": "node scripts/check-cron-registry.js",
     "generate-cities": "npx tsx scripts/generate-city-data.ts",
     "backfill:trust-levels": "npx tsx scripts/backfill-trust-levels.ts"
   },

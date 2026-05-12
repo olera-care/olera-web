@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { sendSlackAlert } from "@/lib/slack";
+import { withCronRun } from "@/lib/crons/run";
 
 /**
  * GET /api/cron/daily-digest
@@ -64,6 +65,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  return withCronRun("daily-digest", async () => {
   try {
     const db = getServiceClient();
     const now = new Date();
@@ -342,6 +344,7 @@ export async function GET(request: NextRequest) {
     console.error("[cron/daily-digest] error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+  });
 }
 
 function formatDateLabel(d: Date): string {

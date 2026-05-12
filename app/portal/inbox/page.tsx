@@ -74,11 +74,12 @@ function InboxContent() {
   }, [searchParams, activeProfile]);
 
   // Compute provider profile IDs and whether user has both account types
-  const { providerProfileIds, hasProviderProfile, hasFamilyProfile, familyProfileId } = useMemo(() => {
+  const { providerProfileIds, hasProviderProfile, hasFamilyProfile, familyProfileId, familyProfile } = useMemo(() => {
     const providerIds = new Set<string>();
     let hasProvider = false;
     let hasFamily = false;
     let familyId: string | null = null;
+    let familyProf: Profile | null = null;
 
     for (const p of profiles) {
       if (p.type === "organization" || p.type === "caregiver") {
@@ -87,6 +88,7 @@ function InboxContent() {
       } else {
         hasFamily = true;
         familyId = p.id;
+        familyProf = p;
       }
     }
 
@@ -95,6 +97,7 @@ function InboxContent() {
       hasProviderProfile: hasProvider,
       hasFamilyProfile: hasFamily,
       familyProfileId: familyId,
+      familyProfile: familyProf,
     };
   }, [profiles]);
 
@@ -943,6 +946,8 @@ function InboxContent() {
           isVerified={verification.isVerified}
           onVerifyClick={openVerificationModal}
           variant={roleFilter === "provider" ? "provider" : "family"}
+          familyProfile={familyProfile}
+          userEmail={user?.email}
         />
       )}
 

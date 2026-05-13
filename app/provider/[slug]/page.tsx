@@ -21,6 +21,7 @@ import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBa
 import MobileProviderTopNav from "@/components/providers/MobileProviderTopNav";
 import MobileClaimLink from "@/components/providers/MobileClaimLink";
 import MobilePricingTooltip from "@/components/providers/MobilePricingTooltip";
+import MobileClaimTooltip from "@/components/providers/MobileClaimTooltip";
 import PriceEstimate from "@/components/providers/PriceEstimate";
 import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
 import { getPricingConfig } from "@/lib/pricing-config";
@@ -906,10 +907,10 @@ export default async function ProviderPage({
                   ) : null;
                 })()}
 
-                {/* Row 3: Two-column layout — Reviews | Pricing */}
-                <div className="flex items-stretch justify-center mt-4">
-                  {/* Left column: Reviews */}
-                  <div className="flex flex-col items-center justify-center px-4 min-w-[100px]">
+                {/* Row 3: Two-column layout — Reviews | Pricing (full width) */}
+                <div className="flex items-center justify-between mt-4">
+                  {/* Left column: Reviews (align left) */}
+                  <div className="flex flex-col items-start">
                     {hasRating && rating != null ? (
                       <>
                         <span className="text-xl font-bold text-gray-900">{rating.toFixed(1)}</span>
@@ -934,16 +935,17 @@ export default async function ProviderPage({
                     )}
                   </div>
 
-                  {/* Divider - fixed height like Airbnb */}
-                  <div className="w-px h-10 bg-gray-200 self-center" />
+                  {/* Divider - short, centered */}
+                  <div className="w-px h-8 bg-gray-200" />
 
-                  {/* Right column: Pricing */}
-                  <div className="flex flex-col items-center justify-center px-4 min-w-[100px]">
+                  {/* Right column: Pricing (align right) */}
+                  <div className="flex flex-col items-end">
                     {pricingConfig?.tier === 3 && !hasPriceRange ? (
                       <MobilePricingTooltip
                         topText="Medicare/Medicaid"
                         bottomText="may cover"
                         tooltipContent={pricingConfig.coverageNote?.({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined }) || pricingConfig.disclaimer({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined })}
+                        align="right"
                       />
                     ) : hasPriceRange ? (
                       <MobilePricingTooltip
@@ -951,13 +953,83 @@ export default async function ProviderPage({
                         bottomText="est."
                         tooltipContent={pricingConfig?.disclaimer({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined }) || "Price is an estimate and may vary. Contact the provider for exact rates."}
                         isPrice
+                        align="right"
                       />
                     ) : (
                       <>
                         <span className="text-base font-semibold text-gray-900">Contact</span>
-                        <span className="text-xs text-gray-500 font-medium">for pricing</span>
+                        <span className="text-xs text-gray-500 font-medium text-right">for pricing</span>
                       </>
                     )}
+                  </div>
+                </div>
+
+                {/* ── Mobile Claim Status Section ── */}
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-3">
+                    {/* Avatar */}
+                    <div className="relative flex-shrink-0">
+                      {displayClaimState === "claimed" && staff?.image ? (
+                        <Image
+                          src={staff.image}
+                          alt={staff.name}
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : displayClaimState === "claimed" && staff?.name ? (
+                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-gray-500">
+                            {getInitials(staff.name)}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                      )}
+                      {/* Verification badge */}
+                      {displayClaimState === "claimed" && (
+                        <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Text content */}
+                    <div className="flex-1 min-w-0">
+                      {displayClaimState === "claimed" ? (
+                        <>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-primary-600 tracking-wide">CLAIMED</span>
+                            <MobileClaimTooltip content="This business has been verified and is actively managed by its owner on Olera." />
+                          </div>
+                          <p className="text-sm text-gray-600 mt-0.5">
+                            Managed by <span className="font-semibold text-gray-900">{staff?.name || profile.display_name}</span>
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-gray-400 tracking-wide">UNCLAIMED</span>
+                            <MobileClaimTooltip content="This listing has not been claimed by its owner yet. Information shown is from public sources." />
+                          </div>
+                          <p className="text-sm text-gray-500 mt-0.5">
+                            Are you the owner?{" "}
+                            <a
+                              href={`/provider/onboarding?org=${profile.slug}`}
+                              className="font-semibold text-primary-600 hover:text-primary-700"
+                            >
+                              Manage this page →
+                            </a>
+                          </p>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

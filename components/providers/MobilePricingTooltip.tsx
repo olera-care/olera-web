@@ -9,6 +9,8 @@ interface MobilePricingTooltipProps {
   tooltipContent: string;
   /** When true, renders topText as large bold price */
   isPrice?: boolean;
+  /** Alignment of content */
+  align?: "left" | "center" | "right";
 }
 
 export default function MobilePricingTooltip({
@@ -16,7 +18,13 @@ export default function MobilePricingTooltip({
   bottomText,
   tooltipContent,
   isPrice = false,
+  align = "center",
 }: MobilePricingTooltipProps) {
+  const alignClass = {
+    left: "items-start",
+    center: "items-center",
+    right: "items-end",
+  }[align];
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -44,7 +52,7 @@ export default function MobilePricingTooltip({
   }, [showTooltip]);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className={`flex flex-col ${alignClass}`}
       <div className="flex items-center gap-1">
         <span
           className={

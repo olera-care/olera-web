@@ -34,6 +34,25 @@ const EDITABLE_FIELDS = new Set([
  * GET /api/admin/directory/[providerId]
  *
  * Full provider detail with image metadata.
+ *
+ * The URL `[providerId]` accepts ANY of four identifier shapes admin pages emit:
+ *
+ *   1. `olera-providers.provider_id` — directory list of scraped providers
+ *      (e.g. "north-lauderdale-fl-0040", "QX76ebM")
+ *   2. `olera-providers.slug` — analytics page_view-keyed tables
+ *      (e.g. "sarahcare-of-coral-springs-adult-day-care-north-lauderdale-fl")
+ *   3. `business_profiles.id` (UUID) — directory list of user-created (BP-only) rows
+ *   4. `business_profiles.slug` — analytics leads table for BP-anchored providers
+ *
+ * Resolved into one of two response shapes:
+ *
+ *   - `source: "scraped"` — an olera-providers row exists (either directly or
+ *     via a BP's source_provider_id link). `provider` carries the full
+ *     olera-providers shape (matches `DirectoryProvider`).
+ *   - `source: "user-created"` — only a BP row exists, no OP link. `provider`
+ *     carries the BP shape (display_name, slug, contact info, etc.) — NOT the
+ *     olera-providers shape. The admin page renders a stripped-down "lite" view.
+ *     PATCH handler does not support user-created providers; they stay read-only.
  */
 export async function GET(
   request: NextRequest,
@@ -50,67 +69,148 @@ export async function GET(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const { providerId } = await params;
+    const { providerId: urlParam } = await params;
     const db = getServiceClient();
 
-    // Get full provider record
-    const { data: provider, error: providerError } = await db
-      .from("olera-providers")
-      .select("*")
-      .eq("provider_id", providerId)
-      .single();
+    // ── Step 1: try the four input shapes, in order, until one resolves ──
 
-    if (providerError || !provider) {
-      return NextResponse.json({ error: "Provider not found" }, { status: 404 });
-    }
+    type OpRow = Record<string, unknown> & { provider_id: string };
+    type BpRow = Record<string, unknown> & { id: string; source_provider_id: string | null };
 
-    // Get classified image metadata
-    let images: Record<string, unknown>[] = [];
-    try {
-      const { data, error: imagesError } = await db
-        .from("provider_image_metadata")
+    let opRow: OpRow | null = null;
+    let bpRow: BpRow | null = null;
+
+    // 1a. olera-providers by provider_id
+    {
+      const { data } = await db
+        .from("olera-providers")
         .select("*")
-        .eq("provider_id", providerId)
-        .order("quality_score", { ascending: false });
+        .eq("provider_id", urlParam)
+        .maybeSingle();
+      if (data) opRow = data as OpRow;
+    }
 
-      if (!imagesError && data) {
-        images = data;
+    // 1b. olera-providers by slug
+    if (!opRow) {
+      const { data } = await db
+        .from("olera-providers")
+        .select("*")
+        .eq("slug", urlParam)
+        .maybeSingle();
+      if (data) opRow = data as OpRow;
+    }
+
+    // 1c. business_profiles by id (UUID) — Supabase returns {error} (not throws)
+    //     for invalid UUID syntax, so this is safe to call with non-UUID input.
+    if (!opRow) {
+      const { data } = await db
+        .from("business_profiles")
+        .select("*")
+        .eq("id", urlParam)
+        .maybeSingle();
+      if (data) bpRow = data as BpRow;
+    }
+
+    // 1d. business_profiles by slug
+    if (!opRow && !bpRow) {
+      const { data } = await db
+        .from("business_profiles")
+        .select("*")
+        .eq("slug", urlParam)
+        .maybeSingle();
+      if (data) bpRow = data as BpRow;
+    }
+
+    // If a BP row resolved AND it's claim-linked to an OP, re-fetch the OP and
+    // treat as scraped — admins editing a claimed listing want the full surface.
+    if (!opRow && bpRow && bpRow.source_provider_id) {
+      const { data } = await db
+        .from("olera-providers")
+        .select("*")
+        .eq("provider_id", bpRow.source_provider_id)
+        .maybeSingle();
+      if (data) opRow = data as OpRow;
+    }
+
+    // ── Step 2: respond based on what resolved ──
+
+    if (opRow) {
+      const canonicalId = opRow.provider_id;
+
+      // Get classified image metadata (keyed on canonical provider_id)
+      let images: Record<string, unknown>[] = [];
+      try {
+        const { data, error: imagesError } = await db
+          .from("provider_image_metadata")
+          .select("*")
+          .eq("provider_id", canonicalId)
+          .order("quality_score", { ascending: false });
+
+        if (!imagesError && data) {
+          images = data;
+        }
+      } catch {
+        // Table may not exist yet
       }
-    } catch {
-      // Table may not exist yet
-    }
 
-    // Parse raw images from the provider record
-    const rawImages: string[] = [];
-    if (provider.provider_logo) {
-      rawImages.push(provider.provider_logo);
-    }
-    if (provider.provider_images) {
-      const parsed = (provider.provider_images as string)
-        .split(" | ")
-        .map((u: string) => u.trim())
-        .filter(Boolean);
-      for (const url of parsed) {
-        if (url !== provider.provider_logo) rawImages.push(url);
+      // Parse raw images from the provider record
+      const rawImages: string[] = [];
+      if (opRow.provider_logo) {
+        rawImages.push(opRow.provider_logo as string);
       }
+      if (opRow.provider_images) {
+        const parsed = (opRow.provider_images as string)
+          .split(" | ")
+          .map((u: string) => u.trim())
+          .filter(Boolean);
+        for (const url of parsed) {
+          if (url !== opRow.provider_logo) rawImages.push(url);
+        }
+      }
+
+      // Fetch linked business_profiles record for owner/staff metadata
+      let staffData = null;
+      let businessProfileId: string | null = bpRow?.id ?? null;
+      if (!businessProfileId) {
+        const { data } = await db
+          .from("business_profiles")
+          .select("id, metadata")
+          .eq("source_provider_id", canonicalId)
+          .limit(1)
+          .maybeSingle();
+        if (data) {
+          businessProfileId = data.id;
+          const meta = (data.metadata || {}) as Record<string, unknown>;
+          staffData = meta.staff || null;
+        }
+      } else if (bpRow) {
+        const meta = (bpRow.metadata || {}) as Record<string, unknown>;
+        staffData = meta.staff || null;
+      }
+
+      return NextResponse.json({
+        provider: opRow,
+        images,
+        rawImages,
+        staffData,
+        businessProfileId,
+        source: "scraped",
+      });
     }
 
-    // Fetch linked business_profiles record for owner/staff metadata
-    let staffData = null;
-    let businessProfileId: string | null = null;
-    const { data: bp } = await db
-      .from("business_profiles")
-      .select("id, metadata")
-      .eq("source_provider_id", providerId)
-      .limit(1)
-      .maybeSingle();
-    if (bp) {
-      businessProfileId = bp.id;
-      const meta = (bp.metadata || {}) as Record<string, unknown>;
-      staffData = meta.staff || null;
+    if (bpRow) {
+      const meta = (bpRow.metadata || {}) as Record<string, unknown>;
+      return NextResponse.json({
+        provider: bpRow,
+        images: [],
+        rawImages: [],
+        staffData: meta.staff || null,
+        businessProfileId: bpRow.id,
+        source: "user-created",
+      });
     }
 
-    return NextResponse.json({ provider, images, rawImages, staffData, businessProfileId });
+    return NextResponse.json({ error: "Provider not found" }, { status: 404 });
   } catch (err) {
     console.error("Directory detail error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

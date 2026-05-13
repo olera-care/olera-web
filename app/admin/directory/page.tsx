@@ -427,13 +427,7 @@ export default function AdminDirectoryPage() {
                   {providers.map((provider) => {
                     const isBpOnly = provider.source === "business_profiles";
                     const handleRowClick = () => {
-                      if (isBpOnly) {
-                        if (provider.slug) {
-                          window.open(`/provider/${provider.slug}`, "_blank", "noopener,noreferrer");
-                        }
-                      } else {
-                        router.push(`/admin/directory/${provider.provider_id}`);
-                      }
+                      router.push(`/admin/directory/${provider.provider_id}`);
                     };
                     return (
                       <tr
@@ -449,7 +443,7 @@ export default function AdminDirectoryPage() {
                             {isBpOnly && (
                               <span
                                 className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded"
-                                title="This provider created their own account rather than claiming a scraped listing. Click to view their public page. Edits aren't available here yet — use /admin/verification for claim review."
+                                title="This provider self-registered without claiming a scraped listing. Click for a lite admin view (Comms timeline + public-page link). Use /admin/verification for claim review."
                               >
                                 User-created
                               </span>

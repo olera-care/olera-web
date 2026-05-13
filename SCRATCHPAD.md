@@ -7,7 +7,41 @@
 
 ## Current Focus
 
-### 2026-05-13 (Wed, late morning) — Request B: per-provider Comms Timeline on /admin/directory/[providerId] (built, awaiting browser test)
+### 2026-05-13 (Wed, afternoon) — PR #805: lite admin detail mode + analytics relinks (built, awaiting browser test → merge)
+
+**Status:** `feature/lite-admin-detail-mode` → staging, https://github.com/olera-care/olera-web/pull/805 — 3 commits, tsc clean, pre-test review found and fixed one PATCH-path bug before TJ tested. Awaiting Vercel preview browser test, then merge.
+
+**What shipped (three sequenced increments):**
+
+1. **Lite admin detail mode (`9fff483c`)** — original ask. `app/api/admin/directory/[providerId]/route.ts` GET falls back to `business_profiles` by id (UUID) when `olera-providers` misses, returns `source: "user-created" | "scraped"`. Detail page renders a stripped lite view when user-created: name + claim_state pill + "User-created" badge + "Open public page →" button + Comms timeline + amber banner. Directory list row click is now unconditional `router.push("/admin/directory/<id>")` — drops the old `window.open("/provider/<slug>")` path for BP-only rows.
+
+2. **Analytics provider relinks (`8ca28500`)** — follow-on from TJ's screenshot. Three `/admin/analytics` tables (Top providers, Latest events, Latest leads) now link in-tab to `/admin/directory/<id>` instead of opening `/provider/<slug>` in a new tab. Required two backend resilience fixes because the analytics tables emit four different identifier shapes: `op.provider_id`, `op.slug`, `bp.id` UUID, `bp.slug` — and only one of those resolved before today.
+   - GET handler now resolves ANY of the four input shapes to scraped or user-created. A claim-linked BP slug short-circuits to the linked OP for full editing.
+   - `lib/provider-id-variants.ts` resolver now expands any input shape into the union of variants stored on `email_log`/`provider_activity` (verified empirically: ~80% of provider-anchored email_log rows under BP UUIDs, ~20% under OP provider_ids, never slugs). Before this fix, navigating in via an OP slug would show an empty Comms timeline even when emails existed under the canonical provider_id.
+
+3. **Canonical-id mutations (`edc8eced`, pre-test fix)** — caught during /pre-test self-review: the GET resolver fixed reads, but the page's mutation handlers (handleSave, handleImageAction, handleImageUpload, handleSaveStaff, handleStaffPhotoUpload, danger-zone delete/restore) were still using `useParams().providerId` directly in PATCH URLs. PATCH does exact-match `.eq("provider_id", <slug>)` → 404. Page now stores `canonicalProviderId` from the GET response (op.provider_id for scraped, bp.id for user-created) and routes every mutation through it. Initial GET still uses URL param (resolver handles all shapes).
+
+**Files touched on PR #805:**
+- NEW behavior in `app/api/admin/directory/[providerId]/route.ts` (4-shape input resolution, source field)
+- NEW behavior in `lib/provider-id-variants.ts` (4-shape variant expansion)
+- M `app/admin/directory/[providerId]/page.tsx` (lite branch + canonical-id mutations)
+- M `app/admin/directory/page.tsx` (unconditional row click + updated tooltip)
+- M `app/admin/analytics/page.tsx` (3 link swaps to /admin/directory)
+
+**Verified against real DB rows:**
+- Resolver: `r4HIF35` → `[r4HIF35, 469de674-...]` (catches both storage shapes). `glebeview-residence-ottawa-il` (op.slug) → canonical `ottawa-il-0012`. `aggie-home-health-and-companion-care` (bp.slug) → adds bp.id. UUID input doesn't fan out (correct).
+- email_log sample: empirically ~80% BP UUIDs, ~20% OP provider_ids. Never slugs.
+- OP slug ≠ OP provider_id (different columns; e.g. `north-lauderdale-fl-0040` vs `sarahcare-of-coral-springs-...`).
+
+**Resume next session here →** (1) Browser-test PR #805 on the Vercel preview: scraped row click from /admin/directory → full edit surface unchanged; user-created (yellow badge) row click → lite mode with name + claim pill + Open Public Page button + populated Comms timeline + amber banner; Top Providers click from /admin/analytics → admin detail (with Comms timeline) NOT public page; same for Latest events + Latest leads; save any field on a provider reached via Top Providers → no 404. (2) Merge #805 to staging if clean. (3) Bake everything (#799 + #802 + #805) on staging for ~1 day, then promote staging → main. (4) Open Notion report for #805 after merge.
+
+**Two deferred follow-ups (still pending, not blocking):**
+- Migrate legacy `/api/admin/emails` `.eq("provider_id")` to use `lib/provider-id-variants.ts` (~10 lines).
+- Polish pass on activity-event labels in `summarizeActivity()` once real staging data shape is visible.
+
+---
+
+### 2026-05-13 (Wed, late morning) — Request B: per-provider Comms Timeline on /admin/directory/[providerId] (built, merged in PR #802)
 
 PR #799 (Request A) merged to staging at 13:23 UTC. Worktree spun up off staging tip (`11ad30c5`), branch `feature/provider-comms-timeline`. Request B replaces the existing single-purpose `<EmailTimeline>` mount on the provider directory page with a unified `<ProviderCommsTimeline>` that interleaves emails AND meaningful on-Olera activity events chronologically — the CRM contact-card view that answers "what is THIS provider experiencing?" rather than "is this campaign performing?"
 

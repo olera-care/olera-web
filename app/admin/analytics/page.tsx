@@ -2853,7 +2853,7 @@ function ResponseLeadsList({
                         <div>
                           {lead.provider_slug ? (
                             <Link
-                              href={`/provider/${lead.provider_slug}`}
+                              href={`/admin/directory/${lead.provider_slug}`}
                               className="text-emerald-700 hover:text-emerald-800 font-medium text-[13px]"
                             >
                               {lead.provider_name}
@@ -3438,14 +3438,12 @@ function TopProvidersCard({
               {sorted.map((p) => (
                 <tr key={p.provider_id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
                   <td className="px-6 py-2.5">
-                    <a
-                      href={`/provider/${p.provider_id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      href={`/admin/directory/${p.provider_id}`}
                       className="text-emerald-700 hover:underline"
                     >
                       {p.provider_name || p.provider_id}
-                    </a>
+                    </Link>
                     {p.provider_name && (
                       <div className="text-[11px] font-mono text-gray-400 mt-0.5">
                         {p.provider_id}
@@ -3543,14 +3541,12 @@ function LatestEventsCard({
                     <EventBadge type={e.event_type} />
                   </td>
                   <td className="px-6 py-2 font-mono text-xs">
-                    <a
-                      href={`/provider/${e.provider_id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      href={`/admin/directory/${e.provider_id}`}
                       className="text-emerald-700 hover:underline break-all"
                     >
                       {e.provider_id}
-                    </a>
+                    </Link>
                   </td>
                 </tr>
               ))}

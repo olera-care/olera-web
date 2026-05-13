@@ -489,7 +489,7 @@ export async function POST(request: Request) {
       } else {
         // Build connection metadata with auto-reply
         const connectionMetadata = {
-          auto_intro: `Downloaded senior care guide.`,
+          auto_intro: `Downloaded senior care checklist.`,
           source: "guide_save",
           cta_variant: "guide",
           thread: [

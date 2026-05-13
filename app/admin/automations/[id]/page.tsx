@@ -162,7 +162,7 @@ export default function AutomationDetailPage() {
   const [selectedRun, setSelectedRun] = useState<string | null>(null);
   const [recipientStatus, setRecipientStatus] = useState<RecipientStatus>("all");
   const [recipientPage, setRecipientPage] = useState(1);
-  const [recipients, setRecipients] = useState<RecipientsResponse | "loading" | null>(null);
+  const [recipients, setRecipients] = useState<RecipientsResponse | "loading" | "error" | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -210,7 +210,7 @@ export default function AutomationDetailPage() {
     fetch(`/api/admin/automations/${id}/recipients?${p.toString()}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
       .then((d) => { if (!cancelled) setRecipients(d as RecipientsResponse); })
-      .catch(() => { if (!cancelled) setRecipients(null); });
+      .catch(() => { if (!cancelled) setRecipients("error"); });
     return () => { cancelled = true; };
   }, [id, selectedRun, recipientStatus, recipientPage]);
 
@@ -371,7 +371,7 @@ export default function AutomationDetailPage() {
 
               {data.runs.length === 0 && <div className="text-sm text-gray-400">No runs recorded yet — recipients show up once this deploys and a run fires.</div>}
               {recipients === "loading" && <div className="text-sm text-gray-400">Loading recipients…</div>}
-              {recipients === null && data.runs.length > 0 && selectedRun && <div className="text-sm text-gray-400">Couldn’t load recipients for this run.</div>}
+              {recipients === "error" && <div className="text-sm text-gray-400">Couldn’t load recipients for this run.</div>}
 
               {recipients && typeof recipients === "object" && (
                 recipients.columnMissing ? (
@@ -400,7 +400,16 @@ export default function AutomationDetailPage() {
                     </div>
 
                     {recipients.recipients.length === 0 ? (
-                      <div className="text-sm text-gray-400">{recipients.rollup.sent === 0 ? "No emails linked to this run yet." : "No recipients match this filter."}</div>
+                      (() => {
+                        if (recipients.rollup.sent > 0) return <div className="text-sm text-gray-400">No recipients match this filter.</div>;
+                        const runSent = recipients.run?.summary?.sent;
+                        const reported = typeof runSent === "number" ? runSent : 0;
+                        return reported > 0 ? (
+                          <div className="text-sm text-gray-400">This run reported {reported.toLocaleString()} sent, but none are linked here — runs from before migration 083 / this deploy aren’t backfilled.</div>
+                        ) : (
+                          <div className="text-sm text-gray-400">No emails linked to this run.</div>
+                        );
+                      })()
                     ) : (
                       <>
                         <div className="overflow-x-auto">

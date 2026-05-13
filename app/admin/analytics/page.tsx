@@ -2315,7 +2315,6 @@ function ResponseLeadsList({
               <tr>
                 <th className="text-left px-4 py-2 font-medium text-gray-600">Family</th>
                 <th className="text-left px-4 py-2 font-medium text-gray-600">Provider</th>
-                <th className="text-left px-4 py-2 font-medium text-gray-600">Message</th>
                 <th className="text-right px-4 py-2 font-medium text-gray-600">Sent</th>
                 <th className="text-center px-4 py-2 font-medium text-gray-600 w-20">Action</th>
                 <th className="px-2 py-2 font-medium w-8" aria-label="Delete" />
@@ -2338,15 +2337,6 @@ function ResponseLeadsList({
                       </Link>
                     ) : (
                       <span className="text-gray-900">{lead.provider_name}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-600 max-w-[200px]">
-                    {lead.message_preview ? (
-                      <span className="truncate block" title={lead.message_preview}>
-                        &ldquo;{lead.message_preview}&rdquo;
-                      </span>
-                    ) : (
-                      <span className="text-gray-400">—</span>
                     )}
                   </td>
                   <td className="px-4 py-2.5 text-right text-gray-500 whitespace-nowrap">
@@ -2446,12 +2436,6 @@ function ResponseLeadsList({
                 <dt className="w-20 shrink-0 text-gray-400">Sent</dt>
                 <dd className="text-gray-900">{formatLeadAge(pendingDelete.age_hours)}</dd>
               </div>
-              {pendingDelete.message_preview && (
-                <div className="flex gap-2">
-                  <dt className="w-20 shrink-0 text-gray-400">Message</dt>
-                  <dd className="text-gray-700 truncate">{pendingDelete.message_preview}</dd>
-                </div>
-              )}
             </dl>
             <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
               This will permanently delete the connection record. This cannot be undone.

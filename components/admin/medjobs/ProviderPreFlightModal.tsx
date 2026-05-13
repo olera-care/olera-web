@@ -287,7 +287,7 @@ export function ProviderPreFlightModal({
       script: substituteStaticVars(s.script, {
         organization_name: organizationName,
         campus_name: campusName,
-        admin_first_name: "Grazie",
+        admin_first_name: "Graize",
       }),
     }));
   });
@@ -630,7 +630,7 @@ export function ProviderPreFlightModal({
                             "there",
                           organization_name: organizationName,
                           campus_name: campusName,
-                          admin_first_name: "Grazie",
+                          admin_first_name: "Graize",
                         }}
                       />
                     )}
@@ -647,7 +647,7 @@ export function ProviderPreFlightModal({
                             "there",
                           organization_name: organizationName,
                           campus_name: campusName,
-                          admin_first_name: "Grazie",
+                          admin_first_name: "Graize",
                         }}
                       />
                     )}

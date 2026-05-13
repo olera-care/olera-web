@@ -219,7 +219,7 @@ export function LogCallOutcomeModal({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
-          placeholder="What was said? Any next-step context for the team."
+          placeholder="Optional. Anything the next admin (or future-you) should know — what was said, why you logged this, the next step."
           className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
         />
       </label>

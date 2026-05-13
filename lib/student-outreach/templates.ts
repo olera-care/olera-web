@@ -17,7 +17,7 @@
  *     email-send.ts → bodyToHtml() handles both. Templates stay
  *     readable when admin previews them in PreFlight.
  *   - Footer (divider + STOP + "Message Approved by Dr. Logan
- *     DuBose, MD/MBA" + Logan signature block + Grazie signature
+ *     DuBose, MD/MBA" + Logan signature block + Graize signature
  *     block) is NOT in the template body. email-send.ts composes
  *     it once and appends to every send. Single source of truth.
  *
@@ -26,7 +26,7 @@
  *   {first_name}            recipient's first name (named variant)
  *   {organization_name}     provider agency OR stakeholder org
  *   {campus_name}           campus / university
- *   {admin_first_name}      sender ("Grazie")
+ *   {admin_first_name}      sender ("Graize")
  *   {calendly_url}          15-min call booking link
  *   {program_url}           public program info page
  */
@@ -86,7 +86,7 @@ const PLACEHOLDER = {
  * Inline call-scheduling phrases. Embedded into the closing
  * sentence of each template rather than rendered as a standalone
  * CTA line — keeps the email reading like a personal note from
- * Grazie, not a marketing template. The label varies by context
+ * Graize, not a marketing template. The label varies by context
  * (Day-0 intros name Dr. DuBose explicitly; follow-ups stay
  * shorter + conversational); bodyToHtml turns the markdown link
  * into a clickable inline <a href>.
@@ -101,14 +101,14 @@ const SCHEDULE_LINK_FULL = `[schedule a quick informational call with Dr. Logan 
 const SCHEDULE_LINK_SHORT = `[share more on a quick call](${PLACEHOLDER.calendlyUrl})`;
 
 /**
- * Grazie self-introduction line used at the top of every body. The
- * email always opens with greeting → Grazie self-intro (which now
+ * Graize self-introduction line used at the top of every body. The
+ * email always opens with greeting → Graize self-intro (which now
  * carries Dr. DuBose's headline credentials inline) → grounding /
  * invitation → program explanation → CTA. Folding the credentials
  * into the intro removes a separate "The program is directed by..."
  * sentence later in the body — one introduction, not two.
  */
-const GRAZIE_INTRO = `My name is Grazie Belandres, and I'm a research assistant working with Dr. Logan DuBose, MD, MBA, an NIH-funded researcher and Texas A&M College of Medicine alum.`;
+const GRAIZE_INTRO = `My name is Graize Belandres, and I'm a research assistant working with Dr. Logan DuBose, MD, MBA, an NIH-funded researcher and Texas A&M College of Medicine alum.`;
 
 /**
  * Reliability/accountability sentence used after the bold program
@@ -257,7 +257,7 @@ export function salutationFor(
 // ── Stakeholder intro emails (Day 0) ────────────────────────────────────
 
 /**
- * Stakeholder intros — same Grazie-first flow as provider intros,
+ * Stakeholder intros — same Graize-first flow as provider intros,
  * but the value-prop reframes for an academic audience (student
  * opportunity, not staffing relief). Salutation is formal (Dear)
  * for dept_head + professor; friendly (Hi) for student_org +
@@ -283,7 +283,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          GRAZIE_INTRO,
+          GRAIZE_INTRO,
           ``,
           `I came across ${PLACEHOLDER.orgName} while identifying pre-health student groups at ${PLACEHOLDER.campus} that might be interested in the ${PLACEHOLDER.campus} Student Caregiver Program.`,
           ``,
@@ -300,7 +300,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          GRAZIE_INTRO,
+          GRAIZE_INTRO,
           ``,
           `I came across your office while identifying pre-health advisors at ${PLACEHOLDER.campus} who might find the ${PLACEHOLDER.campus} Student Caregiver Program useful for their advisees.`,
           ``,
@@ -317,7 +317,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          GRAZIE_INTRO,
+          GRAIZE_INTRO,
           ``,
           `I came across your department while identifying pre-health programs at ${PLACEHOLDER.campus} whose students might benefit from the ${PLACEHOLDER.campus} Student Caregiver Program.`,
           ``,
@@ -334,7 +334,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          GRAZIE_INTRO,
+          GRAIZE_INTRO,
           ``,
           `I came across your courses while identifying pre-health faculty at ${PLACEHOLDER.campus} whose students might be interested in the ${PLACEHOLDER.campus} Student Caregiver Program.`,
           ``,
@@ -439,7 +439,7 @@ export const followupEmail = followupLightEmail;
  * Provider intro day-0. Flow (per v9.2 final tone pass):
  *
  *   1. Greeting (Hi {first_name}, OR Hello,)
- *   2. Grazie self-intro w/ Dr. DuBose credentials inline — one
+ *   2. Graize self-intro w/ Dr. DuBose credentials inline — one
  *      introduction, not two; recipients see who we are AND who
  *      we work for in a single sentence
  *   3. Grounding + leadership ask + invitation, collapsed into one
@@ -491,7 +491,7 @@ export function providerIntroEmail(
     body: [
       greeting,
       ``,
-      GRAZIE_INTRO,
+      GRAIZE_INTRO,
       ``,
       groundingAndInvitation,
       ``,
@@ -578,7 +578,7 @@ export function callScript(ctx: TemplateContext, day: number): CallScript {
     return {
       title: "Day 0 — referenced email",
       script: [
-        `"Hi, this is ${ctx.admin_first_name ?? "Grazie"} calling from Dr. Logan DuBose's office. I'm a research assistant on the ${ctx.campus_name} Student Caregiver Program."`,
+        `"Hi, this is ${ctx.admin_first_name ?? "Graize"} calling from Dr. Logan DuBose's office. I'm a research assistant on the ${ctx.campus_name} Student Caregiver Program."`,
         ``,
         `"I came across ${ctx.organization_name} while we were identifying home care agencies near ${ctx.campus_name} for the program, and I wanted to reach out personally. The program matches ${ctx.campus_name} pre-health students with home care agencies to help fill caregiver roles, PRN shifts, and staffing needs."`,
       ].join("\n"),
@@ -587,7 +587,7 @@ export function callScript(ctx: TemplateContext, day: number): CallScript {
   return {
     title: `Day ${day} follow-up`,
     script: [
-      `"Hi, this is ${ctx.admin_first_name ?? "Grazie"} from Dr. Logan DuBose's office, following up on prior outreach about the ${ctx.campus_name} Student Caregiver Program. Just hoping to connect with whoever handles caregiver hiring at ${ctx.organization_name}."`,
+      `"Hi, this is ${ctx.admin_first_name ?? "Graize"} from Dr. Logan DuBose's office, following up on prior outreach about the ${ctx.campus_name} Student Caregiver Program. Just hoping to connect with whoever handles caregiver hiring at ${ctx.organization_name}."`,
     ].join("\n"),
   };
 }

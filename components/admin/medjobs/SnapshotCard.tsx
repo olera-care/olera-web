@@ -1255,8 +1255,8 @@ export function ContactFormBanner({
 
   const site = campusName?.trim() || "your university";
   const message = specificContactName?.trim()
-    ? `Hi, this is Grazie, assistant to Dr. Logan DuBose. We were hoping to connect with ${specificContactName.trim()} regarding a student caregiver initiative connected to ${site}. Would you be able to point us in the right direction?`
-    : `Hi, this is Grazie, assistant to Dr. Logan DuBose. We're hoping to connect with someone on your leadership or hiring team regarding a student caregiver initiative connected to ${site}. Could someone point us in the right direction?`;
+    ? `Hi, this is Graize, assistant to Dr. Logan DuBose. We were hoping to connect with ${specificContactName.trim()} regarding a student caregiver initiative connected to ${site}. Would you be able to point us in the right direction?`
+    : `Hi, this is Graize, assistant to Dr. Logan DuBose. We're hoping to connect with someone on your leadership or hiring team regarding a student caregiver initiative connected to ${site}. Could someone point us in the right direction?`;
 
   const handleCopy = async () => {
     try {

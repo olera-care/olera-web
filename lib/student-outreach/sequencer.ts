@@ -350,7 +350,7 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
         tips([
           "If a receptionist answers, ask for the hiring coordinator or whoever handles caregiver staffing.",
           "Confirm the best email for the program packet if you reach a new contact.",
-          "Leave a voicemail if unavailable. Reference today's email from Grazie and the {campus_name} Student Caregiver Program.",
+          "Leave a voicemail if unavailable. Reference today's email from Graize and the {campus_name} Student Caregiver Program.",
           "Ask permission to resend the information packet if useful.",
         ]),
       ].join("\n");

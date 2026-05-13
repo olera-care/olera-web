@@ -396,10 +396,10 @@ export function ProgramPdfTemplate({
                 <Image src={assets.graziePhotoDataUri} style={styles.sigPhoto} />
               ) : null}
               <View>
-                <Text style={styles.sigName}>Grazie Belandres</Text>
+                <Text style={styles.sigName}>Graize Belandres</Text>
                 <Text style={styles.sigCred}>Research Assistant to</Text>
                 <Text style={styles.sigCred}>Dr. Logan DuBose</Text>
-                <Text style={styles.sigCred}>grazie@olera.care</Text>
+                <Text style={styles.sigCred}>graize@olera.care</Text>
               </View>
             </View>
           </View>

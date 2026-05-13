@@ -300,26 +300,6 @@ function ProspectBody({
       </p>
       <ul className="mt-2 space-y-1 text-xs">
         <ChecklistRow
-          done={hasWebsite}
-          tone="required"
-          label="Website"
-          hint={
-            hasWebsite
-              ? "Website on file."
-              : "Required. Supports research + outreach validation."
-          }
-        />
-        <ChecklistRow
-          done={addressComplete}
-          tone="required"
-          label="Address"
-          hint={
-            addressComplete
-              ? "Street, city, state, ZIP set — ready for snail mail."
-              : "Required. Need street, city, state, and ZIP."
-          }
-        />
-        <ChecklistRow
           done={hasEmail}
           tone="required"
           label="General Contact email"
@@ -340,15 +320,40 @@ function ProspectBody({
           }
         />
         <ChecklistRow
+          done={addressComplete}
+          tone="required"
+          label="Address"
+          hint={
+            addressComplete
+              ? "Street, city, state, ZIP set — ready for snail mail."
+              : "Required. Need street, city, state, and ZIP."
+          }
+        />
+        {/* v9.1 admin feedback (Graize 05.13): Website is now
+            recommended, not required. Some agencies have no public
+            website or only a social profile, and we don't want that to
+            block outreach. Launch gate dropped the website check; this
+            row reflects the same tone. */}
+        <ChecklistRow
+          done={hasWebsite}
+          tone="recommended"
+          label="Website"
+          hint={
+            hasWebsite
+              ? "Website on file."
+              : "Recommended. Helpful for research, but not required to launch."
+          }
+        />
+        <ChecklistRow
           done={!hasContactFormUrl || contactFormResolved}
           tone={hasContactFormUrl && !contactFormResolved ? "required" : "recommended"}
-          label="Contact form"
+          label="Contact form URL"
           hint={
             !hasContactFormUrl
-              ? "Add the URL if the agency has a contact form — Day 0 picks it up."
+              ? "Paste the link to the agency's contact form page if they have one. The system generates a message you can submit there."
               : contactFormResolved
                 ? "Outcome logged."
-                : "URL on file — pick Submitted / Skipped / Not available below. Required when URL is present."
+                : "URL on file. Copy the generated message from the banner above, submit it through their form, then mark Submitted below. Required when URL is present."
           }
         />
         <ChecklistRow
@@ -543,7 +548,10 @@ function InOutreachBody({
   return (
     <>
       <p className="text-sm text-gray-700">
-        Awaiting reply. If you saw a response in your inbox, log it to advance the row.
+        Awaiting reply at graize@olera.care.
+      </p>
+      <p className="mt-1 text-xs text-gray-500">
+        When they respond, continue the conversation directly from your inbox and log the outcome here so the team sees it.
       </p>
       <p className="mt-1 text-xs text-gray-500">{subline}</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">

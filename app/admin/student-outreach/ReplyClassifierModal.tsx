@@ -163,7 +163,7 @@ export function ReplyClassifierModal({
               active={choice === "wants_meeting"}
               onSelect={() => setChoice("wants_meeting")}
               label="They want to meet"
-              blurb="You'll coordinate a time over email. Row moves to Meetings."
+              blurb="Reply with Dr. DuBose's Calendly link (already in his email signature) so they can book directly. Row moves to Meetings."
               tone="warn"
             />
             <ChoiceCard
@@ -214,7 +214,7 @@ export function ReplyClassifierModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              placeholder="What did they say? Any context for next steps."
+              placeholder="Optional. Anything the next admin (or future-you) should know — what they said, why you logged this, the next step."
               className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
             />
           </label>

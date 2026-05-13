@@ -7,6 +7,25 @@
 
 ## Current Focus
 
+### 2026-05-12 (Tue, even later) — Automation Console Phase 2 — per-recipient view + email timelines (PR #797, on staging)
+
+Built on `feature/automation-console-phase2` (off `staging`). The linkage call from Phase 1 got decided: **Option C — the hybrid**. Don't thread a `cron_run_id` through every `sendEmail`; instead add one nullable `email_log.cron_run_id` column and have `withCronRun()` stamp it at run-end.
+
+**PR #797 (`feature/automation-console-phase2` → staging) — awaiting merge.**
+- **migration 083** (`083_email_log_cron_run_id.sql`): `email_log.cron_run_id UUID REFERENCES cron_runs(id) ON DELETE SET NULL` + a partial index. Nullable — non-cron sends and pre-migration rows stay NULL. **Needs applying in the Supabase dashboard.**
+- **`withCronRun()` stamping** (`lib/crons/run.ts:stampEmails`): after `finishRun` (on the ok, error, and Response paths), `UPDATE email_log SET cron_run_id = <runId> WHERE email_type = ANY(<job's emailTypes from getCronJob>) AND created_at >= <startedAt> AND cron_run_id IS NULL`. `startedAt` is a JS timestamp captured just before the run-row insert. Two overlapping runs of the same job race for the overlap (first finisher wins) — documented, acceptable. Best-effort: the column being absent (pre-migration) → one `console.error` per cron run, swallowed, no job breakage.
+- **`GET /api/admin/automations/[id]/recipients?run=&page=&status=`**: confirms the run belongs to the job, returns `{ run, rollup (per-run sent/delivered/opened/clicked/bounced/complained), columnMissing, page, pageSize, total, recipients[], note }`. Status filter: all / opened / clicked / bounced / complained / undelivered. Page size 100. Fails soft → `columnMissing:true` if migration 083 isn't applied.
+- **`/admin/automations/[id]` — new "Recipients" section** (only for email jobs): a run picker (`<select>` over the last 100 runs, labelled `date · status · N sent`, defaults to the most recent run that actually sent something), the per-run rollup line, filter chips, a paginated table (Recipient / Sent / Del / Open / Click / Status), recipients with a `provider_id` link to `/admin/directory/[id]`. Amber note if `columnMissing`.
+- **`components/admin/EmailTimeline.tsx`** — compact "every automated email this person/provider got" list: When / Type / Subject / Status (lifecycle badge) + an inline `html_body` iframe preview per row (POST `/api/admin/emails` `{id}`). Mounted as an "Automated emails" `<Section>` on `/admin/directory/[providerId]` (filtered by `provider_id`) and `/admin/care-seekers/[seekerId]` (filtered by exact `recipient` = seeker email; guests with no email get a placeholder).
+- **`/api/admin/emails`**: added a `recipient` exact-match query param (takes precedence over the existing `search` ilike); used by the care-seeker timeline.
+- Deferred Phase 2 follow-ons: drip-sequence flow view, program-level rollup.
+
+**Self-review:** tsc clean, no new eslint errors (the `no-explicit-any` "rule not found" on the care-seekers page + the `<img>` warnings on the directory page are pre-existing), `check-cron-registry.js` passes. Only flagged tradeoff: the per-cron `console.error` noise between deploy and the migration landing.
+
+**Resume next session here →** (1) Apply migration 083 in the Supabase dashboard, then trigger a cron (or wait for one) and confirm `email_log.cron_run_id` populates and the Recipients section renders. (2) The Wed `?limit=800` / Fri `?limit=1500` digest ramp is still TJ's manual browser action on `olera.care` (runbook: Notion `35e5903a0ffe81d9b577d4724794b923`); PR #794 (digest default `?limit` 500→2000) is merged to `staging`, needs `staging → main` after Friday. (3) First digest funnel read ~5/19. (4) Flip the done Notion tasks: digest build `34c5903a0ffe81468186f69077e6410b`, Tuesday-fire runbook `35d5903a0ffe81ea971ecd7c0ba7f7b6`. (5) Open follow-up still not fixed: unclaimed-provider digest unsubscribes don't persist (no `metadata` column on `olera-providers`). (6) The Phase 2 Notion task `35e5903a0ffe81a98cb2c0470d6dfdaf` — flip to done once #797 merges.
+
+---
+
 ### 2026-05-12 (Tue, later) — Automation Console v1.5 (cockpit + detail page), digest first ramped send fired, team briefed
 
 Picked up from Phase 1 (below). TJ wanted the `/admin/automations` page less of a flat 16-card scroll and more navigable, with drill-down per automation. After a design pass, settled on: list page = the cockpit, `/admin/automations/[id]` = the deep view. Then iterated the alerts down to nothing (see below). Also fired the first real ramped send of the expanded weekly digest, and posted a team brief to Slack.

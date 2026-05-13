@@ -245,7 +245,7 @@ export default function GuideBottomSheet({
                   Where should we send it?
                 </h2>
                 <p className="text-[15px] text-gray-500 mt-1">
-                  We&apos;ll email the guide and start the download.
+                  We&apos;ll email the checklist and start the download.
                 </p>
               </div>
 
@@ -300,7 +300,7 @@ export default function GuideBottomSheet({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              <p className="text-sm text-gray-500">Preparing your guide...</p>
+              <p className="text-sm text-gray-500">Preparing your checklist...</p>
             </div>
           )}
 
@@ -317,7 +317,7 @@ export default function GuideBottomSheet({
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Guide on its way.</h2>
+                  <h2 className="text-lg font-bold text-gray-900">Checklist on its way.</h2>
                   <p className="text-sm text-gray-500">Downloaded · Also sent to your email.</p>
                 </div>
               </div>
@@ -373,7 +373,7 @@ export default function GuideBottomSheet({
                     rel="noopener noreferrer"
                     className="text-xs text-primary-600 hover:underline"
                   >
-                    Download guide again
+                    Download checklist again
                   </a>
                 )}
                 <button

@@ -568,7 +568,7 @@ export async function POST(request: Request) {
     // Fire-and-forget email with PDF guide
     (async () => {
       try {
-        const subject = `Your senior care guide from Olera`;
+        const subject = `Your senior care checklist from Olera`;
 
         const emailLogId = await reserveEmailLogId({
           to: normalizedEmail,
@@ -607,15 +607,15 @@ export async function POST(request: Request) {
   </p>
 
   <p style="font-size: 20px; line-height: 1.4; margin: 0 0 8px; color: #111827; font-weight: 600;">
-    Your guide is ready
+    Your checklist is ready
   </p>
 
   <p style="font-size: 15px; line-height: 1.6; margin: 0 0 20px; color: #6b7280;">
-    Here's the senior care guide you requested. It covers questions to ask, what to look for on tours, and costs to expect.
+    Here's the senior care checklist you requested. It covers questions to ask and costs to expect.
   </p>
 
   <a href="${siteUrl}${GUIDE_PDF_URL}" style="display: inline-block; background: #199087; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px; margin-bottom: 20px;">
-    Download guide (PDF)
+    Download checklist (PDF)
   </a>
 
   <div style="background: #f0fdfa; border-radius: 12px; padding: 16px; margin: 20px 0; border-left: 4px solid #199087;">

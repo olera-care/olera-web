@@ -189,30 +189,55 @@ export default function GuideCard({
             </div>
           )}
 
-          {/* Hook line + Headline */}
-          <div className="flex items-center gap-1.5 mb-1">
-            {/* Document icon */}
-            <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-primary-600">
-              Free · For Families
-            </span>
-          </div>
+          {/* PDF Illustration + Content */}
+          <div className="flex gap-4 mb-5">
+            {/* Stylized PDF Preview */}
+            <div className="shrink-0 w-[72px] h-[92px] bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
+              {/* Document lines */}
+              <div className="absolute inset-x-3 top-4 space-y-1.5">
+                <div className="h-1.5 bg-primary-300/60 rounded-full w-full" />
+                <div className="h-1.5 bg-primary-300/40 rounded-full w-4/5" />
+                <div className="h-1.5 bg-primary-300/40 rounded-full w-full" />
+                <div className="h-1.5 bg-primary-300/30 rounded-full w-3/5" />
+              </div>
+              {/* Checkmark badge */}
+              <div className="absolute bottom-2 right-2 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center shadow-sm">
+                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              {/* PDF label */}
+              <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-white/80 rounded text-[9px] font-bold text-primary-700 uppercase tracking-wide">
+                PDF
+              </div>
+            </div>
 
-          <h3 className="text-2xl font-bold text-gray-900 leading-snug">
-            A short guide to choosing senior care
-          </h3>
-          <p className="text-[15px] text-gray-500 mt-0.5 mb-5">
-            Questions to ask, what to look for on tours, and costs to expect.
-          </p>
+            {/* Text content */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-primary-600">
+                  Free · For Families
+                </span>
+              </div>
+
+              <h3 className="text-xl font-bold text-gray-900 leading-snug">
+                Still deciding?
+              </h3>
+              <p className="text-[15px] font-medium text-gray-700 mt-0.5">
+                Get our free checklist
+              </p>
+              <p className="text-[13px] text-gray-500 mt-1">
+                Questions to ask and costs to expect.
+              </p>
+            </div>
+          </div>
 
           {/* CTA button */}
           <button
             onClick={handleGetGuideClick}
             className="w-full px-5 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
           >
-            Get the guide
+            Get the checklist
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
@@ -220,7 +245,7 @@ export default function GuideCard({
 
           {/* Footer */}
           <p className="text-center text-xs text-gray-400 mt-3">
-            PDF · ~2 pages · sent to your email
+            1-page PDF · sent to your email
           </p>
 
           {/* Signed-in: Additional actions */}
@@ -261,7 +286,7 @@ export default function GuideCard({
                 Where should we send it?
               </h3>
               <p className="text-sm text-gray-500 mt-0.5">
-                We&apos;ll email the guide and start the download.
+                We&apos;ll email the checklist and start the download.
               </p>
             </div>
             <button
@@ -337,7 +362,7 @@ export default function GuideCard({
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
-            <p className="text-sm text-gray-500">Preparing your guide...</p>
+            <p className="text-sm text-gray-500">Preparing your checklist...</p>
           </div>
         </div>
       </div>
@@ -358,7 +383,7 @@ export default function GuideCard({
             </svg>
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Guide on its way.</h3>
+            <h3 className="text-lg font-bold text-gray-900">Checklist on its way.</h3>
             <p className="text-sm text-gray-500">Downloaded · Also sent to your email.</p>
           </div>
         </div>
@@ -409,7 +434,7 @@ export default function GuideCard({
         {pdfUrl && (
           <p className="text-center text-xs text-gray-400 mt-3">
             <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
-              Download guide again
+              Download checklist again
             </a>
           </p>
         )}

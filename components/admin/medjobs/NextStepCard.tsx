@@ -322,6 +322,11 @@ function ProspectBody({
       <p className="mt-0.5 text-xs text-gray-500">
         Add missing info, then launch outreach.
       </p>
+      {showCallForEmailCta && (
+        <p className="mt-1 text-[11px] text-gray-500">
+          Or call them now — if they engage, log it directly (Interested / Became a Client / Not interested) and we&apos;ll close this out without launching the campaign.
+        </p>
+      )}
       <ul className="mt-2 space-y-1 text-xs">
         <ChecklistRow
           done={hasEmail}

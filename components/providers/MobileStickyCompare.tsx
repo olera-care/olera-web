@@ -212,7 +212,7 @@ export default function MobileStickyCompare({
       <div
         className="md:hidden"
         aria-hidden="true"
-        style={{ height: "calc(160px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ height: "calc(140px + env(safe-area-inset-bottom, 0px))" }}
       />
 
       {/* Sticky bottom bar (always visible) */}

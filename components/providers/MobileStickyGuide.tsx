@@ -233,7 +233,7 @@ export default function MobileStickyGuide({
         <div
           className="md:hidden"
           aria-hidden="true"
-          style={{ height: "calc(140px + env(safe-area-inset-bottom, 0px))" }}
+          style={{ height: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
         />
 
         {/* Sticky bottom bar - Family account required (always visible) */}
@@ -283,7 +283,7 @@ export default function MobileStickyGuide({
         <div
           className="md:hidden"
           aria-hidden="true"
-          style={{ height: "calc(140px + env(safe-area-inset-bottom, 0px))" }}
+          style={{ height: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
         />
 
         {/* Sticky bottom bar - Messaging focused (always visible) */}
@@ -348,7 +348,7 @@ export default function MobileStickyGuide({
       <div
         className="md:hidden"
         aria-hidden="true"
-        style={{ height: "calc(160px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ height: "calc(140px + env(safe-area-inset-bottom, 0px))" }}
       />
 
       {/* Sticky bottom bar (always visible) */}

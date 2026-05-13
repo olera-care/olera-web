@@ -1155,7 +1155,7 @@ export default async function ProviderPage({
 
       {/* ===== Content Zone — White Background ===== */}
       <div className="bg-white" data-spotlight-zone>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-10 md:py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 md:py-10">
 
         {/* -- Two-Column Grid (content + sticky sidebar) -- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">

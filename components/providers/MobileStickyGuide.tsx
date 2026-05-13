@@ -77,31 +77,14 @@ export default function MobileStickyGuide({
 
   // Handle "Message provider" click (logged-in flow)
   // Creates connection via guide-save API, then redirects to inbox
+  // NOTE: We intentionally don't track cta_variant_clicked here because logged-in
+  // users are already converted and this action shouldn't pollute the A/B test funnel.
   const handleMessageProvider = useCallback(async () => {
     if (!userEmail) return;
 
     setIsMessageSubmitting(true);
 
     try {
-      // Track click
-      if (!ctaPreviewMode && ctaVariant) {
-        fetch("/api/activity/track", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            actor_type: "user",
-            related_provider_id: providerSlug,
-            event_type: "cta_variant_clicked",
-            session_id: getOrCreateSessionId(),
-            metadata: {
-              variant: ctaVariant,
-              surface: "mobile",
-              action: "message_provider_clicked",
-            },
-          }),
-        }).catch(() => {});
-      }
-
       // Create connection via guide-save API (handles Slack notifications, lead tracking)
       const res = await fetch("/api/connections/guide-save", {
         method: "POST",

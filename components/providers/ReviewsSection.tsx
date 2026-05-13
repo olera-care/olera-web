@@ -563,6 +563,7 @@ export default function ReviewsSection({
         providerName={providerName}
         reviews={allReviews}
         averageRating={averageRating}
+        googleRating={googleReviewsData?.rating}
         scrollToReviewId={scrollToReviewId}
         isDemoMode={showingDemoReviews}
         onWriteReview={() => {

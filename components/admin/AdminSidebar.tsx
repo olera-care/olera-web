@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AdminUser } from "@/lib/types";
@@ -235,6 +235,31 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   // — the fraction just doesn't render until the next successful
   // fetch.
   const [sidebarCounts, setSidebarCounts] = useState<SidebarCounts | null>(null);
+
+  // E4: pulse-on-change. When a tab's unread/total count changes, the
+  // count chip briefly flashes an emerald background so admin SEES the
+  // queue update rather than scanning for a number difference. Tracks
+  // previous counts via ref; sets a transient Set of changed keys for
+  // ~800ms; CSS `transition-colors` carries the fade.
+  const prevCountsRef = useRef<SidebarCounts | null>(null);
+  const [pulseKeys, setPulseKeys] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const prev = prevCountsRef.current;
+    prevCountsRef.current = sidebarCounts;
+    if (!sidebarCounts || !prev) return; // first load — just remember
+    const changed = new Set<string>();
+    for (const [key, entry] of Object.entries(sidebarCounts)) {
+      const prevEntry = prev[key];
+      if (!prevEntry || !entry) continue;
+      if (entry.unread !== prevEntry.unread || entry.total !== prevEntry.total) {
+        changed.add(key);
+      }
+    }
+    if (changed.size === 0) return;
+    setPulseKeys(changed);
+    const timer = setTimeout(() => setPulseKeys(new Set()), 800);
+    return () => clearTimeout(timer);
+  }, [sidebarCounts]);
   const refetchCounts = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/medjobs/sidebar-counts");
@@ -390,8 +415,11 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
                       {fraction != null && (
                         <span
                           className={[
-                            "ml-2 text-[11px] tabular-nums",
+                            "ml-2 text-[11px] tabular-nums rounded px-1 transition-colors duration-500",
                             hasUnread ? "font-semibold text-gray-900" : "text-gray-400",
+                            countsKey && pulseKeys.has(countsKey)
+                              ? "bg-emerald-100"
+                              : "bg-transparent",
                           ].join(" ")}
                         >
                           {fraction}

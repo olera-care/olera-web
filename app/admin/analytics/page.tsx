@@ -2302,6 +2302,7 @@ interface ResponseLead {
   connection_id: string;
   family_name: string;
   family_email: string | null;
+  provider_id: string; // Profile UUID for linking to /admin/directory/[providerId]
   provider_name: string;
   provider_email: string | null;
   provider_slug: string;
@@ -2571,9 +2572,13 @@ function ResponseLeadsList({
                         <span className="text-gray-900">{lead.provider_name}</span>
                       )}
                     </div>
-                    {lead.provider_email && (
+                    {lead.provider_email ? (
                       <div className="text-[11px] text-gray-400 truncate max-w-[180px]" title={lead.provider_email}>
                         {lead.provider_email}
+                      </div>
+                    ) : (
+                      <div className="text-[11px] text-amber-500 italic">
+                        no email
                       </div>
                     )}
                   </td>
@@ -2594,6 +2599,15 @@ function ResponseLeadsList({
                   <td className="px-4 py-2.5 text-center">
                     {lead.responded ? (
                       <span className="text-xs text-emerald-600">Replied</span>
+                    ) : !lead.provider_email ? (
+                      // No email — link to directory to add one
+                      <Link
+                        href={`/admin/directory/${lead.provider_id}`}
+                        className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                        title="Add email to enable nudging"
+                      >
+                        Add email →
+                      </Link>
                     ) : (
                       <div className="flex flex-col items-center gap-0.5">
                         {nudgeSuccess === lead.connection_id ? (

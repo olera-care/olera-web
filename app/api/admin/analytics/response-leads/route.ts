@@ -21,6 +21,7 @@ interface ResponseLead {
   connection_id: string;
   family_name: string;
   family_email: string | null;
+  provider_id: string; // Profile UUID for linking to /admin/directory/[providerId]
   provider_name: string;
   provider_email: string | null;
   provider_slug: string;
@@ -171,6 +172,7 @@ export async function GET(req: NextRequest) {
       connection_id: conn.id,
       family_name: conn.from_profile?.display_name || "Care Seeker",
       family_email: conn.from_profile?.email || null,
+      provider_id: conn.to_profile_id || "",
       provider_name: conn.to_profile?.display_name || "Unknown",
       provider_email: conn.to_profile?.email || null,
       provider_slug: conn.to_profile?.slug || conn.to_profile?.source_provider_id || "",

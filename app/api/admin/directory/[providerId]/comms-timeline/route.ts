@@ -20,10 +20,13 @@ import { resolveProviderIdVariants } from "@/lib/provider-id-variants";
  *
  * Returns:
  *   {
- *     events: TimelineEvent[],
- *     totalEmails: number,            // total email_log rows matched (may exceed returned)
- *     totalActivity: number,          // total provider_activity rows matched (may exceed returned)
+ *     events: TimelineEvent[],        // merged + time-sorted, sliced to `limit`
+ *     totalEmails: number,            // true count from count-only query (not capped)
+ *     totalActivity: number,          // true count from count-only query (not capped)
+ *     fetchedEmails: number,          // emails actually fetched (capped at perSourceCap)
+ *     fetchedActivity: number,        // activity actually fetched (capped at perSourceCap)
  *     idVariants: string[],           // which IDs we matched against, for debugging
+ *     businessProfileId: string|null, // first business_profiles.id if claimed
  *   }
  */
 
@@ -145,14 +148,20 @@ export async function GET(
     // breathing room — the merged list gets sliced to `limit` after sorting.
     const perSourceCap = Math.min(200, limit * 4);
 
-    const [emailRes, activityRes] = await Promise.all([
+    // recipient_type filter: 'provider' or NULL — the latter catches legacy
+    // rows from callers that didn't pass recipientType (email_log columns
+    // default it to null). Matches the looser behavior of the existing
+    // /api/admin/emails surface so the timeline isn't a behavioral regression.
+    // Excludes recipient_type='admin' (admin notifications ABOUT this provider)
+    // and 'family' (family-bound emails that happen to reference the provider).
+    const [emailRes, activityRes, emailCountRes, activityCountRes] = await Promise.all([
       db
         .from("email_log")
         .select(
           "id, email_type, subject, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, last_event_type, error_message",
         )
         .in("provider_id", allVariants)
-        .eq("recipient_type", "provider")
+        .or("recipient_type.is.null,recipient_type.eq.provider")
         .order("created_at", { ascending: false })
         .limit(perSourceCap),
       db
@@ -162,6 +171,18 @@ export async function GET(
         .in("event_type", [...TIMELINE_ACTIVITY_EVENTS])
         .order("created_at", { ascending: false })
         .limit(perSourceCap),
+      // True totals — count-only queries so the UI doesn't lie about how many
+      // events exist when the fetched count is capped at perSourceCap.
+      db
+        .from("email_log")
+        .select("id", { count: "exact", head: true })
+        .in("provider_id", allVariants)
+        .or("recipient_type.is.null,recipient_type.eq.provider"),
+      db
+        .from("provider_activity")
+        .select("id", { count: "exact", head: true })
+        .in("provider_id", allVariants)
+        .in("event_type", [...TIMELINE_ACTIVITY_EVENTS]),
     ]);
 
     if (emailRes.error) {
@@ -172,6 +193,7 @@ export async function GET(
       console.error("[comms-timeline] provider_activity query failed:", activityRes.error);
       return NextResponse.json({ error: "Failed to load activity" }, { status: 500 });
     }
+    // Count query errors are non-fatal — fall back to the fetched length.
 
     const emailRows = (emailRes.data ?? []) as Array<{
       id: string;
@@ -230,8 +252,12 @@ export async function GET(
 
     return NextResponse.json({
       events: merged,
-      totalEmails: emailEvents.length,
-      totalActivity: activityEvents.length,
+      // True totals from the count-only queries; fall back to fetched length
+      // if those queries errored. The UI uses these for honest "N of M" copy.
+      totalEmails: emailCountRes.count ?? emailEvents.length,
+      totalActivity: activityCountRes.count ?? activityEvents.length,
+      fetchedEmails: emailEvents.length,
+      fetchedActivity: activityEvents.length,
       idVariants: allVariants,
       businessProfileId,
     });

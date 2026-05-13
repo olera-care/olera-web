@@ -31,9 +31,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export interface ProviderIdVariants {
   /** The canonical slug — what the URL carries. Always present. */
   slug: string;
-  /** business_profiles.id (UUID) if the provider has been claimed / has a profile row. Null otherwise. */
+  /** First business_profiles.id (UUID) found for this slug, if any. The historical "primary" business profile. Null if no profile rows. */
   businessProfileId: string | null;
-  /** Union of every variant to match against. Use this in `.in("provider_id", allVariants)`. */
+  /** Union of every variant to match against. Use this in `.in("provider_id", allVariants)`. Includes the slug + every business_profiles.id pointing to it (no UNIQUE constraint on source_provider_id — multiple rows can share a slug). */
   allVariants: string[];
 }
 
@@ -46,21 +46,28 @@ export async function resolveProviderIdVariants(
   let businessProfileId: string | null = null;
 
   try {
+    // No UNIQUE constraint on business_profiles.source_provider_id — collect
+    // every matching row, not just the first. Cap at 10 (defensive against
+    // accidental fan-out; real providers should have 1 row, possibly 2 if
+    // a manual data fix happened).
     const { data, error } = await db
       .from("business_profiles")
       .select("id")
       .eq("source_provider_id", slug)
-      .limit(1)
-      .maybeSingle();
+      .limit(10);
 
-    if (!error && data?.id) {
-      businessProfileId = data.id;
-      variants.push(data.id);
+    if (!error && Array.isArray(data)) {
+      for (const row of data as Array<{ id: string | null }>) {
+        if (row.id && !variants.includes(row.id)) {
+          variants.push(row.id);
+          if (businessProfileId === null) businessProfileId = row.id;
+        }
+      }
     }
   } catch (err) {
     // Best-effort — fall back to slug-only matching. Surfaces using this
-    // helper will undercount rows written under the UUID, which is the
-    // same failure mode as the pre-helper baseline.
+    // helper will undercount rows written under a UUID, which is the same
+    // failure mode as the pre-helper baseline.
     console.error("[provider-id-variants] lookup failed:", err);
   }
 

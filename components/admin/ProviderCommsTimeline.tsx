@@ -50,8 +50,11 @@ type TimelineEvent = EmailEvent | ActivityEvent;
 
 interface TimelineResponse {
   events: TimelineEvent[];
+  // True totals from the count-only queries — not the fetched/sliced counts.
   totalEmails: number;
   totalActivity: number;
+  fetchedEmails: number;
+  fetchedActivity: number;
   idVariants: string[];
   businessProfileId: string | null;
 }
@@ -86,7 +89,7 @@ export default function ProviderCommsTimeline({
 
   useEffect(() => {
     if (!providerId) {
-      setData({ events: [], totalEmails: 0, totalActivity: 0, idVariants: [], businessProfileId: null });
+      setData({ events: [], totalEmails: 0, totalActivity: 0, fetchedEmails: 0, fetchedActivity: 0, idVariants: [], businessProfileId: null });
       return;
     }
     let cancelled = false;
@@ -144,12 +147,13 @@ export default function ProviderCommsTimeline({
       </div>
       <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
         <span>
-          {data.events.length} of {data.totalEmails + data.totalActivity} events ({data.totalEmails} emails, {data.totalActivity} activity)
-          {data.idVariants.length > 1 && (
-            <span className="ml-2 text-gray-300" title={`Matched against IDs: ${data.idVariants.join(", ")}`}>
-              · {data.idVariants.length} ID variants
-            </span>
-          )}
+          Showing {data.events.length} of {data.totalEmails + data.totalActivity} events ({data.totalEmails} emails, {data.totalActivity} activity)
+          <span
+            className="ml-2 text-gray-300"
+            title={`Matched email_log + provider_activity rows under: ${data.idVariants.join(", ")}`}
+          >
+            · {data.idVariants.length} ID variant{data.idVariants.length === 1 ? "" : "s"}
+          </span>
         </span>
         {viewAllEmailsHref && (
           <a href={viewAllEmailsHref} className="text-teal-700 hover:underline">View all emails →</a>

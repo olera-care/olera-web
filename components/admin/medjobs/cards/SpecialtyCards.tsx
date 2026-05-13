@@ -175,11 +175,15 @@ export function CandidateCard({
       </>
     ) : null;
 
+  // v9 final: no footnote. "Live since X" was tenure data that
+  // didn't tell admin anything they need to act on — completeness +
+  // video + cert pills already carry the operational signals.
+  // Adding a footnote when there's nothing useful to say crowds the
+  // card without informing.
   return (
     <MedjobsCard
       title={row.display_name}
       subtitle={subtitle}
-      footnote={`Live since ${formatRelative(row.signed_up_at)}`}
       pill={pill}
       overflowMenu={overflowMenu}
       href={onOpen ? undefined : `/admin/medjobs/${row.id}`}

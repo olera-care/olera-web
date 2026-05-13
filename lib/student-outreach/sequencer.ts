@@ -18,10 +18,15 @@
  * for Day 0 is invoked by the API action AFTER the sequencer returns.
  */
 
-import { OUTREACH_DAYS_BY_TYPE, type OutreachDay, type TemplateKey } from "./cadence";
+import {
+  OUTREACH_DAYS_BY_TYPE,
+  type CadenceKey,
+  type OutreachDay,
+  type TemplateKey,
+} from "./cadence";
 import { onStageEnter } from "./state-machine";
 import { getTemplate } from "./templates";
-import type { StakeholderType } from "./types";
+import type { Contact, StakeholderType } from "./types";
 
 const DAY_MS = 86_400_000;
 
@@ -33,18 +38,109 @@ export interface EmailSnapshot {
   body: string;
 }
 
+/**
+ * v9 Phase 9 per-recipient mode. Each recipient is one contact who
+ * will receive their own personalized email tasks (one per cadence
+ * email day) and/or call tasks (one per call day). Channels are
+ * independent — a contact with only a phone gets call tasks; only
+ * email gets email tasks; both gets both.
+ *
+ * variant drives which email body the recipient receives:
+ *   "general" → general-inbox copy ("Hello," with optional team
+ *               reference). Used for the synthetic General Contact
+ *               row (recipient_kind='general') OR legacy
+ *               role=General Office specific contacts.
+ *   "named"   → personalized copy ("Hi {first_name},"). Used for
+ *               every other active contact with an explicit name.
+ *
+ * recipient_kind splits two operationally distinct recipient
+ * sources:
+ *   "specific" (default) → a row in student_outreach_contacts.
+ *                          contact_id is non-null and points to that
+ *                          contact. Bounce → cancel that contact's
+ *                          remaining tasks.
+ *   "general"            → the organization-level General Contact
+ *                          (research_data.general_contact override
+ *                          stacked on business_profiles directory
+ *                          fallback). No row in
+ *                          student_outreach_contacts; contact_id is
+ *                          null and recipient_email is denormalized
+ *                          onto the plan + every queued task payload.
+ *                          Bounce → cancel only the synthetic
+ *                          general thread (scope by recipient_kind),
+ *                          leaving named contacts unaffected.
+ *
+ * Call tasks denormalize the recipient's name + phone + role onto
+ * the task payload so the Calls tab and drawer can render the
+ * task without a contact join at read time.
+ */
+export interface RecipientPlan {
+  /** Null when recipient_kind='general' (no underlying contact row). */
+  contact_id: string | null;
+  /** Default 'specific'. Persisted on every task payload. */
+  recipient_kind?: "specific" | "general";
+  variant: "general" | "named";
+  channels: { email: boolean; phone: boolean };
+  recipient_name: string;
+  recipient_first_name: string | null;
+  /** Required when channels.email=true and recipient_kind='general'.
+   *  Specific recipients hydrate email from the contact row at send
+   *  time; general recipients carry the denormalized address through
+   *  the queue so executeEmailTask can send without a DB read. */
+  recipient_email?: string | null;
+  recipient_phone: string | null;
+  recipient_role: string | null;
+}
+
+/** v9 Phase 9: per-day call script set at PreFlight. */
+export interface CallScript {
+  day: number;
+  script: string;
+}
+
 export interface SequencerInput {
   outreach_id: string;
-  stakeholder_type: StakeholderType;
-  /** Admin's edited (or unedited) snapshots for each email day in the cadence. */
-  email_snapshots: EmailSnapshot[];
+  /**
+   * Cadence template key. For stakeholder rows this is the row's
+   * stakeholder_type; for provider rows (kind='provider') callers pass
+   * the literal 'provider'. One launch path, two template families.
+   */
+  stakeholder_type: CadenceKey;
+  /**
+   * Legacy single-snapshot mode: one snapshot per email day, sent
+   * to all active contacts with email. Used by stakeholder paths
+   * that haven't migrated to per-recipient yet.
+   */
+  email_snapshots?: EmailSnapshot[];
   user_id: string;
   /**
    * v8.8: phone tasks are only queued when at least one active contact has
    * a phone number. Decided at schedule time by the API action; if false,
    * planSequence skips every phone step in the cadence.
+   * Only honored in legacy mode (recipients absent).
    */
   has_phone?: boolean;
+  /**
+   * v9 Phase 9 per-recipient mode. When present, planSequence
+   * generates one task per (day, recipient) instead of one task per
+   * day. Each email task gets a personalized snapshot (variant
+   * selected + first-name substituted for named recipients). Each
+   * call task carries the day's script + denormalized recipient
+   * info for the Calls tab / drawer to render directly.
+   */
+  recipients?: RecipientPlan[];
+  /**
+   * v9 Phase 9: per-variant email snapshots. Provider templates
+   * split into general + named bodies; the snapshot builder fills
+   * both at PreFlight time. Required when recipients is set;
+   * missing variants for a day cause that day's emails to skip.
+   */
+  email_snapshots_by_variant?: {
+    general?: EmailSnapshot[];
+    named?: EmailSnapshot[];
+  };
+  /** v9 Phase 9: per-day call scripts set at PreFlight. */
+  call_scripts?: CallScript[];
 }
 
 export interface QueuedTask {
@@ -56,22 +152,137 @@ export interface QueuedTask {
 /**
  * Pure: compute the list of tasks to queue. The API action does the
  * actual DB writes so we keep this testable.
+ *
+ * Two modes:
+ *   Legacy   — input.recipients absent. One email task per email
+ *              day (sent to all active contacts with email at
+ *              execute time); one call task per call day (gated on
+ *              input.has_phone).
+ *   Per-recipient — input.recipients present. One email task per
+ *              (day, email-eligible recipient) with personalized
+ *              snapshot baked in; one call task per (day, call-
+ *              eligible recipient) with the day's script and
+ *              denormalized recipient context for the Calls tab.
+ *
+ * Both modes coexist so stakeholder rows (still on legacy) and
+ * provider rows (per-recipient) can both call this function
+ * without forking.
  */
 export function planSequence(input: SequencerInput, now: Date = new Date()): QueuedTask[] {
   const days = OUTREACH_DAYS_BY_TYPE[input.stakeholder_type];
-  const snapshotByDay = new Map(input.email_snapshots.map((s) => [s.day, s]));
   const tasks: QueuedTask[] = [];
 
+  // v9 Phase 9: per-recipient expansion mode.
+  if (input.recipients && input.recipients.length > 0) {
+    const generalByDay = new Map(
+      (input.email_snapshots_by_variant?.general ?? []).map((s) => [s.day, s]),
+    );
+    const namedByDay = new Map(
+      (input.email_snapshots_by_variant?.named ?? []).map((s) => [s.day, s]),
+    );
+    const scriptsByDay = new Map(
+      (input.call_scripts ?? []).map((s) => [s.day, s.script]),
+    );
+
+    for (const day of days) {
+      for (const step of day.steps) {
+        const dueAt = new Date(now.getTime() + day.day * DAY_MS);
+        if (step.channel === "email") {
+          for (const r of input.recipients) {
+            if (!r.channels.email) continue;
+            // Synthetic general recipients carry their email on the
+            // plan; specific recipients hydrate from the contact row
+            // at send time. Skip synthetics with no email — UI gate
+            // should have caught this, but defensive in case admin
+            // cleared the General Contact between PreFlight and
+            // submit.
+            const kind = r.recipient_kind ?? "specific";
+            if (kind === "general" && !r.recipient_email) continue;
+            const snap =
+              r.variant === "general"
+                ? generalByDay.get(day.day)
+                : namedByDay.get(day.day);
+            if (!snap) continue;
+            // Per-recipient first-name substitution. The general
+            // variant's body already has the team greeting composed
+            // at PreFlight time (or admin-edited). The named
+            // variant's body uses {first_name} which we substitute
+            // here; if no first_name, fall back to recipient_name.
+            const personalizedBody =
+              r.variant === "named"
+                ? snap.body.replace(
+                    /\{first_name\}/g,
+                    r.recipient_first_name || r.recipient_name || "there",
+                  )
+                : snap.body;
+            tasks.push({
+              task_type: "outreach_email_send",
+              due_at: dueAt,
+              payload: {
+                day: day.day,
+                template: snap.template,
+                subject: snap.subject,
+                body: personalizedBody,
+                variant: r.variant,
+                recipient_kind: kind,
+                // For specific: contact_id; for general: null. The
+                // executor branches on recipient_kind, not on the
+                // truthiness of contact_id alone — keeps semantics
+                // explicit when contact_id ever becomes optional in
+                // other flows.
+                recipient_contact_id: r.contact_id,
+                recipient_email: r.recipient_email ?? null,
+                recipient_name: r.recipient_name,
+              },
+            });
+          }
+        } else if (step.channel === "phone") {
+          const rawScript = scriptsByDay.get(day.day) ?? step.label ?? "Follow-up call";
+          for (const r of input.recipients) {
+            if (!r.channels.phone) continue;
+            if (!r.recipient_phone) continue;
+            // v9: per-recipient script substitution. {recipient_name}
+            // gets the contact's actual name; other placeholders
+            // ({organization_name}, {campus_name}, {admin_first_name})
+            // were already substituted at PreFlight time when admin
+            // saw the seeded script. Result: each call task's payload
+            // carries a ready-to-read script with no remaining
+            // placeholders.
+            const personalizedScript = rawScript.replace(
+              /\{recipient_name\}/g,
+              r.recipient_name || "the right person",
+            );
+            tasks.push({
+              task_type: "outreach_followup_call",
+              due_at: dueAt,
+              payload: {
+                day: day.day,
+                label: step.label ?? "Follow-up call",
+                script: personalizedScript,
+                recipient_kind: r.recipient_kind ?? "specific",
+                recipient_contact_id: r.contact_id,
+                recipient_name: r.recipient_name,
+                recipient_phone: r.recipient_phone,
+                recipient_role: r.recipient_role,
+              },
+            });
+          }
+        }
+      }
+    }
+    return tasks;
+  }
+
+  // Legacy mode (stakeholder paths haven't migrated).
+  const snapshotByDay = new Map(
+    (input.email_snapshots ?? []).map((s) => [s.day, s]),
+  );
   for (const day of days) {
     for (const step of day.steps) {
       const dueAt = new Date(now.getTime() + day.day * DAY_MS);
       if (step.channel === "email") {
         const snap = snapshotByDay.get(day.day);
-        if (!snap) {
-          // No snapshot supplied for this day → skip queuing (admin
-          // didn't include it in the pre-flight review).
-          continue;
-        }
+        if (!snap) continue;
         tasks.push({
           task_type: "outreach_email_send",
           due_at: dueAt,
@@ -83,8 +294,6 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
           },
         });
       } else if (step.channel === "phone") {
-        // v8.8: skip phone tasks when no contact has a phone on file.
-        // Avoids phantom call rows in the Calls tab.
         if (input.has_phone === false) continue;
         tasks.push({
           task_type: "outreach_followup_call",
@@ -102,23 +311,116 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
 }
 
 /**
+ * v9 Phase 9 helper: derive default call scripts for a cadence. The
+ * PreFlight modal seeds these for admin edit; tasks carry the
+ * resolved script through to log time.
+ */
+export function defaultCallScriptsFor(type: CadenceKey): CallScript[] {
+  const days = OUTREACH_DAYS_BY_TYPE[type];
+  const result: CallScript[] = [];
+  for (const day of days) {
+    if (!day.steps.some((s) => s.channel === "phone")) continue;
+    result.push({ day: day.day, script: defaultCallScriptForDay(type, day.day) });
+  }
+  return result;
+}
+
+function defaultCallScriptForDay(type: CadenceKey, day: number): string {
+  // Provider cadence default scripts. Two parts per script:
+  //   1. The opening line(s) admin reads when they connect or
+  //      reach voicemail. Verbatim wording in the user's voice.
+  //   2. A "Tips" footer with operational guardrails
+  //      (voicemail vs receptionist vs reach-the-right-person).
+  // Placeholders substitute at PreFlight ({campus_name},
+  // {organization_name}, {admin_first_name}) and per-task at queue
+  // time ({recipient_name}). Stakeholder paths fall through to the
+  // generic line at the bottom — admin can edit in PreFlight.
+  const tips = (lines: string[]): string =>
+    ["Tips:", ...lines.map((l) => `- ${l}`)].join("\n");
+
+  if (type === "provider") {
+    if (day === 0) {
+      return [
+        `"Hi, this is {admin_first_name} calling from Dr. Logan DuBose's office. I'm a research assistant on the {campus_name} Student Caregiver Program."`,
+        ``,
+        `"I came across {organization_name} while we were identifying home care agencies near {campus_name} for the program, and I wanted to reach out personally."`,
+        ``,
+        `"The program matches {campus_name} pre-health students with home care agencies to help fill caregiver roles, PRN shifts, and staffing needs. These are pre-nursing and pre-medical students, motivated more by clinical experience and recommendation letters than compensation, who show up reliably for the long hours caregiver work requires."`,
+        ``,
+        tips([
+          "If a receptionist answers, ask for the hiring coordinator or whoever handles caregiver staffing.",
+          "Confirm the best email for the program packet if you reach a new contact.",
+          "Leave a voicemail if unavailable. Reference today's email from Grazie and the {campus_name} Student Caregiver Program.",
+          "Ask permission to resend the information packet if useful.",
+        ]),
+      ].join("\n");
+    }
+    if (day === 1) {
+      return [
+        `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, following up on yesterday's email and call about the {campus_name} Student Caregiver Program."`,
+        ``,
+        `"Just hoping to connect with whoever handles caregiver hiring at {organization_name}. The program can help cover vacant shifts and PRN gaps with reliable {campus_name} pre-health students."`,
+        ``,
+        tips([
+          "Ask for the hiring coordinator if the receptionist answers.",
+          "Confirm who handles caregiver staffing if you are not sure.",
+          "Offer to resend the information packet via email.",
+          "Leave a voicemail if unavailable. Reference prior outreach and Dr. DuBose's calendar.",
+        ]),
+      ].join("\n");
+    }
+    if (day === 5) {
+      return [
+        `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, circling back one more time on the {campus_name} Student Caregiver Program at {organization_name}."`,
+        ``,
+        `"Just hoping to share how the program works with whoever handles caregiver hiring, and whether it might be a fit. Happy to send the packet to the best person to receive it."`,
+        ``,
+        tips([
+          "Keep the tone light and non-pushy.",
+          "If there is a better person on the leadership or hiring team, ask for a redirect.",
+          "Confirm the best email if you reach a new contact.",
+          "Leave a voicemail if unavailable. Offer Dr. DuBose's calendar as the easy next step.",
+        ]),
+      ].join("\n");
+    }
+  }
+  return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} and offer to schedule a quick call with Dr. DuBose.`;
+}
+
+/**
  * Helper: build the default snapshot list from templates so the
  * pre-flight modal has something to display before admin edits.
+ *
+ * Provider rows pass `contacts` so the multi-contact team greeting
+ * is composed at snapshot-build time (providerSalutation in
+ * templates.ts). Stakeholder rows ignore the field — their per-
+ * recipient {salutation} placeholder substitutes at send time.
  */
 export function defaultSnapshotsFor(
-  type: StakeholderType,
-  ctx: { organization_name: string; campus_name: string; admin_first_name?: string },
+  type: CadenceKey,
+  ctx: {
+    organization_name: string;
+    campus_name: string;
+    admin_first_name?: string;
+    contacts?: Contact[];
+  },
 ): EmailSnapshot[] {
   const days = OUTREACH_DAYS_BY_TYPE[type];
   const result: EmailSnapshot[] = [];
+  // Templates branch on a StakeholderType for salutation; provider
+  // rows borrow student_org's first-name salutation pattern (informal,
+  // no Dr./Prof. honorific). All other variables are kind-agnostic.
+  const templateStakeholderType: StakeholderType =
+    type === "provider" ? "student_org" : type;
   for (const day of days) {
     for (const step of day.steps) {
       if (step.channel !== "email" || !step.template) continue;
       const tpl = getTemplate(step.template, {
-        stakeholder_type: type,
+        stakeholder_type: templateStakeholderType,
         organization_name: ctx.organization_name,
         campus_name: ctx.campus_name,
         admin_first_name: ctx.admin_first_name,
+        contacts: ctx.contacts,
       });
       result.push({
         day: day.day,
@@ -131,8 +433,69 @@ export function defaultSnapshotsFor(
   return result;
 }
 
+/**
+ * v9 Phase 9: dual-variant snapshot builder for per-recipient mode.
+ * Returns both general + named variants for every email day in the
+ * cadence. PreFlight seeds the editor with these; admin edits each
+ * variant independently; planSequence picks the right variant per
+ * recipient at queue time.
+ *
+ * Stakeholder cadence keys still get both variants populated but
+ * they collapse to the same body — the templates ignore the
+ * variant param. Use defaultSnapshotsFor() for stakeholder paths.
+ */
+export function defaultSnapshotsByVariant(
+  type: CadenceKey,
+  ctx: {
+    organization_name: string;
+    campus_name: string;
+    admin_first_name?: string;
+    contacts?: Contact[];
+  },
+): { general: EmailSnapshot[]; named: EmailSnapshot[] } {
+  const days = OUTREACH_DAYS_BY_TYPE[type];
+  const general: EmailSnapshot[] = [];
+  const named: EmailSnapshot[] = [];
+  const templateStakeholderType: StakeholderType =
+    type === "provider" ? "student_org" : type;
+  for (const day of days) {
+    for (const step of day.steps) {
+      if (step.channel !== "email" || !step.template) continue;
+      const generalTpl = getTemplate(step.template, {
+        stakeholder_type: templateStakeholderType,
+        organization_name: ctx.organization_name,
+        campus_name: ctx.campus_name,
+        admin_first_name: ctx.admin_first_name,
+        contacts: ctx.contacts,
+        variant: "general",
+      });
+      general.push({
+        day: day.day,
+        template: step.template,
+        subject: generalTpl.subject,
+        body: generalTpl.body,
+      });
+      const namedTpl = getTemplate(step.template, {
+        stakeholder_type: templateStakeholderType,
+        organization_name: ctx.organization_name,
+        campus_name: ctx.campus_name,
+        admin_first_name: ctx.admin_first_name,
+        contacts: ctx.contacts,
+        variant: "named",
+      });
+      named.push({
+        day: day.day,
+        template: step.template,
+        subject: namedTpl.subject,
+        body: namedTpl.body,
+      });
+    }
+  }
+  return { general, named };
+}
+
 /** Used by tests + UI to know the cadence structure for a given type. */
-export function describeCadence(type: StakeholderType): OutreachDay[] {
+export function describeCadence(type: CadenceKey): OutreachDay[] {
   return OUTREACH_DAYS_BY_TYPE[type];
 }
 

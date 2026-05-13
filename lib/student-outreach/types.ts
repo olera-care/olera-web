@@ -44,10 +44,25 @@ export type PartnerHealth = "healthy" | "at_risk" | "dormant";
 
 export type ContactStatus = "active" | "stale" | "incorrect" | "no_longer_valid";
 
+/**
+ * v9 Phase 9: callable channels on a contact. Email + phone are
+ * the primary lines; mobile + extension stack on top as optional
+ * dialing metadata.
+ *   phone     primary callable line (general office, direct, etc.)
+ *   mobile    direct cell when known
+ *   extension PBX extension dialed after phone connects (not a
+ *             separate channel — it's metadata on the phone call)
+ * Call eligibility for cadence task generation = phone OR mobile.
+ */
+
 export type TouchpointType =
   | "email_sent"
   | "email_replied"
   | "email_bounced"
+  // v9 Phase 8: webhook-emitted on Resend complaint / soft-fail.
+  // Drive auto-DNC (complained) and admin-visible retry copy (failed).
+  | "email_complained"
+  | "email_failed"
   | "call_no_answer"
   | "call_voicemail"
   | "call_connected"
@@ -112,6 +127,37 @@ export interface ResearchData {
   meeting_link?: string;
   meeting_kind?: "phone" | "video" | "in_person";
   notes?: string;
+  /**
+   * v9 final: per-outreach overrides for the General Contact section
+   * (provider drawer). Each field, when present, takes precedence
+   * over the business_profiles fallback. Used when admin discovers
+   * different general office info than what's in the directory
+   * (e.g. directory has stale info@ but admin found a new hiring@).
+   * Edits write here ONLY — never to student_outreach_contacts.
+   */
+  general_contact?: {
+    email?: string | null;
+    phone?: string | null;
+    fax?: string | null;
+    contact_form_url?: string | null;
+    /** v9 final: per-outreach website override. business_profiles
+     *  already has bp.website; this slot only stores a correction
+     *  when admin discovers a different operational URL than what's
+     *  in the directory. Pre-flight requires the effective website
+     *  to be set so outreach copy + future automations can link to it. */
+    website?: string | null;
+    /** v9 final: structured snail-mail address. Each slot is an
+     *  override on top of the directory record (bp.address /
+     *  bp.city / bp.state); ZIP has no bp fallback since
+     *  business_profiles lacks a ZIP column. Effective render =
+     *  override OR directory value joined into one line. Keeping
+     *  separate slots avoids the brittle free-text parsing the
+     *  earlier `mailing_address` blob required. */
+    street?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zip?: string | null;
+  };
 }
 
 export interface Campus {
@@ -125,6 +171,11 @@ export interface Campus {
   research_complete: boolean;
   created_at: string;
   updated_at: string;
+  /** v9 final: optional per-campus PDF override (migration 080).
+   *  Set via SQL today; admin upload UI ships in a follow-up. When
+   *  populated, supersedes the code-defined template config for
+   *  attaching to provider outreach emails. */
+  program_pdf_url?: string | null;
 }
 
 export interface OutreachRow {
@@ -184,6 +235,11 @@ export interface Contact {
   role: string | null;
   email: string | null;
   phone: string | null;
+  /** v9 Phase 9: direct mobile / cell when known. Optional. */
+  mobile: string | null;
+  /** v9 Phase 9: PBX extension to dial after phone connects. Optional.
+   *  Dialing metadata — admin sees "555-1000 ext 405" rendered. */
+  extension: string | null;
   instagram: string | null;
   contact_form_url: string | null;
   is_primary: boolean;
@@ -266,6 +322,12 @@ export type AwaitingCallbackKind = "voicemail" | "promised";
  * v8 replies sub-state, awaiting-callback details).
  */
 export interface TabRow extends OutreachRow {
+  /** v9 final: stable React key for list rendering. Defaults to
+   *  outreach `id`, but the Calls tab fans out one row per pending
+   *  call task and emits unique `${outreach_id}-${task_id}` keys
+   *  so the General Contact card and each Specific Contact card
+   *  render independently. */
+  row_key?: string;
   campus_name: string;
   campus_slug: string;
   primary_contact_name: string | null;
@@ -283,6 +345,12 @@ export interface TabRow extends OutreachRow {
   last_activity_at: string | null;
   /** Calls tab only: the due call task to surface "Tap to dial" UX. */
   due_call_task: { id: string; due_at: string } | null;
+  /**
+   * v9 Phase 9: list of recipient names from pending call tasks
+   * (per-recipient mode). Populated on Calls tab. Legacy rows
+   * (single call task per outreach) produce an empty array.
+   */
+  due_call_recipients: string[];
   /** v8 Replies tab only: which state card to render. Null otherwise. */
   replies_state: RepliesState | null;
   /** v8: when the awaiting-callback state began (for "N days ago" copy). */
@@ -293,6 +361,16 @@ export interface TabRow extends OutreachRow {
   next_step_label: string | null;
   /** v8.7: stakeholder has a pending 'Post to job board' task. */
   has_pending_job_board_task: boolean;
+  /** v9 final: business_profiles.slug for kind='provider' rows.
+   *  Powers the "Open in directory ↗" overflow shortcut without an
+   *  extra fetch. Null for stakeholder rows. */
+  provider_slug?: string | null;
+  /** v9 final: per-recipient card identifier for Calls/Replies fan-out.
+   *  'general' = synthetic General Contact card; 'specific' = a
+   *  named Specific Contact card; null = non-fan-out row (Prospects,
+   *  All, Archive — represents the outreach as a whole). Drives the
+   *  card's copy hierarchy. */
+  recipient_kind?: "general" | "specific" | null;
 }
 
 /** Legacy alias kept while cleaning up old call sites. */
@@ -404,6 +482,58 @@ export interface DrawerContext {
   followup_notes: string | null;
   awaiting_callback_at: string | null;
   awaiting_callback_kind: AwaitingCallbackKind | null;
+  /**
+   * Provider business_profile fields, surfaced only when the outreach
+   * row is kind='provider' (a materialized catchment prospect). Lets
+   * the drawer pre-fill the Launch outreach email field without an
+   * extra round-trip.
+   *
+   * v9: metadata is included so deriveStage() can detect converted
+   * providers (interview_terms_accepted_at within 90d OR
+   * medjobs_subscription_active). Without metadata, the drawer's
+   * stage derivation would miss the Client transition for provider
+   * rows whose underlying business_profile became a Client.
+   */
+  provider_business_profile: {
+    email: string | null;
+    display_name: string | null;
+    city: string | null;
+    state: string | null;
+    metadata: Record<string, unknown> | null;
+    // v9 SnapshotCard mirror fields — admin sees the directory at a glance
+    // without leaving the drawer. Live-page link uses the slug.
+    slug: string | null;
+    phone: string | null;
+    website: string | null;
+    address: string | null;
+    /** v9 final: business_profiles.zip column (was missing earlier;
+     *  business_profiles HAS a ZIP column, the prior assumption that
+     *  ZIP needed override-only was wrong). Falls back to the iOS
+     *  olera-providers row via source_provider_id when bp.zip is
+     *  null. */
+    zip: string | null;
+  } | null;
+
+  /**
+   * v9 outreach timeline: per-email engagement data, keyed by
+   * email_log.id. Hydrated server-side from email_log's denormalized
+   * columns (set by the Resend webhook). The OutreachTimeline reads
+   * these to render delivered/opened/clicked/bounced chips on each
+   * email_sent touchpoint row without a per-row client fetch.
+   *
+   * Empty object when the row has no email_sent touchpoints yet.
+   */
+  email_engagement: Record<
+    string,
+    {
+      delivered_at: string | null;
+      first_opened_at: string | null;
+      first_clicked_at: string | null;
+      bounced_at: string | null;
+      complained_at: string | null;
+      last_event_type: string | null;
+    }
+  >;
 }
 
 export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {

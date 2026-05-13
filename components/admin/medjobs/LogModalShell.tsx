@@ -52,18 +52,24 @@ export function LogModalShell({
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
       onClick={onCancel}
     >
+      {/* v9 final: cap the card height to the viewport and make the
+          body the only scrollable region. Header + footer stay
+          pinned so the title and primary actions are always
+          reachable — earlier overflow pushed the title off the top
+          and the buttons off the bottom on tall content (e.g. the
+          long call-outcomes list). */}
       <div
-        className={`w-full ${widthClass} rounded-xl bg-white shadow-2xl`}
+        className={`flex max-h-[90vh] w-full ${widthClass} flex-col rounded-xl bg-white shadow-2xl`}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="border-b border-gray-100 px-6 py-4">
+        <header className="shrink-0 border-b border-gray-100 px-6 py-4">
           <h3 className="text-base font-semibold text-gray-900">{title}</h3>
           {subtitle && (
             <p className="mt-0.5 text-xs text-gray-500">{subtitle}</p>
           )}
         </header>
 
-        <div className="space-y-3 px-6 py-4">
+        <div className="flex-1 space-y-3 overflow-y-auto px-6 py-4">
           {error && (
             <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
@@ -72,7 +78,7 @@ export function LogModalShell({
           {children}
         </div>
 
-        <footer className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
+        <footer className="flex shrink-0 justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
           {footer}
         </footer>
       </div>

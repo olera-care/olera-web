@@ -61,6 +61,10 @@ const SOURCE_FILTERS: Array<{ key: SourceFilter; label: string }> = [
 export default function LogsPage() {
   const searchParams = useSearchParams();
   const sourceParam = searchParams?.get("source");
+  // v9 final: ?outreach_id=UUID narrows the feed to a single
+  // outreach row's history. Used by the row-card "See log history"
+  // overflow shortcut. Stays in the URL so admin can share/bookmark.
+  const outreachIdFilter = searchParams?.get("outreach_id") ?? null;
   const initialSource: SourceFilter =
     sourceParam === "stakeholder" ||
     sourceParam === "client" ||
@@ -87,7 +91,6 @@ export default function LogsPage() {
   // completions can also surface here. Each gets its own drawer mode.
   const [openProviderId, setOpenProviderId] = useState<string | null>(null);
   const [openCandidateId, setOpenCandidateId] = useState<string | null>(null);
-  const [openSiteId, setOpenSiteId] = useState<string | null>(null);
 
   // Debounce search input — small list size, no need for tight typing.
   useEffect(() => {
@@ -143,6 +146,13 @@ export default function LogsPage() {
       if (typeSet && typeSet.size > 0 && !typeSet.has(r.touchpoint_type)) {
         return false;
       }
+      // v9 final: outreach_id filter — when set, drop everything that
+      // doesn't belong to this row. Row-card "See log history" uses
+      // this to narrow the feed to a single provider's / stakeholder's
+      // activity in one click.
+      if (outreachIdFilter && r.outreach_id !== outreachIdFilter) {
+        return false;
+      }
       // v9.0 Phase 7 Commit P: source filter narrows by entity type.
       // Stakeholder rows have source_kind="stakeholder" (or undefined
       // for legacy touchpoints); entity-task completions carry their
@@ -157,7 +167,7 @@ export default function LogsPage() {
       }
       return true;
     });
-  }, [rows, typeFilter, sourceFilter, debouncedSearch]);
+  }, [rows, typeFilter, sourceFilter, debouncedSearch, outreachIdFilter]);
 
   return (
     <div>
@@ -274,7 +284,11 @@ export default function LogsPage() {
                       if (r.source_id) setOpenCandidateId(r.source_id);
                       break;
                     case "site":
-                      if (r.source_id) setOpenSiteId(r.source_id);
+                      // v9 final: Site drawer removed. Sites are
+                      // organizational, not operational — navigate to
+                      // the Sites surface where admin can click through
+                      // to the right campus management page.
+                      window.location.href = "/admin/medjobs/sites";
                       break;
                     default:
                       setOpenOutreachId(r.outreach_id);
@@ -309,15 +323,6 @@ export default function LogsPage() {
           candidateId={openCandidateId}
           onClose={() => {
             setOpenCandidateId(null);
-            void refetch();
-          }}
-        />
-      )}
-      {openSiteId && (
-        <Drawer
-          siteId={openSiteId}
-          onClose={() => {
-            setOpenSiteId(null);
             void refetch();
           }}
         />

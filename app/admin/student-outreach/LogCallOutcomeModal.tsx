@@ -95,6 +95,11 @@ const REACHED_THEM: Outcome[] = [
     blurb: "They committed to sharing with students. Capture the evidence below.",
   },
   {
+    key: "convert_to_client",
+    label: "Became a Client ✓",
+    blurb: "They committed to the caregiver-hiring pilot. Marks the provider as a Client and unlocks Partner Prospects for catchment Sites.",
+  },
+  {
     key: "connected_not_interested",
     label: "Not interested",
     blurb: "Closes the row. Cancels remaining email and call tasks.",
@@ -114,12 +119,14 @@ export function LogCallOutcomeModal({
   onCancel,
   onSubmit,
 }: Props) {
-  // v9.0 Phase 2 Tier 3.6: filter out the partner outcome for provider
-  // rows. The rest of the call outcomes apply to both kinds.
-  const reachedThemFiltered =
-    rowKind === "provider"
-      ? REACHED_THEM.filter((o) => o.key !== "convert_to_partner")
-      : REACHED_THEM;
+  // v9 final: provider rows can convert to Client; stakeholder rows
+  // can convert to Partner. They're mutually exclusive — neither
+  // appears on the wrong kind.
+  const reachedThemFiltered = REACHED_THEM.filter((o) => {
+    if (o.key === "convert_to_partner") return rowKind !== "provider";
+    if (o.key === "convert_to_client") return rowKind === "provider";
+    return true;
+  });
   const [outcome, setOutcome] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [evidence, setEvidence] = useState<DistributionEvidence>(DEFAULT_PARTNER_EVIDENCE);

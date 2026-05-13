@@ -293,7 +293,7 @@ function emailLayout(body: string, preheaderText?: string): string {
 /**
  * Generate Email 1 (Initial outreach) HTML
  */
-function generateEmail1(params: {
+export function generateEmail1(params: {
   universityName: string;
   serviceArea: string;
 }): { subject: string; html: string } {

@@ -102,7 +102,6 @@ export function MedJobsTabPage({
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
   const [openProviderId, setOpenProviderId] = useState<string | null>(null);
   const [openCandidateId, setOpenCandidateId] = useState<string | null>(null);
-  const [openSiteId, setOpenSiteId] = useState<string | null>(null);
   const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
 
   const [callOutcomeRow, setCallOutcomeRow] = useState<TabRow | null>(null);
@@ -268,6 +267,25 @@ export function MedJobsTabPage({
         onLogCallOutcome={() => setCallOutcomeRow(row)}
         onClassifyReply={(source) => setClassifierRow({ row, source })}
         onMarkPartner={() => setPartnerRow(row)}
+        onMakeClient={async () => {
+          // Provider conversion shortcut from the row overflow.
+          // Mirrors the drawer's MakeClientFooter — confirm prompt,
+          // make_client action, lazy unlock of catchment Partner
+          // Prospects on next read. No modal because the conversion
+          // doesn't need committment-evidence payload (admin's
+          // judgment call from outreach signals).
+          if (
+            !window.confirm(
+              `Mark ${row.organization_name} as a Client?\n\nThis writes the conversion timestamp on the provider profile and surfaces Partner Prospects for any Site in this provider's catchment.`,
+            )
+          )
+            return;
+          try {
+            await callAction(row.id, "make_client");
+          } catch (e) {
+            setError(e instanceof Error ? e.message : "Action failed");
+          }
+        }}
         onStopOutreach={async (reason) => {
           const action = STOP_OUTREACH_ACTIONS[reason];
           const label = STOP_OUTREACH_LABELS[reason];
@@ -284,6 +302,16 @@ export function MedJobsTabPage({
         onMarkUnread={async () => {
           try { await callAction(row.id, "mark_unread"); }
           catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
+        }}
+        onOpenDirectory={
+          row.kind === "provider" && row.provider_slug
+            ? () => {
+                window.open(`/provider/${row.provider_slug}`, "_blank", "noopener,noreferrer");
+              }
+            : undefined
+        }
+        onSeeLogHistory={() => {
+          window.location.href = `/admin/medjobs/logs?outreach_id=${row.id}`;
         }}
       />
     ),
@@ -315,6 +343,27 @@ export function MedJobsTabPage({
   useEffect(() => {
     if (tabFromUrl && tabFromUrl !== tab) setTab(tabFromUrl);
   }, [tabFromUrl, tab]);
+
+  // Auto-pivot: when counts arrive and the active tab has 0 work,
+  // switch to the first tab that does have work. Without this, the
+  // initialTab="clients" default on the In Basket page would anchor
+  // Clients into the bar even when the only operational work is in
+  // Prospects (or any other tab). Lets smart-hide actually hide
+  // Clients on fresh load.
+  //
+  // Skipped when the URL has an explicit ?tab=... so a deep-link to an
+  // empty tab still works. Once auto-pivot fires, setTabAndUrl writes
+  // ?tab=<picked> to the URL — subsequent count changes won't pivot
+  // again because the URL is now explicit.
+  useEffect(() => {
+    if (!tabCounts) return;
+    if (tabFromUrl != null) return;
+    if ((tabCounts[tab] ?? 0) > 0) return;
+    const firstWithWork = TABS.find((t) => (tabCounts[t.key] ?? 0) > 0);
+    if (firstWithWork && firstWithWork.key !== tab) {
+      setTabAndUrl(firstWithWork.key);
+    }
+  }, [tabCounts, tab, tabFromUrl, setTabAndUrl]);
 
   return (
     <div>
@@ -364,52 +413,57 @@ export function MedJobsTabPage({
           visible when (count > 0) OR it's the active tab. Bolded +
           fraction `unread/total` when unread > 0; muted + plain count
           otherwise. Completed rows leave the tab on status transition,
-          so counts only reflect active work. */}
-      <div className="mb-8 flex items-center border-b border-gray-100">
-        <div className="flex flex-1 items-center gap-1 overflow-x-auto">
-          {visibleTabs.map((t) => {
-            const count = tabCounts?.[t.key] ?? 0;
-            const unread = tabUnreadCounts?.[t.key] ?? 0;
-            const active = t.key === tab;
-            const isUnreadTab = unread > 0;
-            return (
-              <button
-                key={t.key}
-                onClick={() => setTabAndUrl(t.key)}
-                title={t.tooltip}
-                className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm transition-colors ${
-                  // v9.0 Phase 7 Commit E: bold the tab label AND the
-                  // fraction together when unread > 0. Inactive unread
-                  // tabs also darken so the bold actually pops against
-                  // the muted gray-400 default — bold alone on light
-                  // text barely renders. Read tabs stay font-medium +
-                  // gray-400 to keep the inactive zone calm.
-                  isUnreadTab
-                    ? active
-                      ? "border-gray-900 font-semibold text-gray-900"
-                      : "border-transparent font-semibold text-gray-900 hover:text-gray-700"
-                    : active
-                      ? "border-gray-900 font-medium text-gray-900"
-                      : "border-transparent font-medium text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                {t.label}
-                {count > 0 && (
-                  <span
-                    className={`ml-1.5 text-xs tabular-nums ${
-                      isUnreadTab
-                        ? "font-semibold text-gray-900"
-                        : "text-gray-400"
-                    }`}
-                  >
-                    {isUnreadTab ? `${unread}/${count}` : count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+          so counts only reflect active work.
+          Entirely hidden when isInboxEmpty — a fully-clean inbox has
+          no tabs, just the "Everything caught up" empty state. Tabs
+          surface only when actual operational work exists. */}
+      {!isInboxEmpty && (
+        <div className="mb-8 flex items-center border-b border-gray-100">
+          <div className="flex flex-1 items-center gap-1 overflow-x-auto">
+            {visibleTabs.map((t) => {
+              const count = tabCounts?.[t.key] ?? 0;
+              const unread = tabUnreadCounts?.[t.key] ?? 0;
+              const active = t.key === tab;
+              const isUnreadTab = unread > 0;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setTabAndUrl(t.key)}
+                  title={t.tooltip}
+                  className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm transition-colors ${
+                    // v9.0 Phase 7 Commit E: bold the tab label AND the
+                    // fraction together when unread > 0. Inactive unread
+                    // tabs also darken so the bold actually pops against
+                    // the muted gray-400 default — bold alone on light
+                    // text barely renders. Read tabs stay font-medium +
+                    // gray-400 to keep the inactive zone calm.
+                    isUnreadTab
+                      ? active
+                        ? "border-gray-900 font-semibold text-gray-900"
+                        : "border-transparent font-semibold text-gray-900 hover:text-gray-700"
+                      : active
+                        ? "border-gray-900 font-medium text-gray-900"
+                        : "border-transparent font-medium text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  {t.label}
+                  {count > 0 && (
+                    <span
+                      className={`ml-1.5 text-xs tabular-nums ${
+                        isUnreadTab
+                          ? "font-semibold text-gray-900"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      {isUnreadTab ? `${unread}/${count}` : count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Per-tab list rendering. Each tab is a workflow category;
           smart-hide already removed empty ones from the bar.
@@ -498,43 +552,16 @@ export function MedJobsTabPage({
           </p>
         ) : (
           <ul className="space-y-2">
-            {campusBanners.map((c) => {
-              const matching = researchCampuses.find((r) => r.id === c.id);
-              return (
-                <li key={c.id}>
-                  <SiteCard
-                    row={c}
-                    onAddStakeholders={() => {
-                      const payload = matching ?? {
-                        id: c.id,
-                        slug: c.slug,
-                        name: c.name,
-                        state: c.state,
-                        city: c.city,
-                        research_stakeholder_count: c.stakeholder_count,
-                        last_added_at: c.last_added_at,
-                      };
-                      setBulkResearchCampus(payload);
-                    }}
-                    onViewSite={() => setOpenSiteId(c.id)}
-                    overflowMenu={
-                      <CardOverflowMenu
-                        items={[
-                          {
-                            label: "Mark as unread",
-                            onClick: async () => {
-                              await markEntityUnread("site", c.id);
-                              await refetch();
-                              refreshMedJobs();
-                            },
-                          },
-                        ]}
-                      />
-                    }
-                  />
-                </li>
-              );
-            })}
+            {campusBanners.map((c) => (
+              <li key={c.id}>
+                <SiteCard
+                  row={c}
+                  onView={() => {
+                    window.location.href = `/admin/student-outreach/campus/${c.slug}`;
+                  }}
+                />
+              </li>
+            ))}
           </ul>
         )
       ) : tab === "clients" ? (
@@ -623,7 +650,7 @@ export function MedJobsTabPage({
       ) : (
         <ul className="space-y-2">
           {rows.map((row) => (
-            <li key={row.id}>{renderRow(row)}</li>
+            <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
           ))}
         </ul>
       )}
@@ -666,15 +693,6 @@ export function MedJobsTabPage({
           }}
         />
       )}
-      {openSiteId && (
-        <Drawer
-          siteId={openSiteId}
-          onClose={() => {
-            setOpenSiteId(null);
-            void refetch();
-          }}
-        />
-      )}
 
       {callOutcomeRow && (
         <LogCallOutcomeModal
@@ -684,11 +702,15 @@ export function MedJobsTabPage({
           rowKind={callOutcomeRow.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setCallOutcomeRow(null)}
           onSubmit={async (outcome, notes, partner) => {
-            // v9.0 Phase 7 Commit G: partner branch is now self-contained
-            // — log_call lands first, then mark_partner with the evidence
-            // payload. Two POSTs back to back; the previous chained
-            // MarkPartnerModal flow is gone.
-            await callAction(callOutcomeRow.id, "log_call", { outcome, notes });
+            // v9 final: scope the log to this row's specific call task
+            // so the General Contact card and each Specific Contact
+            // card close their own tasks independently. Without
+            // task_id the server falls back to the oldest due call.
+            await callAction(callOutcomeRow.id, "log_call", {
+              outcome,
+              notes,
+              task_id: callOutcomeRow.due_call_task?.id,
+            });
             if (partner) {
               await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
             }

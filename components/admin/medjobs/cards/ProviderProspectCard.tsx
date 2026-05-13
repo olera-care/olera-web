@@ -14,10 +14,8 @@
  *   - CTA:      Start outreach (materializes the row + opens drawer)
  */
 
-import { formatRelative } from "@/lib/student-outreach/formatters";
 import type { ProviderProspectRow } from "@/lib/student-outreach/tab-config";
 import { MedjobsCard } from "./MedjobsCard";
-import { Pill } from "./StakeholderCard";
 
 export function ProviderProspectCard({
   row,
@@ -28,9 +26,15 @@ export function ProviderProspectCard({
   onStartOutreach: () => void;
   overflowMenu?: React.ReactNode;
 }) {
+  // v9 final: subtitle matches the materialized StakeholderCard
+  // pattern ({campus} · Provider) so clicking the card doesn't
+  // visually morph the row. Provider tag lives in the subtitle
+  // rather than as a separate pill (the Pill disappeared after
+  // materialization, creating design drift across the same row).
   const subtitle = [
     [row.city, row.state].filter(Boolean).join(", ") || null,
     row.campus_name,
+    "Provider",
   ]
     .filter(Boolean)
     .join(" · ");
@@ -39,8 +43,6 @@ export function ProviderProspectCard({
     <MedjobsCard
       title={row.provider_name}
       subtitle={subtitle}
-      footnote={`In catchment · provider since ${formatRelative(row.created_at)}`}
-      pill={<Pill title="Provider in this campus's catchment, not yet in outreach.">Provider</Pill>}
       cta={
         <button
           onClick={(e) => {
@@ -56,6 +58,12 @@ export function ProviderProspectCard({
       overflowMenu={overflowMenu}
       onClick={onStartOutreach}
       hoverTitle="Materialize this provider into outreach."
+      // v9 final: virtual prospects are by definition "new — never
+      // touched". Render with the unread bold-black border + bold
+      // title so admin sees them as queued work to triage. Once
+      // materialized + the drawer opens, the resulting row's
+      // viewed_at flips and the bolding clears.
+      unread
     />
   );
 }

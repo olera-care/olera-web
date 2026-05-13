@@ -15,18 +15,15 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MarkPartnerModal } from "./MarkPartnerModal";
-import { AddStakeholderTaskModal } from "./AddStakeholderTaskModal";
-import { OutreachStepList } from "./OutreachStepList";
 import { PreFlightReviewModal } from "./PreFlightReviewModal";
-import { ReplyClassifierModal } from "./ReplyClassifierModal";
-import { LogMeetingModal } from "./LogMeetingModal";
 import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
-import { StepBoardCard } from "@/components/admin/medjobs/StepBoardCard";
+import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
+import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
+import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
+import { DangerZone } from "@/components/admin/medjobs/DangerZone";
 import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import {
-  PARTNER_CTA_STAGES,
   KIND_LABELS,
   STATUS_LABELS,
   type Approval,
@@ -36,7 +33,6 @@ import {
   type ResearchData,
   type StakeholderType,
   type Status,
-  type Task,
 } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
 import {
@@ -48,7 +44,6 @@ import {
   supportsApprovals,
   supportsMultipleContacts,
 } from "@/lib/student-outreach/presets";
-import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 
 interface DrawerProps {
   /** v9.0 Phase 2: stakeholder mode — pass outreachId to load a
@@ -57,9 +52,6 @@ interface DrawerProps {
   /** v9.0 Phase 2: provider mode — pass providerId to load a
    *  business_profiles row and render the Manage panel for a Client. */
   providerId?: string;
-  /** v9.0 Phase 7 Commit B: site mode — pass siteId (a campus_id) to
-   *  render the Site reference + Step Board panel. */
-  siteId?: string;
   /** v9.0 Phase 7 Commit B: candidate mode — pass candidateId (a
    *  student business_profile id) to render the Candidate reference +
    *  Step Board panel. */
@@ -95,9 +87,6 @@ const TERMINAL_STATUSES: Status[] = [
 export function Drawer(props: DrawerProps) {
   if (props.providerId) {
     return <ProviderDrawer providerId={props.providerId} onClose={props.onClose} />;
-  }
-  if (props.siteId) {
-    return <SiteDrawer siteId={props.siteId} onClose={props.onClose} />;
   }
   if (props.candidateId) {
     return <CandidateDrawer candidateId={props.candidateId} onClose={props.onClose} />;
@@ -314,7 +303,15 @@ function StakeholderDrawer({
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : ctx ? (
-        <DrawerBody ctx={ctx} action={action} setError={setError} />
+        ctx.outreach.kind === "provider" ? (
+          <ProviderProspectDrawerBody
+            ctx={ctx}
+            action={action}
+            setError={setError}
+          />
+        ) : (
+          <DrawerBody ctx={ctx} action={action} setError={setError} />
+        )
       ) : null}
     </DrawerShell>
   );
@@ -615,121 +612,14 @@ function ProviderManagePanel({ data }: { data: ProviderDrawerData }) {
   );
 }
 
-// ── Site + Candidate drawers (v9.0 Phase 7 Commit B) ──────────────────
+// ── Candidate drawer (v9.0 Phase 7 Commit B) ──────────────────────────
 //
-// Lightweight non-stakeholder drawers. Each shows a small reference
-// header + the EntityStepBoard for custom follow-up tasks. The full
-// inventory / management surfaces (campus management at
-// /admin/student-outreach/campus/[slug], candidate profile editor at
-// /admin/medjobs/[studentId]) are reachable via header links.
-
-interface SiteDrawerData {
-  id: string;
-  slug: string;
-  name: string;
-  state: string | null;
-  city: string | null;
-  research_complete: boolean;
-  is_active: boolean;
-}
-
-function SiteDrawer({ siteId, onClose }: { siteId: string; onClose: () => void }) {
-  const [data, setData] = useState<SiteDrawerData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    (async () => {
-      try {
-        const res = await fetch(`/api/admin/medjobs/campuses`);
-        if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
-        const body = await res.json();
-        const all = (body.rows ?? []) as Array<{
-          id: string;
-          slug: string;
-          name: string;
-          state: string | null;
-          city: string | null;
-          research_complete: boolean;
-        }>;
-        const found = all.find((c) => c.id === siteId);
-        if (!cancelled) {
-          if (!found) {
-            setError("Site not found");
-          } else {
-            setData({ ...found, is_active: true });
-          }
-        }
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [siteId]);
-
-  // v9.0 Phase 7 Commit O: mark site read on mount.
-  useEffect(() => {
-    void (async () => {
-      try {
-        await fetch("/api/admin/medjobs/mark-entity-read", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ kind: "site", id: siteId, action: "read" }),
-        });
-        refreshMedJobs();
-      } catch {
-        /* non-critical */
-      }
-    })();
-  }, [siteId]);
-
-  return (
-    <DrawerShell
-      onClose={onClose}
-      header={
-        data ? (
-          <>
-            <h2 className="truncate text-lg font-semibold text-gray-900">{data.name}</h2>
-            <p className="truncate text-sm text-gray-500">
-              {[data.city, data.state].filter(Boolean).join(", ") || "Site"}
-            </p>
-            <p className="mt-1 text-xs font-medium text-gray-500">
-              {data.research_complete ? "Active" : "Research in progress"}
-            </p>
-          </>
-        ) : (
-          <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
-        )
-      }
-    >
-      {loading ? (
-        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
-      ) : error ? (
-        <p className="py-8 text-center text-sm text-red-600">{error}</p>
-      ) : data ? (
-        <div className="space-y-6">
-          <EntityStepBoard kind="site" entityId={data.id} entityName={data.name} />
-          <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Open in
-            </h3>
-            <a
-              href={`/admin/student-outreach/campus/${data.slug}`}
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Site management page ↗
-            </a>
-          </section>
-        </div>
-      ) : null}
-    </DrawerShell>
-  );
-}
+// v9 final: Site drawer removed. Sites are organizational anchors,
+// not operational work objects — clicking a Site card now navigates
+// directly to the campus management page (/admin/student-outreach/
+// campus/[slug]) where the stakeholder list lives. The earlier Site
+// drawer wrapped the same data in a Step Board + operational rollup
+// that double-counted the In Basket work surface.
 
 interface CandidateDrawerData {
   id: string;
@@ -925,19 +815,34 @@ function DrawerBody({
       {isResearch ? (
         <ResearchModePanel ctx={ctx} action={action} setError={setError} />
       ) : (
-        <NextStepPanel ctx={ctx} action={action} setError={setError} />
+        // v9: unified NextStepCard replaces the Partner-specific
+        // NextStepPanel. Same modal launchers, stage-driven content,
+        // and shared with the Provider drawer. The pre-launch /
+        // research surface stays in ResearchModePanel for stakeholders
+        // (its readiness-checklist UX is stakeholder-specific) until
+        // the SnapshotCard component lands and unifies that surface
+        // too.
+        //
+        // Cadence step list (formerly inside NextStepPanel's body)
+        // moves to OutreachTimeline (next commit, zone 4 of the
+        // shared skeleton). Temporarily, the cadence visualization
+        // is absent from the Partner drawer between this commit and
+        // the timeline; pending email/call tasks remain visible via
+        // History in More Details.
+        <NextStepCard ctx={ctx} action={action} setError={setError} />
       )}
 
-      {/* v8.10.36: Step Board is the operational surface — workflow steps,
-          follow-ups, relationship-progression items. Same card hierarchy
-          as row cards on Meetings/Replies/Calls/Prospects so it reads as
-          part of the same system. For partners (where Next Step is
-          suppressed) Step Board becomes the leading section in the drawer.
-          v8.10.37: hidden for terminal closed states — adding a step to
-          a closed/DNC stakeholder doesn't fit the workflow. History +
-          Reopen (in NextStepPanel) carry those drawers. */}
+      {/* Zone 4 · OutreachTimeline — the chronological surface. Past
+          touchpoints (with email engagement chips) + future pending
+          tasks (queued emails, calls, custom events) in one stream.
+          Replaces the v8.10.36 TaskBoardSection (custom tasks now fold
+          inline) and the History section (now lives here, not in More
+          Details). Empty-state OK pre-launch.
+          v9.0 Phase 7 Commit (this): hidden for terminal closed states
+          — no future tasks, no operational surface needed; History
+          (in the timeline footer for closed rows) carries the record. */}
       {!TERMINAL_STATUSES.includes(ctx.outreach.status) && (
-        <TaskBoardSection ctx={ctx} action={action} setError={setError} />
+        <OutreachTimeline ctx={ctx} action={action} setError={setError} />
       )}
 
       <div>
@@ -950,19 +855,16 @@ function DrawerBody({
         </button>
         {showMore && (
           <div className="mt-4 space-y-6">
-            {/* v8.10.36: More Details order matches the operational
-                priority (data → history → escape hatch):
-                  1. Research details   — what we know about them
-                  2. Contacts           — who to talk to
-                  3. Approvals          — what they've granted
-                  4. History            — what's happened
-                  5. Close out          — last-resort escape hatch
+            {/* More Details: stakeholder-shape data that doesn't fit the
+                always-on timeline (research details, multi-officer
+                contacts, approval workflow) + the escape hatch. History
+                is absorbed by OutreachTimeline above; no duplicate here.
                 Research stages render ResearchSection at the top via
                 ResearchModePanel; don't duplicate it inside More Details. */}
             {!isResearch && (
               <ResearchSection ctx={ctx} action={action} setError={setError} />
             )}
-            {/* v8.7: Contacts section only for student orgs (multi-officer).
+            {/* Contacts section only for student orgs (multi-officer).
                 Single-contact types render the primary contact inline in
                 ResearchSection to avoid a redundant section. */}
             {supportsMultipleContacts(ctx.outreach.stakeholder_type) && (
@@ -971,7 +873,6 @@ function DrawerBody({
             {supportsApprovals(ctx.outreach.stakeholder_type) && (
               <ApprovalsSection ctx={ctx} action={action} setError={setError} />
             )}
-            <HistorySection ctx={ctx} />
             <DangerZone ctx={ctx} action={action} setError={setError} />
           </div>
         )}
@@ -1128,391 +1029,6 @@ function ResearchModePanel({
 // short paragraph: what's happening + what to do next. The row cards
 // own the actual buttons; the drawer just describes and offers a few
 // always-visible CTAs (Mark Partner, Log meeting outcome).
-
-function NextStepPanel({
-  ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
-  const status = ctx.outreach.status;
-  const type = ctx.outreach.stakeholder_type;
-  const [showPreFlight, setShowPreFlight] = useState(false);
-  const [showPartner, setShowPartner] = useState(false);
-  const [showLogReply, setShowLogReply] = useState(false);
-  const [showLogMeeting, setShowLogMeeting] = useState(false);
-
-  // v8.10.36: drop the entire Next Step section for active partners.
-  // Step Board (rendered immediately below this panel in DrawerBody)
-  // becomes the leading operational surface — no abstract status copy
-  // ("Next seasonal email auto-sends X") competing with it.
-  if (status === "active_partner") return null;
-
-  const partnerCtaVisible = PARTNER_CTA_STAGES.includes(status);
-
-  // v8.10.30: meeting modal pre-fills from the row's current state, just
-  // like the page-level Meetings-tab modal does.
-  const meetingInitialStatus =
-    ctx.meeting_state === "scheduled" ? "booked" : "finding_time";
-  const meetingInitialAt = ctx.meeting_at ? ctx.meeting_at.slice(0, 16) : undefined;
-
-  const primaryContactDisplay = (() => {
-    const c =
-      ctx.contacts.find((x) => x.status === "active") ?? ctx.contacts[0] ?? null;
-    if (!c) return null;
-    return (
-      [c.title, c.first_name, c.last_name].filter(Boolean).join(" ").trim() ||
-      c.name ||
-      null
-    );
-  })();
-
-  return (
-    <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Next step
-      </h3>
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div className="space-y-3 px-4 py-4">
-          <StageGuidance
-            ctx={ctx}
-            onSchedulePreFlight={() => setShowPreFlight(true)}
-            onLogReply={() => setShowLogReply(true)}
-            onLogMeeting={() => setShowLogMeeting(true)}
-            action={action}
-            setError={setError}
-          />
-        </div>
-
-        {/* v8.10.30: Mark as Partner remains as a secondary outline button
-            so the admin can graduate the row from any active stage without
-            funneling through Log reply → committed. The StateCard above
-            carries the unified primary CTA that matches the row's tab. */}
-        {partnerCtaVisible && (
-          <div className="flex flex-wrap gap-2 border-t border-gray-100 bg-gray-50/60 px-4 py-3">
-            <button
-              onClick={() => setShowPartner(true)}
-              title="Click when you're confident they've committed to sharing with students."
-              className="rounded-md border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
-            >
-              Mark as Partner ★
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Modals */}
-      {showPreFlight && (
-        <PreFlightReviewModal
-          stakeholderType={type}
-          organizationName={ctx.outreach.organization_name}
-          campusName={ctx.campus.name}
-          contacts={ctx.contacts}
-          onCancel={() => setShowPreFlight(false)}
-          onSubmit={async (snapshots) => {
-            try {
-              await action("schedule_sequence", { email_snapshots: snapshots });
-              setShowPreFlight(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Schedule failed");
-              throw e;
-            }
-          }}
-        />
-      )}
-      {showPartner && (
-        <MarkPartnerModal
-          organizationName={ctx.outreach.organization_name}
-          onCancel={() => setShowPartner(false)}
-          onConfirm={async (payload) => {
-            try {
-              await action("mark_partner", { ...payload });
-              setShowPartner(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Save failed");
-            }
-          }}
-        />
-      )}
-      {showLogReply && (
-        <ReplyClassifierModal
-          organizationName={ctx.outreach.organization_name}
-          source="email_reply"
-          onCancel={() => setShowLogReply(false)}
-          onSubmit={async (classification, payload, partner) => {
-            try {
-              await action("classify_reply", {
-                classification,
-                notes: payload.notes,
-                meeting_at: payload.meeting_at,
-              });
-              if (partner) {
-                await action("mark_partner", { ...partner });
-              }
-              setShowLogReply(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Save failed");
-              throw e;
-            }
-          }}
-        />
-      )}
-      {showLogMeeting && (
-        <LogMeetingModal
-          organizationName={ctx.outreach.organization_name}
-          contactName={primaryContactDisplay}
-          initialStatus={meetingInitialStatus}
-          initialMeetingAt={meetingInitialAt}
-          onCancel={() => setShowLogMeeting(false)}
-          onSubmit={async (mstatus, payload, partner) => {
-            try {
-              if (mstatus === "booked") {
-                await action("mark_meeting_scheduled", {
-                  meeting_at: payload.meeting_at,
-                  notes: payload.notes,
-                });
-              } else if (mstatus === "finding_time") {
-                await action("flag_wants_meeting", { notes: payload.notes });
-              } else if (mstatus === "done_followup") {
-                await action("mark_meeting_followup", { notes: payload.notes });
-              } else if (mstatus === "done_partner" && partner) {
-                // v9.0 Phase 7 Commit G: done_partner is now a direct
-                // mark_partner — no chained MarkPartnerModal here either.
-                await action("mark_partner", { ...partner });
-              }
-              setShowLogMeeting(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Save failed");
-              throw e;
-            }
-          }}
-        />
-      )}
-    </section>
-  );
-}
-
-// ── Stage guidance ───────────────────────────────────────────────────────
-//
-// v8.3: drives the next-step paragraph entirely off the *pill* state
-// (replies_state / meeting_state from the server) when the row is in
-// outreach_sent / engaged. Other statuses (research / partner / closed)
-// stay status-driven because they don't have a pill substate.
-
-function StageGuidance({
-  ctx,
-  onSchedulePreFlight,
-  onLogReply,
-  onLogMeeting,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  onSchedulePreFlight: () => void;
-  onLogReply: () => void;
-  onLogMeeting: () => void;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
-  const status = ctx.outreach.status;
-  const type = ctx.outreach.stakeholder_type;
-  const handleErr = (p: Promise<unknown>) =>
-    p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
-
-  // Research: prospect → researched
-  if (status === "prospect") {
-    const haveContact = ctx.contacts.some((c) => c.status === "active");
-    const havePrograms = ctx.outreach.programs.length > 0;
-    const haveDept = type === "dept_head" ? Boolean(ctx.outreach.department) : true;
-    const ready = haveContact && havePrograms && haveDept;
-    return (
-      <>
-        <Guidance>
-          <strong>Research this stakeholder.</strong> Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.
-        </Guidance>
-        <ChecklistInline items={[
-          { done: haveContact, label: "At least one active contact added" },
-          { done: havePrograms, label: "Programs selected" },
-          ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
-        ]} />
-        <div className="pt-1">
-          <button
-            onClick={() => handleErr(action("mark_research_complete"))}
-            disabled={!ready}
-            className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
-              ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
-            }`}
-          >
-            {ready ? "✓ Research complete — review email sequence" : "Add a contact + programs to continue"}
-          </button>
-        </div>
-      </>
-    );
-  }
-
-  if (status === "researched") {
-    const eligibleEmail = ctx.contacts.filter((c) => c.status === "active" && c.email).length;
-    const ready = eligibleEmail > 0;
-    return (
-      <>
-        <Guidance>
-          <strong>Ready to email.</strong> Review the {OUTREACH_DAYS_BY_TYPE[type].length}-email sequence and start it. Day 0 sends right away; later days fire automatically.
-        </Guidance>
-        <ChecklistInline items={[
-          { done: ready, label: `Active contact with email (${eligibleEmail} found)` },
-        ]} />
-        <div className="pt-1">
-          <button
-            onClick={onSchedulePreFlight}
-            disabled={!ready}
-            className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
-              ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
-            }`}
-          >
-            {ready ? "Start email sequence →" : "Add a contact with email to continue"}
-          </button>
-        </div>
-      </>
-    );
-  }
-
-  // outreach_sent / engaged / meeting_scheduled: v8.9 always renders the
-  // cadence step list (timeline + dial affordance). When higher-priority
-  // states are active (stale / engaged-reply / wants_meeting / etc), a
-  // contextual banner appears above the step list rather than replacing
-  // it — so the phone number and call-outcome buttons stay reachable
-  // regardless of which sub-state the row is in. Multiple things can be
-  // true at once (e.g. stale on email + call due today); both render.
-  if (status === "outreach_sent" || status === "engaged" || status === "meeting_scheduled") {
-    const m = ctx.meeting_state;
-    const r = ctx.replies_state;
-
-    // v8.10: when a phone call is overdue, the call card in the step list
-    // IS the action — banners would compete with it. Suppress the
-    // stale/engaged/awaiting/wants_meeting/needs_followup banners; keep
-    // meeting_scheduled (carries the meeting date, no call action expected).
-    const now = Date.now();
-    const hasOverdueCall = ctx.pending_tasks.some(
-      (t) => t.task_type === "outreach_followup_call" && new Date(t.due_at).getTime() <= now,
-    );
-
-    // v8.10.30: drawer primary CTAs match the row-card vocabulary so
-    // admin uses the same verb whether they click on a row or open a
-    // drawer. Four labels total: Log reply, Log meeting, Start outreach,
-    // Engage. CTA is computed from the same derived state the queue
-    // uses to assign rows to tabs:
-    //   - Meeting in flight / scheduled / wants_meeting → "Log meeting"
-    //   - Reply states (engaged, needs_followup, awaiting_callback,
-    //     stale) → "Log reply"
-    //   - Mid-cadence with no signal → no CTA (cron is doing the work)
-    const isMeetingState = m === "scheduled" || m === "in_flight" || r === "wants_meeting";
-    const isReplyState =
-      r === "engaged" || r === "needs_followup" || r === "awaiting_callback" || r === "stale";
-
-    let banner: React.ReactNode = null;
-    if (m === "scheduled") {
-      banner = (
-        <StateCard
-          title="Meeting is on the calendar."
-          subtext={
-            ctx.meeting_at
-              ? `Set for ${new Date(ctx.meeting_at).toLocaleString()}.`
-              : "After it happens, log how it went."
-          }
-          primaryCta={{ label: "Log", onClick: onLogMeeting }}
-        />
-      );
-    } else if (hasOverdueCall) {
-      // Single source of truth: the call card. Drop competing banners.
-      banner = null;
-    } else if (m === "in_flight" || r === "wants_meeting") {
-      banner = (
-        <StateCard
-          title="They want to meet."
-          subtext="Send times over email, then log what was set."
-          primaryCta={{ label: "Log", onClick: onLogMeeting }}
-        />
-      );
-    } else if (r === "needs_followup") {
-      banner = (
-        <StateCard
-          title="Met — needs follow-up."
-          subtext="Send a check-in email, then log what they say."
-          notes={ctx.followup_notes}
-          primaryCta={{ label: "Log", onClick: onLogReply }}
-        />
-      );
-    } else if (r === "awaiting_callback") {
-      const kindText = ctx.awaiting_callback_kind === "promised"
-        ? "They said they'd call back."
-        : "You left a voicemail.";
-      banner = (
-        <StateCard
-          title="Waiting on a call back."
-          subtext={`${kindText} If they call or write back, log it.`}
-          primaryCta={{ label: "Log", onClick: onLogReply }}
-        />
-      );
-    } else if (r === "engaged") {
-      banner = (
-        <StateCard
-          title="They replied."
-          subtext="Read it in Gmail, then log what they said."
-          primaryCta={{ label: "Log", onClick: onLogReply }}
-        />
-      );
-    } else if (r === "stale") {
-      banner = (
-        <StateCard
-          title="Cadence stalled."
-          subtext="Send a custom re-engage email, or close the row if it's not moving."
-          primaryCta={{ label: "Log", onClick: onLogReply }}
-        />
-      );
-    }
-    void isMeetingState;
-    void isReplyState;
-
-    return (
-      <>
-        {banner}
-        <OutreachStepList ctx={ctx} action={action} setError={setError} />
-      </>
-    );
-  }
-
-  // v8.10.36: active_partner has no Next Step banner — NextStepPanel
-  // returns null for partners and the Step Board immediately below
-  // becomes the leading operational surface.
-
-  if (status === "no_response_closed" || status === "wrong_contact") {
-    return (
-      <>
-        <Guidance>
-          {status === "no_response_closed"
-            ? <>Closed — no response. {ctx.outreach.reopen_at && `Auto-reopens ${ctx.outreach.reopen_at}.`}</>
-            : "Closed — wrong contact. Add a new contact below and re-open if you find someone reachable."}
-        </Guidance>
-        <PrimaryButton onClick={() => handleErr(action("reopen"))}>Re-open now</PrimaryButton>
-      </>
-    );
-  }
-
-  if (status === "not_interested" || status === "do_not_contact" || status === "redirected") {
-    return (
-      <Guidance>
-        {STATUS_LABELS[status]}. No further outreach. Use the campus view to find related stakeholders or add a new one.
-      </Guidance>
-    );
-  }
-
-  return <Guidance>No actions available in this stage.</Guidance>;
-}
-
-// ── Research section ───────────────────────────────────────────────────
 
 function ResearchSection({
   ctx,
@@ -1850,60 +1366,6 @@ function AddContactInline({
   );
 }
 
-/**
- * Small inline overflow menu for task cards. Mirrors the universal
- * OverflowMenu pattern from page.tsx (top-right ⋯ → dropdown). Closes
- * on outside click. Items support a "danger" tone for destructive
- * actions like Delete.
- */
-function TaskOverflow({
-  items,
-}: {
-  items: Array<{ label: string; onClick: () => void; tone?: "default" | "danger" }>;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const handle = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
-  }, [open]);
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen((s) => !s)}
-        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-        title="More actions"
-        aria-label="More actions"
-      >
-        <span className="text-base leading-none">⋯</span>
-      </button>
-      {open && (
-        <div className="absolute right-0 top-full z-10 mt-1 min-w-[140px] overflow-hidden rounded-md border border-gray-100 bg-white shadow-lg">
-          {items.map((item) => (
-            <button
-              key={item.label}
-              onClick={() => {
-                item.onClick();
-                setOpen(false);
-              }}
-              className={`block w-full px-3 py-1.5 text-left text-xs font-medium ${
-                item.tone === "danger"
-                  ? "text-red-700 hover:bg-red-50"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── Approvals (advisor + dept_head) ────────────────────────────────────
 
@@ -2301,364 +1763,9 @@ function ApprovalRow({
   );
 }
 
-// ── Step Board (v8.10.36) ──────────────────────────────────────────────
-//
-// Top-level drawer section listing every pending workflow step on the
-// stakeholder using the same card hierarchy as row cards. Steps are the
-// operational unit here: external task-board posts, custom follow-ups,
-// scheduled cadence emails / calls / seasonals. Each TaskCard renders
-// headline + subtitle + footnote, with ⋯ overflow top-right and the
-// per-type primary CTA bottom-right. Scheduled passive items use a
-// muted variant (no CTA, lighter text) so admin's operational priorities
-// lead.
 
-// v9.0 Phase 7 Commit F: TaskCard moved to StepBoardCard
-// (components/admin/medjobs/StepBoardCard.tsx) so the stakeholder
-// TaskBoardSection and the EntityStepBoard share one chrome. Local
-// alias retained so the rest of this file's call sites don't need
-// to change shape.
-const TaskCard = StepBoardCard;
 
-function TaskBoardSection({
-  ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
-  const [showAdd, setShowAdd] = useState(false);
-  const [editingTask, setEditingTask] = useState<{ id: string; text: string } | null>(null);
-  const actionable = useMemo(
-    () =>
-      ctx.pending_tasks.filter((t) => {
-        const reason = (t.payload as Record<string, unknown> | null)?.reason;
-        if (t.task_type === "manual_followup" && reason === "custom") return true;
-        if (t.task_type === "partner_share_update" && reason === "job_board_post") return true;
-        return false;
-      }),
-    [ctx.pending_tasks],
-  );
-  const scheduled = useMemo(
-    () =>
-      ctx.pending_tasks
-        .filter((t) => !actionable.includes(t))
-        .sort((a, b) => a.due_at.localeCompare(b.due_at)),
-    [ctx.pending_tasks, actionable],
-  );
-  const handleErr = (p: Promise<unknown>) =>
-    p.catch((e) => setError(e instanceof Error ? e.message : "Action failed"));
 
-  const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
-  const contactDisplay = primary
-    ? [primary.title, primary.first_name, primary.last_name]
-        .filter(Boolean)
-        .join(" ")
-        .trim() || primary.name || null
-    : null;
-
-  const overdueTone = (
-    <span className="rounded bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-900">
-      Overdue
-    </span>
-  );
-
-  const renderActionable = (t: Task) => {
-    const reason = (t.payload as Record<string, unknown> | null)?.reason;
-    const overdue = new Date(t.due_at).getTime() < Date.now();
-    const cta = (
-      <button
-        onClick={() =>
-          handleErr(
-            t.task_type === "partner_share_update"
-              ? action("mark_job_board_posted")
-              : action("complete_task", { task_id: t.id }),
-          )
-        }
-        className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
-      >
-        {t.task_type === "partner_share_update" ? "Mark posted" : "Done"}
-      </button>
-    );
-
-    if (t.task_type === "partner_share_update" && reason === "job_board_post") {
-      return (
-        <TaskCard
-          key={t.id}
-          headline={`Post to ${ctx.campus.name} task board`}
-          subtitle="Olera's clinical-experience listing"
-          footnote={`Permission granted ${relativeTime(t.created_at)}`}
-          pill={overdue ? overdueTone : undefined}
-          overflow={
-            <TaskOverflow
-              items={[
-                {
-                  label: "Delete step",
-                  onClick: () => handleErr(action("cancel_task", { task_id: t.id })),
-                  tone: "danger",
-                },
-              ]}
-            />
-          }
-          cta={cta}
-        />
-      );
-    }
-    const text = String(
-      (t.payload as Record<string, unknown> | null)?.notes ??
-        (t.payload as Record<string, unknown> | null)?.description ??
-        "(no description)",
-    );
-    return (
-      <TaskCard
-        key={t.id}
-        headline={text}
-        subtitle="Custom step"
-        footnote={`Added ${relativeTime(t.created_at)}`}
-        pill={overdue ? overdueTone : undefined}
-        overflow={
-          <TaskOverflow
-            items={[
-              { label: "Edit step", onClick: () => setEditingTask({ id: t.id, text }) },
-              {
-                label: "Delete step",
-                onClick: () => handleErr(action("cancel_task", { task_id: t.id })),
-                tone: "danger",
-              },
-            ]}
-          />
-        }
-        cta={cta}
-      />
-    );
-  };
-
-  return (
-    <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Step Board
-      </h3>
-      <div className="space-y-2">
-        {actionable.length === 0 && scheduled.length === 0 ? (
-          <p className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-xs text-gray-400">
-            No steps yet. Add one to remind yourself of a follow-up.
-          </p>
-        ) : (
-          <>
-            {actionable.map(renderActionable)}
-            {scheduled.map((t) => (
-              <TaskCard
-                key={t.id}
-                muted
-                headline={scheduledTaskLabel(t)}
-                subtitle="Auto-scheduled — runs on its own."
-                footnote={`Sends ${formatDueAt(t.due_at)}`}
-              />
-            ))}
-          </>
-        )}
-        <button
-          onClick={() => setShowAdd(true)}
-          className="w-full rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
-        >
-          + Add step
-        </button>
-      </div>
-
-      {showAdd && (
-        <AddStakeholderTaskModal
-          organizationName={ctx.outreach.organization_name}
-          contactName={contactDisplay}
-          onCancel={() => setShowAdd(false)}
-          onSubmit={async (text) => {
-            await action("queue_manual_task", {
-              task_type: "manual_followup",
-              due_at: new Date().toISOString(),
-              notes: text,
-            });
-            setShowAdd(false);
-          }}
-        />
-      )}
-      {editingTask && (
-        <AddStakeholderTaskModal
-          organizationName={ctx.outreach.organization_name}
-          contactName={contactDisplay}
-          initialText={editingTask.text}
-          onCancel={() => setEditingTask(null)}
-          onSubmit={async (text) => {
-            // Cancel-then-create. New task gets a new ID; history shows
-            // the cancellation + the new queue. For MVP this is fine —
-            // admins typically edit shortly after creating.
-            await action("cancel_task", { task_id: editingTask.id });
-            await action("queue_manual_task", {
-              task_type: "manual_followup",
-              due_at: new Date().toISOString(),
-              notes: text,
-            });
-            setEditingTask(null);
-          }}
-        />
-      )}
-    </section>
-  );
-}
-
-/**
- * v8.10.29: Human label for a scheduled (non-actionable) pending task.
- * Renders as a passive ⏳ row inside Tasks. We intentionally don't expose
- * actions here — auto-cadence emails are managed via OutreachStepList,
- * calls via the Calls tab, seasonals via the cron.
- */
-function scheduledTaskLabel(t: Task): string {
-  const payload = (t.payload ?? {}) as Record<string, unknown>;
-  switch (t.task_type) {
-    case "outreach_email_send": {
-      const day = typeof payload.day === "number" ? payload.day : null;
-      if (day === -1) {
-        const season = typeof payload.season === "string" ? payload.season : null;
-        return season ? `Seasonal email · ${season}` : "Seasonal email";
-      }
-      return day !== null ? `Cadence email · Day ${day}` : "Outreach email";
-    }
-    case "outreach_followup_call":
-      return typeof payload.day === "number"
-        ? `Follow-up call · Day ${payload.day}`
-        : "Follow-up call";
-    case "partner_seasonal_checkin":
-      return "Seasonal check-in";
-    case "partner_event_coordination":
-      return "Event coordination";
-    case "partner_share_update":
-      return "Share update";
-    case "yearly_leadership_recheck":
-      return "Yearly leadership re-check";
-    case "approval_request_followup":
-      return "Approval follow-up";
-    case "manual_followup":
-      return typeof payload.notes === "string" ? String(payload.notes) : "Follow-up";
-    default:
-      return t.task_type.replaceAll("_", " ");
-  }
-}
-
-function formatDueAt(iso: string): string {
-  const ms = new Date(iso).getTime() - Date.now();
-  if (Math.abs(ms) < 60_000) return "now";
-  const mins = Math.round(ms / 60_000);
-  if (mins < 0) {
-    const past = Math.abs(mins);
-    if (past < 60) return `${past}m overdue`;
-    const hr = Math.round(past / 60);
-    if (hr < 24) return `${hr}h overdue`;
-    const d = Math.round(hr / 24);
-    return `${d}d overdue`;
-  }
-  if (mins < 60) return `in ${mins}m`;
-  const hr = Math.round(mins / 60);
-  if (hr < 24) return `in ${hr}h`;
-  const d = Math.round(hr / 24);
-  if (d < 14) return `in ${d}d`;
-  return new Date(iso).toLocaleDateString();
-}
-
-// ── History (with narration) ───────────────────────────────────────────
-
-function HistorySection({ ctx }: { ctx: DrawerContext }) {
-  const adminFirstNames = useMemo(
-    () => new Map(Object.entries(ctx.admin_first_names ?? {})),
-    [ctx.admin_first_names],
-  );
-  const contactsById = useMemo(
-    () => new Map(ctx.contacts.map((c) => [c.id, c])),
-    [ctx.contacts],
-  );
-
-  return (
-    <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        History
-      </h3>
-      {ctx.touchpoints.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-400">
-          No touchpoints yet.
-        </p>
-      ) : (
-        <ul className="space-y-1.5">
-          {ctx.touchpoints.map((t) => {
-            const n = narrateTouchpoint(t, { adminFirstNames, contactsById });
-            return (
-              <li key={t.id} className="rounded-md border border-gray-100 bg-white px-3 py-2 text-sm">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-gray-700">{n.text}</span>
-                  <span className="shrink-0 whitespace-nowrap text-xs text-gray-400">
-                    {n.admin && <span className="mr-2 text-gray-500">{n.admin}</span>}
-                    {relativeTime(n.whenIso)}
-                  </span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-function relativeTime(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime();
-  const min = Math.round(ms / 60_000);
-  if (min < 1) return "just now";
-  if (min < 60) return `${min}m ago`;
-  const hr = Math.round(min / 60);
-  if (hr < 24) return `${hr}h ago`;
-  const d = Math.round(hr / 24);
-  if (d < 14) return `${d}d ago`;
-  return new Date(iso).toLocaleDateString();
-}
-
-// ── Danger zone ────────────────────────────────────────────────────────
-
-function DangerZone({
-  ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
-  const status = ctx.outreach.status;
-  const terminals: Status[] = ["not_interested", "do_not_contact", "wrong_contact", "redirected", "no_response_closed"];
-  if (terminals.includes(status)) return null;
-
-  const confirm = (msg: string, fn: () => Promise<unknown>) => {
-    if (window.confirm(msg)) fn().catch((e) => setError(e instanceof Error ? e.message : "Failed"));
-  };
-
-  return (
-    <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Close out
-      </h3>
-      <div className="flex flex-wrap gap-2 rounded-lg border border-gray-200 bg-white p-4">
-        <SecondaryButton onClick={() => confirm("Mark Not Interested?", () => action("mark_not_interested"))}>
-          Not interested
-        </SecondaryButton>
-        <SecondaryButton onClick={() => confirm("Close as No Response (re-open in 90d)?", () => action("mark_no_response_closed"))}>
-          Close: no response
-        </SecondaryButton>
-        <SecondaryButton onClick={() => confirm("Mark all known contacts wrong / unreachable?", () => action("mark_wrong_contact"))}>
-          Wrong contact
-        </SecondaryButton>
-        <DangerButton onClick={() => confirm("Mark Do Not Contact (hard stop)?", () => action("mark_dnc"))}>
-          DNC (hard stop)
-        </DangerButton>
-      </div>
-    </section>
-  );
-}
 
 // v8.10.30: FollowupNotesModal removed. The "needs follow-up" path is
 // now part of LogMeetingModal's done_followup outcome — admin uses the
@@ -2666,47 +1773,13 @@ function DangerZone({
 
 // ── UI primitives ──────────────────────────────────────────────────────
 
+
+
+
+// ── Research-mode helpers (still used by ResearchSection) ──────────────
+
 function Guidance({ children }: { children: React.ReactNode }) {
   return <p className="text-sm text-gray-700 leading-relaxed">{children}</p>;
-}
-
-/**
- * v8.10.29: state-driven contextual card. Short title + 1-line subtext +
- * (optional) prominent meeting note quote + (optional) primary CTA that
- * matches the actual next move for this state.
- */
-function StateCard({
-  title,
-  subtext,
-  notes,
-  primaryCta,
-}: {
-  title: string;
-  subtext: string;
-  notes?: string | null;
-  primaryCta?: { label: string; onClick: () => void };
-}) {
-  return (
-    <div className="space-y-2">
-      <div>
-        <p className="text-sm font-semibold text-gray-900">{title}</p>
-        <p className="text-sm text-gray-600">{subtext}</p>
-      </div>
-      {notes && (
-        <p className="rounded-md bg-gray-50 px-3 py-2 text-xs italic text-gray-700">
-          From the meeting: &ldquo;{notes}&rdquo;
-        </p>
-      )}
-      {primaryCta && (
-        <button
-          onClick={primaryCta.onClick}
-          className="w-full rounded-md bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-700"
-        >
-          {primaryCta.label}
-        </button>
-      )}
-    </div>
-  );
 }
 
 function ChecklistInline({ items }: { items: Array<{ done: boolean; label: string }> }) {

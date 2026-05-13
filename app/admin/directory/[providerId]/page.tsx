@@ -27,6 +27,8 @@ interface ImageMetadata {
   review_status: string;
 }
 
+type ProviderSource = "scraped" | "user-created";
+
 export default function AdminDirectoryDetailPage() {
   const { providerId } = useParams<{ providerId: string }>();
   const router = useRouter();
@@ -39,6 +41,7 @@ export default function AdminDirectoryDetailPage() {
   const [rawImages, setRawImages] = useState<string[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [source, setSource] = useState<ProviderSource>("scraped");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Owner/staff state (stored in business_profiles.metadata.staff)
@@ -82,6 +85,7 @@ export default function AdminDirectoryDetailPage() {
       setOriginalData({ ...data.provider });
       setImages(data.images ?? []);
       setRawImages(data.rawImages ?? []);
+      setSource(data.source === "user-created" ? "user-created" : "scraped");
 
       // Populate staff/owner data
       const staff = data.staffData as Record<string, string> | null;
@@ -343,6 +347,75 @@ export default function AdminDirectoryDetailPage() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-lg text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  if (source === "user-created") {
+    // Lite mode for providers who self-registered via business_profiles without
+    // claiming a scraped listing. The full editing surface assumes olera-providers
+    // shape and isn't safe to render against a BP row. Comms timeline is the
+    // load-bearing reason this page exists — user-created providers get emails
+    // and produce activity events exactly like scraped ones.
+    const bp = formData as Record<string, unknown>;
+    const displayName = (bp.display_name as string) || "Provider";
+    const bpSlug = typeof bp.slug === "string" ? bp.slug : null;
+    const city = (bp.city as string) || null;
+    const state = (bp.state as string) || null;
+    const claimState = (bp.claim_state as string) || null;
+    return (
+      <div className="max-w-4xl">
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            href="/admin/directory"
+            className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Directory
+          </Link>
+          {bpSlug && (
+            <Link
+              href={`/provider/${bpSlug}`}
+              target="_blank"
+              className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Open public page &rarr;
+            </Link>
+          )}
+        </div>
+
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+              User-created
+            </span>
+            {claimState && (
+              <Badge variant={claimState === "claimed" ? "verified" : "default"}>
+                {claimState}
+              </Badge>
+            )}
+            {(city || state) && (
+              <span className="text-sm text-gray-600">
+                {[city, state].filter(Boolean).join(", ")}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mb-6 text-sm text-amber-800">
+          This provider self-registered without claiming a scraped listing. The full
+          editing surface isn&apos;t available here yet — use{" "}
+          <Link href="/admin/verification" className="font-medium underline">/admin/verification</Link>
+          {" "}for claim review.
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Comms timeline</h2>
+          <ProviderCommsTimeline providerId={providerId} viewAllEmailsHref={`/admin/emails?provider_id=${providerId}`} />
+        </div>
       </div>
     );
   }

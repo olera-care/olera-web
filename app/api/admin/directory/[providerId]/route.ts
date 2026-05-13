@@ -34,6 +34,16 @@ const EDITABLE_FIELDS = new Set([
  * GET /api/admin/directory/[providerId]
  *
  * Full provider detail with image metadata.
+ *
+ * Two source shapes possible:
+ *   - `source: "scraped"` — providerId resolves to an `olera-providers` row.
+ *     `provider` carries the full olera-providers shape (matches `DirectoryProvider`).
+ *   - `source: "user-created"` — no olera-providers row, but providerId resolves to
+ *     a `business_profiles` row by primary key (UUID). `provider` carries the BP shape
+ *     (display_name, slug, contact info, etc.) — NOT the olera-providers shape. The
+ *     admin page renders a stripped-down "lite" view in this case (no editing form,
+ *     no image manager) — the Comms timeline is still the primary destination.
+ *     PATCH handler does not yet support user-created providers; they stay read-only.
  */
 export async function GET(
   request: NextRequest,
@@ -53,64 +63,93 @@ export async function GET(
     const { providerId } = await params;
     const db = getServiceClient();
 
-    // Get full provider record
-    const { data: provider, error: providerError } = await db
+    // Try olera-providers first (the canonical "scraped" path).
+    const { data: provider } = await db
       .from("olera-providers")
       .select("*")
       .eq("provider_id", providerId)
-      .single();
+      .maybeSingle();
 
-    if (providerError || !provider) {
+    if (provider) {
+      // Get classified image metadata
+      let images: Record<string, unknown>[] = [];
+      try {
+        const { data, error: imagesError } = await db
+          .from("provider_image_metadata")
+          .select("*")
+          .eq("provider_id", providerId)
+          .order("quality_score", { ascending: false });
+
+        if (!imagesError && data) {
+          images = data;
+        }
+      } catch {
+        // Table may not exist yet
+      }
+
+      // Parse raw images from the provider record
+      const rawImages: string[] = [];
+      if (provider.provider_logo) {
+        rawImages.push(provider.provider_logo);
+      }
+      if (provider.provider_images) {
+        const parsed = (provider.provider_images as string)
+          .split(" | ")
+          .map((u: string) => u.trim())
+          .filter(Boolean);
+        for (const url of parsed) {
+          if (url !== provider.provider_logo) rawImages.push(url);
+        }
+      }
+
+      // Fetch linked business_profiles record for owner/staff metadata
+      let staffData = null;
+      let businessProfileId: string | null = null;
+      const { data: bp } = await db
+        .from("business_profiles")
+        .select("id, metadata")
+        .eq("source_provider_id", providerId)
+        .limit(1)
+        .maybeSingle();
+      if (bp) {
+        businessProfileId = bp.id;
+        const meta = (bp.metadata || {}) as Record<string, unknown>;
+        staffData = meta.staff || null;
+      }
+
+      return NextResponse.json({
+        provider,
+        images,
+        rawImages,
+        staffData,
+        businessProfileId,
+        source: "scraped",
+      });
+    }
+
+    // Fallback: providerId is likely a business_profiles UUID (rows where the
+    // user self-registered without claiming a scraped listing). The directory
+    // list now routes these into the admin detail page instead of opening the
+    // public page in a new tab.
+    const { data: bp } = await db
+      .from("business_profiles")
+      .select("*")
+      .eq("id", providerId)
+      .maybeSingle();
+
+    if (!bp) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
 
-    // Get classified image metadata
-    let images: Record<string, unknown>[] = [];
-    try {
-      const { data, error: imagesError } = await db
-        .from("provider_image_metadata")
-        .select("*")
-        .eq("provider_id", providerId)
-        .order("quality_score", { ascending: false });
-
-      if (!imagesError && data) {
-        images = data;
-      }
-    } catch {
-      // Table may not exist yet
-    }
-
-    // Parse raw images from the provider record
-    const rawImages: string[] = [];
-    if (provider.provider_logo) {
-      rawImages.push(provider.provider_logo);
-    }
-    if (provider.provider_images) {
-      const parsed = (provider.provider_images as string)
-        .split(" | ")
-        .map((u: string) => u.trim())
-        .filter(Boolean);
-      for (const url of parsed) {
-        if (url !== provider.provider_logo) rawImages.push(url);
-      }
-    }
-
-    // Fetch linked business_profiles record for owner/staff metadata
-    let staffData = null;
-    let businessProfileId: string | null = null;
-    const { data: bp } = await db
-      .from("business_profiles")
-      .select("id, metadata")
-      .eq("source_provider_id", providerId)
-      .limit(1)
-      .maybeSingle();
-    if (bp) {
-      businessProfileId = bp.id;
-      const meta = (bp.metadata || {}) as Record<string, unknown>;
-      staffData = meta.staff || null;
-    }
-
-    return NextResponse.json({ provider, images, rawImages, staffData, businessProfileId });
+    const meta = (bp.metadata || {}) as Record<string, unknown>;
+    return NextResponse.json({
+      provider: bp,
+      images: [],
+      rawImages: [],
+      staffData: meta.staff || null,
+      businessProfileId: bp.id,
+      source: "user-created",
+    });
   } catch (err) {
     console.error("Directory detail error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -56,6 +56,12 @@ interface Props {
     outcome: string,
     notes: string,
     partner?: PartnerEvidence,
+    /**
+     * P1: when admin picks "Meeting scheduled" outcome, optional ISO
+     * timestamp from the datetime input. Parent dispatches
+     * mark_meeting_scheduled with this value instead of log_call.
+     */
+    meetingAt?: string | null,
   ) => Promise<void>;
 }
 
@@ -93,6 +99,11 @@ const REACHED_THEM: Outcome[] = [
     key: "connected_engaged",
     label: "Interested",
     blurb: "Stops the email and call cadence. Use the reply-classifier next.",
+  },
+  {
+    key: "meeting_scheduled",
+    label: "Meeting scheduled",
+    blurb: "They agreed to a meeting on the call. Row moves to Meetings; cadence stops.",
   },
   {
     key: "convert_to_partner",
@@ -148,12 +159,14 @@ export function LogCallOutcomeModal({
   });
   const [outcome, setOutcome] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
+  const [meetingAt, setMeetingAt] = useState("");
   const [evidence, setEvidence] = useState<DistributionEvidence>(DEFAULT_PARTNER_EVIDENCE);
   const [evidenceNotes, setEvidenceNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isPartner = outcome === "convert_to_partner";
+  const isMeetingScheduled = outcome === "meeting_scheduled";
 
   const submit = async () => {
     if (!outcome) {
@@ -167,6 +180,11 @@ export function LogCallOutcomeModal({
         outcome,
         notes.trim(),
         isPartner ? { evidence, evidence_notes: evidenceNotes.trim() } : undefined,
+        isMeetingScheduled && meetingAt
+          ? new Date(meetingAt).toISOString()
+          : isMeetingScheduled
+            ? null
+            : undefined,
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
@@ -236,6 +254,22 @@ export function LogCallOutcomeModal({
         selected={outcome}
         onSelect={setOutcome}
       />
+      {isMeetingScheduled && (
+        <label className="block pt-2">
+          <span className="mb-1 block text-xs font-medium text-gray-600">
+            Meeting date &amp; time (optional)
+          </span>
+          <input
+            type="datetime-local"
+            value={meetingAt}
+            onChange={(e) => setMeetingAt(e.target.value)}
+            className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+          />
+          <span className="mt-1 block text-[11px] text-gray-500">
+            Leave blank — we&rsquo;ll just mark it scheduled.
+          </span>
+        </label>
+      )}
       <label className="block pt-2">
         <span className="mb-1 block text-xs font-medium text-gray-600">
           Notes (optional)

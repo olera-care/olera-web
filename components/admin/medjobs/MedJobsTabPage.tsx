@@ -721,10 +721,17 @@ export function MedJobsTabPage({
           contactPhone={callOutcomeRow.primary_contact_phone}
           rowKind={callOutcomeRow.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setCallOutcomeRow(null)}
-          onSubmit={async (outcome, notes, partner) => {
+          onSubmit={async (outcome, notes, partner, meetingAt) => {
             // R5: terminal admin overrides dispatched directly.
             if (outcome === "mark_dnc" || outcome === "mark_no_response_closed") {
               await callAction(callOutcomeRow.id, outcome, { notes });
+            } else if (outcome === "meeting_scheduled") {
+              // P1: call-driven meeting commitment dispatches
+              // mark_meeting_scheduled directly.
+              await callAction(callOutcomeRow.id, "mark_meeting_scheduled", {
+                meeting_at: meetingAt ?? null,
+                notes,
+              });
             } else {
               // v9 final: scope the log to this row's specific call task
               // so the General Contact card and each Specific Contact

@@ -748,13 +748,21 @@ function CallDueBody({
           contactPhone={primaryContact?.phone ?? null}
           rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setShowLogCall(false)}
-          onSubmit={async (outcome, notes) => {
+          onSubmit={async (outcome, notes, _partner, meetingAt) => {
             try {
               // R5: terminal admin overrides dispatched as their own
               // actions; everything else flows through log_call_outcome
               // as before.
               if (outcome === "mark_dnc" || outcome === "mark_no_response_closed") {
                 await action(outcome, { notes });
+              } else if (outcome === "meeting_scheduled") {
+                // P1: call-driven meeting commitment dispatches
+                // mark_meeting_scheduled directly so the row moves to
+                // Meetings as booked with the optional datetime.
+                await action("mark_meeting_scheduled", {
+                  meeting_at: meetingAt ?? null,
+                  notes,
+                });
               } else {
                 await action("log_call_outcome", { outcome, notes });
               }

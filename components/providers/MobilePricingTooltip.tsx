@@ -70,9 +70,9 @@ export default function MobilePricingTooltip({
       </div>
       <span className="text-xs text-gray-400">{bottomText}</span>
 
-      {/* Tooltip */}
+      {/* Tooltip - centered below, constrained to viewport */}
       {showTooltip && (
-        <div className="absolute top-full mt-2 z-30 w-[min(18rem,calc(100vw-3rem))] right-1/2 translate-x-1/2">
+        <div className="absolute top-full mt-2 z-30 w-[min(18rem,calc(100vw-3rem))] left-1/2 -translate-x-1/2">
           <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
             <p>{tooltipContent}</p>
           </div>

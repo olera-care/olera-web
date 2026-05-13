@@ -23,6 +23,7 @@
 
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { getCronJob } from "@/lib/crons/registry";
 
 type Summary = Record<string, unknown>;
 
@@ -126,6 +127,35 @@ async function finishRun(
 }
 
 /**
+ * Link every email_log row this run produced back to the cron_runs row, so the
+ * Console can show a per-recipient table for any run. We don't thread a run id
+ * through sendEmail — instead, at run-end, we claim every email_log row whose
+ * email_type is one this job sends, created since the run started, not already
+ * claimed. Two overlapping runs of the same job (rare — Vercel doesn't re-enter
+ * a running cron; manual double-fires are the only realistic case) would race
+ * for the overlap and whoever finishes first wins — acceptable fuzz for an
+ * observability surface. Best-effort: a failure here (incl. the column not
+ * existing yet) is logged and swallowed, never breaks the job.
+ */
+async function stampEmails(jobId: string, runId: string | null, startedAt: string): Promise<void> {
+  if (!runId) return;
+  const job = getCronJob(jobId);
+  if (!job || job.emailTypes.length === 0) return;
+  try {
+    const db = getServiceClient();
+    const { error } = await db
+      .from("email_log")
+      .update({ cron_run_id: runId })
+      .in("email_type", job.emailTypes)
+      .gte("created_at", startedAt)
+      .is("cron_run_id", null);
+    if (error) console.error(`[cron:${jobId}] failed to stamp email_log rows for run ${runId}:`, error);
+  } catch (err) {
+    console.error(`[cron:${jobId}] failed to stamp email_log rows for run ${runId}:`, err);
+  }
+}
+
+/**
  * Wrap a cron handler. `fn` may either:
  *   - return a plain summary object (the clean pattern — that object is both the
  *     HTTP body and the cron_runs.summary, and a thrown error marks the run as
@@ -157,6 +187,7 @@ export async function withCronRun(
     });
   }
 
+  const startedAt = new Date().toISOString();
   const runId = await insertRun(jobId, triggeredBy, "running");
 
   try {
@@ -176,15 +207,18 @@ export async function withCronRun(
         summary,
         isErr ? (typeof summary?.error === "string" ? summary.error : `HTTP ${result.status}`) : null,
       );
+      await stampEmails(jobId, runId, startedAt);
       return result;
     }
     const summary = (result ?? {}) as Summary;
     await finishRun(jobId, runId, "ok", summary, null);
+    await stampEmails(jobId, runId, startedAt);
     return NextResponse.json(summary);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error(`[cron:${jobId}] run failed:`, err);
     await finishRun(jobId, runId, "error", {}, message);
+    await stampEmails(jobId, runId, startedAt); // partial sends before the throw still get linked
     return NextResponse.json({ error: "Internal server error", job: jobId }, { status: 500 });
   }
 }

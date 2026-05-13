@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 type Fn = "nudge" | "alert" | "digest" | "outreach" | "refresh" | "maintenance";
 interface Rollup {
@@ -57,24 +57,31 @@ function timeAgo(iso: string | null): string {
   if (m < 60) return `${m}m ago`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
 }
 function pct(n: number, of: number): string {
   return of <= 0 ? "—" : `${Math.round((n / of) * 100)}%`;
 }
-function summaryLine(s: Record<string, unknown> | null): string {
+function runResult(s: Record<string, unknown> | null): string {
   if (!s) return "";
   const parts: string[] = [];
-  if (typeof s.processed === "number") parts.push(`processed ${s.processed}`);
-  if (typeof s.sent === "number") parts.push(`sent ${s.sent}`);
-  if (typeof s.skipped === "number") parts.push(`skipped ${s.skipped}`);
+  if (typeof s.sent === "number") parts.push(`${s.sent.toLocaleString()} sent`);
+  if (typeof s.skipped === "number" && s.skipped > 0) parts.push(`${s.skipped.toLocaleString()} skipped`);
+  if (parts.length === 0 && typeof s.processed === "number") parts.push(`${s.processed.toLocaleString()} processed`);
+  if (s.dry_run === true) parts.push("dry run");
   if (s.reason) parts.push(String(s.reason));
   return parts.join(" · ");
 }
-function statusBadge(j: Job): { label: string; cls: string } {
-  if (j.paused) return { label: "Paused", cls: "bg-amber-100 text-amber-700" };
-  if (j.lastRun?.status === "error" || j.errors30d > 0) return { label: "Errors", cls: "bg-red-100 text-red-700" };
-  return { label: "Active", cls: "bg-emerald-50 text-emerald-700" };
+function jobDot(j: Job): string {
+  if (j.paused) return "bg-amber-400";
+  if (j.lastRun?.status === "error" || j.errors30d > 0) return "bg-red-500";
+  if (j.lastRun?.status === "running") return "bg-blue-500";
+  return "bg-emerald-500";
+}
+function jobHasErr(j: Job): boolean {
+  return j.lastRun?.status === "error" || j.errors30d > 0;
 }
 
 const COLLAPSE_KEY = "automations:collapsed";
@@ -82,9 +89,39 @@ type Filter = "all" | "email" | "errored" | "paused";
 
 function Chevron({ open }: { open: boolean }) {
   return (
-    <svg width="10" height="10" viewBox="0 0 10 10" className={`transition-transform ${open ? "rotate-90" : ""}`} fill="none">
+    <svg width="10" height="10" viewBox="0 0 10 10" className={`shrink-0 transition-transform ${open ? "rotate-90" : ""}`} fill="none">
       <path d="M3 1.5 L7 5 L3 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
+  );
+}
+
+function StatCard({ value, label, sub, danger, muted, onClick, active }: { value: ReactNode; label: string; sub?: string; danger?: boolean; muted?: boolean; onClick?: () => void; active?: boolean }) {
+  const clickable = !!onClick;
+  return (
+    <div
+      onClick={onClick}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick!(); } } : undefined}
+      className={`rounded-xl border bg-white px-4 py-3 ${active ? "border-gray-900" : "border-gray-200"} ${clickable ? "cursor-pointer transition-colors hover:bg-gray-50" : ""}`}
+    >
+      <div className={`text-2xl font-semibold leading-none tabular-nums ${danger ? "text-red-600" : muted ? "text-gray-300" : "text-gray-900"}`}>{value}</div>
+      <div className="mt-1.5 text-xs text-gray-500">{label}{sub && <span className="text-gray-400"> · {sub}</span>}</div>
+    </div>
+  );
+}
+
+function Skeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-[68px] rounded-xl bg-gray-100" />)}
+      </div>
+      <div className="mt-5 h-8 w-72 rounded bg-gray-100" />
+      <div className="mt-6 space-y-5">
+        {Array.from({ length: 3 }).map((_, i) => <div key={i}><div className="mb-2 h-3 w-32 rounded bg-gray-100" /><div className="h-28 rounded-xl bg-gray-100" /></div>)}
+      </div>
+    </div>
   );
 }
 
@@ -101,17 +138,11 @@ export default function AutomationsPage() {
     try {
       const raw = localStorage.getItem(COLLAPSE_KEY);
       if (raw) setCollapsed(JSON.parse(raw));
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
   }, []);
   const persistCollapsed = (next: Record<string, boolean>) => {
     setCollapsed(next);
-    try {
-      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(next));
-    } catch {
-      /* ignore */
-    }
+    try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
   };
   const toggleCollapse = (audience: string) => persistCollapsed({ ...collapsed, [audience]: !collapsed[audience] });
   const collapseAll = () => persistCollapsed(Object.fromEntries((data?.jobs ?? []).map((j) => [j.audience, true])));
@@ -130,9 +161,7 @@ export default function AutomationsPage() {
       setLoading(false);
     }
   }, []);
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
   async function post(payload: Record<string, unknown>, busyKey: string) {
     setBusy(busyKey);
@@ -160,7 +189,7 @@ export default function AutomationsPage() {
   const matches = useCallback(
     (j: Job): boolean => {
       if (filter === "email" && !j.isEmail) return false;
-      if (filter === "errored" && !(j.lastRun?.status === "error" || j.errors30d > 0)) return false;
+      if (filter === "errored" && !jobHasErr(j)) return false;
       if (filter === "paused" && !j.paused) return false;
       if (q.trim()) {
         const hay = `${j.name} ${j.description} ${j.recipientCohort} ${j.audience} ${j.fn} ${j.emailTypes.join(" ")}`.toLowerCase();
@@ -177,113 +206,123 @@ export default function AutomationsPage() {
     const byAud = new Map<string, Job[]>();
     for (const j of data.jobs) {
       if (!matches(j)) continue;
-      if (!byAud.has(j.audience)) {
-        byAud.set(j.audience, []);
-        order.push(j.audience);
-      }
+      if (!byAud.has(j.audience)) { byAud.set(j.audience, []); order.push(j.audience); }
       byAud.get(j.audience)!.push(j);
     }
     return order.map((a) => ({ audience: a, jobs: byAud.get(a)! }));
   }, [data, matches]);
 
+  const ghostBtn = "rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50";
+
+  // Counts computed from the loaded jobs so the cards exactly equal what each filter shows.
+  const pausedCount = data ? data.jobs.filter((j) => j.paused).length : 0;
+  const erroredCount = data ? data.jobs.filter(jobHasErr).length : 0;
+  const activeCount = data ? data.jobs.filter((j) => !j.paused && !jobHasErr(j)).length : 0;
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <h1 className="text-2xl font-semibold text-gray-900">Automations</h1>
-        <button onClick={load} className="text-sm text-gray-400 hover:text-gray-700">Refresh</button>
+    <div className="max-w-5xl">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Automations</h1>
+        <button disabled={loading} onClick={load} className={ghostBtn}>{loading && data ? "Refreshing…" : "Refresh"}</button>
       </div>
 
-      {data && (
-        <p className="text-sm text-gray-500 mb-4">
-          {data.summary.total} automations · <span className="text-emerald-700">{data.summary.active} active</span>
-          {data.summary.paused > 0 && <> · <span className="text-amber-700">{data.summary.paused} paused</span></>}
-          {data.summary.errored > 0 && <> · <span className="text-red-600">{data.summary.errored} errored</span></>}
-          {" · "}
-          {data.summary.sends30d.toLocaleString()} sends / {data.summary.bounces30d} bounced{data.summary.complaints30d > 0 ? ` / ${data.summary.complaints30d} complaints` : ""} this month{" "}
-          <span className="text-gray-300" title={data.note}>ⓘ</span>
-        </p>
-      )}
+      {loading && !data && <Skeleton />}
+      {err && <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{err}</div>}
 
-      {loading && <div className="text-gray-400 text-sm">Loading…</div>}
-      {err && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{err}</div>}
-
-      {/* filter */}
       {data && (
-        <div className="flex items-center gap-2 mb-4 flex-wrap">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter automations…" className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg w-56 focus:border-gray-400 focus:outline-none" />
-          {(["all", "email", "errored", "paused"] as Filter[]).map((f) => (
-            <button key={f} onClick={() => setFilter(f)} className={`text-xs px-2.5 py-1 rounded-full ${filter === f ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"}`}>
-              {f === "all" ? "All" : f === "email" ? "Email" : f === "errored" ? "Errored" : "Paused"}
-            </button>
-          ))}
-          <div className="ml-auto flex items-center gap-2 text-xs text-gray-400">
-            <button onClick={expandAll} className="hover:text-gray-700">Expand all</button>
-            <span className="text-gray-200">·</span>
-            <button onClick={collapseAll} className="hover:text-gray-700">Collapse all</button>
+        <>
+          {/* fleet stats */}
+          <div>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              <StatCard value={activeCount} label="Active" sub={`of ${data.summary.total}`} />
+              <StatCard value={pausedCount} label="Paused" muted={pausedCount === 0} onClick={pausedCount > 0 ? () => setFilter((f) => (f === "paused" ? "all" : "paused")) : undefined} active={filter === "paused"} />
+              <StatCard value={erroredCount} label="Errored" danger={erroredCount > 0} muted={erroredCount === 0} onClick={erroredCount > 0 ? () => setFilter((f) => (f === "errored" ? "all" : "errored")) : undefined} active={filter === "errored"} />
+              <StatCard value={data.summary.sends30d.toLocaleString()} label="Sent" sub="last 30 days" muted={data.summary.sends30d === 0} />
+              <StatCard value={data.summary.bounces30d + data.summary.complaints30d} label={data.summary.complaints30d > 0 ? "Bounced / complained" : "Bounced"} sub="last 30 days" danger={data.summary.bounces30d + data.summary.complaints30d > 0} muted={data.summary.bounces30d + data.summary.complaints30d === 0} />
+            </div>
+            <p className="mt-2 text-xs text-gray-400">{data.note}</p>
           </div>
-        </div>
-      )}
 
-      {data && groups.length === 0 && !loading && <div className="text-gray-400 text-sm">No automations match.</div>}
-
-      {data &&
-        groups.map(({ audience, jobs }) => {
-          const isCollapsed = !!collapsed[audience];
-          return (
-            <div key={audience} className="mb-5">
-              <button onClick={() => toggleCollapse(audience)} className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-400 hover:text-gray-600 mb-2">
-                <Chevron open={!isCollapsed} />
-                <span>{audience}</span>
-                <span className="text-gray-300 font-normal normal-case">· {jobs.length}</span>
+          {/* filter */}
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter automations…" className="w-56 rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none" />
+            {(["all", "email", "errored", "paused"] as Filter[]).map((f) => (
+              <button key={f} onClick={() => setFilter(f)} className={`rounded-full border px-2.5 py-0.5 text-xs transition-colors ${filter === f ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+                {f === "all" ? "All" : f === "email" ? "Email" : f === "errored" ? "Errored" : "Paused"}
               </button>
-              {!isCollapsed && (
-                <div className="divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden">
-                  {jobs.map((job) => {
-                    const badge = statusBadge(job);
-                    const r = job.rollup30d;
-                    const hasRun = !!job.lastRun;
-                    return (
-                      <div key={job.id} className="group relative px-4 py-2.5 hover:bg-gray-50/70 transition-colors">
-                        <Link href={`/admin/automations/${job.id}`} className="absolute inset-0" aria-label={`Open ${job.name}`} />
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-medium text-gray-900">{job.name}</span>
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${badge.cls}`}>{badge.label}</span>
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{FN_LABEL[job.fn]}</span>
-                              <span className="text-xs text-gray-400">{job.humanSchedule}</span>
-                            </div>
-                            {(hasRun || r) && (
-                              <div className="text-xs text-gray-400 mt-0.5">
-                                {hasRun && (
-                                  <>
-                                    Last run {timeAgo(job.lastRun!.startedAt)} ·{" "}
-                                    <span className={job.lastRun!.status === "error" ? "text-red-600" : job.lastRun!.status === "skipped_paused" ? "text-amber-600" : "text-gray-500"}>{job.lastRun!.status}</span>
-                                    {job.lastRun!.triggeredBy !== "cron" ? ` · ${job.lastRun!.triggeredBy}` : ""}
-                                    {summaryLine(job.lastRun!.summary) ? ` · ${summaryLine(job.lastRun!.summary)}` : ""}
-                                    {job.runs30d > 0 ? ` · ${job.runs30d}/30d${job.errors30d > 0 ? `, ${job.errors30d} err` : ""}` : ""}
-                                    {r ? " · " : ""}
-                                  </>
-                                )}
-                                {r && <>{r.sent.toLocaleString()} sent · {pct(r.opened, r.sent)} open · {pct(r.clicked, r.sent)} click{r.bounced > 0 ? <span className="text-red-500"> · {r.bounced} bounced</span> : ""}{r.complained > 0 ? <span className="text-red-500"> · {r.complained} complaints</span> : ""} — 30d</>}
+            ))}
+            <div className="ml-auto flex items-center gap-2 text-xs text-gray-400">
+              <button onClick={expandAll} className="transition-colors hover:text-gray-700">Expand all</button>
+              <span className="text-gray-200">·</span>
+              <button onClick={collapseAll} className="transition-colors hover:text-gray-700">Collapse all</button>
+            </div>
+          </div>
+
+          {groups.length === 0 && !loading && <div className="mt-6 rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-8 text-center text-sm text-gray-400">No automations match.</div>}
+
+          {groups.map(({ audience, jobs }) => {
+            const isCollapsed = !!collapsed[audience];
+            return (
+              <div key={audience} className="mt-5">
+                <button onClick={() => toggleCollapse(audience)} className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-400 transition-colors hover:text-gray-600">
+                  <Chevron open={!isCollapsed} />
+                  <span>{audience}</span>
+                  <span className="font-normal normal-case text-gray-300">· {jobs.length}</span>
+                </button>
+                {!isCollapsed && (
+                  <div className="overflow-hidden rounded-xl border border-gray-200 divide-y divide-gray-100">
+                    {jobs.map((job) => {
+                      const r = job.rollup30d;
+                      return (
+                        <div key={job.id} className="group relative px-4 py-2.5 transition-colors hover:bg-gray-50/70">
+                          <Link href={`/admin/automations/${job.id}`} className="absolute inset-0" aria-label={`Open ${job.name}`} />
+                          <div className="flex items-center gap-3">
+                            <span className={`h-2 w-2 shrink-0 rounded-full ${jobDot(job)}`} title={job.paused ? "paused" : jobHasErr(job) ? "errors" : "active"} />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium text-gray-900">{job.name}</span>
+                                {job.paused && <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 ring-1 ring-inset ring-amber-200">Paused</span>}
+                                {!job.paused && jobHasErr(job) && <span className="rounded-full bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700 ring-1 ring-inset ring-red-200">Errors</span>}
+                                <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">{FN_LABEL[job.fn]}</span>
+                                <span className="text-xs text-gray-400">{job.humanSchedule}</span>
                               </div>
-                            )}
-                          </div>
-                          <div className="relative z-10 flex items-center gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button disabled={busy === `pause:${job.id}`} onClick={() => togglePause(job)} className={`text-xs px-2 py-0.5 rounded border ${job.paused ? "border-emerald-300 text-emerald-700 hover:bg-emerald-50" : "border-gray-200 text-gray-500 hover:bg-gray-100"} disabled:opacity-40`}>
-                              {busy === `pause:${job.id}` ? "…" : job.paused ? "Resume" : "Pause"}
-                            </button>
-                            <span className="text-gray-300 text-sm">→</span>
+                              <div className="mt-0.5 truncate text-xs text-gray-400" title={job.lastRun ? `Last run: ${runResult(job.lastRun.summary) || job.lastRun.status}${job.lastRun.error ? ` — ${job.lastRun.error}` : ""}` : undefined}>
+                                {job.lastRun ? `Last run ${timeAgo(job.lastRun.startedAt)}` : "No runs yet"}
+                                {r ? (
+                                  <>
+                                    <span className="text-gray-300"> · </span>
+                                    <span className="tabular-nums text-gray-500">{r.sent.toLocaleString()}</span> sent
+                                    <span className="text-gray-300"> · </span>
+                                    <span className="tabular-nums text-gray-500">{pct(r.opened, r.sent)}</span> open
+                                    {r.bounced > 0 && <span className="text-red-500"> · {r.bounced} bounced</span>}
+                                    <span className="text-gray-300"> · 30d</span>
+                                  </>
+                                ) : job.lastRun && runResult(job.lastRun.summary) ? (
+                                  <><span className="text-gray-300"> · </span>{runResult(job.lastRun.summary)}</>
+                                ) : null}
+                              </div>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-2">
+                              <button
+                                disabled={busy === `pause:${job.id}`}
+                                onClick={() => togglePause(job)}
+                                className={`relative z-10 rounded-lg border px-2 py-0.5 text-xs font-medium opacity-0 transition group-hover:opacity-100 disabled:opacity-40 ${job.paused ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}
+                              >
+                                {busy === `pause:${job.id}` ? "…" : job.paused ? "Resume" : "Pause"}
+                              </button>
+                              <span className="text-sm text-gray-300 transition-colors group-hover:text-gray-500">→</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </>
+      )}
     </div>
   );
 }

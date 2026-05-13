@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
+import EmailTimeline from "@/components/admin/EmailTimeline";
 import type { FamilyMetadata } from "@/lib/types";
 
 const TIMELINE_LABELS: Record<string, string> = {
@@ -244,6 +245,15 @@ export default function AdminCareSeekerDetailPage() {
                 </tbody>
               </table>
             </div>
+          )}
+        </Section>
+
+        {/* Automated emails */}
+        <Section title="Automated emails">
+          {seeker.email ? (
+            <EmailTimeline recipient={seeker.email} viewAllHref={`/admin/emails?search=${encodeURIComponent(seeker.email)}`} />
+          ) : (
+            <p className="text-sm text-gray-400">No email on file — nothing to show.</p>
           )}
         </Section>
 

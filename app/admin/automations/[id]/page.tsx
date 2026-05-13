@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import EmailStatusPill from "@/components/admin/EmailStatusPill";
 
 interface Rollup {
   sent: number;
@@ -95,21 +96,9 @@ const RECIPIENT_FILTERS: { key: RecipientStatus; label: string }[] = [
   { key: "undelivered", label: "Not delivered" },
 ];
 
-function recipientLifecycle(e: RecipientRow): { label: string; cls: string } {
-  if (e.complained_at) return { label: "complained", cls: "bg-red-100 text-red-700" };
-  if (e.bounced_at) return { label: "bounced", cls: "bg-red-100 text-red-700" };
-  if (e.status === "failed") return { label: "failed", cls: "bg-red-100 text-red-700" };
-  if (e.first_clicked_at) return { label: "clicked", cls: "bg-emerald-100 text-emerald-700" };
-  if (e.first_opened_at) return { label: "opened", cls: "bg-teal-100 text-teal-700" };
-  if (e.delivered_at) return { label: "delivered", cls: "bg-gray-100 text-gray-600" };
-  return { label: e.status || "sent", cls: "bg-gray-100 text-gray-500" };
-}
-function runOptionLabel(r: { started_at: string; status: string; summary: Record<string, unknown> | null }): string {
-  const rawSent = r.summary?.sent;
-  const sent = typeof rawSent === "number" ? rawSent : null;
-  const when = new Date(r.started_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-  return `${when} · ${r.status}${sent != null ? ` · ${sent} sent` : ""}`;
-}
+type Tab = "overview" | "recipients" | "runs";
+
+// ── small render helpers ──────────────────────────────────────────────
 
 function timeAgo(iso: string | null): string {
   if (!iso) return "—";
@@ -118,37 +107,89 @@ function timeAgo(iso: string | null): string {
   if (m < 60) return `${m}m ago`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
 }
 function duration(start: string, end: string | null): string {
   if (!end) return "—";
   const ms = new Date(end).getTime() - new Date(start).getTime();
   if (ms < 1000) return `${ms}ms`;
   const s = Math.round(ms / 1000);
-  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m${s % 60}s`;
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`;
 }
 function pct(n: number, of: number): string {
   return of <= 0 ? "—" : `${Math.round((n / of) * 100)}%`;
 }
-function summaryLine(s: Record<string, unknown> | null): string {
+/** Readable one-liner for a run's result — sends/skips first, noise (skipReasons) goes to the title. */
+function runResult(s: Record<string, unknown> | null): string {
   if (!s) return "";
   const parts: string[] = [];
-  if (typeof s.processed === "number") parts.push(`processed ${s.processed}`);
-  if (typeof s.sent === "number") parts.push(`sent ${s.sent}`);
-  if (typeof s.skipped === "number") parts.push(`skipped ${s.skipped}`);
+  if (typeof s.sent === "number") parts.push(`${s.sent.toLocaleString()} sent`);
+  if (typeof s.skipped === "number" && s.skipped > 0) parts.push(`${s.skipped.toLocaleString()} skipped`);
+  if (parts.length === 0 && typeof s.processed === "number") parts.push(`${s.processed.toLocaleString()} processed`);
+  if (s.dry_run === true) parts.push("dry run");
   if (s.reason) parts.push(String(s.reason));
-  if (s.skipReasons && typeof s.skipReasons === "object") {
-    const sr = Object.entries(s.skipReasons as Record<string, number>).map(([k, v]) => `${k}=${v}`).join(", ");
-    if (sr) parts.push(`(${sr})`);
-  }
   return parts.join(" · ");
 }
-function runStatusCls(status: string): string {
-  if (status === "error") return "text-red-600";
-  if (status === "skipped_paused") return "text-amber-700";
-  if (status === "running") return "text-blue-600";
-  return "text-gray-600";
+function skipReasonsText(s: Record<string, unknown> | null): string {
+  if (!s || !s.skipReasons || typeof s.skipReasons !== "object") return "";
+  return Object.entries(s.skipReasons as Record<string, number>).map(([k, v]) => `${k}: ${v}`).join("\n");
 }
+function runDotCls(status: string): string {
+  if (status === "error") return "bg-red-500";
+  if (status === "skipped_paused") return "bg-amber-400";
+  if (status === "running") return "bg-blue-500";
+  return "bg-emerald-500";
+}
+function runOptionLabel(r: { started_at: string; status: string; summary: Record<string, unknown> | null }): string {
+  const rawSent = r.summary?.sent;
+  const sent = typeof rawSent === "number" ? rawSent : null;
+  const when = new Date(r.started_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return `${when}${sent != null ? ` · ${sent.toLocaleString()} sent` : ` · ${r.status}`}`;
+}
+
+function Sparkline({ values, className = "" }: { values: number[]; className?: string }) {
+  if (!values || values.length < 2) return null;
+  const w = 56, h = 18;
+  const max = Math.max(...values), min = Math.min(...values);
+  const range = max - min || 1;
+  const pts = values.map((v, i) => `${(i / (values.length - 1)) * w},${h - 1 - ((v - min) / range) * (h - 2)}`).join(" ");
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className={className} aria-hidden="true">
+      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function StatCard({ value, label, sub, danger, muted, children }: { value: ReactNode; label: string; sub?: string; danger?: boolean; muted?: boolean; children?: ReactNode }) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+      <div className={`text-2xl font-semibold tabular-nums leading-none ${danger ? "text-red-600" : muted ? "text-gray-300" : "text-gray-900"}`}>{value}</div>
+      <div className="mt-1.5 text-xs text-gray-500">
+        {label}
+        {sub && <span className="text-gray-400"> · {sub}</span>}
+      </div>
+      {children && <div className="mt-1.5 text-gray-300">{children}</div>}
+    </div>
+  );
+}
+
+function Skeleton() {
+  return (
+    <div className="animate-pulse space-y-4">
+      <div className="h-7 w-64 rounded bg-gray-100" />
+      <div className="h-4 w-96 rounded bg-gray-100" />
+      <div className="h-4 w-80 rounded bg-gray-100" />
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-20 rounded-xl bg-gray-100" />)}
+      </div>
+      <div className="h-72 rounded-xl bg-gray-100" />
+    </div>
+  );
+}
+
+// ── page ──────────────────────────────────────────────────────────────
 
 export default function AutomationDetailPage() {
   const params = useParams<{ id: string }>();
@@ -157,12 +198,15 @@ export default function AutomationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState<Tab>("overview");
   const [previewType, setPreviewType] = useState<string | null>(null);
   const [preview, setPreview] = useState<PreviewResponse | "loading" | "none" | null>(null);
+  const [previewExpanded, setPreviewExpanded] = useState(false);
   const [selectedRun, setSelectedRun] = useState<string | null>(null);
   const [recipientStatus, setRecipientStatus] = useState<RecipientStatus>("all");
   const [recipientPage, setRecipientPage] = useState(1);
   const [recipients, setRecipients] = useState<RecipientsResponse | "loading" | "error" | null>(null);
+  const [showAllRuns, setShowAllRuns] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -173,10 +217,8 @@ export default function AutomationDetailPage() {
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
       const d: DetailResponse = await r.json();
       setData(d);
-      // Pick a default preview type, but don't clobber a selection the user already made.
       setPreviewType((prev) => prev ?? (d.previewTypes[0] ?? null));
-      // Default the recipients view to the most recent run that actually sent something.
-      const bestRun = d.runs.find((r) => { const s = r.summary?.sent; return typeof s === "number" && s > 0; }) ?? d.runs[0] ?? null;
+      const bestRun = d.runs.find((rr) => { const s = rr.summary?.sent; return typeof s === "number" && s > 0; }) ?? d.runs[0] ?? null;
       setSelectedRun((prev) => prev ?? bestRun?.id ?? null);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to load");
@@ -184,11 +226,8 @@ export default function AutomationDetailPage() {
       setLoading(false);
     }
   }, [id]);
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
-  // load preview when type changes
   useEffect(() => {
     if (!id || !previewType) return;
     setPreview("loading");
@@ -198,12 +237,8 @@ export default function AutomationDetailPage() {
       .catch(() => setPreview("none"));
   }, [id, previewType]);
 
-  // load the per-recipient table when the chosen run / filter / page changes
   useEffect(() => {
-    if (!id || !selectedRun) {
-      setRecipients(null);
-      return;
-    }
+    if (!id || !selectedRun) { setRecipients(null); return; }
     setRecipients("loading");
     const p = new URLSearchParams({ run: selectedRun, status: recipientStatus, page: String(recipientPage) });
     let cancelled = false;
@@ -226,9 +261,7 @@ export default function AutomationDetailPage() {
         await load();
       } catch (e) {
         alert(`Failed: ${e instanceof Error ? e.message : e}`);
-      } finally {
-        setBusy(false);
-      }
+      } finally { setBusy(false); }
     } else {
       const reason = prompt(`Pause "${job.name}"? It stops running but still logs a skipped entry each cycle; auto-resumes in 30 days.\n\nReason (optional):`);
       if (reason === null) return;
@@ -239,260 +272,341 @@ export default function AutomationDetailPage() {
         await load();
       } catch (e) {
         alert(`Failed: ${e instanceof Error ? e.message : e}`);
-      } finally {
-        setBusy(false);
-      }
+      } finally { setBusy(false); }
     }
   }
 
+  // adjacent-run navigation for the recipients run picker
+  function stepRun(dir: -1 | 1) {
+    if (!data || !selectedRun) return;
+    const i = data.runs.findIndex((r) => r.id === selectedRun);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= data.runs.length) return;
+    setSelectedRun(data.runs[j].id);
+    setRecipientPage(1);
+    setRecipientStatus("all");
+  }
+
+  const ghostBtn = "rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50";
+
   return (
-    <div>
+    <div className="max-w-5xl">
       <div className="mb-4">
-        <Link href="/admin/automations" className="text-sm text-gray-500 hover:text-gray-800">← Automations</Link>
+        <Link href="/admin/automations" className="inline-flex items-center gap-1 text-sm text-gray-400 transition-colors hover:text-gray-700">
+          <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7.5 2.5l-4 3.5 4 3.5" /></svg>
+          Automations
+        </Link>
       </div>
 
-      {loading && <div className="text-gray-500">Loading…</div>}
-      {err && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{err}</div>}
+      {loading && !data && <Skeleton />}
+      {err && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{err}</div>}
 
       {data && (
         <>
-          <div className="flex items-start justify-between gap-4 mb-2">
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-bold text-gray-900">{data.job.name}</h1>
-                {data.paused && <span className="text-[11px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">Paused</span>}
+          {/* ── header ── */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{data.job.name}</h1>
+                {data.paused ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-200"><span className="h-1.5 w-1.5 rounded-full bg-amber-400" />Paused</span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Active</span>
+                )}
               </div>
-              <div className="text-sm text-gray-400 mt-0.5">
-                {data.job.audience} · {data.job.fn} · {data.job.humanSchedule} · <code className="text-gray-500">{data.job.path}</code> · <code className="text-gray-500">{data.job.schedule}</code>
+              <div className="mt-1 text-sm text-gray-500">
+                {data.job.audience}
+                <span className="mx-1.5 text-gray-300">·</span>
+                <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{data.job.fn}</span>
+                <span className="mx-1.5 text-gray-300">·</span>
+                {data.job.humanSchedule}
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {data.job.relatedAdminPath && <Link href={data.job.relatedAdminPath} className="text-xs px-2.5 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-50">Related queue →</Link>}
-              <button disabled={busy} onClick={togglePause} className={`text-xs px-2.5 py-1 rounded border ${data.paused ? "border-green-300 text-green-700 hover:bg-green-50" : "border-gray-300 text-gray-600 hover:bg-gray-50"} disabled:opacity-50`}>
+            <div className="flex shrink-0 items-center gap-2">
+              {data.job.relatedAdminPath && <Link href={data.job.relatedAdminPath} className={ghostBtn}>Related queue →</Link>}
+              <button disabled={busy} onClick={togglePause} className={`${ghostBtn} ${data.paused ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50" : ""}`}>
                 {busy ? "…" : data.paused ? "Resume" : "Pause"}
               </button>
             </div>
           </div>
 
-          <p className="text-sm text-gray-700 mb-1">{data.job.description}</p>
-          <p className="text-sm text-gray-500 mb-1"><span className="text-gray-400">Who gets it:</span> {data.job.recipientCohort}</p>
-          {data.job.successSignal && <p className="text-sm text-gray-500 mb-1"><span className="text-gray-400">Success signal:</span> {data.job.successSignal}</p>}
-          {data.job.emailTypes.length > 0 && (
-            <p className="text-sm text-gray-500 mb-1">
-              <span className="text-gray-400">Email types:</span>{" "}
-              {data.job.emailTypes.map((t) => <Link key={t} href={`/admin/emails?type=${t}`} className="text-teal-700 hover:underline mr-2">{t}</Link>)}
-            </p>
-          )}
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-gray-600">{data.job.description}</p>
+
           {data.paused && data.pause && (
-            <p className="text-sm text-amber-700 mb-1">Paused {timeAgo(data.pause.at)} by {data.pause.by ?? "—"}{data.pause.reason ? ` — "${data.pause.reason}"` : ""}{data.pause.until ? ` · auto-resumes ${new Date(data.pause.until).toLocaleDateString()}` : ""}</p>
-          )}
-
-          {/* 30-day rollup */}
-          {data.rollup30d ? (
-            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm bg-gray-50 rounded-lg px-4 py-3">
-              <span><span className="font-semibold text-gray-900">{data.rollup30d.sent.toLocaleString()}</span> sent (30d)</span>
-              <span title="Delivered / sent">{pct(data.rollup30d.delivered, data.rollup30d.sent)} delivered</span>
-              <span title="Opened / sent — inflated by Apple Mail Privacy Protection">{pct(data.rollup30d.opened, data.rollup30d.sent)} open</span>
-              <span title="Clicked / sent — inflated by Apple Mail link prefetch">{pct(data.rollup30d.clicked, data.rollup30d.sent)} click</span>
-              {data.rollup30d.bounced > 0 && <span className="text-red-600">{data.rollup30d.bounced} bounced</span>}
-              {data.rollup30d.complained > 0 && <span className="text-red-600">{data.rollup30d.complained} complaints</span>}
-            </div>
-          ) : data.job.isEmail ? (
-            <div className="mt-4 text-sm text-gray-400">Sends email via a helper; email_type not yet mapped in the registry — rollup unavailable.</div>
-          ) : (
-            <div className="mt-4 text-sm text-gray-400">{data.job.fn === "refresh" ? "Data refresh job" : "Maintenance job"} — no email rollup.</div>
-          )}
-
-          {/* 4-week trend */}
-          {data.trend.length > 0 && (
-            <div className="mt-4">
-              <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5">Last 4 weeks</div>
-              <table className="text-sm">
-                <thead>
-                  <tr className="text-gray-400 text-xs">
-                    <th className="text-left pr-6 font-normal">Week of</th><th className="text-right pr-6 font-normal">Sent</th><th className="text-right pr-6 font-normal">Delivered</th><th className="text-right pr-6 font-normal">Open</th><th className="text-right font-normal">Click</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.trend.map((w) => (
-                    <tr key={w.week} className="text-gray-700">
-                      <td className="pr-6">{new Date(w.week).toLocaleDateString()}</td>
-                      <td className="text-right pr-6 tabular-nums">{w.sent}</td>
-                      <td className="text-right pr-6 tabular-nums">{pct(w.delivered, w.sent)}</td>
-                      <td className="text-right pr-6 tabular-nums">{pct(w.opened, w.sent)}</td>
-                      <td className="text-right tabular-nums">{pct(w.clicked, w.sent)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 ring-1 ring-inset ring-amber-200">
+              Paused {timeAgo(data.pause.at)} by {data.pause.by ?? "—"}{data.pause.reason ? ` — "${data.pause.reason}"` : ""}{data.pause.until ? ` · auto-resumes ${new Date(data.pause.until).toLocaleDateString()}` : ""}
             </div>
           )}
 
-          {/* Email preview */}
-          {data.previewTypes.length > 0 && (
-            <div className="mt-6">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="text-xs font-semibold uppercase tracking-wide text-gray-400">Most recent email sent</div>
-                {data.previewTypes.length > 1 && (
-                  <select value={previewType ?? ""} onChange={(e) => setPreviewType(e.target.value)} className="text-xs border border-gray-300 rounded px-1.5 py-0.5">
-                    {data.previewTypes.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                )}
-                {previewType && <a href={`/api/admin/automations/${id}/preview?type=${encodeURIComponent(previewType)}&raw=1`} target="_blank" rel="noreferrer" className="text-xs text-teal-700 hover:underline">open in new tab ↗</a>}
+          {/* Details expander */}
+          <details className="group mt-3">
+            <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors hover:text-gray-600 [&::-webkit-details-marker]:hidden">
+              <svg viewBox="0 0 12 12" className="h-3 w-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4.5 2.5l4 3.5-4 3.5" /></svg>
+              Details
+            </summary>
+            <div className="mt-2 space-y-1.5 rounded-lg border border-gray-100 bg-gray-50/60 px-3.5 py-3 text-sm">
+              <div className="text-gray-600"><span className="text-gray-400">Who gets it</span><br />{data.job.recipientCohort}</div>
+              {data.job.successSignal && <div className="text-gray-600"><span className="text-gray-400">Success signal</span><br />{data.job.successSignal}</div>}
+              {data.job.emailTypes.length > 0 && (
+                <div className="text-gray-600">
+                  <span className="text-gray-400">Email types</span>{" "}
+                  {data.job.emailTypes.map((t) => <Link key={t} href={`/admin/emails?type=${t}`} className="mr-2 text-teal-700 hover:underline">{t}</Link>)}
+                </div>
+              )}
+              <div className="flex flex-wrap gap-x-6 gap-y-1 pt-1 text-xs text-gray-400">
+                <span>Route <code className="text-gray-500">{data.job.path}</code></span>
+                <span>Cron <code className="text-gray-500">{data.job.schedule}</code></span>
               </div>
-              {preview === "loading" && <div className="text-sm text-gray-400">Loading preview…</div>}
-              {preview === "none" && <div className="text-sm text-gray-400">No rendered email on file yet for this type.</div>}
-              {preview && typeof preview === "object" && (
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">
-                    To <code>{preview.recipient}</code> · &ldquo;{preview.subject}&rdquo; · {timeAgo(preview.sentAt)}
+            </div>
+          </details>
+
+          {/* ── tabs ── */}
+          <div className="mt-6 flex items-center gap-1 border-b border-gray-200">
+            {([["overview", "Overview", null], ["recipients", "Recipients", null], ["runs", "Runs", data.runs.length || null]] as [Tab, string, number | null][]).map(([key, label, count]) => (
+              <button key={key} onClick={() => setTab(key)} className={`relative px-3 py-2 text-sm font-medium transition-colors ${tab === key ? "text-gray-900" : "text-gray-400 hover:text-gray-600"}`}>
+                {label}{count != null && <span className="ml-1.5 text-xs text-gray-400">{count}</span>}
+                {tab === key && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-gray-900" />}
+              </button>
+            ))}
+          </div>
+
+          {/* ── OVERVIEW ── */}
+          {tab === "overview" && (
+            <div className="mt-5 space-y-6">
+              {data.rollup30d ? (
+                <>
+                  <div>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                      <StatCard value={data.rollup30d.sent.toLocaleString()} label="Sent" sub="last 30 days">
+                        {data.trend.length >= 2 && <Sparkline values={data.trend.map((w) => w.sent)} className="text-gray-300" />}
+                      </StatCard>
+                      <StatCard value={pct(data.rollup30d.delivered, data.rollup30d.sent)} label="Delivered" />
+                      <StatCard value={pct(data.rollup30d.opened, data.rollup30d.sent)} label="Opened" />
+                      <StatCard value={pct(data.rollup30d.clicked, data.rollup30d.sent)} label="Clicked" />
+                      <StatCard value={data.rollup30d.bounced + data.rollup30d.complained} label={data.rollup30d.complained > 0 ? "Bounced / complained" : "Bounced"} danger={data.rollup30d.bounced + data.rollup30d.complained > 0} muted={data.rollup30d.bounced + data.rollup30d.complained === 0} />
+                    </div>
+                    <p className="mt-2 text-xs text-gray-400">Open and click rates are inflated by Apple Mail Privacy Protection (it prefetches the tracking pixel and rewrites links) — the trend over time is the real signal.</p>
                   </div>
-                  <iframe srcDoc={preview.html} title="Email preview" className="w-full h-[600px] border border-gray-200 rounded-lg bg-white" sandbox="" />
+
+                  {data.trend.length >= 2 && (
+                    <details className="group">
+                      <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors hover:text-gray-600 [&::-webkit-details-marker]:hidden">
+                        <svg viewBox="0 0 12 12" className="h-3 w-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4.5 2.5l4 3.5-4 3.5" /></svg>
+                        Weekly breakdown
+                      </summary>
+                      <div className="mt-2 overflow-hidden rounded-xl border border-gray-200">
+                        <table className="w-full text-sm">
+                          <thead className="border-b border-gray-200 bg-gray-50 text-xs text-gray-400">
+                            <tr><th className="px-4 py-2 text-left font-medium">Week of</th><th className="px-4 py-2 text-right font-medium">Sent</th><th className="px-4 py-2 text-right font-medium">Delivered</th><th className="px-4 py-2 text-right font-medium">Open</th><th className="px-4 py-2 text-right font-medium">Click</th></tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {data.trend.map((w) => (
+                              <tr key={w.week} className="text-gray-700 hover:bg-gray-50">
+                                <td className="px-4 py-2">{new Date(w.week).toLocaleDateString()}</td>
+                                <td className="px-4 py-2 text-right tabular-nums">{w.sent.toLocaleString()}</td>
+                                <td className="px-4 py-2 text-right tabular-nums">{pct(w.delivered, w.sent)}</td>
+                                <td className="px-4 py-2 text-right tabular-nums">{pct(w.opened, w.sent)}</td>
+                                <td className="px-4 py-2 text-right tabular-nums">{pct(w.clicked, w.sent)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </details>
+                  )}
+                </>
+              ) : (
+                <div className="rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-6 text-center text-sm text-gray-400">
+                  {data.job.isEmail ? "Sends email via a helper whose email_type isn't mapped in the registry yet — no rollup." : `${data.job.fn === "refresh" ? "Data refresh" : "Maintenance"} job — nothing to chart. See the Runs tab.`}
+                </div>
+              )}
+
+              {/* Latest email */}
+              {data.previewTypes.length > 0 && (
+                <div className="overflow-hidden rounded-xl border border-gray-200">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
+                    <div className="flex min-w-0 items-center gap-2 text-sm">
+                      <span className="font-medium text-gray-700">Latest email</span>
+                      {preview && typeof preview === "object" && (
+                        <span className="truncate text-xs text-gray-400">to <code className="text-gray-500">{preview.recipient}</code> · &ldquo;{preview.subject}&rdquo; · {timeAgo(preview.sentAt)}</span>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-3">
+                      {data.previewTypes.length > 1 && (
+                        <select value={previewType ?? ""} onChange={(e) => { setPreviewType(e.target.value); setPreviewExpanded(false); }} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600">
+                          {data.previewTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      )}
+                      {previewType && <a href={`/api/admin/automations/${id}/preview?type=${encodeURIComponent(previewType)}&raw=1`} target="_blank" rel="noreferrer" className="text-xs text-teal-700 hover:underline">Open full ↗</a>}
+                    </div>
+                  </div>
+                  {preview === "loading" && <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview…</div>}
+                  {preview === "none" && <div className="px-4 py-8 text-center text-sm text-gray-400">No rendered email on file yet for this type.</div>}
+                  {preview && typeof preview === "object" && (
+                    <div className="relative bg-white">
+                      <iframe srcDoc={preview.html} title="Email preview" className={`w-full bg-white transition-[height] ${previewExpanded ? "h-[720px]" : "h-[320px]"}`} sandbox="" />
+                      {!previewExpanded && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />}
+                      <div className="absolute inset-x-0 bottom-0 flex justify-center pb-2">
+                        <button onClick={() => setPreviewExpanded((v) => !v)} className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50">
+                          {previewExpanded ? "Collapse" : "Expand"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           )}
 
-          {/* Per-recipient table for a chosen run */}
-          {data.job.emailTypes.length > 0 && (
-            <div className="mt-6">
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <div className="text-xs font-semibold uppercase tracking-wide text-gray-400">Recipients</div>
-                {data.runs.length > 0 && (
-                  <select
-                    value={selectedRun ?? ""}
-                    onChange={(e) => { setSelectedRun(e.target.value || null); setRecipientPage(1); setRecipientStatus("all"); }}
-                    className="text-xs border border-gray-300 rounded px-1.5 py-0.5 max-w-[24rem]"
-                  >
-                    {data.runs.map((r) => <option key={r.id} value={r.id}>{runOptionLabel(r)}</option>)}
-                  </select>
-                )}
-              </div>
+          {/* ── RECIPIENTS ── */}
+          {tab === "recipients" && (
+            <div className="mt-5">
+              {!data.job.isEmail ? (
+                <div className="rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-6 text-center text-sm text-gray-400">This automation doesn&rsquo;t send email — nothing to list.</div>
+              ) : (
+                <div className="overflow-hidden rounded-xl border border-gray-200">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
+                    <span className="text-sm font-medium text-gray-700">Recipients</span>
+                    {data.runs.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => stepRun(1)} disabled={data.runs.findIndex((r) => r.id === selectedRun) >= data.runs.length - 1} className="rounded-md border border-gray-200 px-1.5 py-1 text-xs text-gray-500 transition-colors hover:bg-gray-50 disabled:opacity-30" title="Older run">←</button>
+                        <select value={selectedRun ?? ""} onChange={(e) => { setSelectedRun(e.target.value || null); setRecipientPage(1); setRecipientStatus("all"); }} className="max-w-[18rem] rounded-lg border border-gray-200 px-2.5 py-1 text-xs text-gray-700">
+                          {data.runs.map((r) => <option key={r.id} value={r.id}>{runOptionLabel(r)}</option>)}
+                        </select>
+                        <button onClick={() => stepRun(-1)} disabled={data.runs.findIndex((r) => r.id === selectedRun) <= 0} className="rounded-md border border-gray-200 px-1.5 py-1 text-xs text-gray-500 transition-colors hover:bg-gray-50 disabled:opacity-30" title="Newer run">→</button>
+                      </div>
+                    )}
+                  </div>
 
-              {data.runs.length === 0 && <div className="text-sm text-gray-400">No runs recorded yet — recipients show up once this deploys and a run fires.</div>}
-              {recipients === "loading" && <div className="text-sm text-gray-400">Loading recipients…</div>}
-              {recipients === "error" && <div className="text-sm text-gray-400">Couldn’t load recipients for this run.</div>}
+                  <div className="p-4">
+                    {data.runs.length === 0 && <div className="py-6 text-center text-sm text-gray-400">No runs recorded yet — recipients appear once this is on production and a run fires.</div>}
+                    {recipients === "loading" && <div className="py-6 text-center text-sm text-gray-400">Loading recipients…</div>}
+                    {recipients === "error" && <div className="py-6 text-center text-sm text-gray-400">Couldn&rsquo;t load recipients for this run.</div>}
 
-              {recipients && typeof recipients === "object" && (
-                recipients.columnMissing ? (
-                  <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{recipients.note}</div>
-                ) : (
-                  <>
-                    <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm bg-gray-50 rounded-lg px-3 py-2 mb-2">
-                      <span><span className="font-semibold text-gray-900">{recipients.rollup.sent.toLocaleString()}</span> in this run</span>
-                      <span title="Delivered / in run">{pct(recipients.rollup.delivered, recipients.rollup.sent)} delivered</span>
-                      <span title="Opened / in run — inflated by Apple Mail Privacy Protection">{pct(recipients.rollup.opened, recipients.rollup.sent)} open</span>
-                      <span title="Clicked / in run — inflated by Apple Mail link prefetch">{pct(recipients.rollup.clicked, recipients.rollup.sent)} click</span>
-                      {recipients.rollup.bounced > 0 && <span className="text-red-600">{recipients.rollup.bounced} bounced</span>}
-                      {recipients.rollup.complained > 0 && <span className="text-red-600">{recipients.rollup.complained} complaints</span>}
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {RECIPIENT_FILTERS.map((f) => (
-                        <button
-                          key={f.key}
-                          onClick={() => { setRecipientStatus(f.key); setRecipientPage(1); }}
-                          className={`text-xs px-2 py-0.5 rounded-full border ${recipientStatus === f.key ? "border-gray-800 bg-gray-800 text-white" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}
-                        >
-                          {f.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {recipients.recipients.length === 0 ? (
-                      (() => {
-                        if (recipients.rollup.sent > 0) return <div className="text-sm text-gray-400">No recipients match this filter.</div>;
-                        const runSent = recipients.run?.summary?.sent;
-                        const reported = typeof runSent === "number" ? runSent : 0;
-                        return reported > 0 ? (
-                          <div className="text-sm text-gray-400">This run reported {reported.toLocaleString()} sent, but none are linked here — runs from before migration 083 / this deploy aren’t backfilled.</div>
-                        ) : (
-                          <div className="text-sm text-gray-400">No emails linked to this run.</div>
-                        );
-                      })()
-                    ) : (
-                      <>
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200">
-                              <tr>
-                                <th className="text-left px-3 py-1.5 font-medium text-gray-500">Recipient</th>
-                                <th className="text-left px-3 py-1.5 font-medium text-gray-500">Sent</th>
-                                <th className="text-center px-2 py-1.5 font-medium text-gray-500" title="Delivered">Del</th>
-                                <th className="text-center px-2 py-1.5 font-medium text-gray-500" title="Opened">Open</th>
-                                <th className="text-center px-2 py-1.5 font-medium text-gray-500" title="Clicked">Click</th>
-                                <th className="text-left px-3 py-1.5 font-medium text-gray-500">Status</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                              {recipients.recipients.map((e) => {
-                                const lc = recipientLifecycle(e);
-                                const rawVariant = e.metadata?.variant;
-                                const variant = typeof rawVariant === "string" ? rawVariant : null;
-                                return (
-                                  <tr key={e.id} className="hover:bg-gray-50">
-                                    <td className="px-3 py-1.5">
-                                      {e.provider_id ? (
-                                        <Link href={`/admin/directory/${e.provider_id}`} className="text-teal-700 hover:underline">{e.recipient}</Link>
-                                      ) : (
-                                        <span className="text-gray-800">{e.recipient}</span>
-                                      )}
-                                      {(e.recipient_type || variant) && (
-                                        <span className="text-[11px] text-gray-400 ml-1.5">{[e.recipient_type, variant].filter(Boolean).join(" · ")}</span>
-                                      )}
-                                    </td>
-                                    <td className="px-3 py-1.5 whitespace-nowrap text-gray-500" title={new Date(e.created_at).toLocaleString()}>{timeAgo(e.created_at)}</td>
-                                    <td className="px-2 py-1.5 text-center" title={e.delivered_at ? new Date(e.delivered_at).toLocaleString() : "not delivered"}>{e.delivered_at ? <span className="text-emerald-600">✓</span> : <span className="text-gray-300">·</span>}</td>
-                                    <td className="px-2 py-1.5 text-center" title={e.first_opened_at ? new Date(e.first_opened_at).toLocaleString() : "not opened"}>{e.first_opened_at ? <span className="text-emerald-600">✓</span> : <span className="text-gray-300">·</span>}</td>
-                                    <td className="px-2 py-1.5 text-center" title={e.first_clicked_at ? new Date(e.first_clicked_at).toLocaleString() : "not clicked"}>{e.first_clicked_at ? <span className="text-emerald-600">✓</span> : <span className="text-gray-300">·</span>}</td>
-                                    <td className="px-3 py-1.5 whitespace-nowrap"><span className={`text-[11px] px-1.5 py-0.5 rounded ${lc.cls}`}>{lc.label}</span>{e.error_message && <span className="text-red-600 text-[11px] ml-1">{e.error_message}</span>}</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                        {(() => {
-                          const from = (recipients.page - 1) * recipients.pageSize + 1;
-                          const to = Math.min(recipients.page * recipients.pageSize, recipients.total);
-                          const hasPrev = recipients.page > 1;
-                          const hasNext = recipients.page * recipients.pageSize < recipients.total;
+                    {recipients && typeof recipients === "object" && (
+                      recipients.columnMissing ? (
+                        <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 ring-1 ring-inset ring-amber-200">{recipients.note}</div>
+                      ) : recipients.rollup.sent === 0 ? (
+                        (() => {
+                          const runSent = recipients.run?.summary?.sent;
+                          const reported = typeof runSent === "number" ? runSent : 0;
                           return (
-                            <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                              <span>{from.toLocaleString()}–{to.toLocaleString()} of {recipients.total.toLocaleString()}</span>
-                              <button disabled={!hasPrev} onClick={() => setRecipientPage((p) => Math.max(1, p - 1))} className="px-2 py-0.5 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50">← Prev</button>
-                              <button disabled={!hasNext} onClick={() => setRecipientPage((p) => p + 1)} className="px-2 py-0.5 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50">Next →</button>
+                            <div className="rounded-xl bg-gray-50/70 px-4 py-10 text-center">
+                              <p className="text-sm text-gray-500">{reported > 0 ? `This run reported ${reported.toLocaleString()} sent, but none are linked here.` : "No emails are linked to this run."}</p>
+                              {reported > 0 && <p className="mx-auto mt-1.5 max-w-md text-xs text-gray-400">Linking started when migration 083 / this deploy landed — earlier runs aren&rsquo;t backfilled. The next run will populate this.</p>}
                             </div>
                           );
-                        })()}
-                      </>
+                        })()
+                      ) : (
+                        <>
+                          {/* per-run stat strip */}
+                          <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-lg bg-gray-50 px-3 py-2 text-sm">
+                            <span><span className="font-semibold tabular-nums text-gray-900">{recipients.rollup.sent.toLocaleString()}</span> <span className="text-gray-500">in this run</span></span>
+                            <span className="text-gray-600"><span className="tabular-nums">{pct(recipients.rollup.delivered, recipients.rollup.sent)}</span> delivered</span>
+                            <span className="text-gray-600"><span className="tabular-nums">{pct(recipients.rollup.opened, recipients.rollup.sent)}</span> opened</span>
+                            <span className="text-gray-600"><span className="tabular-nums">{pct(recipients.rollup.clicked, recipients.rollup.sent)}</span> clicked</span>
+                            {recipients.rollup.bounced > 0 && <span className="text-red-600">{recipients.rollup.bounced} bounced</span>}
+                            {recipients.rollup.complained > 0 && <span className="text-red-600">{recipients.rollup.complained} complaints</span>}
+                          </div>
+
+                          <div className="mb-3 flex flex-wrap gap-1.5">
+                            {RECIPIENT_FILTERS.map((f) => (
+                              <button key={f.key} onClick={() => { setRecipientStatus(f.key); setRecipientPage(1); }} className={`rounded-full border px-2.5 py-0.5 text-xs transition-colors ${recipientStatus === f.key ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>{f.label}</button>
+                            ))}
+                          </div>
+
+                          {recipients.recipients.length === 0 ? (
+                            <div className="py-8 text-center text-sm text-gray-400">No recipients match this filter.</div>
+                          ) : (
+                            <>
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                  <thead className="border-b border-gray-200 text-xs text-gray-400">
+                                    <tr><th className="px-3 py-2 text-left font-medium">Recipient</th><th className="px-3 py-2 text-left font-medium">Status</th><th className="px-3 py-2 text-right font-medium">Sent</th></tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-100">
+                                    {recipients.recipients.map((e) => {
+                                      const rawVariant = e.metadata?.variant;
+                                      const variant = typeof rawVariant === "string" ? rawVariant : null;
+                                      return (
+                                        <tr key={e.id} className="transition-colors hover:bg-gray-50">
+                                          <td className="px-3 py-2">
+                                            {e.provider_id ? (
+                                              <Link href={`/admin/directory/${e.provider_id}`} className="text-teal-700 hover:underline">{e.recipient}</Link>
+                                            ) : (
+                                              <span className="text-gray-800">{e.recipient}</span>
+                                            )}
+                                            {(e.recipient_type || variant) && <span className="ml-1.5 text-[11px] text-gray-400">{[e.recipient_type, variant].filter(Boolean).join(" · ")}</span>}
+                                            {e.error_message && <div className="text-[11px] text-red-600">{e.error_message}</div>}
+                                          </td>
+                                          <td className="px-3 py-2"><EmailStatusPill status={e.status} sentAt={e.created_at} delivered_at={e.delivered_at} first_opened_at={e.first_opened_at} first_clicked_at={e.first_clicked_at} bounced_at={e.bounced_at} complained_at={e.complained_at} /></td>
+                                          <td className="whitespace-nowrap px-3 py-2 text-right text-xs text-gray-400" title={new Date(e.created_at).toLocaleString()}>{timeAgo(e.created_at)}</td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              </div>
+                              {(() => {
+                                const from = (recipients.page - 1) * recipients.pageSize + 1;
+                                const to = Math.min(recipients.page * recipients.pageSize, recipients.total);
+                                const hasPrev = recipients.page > 1;
+                                const hasNext = recipients.page * recipients.pageSize < recipients.total;
+                                if (!hasPrev && !hasNext) return <div className="mt-3 text-xs text-gray-400">{recipients.total.toLocaleString()} recipient{recipients.total === 1 ? "" : "s"}</div>;
+                                return (
+                                  <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                                    <span>{from.toLocaleString()}–{to.toLocaleString()} of {recipients.total.toLocaleString()}</span>
+                                    <button disabled={!hasPrev} onClick={() => setRecipientPage((p) => Math.max(1, p - 1))} className="rounded-md border border-gray-200 px-2 py-0.5 transition-colors hover:bg-gray-50 disabled:opacity-30">← Prev</button>
+                                    <button disabled={!hasNext} onClick={() => setRecipientPage((p) => p + 1)} className="rounded-md border border-gray-200 px-2 py-0.5 transition-colors hover:bg-gray-50 disabled:opacity-30">Next →</button>
+                                  </div>
+                                );
+                              })()}
+                            </>
+                          )}
+                        </>
+                      )
                     )}
-                  </>
-                )
+                  </div>
+                </div>
               )}
             </div>
           )}
 
-          {/* Run history */}
-          <div className="mt-6">
-            <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5">Run history (last 100)</div>
-            {data.runs.length === 0 ? (
-              <div className="text-sm text-gray-400">No runs recorded yet — instrumentation lands once this deploys (and crons only fire on production, not preview deploys).</div>
-            ) : (
-              <div className="space-y-0.5 font-mono text-[11px]">
-                {data.runs.map((run) => (
-                  <div key={run.id} className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-gray-500 whitespace-nowrap" title={new Date(run.started_at).toLocaleString()}>{timeAgo(run.started_at)}</span>
-                    <span className={runStatusCls(run.status)}>{run.status}</span>
-                    <span className="text-gray-400">{duration(run.started_at, run.finished_at)}</span>
-                    {run.triggered_by !== "cron" && <span className="text-gray-400">{run.triggered_by}</span>}
-                    {summaryLine(run.summary) && <span className="text-gray-600">{summaryLine(run.summary)}</span>}
-                    {run.error && <span className="text-red-600">· {run.error}</span>}
+          {/* ── RUNS ── */}
+          {tab === "runs" && (
+            <div className="mt-5 overflow-hidden rounded-xl border border-gray-200">
+              <div className="border-b border-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700">Run history</div>
+              {data.runs.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-gray-400">No runs recorded yet. Crons only fire on production — instrumentation fills this in there.</div>
+              ) : (
+                <>
+                  <div className="divide-y divide-gray-100">
+                    {(showAllRuns ? data.runs : data.runs.slice(0, 15)).map((run) => {
+                      const skips = skipReasonsText(run.summary);
+                      return (
+                        <div key={run.id} className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-gray-50">
+                          <span className={`h-2 w-2 shrink-0 rounded-full ${runDotCls(run.status)}`} title={run.status} />
+                          <span className="w-24 shrink-0 text-gray-700" title={new Date(run.started_at).toLocaleString()}>{timeAgo(run.started_at)}</span>
+                          <span className="w-16 shrink-0 text-xs text-gray-400">{duration(run.started_at, run.finished_at)}</span>
+                          <span className="min-w-0 flex-1 truncate text-gray-600" title={skips || undefined}>
+                            {run.status === "skipped_paused" ? <span className="text-amber-600">skipped (paused)</span> : run.status === "running" ? <span className="text-blue-600">running…</span> : runResult(run.summary) || (run.status === "ok" ? "completed" : run.status)}
+                            {skips && <span className="ml-1.5 text-gray-300">ⓘ</span>}
+                          </span>
+                          {run.error && <span className="max-w-[16rem] truncate text-xs text-red-600" title={run.error}>{run.error}</span>}
+                          {run.triggered_by !== "cron" && <span className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500" title={run.triggered_by}>manual</span>}
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  {data.runs.length > 15 && (
+                    <button onClick={() => setShowAllRuns((v) => !v)} className="w-full border-t border-gray-100 px-4 py-2 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-50">
+                      {showAllRuns ? "Show fewer" : `Show all ${data.runs.length} runs`}
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>

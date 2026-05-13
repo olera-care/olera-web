@@ -67,6 +67,10 @@
     {
       "path": "/api/cron/lead-response-nudge",
       "schedule": "0 14 * * 4"
+    },
+    {
+      "path": "/api/cron/lead-family-nudge",
+      "schedule": "0 15 * * 2,5"
     }
   ]
 }

@@ -1486,6 +1486,56 @@ export function providerNudgeEmail(opts: {
 }
 
 /**
+ * Consolidated nudge email for providers with multiple waiting leads.
+ * Lists all families waiting for a response in a single email.
+ */
+export function providerMultiLeadNudgeEmail(opts: {
+  providerName: string;
+  leads: Array<{
+    familyName: string;
+    daysSinceInquiry: number;
+  }>;
+  viewUrl: string;
+  providerSlug?: string;
+}): string {
+  const leadCount = opts.leads.length;
+  const headline =
+    leadCount === 1
+      ? "A family is waiting to hear from you"
+      : `${leadCount} families are waiting to hear from you`;
+
+  const leadsHtml = opts.leads
+    .map((lead) => {
+      const daysText =
+        lead.daysSinceInquiry === 1
+          ? "1 day ago"
+          : lead.daysSinceInquiry < 1
+            ? "today"
+            : `${lead.daysSinceInquiry} days ago`;
+      return `<li style="margin:0 0 8px;padding:0;"><strong>${firstName(lead.familyName)}</strong> <span style="color:#9ca3af;">· reached out ${daysText}</span></li>`;
+    })
+    .join("");
+
+  return layout(
+    `
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${headline}</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+      The following ${leadCount === 1 ? "family has" : "families have"} reached out to ${opts.providerName} and ${leadCount === 1 ? "hasn't" : "haven't"} received a response yet:
+    </p>
+    <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
+      ${leadsHtml}
+    </ul>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      A timely response makes all the difference for families navigating care decisions. Even a brief acknowledgment helps families feel supported.
+    </p>
+    <div>${button("View & Respond", opts.viewUrl)}</div>
+    ${offRampBlock(opts.providerSlug)}
+  `,
+    `${leadCount} ${leadCount === 1 ? "family is" : "families are"} waiting for a response from ${opts.providerName}`
+  );
+}
+
+/**
  * Nudge email sent by admin to encourage a family to complete their profile.
  * Explains that a complete profile helps providers respond better.
  */

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { providerNudgeEmail } from "@/lib/email-templates";
+import { providerMultiLeadNudgeEmail } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -9,16 +9,15 @@ import { getSiteUrl } from "@/lib/site-url";
  * GET /api/cron/lead-response-nudge
  *
  * Runs weekly on Thursday 2 PM UTC (~9 AM ET). Nudges providers who haven't
- * responded to leads:
+ * responded to leads. Sends ONE consolidated email per provider listing all
+ * their waiting leads.
  *
  * Criteria:
  * - Connection type is 'inquiry' or 'request'
  * - Lead is at least 3 days old
  * - Provider has NOT responded (no message from provider in thread)
  * - Provider HAS an email address
- * - Provider was NOT nudged in the last 7 days
- *
- * Uses the same providerNudgeEmail template as the manual admin nudge.
+ * - Provider was NOT nudged in the last 7 days (checked per connection)
  */
 export const maxDuration = 120;
 
@@ -31,6 +30,21 @@ type ThreadMessage = {
   created_at: string;
   is_auto_reply?: boolean;
 };
+
+interface EligibleLead {
+  connectionId: string;
+  familyName: string;
+  daysSinceInquiry: number;
+  metadata: Record<string, unknown>;
+}
+
+interface ProviderGroup {
+  providerId: string;
+  providerEmail: string;
+  providerName: string;
+  providerSlug: string;
+  leads: EligibleLead[];
+}
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -53,8 +67,9 @@ export async function GET(request: NextRequest) {
     const threeDaysAgo = new Date(now - THREE_DAYS_MS).toISOString();
 
     const counts = {
-      processed: 0,
-      sent: 0,
+      connections_processed: 0,
+      providers_nudged: 0,
+      leads_included: 0,
       skipped: 0,
       skipReasons: {
         responded: 0,
@@ -73,11 +88,10 @@ export async function GET(request: NextRequest) {
         id,
         from_profile_id,
         to_profile_id,
-        message,
         metadata,
         created_at,
         from_profile:business_profiles!connections_from_profile_id_fkey(display_name),
-        to_profile:business_profiles!connections_to_profile_id_fkey(display_name, slug, source_provider_id, email)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email)
       `
       )
       .in("type", ["inquiry", "request"])
@@ -98,8 +112,11 @@ export async function GET(request: NextRequest) {
       };
     }
 
+    // Group eligible leads by provider
+    const providerGroups = new Map<string, ProviderGroup>();
+
     for (const conn of connections) {
-      counts.processed++;
+      counts.connections_processed++;
 
       // Normalize joined relations
       const fromProfile = Array.isArray(conn.from_profile)
@@ -112,7 +129,7 @@ export async function GET(request: NextRequest) {
       const meta = (conn.metadata as Record<string, unknown>) ?? {};
       const thread = (meta.thread as ThreadMessage[]) || [];
 
-      // Check if provider has responded (any non-auto-reply message from provider)
+      // Check if provider has responded
       const providerResponded = thread.some(
         (m) => m.from_profile_id === conn.to_profile_id && m.is_auto_reply !== true
       );
@@ -130,7 +147,7 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Check cooldown (7 days)
+      // Check cooldown (7 days per connection)
       const lastNudgedAt = meta.nudged_at as string | undefined;
       if (lastNudgedAt) {
         const timeSinceNudge = now - new Date(lastNudgedAt).getTime();
@@ -146,102 +163,128 @@ export async function GET(request: NextRequest) {
         (now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24)
       );
 
-      // Extract message preview
-      let messagePreview: string | null = null;
-      if (conn.message) {
-        try {
-          const msgJson = JSON.parse(String(conn.message));
-          messagePreview = msgJson.additional_notes || msgJson.message || msgJson.notes || null;
-        } catch {
-          messagePreview = String(conn.message);
-        }
-      }
-      if (!messagePreview && thread.length > 0 && thread[0].text) {
-        messagePreview = thread[0].text;
-      }
-      if (messagePreview && messagePreview.length > 100) {
-        messagePreview = messagePreview.substring(0, 97) + "...";
-      }
-
+      const providerId = conn.to_profile_id;
       const providerSlug = toProfile?.slug || toProfile?.source_provider_id || "";
       const providerName = toProfile?.display_name || "Your Organization";
       const familyName = fromProfile?.display_name || "A family";
 
+      // Add to provider group
+      if (!providerGroups.has(providerId)) {
+        providerGroups.set(providerId, {
+          providerId,
+          providerEmail,
+          providerName,
+          providerSlug,
+          leads: [],
+        });
+      }
+
+      providerGroups.get(providerId)!.leads.push({
+        connectionId: conn.id,
+        familyName,
+        daysSinceInquiry,
+        metadata: meta,
+      });
+    }
+
+    // Send one consolidated email per provider
+    for (const [providerId, group] of providerGroups) {
+      const leadCount = group.leads.length;
+
       if (dryRun) {
-        console.log(`[cron/lead-response-nudge] [DRY RUN] Would nudge ${providerEmail} for connection ${conn.id}`);
-        counts.sent++;
+        console.log(
+          `[cron/lead-response-nudge] [DRY RUN] Would send consolidated nudge to ${group.providerEmail} for ${leadCount} lead(s)`
+        );
+        counts.providers_nudged++;
+        counts.leads_included += leadCount;
         continue;
       }
 
-      // Reserve email log ID for tracking
+      // Build subject line
+      const subject =
+        leadCount === 1
+          ? `${group.leads[0].familyName} is waiting for a response`
+          : `${leadCount} families are waiting for a response`;
+
+      // Reserve email log ID
       const emailLogId = await reserveEmailLogId({
-        to: providerEmail,
-        subject: `${familyName} is waiting for a response`,
+        to: group.providerEmail,
+        subject,
         emailType: "provider_nudge",
         recipientType: "provider",
-        providerId: providerSlug,
+        providerId: group.providerSlug,
         metadata: {
-          connection_id: conn.id,
+          connection_ids: group.leads.map((l) => l.connectionId),
           nudged_by: "cron:lead-response-nudge",
-          days_since_inquiry: daysSinceInquiry,
+          lead_count: leadCount,
         },
       });
 
-      // Build view URL with tracking
+      // Build view URL
       const viewUrl = appendTrackingParams(`${siteUrl}/provider/connections`, emailLogId);
 
-      // Build and send email
-      const html = providerNudgeEmail({
-        providerName,
-        familyName,
-        messagePreview,
-        daysSinceInquiry,
+      // Build consolidated email
+      const html = providerMultiLeadNudgeEmail({
+        providerName: group.providerName,
+        leads: group.leads.map((l) => ({
+          familyName: l.familyName,
+          daysSinceInquiry: l.daysSinceInquiry,
+        })),
         viewUrl,
-        providerSlug,
+        providerSlug: group.providerSlug,
       });
 
+      // Send email
       const { success, error: sendError } = await sendEmail({
-        to: providerEmail,
-        subject: `${familyName} is waiting for a response`,
+        to: group.providerEmail,
+        subject,
         html,
         emailType: "provider_nudge",
         recipientType: "provider",
-        providerId: providerSlug,
+        providerId: group.providerSlug,
         metadata: {
-          connection_id: conn.id,
+          connection_ids: group.leads.map((l) => l.connectionId),
           nudged_by: "cron:lead-response-nudge",
-          days_since_inquiry: daysSinceInquiry,
+          lead_count: leadCount,
         },
         emailLogId: emailLogId ?? undefined,
       });
 
       if (!success) {
-        console.error(`[cron/lead-response-nudge] Send failed for ${conn.id}:`, sendError);
-        counts.skipped++;
-        counts.skipReasons.send_failed++;
+        console.error(
+          `[cron/lead-response-nudge] Send failed for provider ${providerId}:`,
+          sendError
+        );
+        counts.skipped += leadCount;
+        counts.skipReasons.send_failed += leadCount;
         continue;
       }
 
-      // Update connection metadata
+      // Update metadata for all connections in this batch
       const nudgedAt = new Date().toISOString();
-      const updatedMeta = {
-        ...meta,
-        nudged_at: nudgedAt,
-        nudged_by: "cron:lead-response-nudge",
-        nudge_count: ((meta.nudge_count as number) || 0) + 1,
-      };
+      for (const lead of group.leads) {
+        const updatedMeta = {
+          ...lead.metadata,
+          nudged_at: nudgedAt,
+          nudged_by: "cron:lead-response-nudge",
+          nudge_count: ((lead.metadata.nudge_count as number) || 0) + 1,
+        };
 
-      const { error: updateError } = await db
-        .from("connections")
-        .update({ metadata: updatedMeta })
-        .eq("id", conn.id);
+        const { error: updateError } = await db
+          .from("connections")
+          .update({ metadata: updatedMeta })
+          .eq("id", lead.connectionId);
 
-      if (updateError) {
-        console.error(`[cron/lead-response-nudge] Failed to update metadata for ${conn.id}:`, updateError);
-        // Don't fail - email was sent
+        if (updateError) {
+          console.error(
+            `[cron/lead-response-nudge] Failed to update metadata for ${lead.connectionId}:`,
+            updateError
+          );
+        }
       }
 
-      counts.sent++;
+      counts.providers_nudged++;
+      counts.leads_included += leadCount;
     }
 
     return {

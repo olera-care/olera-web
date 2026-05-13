@@ -54,6 +54,63 @@ interface PreviewResponse {
   metadata: Record<string, unknown> | null;
 }
 
+type RecipientStatus = "all" | "delivered" | "opened" | "clicked" | "bounced" | "complained" | "undelivered";
+interface RecipientRow {
+  id: string;
+  recipient: string;
+  recipient_type: string | null;
+  provider_id: string | null;
+  subject: string;
+  email_type: string;
+  status: string;
+  error_message: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  delivered_at: string | null;
+  first_opened_at: string | null;
+  first_clicked_at: string | null;
+  bounced_at: string | null;
+  complained_at: string | null;
+  last_event_type: string | null;
+  last_event_at: string | null;
+}
+interface RecipientsResponse {
+  run: { id: string; started_at: string; finished_at: string | null; status: string; summary: Record<string, unknown> | null; triggered_by: string } | null;
+  rollup: Rollup;
+  columnMissing: boolean;
+  pageSize: number;
+  page: number;
+  status: string;
+  total: number;
+  recipients: RecipientRow[];
+  note: string | null;
+}
+
+const RECIPIENT_FILTERS: { key: RecipientStatus; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "opened", label: "Opened" },
+  { key: "clicked", label: "Clicked" },
+  { key: "bounced", label: "Bounced" },
+  { key: "complained", label: "Complained" },
+  { key: "undelivered", label: "Not delivered" },
+];
+
+function recipientLifecycle(e: RecipientRow): { label: string; cls: string } {
+  if (e.complained_at) return { label: "complained", cls: "bg-red-100 text-red-700" };
+  if (e.bounced_at) return { label: "bounced", cls: "bg-red-100 text-red-700" };
+  if (e.status === "failed") return { label: "failed", cls: "bg-red-100 text-red-700" };
+  if (e.first_clicked_at) return { label: "clicked", cls: "bg-emerald-100 text-emerald-700" };
+  if (e.first_opened_at) return { label: "opened", cls: "bg-teal-100 text-teal-700" };
+  if (e.delivered_at) return { label: "delivered", cls: "bg-gray-100 text-gray-600" };
+  return { label: e.status || "sent", cls: "bg-gray-100 text-gray-500" };
+}
+function runOptionLabel(r: { started_at: string; status: string; summary: Record<string, unknown> | null }): string {
+  const rawSent = r.summary?.sent;
+  const sent = typeof rawSent === "number" ? rawSent : null;
+  const when = new Date(r.started_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return `${when} · ${r.status}${sent != null ? ` · ${sent} sent` : ""}`;
+}
+
 function timeAgo(iso: string | null): string {
   if (!iso) return "—";
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -102,6 +159,10 @@ export default function AutomationDetailPage() {
   const [busy, setBusy] = useState(false);
   const [previewType, setPreviewType] = useState<string | null>(null);
   const [preview, setPreview] = useState<PreviewResponse | "loading" | "none" | null>(null);
+  const [selectedRun, setSelectedRun] = useState<string | null>(null);
+  const [recipientStatus, setRecipientStatus] = useState<RecipientStatus>("all");
+  const [recipientPage, setRecipientPage] = useState(1);
+  const [recipients, setRecipients] = useState<RecipientsResponse | "loading" | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -114,6 +175,9 @@ export default function AutomationDetailPage() {
       setData(d);
       // Pick a default preview type, but don't clobber a selection the user already made.
       setPreviewType((prev) => prev ?? (d.previewTypes[0] ?? null));
+      // Default the recipients view to the most recent run that actually sent something.
+      const bestRun = d.runs.find((r) => { const s = r.summary?.sent; return typeof s === "number" && s > 0; }) ?? d.runs[0] ?? null;
+      setSelectedRun((prev) => prev ?? bestRun?.id ?? null);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -133,6 +197,22 @@ export default function AutomationDetailPage() {
       .then((d) => setPreview(d === "none" ? "none" : (d as PreviewResponse)))
       .catch(() => setPreview("none"));
   }, [id, previewType]);
+
+  // load the per-recipient table when the chosen run / filter / page changes
+  useEffect(() => {
+    if (!id || !selectedRun) {
+      setRecipients(null);
+      return;
+    }
+    setRecipients("loading");
+    const p = new URLSearchParams({ run: selectedRun, status: recipientStatus, page: String(recipientPage) });
+    let cancelled = false;
+    fetch(`/api/admin/automations/${id}/recipients?${p.toString()}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((d) => { if (!cancelled) setRecipients(d as RecipientsResponse); })
+      .catch(() => { if (!cancelled) setRecipients(null); });
+    return () => { cancelled = true; };
+  }, [id, selectedRun, recipientStatus, recipientPage]);
 
   async function togglePause() {
     if (!data) return;
@@ -269,6 +349,117 @@ export default function AutomationDetailPage() {
                   </div>
                   <iframe srcDoc={preview.html} title="Email preview" className="w-full h-[600px] border border-gray-200 rounded-lg bg-white" sandbox="" />
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* Per-recipient table for a chosen run */}
+          {data.job.emailTypes.length > 0 && (
+            <div className="mt-6">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-400">Recipients</div>
+                {data.runs.length > 0 && (
+                  <select
+                    value={selectedRun ?? ""}
+                    onChange={(e) => { setSelectedRun(e.target.value || null); setRecipientPage(1); setRecipientStatus("all"); }}
+                    className="text-xs border border-gray-300 rounded px-1.5 py-0.5 max-w-[24rem]"
+                  >
+                    {data.runs.map((r) => <option key={r.id} value={r.id}>{runOptionLabel(r)}</option>)}
+                  </select>
+                )}
+              </div>
+
+              {data.runs.length === 0 && <div className="text-sm text-gray-400">No runs recorded yet — recipients show up once this deploys and a run fires.</div>}
+              {recipients === "loading" && <div className="text-sm text-gray-400">Loading recipients…</div>}
+              {recipients === null && data.runs.length > 0 && selectedRun && <div className="text-sm text-gray-400">Couldn’t load recipients for this run.</div>}
+
+              {recipients && typeof recipients === "object" && (
+                recipients.columnMissing ? (
+                  <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{recipients.note}</div>
+                ) : (
+                  <>
+                    <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm bg-gray-50 rounded-lg px-3 py-2 mb-2">
+                      <span><span className="font-semibold text-gray-900">{recipients.rollup.sent.toLocaleString()}</span> in this run</span>
+                      <span title="Delivered / in run">{pct(recipients.rollup.delivered, recipients.rollup.sent)} delivered</span>
+                      <span title="Opened / in run — inflated by Apple Mail Privacy Protection">{pct(recipients.rollup.opened, recipients.rollup.sent)} open</span>
+                      <span title="Clicked / in run — inflated by Apple Mail link prefetch">{pct(recipients.rollup.clicked, recipients.rollup.sent)} click</span>
+                      {recipients.rollup.bounced > 0 && <span className="text-red-600">{recipients.rollup.bounced} bounced</span>}
+                      {recipients.rollup.complained > 0 && <span className="text-red-600">{recipients.rollup.complained} complaints</span>}
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {RECIPIENT_FILTERS.map((f) => (
+                        <button
+                          key={f.key}
+                          onClick={() => { setRecipientStatus(f.key); setRecipientPage(1); }}
+                          className={`text-xs px-2 py-0.5 rounded-full border ${recipientStatus === f.key ? "border-gray-800 bg-gray-800 text-white" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {recipients.recipients.length === 0 ? (
+                      <div className="text-sm text-gray-400">{recipients.rollup.sent === 0 ? "No emails linked to this run yet." : "No recipients match this filter."}</div>
+                    ) : (
+                      <>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                              <tr>
+                                <th className="text-left px-3 py-1.5 font-medium text-gray-500">Recipient</th>
+                                <th className="text-left px-3 py-1.5 font-medium text-gray-500">Sent</th>
+                                <th className="text-center px-2 py-1.5 font-medium text-gray-500" title="Delivered">Del</th>
+                                <th className="text-center px-2 py-1.5 font-medium text-gray-500" title="Opened">Open</th>
+                                <th className="text-center px-2 py-1.5 font-medium text-gray-500" title="Clicked">Click</th>
+                                <th className="text-left px-3 py-1.5 font-medium text-gray-500">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                              {recipients.recipients.map((e) => {
+                                const lc = recipientLifecycle(e);
+                                const rawVariant = e.metadata?.variant;
+                                const variant = typeof rawVariant === "string" ? rawVariant : null;
+                                return (
+                                  <tr key={e.id} className="hover:bg-gray-50">
+                                    <td className="px-3 py-1.5">
+                                      {e.provider_id ? (
+                                        <Link href={`/admin/directory/${e.provider_id}`} className="text-teal-700 hover:underline">{e.recipient}</Link>
+                                      ) : (
+                                        <span className="text-gray-800">{e.recipient}</span>
+                                      )}
+                                      {(e.recipient_type || variant) && (
+                                        <span className="text-[11px] text-gray-400 ml-1.5">{[e.recipient_type, variant].filter(Boolean).join(" · ")}</span>
+                                      )}
+                                    </td>
+                                    <td className="px-3 py-1.5 whitespace-nowrap text-gray-500" title={new Date(e.created_at).toLocaleString()}>{timeAgo(e.created_at)}</td>
+                                    <td className="px-2 py-1.5 text-center" title={e.delivered_at ? new Date(e.delivered_at).toLocaleString() : "not delivered"}>{e.delivered_at ? <span className="text-emerald-600">✓</span> : <span className="text-gray-300">·</span>}</td>
+                                    <td className="px-2 py-1.5 text-center" title={e.first_opened_at ? new Date(e.first_opened_at).toLocaleString() : "not opened"}>{e.first_opened_at ? <span className="text-emerald-600">✓</span> : <span className="text-gray-300">·</span>}</td>
+                                    <td className="px-2 py-1.5 text-center" title={e.first_clicked_at ? new Date(e.first_clicked_at).toLocaleString() : "not clicked"}>{e.first_clicked_at ? <span className="text-emerald-600">✓</span> : <span className="text-gray-300">·</span>}</td>
+                                    <td className="px-3 py-1.5 whitespace-nowrap"><span className={`text-[11px] px-1.5 py-0.5 rounded ${lc.cls}`}>{lc.label}</span>{e.error_message && <span className="text-red-600 text-[11px] ml-1">{e.error_message}</span>}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        {(() => {
+                          const from = (recipients.page - 1) * recipients.pageSize + 1;
+                          const to = Math.min(recipients.page * recipients.pageSize, recipients.total);
+                          const hasPrev = recipients.page > 1;
+                          const hasNext = recipients.page * recipients.pageSize < recipients.total;
+                          return (
+                            <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                              <span>{from.toLocaleString()}–{to.toLocaleString()} of {recipients.total.toLocaleString()}</span>
+                              <button disabled={!hasPrev} onClick={() => setRecipientPage((p) => Math.max(1, p - 1))} className="px-2 py-0.5 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50">← Prev</button>
+                              <button disabled={!hasNext} onClick={() => setRecipientPage((p) => p + 1)} className="px-2 py-0.5 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50">Next →</button>
+                            </div>
+                          );
+                        })()}
+                      </>
+                    )}
+                  </>
+                )
               )}
             </div>
           )}

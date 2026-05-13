@@ -8,6 +8,7 @@ import Select from "@/components/ui/Select";
 import { PROVIDER_CATEGORIES } from "@/lib/types";
 import { useCitySearch } from "@/hooks/use-city-search";
 import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
+import EmailTimeline from "@/components/admin/EmailTimeline";
 import type { DirectoryProvider } from "@/lib/types";
 
 interface ImageMetadata {
@@ -777,6 +778,11 @@ export default function AdminDirectoryDetailPage() {
           {images.length === 0 && rawImages.length === 0 && (
             <p className="text-sm text-gray-500">No images found for this provider.</p>
           )}
+        </Section>
+
+        {/* Automated emails */}
+        <Section title="Automated emails">
+          <EmailTimeline providerId={providerId} viewAllHref={`/admin/emails?provider_id=${providerId}`} />
         </Section>
 
         {/* Facility Manager / Owner */}

@@ -267,6 +267,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerCity={providerCity}
           providerState={providerState}
           providerImage={providerImage}
+          priceRange={priceRange}
           ctaVariant={variant}
           ctaPreviewMode={isPreview}
         />

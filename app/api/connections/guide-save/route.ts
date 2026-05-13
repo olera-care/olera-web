@@ -354,41 +354,10 @@ export async function POST(request: Request) {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // CONVERSION TRACKING (fires for ALL users, not just new)
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    // Slack: conversion notification
-    try {
-      const conversionAlert = slackGuideCtaConverted({
-        email: normalizedEmail,
-        providerName: provider.name,
-        providerSlug: provider.slug,
-      });
-      await sendSlackAlert(conversionAlert.text, conversionAlert.blocks);
-    } catch {
-      // Non-blocking
-    }
-
-    // Activity tracking: conversion event for admin panel
-    try {
-      await db.from("seeker_activity").insert({
-        profile_id: fromProfileId,
-        event_type: "guide_cta_converted",
-        metadata: {
-          provider_name: provider.name,
-          provider_slug: provider.slug,
-          email: normalizedEmail,
-          is_new_user: isNewUser,
-        },
-      });
-    } catch {
-      // Non-blocking
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // CREATE CONNECTION FOR THE PROVIDER
+    // RESOLVE PROVIDER AND CHECK FOR EXISTING CONNECTION
     // ═══════════════════════════════════════════════════════════════════════════
     let connectionId: string | null = null;
+    let isNewConnection = false;
     const createdAt = new Date().toISOString();
 
     // Resolve provider profile ID
@@ -472,8 +441,10 @@ export async function POST(request: Request) {
       }
     }
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CHECK FOR EXISTING CONNECTION
+    // ═══════════════════════════════════════════════════════════════════════════
     if (toProfileId) {
-      // Check for existing connection
       const { data: existingConnection } = await db
         .from("connections")
         .select("id")
@@ -485,88 +456,138 @@ export async function POST(request: Request) {
         .single();
 
       if (existingConnection) {
+        // Connection already exists - return early without duplicate notifications
         connectionId = existingConnection.id;
-      } else {
-        // Build connection metadata with auto-reply
-        const connectionMetadata = {
-          auto_intro: `Downloaded senior care checklist.`,
-          source: "guide_save",
-          cta_variant: "guide",
-          thread: [
-            {
-              from_profile_id: toProfileId,
-              text: `Hello, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
-              created_at: createdAt,
-              is_auto_reply: true,
-            },
-          ],
-        };
 
-        // Build message payload
-        const messagePayload = JSON.stringify({
-          seeker_email: normalizedEmail,
-          message: null,
-          care_recipient: null,
-          care_type: null,
-          urgency: null,
-          source: "guide_save",
+        return NextResponse.json({
+          status: "existing",
+          connectionId,
+          accessToken: accessToken || null,
+          refreshToken: refreshToken || null,
+          isNewUser,
+          pdfUrl: GUIDE_PDF_URL,
+        });
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CREATE NEW CONNECTION
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (toProfileId) {
+      // Build connection metadata with auto-reply
+      const connectionMetadata = {
+        auto_intro: `Downloaded senior care checklist.`,
+        source: "guide_save",
+        cta_variant: "guide",
+        thread: [
+          {
+            from_profile_id: toProfileId,
+            text: `Hello, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
+            created_at: createdAt,
+            is_auto_reply: true,
+          },
+        ],
+      };
+
+      // Build message payload
+      const messagePayload = JSON.stringify({
+        seeker_email: normalizedEmail,
+        message: null,
+        care_recipient: null,
+        care_type: null,
+        urgency: null,
+        source: "guide_save",
+      });
+
+      // Insert connection
+      const { data: newConnection, error: insertError } = await db
+        .from("connections")
+        .insert({
+          from_profile_id: fromProfileId,
+          to_profile_id: toProfileId,
+          type: "inquiry",
+          status: "pending",
+          message: messagePayload,
+          metadata: connectionMetadata,
+          guest_email: normalizedEmail,
+        })
+        .select("id")
+        .single();
+
+      if (insertError) {
+        console.error(`Failed to insert connection for ${provider.id}:`, insertError);
+      } else {
+        connectionId = newConnection.id;
+        isNewConnection = true;
+
+        // Record analytics
+        void recordProviderEvent({
+          provider_id: provider.slug,
+          event_type: "lead_received",
+          profile_id: toProfileId,
+          metadata: {
+            connection_id: newConnection.id,
+            guest: true,
+            raw_provider_id: provider.id,
+            session_id: sessionId || null,
+            cta_variant: "guide",
+            source: "guide_save",
+          },
         });
 
-        // Insert connection
-        const { data: newConnection, error: insertError } = await db
-          .from("connections")
-          .insert({
-            from_profile_id: fromProfileId,
-            to_profile_id: toProfileId,
-            type: "inquiry",
-            status: "pending",
-            message: messagePayload,
-            metadata: connectionMetadata,
-            guest_email: normalizedEmail,
-          })
-          .select("id")
-          .single();
-
-        if (insertError) {
-          console.error(`Failed to insert connection for ${provider.id}:`, insertError);
-        } else {
-          connectionId = newConnection.id;
-
-          // Record analytics
-          void recordProviderEvent({
-            provider_id: provider.slug,
-            event_type: "lead_received",
-            profile_id: toProfileId,
-            metadata: {
-              connection_id: newConnection.id,
-              guest: true,
-              raw_provider_id: provider.id,
-              session_id: sessionId || null,
-              cta_variant: "guide",
-              source: "guide_save",
-            },
+        // Slack alert for new lead
+        try {
+          const alert = slackNewLead({
+            familyName: "A family (guide)",
+            providerName: provider.name,
+            careType: null,
           });
-
-          // Slack alert
-          try {
-            const alert = slackNewLead({
-              familyName: "A family (guide)",
-              providerName: provider.name,
-              careType: null,
-            });
-            await sendSlackAlert(alert.text, alert.blocks);
-          } catch {
-            // Non-blocking
-          }
+          await sendSlackAlert(alert.text, alert.blocks);
+        } catch {
+          // Non-blocking
         }
       }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // SEND PDF EMAIL
+    // NOTIFICATIONS (only for new connections)
     // ═══════════════════════════════════════════════════════════════════════════
-    // Fire-and-forget email with PDF guide
-    (async () => {
+    if (isNewConnection) {
+      // Slack: conversion notification
+      try {
+        const conversionAlert = slackGuideCtaConverted({
+          email: normalizedEmail,
+          providerName: provider.name,
+          providerSlug: provider.slug,
+        });
+        await sendSlackAlert(conversionAlert.text, conversionAlert.blocks);
+      } catch {
+        // Non-blocking
+      }
+
+      // Activity tracking: conversion event for admin panel
+      try {
+        await db.from("seeker_activity").insert({
+          profile_id: fromProfileId,
+          event_type: "guide_cta_converted",
+          metadata: {
+            provider_name: provider.name,
+            provider_slug: provider.slug,
+            email: normalizedEmail,
+            is_new_user: isNewUser,
+          },
+        });
+      } catch {
+        // Non-blocking
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SEND PDF EMAIL (only for new connections)
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (isNewConnection) {
+      // Fire-and-forget email with PDF guide
+      (async () => {
       try {
         const subject = `Your senior care checklist from Olera`;
 
@@ -641,20 +662,21 @@ export async function POST(request: Request) {
       }
     })();
 
-    // Loops event
-    try {
-      await sendLoopsEvent({
-        email: normalizedEmail,
-        eventName: "guide_downloaded",
-        audience: "seeker",
-        eventProperties: {
-          providerName: provider.name,
-          providerSlug: provider.slug,
-        },
-      });
-    } catch {
-      // Non-blocking
-    }
+      // Loops event
+      try {
+        await sendLoopsEvent({
+          email: normalizedEmail,
+          eventName: "guide_downloaded",
+          audience: "seeker",
+          eventProperties: {
+            providerName: provider.name,
+            providerSlug: provider.slug,
+          },
+        });
+      } catch {
+        // Non-blocking
+      }
+    } // End of isNewConnection block
 
     return NextResponse.json({
       status: "created",

@@ -76,6 +76,11 @@ const DIDNT_REACH: Outcome[] = [
     label: "Left a voicemail / message with front desk",
     blurb: "Row moves to Replies as awaiting callback. Future call days still fire on schedule. (Add what they said in notes — voicemail vs. front-desk message vs. office hours, etc.)",
   },
+  {
+    key: "wrong_number",
+    label: "Wrong number",
+    blurb: "Marks the contact unreachable on this number. Closes the row.",
+  },
 ];
 
 const REACHED_THEM: Outcome[] = [
@@ -103,11 +108,6 @@ const REACHED_THEM: Outcome[] = [
     key: "connected_not_interested",
     label: "Not interested",
     blurb: "Closes the row. Cancels remaining email and call tasks.",
-  },
-  {
-    key: "wrong_number",
-    label: "Wrong number",
-    blurb: "Marks the contact unreachable on this number. Closes the row.",
   },
 ];
 

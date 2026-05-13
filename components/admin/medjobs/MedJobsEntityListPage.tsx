@@ -22,6 +22,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "@/components/admin/Toast";
+import { useRecentMoves } from "@/components/admin/RecentMoves";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
@@ -142,6 +143,7 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
   useMedJobsRefresh(refetch);
 
   const toast = useToast();
+  const { markMoved, isRecent } = useRecentMoves();
   const callAction = useCallback(
     async (
       outreachId: string,
@@ -165,11 +167,18 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
             ? (payload.classification as string)
             : undefined;
       const message = logActionSuccessMessage(action, outcome);
-      if (message) toast(message);
+      if (message) {
+        toast(message);
+        // E2: same gate marks the row as recently moved so the
+        // destination tab can highlight it. Actions that don't have a
+        // success message (read-only edits like update_research) are
+        // not considered moves.
+        markMoved(outreachId);
+      }
       await refetch();
       refreshMedJobs();
     },
-    [refetch, refreshMedJobs, toast],
+    [refetch, refreshMedJobs, toast, markMoved],
   );
 
   const handleDrawerAction = useCallback(
@@ -193,6 +202,7 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
         <RowCard
           tab={tab}
           row={row}
+          recentlyMoved={isRecent(row.id)}
           // v9.0 Phase 7 Commit K: closed rows suppress the primary
           // CTA — they're history, not action surfaces. The ellipsis
           // still offers Reopen + contextual options.

@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useToast } from "@/components/admin/Toast";
+import { useRecentMoves } from "@/components/admin/RecentMoves";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
@@ -242,6 +243,7 @@ export function MedJobsTabPage({
   );
 
   const toast = useToast();
+  const { markMoved, isRecent } = useRecentMoves();
   const callAction = useCallback(
     async (outreachId: string, action: string, payload: Record<string, unknown> = {}) => {
       const res = await fetch(`/api/admin/student-outreach/${outreachId}`, {
@@ -261,13 +263,18 @@ export function MedJobsTabPage({
             ? (payload.classification as string)
             : undefined;
       const message = logActionSuccessMessage(action, outcome);
-      if (message) toast(message);
+      if (message) {
+        toast(message);
+        // E2: also mark the row as recently moved so the destination
+        // tab can highlight it.
+        markMoved(outreachId);
+      }
       await refetch();
       // v9.0 Phase 7 Commit K: fan-out so the sidebar fractions +
       // hero counts update live alongside this page's refetch.
       refreshMedJobs();
     },
-    [refetch, refreshMedJobs, toast],
+    [refetch, refreshMedJobs, toast, markMoved],
   );
 
   const renderRow = useCallback(
@@ -275,6 +282,7 @@ export function MedJobsTabPage({
       <RowCard
         tab={tab}
         row={row}
+        recentlyMoved={isRecent(row.id)}
         onOpenDrawer={() => setOpenOutreachId(row.id)}
         onLogCallOutcome={() => setCallOutcomeRow(row)}
         onClassifyReply={(source) => setClassifierRow({ row, source })}
@@ -327,7 +335,7 @@ export function MedJobsTabPage({
         }}
       />
     ),
-    [tab, callAction],
+    [tab, callAction, isRecent],
   );
 
   const visibleTabs = useMemo(() => {

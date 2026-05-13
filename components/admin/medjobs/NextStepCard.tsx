@@ -57,6 +57,7 @@ import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal"
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { ContactFormBanner } from "@/components/admin/medjobs/SnapshotCard";
 import { useToast } from "@/components/admin/Toast";
+import { useRecentMoves } from "@/components/admin/RecentMoves";
 
 type ActionFn = (
   actionName: string,
@@ -87,12 +88,14 @@ export function NextStepCard({
   launchDisabledReason,
   beforeLaunch,
 }: NextStepCardProps) {
-  // E1: wrap the action dispatcher so successful Log operations
-  // surface a toast naming the consequence ("Cadence stopped, row
-  // moved to Replies"). Actions not in the message map (e.g.
-  // update_research, update_outreach, update_general_contact) stay
-  // silent — those run on blur and would be noisy to toast.
+  // E1 + E2: wrap the action dispatcher so successful Log operations
+  // (a) surface a toast naming the consequence and (b) mark the row
+  // as recently moved so the destination tab can highlight it.
+  // Actions not in the message map (e.g. update_research,
+  // update_outreach, update_general_contact) stay silent — those run
+  // on blur and would be noisy to toast or highlight.
   const toast = useToast();
+  const { markMoved } = useRecentMoves();
   const action: ActionFn = async (actionName, payload) => {
     const result = await rawAction(actionName, payload);
     const outcome =
@@ -102,7 +105,10 @@ export function NextStepCard({
           ? (payload.classification as string)
           : undefined;
     const message = logActionSuccessMessage(actionName, outcome);
-    if (message) toast(message);
+    if (message) {
+      toast(message);
+      markMoved(ctx.outreach.id);
+    }
     return result;
   };
 

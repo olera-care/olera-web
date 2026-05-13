@@ -2296,12 +2296,13 @@ function ProviderResponseVariantSplit({
 
 // ResponseLeadsList — paginated list of leads with filters and nudge functionality.
 // Replaces the old static AwaitingResponseList with a full-featured drill-in.
-type ResponseLeadFilter = "all" | "needs_attention" | "nudged_this_week" | "responded" | "no_email";
+type ResponseLeadFilter = "all" | "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
 
 interface FilterCounts {
   all: number;
   needs_attention: number;
-  nudged_this_week: number;
+  provider_nudged: number;
+  family_nudged: number;
   responded: number;
   no_email: number;
 }
@@ -2442,13 +2443,8 @@ function ResponseLeadsList({
       }
 
       setNudgeSuccess({ id: connectionId, type: "provider" });
-      // Update local state to show nudged indicator
-      const nudgedAt = new Date().toISOString();
-      setLeads((prev) =>
-        prev.map((l) =>
-          l.connection_id === connectionId ? { ...l, provider_nudged_at: nudgedAt } : l
-        )
-      );
+      // Refetch to update counts and move lead to correct tab
+      fetchPage(0, false);
       // Clear "Sent" message after 3 seconds
       const successTimeout = setTimeout(() => setNudgeSuccess(null), 3000);
       timeoutRefs.current.add(successTimeout);
@@ -2459,7 +2455,7 @@ function ResponseLeadsList({
     } finally {
       setNudgingProvider(null);
     }
-  }, []);
+  }, [fetchPage]);
 
   // Nudge family to complete their profile
   const handleNudgeFamily = useCallback(async (connectionId: string, familyId: string) => {
@@ -2481,13 +2477,8 @@ function ResponseLeadsList({
       }
 
       setNudgeSuccess({ id: connectionId, type: "family" });
-      // Update local state to show nudged indicator
-      const nudgedAt = new Date().toISOString();
-      setLeads((prev) =>
-        prev.map((l) =>
-          l.connection_id === connectionId ? { ...l, family_nudged_at: nudgedAt } : l
-        )
-      );
+      // Refetch to update counts and move lead to correct tab
+      fetchPage(0, false);
       // Clear "Sent" message after 3 seconds
       const successTimeout = setTimeout(() => setNudgeSuccess(null), 3000);
       timeoutRefs.current.add(successTimeout);
@@ -2498,7 +2489,7 @@ function ResponseLeadsList({
     } finally {
       setNudgingFamily(null);
     }
-  }, []);
+  }, [fetchPage]);
 
   // Nudge family to publish their profile (when complete but not published)
   const handleNudgeFamilyPublish = useCallback(async (connectionId: string, familyId: string) => {
@@ -2520,13 +2511,8 @@ function ResponseLeadsList({
       }
 
       setNudgeSuccess({ id: connectionId, type: "familyPublish" });
-      // Update local state to show nudged indicator
-      const nudgedAt = new Date().toISOString();
-      setLeads((prev) =>
-        prev.map((l) =>
-          l.connection_id === connectionId ? { ...l, family_publish_nudged_at: nudgedAt } : l
-        )
-      );
+      // Refetch to update counts and move lead to correct tab
+      fetchPage(0, false);
       // Clear "Sent" message after 3 seconds
       const successTimeout = setTimeout(() => setNudgeSuccess(null), 3000);
       timeoutRefs.current.add(successTimeout);
@@ -2537,7 +2523,7 @@ function ResponseLeadsList({
     } finally {
       setNudgingFamilyPublish(null);
     }
-  }, []);
+  }, [fetchPage]);
 
   const confirmDelete = useCallback(async () => {
     if (!pendingDelete) return;
@@ -2625,7 +2611,8 @@ function ResponseLeadsList({
   const FILTER_TABS: Array<{ key: ResponseLeadFilter; label: string; description: string }> = [
     { key: "all", label: "All", description: "All leads" },
     { key: "needs_attention", label: "Needs Attention", description: "Ready to nudge" },
-    { key: "nudged_this_week", label: "Nudged", description: "Waiting for response" },
+    { key: "provider_nudged", label: "Provider Nudged", description: "Waiting on provider" },
+    { key: "family_nudged", label: "Family Nudged", description: "Waiting on family" },
     { key: "responded", label: "Responded", description: "Provider replied" },
     { key: "no_email", label: "No Email", description: "Need email first" },
   ];

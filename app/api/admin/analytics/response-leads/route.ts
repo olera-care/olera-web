@@ -14,7 +14,7 @@ import {
  *
  * Query params:
  *   date_from, date_to  - ISO timestamps (optional)
- *   filter              - "all" | "needs_attention" | "nudged_this_week" | "responded" | "no_email" (default: "all")
+ *   filter              - "all" | "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email" (default: "all")
  *   variant             - CTA variant filter, "all" for any (default: "all")
  *   limit               - 1-100, default 50
  *   offset              - >= 0, default 0
@@ -182,7 +182,8 @@ export async function GET(req: NextRequest) {
     // Extract provider's response text (full - frontend truncates for display)
     const providerResponse: string | null = providerMsg?.text || null;
 
-    // Extract message preview from the connection's message JSON or first thread message
+    // Extract message preview from the connection's message JSON or family's thread message
+    // We want the FAMILY's message, not the provider's auto-reply
     let messagePreview = "";
     if (conn.message) {
       try {
@@ -194,9 +195,14 @@ export async function GET(req: NextRequest) {
         messagePreview = String(conn.message);
       }
     }
-    // Fall back to first thread message if no direct message
-    if (!messagePreview && thread.length > 0 && thread[0].text) {
-      messagePreview = thread[0].text;
+    // Fall back to first FAMILY message in thread (skip provider auto-replies)
+    if (!messagePreview && thread.length > 0) {
+      const familyMessage = thread.find(
+        (m) => m.from_profile_id === conn.from_profile_id && m.text && !m.is_auto_reply
+      );
+      if (familyMessage?.text) {
+        messagePreview = familyMessage.text;
+      }
     }
     // Truncate to 50 chars
     if (messagePreview.length > 50) {
@@ -255,7 +261,7 @@ export async function GET(req: NextRequest) {
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
   const now = Date.now();
 
-  type Category = "needs_attention" | "nudged_this_week" | "responded" | "no_email";
+  type Category = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
 
   const categorizedLeads = allLeads.map((lead) => {
     const hasProviderEmail = !!lead.provider_email;
@@ -263,11 +269,22 @@ export async function GET(req: NextRequest) {
       ? now - new Date(lead.provider_nudged_at).getTime() < SEVEN_DAYS_MS
       : false;
 
+    // Check if family was nudged recently (either profile completion or publish nudge)
+    const familyNudgedRecently =
+      (lead.family_nudged_at
+        ? now - new Date(lead.family_nudged_at).getTime() < SEVEN_DAYS_MS
+        : false) ||
+      (lead.family_publish_nudged_at
+        ? now - new Date(lead.family_publish_nudged_at).getTime() < SEVEN_DAYS_MS
+        : false);
+
     // Order matters: responded takes priority (goal achieved), then check actionability
+    // Provider nudge takes priority over family nudge (waiting on provider response)
     let category: Category;
     if (lead.responded) category = "responded";
     else if (!hasProviderEmail) category = "no_email";
-    else if (providerNudgedRecently) category = "nudged_this_week";
+    else if (providerNudgedRecently) category = "provider_nudged";
+    else if (familyNudgedRecently) category = "family_nudged";
     else category = "needs_attention";
 
     return { lead, category };
@@ -277,7 +294,8 @@ export async function GET(req: NextRequest) {
   const counts = {
     all: allLeads.length,
     needs_attention: 0,
-    nudged_this_week: 0,
+    provider_nudged: 0,
+    family_nudged: 0,
     responded: 0,
     no_email: 0,
   };

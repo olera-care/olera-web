@@ -491,7 +491,7 @@ export default function CompareBottomSheet({
                 <h3 className="text-lg font-bold text-gray-900">
                   Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
                 </h3>
-                <p className="text-sm text-gray-500">Add your email so you don&apos;t lose it.</p>
+                <p className="text-sm text-gray-500">We&apos;ll send you a summary to compare.</p>
               </div>
 
               <div className="flex flex-col gap-3">

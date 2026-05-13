@@ -63,6 +63,10 @@
     {
       "path": "/api/cron/student-outreach-send",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/lead-response-nudge",
+      "schedule": "0 14 * * 4"
     }
   ]
 }

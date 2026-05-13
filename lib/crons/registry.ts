@@ -109,6 +109,21 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: [],
     relatedAdminPath: "/admin/staffing-outreach",
   },
+  {
+    id: "lead-response-nudge",
+    name: "Lead response nudge",
+    description:
+      "Weekly nudge to providers who haven't responded to leads. Targets connections 3+ days old where provider has not replied and was not nudged in the last 7 days.",
+    recipientCohort: "Providers with unanswered leads (3+ days old, not nudged in 7 days).",
+    audience: "Providers",
+    fn: "nudge",
+    schedule: "0 14 * * 4",
+    humanSchedule: "Thursdays, 14:00 UTC (~9 AM ET)",
+    path: "/api/cron/lead-response-nudge",
+    emailTypes: ["provider_nudge"],
+    successSignal: "Provider responds to the lead.",
+    relatedAdminPath: "/admin/analytics",
+  },
 
   // ── Care seekers ───────────────────────────────────────────────────
   {

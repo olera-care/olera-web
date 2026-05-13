@@ -2339,6 +2339,12 @@ function ResponseLeadsList({
   const [pendingDelete, setPendingDelete] = useState<ResponseLead | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  // Add email state (inline editing)
+  const [editingEmailId, setEditingEmailId] = useState<string | null>(null);
+  const [emailInput, setEmailInput] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [emailAddSuccess, setEmailAddSuccess] = useState<string | null>(null);
+  const [emailAddError, setEmailAddError] = useState<string | null>(null);
 
   // Track timeout IDs for cleanup on unmount
   const timeoutRefs = useRef<Set<NodeJS.Timeout>>(new Set());
@@ -2451,6 +2457,58 @@ function ResponseLeadsList({
     }
   }, [pendingDelete]);
 
+  // Handle inline email add
+  const handleAddEmail = useCallback(async (lead: ResponseLead) => {
+    if (!emailInput.trim() || !lead.provider_id) return;
+
+    // Basic email validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.trim())) {
+      setEmailAddError("Invalid email format");
+      return;
+    }
+
+    setSavingEmail(true);
+    setEmailAddError(null);
+
+    try {
+      const res = await fetch("/api/admin/leads/add-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profileId: lead.provider_id,
+          email: emailInput.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || "Failed to save email");
+      }
+
+      // Update local state with the new email
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.connection_id === lead.connection_id
+            ? { ...l, provider_email: emailInput.trim() }
+            : l
+        )
+      );
+      setEmailAddSuccess(lead.connection_id);
+      setEditingEmailId(null);
+      setEmailInput("");
+
+      // Clear success message after 3 seconds
+      const successTimeout = setTimeout(() => setEmailAddSuccess(null), 3000);
+      timeoutRefs.current.add(successTimeout);
+    } catch (err) {
+      setEmailAddError(err instanceof Error ? err.message : "Failed to save");
+      const errorTimeout = setTimeout(() => setEmailAddError(null), 5000);
+      timeoutRefs.current.add(errorTimeout);
+    } finally {
+      setSavingEmail(false);
+    }
+  }, [emailInput]);
+
   const hasMore = total !== null && leads.length < total;
 
   const FILTER_CHIPS: Array<{ key: ResponseLeadFilter; label: string }> = [
@@ -2511,6 +2569,11 @@ function ResponseLeadsList({
       {nudgeError && (
         <div className="mb-3 px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
           {nudgeError}
+        </div>
+      )}
+      {emailAddError && (
+        <div className="mb-3 px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
+          {emailAddError}
         </div>
       )}
 
@@ -2600,14 +2663,59 @@ function ResponseLeadsList({
                     {lead.responded ? (
                       <span className="text-xs text-emerald-600">Replied</span>
                     ) : !lead.provider_email ? (
-                      // No email — link to directory to add one
-                      <Link
-                        href={`/admin/directory/${lead.provider_id}`}
-                        className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
-                        title="Add email to enable nudging"
-                      >
-                        Add email →
-                      </Link>
+                      // No email — inline form to add one
+                      emailAddSuccess === lead.connection_id ? (
+                        <span className="text-xs text-emerald-600">Email added</span>
+                      ) : editingEmailId === lead.connection_id ? (
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            handleAddEmail(lead);
+                          }}
+                          className="flex items-center gap-1"
+                        >
+                          <input
+                            type="email"
+                            placeholder="email@example.com"
+                            value={emailInput}
+                            onChange={(e) => setEmailInput(e.target.value)}
+                            className="w-32 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            disabled={savingEmail}
+                            autoFocus
+                          />
+                          <button
+                            type="submit"
+                            disabled={savingEmail || !emailInput.trim()}
+                            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                          >
+                            {savingEmail ? "..." : "Save"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingEmailId(null);
+                              setEmailInput("");
+                              setEmailAddError(null);
+                            }}
+                            className="px-1.5 py-1 text-xs text-gray-400 hover:text-gray-600"
+                          >
+                            ✕
+                          </button>
+                        </form>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingEmailId(lead.connection_id);
+                            setEmailInput("");
+                            setEmailAddError(null);
+                          }}
+                          className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                          title="Add email to enable nudging"
+                        >
+                          Add email
+                        </button>
+                      )
                     ) : (
                       <div className="flex flex-col items-center gap-0.5">
                         {nudgeSuccess === lead.connection_id ? (

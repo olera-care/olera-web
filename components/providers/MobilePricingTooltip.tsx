@@ -55,16 +55,14 @@ export default function MobilePricingTooltip({
         {topText}
       </span>
 
-      {/* Bottom line: Subtitle with tooltip (centered with balanced spacer) */}
-      <div className="flex items-center justify-center gap-0.5 mt-0.5">
-        {/* Invisible spacer to balance the icon on the right */}
-        <span className="w-5 h-5" aria-hidden="true" />
+      {/* Bottom line: Subtitle with tooltip (icon positioned inline) */}
+      <div className="flex items-center justify-center gap-1 mt-0.5">
         <span className="text-xs text-gray-500 font-medium">{bottomText}</span>
         <button
           ref={buttonRef}
           type="button"
           onClick={() => setShowTooltip((prev) => !prev)}
-          className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+          className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
           aria-label="Pricing info"
           aria-expanded={showTooltip}
         >

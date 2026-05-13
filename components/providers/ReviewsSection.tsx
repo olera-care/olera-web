@@ -501,22 +501,19 @@ export default function ReviewsSection({
             })}
           </div>
 
-          {/* Footer actions */}
-          <div className="flex items-center justify-between mt-5">
+          {/* Footer actions - stacked on mobile, inline on desktop */}
+          <div className="flex flex-col gap-3 mt-6 md:flex-row md:items-center md:justify-between md:gap-4">
             {/* Show all reviews button */}
-            {hasMore ? (
+            {hasMore && (
               <button
                 onClick={() => {
                   setScrollToReviewId(null);
                   setAllReviewsModalOpen(true);
                 }}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 underline underline-offset-2 hover:text-primary-600 transition-colors"
+                className="w-full md:w-auto px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
               >
                 Show all {reviewCount} reviews
-                <ChevronRightIcon className="w-4 h-4" />
               </button>
-            ) : (
-              <div />
             )}
 
             {/* Add review button (hidden for non-family profiles) */}
@@ -524,7 +521,7 @@ export default function ReviewsSection({
               <Link
                 href={reviewPageUrl}
                 rel="nofollow"
-                className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
+                className="w-full md:w-auto px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center"
               >
                 Leave a review
               </Link>
@@ -545,7 +542,7 @@ export default function ReviewsSection({
             <Link
               href={reviewPageUrl}
               rel="nofollow"
-              className="inline-block px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
+              className="inline-block px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
             >
               Write a review
             </Link>

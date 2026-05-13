@@ -947,15 +947,22 @@ export default async function ProviderPage({
                         tooltipContent={pricingConfig.coverageNote?.({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined }) || pricingConfig.disclaimer({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined })}
                         align="right"
                       />
-                    ) : hasPriceRange ? (
-                      <MobilePricingTooltip
-                        topText={priceRange!}
-                        bottomText="est."
-                        tooltipContent={pricingConfig?.disclaimer({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined }) || "Price is an estimate and may vary. Contact the provider for exact rates."}
-                        isPrice
-                        align="right"
-                      />
-                    ) : (
+                    ) : hasPriceRange ? (() => {
+                      // Parse price to remove unit and determine type
+                      const isHourly = priceRange!.includes("/hr");
+                      const isMonthly = priceRange!.includes("/mo");
+                      const priceWithoutUnit = priceRange!.replace(/\/(hr|mo)$/i, "").trim();
+                      const priceLabel = isHourly ? "Hourly est." : isMonthly ? "Monthly est." : "est.";
+                      return (
+                        <MobilePricingTooltip
+                          topText={priceWithoutUnit}
+                          bottomText={priceLabel}
+                          tooltipContent={pricingConfig?.disclaimer({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined }) || "Price is an estimate and may vary. Contact the provider for exact rates."}
+                          isPrice
+                          align="right"
+                        />
+                      );
+                    })() : (
                       <>
                         <span className="text-base font-semibold text-gray-900">Contact</span>
                         <span className="text-xs text-gray-500 font-medium text-right">for pricing</span>

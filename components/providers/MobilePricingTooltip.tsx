@@ -53,26 +53,30 @@ export default function MobilePricingTooltip({
 
   return (
     <div className={`flex flex-col ${alignClass}`}>
-      <div className="flex items-center gap-1">
-        <span
-          className={
-            isPrice
-              ? "text-xl font-bold text-gray-900"
-              : "text-base font-semibold text-gray-900"
-          }
-        >
-          {topText}
-        </span>
+      {/* Top line: Price or Medicare/Medicaid (large, bold) */}
+      <span
+        className={
+          isPrice
+            ? "text-xl font-bold text-gray-900"
+            : "text-base font-semibold text-gray-900"
+        }
+      >
+        {topText}
+      </span>
+
+      {/* Bottom line: Subtitle with tooltip (matches star row size) */}
+      <div className="flex items-center gap-0.5">
+        <span className="text-xs text-gray-500 font-medium">{bottomText}</span>
         <button
           ref={buttonRef}
           type="button"
           onClick={() => setShowTooltip((prev) => !prev)}
-          className="w-8 h-8 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+          className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
           aria-label="Pricing info"
           aria-expanded={showTooltip}
         >
           <svg
-            className="w-4 h-4"
+            className="w-3.5 h-3.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -86,7 +90,6 @@ export default function MobilePricingTooltip({
           </svg>
         </button>
       </div>
-      <span className="text-xs text-gray-500 font-medium">{bottomText}</span>
 
       {/* Tooltip - fixed position portal to prevent layout shift */}
       {showTooltip &&

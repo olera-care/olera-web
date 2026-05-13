@@ -7,47 +7,37 @@
 
 ## Current Focus
 
-### 2026-05-13 (Wed, midday) — PR #803: lite admin detail mode for user-created providers (worktree ready, NOT YET BUILT)
+### 2026-05-13 (Wed, afternoon) — PR #805: lite admin detail mode + analytics relinks (built, awaiting browser test → merge)
 
-**Status:** Worktree set up at `/Users/tfalohun/.claude-worktrees/olera-web/lite-admin-detail`, branch `feature/lite-admin-detail-mode`, off staging tip `01a63dde` (which includes both #799 and #802 merged). node_modules symlinked. Zero code written yet — this entry is the pickup brief after a context compact.
+**Status:** `feature/lite-admin-detail-mode` → staging, https://github.com/olera-care/olera-web/pull/805 — 3 commits, tsc clean, pre-test review found and fixed one PATCH-path bug before TJ tested. Awaiting Vercel preview browser test, then merge.
 
-**Why this PR exists:** TJ spotted a UX flaw while testing PR #802 on staging. Clicking a row in `/admin/directory` for "user-created" providers (yellow USER-CREATED badge — providers who self-registered via `business_profiles` without an `olera-providers` scraped row) opens the public `/provider/<slug>` page in a new tab. That's because the existing admin detail page hard-404s when there's no `olera-providers` row (see `app/api/admin/directory/[providerId]/route.ts:60-65`). User-created rows have no admin destination today. The public page is a useful secondary action but NOT the primary one — the admin detail (where Comms timeline lives) should be the destination.
+**What shipped (three sequenced increments):**
 
-**Why this is its own PR (#803) and not bundled with #802:** I initially recommended a separate PR for reviewability. TJ overrode for efficiency. After saving SCRATCHPAD as the natural break point, I revisited and re-recommended separating — three reasons: (1) #802 is a coherent shippable piece (unified Comms timeline); the UX fix is a different story (admin detail page now supports user-created providers); (2) #802 value lands on staging in minutes, decoupled from the lite-mode work; (3) zero shared diff between the two pieces. TJ agreed, merged #802, and asked me to start #803.
+1. **Lite admin detail mode (`9fff483c`)** — original ask. `app/api/admin/directory/[providerId]/route.ts` GET falls back to `business_profiles` by id (UUID) when `olera-providers` misses, returns `source: "user-created" | "scraped"`. Detail page renders a stripped lite view when user-created: name + claim_state pill + "User-created" badge + "Open public page →" button + Comms timeline + amber banner. Directory list row click is now unconditional `router.push("/admin/directory/<id>")` — drops the old `window.open("/provider/<slug>")` path for BP-only rows.
 
-**Implementation plan (concrete files + changes):**
+2. **Analytics provider relinks (`8ca28500`)** — follow-on from TJ's screenshot. Three `/admin/analytics` tables (Top providers, Latest events, Latest leads) now link in-tab to `/admin/directory/<id>` instead of opening `/provider/<slug>` in a new tab. Required two backend resilience fixes because the analytics tables emit four different identifier shapes: `op.provider_id`, `op.slug`, `bp.id` UUID, `bp.slug` — and only one of those resolved before today.
+   - GET handler now resolves ANY of the four input shapes to scraped or user-created. A claim-linked BP slug short-circuits to the linked OP for full editing.
+   - `lib/provider-id-variants.ts` resolver now expands any input shape into the union of variants stored on `email_log`/`provider_activity` (verified empirically: ~80% of provider-anchored email_log rows under BP UUIDs, ~20% under OP provider_ids, never slugs). Before this fix, navigating in via an OP slug would show an empty Comms timeline even when emails existed under the canonical provider_id.
 
-1. **`app/api/admin/directory/[providerId]/route.ts`** — GET handler currently does `.from("olera-providers").eq("provider_id", providerId).single()` and returns 404 on miss. Extend: on miss, fall back to `business_profiles` lookup (try `id` UUID first, then `slug`). Return `{provider, source: "user-created" | "scraped", ...}`. The `source` field is new. For "user-created", `provider` carries `business_profiles` shape (display_name, slug, contact info, metadata.staff, etc.) — NOT `olera-providers` shape. Document the shape difference in JSDoc. **PATCH handler is out of scope for this PR** — user-created providers stay read-only.
+3. **Canonical-id mutations (`edc8eced`, pre-test fix)** — caught during /pre-test self-review: the GET resolver fixed reads, but the page's mutation handlers (handleSave, handleImageAction, handleImageUpload, handleSaveStaff, handleStaffPhotoUpload, danger-zone delete/restore) were still using `useParams().providerId` directly in PATCH URLs. PATCH does exact-match `.eq("provider_id", <slug>)` → 404. Page now stores `canonicalProviderId` from the GET response (op.provider_id for scraped, bp.id for user-created) and routes every mutation through it. Initial GET still uses URL param (resolver handles all shapes).
 
-2. **`app/admin/directory/[providerId]/page.tsx`** — currently renders ~10 sections of form inputs assuming `formData` is olera-providers shape. When `source === "user-created"`, render a stripped-down view: provider name as heading + small "User-created" badge + a "Open public page →" link button (replacing the existing public-page-as-primary-affordance) + the `<ProviderCommsTimeline>` mount + a banner explaining "Full editing UI not available for user-created providers yet — use /admin/verification for claim review." Keep `<Section>` wrapper component identical. The fetch already has the `source` field after step 1.
+**Files touched on PR #805:**
+- NEW behavior in `app/api/admin/directory/[providerId]/route.ts` (4-shape input resolution, source field)
+- NEW behavior in `lib/provider-id-variants.ts` (4-shape variant expansion)
+- M `app/admin/directory/[providerId]/page.tsx` (lite branch + canonical-id mutations)
+- M `app/admin/directory/page.tsx` (unconditional row click + updated tooltip)
+- M `app/admin/analytics/page.tsx` (3 link swaps to /admin/directory)
 
-3. **`app/admin/directory/page.tsx`** — current row-click handler:
-   ```ts
-   if (isBpOnly) {
-     if (provider.slug) window.open(`/provider/${provider.slug}`, "_blank", "noopener,noreferrer");
-   } else {
-     router.push(`/admin/directory/${provider.provider_id}`);
-   }
-   ```
-   New: always `router.push("/admin/directory/${id}")`. The `id` is whatever provider.provider_id is — for scraped rows it's the slug, for user-created rows it's likely the business_profile.id UUID (need to verify in the existing /api/admin/directory list endpoint). Drop the window.open path entirely. The public-page link moves into the detail view.
+**Verified against real DB rows:**
+- Resolver: `r4HIF35` → `[r4HIF35, 469de674-...]` (catches both storage shapes). `glebeview-residence-ottawa-il` (op.slug) → canonical `ottawa-il-0012`. `aggie-home-health-and-companion-care` (bp.slug) → adds bp.id. UUID input doesn't fan out (correct).
+- email_log sample: empirically ~80% BP UUIDs, ~20% OP provider_ids. Never slugs.
+- OP slug ≠ OP provider_id (different columns; e.g. `north-lauderdale-fl-0040` vs `sarahcare-of-coral-springs-...`).
 
-**Verify before coding:** what is `provider.provider_id` on user-created rows? Check `/api/admin/directory` list endpoint (route.ts). If it's the business_profile.id UUID, the admin detail page needs to accept UUIDs in the URL slot — the URL pattern `[providerId]` is flexible TEXT so this works at the router level. The backend resolver does the lookup logic.
+**Resume next session here →** (1) Browser-test PR #805 on the Vercel preview: scraped row click from /admin/directory → full edit surface unchanged; user-created (yellow badge) row click → lite mode with name + claim pill + Open Public Page button + populated Comms timeline + amber banner; Top Providers click from /admin/analytics → admin detail (with Comms timeline) NOT public page; same for Latest events + Latest leads; save any field on a provider reached via Top Providers → no 404. (2) Merge #805 to staging if clean. (3) Bake everything (#799 + #802 + #805) on staging for ~1 day, then promote staging → main. (4) Open Notion report for #805 after merge.
 
-**Files to touch:**
-- M `app/api/admin/directory/[providerId]/route.ts` — fallback lookup + source field
-- M `app/admin/directory/[providerId]/page.tsx` — conditional render for user-created
-- M `app/admin/directory/page.tsx` — unify row click
-
-**Validation plan after build:**
-- tsc 0 errors, eslint clean
-- Browser-test on Vercel preview: scraped provider → full detail page (unchanged); user-created provider → lite detail with Comms timeline + public-page button
-- Spot-check: provider whose `email_log` rows are stored under business_profile.id should populate the timeline (the resolver from #802 catches both variants)
-
-**Resume next session here →** Start with step 1: read `app/api/admin/directory/[providerId]/route.ts` and `app/api/admin/directory/route.ts` (list endpoint) to understand current shapes, then implement the fallback. Step 2 and 3 follow directly. Single-commit-able. After build, push, open PR #803 targeting staging.
-
-**Two deferred follow-ups (still pending, not blocking #803):**
-- Migrate legacy `/api/admin/emails` `.eq("provider_id")` to use `lib/provider-id-variants.ts` resolver for consistency (~10 lines).
-- Polish pass on activity-event labels in `app/api/admin/directory/[providerId]/comms-timeline/route.ts` `summarizeActivity()` once we see real staging data shape.
+**Two deferred follow-ups (still pending, not blocking):**
+- Migrate legacy `/api/admin/emails` `.eq("provider_id")` to use `lib/provider-id-variants.ts` (~10 lines).
+- Polish pass on activity-event labels in `summarizeActivity()` once real staging data shape is visible.
 
 ---
 

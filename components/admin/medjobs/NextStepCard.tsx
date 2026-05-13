@@ -780,6 +780,7 @@ function MeetingSetBody({
           contactName={contactName}
           initialStatus={meetingInitialStatus}
           initialMeetingAt={meetingInitialAt}
+          rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setShowLogMeeting(false)}
           onSubmit={async (mstatus, payload, partner) => {
             try {

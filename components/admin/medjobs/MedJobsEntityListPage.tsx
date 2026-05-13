@@ -389,6 +389,7 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
           initialMeetingAt={
             logMeetingRow.meeting_at ? logMeetingRow.meeting_at.slice(0, 16) : undefined
           }
+          rowKind={logMeetingRow.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setLogMeetingRow(null)}
           onSubmit={async (status: MeetingStatus, payload, partner) => {
             try {

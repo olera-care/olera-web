@@ -43,6 +43,15 @@ interface Props {
   initialStatus: MeetingStatus;
   /** Pre-fill the datetime input (datetime-local format YYYY-MM-DDTHH:mm). */
   initialMeetingAt?: string;
+  /**
+   * Row kind. When 'provider', the "Mark as Partner" outcome is hidden —
+   * providers convert to Clients via the Call modal's convert_to_client
+   * outcome (which writes interview_terms_accepted_at) or via T&C/Stripe
+   * signal, not via mark_partner (which is the stakeholder-conversion
+   * path that doesn't unlock Partner Prospects for providers). Mirrors
+   * the ReplyClassifierModal gating at line 176. Defaults to stakeholder.
+   */
+  rowKind?: "provider" | "stakeholder";
   onCancel: () => void;
   /**
    * Called on submit. When the admin picked done_partner, `partner`
@@ -62,9 +71,11 @@ export function LogMeetingModal({
   contactName,
   initialStatus,
   initialMeetingAt,
+  rowKind = "stakeholder",
   onCancel,
   onSubmit,
 }: Props) {
+  const isProvider = rowKind === "provider";
   const [status, setStatus] = useState<MeetingStatus>(initialStatus);
   const [meetingAt, setMeetingAt] = useState(initialMeetingAt ?? "");
   const [notes, setNotes] = useState("");
@@ -170,18 +181,25 @@ export function LogMeetingModal({
             After the meeting
           </p>
           <div className="space-y-1.5">
-            <StatusCard
-              active={status === "done_partner"}
-              onSelect={() => setStatus("done_partner")}
-              label="Mark as Partner ★"
-              blurb="They committed to sharing with students. Capture the evidence below."
-            />
+            {!isProvider && (
+              <StatusCard
+                active={status === "done_partner"}
+                onSelect={() => setStatus("done_partner")}
+                label="Mark as Partner ★"
+                blurb="They committed to sharing with students. Capture the evidence below."
+              />
+            )}
             <StatusCard
               active={status === "done_followup"}
               onSelect={() => setStatus("done_followup")}
               label="Done — needs more email"
               blurb="Meeting happened, but we still need to follow up over email."
             />
+            {isProvider && (
+              <p className="rounded-md bg-blue-50/60 px-3 py-2 text-[11px] text-blue-900">
+                To mark this provider as a Client, use the Log call outcome modal&apos;s &ldquo;Became a Client&rdquo; option — that path writes the conversion metadata that unlocks Partner Prospects.
+              </p>
+            )}
           </div>
 
           {status === "booked" && (

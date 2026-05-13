@@ -28,6 +28,7 @@ interface ResponseLead {
   responded: boolean;
   response_time_hours: number | null;
   cta_variant: string | null;
+  nudged_at: string | null;
 }
 
 type ThreadMessage = {
@@ -158,6 +159,8 @@ export async function GET(req: NextRequest) {
 
     const ageHours = (Date.now() - new Date(conn.created_at).getTime()) / (1000 * 60 * 60);
 
+    const nudgedAt = (meta.nudged_at as string) || null;
+
     allLeads.push({
       connection_id: conn.id,
       family_name: conn.from_profile?.display_name || "Care Seeker",
@@ -169,6 +172,7 @@ export async function GET(req: NextRequest) {
       responded,
       response_time_hours: responseTimeHours ? Math.round(responseTimeHours * 10) / 10 : null,
       cta_variant: ctaVariant,
+      nudged_at: nudgedAt,
     });
   }
 

@@ -2089,6 +2089,7 @@ interface ResponseLead {
   responded: boolean;
   response_time_hours: number | null;
   cta_variant: string | null;
+  nudged_at: string | null;
 }
 
 const PAGE_SIZE = 50;
@@ -2181,7 +2182,14 @@ function ResponseLeadsList({
       }
 
       setNudgeSuccess(connectionId);
-      // Clear success message after 3 seconds
+      // Update local state to show nudged indicator
+      const nudgedAt = new Date().toISOString();
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.connection_id === connectionId ? { ...l, nudged_at: nudgedAt } : l
+        )
+      );
+      // Clear "Sent" message after 3 seconds (will show "Nudged" after)
       const successTimeout = setTimeout(() => setNudgeSuccess(null), 3000);
       timeoutRefs.current.add(successTimeout);
     } catch (err) {
@@ -2345,22 +2353,29 @@ function ResponseLeadsList({
                     {formatLeadAge(lead.age_hours)}
                   </td>
                   <td className="px-4 py-2.5 text-center">
-                    {!lead.responded ? (
-                      nudgeSuccess === lead.connection_id ? (
-                        <span className="text-xs text-emerald-600">Sent</span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => handleNudge(lead.connection_id)}
-                          disabled={nudging === lead.connection_id}
-                          className="text-xs text-amber-600 hover:text-amber-700 disabled:opacity-50"
-                          title="Send reminder to provider"
-                        >
-                          {nudging === lead.connection_id ? "..." : "Nudge"}
-                        </button>
-                      )
-                    ) : (
+                    {lead.responded ? (
                       <span className="text-xs text-emerald-600">Replied</span>
+                    ) : nudgeSuccess === lead.connection_id ? (
+                      <span className="text-xs text-emerald-600">Sent</span>
+                    ) : lead.nudged_at ? (
+                      <span
+                        className="text-xs text-gray-400 cursor-default"
+                        title={`Nudged ${formatLeadAge(
+                          (Date.now() - new Date(lead.nudged_at).getTime()) / (1000 * 60 * 60)
+                        )}`}
+                      >
+                        Nudged
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleNudge(lead.connection_id)}
+                        disabled={nudging === lead.connection_id}
+                        className="text-xs text-amber-600 hover:text-amber-700 disabled:opacity-50"
+                        title="Send reminder to provider"
+                      >
+                        {nudging === lead.connection_id ? "..." : "Nudge"}
+                      </button>
                     )}
                   </td>
                   <td className="px-2 py-2.5 w-8 text-right">

@@ -18,6 +18,7 @@ import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
 import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBar";
+import MobileProviderTopNav from "@/components/providers/MobileProviderTopNav";
 import MobileClaimLink from "@/components/providers/MobileClaimLink";
 import PriceEstimate from "@/components/providers/PriceEstimate";
 import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
@@ -799,10 +800,20 @@ export default async function ProviderPage({
         />
       )}
 
-      {/* Section Navigation (appears on scroll) */}
+      {/* Section Navigation (appears on scroll) - desktop only */}
       <SectionNav
         sections={sectionItems}
         providerName={profile.display_name}
+      />
+
+      {/* Mobile Provider Top Nav - always sticky on mobile */}
+      <MobileProviderTopNav />
+
+      {/* Mobile nav spacer - accounts for fixed nav height + safe area on mobile */}
+      <div
+        className="md:hidden"
+        style={{ height: "calc(56px + env(safe-area-inset-top, 0px))" }}
+        aria-hidden="true"
       />
 
       {/* ===== Hero Zone — Vanilla Background ===== */}

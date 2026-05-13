@@ -119,7 +119,7 @@ export default function SectionNav({
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-[51] transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[51] transition-all duration-300 hidden md:block ${
         visible
           ? "translate-y-0 opacity-100"
           : "-translate-y-full opacity-0 pointer-events-none"

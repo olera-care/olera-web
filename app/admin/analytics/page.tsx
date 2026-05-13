@@ -2352,7 +2352,9 @@ function ResponseLeadsList({
                   <td className="px-4 py-2.5 text-gray-600 max-w-[220px]">
                     {lead.provider_response ? (
                       <span className="text-xs truncate block" title={lead.provider_response}>
-                        &ldquo;{lead.provider_response}&rdquo;
+                        &ldquo;{lead.provider_response.length > 60
+                          ? lead.provider_response.substring(0, 57) + "..."
+                          : lead.provider_response}&rdquo;
                       </span>
                     ) : (
                       <span className="text-gray-300 text-xs">—</span>

@@ -134,14 +134,8 @@ export async function GET(req: NextRequest) {
         (1000 * 60 * 60)
       : null;
 
-    // Extract provider's response text (truncated for preview)
-    let providerResponse: string | null = null;
-    if (providerMsg?.text) {
-      providerResponse = providerMsg.text;
-      if (providerResponse.length > 80) {
-        providerResponse = providerResponse.substring(0, 77) + "...";
-      }
-    }
+    // Extract provider's response text (full - frontend truncates for display)
+    const providerResponse: string | null = providerMsg?.text || null;
 
     // Apply filter
     if (filter === "awaiting" && responded) continue;

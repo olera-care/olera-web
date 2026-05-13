@@ -87,12 +87,16 @@ const PLACEHOLDER = {
  * sentence of each template rather than rendered as a standalone
  * CTA line — keeps the email reading like a personal note from
  * Grazie, not a marketing template. The label varies by context
- * (Day 0 is longer + descriptive; follow-ups are shorter +
- * conversational); bodyToHtml turns the markdown link into a
- * clickable inline <a href>.
+ * (Day-0 intros name Dr. DuBose explicitly; follow-ups stay
+ * shorter + conversational); bodyToHtml turns the markdown link
+ * into a clickable inline <a href>.
  */
+const SCHEDULE_LINK_FULL = `[schedule a quick informational call with Dr. Logan DuBose directly](${PLACEHOLDER.calendlyUrl})`;
 const SCHEDULE_LINK_LONG = `[schedule a quick informational call with him directly](${PLACEHOLDER.calendlyUrl})`;
 const SCHEDULE_LINK_SHORT = `[share more on a quick call](${PLACEHOLDER.calendlyUrl})`;
+/** Closing "see attached + website" reference. Linked phrase points
+ *  to the public program page. */
+const ATTACHED_AND_SITE = `Please see the attached information and [website page](${PLACEHOLDER.programUrl}) for details on how ${PLACEHOLDER.orgName} can participate.`;
 
 // ── Public API ──────────────────────────────────────────────────────────
 
@@ -223,13 +227,15 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `I work with Dr. Logan DuBose. He is an NIH-funded researcher, Texas A&M College of Medicine alum, and director of the ${PLACEHOLDER.campus} Student Caregiver Program.`,
+          `We came across ${PLACEHOLDER.orgName} while identifying pre-health student groups at ${PLACEHOLDER.campus} that might be interested in the ${PLACEHOLDER.campus} Student Caregiver Program.`,
           ``,
-          `The program connects pre-nursing and pre-medical students from ${PLACEHOLDER.campus} with home care agencies for paid caregiving experience that supports their applications to medical, PA, or nursing school.`,
+          `We would like to share the program with your members, who may benefit from paid caregiving roles that strengthen their applications to medical, PA, or nursing school.`,
           ``,
-          `**For ${PLACEHOLDER.orgName} members, this is a paid clinical opportunity that fits alongside coursework and gives them experience and recommendation letters relevant to health professions.**`,
+          `The program is directed by Dr. Logan DuBose, an NIH-funded researcher and Texas A&M College of Medicine alum.`,
           ``,
-          `If this would be useful for your group, Dr. DuBose would be happy to ${SCHEDULE_LINK_SHORT}. Please see the attached information packet for program details.`,
+          `**Through the program, Olera connects ${PLACEHOLDER.campus} pre-nursing and pre-medical students with local home care agencies for paid caregiving roles. The students gain direct patient-care hours, mentorship, and recommendation letters that support the health professions pathway.**`,
+          ``,
+          `You can reply directly to this email or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}. Please see the attached information packet for program details.`,
         ].join("\n"),
       };
     case "advisor":
@@ -238,13 +244,15 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `I work with Dr. Logan DuBose. He is an NIH-funded researcher, Texas A&M College of Medicine alum, and director of the ${PLACEHOLDER.campus} Student Caregiver Program.`,
+          `We came across your office while identifying pre-health advisors at ${PLACEHOLDER.campus} who might find the ${PLACEHOLDER.campus} Student Caregiver Program useful for their advisees.`,
           ``,
-          `The program connects pre-nursing and pre-medical students from ${PLACEHOLDER.campus} with home care agencies for paid caregiving experience that supports their applications to medical, PA, or nursing school.`,
+          `We would like to share the program with your office so it can be passed along to pre-health advisees pursuing professional school pathways.`,
           ``,
-          `**For your pre-health advisees, this offers a paid clinical opportunity that fits alongside coursework and aligns with the experience that strengthens applications.**`,
+          `The program is directed by Dr. Logan DuBose, an NIH-funded researcher and Texas A&M College of Medicine alum.`,
           ``,
-          `If this would be useful for your advisees, Dr. DuBose would be happy to ${SCHEDULE_LINK_SHORT}. Please see the attached information packet for program details.`,
+          `**Through the program, Olera connects ${PLACEHOLDER.campus} pre-nursing and pre-medical students with local home care agencies for paid caregiving roles. The students gain direct patient-care hours, mentorship, and recommendation letters that strengthen applications to medical, PA, or nursing school.**`,
+          ``,
+          `You can reply directly to this email or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}. Please see the attached information packet for program details.`,
         ].join("\n"),
       };
     case "dept_head":
@@ -253,13 +261,15 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `I work with Dr. Logan DuBose. He is an NIH-funded researcher, Texas A&M College of Medicine alum, and director of the ${PLACEHOLDER.campus} Student Caregiver Program.`,
+          `We came across your department while identifying pre-health programs at ${PLACEHOLDER.campus} that might find the ${PLACEHOLDER.campus} Student Caregiver Program useful for their students.`,
           ``,
-          `The program connects pre-nursing and pre-medical students from ${PLACEHOLDER.campus} with home care agencies for paid caregiving experience that supports their applications to medical, PA, or nursing school.`,
+          `We would like to share the program with your department so it can be passed along to students preparing for professional school.`,
           ``,
-          `**For students in your department, this is a paid clinical opportunity that fits alongside coursework and aligns with the experience that strengthens health professions applications.**`,
+          `The program is directed by Dr. Logan DuBose, an NIH-funded researcher and Texas A&M College of Medicine alum.`,
           ``,
-          `With your approval, Dr. DuBose would be happy to ${SCHEDULE_LINK_SHORT}. Please see the attached information packet for program details.`,
+          `**Through the program, Olera connects ${PLACEHOLDER.campus} pre-nursing and pre-medical students with local home care agencies for paid caregiving roles. The students gain direct patient-care hours, mentorship, and recommendation letters that strengthen applications to medical, PA, or nursing school.**`,
+          ``,
+          `With your approval, Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}. Please see the attached information packet for program details.`,
         ].join("\n"),
       };
     case "professor":
@@ -268,13 +278,15 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `I work with Dr. Logan DuBose. He is an NIH-funded researcher, Texas A&M College of Medicine alum, and director of the ${PLACEHOLDER.campus} Student Caregiver Program.`,
+          `We came across your courses while identifying pre-health faculty at ${PLACEHOLDER.campus} whose students might be interested in the ${PLACEHOLDER.campus} Student Caregiver Program.`,
           ``,
-          `The program connects pre-nursing and pre-medical students from ${PLACEHOLDER.campus} with home care agencies for paid caregiving experience that supports their applications to medical, PA, or nursing school.`,
+          `We would like to share the program with you so it can be forwarded to pre-health students in your courses.`,
           ``,
-          `**For pre-health students in your courses, this is a paid clinical opportunity that fits alongside coursework and gives them experience and recommendation letters relevant to health professions.**`,
+          `The program is directed by Dr. Logan DuBose, an NIH-funded researcher and Texas A&M College of Medicine alum.`,
           ``,
-          `If you would be open to forwarding this information to your students, Dr. DuBose would be happy to ${SCHEDULE_LINK_SHORT}. Please see the attached information packet for program details.`,
+          `**Through the program, Olera connects ${PLACEHOLDER.campus} pre-nursing and pre-medical students with local home care agencies for paid caregiving roles. The students gain direct patient-care hours, mentorship, and recommendation letters that strengthen applications to medical, PA, or nursing school.**`,
+          ``,
+          `If you would be open to forwarding this information to your students, Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}. Please see the attached information packet for program details.`,
         ].join("\n"),
       };
   }
@@ -288,9 +300,9 @@ export function followupLightEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Just following up on my earlier note regarding Dr. Logan DuBose's ${PLACEHOLDER.campus} Student Caregiver Program.`,
+      `Following up on my earlier note about the ${PLACEHOLDER.campus} Student Caregiver Program.`,
       ``,
-      `Dr. DuBose would be happy to ${SCHEDULE_LINK_SHORT}, or we can continue the conversation over email. Please see the attached information packet with program details.`,
+      `You can reply directly to this email or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}. The attached information packet covers how the program works.`,
     ].join("\n"),
   };
 }
@@ -301,9 +313,9 @@ export function followupSocialProofEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Following up on Dr. Logan DuBose's ${PLACEHOLDER.campus} Student Caregiver Program. Students at peer campuses are picking up paid caregiving hours alongside their coursework that supports their health professions applications.`,
+      `Following up on the ${PLACEHOLDER.campus} Student Caregiver Program. Students at peer campuses are picking up paid caregiving hours alongside their coursework, with direct patient-care experience and recommendation letters that support their health professions applications.`,
       ``,
-      `If you would like the program materials to share with your students or advisees, please reply and I will send them over. Dr. DuBose is also happy to ${SCHEDULE_LINK_SHORT}.`,
+      `If you would like the program materials to share with your students or advisees, you can reply directly to this email. Dr. DuBose is also happy to ${SCHEDULE_LINK_SHORT}.`,
     ].join("\n"),
   };
 }
@@ -314,9 +326,9 @@ export function followupFinalEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Dr. Logan DuBose would be happy to ${SCHEDULE_LINK_SHORT} about the ${PLACEHOLDER.campus} Student Caregiver Program if there is interest from your team.`,
+      `Circling back one last time on the ${PLACEHOLDER.campus} Student Caregiver Program. If there is interest from your team, you can reply directly to this email or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
       ``,
-      `If now is not the right time, we appreciate your time and will circle back next term. If there is a better person at ${PLACEHOLDER.orgName} to coordinate with, we would be grateful for a redirect.`,
+      `If now is not the right time, we will circle back next term. If there is a better person at ${PLACEHOLDER.orgName} to coordinate with, we would be grateful for a redirect.`,
       ``,
       `Thank you for your time.`,
     ].join("\n"),
@@ -388,15 +400,15 @@ export function providerIntroEmail(
     subject,
     body: [
       ...greetingBlock,
-      `I work with Dr. Logan DuBose. He is an NIH-funded researcher, Texas A&M College of Medicine alum, and director of the ${PLACEHOLDER.campus} Student Caregiver Program.`,
+      `We came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus} to invite into the ${PLACEHOLDER.campus} Student Caregiver Program.`,
       ``,
-      `We work with pre-nursing and pre-medical students from ${PLACEHOLDER.campus} who are interested in caregiving experience.`,
+      `We would like to invite ${PLACEHOLDER.orgName} to join the program and begin receiving student referrals to help fill vacant caregiver roles, PRN shifts, and staffing needs.`,
       ``,
-      `**This program matches qualified college students with home care agencies to help fill vacant caregiver roles, PRN shifts, and staffing needs with reliable students who are often seeking experience and recommendation letters more than compensation.**`,
+      `The program is directed by Dr. Logan DuBose, an NIH-funded researcher and Texas A&M College of Medicine alum.`,
       ``,
-      `We would like to invite ${PLACEHOLDER.orgName} to join the program and begin accepting students to supplement your caregiver workforce.`,
+      `**Through the program, Olera matches ${PLACEHOLDER.campus} pre-nursing and pre-medical students with local home care agencies. The students are reliable, motivated by clinical experience and recommendation letters more than compensation, and pursuing professional school pathways that depend on direct patient-care hours.**`,
       ``,
-      `If you are interested, you can reply directly to this email, continue the conversation with Dr. DuBose over email, or ${SCHEDULE_LINK_LONG}. Please see the attached information packet with program details and agency participation information.`,
+      `You can reply directly to this email or ${SCHEDULE_LINK_FULL}. ${ATTACHED_AND_SITE}`,
     ].join("\n"),
   };
 }
@@ -415,9 +427,9 @@ export function providerFollowupEmail(
     subject,
     body: [
       ...greetingBlock,
-      `Just following up on my earlier note and calls regarding Dr. Logan DuBose's ${PLACEHOLDER.campus} Student Caregiver Program.`,
+      `Following up on my earlier note about the ${PLACEHOLDER.campus} Student Caregiver Program. The program can help ${PLACEHOLDER.orgName} fill vacant caregiver roles and PRN shifts with reliable pre-health students from ${PLACEHOLDER.campus}.`,
       ``,
-      `Dr. DuBose would be happy to ${SCHEDULE_LINK_SHORT}, or we can continue the conversation over email. Please see the attached information packet with highlights about the program and how participation works for home care agencies.`,
+      `You can reply directly to this email or ${SCHEDULE_LINK_LONG}. ${ATTACHED_AND_SITE}`,
     ].join("\n"),
   };
 }
@@ -436,13 +448,11 @@ export function providerFinalEmail(
     subject,
     body: [
       ...greetingBlock,
-      `Dr. Logan DuBose would be happy to ${SCHEDULE_LINK_SHORT} about the ${PLACEHOLDER.campus} Student Caregiver Program.`,
+      `Circling back one more time on the ${PLACEHOLDER.campus} Student Caregiver Program. If ${PLACEHOLDER.orgName} is interested in receiving student referrals to help fill vacant caregiver roles and PRN shifts, you can reply directly to this email or ${SCHEDULE_LINK_LONG}.`,
       ``,
-      `If there is interest from your leadership team, this program can help supplement your caregiver workforce, fill vacant shifts, and improve client engagement with qualified pre-nursing and pre-medical students vetted by our team and referred to agencies for hire.`,
+      `If now is not the right time, we appreciate your consideration and will circle back next term. If there is a better person at ${PLACEHOLDER.orgName} for us to reach regarding caregiver hiring, we would be grateful for a redirect.`,
       ``,
-      `If there is a better person for us to speak with regarding caregiver hiring at ${PLACEHOLDER.orgName}, we are also happy to reach out to them directly.`,
-      ``,
-      `Thank you for your time. Please see the attached program information and agency participation details.`,
+      `Thank you for your time. ${ATTACHED_AND_SITE}`,
     ].join("\n"),
   };
 }
@@ -457,16 +467,16 @@ export function callScript(ctx: TemplateContext, day: number): CallScript {
     return {
       title: "Day 0 — referenced email",
       script: [
-        `"Hi, this is ${ctx.admin_first_name ?? "Grazie"} calling on behalf of Dr. Logan DuBose regarding Olera's ${ctx.campus_name} Student Caregiver Program."`,
+        `"Hi, this is ${ctx.admin_first_name ?? "Grazie"} calling on behalf of Dr. Logan DuBose regarding the ${ctx.campus_name} Student Caregiver Program."`,
         ``,
-        `"We wanted to share information about a program that connects qualified pre-nursing and pre-medical students with home care agencies to help supplement caregiver workforce and staffing needs."`,
+        `"We came across ${ctx.organization_name} while identifying home care agencies near ${ctx.campus_name} to invite into the program. The program matches ${ctx.campus_name} pre-health students with home care agencies to help fill vacant caregiver roles and PRN shifts."`,
       ].join("\n"),
     };
   }
   return {
     title: `Day ${day} follow-up`,
     script: [
-      `"Hi, this is ${ctx.admin_first_name ?? "Grazie"} from the ${ctx.campus_name} Student Caregiver Program, following up on prior outreach. Hoping to connect with whoever handles caregiver hiring."`,
+      `"Hi, this is ${ctx.admin_first_name ?? "Grazie"} from the ${ctx.campus_name} Student Caregiver Program, following up on prior outreach. Hoping to connect with whoever handles caregiver hiring at ${ctx.organization_name}."`,
     ].join("\n"),
   };
 }

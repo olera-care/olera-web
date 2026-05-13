@@ -51,6 +51,11 @@ export interface ProgramPdfConfig {
   steps: string[];
   /** "Student vetting" — 4 short bullets. */
   vetting: string[];
+  /** "Participation & pricing" — two-line block. headline carries
+   *  trial + monthly cost + cancel terms; body carries what the fee
+   *  covers and what's included. Rendered hero-style (single styled
+   *  block) below the vetting section. */
+  pricing: { headline: string; body: string };
   /** Bottom CTA line ("Schedule a call · Learn more"). */
   ctaLabel: string;
 }
@@ -85,16 +90,20 @@ export const TEXAS_AM: ProgramPdfConfig = {
     },
   ],
   steps: [
-    "Agency joins the program with a 15-minute call with Dr. DuBose.",
-    "Olera refers screened, interested Texas A&M students.",
-    "Agency interviews and selects who fits their care model.",
-    "Students start supplementing your caregiver team.",
+    "Agency logs in at olera.care/medjobs/providers and reviews the program participation terms.",
+    "Agency acknowledges the terms and joins the program.",
+    "Olera refers screened Texas A&M pre-health students for caregiver roles.",
+    "Agency interviews, hires, and onboards the students who fit.",
   ],
   vetting: [
     "Screened pre-nursing and pre-medical applicants.",
     "Committed to healthcare careers; in it for the experience.",
-    "Professionalism + scheduling expectations set up-front.",
+    "Professionalism and scheduling expectations set up-front.",
     "Background-check support coordinated with your standard onboarding.",
   ],
-  ctaLabel: "Schedule a 15-minute call with Dr. Logan DuBose",
+  pricing: {
+    headline: "1-month free trial. $50/month afterward. Cancel anytime.",
+    body: "The fee supports student outreach, vetting, and operational management. Unlimited student referrals included.",
+  },
+  ctaLabel: "Learn more and begin participation",
 };

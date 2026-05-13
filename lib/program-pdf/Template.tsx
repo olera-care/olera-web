@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   },
   // ── Vetting bullets
   vettingBlock: {
-    marginBottom: 10,
+    marginBottom: 8,
   },
   vettingRow: {
     flexDirection: "row",
@@ -190,6 +190,27 @@ const styles = StyleSheet.create({
   },
   vettingText: {
     flex: 1,
+    fontSize: 9,
+    color: GRAY_700,
+    lineHeight: 1.4,
+  },
+  // ── Participation & pricing
+  pricingBlock: {
+    backgroundColor: GRAY_100,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: EMERALD,
+    marginBottom: 10,
+    borderRadius: 3,
+  },
+  pricingHeadline: {
+    fontSize: 10,
+    color: GRAY_900,
+    marginBottom: 3,
+    lineHeight: 1.3,
+  },
+  pricingBody: {
     fontSize: 9,
     color: GRAY_700,
     lineHeight: 1.4,
@@ -342,6 +363,13 @@ export function ProgramPdfTemplate({
               <Text style={styles.vettingText}>{v}</Text>
             </View>
           ))}
+        </View>
+
+        {/* ── Participation & pricing */}
+        <Text style={styles.sectionHeader}>Participation &amp; pricing</Text>
+        <View style={styles.pricingBlock}>
+          <Text style={styles.pricingHeadline}>{config.pricing.headline}</Text>
+          <Text style={styles.pricingBody}>{config.pricing.body}</Text>
         </View>
 
         {/* ── Footer / signatures + QR */}

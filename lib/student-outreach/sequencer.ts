@@ -341,9 +341,11 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
   if (type === "provider") {
     if (day === 0) {
       return [
-        `"Hi, this is {admin_first_name} calling on behalf of Dr. Logan DuBose regarding Olera's {campus_name} Student Caregiver Program."`,
+        `"Hi, this is {admin_first_name} calling on behalf of Dr. Logan DuBose regarding the {campus_name} Student Caregiver Program."`,
         ``,
-        `"We wanted to share information about a program that connects qualified pre-nursing and pre-medical students with home care agencies to help supplement caregiver workforce and staffing needs."`,
+        `"We came across {organization_name} while identifying home care agencies near {campus_name} to invite into the program."`,
+        ``,
+        `"Through the program, Olera matches {campus_name} pre-nursing and pre-medical students with local home care agencies to help fill vacant caregiver roles, PRN shifts, and staffing needs. The students are reliable and motivated by clinical experience and recommendation letters more than compensation."`,
         ``,
         tips([
           "Leave a voicemail if unavailable. Reference today's email from Grazie and the {campus_name} Student Caregiver Program.",
@@ -355,36 +357,34 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
     }
     if (day === 1) {
       return [
-        `"Hi, this is {admin_first_name} from the {campus_name} Student Caregiver Program, following up on the email and previous call regarding Dr. Logan DuBose's {campus_name} Student Caregiver Program."`,
+        `"Hi, this is {admin_first_name} from the {campus_name} Student Caregiver Program, following up on yesterday's email and call about Dr. Logan DuBose's program."`,
         ``,
-        `"We sent over information on how the program connects qualified pre-nursing and pre-medical students from {campus_name} with home care agencies to help fill vacant shifts and staffing needs."`,
-        ``,
-        `"We were hoping to connect with whoever handles caregiver hiring at {organization_name} to see if they might be interested in learning more or speaking with Dr. DuBose about the program and how to get started."`,
+        `"We are hoping to connect with whoever handles caregiver hiring at {organization_name}. The program can help fill vacant shifts and PRN staffing needs with reliable {campus_name} pre-health students who are pursuing professional school pathways."`,
         ``,
         tips([
           "Ask for the hiring coordinator if the receptionist answers.",
           "Confirm who handles caregiver staffing.",
           "Offer to resend the information packet via email.",
-          "Leave a voicemail if unavailable — reference prior outreach and Dr. DuBose's calendar.",
+          "Leave a voicemail if unavailable. Reference prior outreach and Dr. DuBose's calendar.",
         ]),
       ].join("\n");
     }
     if (day === 5) {
       return [
-        `"Hi, this is {admin_first_name} from the {campus_name} Student Caregiver Program, following up once more regarding Dr. Logan DuBose's program at {organization_name}."`,
+        `"Hi, this is {admin_first_name} from the {campus_name} Student Caregiver Program, circling back one more time on Dr. Logan DuBose's program at {organization_name}."`,
         ``,
-        `"We are still hoping to connect with someone who handles caregiver hiring to share how the program works and whether it might be a fit."`,
+        `"We are still hoping to share how the program works with whoever handles caregiver hiring, and whether it might be a fit for filling vacant shifts and PRN coverage."`,
         ``,
         tips([
           "Keep the tone light and non-pushy.",
           "If there is a better person on the leadership or hiring team, ask for a redirect.",
           "Confirm the best email if you reach a new contact.",
-          "Leave a voicemail if unavailable — offer Dr. DuBose's calendar as the easy next step.",
+          "Leave a voicemail if unavailable. Offer Dr. DuBose's calendar as the easy next step.",
         ]),
       ].join("\n");
     }
   }
-  return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} and offer to schedule a 15-minute call with Dr. DuBose.`;
+  return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} and offer to schedule a quick informational call with Dr. DuBose.`;
 }
 
 /**

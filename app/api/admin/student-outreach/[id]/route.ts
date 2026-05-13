@@ -198,6 +198,12 @@ export async function POST(
         await handleLogTouch(db, row, body, user.id, "email_bounced", "email");
         break;
       case "log_call":
+      case "log_call_outcome":
+        // log_call_outcome is the name used by NextStepCard's
+        // CallDueBody and the CallForEmailModal engagement bypass.
+        // Both dispatch the same handler — aliasing here so either
+        // name routes correctly without forcing a rename across the
+        // FE call sites.
         await handleLogCall(db, row, body, user.id);
         break;
       case "classify_reply":

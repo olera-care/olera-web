@@ -807,6 +807,12 @@ function MeetingSetBody({
                 await action("mark_meeting_followup", { notes: payload.notes });
               } else if (mstatus === "done_partner" && partner) {
                 await action("mark_partner", { ...partner });
+              } else if (mstatus === "not_a_fit") {
+                // C3: post-meeting decline path. Reuses the existing
+                // mark_not_interested action so the row closes,
+                // pending tasks are cancelled via tasksToCancelOnExit,
+                // and the stage_change touchpoint narrates the close.
+                await action("mark_not_interested", { notes: payload.notes });
               }
               setShowLogMeeting(false);
             } catch (e) {

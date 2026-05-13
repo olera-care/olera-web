@@ -30,11 +30,18 @@ import {
 } from "@/components/admin/medjobs/PartnerEvidencePanel";
 import type { DistributionEvidence } from "@/lib/student-outreach/types";
 
+// C3: not_a_fit is a UI-level choice key only — dispatches to the
+// existing mark_not_interested action on submit. No new backend
+// touchpoint, no new status, no new outcome enum. Mirrors the R5
+// pattern of exposing terminal actions inside the Log modal so admin
+// doesn't context-switch to DangerZone for the common post-meeting
+// decline.
 export type MeetingStatus =
   | "finding_time"
   | "booked"
   | "done_partner"
-  | "done_followup";
+  | "done_followup"
+  | "not_a_fit";
 
 interface Props {
   organizationName: string;
@@ -85,19 +92,24 @@ export function LogMeetingModal({
   const [error, setError] = useState<string | null>(null);
 
   const isPartner = status === "done_partner";
+  const isNotAFit = status === "not_a_fit";
   const notesRequired = status === "done_followup";
   const notesPlaceholder =
     status === "done_followup"
       ? "What's left to do over email? (Required — so the team knows what to send next.)"
       : isPartner
         ? "Anything else worth remembering? Evidence goes in the panel below."
-        : "Permission notes, materials to send, ongoing thread context — anything to remember.";
+        : isNotAFit
+          ? "Optional. What made it not a fit? Useful context for future relationships."
+          : "Permission notes, materials to send, ongoing thread context — anything to remember.";
 
   const submitLabel = isPartner
     ? "Mark as Partner"
     : status === "done_followup"
       ? "Send to Replies"
-      : "Save";
+      : isNotAFit
+        ? "Close as not a fit"
+        : "Save";
 
   const titleText =
     initialStatus === "booked" ? "Update or complete meeting" : "Log meeting";
@@ -194,6 +206,12 @@ export function LogMeetingModal({
               onSelect={() => setStatus("done_followup")}
               label="Done — needs more email"
               blurb="Meeting happened, but we still need to follow up over email."
+            />
+            <StatusCard
+              active={status === "not_a_fit"}
+              onSelect={() => setStatus("not_a_fit")}
+              label="Not a fit"
+              blurb="Meeting happened, but they're not the right partner. Closes the row as Not interested; cancels pending tasks."
             />
             {isProvider && (
               <p className="rounded-md bg-blue-50/60 px-3 py-2 text-[11px] text-blue-900">

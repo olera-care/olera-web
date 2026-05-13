@@ -790,6 +790,11 @@ export function MedJobsTabPage({
                 // mark_partner; no chained MarkPartnerModal. The meeting
                 // log itself is implicit in the partner conversion.
                 await callAction(logMeetingRow.id, "mark_partner", { ...partner });
+              } else if (status === "not_a_fit") {
+                // C3: post-meeting decline path.
+                await callAction(logMeetingRow.id, "mark_not_interested", {
+                  notes: payload.notes,
+                });
               }
               setLogMeetingRow(null);
             } catch (e) {

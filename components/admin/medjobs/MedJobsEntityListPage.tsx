@@ -413,6 +413,11 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
                 });
               } else if (status === "done_partner" && partner) {
                 await callAction(logMeetingRow.id, "mark_partner", { ...partner });
+              } else if (status === "not_a_fit") {
+                // C3: post-meeting decline path.
+                await callAction(logMeetingRow.id, "mark_not_interested", {
+                  notes: payload.notes,
+                });
               }
               setLogMeetingRow(null);
             } catch (e) {

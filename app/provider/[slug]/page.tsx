@@ -963,10 +963,12 @@ export default async function ProviderPage({
                         />
                       );
                     })() : (
-                      <>
-                        <span className="text-base font-semibold text-gray-900">Contact</span>
-                        <span className="text-xs text-gray-500 font-medium text-right">for pricing</span>
-                      </>
+                      <MobilePricingTooltip
+                        topText="Contact"
+                        bottomText="for pricing"
+                        tooltipContent="This provider has not published their pricing. Contact them directly for a personalized quote."
+                        align="right"
+                      />
                     )}
                   </div>
                 </div>

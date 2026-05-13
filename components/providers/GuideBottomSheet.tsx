@@ -167,7 +167,7 @@ export default function GuideBottomSheet({
         // Auto-download the PDF
         const link = document.createElement("a");
         link.href = data.pdfUrl;
-        link.download = "senior-care-guide.pdf";
+        link.download = "senior-care-checklist.pdf";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

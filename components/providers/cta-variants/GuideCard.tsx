@@ -152,7 +152,7 @@ export default function GuideCard({
         // Auto-download the PDF
         const link = document.createElement("a");
         link.href = data.pdfUrl;
-        link.download = "senior-care-guide.pdf";
+        link.download = "senior-care-checklist.pdf";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -214,19 +214,16 @@ export default function GuideCard({
 
             {/* Text content */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-1">
+              <div className="flex items-center gap-1.5 mb-1.5">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-primary-600">
                   Free · For Families
                 </span>
               </div>
 
               <h3 className="text-xl font-bold text-gray-900 leading-snug">
-                Still deciding?
-              </h3>
-              <p className="text-[15px] font-medium text-gray-700 mt-0.5">
                 Get our free checklist
-              </p>
-              <p className="text-[13px] text-gray-500 mt-1">
+              </h3>
+              <p className="text-[14px] text-gray-500 mt-1.5">
                 Questions to ask and costs to expect.
               </p>
             </div>

@@ -55,10 +55,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify provider exists + is a provider type.
+    // Verify provider exists + is a provider type. Pull email + phone
+    // too — v9 mirrors them into student_outreach_contacts so the
+    // unified cadence path (schedule_sequence + executeEmailTask) finds
+    // a recipient without a provider-specific code branch.
     const { data: provider, error: providerErr } = await db
       .from("business_profiles")
-      .select("id, display_name, city, state, metadata, type")
+      .select(
+        "id, display_name, city, state, metadata, type, email, phone, created_at",
+      )
       .eq("id", providerId)
       .in("type", ["organization", "caregiver"])
       .maybeSingle();
@@ -108,6 +113,15 @@ export async function POST(request: NextRequest) {
 
     const orgName = provider.display_name || "(unnamed provider)";
 
+    // v9 final: inherit created_at from the business_profile so the
+    // materialized row keeps the same rank in the Prospects sort as
+    // the virtual catchment card it replaced. Without this the new
+    // row got created_at = NOW() and jumped to the top of the list
+    // every time admin opened a virtual card — the visual "moves to
+    // the top" bug the user kept seeing.
+    const inheritedCreatedAt =
+      (provider as { created_at?: string | null }).created_at ?? null;
+
     const { data: inserted, error: insertErr } = await db
       .from("student_outreach")
       .insert({
@@ -122,6 +136,7 @@ export async function POST(request: NextRequest) {
         research_data: {},
         cadence_day: 0,
         contact_permission: "not_yet",
+        ...(inheritedCreatedAt ? { created_at: inheritedCreatedAt } : {}),
       })
       .select("id")
       .single();
@@ -136,6 +151,15 @@ export async function POST(request: NextRequest) {
         : "";
       return NextResponse.json({ error: `${msg}${hint}` }, { status: 500 });
     }
+
+    // v9 (final architecture): no auto-mirroring. The provider's
+    // directory email + phone live as the "General Contact" on the
+    // outreach row itself (effective = business_profiles fields with
+    // research_data.general_contact overrides on top). Specific
+    // Contacts (student_outreach_contacts) are reserved for NAMED
+    // individuals admin discovers — owner, hiring manager, etc.
+    // Mixing the two systems was confusing operationally; keeping
+    // them separate is the explicit user requirement.
 
     return NextResponse.json({ id: inserted.id, already_materialized: false });
   } catch (err) {

@@ -13,18 +13,26 @@
  *     stakeholder workflow.
  *
  *   Partner Prospects
- *     Stakeholders being researched. UI rename of "stakeholders in
- *     research" — they're prospective Partners. DB stays
- *     student_outreach.
+ *     University research card + downstream stakeholders being
+ *     researched. Gated by partner-prospect-unlock: only appears
+ *     after the Site has at least one client provider in catchment.
  *
- * Default-open rule: whichever section has the highest unread count
- * leads. Provider Prospects have no unread tracking (virtual rows),
- * so Partner Prospects opens when it has any unread; otherwise
- * Provider Prospects opens (the funnel-unlock path is the default).
+ * v9.0 Phase 8: conditional grouping. Section headers only render
+ * when BOTH prospect types have cards. The common operational state
+ * after Site activation is Provider-only (no client conversions yet),
+ * and a header/chevron over a single section adds chrome without
+ * adding clarity. When the Partner Prospect gate unlocks, the second
+ * section appears and both render as collapsibles. When only Partner
+ * Prospects remain (unusual but possible — provider prospects all
+ * materialized), that single section also renders flat.
  *
- * No bulk selection in MVP — admins click rows individually. The
- * multi-select system landed in Commit H but proved too heavy for
- * daily flow.
+ * Default-open rule (only relevant when both sections render):
+ * whichever has the highest unread leads. Provider Prospects have no
+ * unread tracking (virtual rows), so Partner Prospects opens when it
+ * has any unread; otherwise Provider Prospects opens (the
+ * funnel-unlock path is the default).
+ *
+ * No bulk selection in MVP — admins click rows individually.
  */
 
 import { useMemo, useState, type ReactNode } from "react";
@@ -53,26 +61,50 @@ export function ResearchTabContent({
   onMarkResearchComplete: (campus: ResearchCampusCard) => void;
   tabCountsAll: number;
 }) {
-  const partnerUnreadCount = useMemo(
-    () => rows.filter((r) => r.viewed_at == null).length,
+  // Split materialized rows by kind. Provider-kind rows belong with the
+  // virtual provider catchment cards; everything else is a stakeholder
+  // (advisor / professor / dept_head / student_org) that lives under
+  // Partner Prospects. Without this split, materialized provider rows
+  // leak into Partner Prospects after "Log" / Start Outreach.
+  const providerRows = useMemo(
+    () => rows.filter((r) => r.kind === "provider"),
     [rows],
   );
-  const partnerTotal = researchCampuses.length + rows.length;
+  const stakeholderRows = useMemo(
+    () => rows.filter((r) => r.kind !== "provider"),
+    [rows],
+  );
+  const partnerUnreadCount = useMemo(
+    () => stakeholderRows.filter((r) => r.viewed_at == null).length,
+    [stakeholderRows],
+  );
+  const providerUnreadCount = useMemo(
+    () => providerRows.filter((r) => r.viewed_at == null).length,
+    [providerRows],
+  );
+  const partnerTotal = researchCampuses.length + stakeholderRows.length;
+  const providerTotal = providerProspects.length + providerRows.length;
 
-  // Default-open rule: Partner Prospects opens when it has unread or
-  // any queued research cards; Provider Prospects opens otherwise
-  // (the funnel-unlock path). Single section opens by default — the
-  // other stays collapsed until admin chooses.
+  const hasProvider = providerTotal > 0;
+  const hasPartner = partnerTotal > 0;
+  // Only group when both types coexist. A single-type queue renders
+  // flat — the operational reality the section header was supposed to
+  // surface is already obvious when there's nothing to group against.
+  const showSections = hasProvider && hasPartner;
+
+  // Default-open rule applies only when sections render. Partner opens
+  // first when it has unread or research cards; otherwise Provider
+  // opens (the funnel-unlock path).
   const [providerOpen, setProviderOpen] = useState<boolean>(
-    partnerUnreadCount === 0 && researchCampuses.length === 0 && providerProspects.length > 0,
+    partnerUnreadCount === 0 && researchCampuses.length === 0 && hasProvider,
   );
   const [partnerOpen, setPartnerOpen] = useState<boolean>(
     partnerUnreadCount > 0 ||
       researchCampuses.length > 0 ||
-      (providerProspects.length === 0 && rows.length > 0),
+      (!hasProvider && stakeholderRows.length > 0),
   );
 
-  const totalAvailable = providerProspects.length + partnerTotal;
+  const totalAvailable = providerTotal + partnerTotal;
 
   if (totalAvailable === 0) {
     const headline = tabCountsAll === 0 ? "Nothing here yet." : "✓ All caught up.";
@@ -93,88 +125,164 @@ export function ResearchTabContent({
     );
   }
 
+  // v9 final: merge materialized rows + virtual catchment cards into
+  // a single list sorted by created_at desc so opening a virtual
+  // prospect (which materializes it) doesn't visually move the
+  // card. The materialize endpoint inherits bp.created_at, and
+  // both list sources sort by the same key — so the card stays at
+  // the same rank through the transition, just changing visual
+  // shape from a virtual ProviderProspectCard to a materialized
+  // StakeholderCard in place.
+  const renderVirtualProspect = (p: typeof providerProspects[number]) => (
+    <ProviderProspectCard
+      row={p}
+      onStartOutreach={() => onStartProviderOutreach(p)}
+      overflowMenu={
+        <CardOverflowMenu
+          items={[
+            {
+              label: "Open in directory ↗",
+              onClick: () => {
+                window.open(
+                  `/admin/directory?providerId=${p.provider_id}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+              },
+            },
+            {
+              label: "See log history",
+              onClick: () => {
+                window.location.href = `/admin/medjobs/logs?provider_id=${p.provider_id}`;
+              },
+            },
+            {
+              label: "Mark as Client ✓",
+              tone: "celebration",
+              onClick: async () => {
+                if (
+                  !window.confirm(
+                    `Mark ${p.provider_name} as a Client?\n\nMaterializes the outreach row and flags the provider as a Client.`,
+                  )
+                )
+                  return;
+                try {
+                  const res = await fetch(
+                    "/api/admin/medjobs/provider-prospects/materialize",
+                    {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        provider_id: p.provider_id,
+                        campus_id: p.campus_id,
+                      }),
+                    },
+                  );
+                  const body = await res.json();
+                  if (!res.ok) throw new Error(body.error || "Materialize failed");
+                  await fetch(`/api/admin/student-outreach/${body.id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "make_client" }),
+                  });
+                  window.location.reload();
+                } catch (e) {
+                  console.error(e);
+                }
+              },
+            },
+          ]}
+        />
+      }
+    />
+  );
+
+  const providerItems = hasProvider
+    ? [
+        ...providerRows.map((row) => ({
+          key: row.row_key ?? row.id,
+          sortKey: row.created_at,
+          node: renderRow(row),
+        })),
+        ...providerProspects.map((p) => ({
+          key: p.id,
+          sortKey: p.created_at,
+          node: renderVirtualProspect(p),
+        })),
+      ].sort((a, b) => b.sortKey.localeCompare(a.sortKey))
+    : [];
+
+  const providerCardList = hasProvider ? (
+    <ul className="space-y-2 pt-2">
+      {providerItems.map((it) => (
+        <li key={it.key}>{it.node}</li>
+      ))}
+    </ul>
+  ) : null;
+
+  const partnerCardList = hasPartner ? (
+    <ul className="space-y-2 pt-2">
+      {researchCampuses.map((c) => (
+        <li key={`research-${c.id}`}>
+          <CampusResearchCard
+            row={c}
+            onOpenResearch={() => onOpenCampusResearch(c)}
+            overflowMenu={
+              <CardOverflowMenu
+                items={[
+                  {
+                    label: "Mark research complete",
+                    onClick: () => onMarkResearchComplete(c),
+                  },
+                  {
+                    label: "Open site management page",
+                    onClick: () => {
+                      window.open(
+                        `/admin/student-outreach/campus/${c.slug}`,
+                        "_blank",
+                        "noopener,noreferrer",
+                      );
+                    },
+                  },
+                ]}
+              />
+            }
+          />
+        </li>
+      ))}
+      {stakeholderRows.map((row) => (
+        <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
+      ))}
+    </ul>
+  ) : null;
+
+  // Single-type queue: render the surviving cards flat. No section
+  // header, no chevron — the grouping UI exists to differentiate two
+  // queues, and there's nothing to differentiate against here.
+  if (!showSections) {
+    return <div className="space-y-3">{providerCardList ?? partnerCardList}</div>;
+  }
+
   return (
     <div className="space-y-3">
-      {providerProspects.length > 0 && (
-        <Section
-          label="Provider Prospects"
-          count={providerProspects.length}
-          unread={null}
-          open={providerOpen}
-          onToggle={() => setProviderOpen((s) => !s)}
-        >
-          <ul className="space-y-2 pt-2">
-            {providerProspects.map((p) => (
-              <li key={p.id}>
-                <ProviderProspectCard
-                  row={p}
-                  onStartOutreach={() => onStartProviderOutreach(p)}
-                  overflowMenu={
-                    <CardOverflowMenu
-                      items={[
-                        {
-                          label: "Open in Directory",
-                          onClick: () => {
-                            window.open(
-                              `/admin/directory?providerId=${p.provider_id}`,
-                              "_blank",
-                              "noopener,noreferrer",
-                            );
-                          },
-                        },
-                      ]}
-                    />
-                  }
-                />
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
-
-      {partnerTotal > 0 && (
-        <Section
-          label="Partner Prospects"
-          count={partnerTotal}
-          unread={partnerUnreadCount}
-          open={partnerOpen}
-          onToggle={() => setPartnerOpen((s) => !s)}
-        >
-          <ul className="space-y-2 pt-2">
-            {researchCampuses.map((c) => (
-              <li key={`research-${c.id}`}>
-                <CampusResearchCard
-                  row={c}
-                  onOpenResearch={() => onOpenCampusResearch(c)}
-                  overflowMenu={
-                    <CardOverflowMenu
-                      items={[
-                        {
-                          label: "Mark research complete",
-                          onClick: () => onMarkResearchComplete(c),
-                        },
-                        {
-                          label: "Open site management page",
-                          onClick: () => {
-                            window.open(
-                              `/admin/student-outreach/campus/${c.slug}`,
-                              "_blank",
-                              "noopener,noreferrer",
-                            );
-                          },
-                        },
-                      ]}
-                    />
-                  }
-                />
-              </li>
-            ))}
-            {rows.map((row) => (
-              <li key={row.id}>{renderRow(row)}</li>
-            ))}
-          </ul>
-        </Section>
-      )}
+      <Section
+        label="Provider Prospects"
+        count={providerTotal}
+        unread={providerUnreadCount > 0 ? providerUnreadCount : null}
+        open={providerOpen}
+        onToggle={() => setProviderOpen((s) => !s)}
+      >
+        {providerCardList}
+      </Section>
+      <Section
+        label="Partner Prospects"
+        count={partnerTotal}
+        unread={partnerUnreadCount}
+        open={partnerOpen}
+        onToggle={() => setPartnerOpen((s) => !s)}
+      >
+        {partnerCardList}
+      </Section>
     </div>
   );
 }

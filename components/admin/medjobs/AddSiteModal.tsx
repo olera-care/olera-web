@@ -8,21 +8,30 @@
  * The DB table is still `student_outreach_campuses`; only the UI says
  * "site". Endpoint stays /api/admin/student-outreach/campuses.
  *
- * Single-pick by design — bulk multi-select landed briefly in Commit
- * H but pulled the operational language toward batch when daily flow
- * is one-territory-at-a-time. Restoring the simpler dropdown keeps
- * the modal calm and unambiguous.
+ * Catchment audit preview: when the modal opens, we side-fetch the
+ * /api/admin/medjobs/catchment-audit payload and surface each
+ * university's "providers in catchment" count next to its name in the
+ * dropdown. Lets admin see "this Site will generate N Provider
+ * Prospects" before committing — catches the empty-catchment trap up
+ * front (the Michigan-State 1-provider case) instead of after
+ * activation.
  */
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 
 interface Props {
-  /** Slugs of universities already activated. Used to grey out rows
-   *  in the picker so admin doesn't try to re-add them. */
   existingSlugs?: ReadonlySet<string>;
   onClose: () => void;
   onCreated: (slug: string, name: string) => void;
+}
+
+interface AuditCountsBySlug {
+  providers_in_catchment: number;
+  providers_in_states: number;
+  empty_cities_count: number;
 }
 
 export function AddSiteModal({ existingSlugs, onClose, onCreated }: Props) {
@@ -30,10 +39,48 @@ export function AddSiteModal({ existingSlugs, onClose, onCreated }: Props) {
   const [selectedSlug, setSelectedSlug] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [auditBySlug, setAuditBySlug] = useState<Record<string, AuditCountsBySlug>>({});
+  const [auditLoading, setAuditLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/admin/medjobs/catchment-audit");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        const map: Record<string, AuditCountsBySlug> = {};
+        for (const r of (data.rows ?? []) as Array<{
+          slug: string;
+          providers_in_catchment: number;
+          providers_in_states: number;
+          empty_cities: Array<{ city: string; state: string }>;
+        }>) {
+          map[r.slug] = {
+            providers_in_catchment: r.providers_in_catchment,
+            providers_in_states: r.providers_in_states,
+            empty_cities_count: r.empty_cities.length,
+          };
+        }
+        setAuditBySlug(map);
+      } catch {
+        /* non-critical — preview just won't render */
+      } finally {
+        if (!cancelled) setAuditLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const selectedUni = useMemo(
+    () => PARTNER_UNIVERSITIES.find((u) => u.slug === selectedSlug) ?? null,
+    [selectedSlug],
+  );
+  const selectedAudit = selectedSlug ? auditBySlug[selectedSlug] : null;
 
   const submit = async () => {
-    const uni = PARTNER_UNIVERSITIES.find((u) => u.slug === selectedSlug);
-    if (!uni) {
+    if (!selectedUni) {
       setError("Pick a university first.");
       return;
     }
@@ -44,15 +91,16 @@ export function AddSiteModal({ existingSlugs, onClose, onCreated }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          slug: uni.slug,
-          name: uni.name,
-          state: uni.state,
-          city: uni.city,
+          slug: selectedUni.slug,
+          name: selectedUni.name,
+          state: selectedUni.state,
+          city: selectedUni.city,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to add site");
-      onCreated(uni.slug, uni.name);
+      refreshMedJobs();
+      onCreated(selectedUni.slug, selectedUni.name);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -72,9 +120,10 @@ export function AddSiteModal({ existingSlugs, onClose, onCreated }: Props) {
         <header className="border-b border-gray-100 px-6 py-4">
           <h3 className="text-base font-semibold text-gray-900">Add Site</h3>
           <p className="mt-0.5 text-xs text-gray-500">
-            Activate a university territory. Provider prospects in the catchment
-            will surface in In Basket as virtual rows; once a provider converts,
-            student-stakeholder research unlocks.
+            Activate a university territory. The counts below show how many
+            non-medical home care providers in our directory match each
+            catchment — i.e. how many Provider Prospects this Site will
+            generate.
           </p>
         </header>
 
@@ -92,25 +141,52 @@ export function AddSiteModal({ existingSlugs, onClose, onCreated }: Props) {
               className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
             >
               <option value="">Pick a university…</option>
-              {PARTNER_UNIVERSITIES.map((u) => (
-                <option key={u.slug} value={u.slug} disabled={existing.has(u.slug)}>
-                  {u.name} ({u.city}, {u.state})
-                  {existing.has(u.slug) ? " — added" : ""}
-                </option>
-              ))}
+              {PARTNER_UNIVERSITIES.map((u) => {
+                const a = auditBySlug[u.slug];
+                const countSuffix = a
+                  ? ` — ${a.providers_in_catchment} in catchment`
+                  : auditLoading
+                    ? ""
+                    : "";
+                return (
+                  <option
+                    key={u.slug}
+                    value={u.slug}
+                    disabled={existing.has(u.slug)}
+                  >
+                    {u.name} ({u.city}, {u.state})
+                    {existing.has(u.slug) ? " — added" : countSuffix}
+                  </option>
+                );
+              })}
             </select>
-            <span className="mt-1 block text-[11px] text-gray-500">
-              Limited to {PARTNER_UNIVERSITIES.length} universities with mapped
-              catchment cities. New regions can be added to{" "}
-              <code>lib/staffing-outreach/partner-universities.ts</code>.
-            </span>
           </label>
+
+          {selectedUni && (
+            <CatchmentPreview
+              uni={selectedUni}
+              audit={selectedAudit}
+              loading={auditLoading && !selectedAudit}
+            />
+          )}
 
           {error && (
             <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </p>
           )}
+
+          <p className="text-[11px] text-gray-500">
+            See all rankings on the{" "}
+            <Link
+              href="/admin/medjobs/catchment-audit"
+              className="font-medium text-emerald-700 hover:underline"
+            >
+              Catchment Audit
+            </Link>{" "}
+            page. Catchment lists edited in{" "}
+            <code>lib/staffing-outreach/partner-universities.ts</code>.
+          </p>
         </div>
 
         <footer className="flex justify-end gap-2 border-t border-gray-100 px-6 py-3">
@@ -129,6 +205,56 @@ export function AddSiteModal({ existingSlugs, onClose, onCreated }: Props) {
           </button>
         </footer>
       </div>
+    </div>
+  );
+}
+
+function CatchmentPreview({
+  uni,
+  audit,
+  loading,
+}: {
+  uni: { name: string; catchment: Array<{ city: string; state: string }> };
+  audit: AuditCountsBySlug | null;
+  loading: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-500">
+        Loading catchment density…
+      </div>
+    );
+  }
+  if (!audit) return null;
+  const dense = audit.providers_in_catchment >= 5;
+  const empty = audit.providers_in_catchment === 0;
+  const tone = empty
+    ? "border-amber-200 bg-amber-50 text-amber-900"
+    : dense
+      ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+      : "border-gray-200 bg-gray-50 text-gray-700";
+  return (
+    <div className={`space-y-1 rounded-md border px-3 py-2 text-xs ${tone}`}>
+      <p>
+        <span className="font-semibold tabular-nums">
+          {audit.providers_in_catchment}
+        </span>{" "}
+        provider{audit.providers_in_catchment === 1 ? "" : "s"} in catchment
+        will become Provider Prospects.
+      </p>
+      <p className="text-[11px] opacity-80">
+        Catchment covers {uni.catchment.length} cities. {audit.providers_in_states}{" "}
+        providers exist across the catchment states overall;{" "}
+        {audit.empty_cities_count} catchment cit
+        {audit.empty_cities_count === 1 ? "y has" : "ies have"} zero providers.
+      </p>
+      {empty && (
+        <p className="text-[11px] font-medium">
+          ⚠ This Site will generate no Provider Prospects on activation. Run
+          enrichment for the catchment first, or expand the city list in{" "}
+          <code>partner-universities.ts</code>.
+        </p>
+      )}
     </div>
   );
 }

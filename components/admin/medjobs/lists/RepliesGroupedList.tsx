@@ -30,7 +30,7 @@ export function RepliesGroupedList({
   return (
     <ul className="space-y-2">
       {sorted.map((row) => (
-        <li key={row.id}>{renderRow(row)}</li>
+        <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
       ))}
     </ul>
   );

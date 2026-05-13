@@ -23,7 +23,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   KIND_LABELS,
-  STATUS_LABELS,
   type RepliesState,
   type TabRow,
 } from "@/lib/student-outreach/types";
@@ -40,6 +39,7 @@ import type {
   StopOutreachReason,
   TabKey,
 } from "@/lib/student-outreach/tab-config";
+import { STAGE_DISPLAY, type Stage } from "@/lib/medjobs/stage";
 
 // ── RowCard ──────────────────────────────────────────────────────────────
 
@@ -165,6 +165,25 @@ export function StakeholderCard({
   // rows that haven't been hydrated yet.
   const kindLabel = KIND_LABELS[row.kind ?? row.stakeholder_type ?? "student_org"];
 
+  // v9 final: per-recipient card copy hierarchy (Calls + Replies
+  // fan-out only). Three card "shapes" share this shell:
+  //   General Contact   → title = org name; subtitle =
+  //                       "Provider · General Contact · Near {campus}"
+  //   Specific Contact  → title = "{contact} · {org}" (org bolded);
+  //                       subtitle =
+  //                       "Provider · Specific Contact · {role} ·
+  //                        Near {campus}"
+  //   Non-fan-out row   → legacy title + subtitle (outreach as a
+  //                       whole — Prospects / All / Archive). The
+  //                       recipient_kind discriminator is null in
+  //                       this case.
+  const isGeneralCard = row.recipient_kind === "general";
+  const isSpecificCard = row.recipient_kind === "specific";
+  const titleText =
+    isGeneralCard
+      ? row.organization_name
+      : row.primary_contact_name || row.organization_name;
+
   return (
     <div
       role="button"
@@ -183,22 +202,63 @@ export function StakeholderCard({
         {/* LEFT: descriptive content stacked top-down */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className={`truncate text-sm ${unread ? "font-semibold" : "font-medium"} text-gray-900`}>
-              {row.primary_contact_name || row.organization_name}
-            </p>
+            {isSpecificCard ? (
+              <p className="truncate text-sm text-gray-900">
+                <span className={unread ? "font-semibold" : "font-medium"}>
+                  {row.primary_contact_name || row.organization_name}
+                </span>
+                {row.primary_contact_name &&
+                  row.primary_contact_name !== row.organization_name && (
+                    <>
+                      <span className="font-normal text-gray-500"> · </span>
+                      <span
+                        className={
+                          unread ? "font-semibold" : "font-semibold text-gray-900"
+                        }
+                      >
+                        {row.organization_name}
+                      </span>
+                    </>
+                  )}
+              </p>
+            ) : (
+              <p
+                className={`truncate text-sm ${
+                  unread ? "font-semibold" : "font-medium"
+                } text-gray-900`}
+              >
+                {titleText}
+              </p>
+            )}
             {headlineAccessory}
           </div>
           <p className="mt-0.5 truncate text-xs text-gray-500">
-            {row.primary_contact_name &&
-              row.primary_contact_name !== row.organization_name && (
+            {isGeneralCard || isSpecificCard ? (
               <>
-                {row.organization_name}
-                {row.department && row.department !== row.organization_name && ` · ${row.department}`}
+                {kindLabel}
                 {" · "}
+                {isGeneralCard ? "General Contact" : "Specific Contact"}
+                {isSpecificCard &&
+                  row.primary_contact_role &&
+                  ` · ${row.primary_contact_role}`}
+                {row.campus_name && ` · Near ${row.campus_name}`}
+              </>
+            ) : (
+              <>
+                {row.primary_contact_name &&
+                  row.primary_contact_name !== row.organization_name && (
+                    <>
+                      {row.organization_name}
+                      {row.department &&
+                        row.department !== row.organization_name &&
+                        ` · ${row.department}`}
+                      {" · "}
+                    </>
+                  )}
+                {row.campus_name} · {kindLabel}
+                {row.primary_contact_role && ` · ${row.primary_contact_role}`}
               </>
             )}
-            {row.campus_name} · {kindLabel}
-            {row.primary_contact_role && ` · ${row.primary_contact_role}`}
           </p>
           {footnote}
           {pill && (
@@ -238,6 +298,49 @@ export function Pill({
     </span>
   );
 }
+
+/**
+ * Canonical stage pill — single source of operational state across every
+ * card in every tab. Driven by deriveStageForTabRow(); tone comes from
+ * STAGE_DISPLAY in lib/medjobs/stage.ts. Replaces the per-tab status pills
+ * that previously drifted (Replies showed "Replied", Meetings showed
+ * "Booked · Fri 3pm", Archive showed "Stale 8d cold" — each its own
+ * vocabulary). Stage is the state; the footnote/context line carries
+ * the operational detail. One pill across surfaces; tone changes carry
+ * meaning (emerald active, amber wants attention, red broken, gray
+ * terminal).
+ */
+export function StagePill({
+  stage,
+  title,
+}: {
+  stage: Stage;
+  title?: string;
+}) {
+  const display = STAGE_DISPLAY[stage];
+  const toneClass = STAGE_TONE_CLASSES[display.tone];
+  return (
+    <span
+      title={title}
+      className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${toneClass}`}
+    >
+      {display.label}
+    </span>
+  );
+}
+
+const STAGE_TONE_CLASSES: Record<
+  (typeof STAGE_DISPLAY)[Stage]["tone"],
+  string
+> = {
+  green: "bg-green-100 text-green-800",
+  emerald: "bg-emerald-100 text-emerald-800",
+  amber: "bg-amber-100 text-amber-800",
+  purple: "bg-purple-100 text-purple-800",
+  red: "bg-red-100 text-red-800",
+  blue: "bg-blue-100 text-blue-800",
+  gray: "bg-gray-100 text-gray-700",
+};
 
 /**
  * v8.10.23: long notes on cards truncate to a character limit and
@@ -459,38 +562,93 @@ export function buildUniversalOverflow(
   options: {
     excludeMakePartner?: boolean;
     extraItems?: OverflowItem[];
+    /** When the row is kind='provider', swap the Mark-Partner item
+     *  for Make-Client. Provider rows graduate via the Client signal
+     *  on business_profiles, not via mark_partner on the outreach
+     *  row — see lib/medjobs/partner-prospect-gate.ts. */
+    row?: TabRow;
   } = {},
 ): ReactNode {
   const items: OverflowItem[] = [];
   if (!options.excludeMakePartner) {
-    items.push({ label: "Make Partner ★", onClick: cb.onMarkPartner, tone: "celebration" });
+    const isProvider = options.row?.kind === "provider";
+    if (isProvider && cb.onMakeClient) {
+      items.push({
+        label: "Make Client ✓",
+        onClick: cb.onMakeClient,
+        tone: "celebration",
+      });
+    } else if (!isProvider) {
+      items.push({
+        label: "Make Partner ★",
+        onClick: cb.onMarkPartner,
+        tone: "celebration",
+      });
+    }
+    // Provider rows without onMakeClient handler skip the terminal
+    // CTA from the overflow — admin can still convert from the
+    // drawer footer.
   }
   if (options.extraItems) items.push(...options.extraItems);
-  // v9.0 Phase 4: every row gets a Mark as unread action so admins
-  // can reset attention if they opened it by accident or want a
-  // teammate to pick it up. Lives at the bottom of the menu so
-  // accidental clicks are unlikely.
   items.push({ label: "Mark as unread", onClick: () => void cb.onMarkUnread() });
+  // v9 final: cross-surface navigation. Open in directory jumps to
+  // the public listing (provider rows only — cb.onOpenDirectory is
+  // populated server-side only when provider_slug exists). See log
+  // history filters the unified Logs feed to this row's outreach_id.
+  if (cb.onOpenDirectory) {
+    items.push({ label: "Open in directory ↗", onClick: cb.onOpenDirectory });
+  }
+  if (cb.onSeeLogHistory) {
+    items.push({ label: "See log history", onClick: cb.onSeeLogHistory });
+  }
+  // v9 final: Archive is a top-level shortcut for "no response —
+  // close" which is the most common close-out reason. The full
+  // Stop-outreach submenu below still covers the other reasons
+  // (not interested / wrong contact / do not contact).
+  items.push({
+    label: "Archive",
+    onClick: () => void cb.onStopOutreach("no_response_closed"),
+  });
   return <OverflowMenu items={items} onStopOutreach={cb.onStopOutreach} />;
 }
 
 export function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): RowSlots {
-  if (tab === "prospects") return researchSlots(row, cb);
-  if (tab === "calls") return callsSlots(row, cb);
-  if (tab === "replies") return repliesSlots(row, cb);
-  if (tab === "meetings") return meetingsSlots(row, cb);
-  if (tab === "partners") return partnersSlots(row, cb);
-  if (tab === "archive") return archiveSlots(row, cb);
-  return allSlots(row, cb);
+  // Per-tab slot logic builds footnote + CTA + overflow.
+  let slots: RowSlots;
+  if (tab === "prospects") slots = researchSlots(row, cb);
+  else if (tab === "calls") slots = callsSlots(row, cb);
+  else if (tab === "replies") slots = repliesSlots(row, cb);
+  else if (tab === "meetings") slots = meetingsSlots(row, cb);
+  else if (tab === "partners") slots = partnersSlots(row, cb);
+  else if (tab === "archive") slots = archiveSlots(row, cb);
+  else slots = allSlots(row, cb);
+
+  // v9 final: pill removed from row cards. The pill restated entity-
+  // type / tab default (every Prospects row showed "Prospect", every
+  // Replies row showed "In Outreach") without telling the admin what
+  // to do next. The footnote already carries action-oriented copy
+  // ("Ready to launch outreach", "Reply 2d ago", "Call due Tue 3pm")
+  // which is the better operational signal. StagePill export stays
+  // for use inside the drawer's NextStepCard / status headers, but
+  // row cards run without it.
+  return slots;
 }
 
 function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  const pill =
+  // v9 final: footnote answers "what does admin need to do?" not
+  // "what state is this row in?". Two cases:
+  //   researched → row has the data to launch; nudge toward the
+  //                review step that precedes launch.
+  //   prospect   → row is still missing operational info; tell
+  //                admin to fill it before launching.
+  const subStateText =
     row.status === "researched"
-      ? <Pill title="Has contact + programs — ready to start the email sequence.">Ready to email</Pill>
-      : <Pill title="Add a contact and programs in the drawer, then start outreach.">Needs contact</Pill>;
+      ? "Review contact info, then launch outreach"
+      : "Needs contact info before outreach";
   return {
-    pill,
+    footnote: (
+      <p className="mt-0.5 text-[11px] text-gray-500">{subStateText}</p>
+    ),
     cta: (
       <PrimaryAction
         onClick={cb.onOpenDrawer}
@@ -499,11 +657,18 @@ function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Log
       </PrimaryAction>
     ),
-    overflowMenu: buildUniversalOverflow(cb),
+    overflowMenu: buildUniversalOverflow(cb, { row }),
   };
 }
 
 function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
+  // v9 final: the Calls tab now emits one TabRow per pending call
+  // task — the General Contact and each Specific Contact each get
+  // their own ops card. primary_contact_name/phone/role are
+  // overridden by the server to the recipient on this row's
+  // pending task; due_call_task points to that specific task.
+  // No more multi-recipient branching — every card represents
+  // exactly one due call.
   return {
     footnote: row.due_call_task ? (
       <p className="mt-0.5 text-[11px] text-gray-400">
@@ -528,24 +693,37 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Log
       </PrimaryAction>
     ),
-    overflowMenu: buildUniversalOverflow(cb),
+    overflowMenu: buildUniversalOverflow(cb, { row }),
   };
 }
 
 function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // v8.10.12: standardized layout. Pill stacks under the footnote (last
-  // activity / followup-notes quote). CTA is bottom-right. Overflow is
-  // top-right.
-  const lastActivityFootnote = row.last_activity_at ? (
-    <p className="mt-0.5 text-[11px] text-gray-400">
-      Last activity {formatRelative(row.last_activity_at)}
-    </p>
-  ) : null;
+  // v9 canonical pill in buildRowSlots replaces the per-state pill that
+  // lived here. The state-specific operational signal moves into the
+  // footnote / context line so the admin still sees what's happening
+  // (replied / wants to meet / needs follow-up / awaiting callback /
+  // stale). Stage pill answers "this row is in Outreach"; context line
+  // answers "and here's why you should act on it now".
+  const lastActivityRelative = row.last_activity_at
+    ? formatRelative(row.last_activity_at)
+    : null;
   const state: RepliesState = row.replies_state ?? "mid_cadence";
+  const buildFootnote = (prefix: string | null): ReactNode => {
+    const line = [prefix, lastActivityRelative ? `last activity ${lastActivityRelative}` : null]
+      .filter(Boolean)
+      .join(" · ");
+    return line ? (
+      <p className="mt-0.5 text-[11px] text-gray-500">{line}</p>
+    ) : null;
+  };
   switch (state) {
     case "mid_cadence":
+      // v9 final: drop the "Awaiting reply" prefix — the Replies tab
+      // already implies it. Keep the "last activity Xd ago" signal
+      // (criterion #4 — what changed recently) so admin sees how
+      // long the row has been quiet.
       return {
-        footnote: lastActivityFootnote,
+        footnote: buildFootnote(null),
         cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}
@@ -554,12 +732,11 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Log
           </PrimaryAction>
         ),
-        overflowMenu: buildUniversalOverflow(cb),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
     case "engaged":
       return {
-        footnote: lastActivityFootnote,
-        pill: <Pill>Replied</Pill>,
+        footnote: buildFootnote("Reply received — review and log outcome"),
         cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}
@@ -568,12 +745,11 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Log
           </PrimaryAction>
         ),
-        overflowMenu: buildUniversalOverflow(cb),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
     case "wants_meeting":
       return {
-        footnote: lastActivityFootnote,
-        pill: <Pill>Wants to meet</Pill>,
+        footnote: buildFootnote("Wants to meet — book or coordinate time"),
         cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}
@@ -582,19 +758,22 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Log
           </PrimaryAction>
         ),
-        overflowMenu: buildUniversalOverflow(cb),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
     case "booked":
       return {
-        pill: <Pill>{row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}</Pill>,
-        overflowMenu: buildUniversalOverflow(cb),
+        footnote: row.meeting_at ? (
+          <p className="mt-0.5 text-[11px] text-gray-500">
+            Booked · {formatLongDate(row.meeting_at)}
+          </p>
+        ) : buildFootnote("Booked"),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
     case "needs_followup":
       return {
         footnote: row.followup_notes ? (
           <ExpandableNote text={row.followup_notes} />
-        ) : lastActivityFootnote,
-        pill: <Pill>Met — needs follow-up</Pill>,
+        ) : buildFootnote("Meeting completed — follow-up needed"),
         cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}
@@ -603,17 +782,17 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Log
           </PrimaryAction>
         ),
-        overflowMenu: buildUniversalOverflow(cb),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
-    case "awaiting_callback":
+    case "awaiting_callback": {
+      const kindLabel =
+        row.awaiting_callback_kind === "promised" ? "Promised callback" : "Voicemail";
+      const callbackWhen = row.awaiting_callback_at
+        ? formatShortRelative(row.awaiting_callback_at)
+        : null;
+      const prefix = callbackWhen ? `${kindLabel} · ${callbackWhen}` : kindLabel;
       return {
-        footnote: lastActivityFootnote,
-        pill: (
-          <Pill>
-            {row.awaiting_callback_kind === "promised" ? "Promised callback" : "Voicemail"}
-            {row.awaiting_callback_at ? ` · ${formatShortRelative(row.awaiting_callback_at)}` : ""}
-          </Pill>
-        ),
+        footnote: buildFootnote(prefix),
         cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("callback")}
@@ -622,38 +801,33 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Log
           </PrimaryAction>
         ),
-        overflowMenu: buildUniversalOverflow(cb),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
+    }
     case "stale":
       return {
-        pill: <Pill>Stale{row.stale_days != null ? ` · ${row.stale_days}d` : ""}</Pill>,
-        overflowMenu: buildUniversalOverflow(cb),
+        footnote: (
+          <p className="mt-0.5 text-[11px] text-gray-500">
+            Stale{row.stale_days != null ? ` · ${row.stale_days}d cold` : ""}
+          </p>
+        ),
+        overflowMenu: buildUniversalOverflow(cb, { row }),
       };
   }
 }
 
 function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  const lastActivityFootnote = row.last_activity_at ? (
-    <p className="mt-0.5 text-[11px] text-gray-400">
-      Last activity {formatRelative(row.last_activity_at)}
-    </p>
-  ) : null;
-  const pill =
-    row.meeting_state === "scheduled" ? (
-      <Pill title="Meeting is on the calendar.">
-        {row.meeting_at ? `Booked · ${formatLongDate(row.meeting_at)}` : "Booked"}
-      </Pill>
-    ) : (
-      <Pill>Finding a time</Pill>
-    );
-  // v9.0 Phase 3: CTA is always "Log Meeting" — applies whether the
-  // row is finding-a-time or already booked. The previous "Complete"
-  // label for booked rows drifted from the rest of the system; the
-  // modal still handles all four outcomes (find time / on calendar /
-  // done sharing / done follow-up) regardless of label.
+  // Meeting time is the operational signal. Canonical stage pill shows
+  // "Meeting"; footnote answers "when". Last-activity is secondary
+  // (the meeting time is more relevant on a Meetings card).
+  const footnoteText =
+    row.meeting_state === "scheduled" && row.meeting_at
+      ? `Booked · ${formatLongDate(row.meeting_at)}`
+      : "Finding a time";
   return {
-    footnote: lastActivityFootnote,
-    pill,
+    footnote: (
+      <p className="mt-0.5 text-[11px] text-gray-500">{footnoteText}</p>
+    ),
     cta: (
       <PrimaryAction
         onClick={cb.onLogMeeting}
@@ -662,7 +836,7 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Log
       </PrimaryAction>
     ),
-    overflowMenu: buildUniversalOverflow(cb),
+    overflowMenu: buildUniversalOverflow(cb, { row }),
   };
 }
 
@@ -681,25 +855,25 @@ function partnersSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Log
       </PrimaryAction>
     ),
-    overflowMenu: buildUniversalOverflow(cb, { excludeMakePartner: true }),
+    overflowMenu: buildUniversalOverflow(cb, { row, excludeMakePartner: true }),
   };
 }
 
 function archiveSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
+  // Stage pill (Closed / Outreach for stale-but-active rows) carries
+  // terminal state; footnote carries the cold-days operational detail.
   const isClosed = row.status === "no_response_closed";
-  const pillLabel = isClosed
-    ? `No response${row.stale_days != null ? ` · ${row.stale_days}d cold` : ""}`
-    : `Stale${row.stale_days != null ? ` · ${row.stale_days}d cold` : ""}`;
+  const reasonText = isClosed ? "No response" : "Stale";
+  const coldSuffix = row.stale_days != null ? ` · ${row.stale_days}d cold` : "";
   return {
-    footnote: row.last_activity_at ? (
-      <p className="mt-0.5 text-[11px] text-gray-400">
-        Last activity {formatRelative(row.last_activity_at)}
+    footnote: (
+      <p
+        className="mt-0.5 text-[11px] text-gray-500"
+        title="Cadence ran without engagement. Logging a reply or callback re-routes them to Replies."
+      >
+        {reasonText}
+        {coldSuffix}
       </p>
-    ) : null,
-    pill: (
-      <Pill title="Cadence ran without engagement. Logging a reply or callback re-routes them to Replies.">
-        {pillLabel}
-      </Pill>
     ),
     cta: (
       <PrimaryAction
@@ -716,6 +890,10 @@ function archiveSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
 }
 
 function allSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
+  // v9: dedicated entity pages' All view. Stage pill carries the
+  // canonical state; STATUS_LABELS-derived pills retired (replaced by
+  // the universal stage pill in buildRowSlots). Footnote keeps the
+  // last-activity timestamp for chronological scanning.
   const isAlreadyPartner = row.status === "active_partner";
   return {
     footnote: row.last_activity_at ? (
@@ -723,7 +901,6 @@ function allSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Last activity {formatRelative(row.last_activity_at)}
       </p>
     ) : null,
-    pill: <Pill title="Stage in the funnel.">{STATUS_LABELS[row.status] ?? row.status}</Pill>,
-    overflowMenu: buildUniversalOverflow(cb, { excludeMakePartner: isAlreadyPartner }),
+    overflowMenu: buildUniversalOverflow(cb, { row, excludeMakePartner: isAlreadyPartner }),
   };
 }

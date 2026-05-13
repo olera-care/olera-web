@@ -77,6 +77,12 @@ export async function POST(req: NextRequest) {
     .insert({
       campus_id: (campus as { id: string }).id,
       stakeholder_type,
+      // Migration 072 added a NOT NULL `kind` column that discriminates
+      // provider catchment rows (kind='provider') from stakeholder rows
+      // (kind in student_org/advisor/professor/dept_head). For
+      // stakeholder inserts the value mirrors stakeholder_type, which
+      // is what the backfill in that migration also did.
+      kind: stakeholder_type,
       organization_name,
       department,
       programs,

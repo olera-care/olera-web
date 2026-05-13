@@ -18,16 +18,60 @@
  */
 
 import { sendEmail } from "@/lib/email";
-import { firstNameOf, salutationFor, substituteVars } from "./templates";
+import {
+  CALENDLY_URL,
+  PROGRAM_URL,
+  firstNameOf,
+  salutationFor,
+  substituteVars,
+} from "./templates";
+import { getProgramPdfConfig } from "@/lib/program-pdf/configs";
+import {
+  programPdfFilename,
+  renderProgramPdf,
+} from "@/lib/program-pdf/generate";
 import type { StakeholderType } from "./types";
 
-const FROM_ADDRESS = process.env.STUDENT_OUTREACH_FROM_ADDRESS
-  ?? "Olera Outreach <noreply@olera.care>";
+/**
+ * v9 final: sender identity is Grazie Belandres directly, not a
+ * generic "Olera Outreach" / noreply address. Recipients see a
+ * human name in their inbox + a real mailbox they can reply to,
+ * which improves deliverability (lower spam scores for non-
+ * noreply From headers) and trust (the email feels like a real
+ * person sent it).
+ *
+ * The address can still be overridden by env var when we move to
+ * a dedicated outreach subdomain (see domain-strategy
+ * recommendation in the README / ops doc). The display name stays
+ * "Grazie Belandres" regardless — the right side of the < > is
+ * the routing identity, the left side is what humans see.
+ */
+const FROM_ADDRESS =
+  process.env.STUDENT_OUTREACH_FROM_ADDRESS
+  ?? "Grazie Belandres <grazie@olera.care>";
 
-const REPLY_TO_ADDRESS = process.env.STUDENT_OUTREACH_REPLY_TO ?? "";
+const REPLY_TO_ADDRESS =
+  process.env.STUDENT_OUTREACH_REPLY_TO ?? "grazie@olera.care";
 
 const FLYER_URL = process.env.STUDENT_OUTREACH_FLYER_URL ?? "";
 const FLYER_FILENAME = "olera-student-outreach-flyer.pdf";
+
+/**
+ * Signature photo URLs. Override via env var so we can repoint to
+ * Supabase Storage, a CDN, or a per-environment Vercel deploy
+ * without code edits. Defaults to /public assets which are served
+ * from olera.care once the file is on main.
+ *
+ * For new deployments where the file may not yet live on main,
+ * set these envs to a stable host (Supabase public bucket
+ * URL is recommended — see domain-strategy ops doc).
+ */
+const LOGAN_PHOTO_URL =
+  process.env.STUDENT_OUTREACH_LOGAN_PHOTO_URL ??
+  "https://olera.care/images/for-providers/team/logan.jpg";
+const GRAZIE_PHOTO_URL =
+  process.env.STUDENT_OUTREACH_GRAZIE_PHOTO_URL ??
+  "https://olera.care/images/for-providers/team/grazie.png";
 
 const RESEND_THROTTLE_MS = 150;
 
@@ -48,6 +92,17 @@ export interface SendOutreachEmailInput {
   /** Drives stakeholder-aware salutation resolution. */
   stakeholder_type: StakeholderType;
   campus_name: string;
+  /** v9 final: campus slug. Drives which Program PDF is attached
+   *  to the send (per-university config in lib/program-pdf). Null
+   *  for legacy callers or stakeholder rows with no registered
+   *  config — those fall back to the env-var-driven generic PDF. */
+  campus_slug?: string | null;
+  /** v9 final: per-campus PDF override URL from
+   *  student_outreach_campuses.program_pdf_url. When set, the
+   *  attachment loader uses this URL instead of the code-defined
+   *  template. Lets admin attach a bespoke PDF without code
+   *  changes. */
+  campus_program_pdf_url?: string | null;
   organization_name: string;
   /** Logged on touchpoints + email_log; not used for Reply-To. */
   admin_first_name: string;
@@ -76,50 +131,316 @@ export interface SendOutreachEmailResult {
   attachment_present: boolean;
 }
 
-let cachedAttachment: { content: string; type: string } | null = null;
-let cachedAttachmentChecked = false;
+/**
+ * v9 final: attachment loader. Four sources, in priority order:
+ *   1. Per-campus override URL from student_outreach_campuses.
+ *      program_pdf_url. Lets admin attach a bespoke PDF without
+ *      code changes — fetched + base64'd at send time, cached
+ *      per URL in-process.
+ *   2. Per-university code-defined Program PDF generated on
+ *      demand from lib/program-pdf (when campus_slug matches a
+ *      registered config). Cached in-process per slug.
+ *   3. Env-var-driven generic flyer (STUDENT_OUTREACH_FLYER_URL),
+ *      used when the campus isn't configured yet or the caller
+ *      doesn't pass a slug.
+ *   4. No attachment (silent — send proceeds without a PDF). The
+ *      body copy that references "the attached information
+ *      packet" still goes; the recipient won't have the PDF, but
+ *      the send doesn't fail.
+ */
+const cachedProgramPdfBySlug = new Map<string, { content: string; filename: string }>();
+const cachedCustomPdfByUrl = new Map<string, { content: string; filename: string; type: string }>();
+let cachedEnvAttachment: { content: string; type: string } | null = null;
+let cachedEnvAttachmentChecked = false;
 
-async function loadFlyerAttachment(): Promise<
+async function loadProgramPdfAttachment(
+  campusSlug: string | null | undefined,
+  campusProgramPdfUrl: string | null | undefined,
+): Promise<
   Array<{ filename: string; content: string; encoding?: string; type?: string }> | undefined
 > {
-  if (!FLYER_URL) return undefined;
-  if (cachedAttachmentChecked && cachedAttachment) {
-    return [{
-      filename: FLYER_FILENAME,
-      content: cachedAttachment.content,
-      encoding: "base64",
-      type: cachedAttachment.type,
-    }];
+  // Path 1: per-campus admin override URL.
+  if (campusProgramPdfUrl) {
+    const cached = cachedCustomPdfByUrl.get(campusProgramPdfUrl);
+    if (cached) {
+      return [
+        {
+          filename: cached.filename,
+          content: cached.content,
+          encoding: "base64",
+          type: cached.type,
+        },
+      ];
+    }
+    try {
+      const res = await fetch(campusProgramPdfUrl);
+      if (res.ok) {
+        const buf = await res.arrayBuffer();
+        const filename =
+          decodeURIComponent(
+            campusProgramPdfUrl.split("/").pop() ?? "",
+          ).split("?")[0] || "program.pdf";
+        const entry = {
+          filename,
+          content: Buffer.from(buf).toString("base64"),
+          type: res.headers.get("content-type") ?? "application/pdf",
+        };
+        cachedCustomPdfByUrl.set(campusProgramPdfUrl, entry);
+        return [
+          {
+            filename: entry.filename,
+            content: entry.content,
+            encoding: "base64",
+            type: entry.type,
+          },
+        ];
+      }
+    } catch (err) {
+      console.error("[email-send] campus override PDF fetch failed:", err);
+      // fall through to code-defined config
+    }
   }
-  cachedAttachmentChecked = true;
+
+  // Path 2: per-university code-defined Program PDF.
+  if (campusSlug && getProgramPdfConfig(campusSlug)) {
+    const cached = cachedProgramPdfBySlug.get(campusSlug);
+    if (cached) {
+      return [
+        {
+          filename: cached.filename,
+          content: cached.content,
+          encoding: "base64",
+          type: "application/pdf",
+        },
+      ];
+    }
+    try {
+      const buf = await renderProgramPdf(campusSlug);
+      const content = buf.toString("base64");
+      const filename = programPdfFilename(campusSlug);
+      cachedProgramPdfBySlug.set(campusSlug, { content, filename });
+      return [
+        {
+          filename,
+          content,
+          encoding: "base64",
+          type: "application/pdf",
+        },
+      ];
+    } catch (err) {
+      console.error("[email-send] program PDF render failed:", err);
+      // fall through to env-var path
+    }
+  }
+
+  // Path 2: env-var generic flyer (legacy fallback).
+  if (!FLYER_URL) return undefined;
+  if (cachedEnvAttachmentChecked && cachedEnvAttachment) {
+    return [
+      {
+        filename: FLYER_FILENAME,
+        content: cachedEnvAttachment.content,
+        encoding: "base64",
+        type: cachedEnvAttachment.type,
+      },
+    ];
+  }
+  cachedEnvAttachmentChecked = true;
   try {
     const res = await fetch(FLYER_URL);
     if (!res.ok) return undefined;
     const buf = await res.arrayBuffer();
-    cachedAttachment = {
+    cachedEnvAttachment = {
       content: Buffer.from(buf).toString("base64"),
       type: res.headers.get("content-type") ?? "application/pdf",
     };
-    return [{
-      filename: FLYER_FILENAME,
-      content: cachedAttachment.content,
-      encoding: "base64",
-      type: cachedAttachment.type,
-    }];
+    return [
+      {
+        filename: FLYER_FILENAME,
+        content: cachedEnvAttachment.content,
+        encoding: "base64",
+        type: cachedEnvAttachment.type,
+      },
+    ];
   } catch {
     return undefined;
   }
 }
 
+/**
+ * Body markdown → HTML.
+ *
+ * Two markers supported in template bodies:
+ *   **text**       → <strong>text</strong>
+ *   [label](url)   → <a href="url">label</a>
+ *
+ * v9 final: body renders inside a single <div> with <br><br> for
+ * paragraph breaks (not multiple <p> tags). Gmail's auto-trim
+ * heuristic ("…" expander between similar paragraphs) treats
+ * top-level <p> blocks as candidate trim sections; collapsing
+ * the body into one container removes that hook and keeps the
+ * email reading continuously from greeting to close.
+ *
+ * Trade-off: paragraph spacing relies on <br><br> instead of CSS
+ * margin. Email clients render that consistently — slightly
+ * tighter than two <p>s but readable. Single <br> within a
+ * paragraph still works for soft line breaks.
+ */
 function bodyToHtml(text: string): string {
-  const escaped = text
+  // 1) HTML-escape first so user copy can't inject tags.
+  let s = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
-  return escaped
-    .split(/\n{2,}/)
-    .map((para) => `<p>${para.replace(/\n/g, "<br>")}</p>`)
-    .join("\n");
+
+  // 2) [label](url) → <a href>. Run before **bold** so a link's
+  //    label can itself contain bold text without the brackets
+  //    getting consumed.
+  s = s.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    (_m, label: string, href: string) =>
+      `<a href="${href}" style="color:#059669;font-weight:500;text-decoration:underline;">${label}</a>`,
+  );
+
+  // 3) **text** → <strong>. Simple non-greedy match — covers
+  //    single-paragraph bold sentences (the canonical template
+  //    use case). Multi-paragraph bold is not supported.
+  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong>${inner}</strong>`);
+
+  // 4) Single-div body: split on \n{2,} to identify paragraphs,
+  //    then join with <br><br>. Single \n inside a paragraph
+  //    becomes <br>. The whole body is one container — Gmail
+  //    can't pivot a trim ellipsis inside this.
+  const paragraphs = s.split(/\n{2,}/).map((p) => p.replace(/\n/g, "<br>"));
+  return `<div style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.55;color:#1f2937;">${paragraphs.join("<br><br>")}</div>`;
+}
+
+/**
+ * v9 final: HTML footer composer. Appended after the email body
+ * on every send. Six-block stack in the order the user wants
+ * recipients to read it:
+ *
+ *   1. "Best, Grazie"               (warm sign-off, inline)
+ *   2. Grazie Belandres signature   (photo + role + contact)
+ *   3. Divider line
+ *   4. "Message Approved by Dr. Logan DuBose, MD/MBA"
+ *   5. Dr. Logan DuBose signature   (photo + credentials)
+ *   6. "Reply STOP …"               (compliance line, smallest)
+ *
+ * Single source of truth — template bodies don't include any of
+ * these. Keeps email chrome consistent across every variant and
+ * decouples the sender identity from cadence copy edits.
+ */
+function composeFooterHtml(): string {
+  return [
+    // 1+2: warm sign-off + Grazie block. Sits directly under the
+    //      body so the email reads like a real note from Grazie,
+    //      not a marketing footer.
+    `<p style="margin:16px 0 4px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
+    `<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Grazie</p>`,
+    grazieSignatureHtml(),
+    // 3: divider — separates the sender identity from the
+    //    "approved by" attribution + principal signature.
+    `<hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;" />`,
+    // 4+5: Approved-by line + Logan block.
+    `<p style="margin:0 0 8px;font-size:12px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">Message Approved by Dr. Logan DuBose, MD/MBA</p>`,
+    loganSignatureHtml(),
+    // 6: compliance line — bottom, smallest, gray.
+    `<p style="margin:24px 0 0;font-size:11px;line-height:1.5;color:#9ca3af;font-family:Inter,Arial,sans-serif;">Reply STOP if you would like us to stop reaching out.</p>`,
+  ].join("\n");
+}
+
+/**
+ * v9 final: plain-text version of the footer for the text/* MIME
+ * alternative. Resend sends html + text together for accessibility
+ * and spam-score reasons; both must match conceptually.
+ */
+function composeFooterText(): string {
+  return [
+    ``,
+    `Best,`,
+    `Grazie`,
+    ``,
+    `Grazie Belandres`,
+    `Research Assistant to Dr. Logan DuBose`,
+    `${PROGRAM_URL}`,
+    `grazie@olera.care`,
+    ``,
+    `---`,
+    `Message Approved by Dr. Logan DuBose, MD/MBA`,
+    ``,
+    `Dr. Logan DuBose, MD, MBA`,
+    `Texas A&M College of Medicine, Class of 2022`,
+    `Affiliate Partner, Texas A&M Center for Community Health and Aging`,
+    `Researcher funded by the National Institutes of Health Small Business Innovation Research Program`,
+    `General Practitioner, Fredericksburg Christian Health Clinic, Virginia`,
+    `Director, Texas A&M Student Caregiver Program (${PROGRAM_URL})`,
+    `Co-founder, Olera Inc., www.olera.care`,
+    `Schedule a meeting: ${CALENDLY_URL}`,
+    ``,
+    `Reply STOP if you would like us to stop reaching out.`,
+  ].join("\n");
+}
+
+/**
+ * Dr. Logan DuBose signature block. Photo + credentials + Calendly
+ * CTA. Carries the trust scaffolding (Texas A&M lineage, NIH
+ * funding, clinical practice, Olera co-founder) and folds the
+ * program URL into the directorship line so it lives in the
+ * signature instead of the body copy.
+ */
+function loganSignatureHtml(): string {
+  const photoUrl = LOGAN_PHOTO_URL;
+  return `
+<table cellpadding="0" cellspacing="0" style="margin-top:16px;">
+  <tr>
+    <td style="vertical-align:top;padding-right:16px;">
+      <img src="${photoUrl}" alt="Dr. Logan DuBose" width="100" height="100" style="border-radius:8px;display:block;" />
+    </td>
+    <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
+      <p style="margin:0 0 4px;font-weight:600;color:#111827;">Dr. Logan DuBose, MD, MBA</p>
+      <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
+      <p style="margin:0 0 2px;">Affiliate Partner, Texas A&amp;M Center for Community Health and Aging</p>
+      <p style="margin:0 0 2px;">Researcher funded by the National Institutes of Health Small Business Innovation Research Program</p>
+      <p style="margin:0 0 2px;">General Practitioner, Fredericksburg Christian Health Clinic, Virginia</p>
+      <p style="margin:0 0 2px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Texas A&amp;M Student Caregiver Program</a></p>
+      <p style="margin:0 0 8px;">Co-founder, Olera Inc., <a href="https://www.olera.care" style="color:#059669;">www.olera.care</a></p>
+      <p style="margin:0;">
+        <a href="${CALENDLY_URL}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
+      </p>
+    </td>
+  </tr>
+</table>`;
+}
+
+/**
+ * Grazie Belandres signature block. Sender identity — photo +
+ * "Research Assistant to Dr. Logan DuBose" + program link + email.
+ * Distinct from Dr. DuBose's block above (Grazie is the operator;
+ * Dr. DuBose is the principal admin is being introduced to).
+ *
+ * Headshot URL follows the same /images/for-providers/team/ path
+ * as logan.jpg — upload the actual file at that path; the URL
+ * stays stable across env. If the file isn't on the CDN yet, the
+ * <img> tag still renders (broken-image fallback); recipient still
+ * sees the text block, no copy is lost.
+ */
+function grazieSignatureHtml(): string {
+  const photoUrl = GRAZIE_PHOTO_URL;
+  return `
+<table cellpadding="0" cellspacing="0" style="margin-top:16px;">
+  <tr>
+    <td style="vertical-align:top;padding-right:16px;">
+      <img src="${photoUrl}" alt="Grazie Belandres" width="100" height="100" style="border-radius:8px;display:block;" />
+    </td>
+    <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
+      <p style="margin:0 0 4px;font-weight:600;color:#111827;">Grazie Belandres</p>
+      <p style="margin:0 0 2px;">Research Assistant to Dr. Logan DuBose</p>
+      <p style="margin:0 0 2px;"><a href="${PROGRAM_URL}" style="color:#059669;">${PROGRAM_URL.replace(/^https?:\/\//, "")}</a></p>
+      <p style="margin:0;"><a href="mailto:grazie@olera.care" style="color:#059669;">grazie@olera.care</a></p>
+    </td>
+  </tr>
+</table>`;
 }
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -127,7 +448,10 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 export async function sendOutreachEmail(
   input: SendOutreachEmailInput,
 ): Promise<SendOutreachEmailResult> {
-  const attachments = await loadFlyerAttachment();
+  const attachments = await loadProgramPdfAttachment(
+    input.campus_slug ?? null,
+    input.campus_program_pdf_url ?? null,
+  );
 
   const staticVars = {
     organization_name: input.organization_name,
@@ -145,17 +469,20 @@ export async function sendOutreachEmail(
       r.last_name ?? null,
       r.title ?? null,
     );
-    const subject = substituteVars(input.subject, {
+    const vars = {
       first_name: firstName,
       salutation,
       ...staticVars,
-    });
-    const body = substituteVars(input.body, {
-      first_name: firstName,
-      salutation,
-      ...staticVars,
-    });
-    const html = bodyToHtml(body);
+      calendly_url: CALENDLY_URL,
+      program_url: PROGRAM_URL,
+    };
+    const subject = substituteVars(input.subject, vars);
+    const body = substituteVars(input.body, vars);
+    // Body markdown → HTML, then append the canonical footer
+    // (divider + STOP + Approved by + Logan signature + Grazie
+    // signature). Footer is composed once in composeFooterHtml;
+    // body never carries any signature copy.
+    const html = bodyToHtml(body) + composeFooterHtml();
 
     try {
       const send = await sendEmail({

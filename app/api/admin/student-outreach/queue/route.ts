@@ -38,7 +38,8 @@ import {
   type DerivedState,
   type TouchpointRow,
 } from "@/lib/student-outreach/state-derivation";
-import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import { countProspectGeneration } from "@/lib/medjobs/prospect-counts";
+import { resolvePartnerProspectUnlocks } from "@/lib/medjobs/partner-prospect-gate";
 import type {
   AwaitingCallbackKind,
   Campus,
@@ -93,6 +94,10 @@ export interface TabCounts {
 }
 
 export interface TabRow extends OutreachRow {
+  /** v9 final: stable React key for list rendering. Defaults to
+   *  outreach `id`, but the Calls tab fans out one row per pending
+   *  call task and emits unique `${outreach_id}-${task_id}` keys. */
+  row_key?: string;
   campus_name: string;
   campus_slug: string;
   primary_contact_name: string | null;
@@ -109,6 +114,13 @@ export interface TabRow extends OutreachRow {
   last_activity_at: string | null;
   /** Calls tab only: the due call task. */
   due_call_task: { id: string; due_at: string } | null;
+  /**
+   * v9 Phase 9: list of recipient names from pending call tasks
+   * (per-recipient mode). Populated on Calls tab. Legacy rows
+   * (single call task per outreach) produce an empty array; the
+   * card renders the row's primary contact phone instead.
+   */
+  due_call_recipients: string[];
   /** v8 Replies tab only: which state card to render. */
   replies_state: RepliesState | null;
   awaiting_callback_at: string | null;
@@ -117,6 +129,12 @@ export interface TabRow extends OutreachRow {
   next_step_label: string | null;
   /** v8.7: pending Post-to-job-board task on this stakeholder. */
   has_pending_job_board_task: boolean;
+  /** v9 final: business_profiles.slug for kind='provider' rows.
+   *  Powers the row-card "Open in directory" shortcut. */
+  provider_slug?: string | null;
+  /** v9 final: per-recipient card identifier. 'general' / 'specific'
+   *  on Calls + Replies fan-out rows; null elsewhere. */
+  recipient_kind?: "general" | "specific" | null;
 }
 
 export async function GET(req: NextRequest) {
@@ -245,19 +263,20 @@ async function fetchResearchCampuses(
 }>> {
   let q = db
     .from("student_outreach_campuses")
-    .select("id, slug, name, state, city")
+    .select("id, slug, name, state, city, partner_prospect_unlocked_at")
     .eq("is_active", true)
     .eq("research_complete", false);
   if (filterCampusId) q = q.eq("id", filterCampusId);
   const { data: rows, error } = await q;
   if (error) {
-    // Most likely cause: migration 069 (research_complete column) has not
-    // been applied to this database yet. Throw so the GET handler can
-    // surface the message to the UI instead of returning an empty list
-    // and leaving the admin staring at a blank Research tab.
+    // Most likely cause: migration 069 (research_complete column) or
+    // 077 (partner_prospect_unlocked_at column) has not been applied
+    // to this database yet. Throw so the GET handler can surface the
+    // message to the UI.
     throw new Error(
       `Failed to load campuses-in-research: ${error.message}. ` +
-        `If this references "research_complete", run migration 069_campus_research_complete.sql in Supabase.`,
+        `If this references "research_complete", run migration 069. ` +
+        `If this references "partner_prospect_unlocked_at", run migration 077.`,
     );
   }
   const campusRows = (rows ?? []) as Array<{
@@ -266,6 +285,7 @@ async function fetchResearchCampuses(
     name: string;
     state: string | null;
     city: string | null;
+    partner_prospect_unlocked_at: string | null;
   }>;
   if (campusRows.length === 0) return [];
 
@@ -293,55 +313,38 @@ async function fetchResearchCampuses(
     if (!cur || s.created_at > cur) lastAddedAt.set(s.campus_id, s.created_at);
   }
 
-  // v9.0 Phase 2: pull all organization/caregiver providers once with
-  // their metadata so we can derive each campus's stage from its
-  // catchment without N round-trips. Providers count is small
-  // (hundreds), so a single in-memory join is efficient.
+  // Pull all organization/caregiver providers once with their
+  // metadata. Used by the partner-prospect gate (catchment-client
+  // resolution) and reused for the stage derivation below.
   const { data: providers } = await db
     .from("business_profiles")
     .select("city, state, metadata")
     .in("type", ["organization", "caregiver"]);
-
-  // Index providers by lowercase city|state for O(1) catchment lookups.
-  type ProviderLite = {
+  const providerList = (providers ?? []) as Array<{
     city: string | null;
     state: string | null;
     metadata: Record<string, unknown> | null;
-  };
-  const providerIndex = new Map<string, ProviderLite[]>();
-  for (const p of (providers ?? []) as ProviderLite[]) {
-    if (!p.city || !p.state) continue;
-    const key = `${p.city.toLowerCase()}|${p.state}`;
-    if (!providerIndex.has(key)) providerIndex.set(key, []);
-    providerIndex.get(key)!.push(p);
-  }
+  }>;
 
-  const PILOT_MS = 90 * 24 * 60 * 60 * 1000;
-  const now = Date.now();
-  const isClientMeta = (m: Record<string, unknown> | null): boolean => {
-    if (!m) return false;
-    if (m.medjobs_subscription_active === true) return true;
-    const accepted = m.interview_terms_accepted_at;
-    if (typeof accepted !== "string") return false;
-    const t = new Date(accepted).getTime();
-    return !isNaN(t) && now - t < PILOT_MS;
-  };
+  // v9.0 Phase 8: gate research-card visibility on catchment-client
+  // presence. Sites without a client in their catchment don't surface
+  // a research card; once a client appears, the campus's
+  // partner_prospect_unlocked_at is set sticky. Drop campuses that
+  // remain locked from the response — the UI is supposed to render
+  // Provider Prospects only in that state.
+  const { unlockedCampusIds, clientCountByCampusId } =
+    await resolvePartnerProspectUnlocks(db, campusRows, providerList);
 
   return campusRows
+    .filter((c) => unlockedCampusIds.has(c.id))
     .map((c) => {
-      const uni = PARTNER_UNIVERSITIES.find((u) => u.slug === c.slug);
-      let clientCount = 0;
-      if (uni) {
-        for (const cc of uni.catchment) {
-          const key = `${cc.city.toLowerCase()}|${cc.state}`;
-          const list = providerIndex.get(key) ?? [];
-          for (const p of list) if (isClientMeta(p.metadata)) clientCount += 1;
-        }
-      }
+      const clientCount = clientCountByCampusId.get(c.id) ?? 0;
       const stakeholderCount = counts.get(c.id) ?? 0;
-      // research_complete=false (filter above), so stage is either
-      // provider_prospecting (no clients yet) or stakeholder_prospecting
-      // (≥1 client in catchment).
+      // research_complete=false (filter above) + unlock satisfied. We
+      // expose stakeholder_prospecting when a catchment client exists
+      // today; provider_prospecting only surfaces here for the sticky
+      // case where the last catchment client churned but research is
+      // already underway. UI uses this only for sort priority.
       const stage: "provider_prospecting" | "stakeholder_prospecting" =
         clientCount > 0 ? "stakeholder_prospecting" : "provider_prospecting";
 
@@ -357,23 +360,12 @@ async function fetchResearchCampuses(
         client_count: clientCount,
       };
     })
-    // v9.0 Phase 2: surface a campus card if it has stakeholders in
-    // research OR if Stage 2 has unlocked (≥1 client) — the latter
-    // becomes the "Campus research needed" banner. v8.5's "must have
-    // ≥1 stakeholder" filter is preserved for provider_prospecting
-    // campuses since those don't have a Stage 2 banner yet.
-    .filter(
-      (c) =>
-        c.research_stakeholder_count > 0 ||
-        c.stage === "stakeholder_prospecting",
-    )
     .sort((a, b) => {
-      // v9.0 Phase 2: stakeholder_prospecting (Stage 2 unlocked) cards
-      // bubble to the top — they're the prompt admin needs to act on.
+      // stakeholder_prospecting (active catchment client) cards bubble
+      // to the top — they're the prompt admin needs to act on.
       const aPriority = a.stage === "stakeholder_prospecting" && a.research_stakeholder_count === 0 ? 0 : 1;
       const bPriority = b.stage === "stakeholder_prospecting" && b.research_stakeholder_count === 0 ? 0 : 1;
       if (aPriority !== bPriority) return aPriority - bPriority;
-      // Within tier: most recently active first.
       const aTime = a.last_added_at ? new Date(a.last_added_at).getTime() : 0;
       const bTime = b.last_added_at ? new Date(b.last_added_at).getTime() : 0;
       if (aTime !== bTime) return bTime - aTime;
@@ -415,13 +407,49 @@ async function computeTabCounts(
       counts.partners++;
       if (isUnread) unread.partners++;
     } else if (replies.has(row.status)) {
-      counts.replies++;
-      if (isUnread) unread.replies++;
+      // v9 final: replies count is replaced below with per-recipient
+      // fan-out. We still collect inProgressIds for the fan-out query.
       inProgressIds.push(row.id);
     }
     if (row.status === "no_response_closed") {
       counts.archive++;
       if (isUnread) unread.archive++;
+    }
+  }
+
+  // v9 final: Replies tab fans out one card per email-sent recipient
+  // (General Contact + each Specific Contact each get their own
+  // operational card). Count distinct (outreach, recipient) pairs
+  // from email_sent touchpoints so the tab fraction matches the
+  // rendered cards. Outreach rows with no email_sent touchpoints
+  // yet (just transitioned to outreach_sent but Day 0 hasn't fired
+  // OR legacy rows) fall back to 1 card per outreach.
+  const repliesRecipientCountByOutreach = new Map<string, number>();
+  if (inProgressIds.length > 0) {
+    const { data: emailSentRows } = await db
+      .from("student_outreach_touchpoints")
+      .select("outreach_id, contact_id, payload")
+      .eq("touchpoint_type", "email_sent")
+      .in("outreach_id", inProgressIds);
+    const recipientsByOutreach = new Map<string, Set<string>>();
+    for (const tp of (emailSentRows ?? []) as Array<{
+      outreach_id: string;
+      contact_id: string | null;
+      payload: Record<string, unknown> | null;
+    }>) {
+      const key = tp.contact_id ?? "__general__";
+      let set = recipientsByOutreach.get(tp.outreach_id);
+      if (!set) {
+        set = new Set();
+        recipientsByOutreach.set(tp.outreach_id, set);
+      }
+      set.add(key);
+    }
+    for (const id of inProgressIds) {
+      const n = recipientsByOutreach.get(id)?.size ?? 1;
+      repliesRecipientCountByOutreach.set(id, n);
+      counts.replies += n;
+      if (unreadIds.has(id)) unread.replies += n;
     }
   }
 
@@ -440,13 +468,21 @@ async function computeTabCounts(
   if (filters.campusId) callQ = callQ.eq("student_outreach.campus_id", filters.campusId);
   if (filters.type) callQ = callQ.eq("student_outreach.stakeholder_type", filters.type);
   const { data: callTasks } = await callQ;
-  const callSet = new Set<string>();
-  for (const t of (callTasks ?? []) as Array<{ outreach_id: string }>) {
-    callSet.add(t.outreach_id);
-  }
-  counts.calls = callSet.size;
-  // v9.0 Phase 4: unread call rows = subset of callSet that are unread.
-  for (const id of callSet) if (unreadIds.has(id)) unread.calls++;
+  // v9 final: Calls tab fans out one card per pending call task
+  // (General Contact + each Specific Contact each get their own
+  // operational card). Counts must match the rendered cards — count
+  // tasks, not outreach rows. Earlier behavior collapsed via Set on
+  // outreach_id and showed "1/1" when two cards were rendered.
+  const callTaskRows = (callTasks ?? []) as Array<{ outreach_id: string }>;
+  counts.calls = callTaskRows.length;
+  // Unread = tasks whose outreach row is unread. The viewed_at
+  // state lives on student_outreach, so all per-recipient cards on
+  // the same outreach share that state until per-task read tracking
+  // ships.
+  for (const t of callTaskRows) if (unreadIds.has(t.outreach_id)) unread.calls++;
+  // Keep a Set form for the partners/calls invariants below — they
+  // index by outreach_id, not task.
+  const callSet = new Set(callTaskRows.map((t) => t.outreach_id));
 
   // v9.0 Phase 6.5: Partners count for the In Basket tab is task-driven
   // (smart-hide when no partners have open tasks). Override the
@@ -477,19 +513,29 @@ async function computeTabCounts(
   // we subtract them from the replies count here.
   // v8.10.6: stale-derived rows are dropped from Replies and added to
   // Archive — same rebalancing pattern as scheduled meetings.
+  // v9 final: Replies now fans per-recipient, so each scheduled /
+  // stale outreach removes N replies cards (not 1) — use the
+  // per-outreach recipient count from the fan-out pass above.
   if (inProgressIds.length > 0) {
     const { meetings, scheduled, stale, meetingIds, scheduledIds, staleIds } =
       await countMeetingsAmongRows(db, inProgressIds);
     counts.meetings = meetings;
-    counts.replies = Math.max(0, counts.replies - scheduled - stale);
     counts.archive += stale;
-    // v9.0 Phase 4: rebalance unread the same way the totals were
-    // rebalanced — meeting + scheduled + stale rows pull out of replies.
+    const replyCardsFor = (id: string) =>
+      repliesRecipientCountByOutreach.get(id) ?? 1;
     for (const id of meetingIds) if (unreadIds.has(id)) unread.meetings++;
-    for (const id of scheduledIds) if (unreadIds.has(id)) unread.replies = Math.max(0, unread.replies - 1);
-    for (const id of staleIds) {
+    for (const id of scheduledIds) {
+      const n = replyCardsFor(id);
+      counts.replies = Math.max(0, counts.replies - n);
       if (unreadIds.has(id)) {
-        unread.replies = Math.max(0, unread.replies - 1);
+        unread.replies = Math.max(0, unread.replies - n);
+      }
+    }
+    for (const id of staleIds) {
+      const n = replyCardsFor(id);
+      counts.replies = Math.max(0, counts.replies - n);
+      if (unreadIds.has(id)) {
+        unread.replies = Math.max(0, unread.replies - n);
         unread.archive++;
       }
     }
@@ -500,10 +546,18 @@ async function computeTabCounts(
   // subset whose latest pending task was created after the entity's
   // last viewed_at (or never viewed). Same predicate as
   // sidebar-counts so the two surfaces stay aligned.
+  //
+  // Prospect generation: the Prospects tab content is the union of
+  // research cards (campuses with research_complete=false) and virtual
+  // provider prospects (catchment providers minus clients minus
+  // already-materialized). Both buckets contribute to counts.prospects
+  // so the badge matches what renders inside the tab. countProspectGeneration
+  // is the shared implementation also used by /api/admin/medjobs/sidebar-counts.
   const [
     { data: clientTaskRows },
     { data: candidateTaskRows },
     { data: siteTaskRows },
+    prospectGen,
   ] = await Promise.all([
     db
       .from("business_profile_tasks")
@@ -519,7 +573,11 @@ async function computeTabCounts(
       .from("site_tasks")
       .select("campus_id, created_at")
       .eq("status", "pending"),
+    countProspectGeneration(db, { campusId: filters.campusId }),
   ]);
+
+  counts.prospects += prospectGen.total;
+  unread.prospects += prospectGen.unread;
 
   const latestClientTaskByProfile = new Map<string, string>();
   for (const r of (clientTaskRows ?? []) as Array<{
@@ -770,9 +828,13 @@ async function fetchRowIdsForTab(
   // as a second query so they sort below active in the rendered list.
   switch (tab) {
     case "prospects": {
-      const active = await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize });
+      // v9 final: prospects sort by created_at desc so newly-added
+      // rows stay at the top. Drawer opens / inline edits don't
+      // bump the row's position — admins can rely on the order to
+      // be stable during research.
+      const active = await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize }, "created_at");
       if (!showClosed) return active;
-      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize }, "created_at");
       return [...active, ...closed];
     }
     case "candidates":
@@ -795,12 +857,19 @@ async function fetchRowIdsForTab(
       const inc = showClosed
         ? [...RESEARCH_STATUSES, ...REPLIES_STATUSES, ...PARTNER_ALL, ...CLOSED_STATUSES]
         : [...RESEARCH_STATUSES, ...REPLIES_STATUSES, ...PARTNER_ALL];
-      return await idsByStatus(db, inc as Status[], { campusId, type, search, page, pageSize });
+      // v9 final: stable sort — created_at desc keeps card position
+      // fixed regardless of incidental drawer activity. Matches the
+      // Prospects tab.
+      return await idsByStatus(db, inc as Status[], { campusId, type, search, page, pageSize }, "created_at");
     }
     case "replies": {
-      const active = await idsByStatus(db, REPLIES_STATUSES, { campusId, type, search, page, pageSize });
+      // v9 final: stable sort — created_at desc so opening a drawer
+      // or saving an inline edit doesn't shuffle the list. Earlier
+      // last_edited_at desc moved cards on every action which
+      // destabilized the admin's mental map of "what was where".
+      const active = await idsByStatus(db, REPLIES_STATUSES, { campusId, type, search, page, pageSize }, "created_at");
       if (!showClosed) return active;
-      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize }, "created_at");
       return [...active, ...closed];
     }
     case "calls": {
@@ -847,7 +916,8 @@ async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
     .from("student_outreach")
     .select("id")
     .in("status", ARCHIVE_STATUSES)
-    .order("last_edited_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: true });
   if (opts.campusId) closedQ = closedQ.eq("campus_id", opts.campusId);
   if (opts.type) closedQ = closedQ.eq("stakeholder_type", opts.type);
   if (opts.search) closedQ = closedQ.ilike("organization_name", `%${opts.search}%`);
@@ -859,7 +929,8 @@ async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
     .from("student_outreach")
     .select("id")
     .eq("status", "outreach_sent")
-    .order("last_edited_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: true });
   if (opts.campusId) activeQ = activeQ.eq("campus_id", opts.campusId);
   if (opts.type) activeQ = activeQ.eq("stakeholder_type", opts.type);
   if (opts.search) activeQ = activeQ.ilike("organization_name", `%${opts.search}%`);
@@ -902,12 +973,25 @@ async function idsByStatus(
   db: DB,
   statuses: Status[],
   opts: QueryOpts,
+  /** v9 final: ordering column. Defaults to last_edited_at desc
+   *  (most-recently-worked first — useful for Replies/Calls). The
+   *  Prospects tab passes "created_at" so newly-added rows stay at
+   *  the top and existing rows don't move when admin opens the
+   *  drawer or saves a research edit. */
+  orderColumn: "last_edited_at" | "created_at" = "last_edited_at",
 ): Promise<string[]> {
   let q = db
     .from("student_outreach")
     .select("id")
     .in("status", statuses)
-    .order("last_edited_at", { ascending: false })
+    .order(orderColumn, { ascending: false })
+    // v9 final: deterministic tiebreaker — without a secondary sort
+    // Postgres returns ties in arbitrary order, so refetching can
+    // shuffle rows that share the primary key value (or even
+    // ones whose timestamps differ by microseconds the JS layer
+    // can't distinguish). id is stable across refetches and
+    // independent of read/unread state.
+    .order("id", { ascending: true })
     .range(opts.page * opts.pageSize, opts.page * opts.pageSize + opts.pageSize - 1);
   if (opts.campusId) q = q.eq("campus_id", opts.campusId);
   if (opts.type) q = q.eq("stakeholder_type", opts.type);
@@ -936,7 +1020,8 @@ async function idsByPartnersWithTasks(db: DB, opts: QueryOpts): Promise<string[]
     .eq("status", "pending")
     .eq("student_outreach.status", "active_partner")
     .neq("student_outreach.kind", "provider")
-    .order("due_at", { ascending: true });
+    .order("due_at", { ascending: true })
+    .order("id", { ascending: true });
   if (opts.campusId) q = q.eq("student_outreach.campus_id", opts.campusId);
   if (opts.type) q = q.eq("student_outreach.stakeholder_type", opts.type);
   if (opts.search) q = q.ilike("student_outreach.organization_name", `%${opts.search}%`);
@@ -960,7 +1045,8 @@ async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
     .eq("task_type", "outreach_followup_call")
     .lte("due_at", new Date().toISOString())
     .not("student_outreach.status", "in", `(${PARTNER_ALL.map((s) => `"${s}"`).join(",")})`)
-    .order("due_at", { ascending: true });
+    .order("due_at", { ascending: true })
+    .order("id", { ascending: true });
   if (opts.campusId) q = q.eq("student_outreach.campus_id", opts.campusId);
   if (opts.type) q = q.eq("student_outreach.stakeholder_type", opts.type);
   if (opts.search) q = q.ilike("student_outreach.organization_name", `%${opts.search}%`);
@@ -1045,6 +1131,31 @@ async function hydrateRows(
   // Preserve order from ids.
   const orderedRows = ids.map((id) => rowMap.get(id)).filter((r): r is OutreachRow => Boolean(r));
 
+  // v9 final: fetch business_profiles.slug for kind='provider' rows so
+  // the row card overflow can deep-link to the public directory page
+  // without a per-card extra fetch. One batch query keyed by the
+  // collected provider_business_profile_id values.
+  const providerSlugByOutreach = new Map<string, string>();
+  const bpIds = orderedRows
+    .filter((r) => r.kind === "provider" && r.provider_business_profile_id)
+    .map((r) => r.provider_business_profile_id!);
+  if (bpIds.length > 0) {
+    const { data: bpSlugs } = await db
+      .from("business_profiles")
+      .select("id, slug")
+      .in("id", bpIds);
+    const slugById = new Map<string, string>();
+    for (const b of (bpSlugs ?? []) as Array<{ id: string; slug: string | null }>) {
+      if (b.slug) slugById.set(b.id, b.slug);
+    }
+    for (const r of orderedRows) {
+      if (r.kind === "provider" && r.provider_business_profile_id) {
+        const slug = slugById.get(r.provider_business_profile_id);
+        if (slug) providerSlugByOutreach.set(r.id, slug);
+      }
+    }
+  }
+
   if (orderedRows.length === 0) return [];
 
   // Parallel hydration: contacts + tasks + touchpoints.
@@ -1063,7 +1174,7 @@ async function hydrateRows(
       .eq("status", "pending"),
     db
       .from("student_outreach_touchpoints")
-      .select("outreach_id, touchpoint_type, payload, notes, created_at, created_by")
+      .select("outreach_id, contact_id, touchpoint_type, payload, notes, created_at, created_by")
       .in("outreach_id", ids)
       .order("created_at", { ascending: false }),
   ]);
@@ -1101,6 +1212,26 @@ async function hydrateRows(
   // + earliest pending task per row (for the Partners-tab "Next step" pill).
   const customTaskByOutreach = new Map<string, string>();
   const dueCallTaskByOutreach = new Map<string, { id: string; due_at: string }>();
+  // v9 Phase 9: per-recipient call tasks expand the Calls tab card —
+  // a single outreach row can have N pending call tasks (one per
+  // callable recipient). v9 final: the Calls tab now emits one TabRow
+  // PER due task (General Contact + each Specific Contact get their
+  // own ops card) instead of consolidating into one row with a
+  // recipients subline. dueCallRecipientsByOutreach stays populated
+  // for legacy callers but the Calls renderer uses the per-task list.
+  const dueCallRecipientsByOutreach = new Map<string, string[]>();
+  /** v9 final: every due call task. Calls tab fans the rows out across
+   *  this list; non-Calls tabs ignore it. */
+  interface DueCallTaskExpanded {
+    task_id: string;
+    outreach_id: string;
+    due_at: string;
+    recipient_name: string | null;
+    recipient_phone: string | null;
+    recipient_role: string | null;
+    recipient_kind: "general" | "specific" | null;
+  }
+  const dueCallTasks: DueCallTaskExpanded[] = [];
   const hasPendingEmail = new Set<string>();
   const hasPendingJobBoard = new Set<string>();
   const earliestTaskByOutreach = new Map<string, { task_type: string; due_at: string; payload: Record<string, unknown> | null }>();
@@ -1119,12 +1250,44 @@ async function hydrateRows(
     ) {
       customTaskByOutreach.set(t.outreach_id, String(t.payload.notes ?? t.payload.description ?? "Custom task"));
     }
-    if (
-      t.task_type === "outreach_followup_call" &&
-      t.due_at <= nowIso &&
-      !dueCallTaskByOutreach.has(t.outreach_id)
-    ) {
-      dueCallTaskByOutreach.set(t.outreach_id, { id: t.id, due_at: t.due_at });
+    if (t.task_type === "outreach_followup_call" && t.due_at <= nowIso) {
+      const name =
+        typeof t.payload?.recipient_name === "string"
+          ? (t.payload.recipient_name as string)
+          : null;
+      const phone =
+        typeof t.payload?.recipient_phone === "string"
+          ? (t.payload.recipient_phone as string)
+          : null;
+      const role =
+        typeof t.payload?.recipient_role === "string"
+          ? (t.payload.recipient_role as string)
+          : null;
+      const kindRaw =
+        typeof t.payload?.recipient_kind === "string"
+          ? (t.payload.recipient_kind as string)
+          : null;
+      const kind: "general" | "specific" | null =
+        kindRaw === "general" || kindRaw === "specific" ? kindRaw : null;
+      dueCallTasks.push({
+        task_id: t.id,
+        outreach_id: t.outreach_id,
+        due_at: t.due_at,
+        recipient_name: name,
+        recipient_phone: phone,
+        recipient_role: role,
+        recipient_kind: kind,
+      });
+      // Legacy by-outreach maps still populated so non-Calls tabs that
+      // peek at due_call_task continue to work.
+      if (!dueCallTaskByOutreach.has(t.outreach_id)) {
+        dueCallTaskByOutreach.set(t.outreach_id, { id: t.id, due_at: t.due_at });
+      }
+      const list = dueCallRecipientsByOutreach.get(t.outreach_id) ?? [];
+      if (name && !list.includes(name)) {
+        list.push(name);
+      }
+      dueCallRecipientsByOutreach.set(t.outreach_id, list);
     }
     if (t.task_type === "outreach_email_send") {
       hasPendingEmail.add(t.outreach_id);
@@ -1160,10 +1323,93 @@ async function hydrateRows(
   }
 
   // Build TabRow output.
-  const tabRows: TabRow[] = orderedRows.map((row) => {
+  // v9 final: Calls tab fans out — one TabRow per pending call task
+  // (General Contact + each Specific Contact each get their own ops
+  // card). Replies tab fans out the same way — one card per
+  // email-sent recipient. Other tabs keep one-row-per-outreach.
+  const tasksByOutreach = new Map<string, DueCallTaskExpanded[]>();
+  if (tab === "calls") {
+    for (const t of dueCallTasks) {
+      const list = tasksByOutreach.get(t.outreach_id) ?? [];
+      list.push(t);
+      tasksByOutreach.set(t.outreach_id, list);
+    }
+  }
+
+  // v9 final: Replies recipient fan-out from email_sent touchpoints.
+  // For each outreach in the replies tab, collect distinct
+  // recipients (specific contact_id OR synthetic 'general') with
+  // their denormalized display info. Each unique recipient becomes
+  // one Replies card scoped to that outreach.
+  interface ReplyRecipient {
+    contact_id: string | null;
+    recipient_kind: "specific" | "general";
+    name: string | null;
+    email: string | null;
+  }
+  const replyRecipientsByOutreach = new Map<string, ReplyRecipient[]>();
+  if (tab === "replies") {
+    for (const id of ids) {
+      const tps = tpsByOutreach.get(id) ?? [];
+      const seen = new Map<string, ReplyRecipient>();
+      for (const tp of tps) {
+        if (tp.touchpoint_type !== "email_sent") continue;
+        const tpAny = tp as unknown as {
+          contact_id: string | null;
+          payload: Record<string, unknown> | null;
+        };
+        const payload = tpAny.payload ?? {};
+        const recipientKind =
+          tpAny.contact_id == null ? "general" : "specific";
+        const key = tpAny.contact_id ?? "__general__";
+        if (seen.has(key)) continue;
+        seen.set(key, {
+          contact_id: tpAny.contact_id,
+          recipient_kind: recipientKind,
+          name:
+            typeof payload.recipient_name === "string"
+              ? (payload.recipient_name as string)
+              : null,
+          email:
+            typeof payload.recipient_email === "string"
+              ? (payload.recipient_email as string)
+              : null,
+        });
+      }
+      if (seen.size > 0) {
+        // v9 final: deterministic recipient order — general first
+        // (always anchored to the top of the row's stack), then
+        // specific contacts sorted by contact_id. Without this the
+        // recipient order tracked "most recent email_sent" which
+        // shifted whenever a new Day-N send completed, looking like
+        // reordering to admin even though the underlying state was
+        // identical.
+        const sorted = Array.from(seen.values()).sort((a, b) => {
+          if (a.recipient_kind === b.recipient_kind) {
+            return (a.contact_id ?? "").localeCompare(b.contact_id ?? "");
+          }
+          return a.recipient_kind === "general" ? -1 : 1;
+        });
+        replyRecipientsByOutreach.set(id, sorted);
+      }
+    }
+  }
+
+  const tabRows: TabRow[] = [];
+  for (const row of orderedRows) {
     const primary = primaryByOutreach.get(row.id) ?? null;
     const state = stateByOutreach.get(row.id)!;
     const camp = campusMap.get(row.campus_id);
+    // v9 final: provider rows on non-fan-out tabs (Prospects /
+    // Partners / Archive / All) must title to the organization,
+    // never to a Specific Contact. The Provider IS the prospect;
+    // Specific Contacts are supporting data inside the drawer.
+    // Stakeholder rows keep the existing primary-contact-as-title
+    // behavior because their contact often is the addressee.
+    const isProvider = row.kind === "provider";
+    const orgPrimaryName = isProvider ? null : primary?.name ?? null;
+    const orgPrimaryPhone = isProvider ? null : primary?.phone ?? null;
+    const orgPrimaryRole = isProvider ? null : primary?.role ?? null;
     // v8.10.6: archive tab also gets a derived replies-state so card
     // can render "Stale · Xd cold" for outreach_sent rows that landed
     // here via stale derivation.
@@ -1172,13 +1418,11 @@ async function hydrateRows(
         ? deriveRepliesState(state, hasPendingEmail.has(row.id))
         : null;
     const earliestTask = earliestTaskByOutreach.get(row.id) ?? null;
-    return {
+    const baseRow = {
       ...row,
       campus_name: camp?.name ?? "(unknown campus)",
       campus_slug: camp?.slug ?? "",
-      primary_contact_name: primary?.name ?? null,
-      primary_contact_phone: primary?.phone ?? null,
-      primary_contact_role: primary?.role ?? null,
+      provider_slug: providerSlugByOutreach.get(row.id) ?? null,
       has_custom_task: customTaskByOutreach.has(row.id),
       custom_task_summary: customTaskByOutreach.get(row.id) ?? null,
       stale_days:
@@ -1191,14 +1435,111 @@ async function hydrateRows(
       followup_author: state.followup_author,
       followup_at: state.followup_at,
       last_activity_at: state.last_activity_at,
-      due_call_task: tab === "calls" ? dueCallTaskByOutreach.get(row.id) ?? null : null,
       replies_state: repliesState,
       awaiting_callback_at: state.awaiting_callback_at,
       awaiting_callback_kind: state.awaiting_callback_kind,
       next_step_label: deriveNextStepLabel(row.status, earliestTask),
       has_pending_job_board_task: hasPendingJobBoard.has(row.id),
     };
-  });
+
+    if (tab === "calls") {
+      const tasks = tasksByOutreach.get(row.id) ?? [];
+      if (tasks.length === 0) {
+        // Outreach made it onto the Calls tab list but has no due
+        // task (e.g. coming from a derived state). Render a single
+        // card with the legacy primary-contact fallback so the row
+        // isn't lost. Provider rows still suppress the contact-as-
+        // title (Provider IS the prospect; Specific Contacts live
+        // inside).
+        tabRows.push({
+          ...baseRow,
+          row_key: row.id,
+          primary_contact_name: orgPrimaryName,
+          primary_contact_phone: orgPrimaryPhone,
+          primary_contact_role: orgPrimaryRole,
+          due_call_task: null,
+          due_call_recipients: [],
+        });
+        continue;
+      }
+      // Sort tasks oldest-due first so the most overdue call surfaces
+      // at the top of the row's group. v9 final: secondary sort by
+      // task_id keeps order stable when due_at ties (e.g. all Day-0
+      // tasks share a due_at near the launch moment).
+      tasks.sort((a, b) => {
+        const cmp = a.due_at.localeCompare(b.due_at);
+        return cmp !== 0 ? cmp : a.task_id.localeCompare(b.task_id);
+      });
+      for (const t of tasks) {
+        tabRows.push({
+          ...baseRow,
+          // Per-task synthetic key — React needs a unique value
+          // because multiple rows share outreach_id.
+          row_key: `${row.id}-${t.task_id}`,
+          primary_contact_name: t.recipient_name ?? primary?.name ?? null,
+          primary_contact_phone: t.recipient_phone ?? primary?.phone ?? null,
+          primary_contact_role:
+            t.recipient_kind === "general"
+              ? "General Contact"
+              : t.recipient_role ?? primary?.role ?? null,
+          due_call_task: { id: t.task_id, due_at: t.due_at },
+          // One recipient per emitted row — list is redundant but
+          // populated for compatibility with any caller that still
+          // peeks at it.
+          due_call_recipients: t.recipient_name ? [t.recipient_name] : [],
+          recipient_kind: t.recipient_kind,
+        });
+      }
+    } else if (tab === "replies") {
+      const recipients = replyRecipientsByOutreach.get(row.id) ?? [];
+      if (recipients.length === 0) {
+        // Outreach is in REPLIES_STATUSES but no email_sent
+        // touchpoints yet (just transitioned; Day 0 hasn't fired
+        // OR legacy row pre-per-recipient cadence). Render one
+        // card titled by the organization for provider rows; the
+        // Specific Contact, if any, isn't yet the addressee.
+        tabRows.push({
+          ...baseRow,
+          row_key: row.id,
+          primary_contact_name: orgPrimaryName,
+          primary_contact_phone: orgPrimaryPhone,
+          primary_contact_role: orgPrimaryRole,
+          due_call_task: null,
+          due_call_recipients: [],
+        });
+        continue;
+      }
+      for (const r of recipients) {
+        const recipientKey = r.contact_id ?? "general";
+        tabRows.push({
+          ...baseRow,
+          row_key: `${row.id}-${recipientKey}`,
+          primary_contact_name: r.name ?? primary?.name ?? null,
+          primary_contact_phone: primary?.phone ?? null,
+          primary_contact_role:
+            r.recipient_kind === "general"
+              ? "General Contact"
+              : primary?.role ?? null,
+          due_call_task: null,
+          due_call_recipients: [],
+          recipient_kind: r.recipient_kind,
+        });
+      }
+    } else {
+      // Prospects / All / Partners / Archive — non-fan-out tabs.
+      // Provider rows render with the organization as the title;
+      // stakeholder rows keep the contact-as-title pattern.
+      tabRows.push({
+        ...baseRow,
+        row_key: row.id,
+        primary_contact_name: orgPrimaryName,
+        primary_contact_phone: orgPrimaryPhone,
+        primary_contact_role: orgPrimaryRole,
+        due_call_task: null,
+        due_call_recipients: [],
+      });
+    }
+  }
 
   // v9.0 Phase 7 Commit K: cards sort by most-recently-queued (the
   // existing per-tab order — last_edited_at desc, due_at asc, etc.).

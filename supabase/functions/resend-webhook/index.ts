@@ -192,6 +192,198 @@ async function recordEmailEvent(payload: ResendEventPayload, svixId: string): Pr
       }
     }
   }
+
+  // 4. v9 Phase 8 — student_outreach touchpoint emission + downstream
+  // operational side effects.
+  //
+  // Strategy: every Resend event with an email_log row is potentially
+  // tied to an outreach row. We locate the outreach via the
+  // 'email_sent' touchpoint whose payload.email_log_id matches our
+  // log (every send writes one). For bounce / complained / failed we
+  // emit a corresponding touchpoint so deriveStage() picks it up and
+  // the drawer Timeline narrates it. Bounce additionally cancels
+  // pending email tasks (no point continuing to bad addresses) and
+  // complained auto-DNCs the row (compliance — must not retry).
+  if (
+    emailLogId &&
+    (eventType === "bounced" ||
+      eventType === "complained" ||
+      eventType === "failed")
+  ) {
+    await emitOutreachTouchpoint(emailLogId, eventType, payload, occurredAt);
+  }
+}
+
+/**
+ * Find the outreach row tied to this email_log and emit a downstream
+ * touchpoint + apply operational side effects per event type.
+ *
+ * Lookup: find the email_sent touchpoint with payload.email_log_id =
+ * <emailLogId>. Cheap — touchpoints are scoped by outreach_id and
+ * email_log_id is a stable foreign-key reference set at send time.
+ * Multi-recipient sends create one email_log per recipient, so the
+ * touchpoint join is 1:1.
+ *
+ * Side effects:
+ *   bounced     → emit email_bounced touchpoint
+ *                  + cancel pending outreach_email_send tasks
+ *                    (broken contact, future sends would also bounce)
+ *   complained  → emit email_complained touchpoint
+ *                  + transition outreach.status → do_not_contact
+ *                    (compliance: cannot continue cadence)
+ *   failed      → emit email_failed touchpoint
+ *                  (no auto-transition; admin retries from the drawer)
+ *
+ * Idempotent: if a touchpoint already exists for this email_log_id +
+ * event_type, we don't duplicate. Resend may redeliver events; the
+ * dedupe guard keeps the timeline clean.
+ */
+async function emitOutreachTouchpoint(
+  emailLogId: string,
+  eventType: "bounced" | "complained" | "failed",
+  payload: ResendEventPayload,
+  occurredAt: string,
+): Promise<void> {
+  // Find the originating email_sent touchpoint so we can read the
+  // outreach_id off its row. v9 Phase 9: also read recipient_contact_id
+  // and contact_id from the touchpoint — these scope the bounce
+  // cancellation to a single recipient when per-recipient cadence
+  // mode is in use. Legacy (single-recipient task) sends have these
+  // null; cancel scope falls back to outreach-wide.
+  //
+  // v9 final: recipient_kind='general' on the touchpoint payload
+  // marks a synthetic General Contact send (no underlying contact
+  // row). For those, scope cancellation by recipient_kind='general'
+  // instead of recipient_contact_id — there is no contact_id to
+  // match on, but the synthetic thread is its own cancellation
+  // bucket and named contacts must NOT get caught up in the bounce.
+  const { data: sentRows } = await supabase
+    .from("student_outreach_touchpoints")
+    .select("outreach_id, contact_id, payload")
+    .eq("touchpoint_type", "email_sent")
+    .filter("payload->>email_log_id", "eq", emailLogId)
+    .limit(1);
+  const sent = sentRows?.[0] as
+    | { outreach_id: string; contact_id: string | null; payload: Record<string, unknown> | null }
+    | undefined;
+  const outreachId = sent?.outreach_id;
+  if (!outreachId) {
+    // No outreach row associated — likely a system / candidate /
+    // other transactional email. Nothing to do operationally.
+    return;
+  }
+  const recipientKind =
+    typeof sent?.payload?.recipient_kind === "string"
+      ? (sent.payload.recipient_kind as string)
+      : null;
+  const recipientContactId =
+    (typeof sent?.payload?.recipient_contact_id === "string"
+      ? sent.payload.recipient_contact_id
+      : null) ?? sent?.contact_id ?? null;
+
+  const touchpointType: "email_bounced" | "email_complained" | "email_failed" =
+    eventType === "bounced"
+      ? "email_bounced"
+      : eventType === "complained"
+        ? "email_complained"
+        : "email_failed";
+
+  // Idempotency guard: don't duplicate touchpoints if Resend redelivers.
+  const { data: existing } = await supabase
+    .from("student_outreach_touchpoints")
+    .select("id")
+    .eq("outreach_id", outreachId)
+    .eq("touchpoint_type", touchpointType)
+    .filter("payload->>email_log_id", "eq", emailLogId)
+    .limit(1);
+  if (existing && existing.length > 0) return;
+
+  await supabase.from("student_outreach_touchpoints").insert({
+    outreach_id: outreachId,
+    // Synthetic General Contact sends have no contact row, so contact_id
+    // stays null. For specific recipients we mirror the original send's
+    // contact_id so the drawer Timeline correlates the bounce with the
+    // right recipient.
+    contact_id: recipientKind === "general" ? null : recipientContactId,
+    touchpoint_type: touchpointType,
+    channel: "email",
+    outcome: eventType,
+    payload: {
+      email_log_id: emailLogId,
+      // v9 Phase 9: carry through the recipient_contact_id so the
+      // drawer Timeline can correlate the bounce row with the
+      // specific recipient's email_sent above it.
+      recipient_contact_id: recipientContactId,
+      // v9 final: stamp the kind so timeline + cancellation logic
+      // can branch without re-querying the original send.
+      recipient_kind: recipientKind ?? "specific",
+      bounce_type: payload.data?.bounce?.subType ?? null,
+      bounce_reason: payload.data?.bounce?.message ?? null,
+      occurred_at: occurredAt,
+    },
+    created_at: occurredAt,
+  });
+
+  // Side effects per event type.
+  if (eventType === "bounced") {
+    // v9 Phase 9: per-recipient cancellation. Three sub-cases:
+    //   1. recipient_kind='general' (synthetic) → cancel only
+    //      pending tasks tagged recipient_kind='general'. Named
+    //      contacts on this row keep their cadence.
+    //   2. recipient_contact_id set (specific recipient) → cancel
+    //      only THAT contact's pending email tasks.
+    //   3. Neither (legacy / single-recipient send) → cancel all
+    //      pending email tasks on the outreach row.
+    let cancelQuery = supabase
+      .from("student_outreach_tasks")
+      .update({ status: "cancelled" })
+      .eq("outreach_id", outreachId)
+      .eq("status", "pending")
+      .eq("task_type", "outreach_email_send");
+    if (recipientKind === "general") {
+      cancelQuery = cancelQuery.filter(
+        "payload->>recipient_kind",
+        "eq",
+        "general",
+      );
+    } else if (recipientContactId) {
+      cancelQuery = cancelQuery.filter(
+        "payload->>recipient_contact_id",
+        "eq",
+        recipientContactId,
+      );
+    }
+    const { error: cancelErr } = await cancelQuery;
+    if (cancelErr) {
+      console.error(
+        "[resend-webhook] failed to cancel pending email tasks:",
+        cancelErr,
+      );
+    }
+  } else if (eventType === "complained") {
+    // Compliance hard wall — provider marked our email as spam.
+    // Auto-transition to do_not_contact; row leaves active queues
+    // and lives in Archive. Reopen is suppressed by NextStepCard for
+    // DNC rows.
+    const { error: dncErr } = await supabase
+      .from("student_outreach")
+      .update({
+        status: "do_not_contact",
+        last_edited_at: occurredAt,
+      })
+      .eq("id", outreachId);
+    if (dncErr) {
+      console.error("[resend-webhook] failed to auto-DNC:", dncErr);
+    }
+    // Cancel pending tasks too — no further work scheduled on a DNC row.
+    await supabase
+      .from("student_outreach_tasks")
+      .update({ status: "cancelled" })
+      .eq("outreach_id", outreachId)
+      .eq("status", "pending");
+  }
+  // 'failed' is informational — admin sees the touchpoint and decides
+  // whether to retry. No automatic state mutation.
 }
 
 Deno.serve(async (req) => {

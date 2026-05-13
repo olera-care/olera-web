@@ -65,6 +65,48 @@ export const ROLES_BY_TYPE: Record<StakeholderType, string[]> = {
   ],
 };
 
+/**
+ * v9 provider contact roles. The SnapshotCard's multi-contact list
+ * uses these as the dropdown options when adding/editing a contact
+ * on a provider outreach row. Tags the contact so future outreach
+ * can address the right person (Owner vs Receptionist matters for
+ * tone; General Office tells us we're emailing a queue / calling
+ * the front desk, not a named person).
+ *
+ * Free-text fallback via "Other" — the role field on
+ * student_outreach_contacts is just TEXT, no DB check.
+ *
+ * v9 Phase 9 (current): renamed "General Inbox" → "General Office"
+ * since the role now covers both the general email destination
+ * AND the general office phone line on the same contact. Added
+ * Operator / Executive Director / Recruiter / HR / Admissions to
+ * match the operational vocabulary admins encounter.
+ *
+ * The General Office tag drives template selection in
+ * providerSalutation: contacts with this role get the "Hello,"
+ * general greeting (with optional team reference) rather than the
+ * personalized "Hi {first_name}," greeting reserved for named
+ * recipients.
+ */
+/**
+ * v9 final: General Office removed. The General Contact lives at the
+ * outreach row level (business_profiles.email/phone + research_data.
+ * general_contact overrides) — not as a Specific Contact. Specific
+ * Contacts are reserved for NAMED individuals. Two cleanly separated
+ * concepts per the user's spec.
+ */
+export const PROVIDER_CONTACT_ROLES: string[] = [
+  "Owner",
+  "Operator",
+  "Hiring Manager",
+  "Executive Director",
+  "Administrator",
+  "Recruiter",
+  "HR",
+  "Admissions",
+  OTHER,
+];
+
 /** Common pre-health-relevant academic departments. */
 export const DEPARTMENTS: string[] = [
   "Biology",

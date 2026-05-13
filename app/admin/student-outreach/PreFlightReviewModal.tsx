@@ -24,6 +24,7 @@ import {
   salutationFor,
   substituteVars,
 } from "@/lib/student-outreach/templates";
+import type { CadenceKey } from "@/lib/student-outreach/cadence";
 import type { Contact, StakeholderType } from "@/lib/student-outreach/types";
 
 interface Snapshot {
@@ -36,7 +37,14 @@ interface Snapshot {
 }
 
 interface Props {
-  stakeholderType: StakeholderType;
+  /**
+   * Cadence template key. Stakeholder rows pass their stakeholder_type;
+   * provider rows (kind='provider') pass 'provider'. The modal handles
+   * both — provider rows borrow the student_org first-name salutation
+   * pattern when constructing the template (no formal Dr./Prof.
+   * honorific for agency owners).
+   */
+  stakeholderType: CadenceKey;
   organizationName: string;
   campusName: string;
   contacts: Contact[];
@@ -58,6 +66,12 @@ export function PreFlightReviewModal({
   );
 
   const days: OutreachDay[] = OUTREACH_DAYS_BY_TYPE[stakeholderType];
+  // Template functions branch on a StakeholderType (for salutation
+  // formality). Provider rows borrow student_org's first-name pattern;
+  // the kind-specific copy lives in the template body, not the
+  // salutation rule.
+  const templateStakeholderType: StakeholderType =
+    stakeholderType === "provider" ? "student_org" : stakeholderType;
 
   const [snapshots, setSnapshots] = useState<Snapshot[]>(() => {
     const result: Snapshot[] = [];
@@ -65,9 +79,13 @@ export function PreFlightReviewModal({
       for (const step of d.steps) {
         if (step.channel !== "email" || !step.template) continue;
         const tpl = getTemplate(step.template, {
-          stakeholder_type: stakeholderType,
+          stakeholder_type: templateStakeholderType,
           organization_name: organizationName,
           campus_name: campusName,
+          // v9: provider templates compose the team greeting from
+          // the active-named contact set at snapshot-build time.
+          // Stakeholder templates ignore this field.
+          contacts,
         });
         result.push({
           day: d.day,
@@ -131,7 +149,7 @@ export function PreFlightReviewModal({
     (previewContact?.first_name && previewContact.first_name.trim()) ||
     firstNameOf(previewContact?.name);
   const previewSalutation = salutationFor(
-    stakeholderType,
+    templateStakeholderType,
     previewFirstName,
     previewContact?.last_name ?? null,
     previewContact?.title ?? null,

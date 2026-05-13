@@ -17,11 +17,15 @@ import {
   validateTransition,
 } from "@/lib/student-outreach/state-machine";
 import { nextSeasonalDate } from "@/lib/student-outreach/seasonal";
-import { type TemplateKey } from "@/lib/student-outreach/cadence";
+import { type CadenceKey, type TemplateKey } from "@/lib/student-outreach/cadence";
 import { getTemplate } from "@/lib/student-outreach/templates";
 import {
   planSequence,
+  defaultSnapshotsByVariant,
+  defaultCallScriptsFor,
   type EmailSnapshot,
+  type RecipientPlan,
+  type CallScript,
 } from "@/lib/student-outreach/sequencer";
 import { executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
 import {
@@ -33,14 +37,17 @@ import type {
   ApprovalStatus,
   ApprovalType,
   Campus,
+  Contact,
   ContactPermission,
   ContactStatus,
   DistributionEvidence,
   DrawerContext,
   OutreachRow,
+  ResearchData,
   StakeholderType,
   Status,
   TaskType,
+  Touchpoint,
   TouchpointType,
   Channel,
 } from "@/lib/student-outreach/types";
@@ -216,6 +223,58 @@ export async function POST(
         break;
       case "queue_manual_task":
         await handleQueueManualTask(db, row, body, user.id);
+        break;
+
+      // v9 Phase 4: log a research call when there's no pending call
+      // task (e.g. admin calling to obtain an email pre-launch).
+      // Distinct from log_call because that handler claims a pending
+      // task + applies stage transitions per outcome — this one just
+      // emits the touchpoint, no other side effects. Lets the row
+      // stay in prospect while admin works through call attempts.
+      case "log_research_call":
+        await handleLogResearchCall(db, row, body, user.id);
+        break;
+
+      // v9 Phase 9: enroll a newly-discovered contact into the
+      // already-launched cadence. Admin chooses send-now-only vs
+      // full-cadence vs informational; the handler queues the
+      // appropriate per-recipient tasks (and inline-fires any
+      // Day-0 emails) so the new recipient catches up without
+      // disturbing other recipients' in-flight cadence.
+      case "enroll_contact_in_cadence":
+        await handleEnrollContactInCadence(db, row, body, user.id);
+        break;
+
+      // v9 final: per-outreach overrides for the General Contact
+      // section (email/phone/fax/contact_form_url). Writes to
+      // research_data.general_contact ONLY — never touches
+      // student_outreach_contacts. Maintains the strict separation
+      // between organization-level General Contact and named
+      // Specific Contacts per the user's architecture spec.
+      case "update_general_contact":
+        await handleUpdateGeneralContact(db, row, body, user.id);
+        break;
+
+      // v9 final: log a contact-form Day 0 outcome. Admin picks
+      // Submitted / Skipped / Not available from PreFlight or from
+      // the post-launch banner. Writes a contact_form_submitted
+      // touchpoint regardless of outcome (the payload.outcome
+      // carries the distinction). Idempotency lives at the UI
+      // level — drawer hides the banner once one exists.
+      case "log_contact_form_outcome":
+        await handleLogContactFormOutcome(db, row, body, user.id);
+        break;
+
+      // v9 Make Client — provider conversion. Writes
+      // business_profiles.metadata.interview_terms_accepted_at,
+      // transitions the outreach row to active_partner so its
+      // canonical Stage derives to "converted", and logs a
+      // stage_change touchpoint. The metadata write closes the
+      // funnel loop — the Partner-Prospect gate (lib/medjobs/
+      // partner-prospect-gate.ts) auto-unlocks on the next read
+      // for any Site whose catchment includes this provider.
+      case "make_client":
+        await handleMakeClient(db, row, user.id);
         break;
 
       // ── Snooze / redirect ───────────────────────────────────────────
@@ -397,6 +456,146 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
       ? deriveRepliesState(derived, hasPendingEmailTask)
       : null;
 
+  // Provider-prospect drawers need the catchment provider's email to
+  // surface as auto-populated in the Launch outreach field. Fetch it
+  // only when this row represents a materialized provider prospect.
+  // v9: metadata included so NextStepCard's stage derivation can detect
+  // Client conversion (interview_terms_accepted_at / medjobs_subscription_active).
+  let providerBusinessProfile: {
+    email: string | null;
+    display_name: string | null;
+    city: string | null;
+    state: string | null;
+    metadata: Record<string, unknown> | null;
+    slug: string | null;
+    phone: string | null;
+    website: string | null;
+    address: string | null;
+    zip: string | null;
+  } | null = null;
+  if (row.kind === "provider" && row.provider_business_profile_id) {
+    // v9 final: pull the bp row + zip (was missing) + source_provider_id
+    // so we can fall back to the iOS olera-providers record when the
+    // bp row hasn't been enriched with a full address yet. Public
+    // provider pages already use the iOS data when available; the
+    // drawer matches that source-of-truth so admin sees the same
+    // info during pre-flight that prospects see on the live page.
+    const { data: bpRow } = await db
+      .from("business_profiles")
+      .select(
+        "email, display_name, city, state, zip, metadata, slug, phone, website, address, source_provider_id",
+      )
+      .eq("id", row.provider_business_profile_id)
+      .maybeSingle();
+    const bp = bpRow as
+      | {
+          email: string | null;
+          display_name: string | null;
+          city: string | null;
+          state: string | null;
+          zip: string | null;
+          metadata: Record<string, unknown> | null;
+          slug: string | null;
+          phone: string | null;
+          website: string | null;
+          address: string | null;
+          source_provider_id: string | null;
+        }
+      | null;
+
+    let iosFallback: {
+      address: string | null;
+      city: string | null;
+      state: string | null;
+      zip: string | null;
+      phone: string | null;
+      email: string | null;
+      website: string | null;
+    } | null = null;
+    if (bp?.source_provider_id) {
+      const { data: ios } = await db
+        .from("olera-providers")
+        .select("address, city, state, zipcode, phone, email, website")
+        .eq("provider_id", bp.source_provider_id)
+        .maybeSingle();
+      if (ios) {
+        const i = ios as {
+          address: string | null;
+          city: string | null;
+          state: string | null;
+          zipcode: number | string | null;
+          phone: string | null;
+          email: string | null;
+          website: string | null;
+        };
+        iosFallback = {
+          address: i.address ?? null,
+          city: i.city ?? null,
+          state: i.state ?? null,
+          zip: i.zipcode != null ? String(i.zipcode) : null,
+          phone: i.phone ?? null,
+          email: i.email ?? null,
+          website: i.website ?? null,
+        };
+      }
+    }
+
+    if (bp) {
+      // bp values win; iOS fills the gaps. Lets admin see the same
+      // operational data their target sees on the public listing.
+      providerBusinessProfile = {
+        email: bp.email ?? iosFallback?.email ?? null,
+        display_name: bp.display_name ?? null,
+        city: bp.city ?? iosFallback?.city ?? null,
+        state: bp.state ?? iosFallback?.state ?? null,
+        metadata: bp.metadata ?? null,
+        slug: bp.slug ?? null,
+        phone: bp.phone ?? iosFallback?.phone ?? null,
+        website: bp.website ?? iosFallback?.website ?? null,
+        address: bp.address ?? iosFallback?.address ?? null,
+        zip: bp.zip ?? iosFallback?.zip ?? null,
+      };
+    }
+  }
+
+  // v9 timeline engagement chips: collect email_log_ids from every
+  // email_sent touchpoint's payload, fetch their denormalized
+  // engagement columns in one query, and keyed return for the
+  // OutreachTimeline to consume. Empty when no email sends exist
+  // (pre-launch rows). Skips the fetch entirely if no log ids
+  // present — minimal cost.
+  const emailLogIds = ((touchpoints ?? []) as Touchpoint[])
+    .filter((t) => t.touchpoint_type === "email_sent")
+    .map((t) => (t.payload as Record<string, unknown> | null)?.email_log_id)
+    .filter((v): v is string => typeof v === "string");
+  const emailEngagement: DrawerContext["email_engagement"] = {};
+  if (emailLogIds.length > 0) {
+    const { data: logs } = await db
+      .from("email_log")
+      .select(
+        "id, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, last_event_type",
+      )
+      .in("id", emailLogIds);
+    for (const l of (logs ?? []) as Array<{
+      id: string;
+      delivered_at: string | null;
+      first_opened_at: string | null;
+      first_clicked_at: string | null;
+      bounced_at: string | null;
+      complained_at: string | null;
+      last_event_type: string | null;
+    }>) {
+      emailEngagement[l.id] = {
+        delivered_at: l.delivered_at,
+        first_opened_at: l.first_opened_at,
+        first_clicked_at: l.first_clicked_at,
+        bounced_at: l.bounced_at,
+        complained_at: l.complained_at,
+        last_event_type: l.last_event_type,
+      };
+    }
+  }
+
   return {
     outreach: row,
     campus: campus as Campus,
@@ -414,6 +613,8 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     followup_notes: derived.followup_notes,
     awaiting_callback_at: derived.awaiting_callback_at,
     awaiting_callback_kind: derived.awaiting_callback_kind,
+    provider_business_profile: providerBusinessProfile,
+    email_engagement: emailEngagement,
   };
 }
 
@@ -603,6 +804,92 @@ async function handleUpdateOutreach(
 
   if (Object.keys(patch).length === 0) return;
   await touchOutreach(db, row.id, userId, patch);
+}
+
+/**
+ * v9 final: merge a General Contact override into research_data.
+ * Each field is null|string — null clears the override (falls back
+ * to business_profiles); string sets the override. Other research_
+ * data keys are preserved. Never touches student_outreach_contacts.
+ */
+async function handleUpdateGeneralContact(
+  db: DB,
+  row: OutreachRow,
+  body: {
+    email?: string | null;
+    phone?: string | null;
+    fax?: string | null;
+    contact_form_url?: string | null;
+    website?: string | null;
+    /** v9 final: structured address. Each field is independently
+     *  updatable so admin can fix a single ZIP without re-typing
+     *  the whole address. */
+    street?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zip?: string | null;
+  },
+  userId: string,
+) {
+  const current = (row.research_data ?? {}) as ResearchData;
+  const currentGc = current.general_contact ?? {};
+  const nextGc: ResearchData["general_contact"] = { ...currentGc };
+  for (const k of [
+    "email",
+    "phone",
+    "fax",
+    "contact_form_url",
+    "website",
+    "street",
+    "city",
+    "state",
+    "zip",
+  ] as const) {
+    if (body[k] === undefined) continue;
+    const value = body[k];
+    if (value === null || (typeof value === "string" && value.trim() === "")) {
+      nextGc[k] = null;
+    } else if (typeof value === "string") {
+      nextGc[k] = value.trim();
+    }
+  }
+  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())) {
+    throw new Error("Invalid email");
+  }
+  if (body.zip && !/^\d{5}(?:-\d{4})?$/.test(body.zip.trim())) {
+    throw new Error("ZIP must be 5 digits (or 5+4)");
+  }
+  const nextResearch: ResearchData = { ...current, general_contact: nextGc };
+  await touchOutreach(db, row.id, userId, { research_data: nextResearch });
+}
+
+/**
+ * v9 final: log a contact-form Day 0 outcome. Three outcomes —
+ * 'submitted' (admin filled the form), 'skipped' (URL exists but
+ * admin chose not to use it), 'not_available' (no usable form on
+ * the URL). All three emit a contact_form_submitted touchpoint so
+ * the OutreachTimeline narrates it and deriveStage / drawer banners
+ * pick it up via a simple "any prior outcome?" check.
+ */
+async function handleLogContactFormOutcome(
+  db: DB,
+  row: OutreachRow,
+  body: { outcome?: string; url?: string | null; notes?: string | null },
+  userId: string,
+) {
+  const allowed = new Set(["submitted", "skipped", "not_available"]);
+  const outcome = (body.outcome ?? "").trim();
+  if (!allowed.has(outcome)) {
+    throw new Error("outcome must be submitted | skipped | not_available");
+  }
+  const url = (body.url ?? "").trim() || null;
+  await insertTouchpoint(db, row.id, "contact_form_submitted", userId, {
+    channel: "contact_form",
+    outcome,
+    notes: body.notes?.trim() || null,
+    payload: { url, outcome },
+  });
+  await touchOutreach(db, row.id, userId);
 }
 
 async function handleAddNote(
@@ -994,17 +1281,27 @@ async function markCurrentCallTaskComplete(
   db: DB,
   outreachId: string,
   userId: string,
+  pinnedTaskId?: string,
 ): Promise<{ claimed: boolean; cadence_day: number | null }> {
   const nowIso = new Date().toISOString();
-  const { data: dueRows } = await db
+  // v9 Phase 9: when admin logs a specific call task (from the
+  // OutreachTimeline per-task Log button), claim THAT task by id
+  // instead of the most-overdue auto-pick. Lets admin log calls
+  // out of due-order — e.g. they called Logan first, voicemail;
+  // then called General Office, connected. Per-task logging
+  // matches operational reality with per-recipient cadence.
+  let query = db
     .from("student_outreach_tasks")
     .select("id, payload")
     .eq("outreach_id", outreachId)
     .eq("status", "pending")
-    .eq("task_type", "outreach_followup_call")
-    .lte("due_at", nowIso)
-    .order("due_at", { ascending: false })
-    .limit(1);
+    .eq("task_type", "outreach_followup_call");
+  if (pinnedTaskId) {
+    query = query.eq("id", pinnedTaskId);
+  } else {
+    query = query.lte("due_at", nowIso).order("due_at", { ascending: false });
+  }
+  const { data: dueRows } = await query.limit(1);
   const due = (dueRows ?? []) as Array<{ id: string; payload: Record<string, unknown> | null }>;
   if (due.length === 0) return { claimed: false, cadence_day: null };
   const dayRaw = due[0].payload?.day;
@@ -1056,6 +1353,14 @@ async function handleLogCall(
      *  Server prefers this when set; otherwise it reads the day from the
      *  task that markCurrentCallTaskComplete claims. */
     cadence_day?: number;
+    /**
+     * v9 Phase 9: when admin clicks per-task Log inside the drawer
+     * Timeline, this carries the specific call task id so the claim
+     * targets that task instead of the most-overdue auto-pick. Lets
+     * admin log out-of-order calls when multiple recipients are
+     * pending simultaneously.
+     */
+    task_id?: string;
   },
   userId: string,
 ) {
@@ -1068,7 +1373,7 @@ async function handleLogCall(
   // (connected_not_interested, wrong_number) still get tagged via body
   // hint or the outermost claim — they transition stage immediately
   // afterward, which cancels remaining tasks via tasksToCancelOnExit.
-  const claim = await markCurrentCallTaskComplete(db, row.id, userId);
+  const claim = await markCurrentCallTaskComplete(db, row.id, userId, body.task_id);
   const cadence_day =
     typeof body.cadence_day === "number" ? body.cadence_day : claim.cadence_day;
   const callPayload: Record<string, unknown> = {};
@@ -1154,6 +1459,23 @@ async function handleLogCall(
         payload: callPayload,
       });
       await touchOutreach(db, row.id, userId);
+      return;
+    }
+    case "convert_to_client": {
+      // v9 final: provider conversion lives inside the Log workflow.
+      // Log the call touchpoint, then run handleMakeClient which
+      // writes business_profiles.metadata.interview_terms_accepted_at,
+      // transitions the row to active_partner (deriveStage maps that
+      // to 'converted' for provider rows), and unlocks Partner
+      // Prospects for catchment Sites.
+      await insertTouchpoint(db, row.id, "call_connected", userId, {
+        contact_id: body.contact_id ?? null,
+        channel: "phone",
+        outcome,
+        notes: body.notes ?? null,
+        payload: callPayload,
+      });
+      await handleMakeClient(db, row, userId);
       return;
     }
     case "connected_not_interested": {
@@ -1285,14 +1607,50 @@ async function handleOfferCall(
 async function handleScheduleSequence(
   db: DB,
   row: OutreachRow,
-  body: { email_snapshots?: EmailSnapshot[] },
+  body: {
+    // Legacy single-snapshot mode (stakeholder paths).
+    email_snapshots?: EmailSnapshot[];
+    // v9 Phase 9 per-recipient mode (provider paths).
+    recipients?: RecipientPlan[];
+    email_snapshots_by_variant?: {
+      general?: EmailSnapshot[];
+      named?: EmailSnapshot[];
+    };
+    call_scripts?: CallScript[];
+    // v9 final: optional contact-form Day 0 outcome. PreFlight
+    // sends this when the General Contact has a contact_form_url.
+    // Emits a contact_form_submitted touchpoint as part of the
+    // launch so it lands in the timeline alongside Day 0 emails.
+    contact_form_outcome?: "submitted" | "skipped" | "not_available";
+    contact_form_url?: string | null;
+  },
   userId: string,
 ) {
-  const snapshots = body.email_snapshots ?? [];
-  if (snapshots.length === 0) throw new Error("email_snapshots required");
-  for (const s of snapshots) {
-    if (!s.subject?.trim() || !s.body?.trim()) {
-      throw new Error(`Day ${s.day} subject and body required`);
+  const usingPerRecipient =
+    Array.isArray(body.recipients) && body.recipients.length > 0;
+
+  if (usingPerRecipient) {
+    // Validate at least one variant has at least one day's snapshot.
+    const variants = body.email_snapshots_by_variant ?? {};
+    const totalSnaps =
+      (variants.general?.length ?? 0) + (variants.named?.length ?? 0);
+    if (totalSnaps === 0) {
+      throw new Error("email_snapshots_by_variant required for per-recipient mode");
+    }
+    for (const snaps of [variants.general ?? [], variants.named ?? []]) {
+      for (const s of snaps) {
+        if (!s.subject?.trim() || !s.body?.trim()) {
+          throw new Error(`Day ${s.day} subject and body required`);
+        }
+      }
+    }
+  } else {
+    const snapshots = body.email_snapshots ?? [];
+    if (snapshots.length === 0) throw new Error("email_snapshots required");
+    for (const s of snapshots) {
+      if (!s.subject?.trim() || !s.body?.trim()) {
+        throw new Error(`Day ${s.day} subject and body required`);
+      }
     }
   }
 
@@ -1307,8 +1665,7 @@ async function handleScheduleSequence(
     throw new Error("Sequence already scheduled — cancel or wait for it to complete first");
   }
 
-  // v8.8: only queue phone tasks when at least one active contact has a
-  // phone number. Avoids phantom rows in the Calls tab.
+  // Legacy has_phone gate (multi-recipient single-task mode only).
   const { data: phoneContactRows } = await db
     .from("student_outreach_contacts")
     .select("id")
@@ -1319,11 +1676,16 @@ async function handleScheduleSequence(
     .limit(1);
   const hasPhone = (phoneContactRows ?? []).length > 0;
 
-  // Plan + insert tasks.
+  const cadenceKey: CadenceKey =
+    row.kind === "provider" ? "provider" : row.stakeholder_type;
+
   const plan = planSequence({
     outreach_id: row.id,
-    stakeholder_type: row.stakeholder_type,
-    email_snapshots: snapshots,
+    stakeholder_type: cadenceKey,
+    email_snapshots: body.email_snapshots,
+    recipients: body.recipients,
+    email_snapshots_by_variant: body.email_snapshots_by_variant,
+    call_scripts: body.call_scripts,
     user_id: userId,
     has_phone: hasPhone,
   });
@@ -1340,28 +1702,63 @@ async function handleScheduleSequence(
     .select("id, task_type, payload, due_at");
   if (insertErr) throw new Error(insertErr.message);
 
-  // Transition stage prospect/researched → outreach_sent.
   if (row.status !== "outreach_sent") {
     await transitionStage(db, row, "outreach_sent", userId, "sequence_scheduled");
   } else {
     await touchOutreach(db, row.id, userId);
   }
 
-  // Inline-fire Day 0 so admin sees immediate effect.
-  const day0Task = (insertedTasks ?? []).find((t) => {
+  // v9 final: clear viewed_at so the row + every per-recipient card
+  // it now generates surface as unread on the Calls + Replies tabs.
+  // Admin opened the drawer pre-launch (mark_read fired then), but
+  // launching CREATES new operational work — those cards should
+  // bold + boost the tab fractions until admin acts on each.
+  await db
+    .from("student_outreach")
+    .update({ viewed_at: null })
+    .eq("id", row.id);
+
+  // v9 Phase 9: inline-fire ALL Day-0 email tasks in parallel. With
+  // per-recipient mode this can be N sends; we want the first wave
+  // out the door while admin is still on the launch screen. Sends
+  // happen in parallel via Promise.allSettled so one failure doesn't
+  // block siblings. Cron picks up anything that didn't fire.
+  const day0Tasks = (insertedTasks ?? []).filter((t) => {
     const tt = t as { task_type: string; payload: Record<string, unknown> };
     return tt.task_type === "outreach_email_send" && tt.payload?.day === 0;
-  }) as { id: string } | undefined;
-  if (day0Task) {
-    try {
-      await executeEmailTask(day0Task.id);
-    } catch (err) {
-      // Inline send failed — task remains marked completed (claim-then-send
-      // semantics) but with no successful sends. The auto-queued
-      // manual_followup will surface this. Don't throw — admin already
-      // succeeded in scheduling, the failure surfaces in history.
-      console.error("Inline Day 0 send failed:", err);
+  }) as Array<{ id: string }>;
+  if (day0Tasks.length > 0) {
+    const fireResults = await Promise.allSettled(
+      day0Tasks.map((t) => executeEmailTask(t.id)),
+    );
+    for (const r of fireResults) {
+      if (r.status === "rejected") {
+        console.error("Inline Day 0 send failed:", r.reason);
+      }
     }
+  }
+
+  // v9 final: contact-form Day 0 step. When PreFlight passed an
+  // outcome, emit the touchpoint as part of the launch so the
+  // OutreachTimeline shows the form decision next to the Day 0
+  // emails. Banner in the drawer keys off the absence of any
+  // contact_form_submitted touchpoint, so this also clears the
+  // banner on launch.
+  const cfOutcome = body.contact_form_outcome;
+  if (
+    cfOutcome === "submitted" ||
+    cfOutcome === "skipped" ||
+    cfOutcome === "not_available"
+  ) {
+    await insertTouchpoint(db, row.id, "contact_form_submitted", userId, {
+      channel: "contact_form",
+      outcome: cfOutcome,
+      payload: {
+        url: body.contact_form_url ?? null,
+        outcome: cfOutcome,
+        day: 0,
+      },
+    });
   }
 }
 
@@ -1500,6 +1897,9 @@ async function handleAddContact(
     role?: string;
     email?: string;
     phone?: string;
+    /** v9 Phase 9: optional cell + PBX extension. */
+    mobile?: string;
+    extension?: string;
     instagram?: string;
     contact_form_url?: string;
     is_primary?: boolean;
@@ -1540,6 +1940,8 @@ async function handleAddContact(
       role: body.role ?? null,
       email: body.email ?? null,
       phone: body.phone ?? null,
+      mobile: body.mobile ?? null,
+      extension: body.extension ?? null,
       instagram: body.instagram ?? null,
       contact_form_url: body.contact_form_url ?? null,
       is_primary: body.is_primary ?? false,
@@ -1578,10 +1980,18 @@ async function handleUpdateContact(
     role?: string | null;
     email?: string | null;
     phone?: string | null;
+    /** v9 Phase 9: optional cell + PBX extension. */
+    mobile?: string | null;
+    extension?: string | null;
     instagram?: string | null;
     contact_form_url?: string | null;
     is_primary?: boolean;
     notes?: string | null;
+    // v9: status flip via the same endpoint that handles other field
+    // edits. Drives the SnapshotCard's per-contact "include in send"
+    // toggle (active ↔ stale). The dedicated mark_contact_stale
+    // action still works for stakeholder-side UX paths.
+    status?: ContactStatus;
   },
   userId: string,
 ) {
@@ -1599,7 +2009,7 @@ async function handleUpdateContact(
     last_edited_by: userId,
     last_edited_at: new Date().toISOString(),
   };
-  for (const k of ["name", "title", "first_name", "last_name", "role", "email", "phone", "instagram", "contact_form_url", "is_primary", "notes"] as const) {
+  for (const k of ["name", "title", "first_name", "last_name", "role", "email", "phone", "mobile", "extension", "instagram", "contact_form_url", "is_primary", "notes", "status"] as const) {
     if (body[k] !== undefined) patch[k] = body[k];
   }
   // v8.7: keep `name` in sync with first_name + last_name when those are
@@ -2024,6 +2434,244 @@ async function handleRescheduleTask(
   await touchOutreach(db, row.id, userId);
 }
 
+/**
+ * v9 Phase 4: log a research-phase call attempt. Used when admin is
+ * calling a provider to obtain a hiring email (or any other
+ * pre-launch research call). No task claim, no stage transition —
+ * just emits the appropriate call_* touchpoint with a research_call
+ * marker in the payload so the timeline + drawer can distinguish
+ * from cadence-driven calls.
+ *
+ * Outcome map mirrors the existing log_call vocabulary for narration
+ * consistency:
+ *   no_answer   → call_no_answer
+ *   voicemail   → call_voicemail
+ *   connected   → call_connected
+ *   wrong_number→ call_wrong_number
+ *
+ * After log: caller decides whether to add_contact (if email was
+ * obtained) — the modal chains the two actions client-side.
+ */
+/**
+ * v9 Phase 9: enroll a newly-discovered contact into the already-
+ * launched cadence. Modes are channel-aware — UI shows only what
+ * the contact's data supports (email-only contact can't choose
+ * call modes, etc.).
+ *
+ *   send_now_email      → 1 outreach_email_send task at due_at=now;
+ *                          inline fires.
+ *   send_now_call       → 1 outreach_followup_call task at now.
+ *   send_now_both       → both above.
+ *   full_email_cadence  → planSequence per-recipient mode with
+ *                          channels.email=true, channels.phone=false;
+ *                          full cadence starting today (Day 0 fires
+ *                          inline, follow-ups queue per cadence).
+ *   full_call_cadence   → planSequence channels.email=false,
+ *                          channels.phone=true.
+ *   full_both           → planSequence both channels.
+ *   informational       → note_added touchpoint with contact_id +
+ *                          informational_only=true. No tasks. Banner
+ *                          on the contact dismisses on next refetch.
+ *
+ * Per-recipient cadence tasks use the same plan/payload shape as
+ * the original launch (step 2's planSequence), so they integrate
+ * cleanly with the existing Calls tab + drawer Timeline per-task
+ * surfaces.
+ */
+async function handleEnrollContactInCadence(
+  db: DB,
+  row: OutreachRow,
+  body: {
+    contact_id?: string;
+    mode?:
+      | "send_now_email"
+      | "send_now_call"
+      | "send_now_both"
+      | "full_email_cadence"
+      | "full_call_cadence"
+      | "full_both"
+      | "informational";
+  },
+  userId: string,
+) {
+  if (!body.contact_id) throw new Error("contact_id required");
+  if (!body.mode) throw new Error("mode required");
+
+  // Load the contact + verify it belongs to this outreach row.
+  const { data: contactData } = await db
+    .from("student_outreach_contacts")
+    .select("*")
+    .eq("id", body.contact_id)
+    .eq("outreach_id", row.id)
+    .single();
+  if (!contactData) throw new Error("Contact not found on this outreach");
+  const contact = contactData as {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    name: string;
+    role: string | null;
+    email: string | null;
+    phone: string | null;
+    mobile: string | null;
+    status: ContactStatus;
+  };
+
+  if (body.mode === "informational") {
+    await insertTouchpoint(db, row.id, "note_added", userId, {
+      payload: { contact_id: contact.id, informational_only: true },
+      notes: `${contact.name} marked informational-only — no outreach queued.`,
+    });
+    await touchOutreach(db, row.id, userId);
+    return;
+  }
+
+  const wantsEmail =
+    body.mode === "send_now_email" ||
+    body.mode === "send_now_both" ||
+    body.mode === "full_email_cadence" ||
+    body.mode === "full_both";
+  const wantsCall =
+    body.mode === "send_now_call" ||
+    body.mode === "send_now_both" ||
+    body.mode === "full_call_cadence" ||
+    body.mode === "full_both";
+
+  if (wantsEmail && !contact.email) {
+    throw new Error("Contact has no email — pick a call-only mode");
+  }
+  if (wantsCall && !contact.phone && !contact.mobile) {
+    throw new Error("Contact has no phone — pick an email-only mode");
+  }
+
+  const cadenceKey: CadenceKey =
+    row.kind === "provider" ? "provider" : row.stakeholder_type;
+
+  const isGeneral =
+    contact.role === "General Office" || contact.role === "General Inbox";
+
+  // Load the row's campus for snapshot composition.
+  const { data: campusData } = await db
+    .from("student_outreach_campuses")
+    .select("name")
+    .eq("id", row.campus_id)
+    .single();
+  const campusName = (campusData as { name: string } | null)?.name ?? "the university";
+
+  // Load ALL active contacts for the team-greeting context — the
+  // general variant body references the named contacts to date.
+  const { data: allContacts } = await db
+    .from("student_outreach_contacts")
+    .select("*")
+    .eq("outreach_id", row.id)
+    .eq("status", "active");
+
+  const snapshotsByVariant = defaultSnapshotsByVariant(cadenceKey, {
+    organization_name: row.organization_name,
+    campus_name: campusName,
+    contacts: (allContacts ?? []) as Contact[],
+  });
+  const callScripts = defaultCallScriptsFor(cadenceKey);
+
+  const recipientPlan: RecipientPlan = {
+    contact_id: contact.id,
+    variant: isGeneral ? "general" : "named",
+    channels: {
+      email: wantsEmail,
+      phone: wantsCall,
+    },
+    recipient_name:
+      [contact.first_name, contact.last_name].filter(Boolean).join(" ").trim() ||
+      contact.name,
+    recipient_first_name: contact.first_name,
+    recipient_phone: contact.phone || contact.mobile || null,
+    recipient_role: contact.role,
+  };
+
+  const fullPlan = planSequence({
+    outreach_id: row.id,
+    stakeholder_type: cadenceKey,
+    recipients: [recipientPlan],
+    email_snapshots_by_variant: snapshotsByVariant,
+    call_scripts: callScripts,
+    user_id: userId,
+  });
+
+  const isSendNow =
+    body.mode === "send_now_email" ||
+    body.mode === "send_now_call" ||
+    body.mode === "send_now_both";
+  const tasksToQueue = isSendNow
+    ? fullPlan.filter((p) => {
+        const day = (p.payload as Record<string, unknown>).day;
+        return day === 0;
+      })
+    : fullPlan;
+
+  if (tasksToQueue.length === 0) {
+    throw new Error("Nothing to queue for this enrollment mode");
+  }
+
+  const inserts = tasksToQueue.map((p) => ({
+    outreach_id: row.id,
+    task_type: p.task_type,
+    due_at: p.due_at.toISOString(),
+    payload: p.payload,
+    created_by: userId,
+  }));
+  const { data: insertedTasks, error: insertErr } = await db
+    .from("student_outreach_tasks")
+    .insert(inserts)
+    .select("id, task_type, payload, due_at");
+  if (insertErr) throw new Error(insertErr.message);
+
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    payload: { contact_id: contact.id, enrolled_mode: body.mode },
+    notes: `${contact.name} enrolled in cadence (${body.mode}).`,
+  });
+  await touchOutreach(db, row.id, userId);
+
+  // Inline-fire Day-0 email tasks if any (for send_now_email/both
+  // and full_email_cadence / full_both modes).
+  const day0EmailTasks = (insertedTasks ?? []).filter((t) => {
+    const tt = t as { task_type: string; payload: Record<string, unknown> };
+    return tt.task_type === "outreach_email_send" && tt.payload?.day === 0;
+  }) as Array<{ id: string }>;
+  if (day0EmailTasks.length > 0) {
+    const fireResults = await Promise.allSettled(
+      day0EmailTasks.map((t) => executeEmailTask(t.id)),
+    );
+    for (const r of fireResults) {
+      if (r.status === "rejected") {
+        console.error("Post-launch enrollment Day-0 send failed:", r.reason);
+      }
+    }
+  }
+}
+
+async function handleLogResearchCall(
+  db: DB,
+  row: OutreachRow,
+  body: { outcome?: string; notes?: string },
+  userId: string,
+) {
+  const outcomeMap: Record<string, TouchpointType> = {
+    no_answer: "call_no_answer",
+    voicemail: "call_voicemail",
+    connected: "call_connected",
+    wrong_number: "call_wrong_number",
+  };
+  const tpType = outcomeMap[body.outcome ?? ""];
+  if (!tpType) throw new Error("Invalid research-call outcome");
+  await insertTouchpoint(db, row.id, tpType, userId, {
+    channel: "phone",
+    outcome: body.outcome,
+    notes: body.notes ?? null,
+    payload: { reason: "research_call" },
+  });
+  await touchOutreach(db, row.id, userId);
+}
+
 async function handleQueueManualTask(
   db: DB,
   row: OutreachRow,
@@ -2054,6 +2702,91 @@ async function handleQueueManualTask(
 }
 
 // ── Snooze ──────────────────────────────────────────────────────────────
+
+/**
+ * v9 Make Client — provider conversion handler. The provider side of
+ * the funnel terminates here: writes the Client signal on the
+ * business_profile metadata (the same field the Partner-Prospect
+ * gate reads), advances the outreach row to active_partner so its
+ * canonical Stage derives to "converted", and logs a stage_change
+ * touchpoint for the timeline.
+ *
+ * Provider rows only (kind='provider'). Stakeholder rows use the
+ * existing mark_partner action; the operational intent is the same
+ * (graduate to active relationship), the implementation differs
+ * because client-ness is stored on business_profiles, not on the
+ * outreach row.
+ *
+ * Loop closure: writing interview_terms_accepted_at fires the
+ * Partner-Prospect gate for any Site whose catchment includes this
+ * provider. The university research card surfaces in Partner
+ * Prospects on the admin's next In Basket fetch. No additional
+ * machinery — the gate is already reading from this column.
+ */
+async function handleMakeClient(db: DB, row: OutreachRow, userId: string) {
+  if (row.kind !== "provider") {
+    throw new Error("make_client only valid for kind='provider' rows");
+  }
+  if (!row.provider_business_profile_id) {
+    throw new Error("Provider row missing provider_business_profile_id");
+  }
+
+  const nowIso = new Date().toISOString();
+
+  const { data: bp } = await db
+    .from("business_profiles")
+    .select("metadata")
+    .eq("id", row.provider_business_profile_id)
+    .maybeSingle();
+  if (!bp) throw new Error("Business profile not found");
+
+  const existingMeta = (bp.metadata as Record<string, unknown> | null) ?? {};
+  const newMeta = {
+    ...existingMeta,
+    interview_terms_accepted_at: nowIso,
+  };
+
+  const { error: bpErr } = await db
+    .from("business_profiles")
+    .update({ metadata: newMeta, updated_at: nowIso })
+    .eq("id", row.provider_business_profile_id);
+  if (bpErr) throw new Error(bpErr.message);
+
+  await insertTouchpoint(db, row.id, "stage_change", userId, {
+    notes: "Marked as Client (provider conversion)",
+    payload: { to: "client", via: "admin_make_client" },
+  });
+
+  const { error: srErr } = await db
+    .from("student_outreach")
+    .update({
+      status: "active_partner",
+      last_edited_by: userId,
+      last_edited_at: nowIso,
+    })
+    .eq("id", row.id);
+  if (srErr) throw new Error(srErr.message);
+
+  // v9 final: clean up every pending operational task on this
+  // outreach. The provider organization just converted — General
+  // Contact cards, Specific Contact cards, queued call follow-ups,
+  // queued cadence emails are all moot. Cancelling here removes
+  // them from Calls / Replies / Meetings instantly so admin
+  // doesn't have to chase ghost cards after conversion. The status
+  // transition above already removes the outreach from those tab
+  // queries, but cancelling pending tasks closes the loop on the
+  // task table too so the per-recipient fan-out counts go to 0
+  // (Calls especially counts pending tasks directly).
+  await db
+    .from("student_outreach_tasks")
+    .update({
+      status: "cancelled",
+      completed_at: nowIso,
+      completed_by: userId,
+    })
+    .eq("outreach_id", row.id)
+    .eq("status", "pending");
+}
 
 async function handleSnooze(
   db: DB,

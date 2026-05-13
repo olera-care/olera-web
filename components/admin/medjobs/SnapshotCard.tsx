@@ -1,0 +1,1354 @@
+"use client";
+
+/**
+ * SnapshotCard — zone-3 of the unified drawer skeleton.
+ *
+ * Provider variant: the operational record for one provider's
+ * outreach. Three sections, top to bottom:
+ *
+ *   1. Directory snapshot
+ *      Read-only mirror of the canonical business_profiles record —
+ *      address, public phone, public email, website, fax. Marks
+ *      coverage with ✓/–. The 🔗 live-page link opens the public
+ *      provider page in a new tab.
+ *
+ *   2. Outreach Contacts
+ *      Multi-contact list. Each row: first/last name, title, role
+ *      (Owner / Hiring Manager / General Inbox / etc.), email, phone,
+ *      and a status toggle (active ↔ stale). The cadence pipeline
+ *      reads every active contact with an email and sends to them —
+ *      one contact per email address, multiple addresses per
+ *      organization supported natively. Status='stale' excludes a
+ *      contact from sends without deleting their history (operational
+ *      memory preserved). Tagging a contact General Inbox vs Owner
+ *      lets future template logic compose the salutation
+ *      contextually (see lib/student-outreach/templates.ts).
+ *
+ *   3. Research notes
+ *      Free-form text for context (source of contact info, agency
+ *      character, anything the admin learned). Persists on blur
+ *      via update_outreach.
+ *
+ * Collapse rule per the architecture spec:
+ *   - stage = prospect → SnapshotCard mounted prominent (admin is
+ *     filling gaps before launch).
+ *   - any other stage → caller decides; common pattern is to mount
+ *     inside a More Details collapse so it stays reachable but
+ *     doesn't dominate the operational surface.
+ *
+ * Partner variant: ResearchSection / ResearchModePanel already serves
+ * the equivalent role for stakeholders (stakeholder-type-aware
+ * research checklist). Migration deferred — no concrete simplification
+ * to pull from its existing surface.
+ */
+
+import { useEffect, useMemo, useState } from "react";
+import type { Contact, DrawerContext } from "@/lib/student-outreach/types";
+import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
+
+type ActionFn = (
+  actionName: string,
+  payload?: Record<string, unknown>,
+) => Promise<DrawerContext>;
+
+interface Props {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (msg: string | null) => void;
+}
+
+export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
+  const { outreach, provider_business_profile: bp } = ctx;
+  const orgName = bp?.display_name || outreach.organization_name;
+  const address = bp?.address || null;
+  const cityState = [bp?.city, bp?.state].filter(Boolean).join(", ") || null;
+  const website = bp?.website || null;
+  const slug = bp?.slug || null;
+  const livePagePath = slug ? `/provider/${slug}` : null;
+  const isPreLaunch =
+    outreach.status === "prospect" || outreach.status === "researched";
+
+  const activeContacts = useMemo(
+    () => ctx.contacts.filter((c) => c.status === "active"),
+    [ctx.contacts],
+  );
+  const inactiveContacts = useMemo(
+    () => ctx.contacts.filter((c) => c.status !== "active"),
+    [ctx.contacts],
+  );
+
+  const [notes, setNotes] = useState<string>(outreach.notes ?? "");
+  const [savingNotes, setSavingNotes] = useState(false);
+
+  useEffect(() => {
+    setNotes(outreach.notes ?? "");
+  }, [outreach.id, outreach.notes]);
+
+  const saveNotes = async () => {
+    if (notes === (outreach.notes ?? "")) return;
+    setSavingNotes(true);
+    setError(null);
+    try {
+      await action("update_outreach", { notes });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save notes");
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
+  // v9 final: contact-form banner. Whenever a contact_form_url is
+  // on file AND no contact_form_submitted touchpoint exists yet,
+  // surface a one-line banner asking admin to decide on the form.
+  // Shows pre-launch (admin must resolve before Launch is enabled —
+  // the pre-flight gate keys off this same touchpoint) and post-
+  // launch (URL added later, or never resolved). Hides the moment
+  // any outcome lands.
+  const hasContactFormUrl = Boolean(
+    (outreach.research_data?.general_contact?.contact_form_url ?? "").trim(),
+  );
+  const lastContactFormTp = ctx.touchpoints.find(
+    (t) => t.touchpoint_type === "contact_form_submitted",
+  );
+  const showContactFormBanner = hasContactFormUrl && !lastContactFormTp;
+
+  return (
+    <section className="space-y-5 rounded-lg border border-gray-200 bg-white p-4">
+      <header className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Provider Profile
+          </p>
+          <h3 className="mt-0.5 truncate text-base font-semibold text-gray-900">
+            {orgName}
+          </h3>
+        </div>
+        {livePagePath && (
+          <a
+            href={livePagePath}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 text-xs font-medium text-emerald-700 hover:underline"
+          >
+            🔗 Open live page →
+          </a>
+        )}
+      </header>
+
+      {/* ── 1. General Contact ─────────────────────────────────────
+          Organization-level fallback contact info (front desk /
+          info@ / contact form). Edits write to research_data.
+          general_contact ONLY — never to student_outreach_contacts.
+          Strict separation from Specific Contacts per user spec. */}
+      <GeneralContactSection
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        editable={isPreLaunch}
+        lastContactFormOutcome={
+          (lastContactFormTp?.payload as Record<string, unknown> | null)
+            ?.outcome as string | undefined
+        }
+      />
+
+      {/* Contact-form banner is mounted by NextStepCard pre-launch
+          where it gates the Launch button. Post-launch (after the
+          cadence is in motion), if a URL is added later or never
+          resolved, the banner appears here under the General Contact
+          section so admin still has the prompt. */}
+      {showContactFormBanner && !isPreLaunch && (
+        <ContactFormBanner
+          url={
+            outreach.research_data?.general_contact?.contact_form_url ?? ""
+          }
+          action={action}
+          setError={setError}
+          campusName={ctx.campus?.name ?? null}
+          specificContactName={(() => {
+            const first = activeContacts[0];
+            if (!first) return null;
+            const named = [first.first_name, first.last_name]
+              .filter(Boolean)
+              .join(" ")
+              .trim();
+            return named || first.name || null;
+          })()}
+        />
+      )}
+
+      {/* ── 2. Specific Contacts ────────────────────────────────────
+          Named individuals only (owner / hiring manager / etc.).
+          No "General Office" tag — that lives at the General
+          Contact section above. */}
+      <div>
+        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          Specific Contacts
+        </p>
+
+        {ctx.contacts.length === 0 ? (
+          <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs text-gray-500">
+            No named contacts yet. Add specific people here if you find them.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {[...activeContacts, ...inactiveContacts].map((c) => (
+              <li key={c.id}>
+                <ContactRow
+                  contact={c}
+                  action={action}
+                  setError={setError}
+                  editable={isPreLaunch}
+                  hasCadenceWork={contactHasCadenceWork(c.id, ctx)}
+                  isPostLaunch={!isPreLaunch}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {isPreLaunch && (
+          <AddContactInline
+            orgName={orgName}
+            action={action}
+            setError={setError}
+          />
+        )}
+      </div>
+
+      {/* ── 3. Research notes ─────────────────────────────────────── */}
+      <div>
+        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          Research notes
+        </p>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          onBlur={saveNotes}
+          placeholder="Source of contact info, agency character, hiring activity, anything else worth remembering."
+          rows={3}
+          className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+        />
+        <p className="mt-0.5 text-[11px] text-gray-400">
+          {savingNotes ? "Saving…" : "Saved on blur"}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ── General Contact section ─────────────────────────────────────────────
+
+/**
+ * v9 final: General Contact section — organization-level fallback
+ * contact info. Lives at the outreach row (not in
+ * student_outreach_contacts). Edits write to research_data.
+ * general_contact via the update_general_contact action; never
+ * touches student_outreach_contacts.
+ *
+ * Display values are effective overrides (research_data.general_
+ * contact.<field>) when present, else fall back to the business_
+ * profiles directory record. Address is read-only — it's a physical
+ * location, not a channel.
+ */
+function GeneralContactSection({
+  ctx,
+  action,
+  setError,
+  editable,
+  lastContactFormOutcome,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (msg: string | null) => void;
+  editable: boolean;
+  /** v9 final: when a contact_form_submitted touchpoint exists,
+   *  show the latest outcome as a small chip next to the Contact
+   *  Form field so admin sees the decision at a glance. */
+  lastContactFormOutcome?: string;
+}) {
+  const bp = ctx.provider_business_profile;
+  const research = (ctx.outreach.research_data ?? {}) as Record<string, unknown>;
+  const overrides = (research.general_contact ?? {}) as {
+    email?: string | null;
+    phone?: string | null;
+    fax?: string | null;
+    contact_form_url?: string | null;
+    website?: string | null;
+    street?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zip?: string | null;
+  };
+
+  // Effective values: per-outreach override OR directory fallback.
+  // The structured address slots (street/city/state) each fall back
+  // to the matching bp column; ZIP has no bp fallback since
+  // business_profiles doesn't store ZIP.
+  const effective = useMemo(
+    () => ({
+      email: overrides.email ?? bp?.email ?? "",
+      phone: overrides.phone ?? bp?.phone ?? "",
+      fax: overrides.fax ?? "",
+      contact_form_url: overrides.contact_form_url ?? "",
+      website: overrides.website ?? bp?.website ?? "",
+      street: overrides.street ?? bp?.address ?? "",
+      city: overrides.city ?? bp?.city ?? "",
+      state: overrides.state ?? bp?.state ?? "",
+      // v9 final: ZIP falls back to bp.zip — the directory has a ZIP
+      // column even though earlier code paths ignored it. Drops the
+      // "must save an override before it's snail-mail ready" friction
+      // when the bp record already carries the ZIP.
+      zip: overrides.zip ?? bp?.zip ?? "",
+    }),
+    [
+      overrides,
+      bp?.email,
+      bp?.phone,
+      bp?.website,
+      bp?.address,
+      bp?.city,
+      bp?.state,
+      bp?.zip,
+    ],
+  );
+
+  const [email, setEmail] = useState(effective.email);
+  const [phone, setPhone] = useState(effective.phone);
+  const [fax, setFax] = useState(effective.fax);
+  const [contactFormUrl, setContactFormUrl] = useState(effective.contact_form_url);
+  const [website, setWebsite] = useState(effective.website);
+  const [street, setStreet] = useState(effective.street);
+  const [city, setCity] = useState(effective.city);
+  const [stateField, setStateField] = useState(effective.state);
+  const [zip, setZip] = useState(effective.zip);
+  const [saving, setSaving] = useState<string | null>(null);
+  // v9 final: surface explicit save state at the section header so
+  // admin sees "Saving…" → "Saved" feedback after every blur. The
+  // earlier autosave was silent except for tiny per-field text.
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    setEmail(effective.email);
+    setPhone(effective.phone);
+    setFax(effective.fax);
+    setContactFormUrl(effective.contact_form_url);
+    setWebsite(effective.website);
+    setStreet(effective.street);
+    setCity(effective.city);
+    setStateField(effective.state);
+    setZip(effective.zip);
+  }, [
+    effective.email,
+    effective.phone,
+    effective.fax,
+    effective.contact_form_url,
+    effective.website,
+    effective.street,
+    effective.city,
+    effective.state,
+    effective.zip,
+  ]);
+
+  // Snail-mail readiness: street + city + state + valid ZIP.
+  const hasZip = /^\d{5}(?:-\d{4})?$/.test(zip.trim());
+  const addressComplete = Boolean(
+    street.trim() && city.trim() && stateField.trim() && hasZip,
+  );
+  const composedAddress =
+    [street, [city, stateField].filter(Boolean).join(", "), zip]
+      .filter((s) => s && s.trim())
+      .join(" · ");
+
+  const saveField = async (
+    field:
+      | "email"
+      | "phone"
+      | "fax"
+      | "contact_form_url"
+      | "website"
+      | "street"
+      | "city"
+      | "state"
+      | "zip",
+    value: string,
+  ) => {
+    const directoryFallback =
+      field === "email"
+        ? bp?.email ?? ""
+        : field === "phone"
+          ? bp?.phone ?? ""
+          : field === "website"
+            ? bp?.website ?? ""
+            : field === "street"
+              ? bp?.address ?? ""
+              : field === "city"
+                ? bp?.city ?? ""
+                : field === "state"
+                  ? bp?.state ?? ""
+                  : "";
+    const trimmed = value.trim();
+    const wasEffective =
+      overrides[field] !== undefined && overrides[field] !== null
+        ? overrides[field]
+        : directoryFallback;
+    if (trimmed === (wasEffective ?? "")) return;
+    setSaving(field);
+    setError(null);
+    try {
+      await action("update_general_contact", {
+        [field]: trimmed === "" ? null : trimmed,
+      });
+      setSavedAt(Date.now());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  return (
+    <div>
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          General Contact
+        </p>
+        <SaveStatusBadge saving={saving} savedAt={savedAt} />
+      </div>
+      <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
+        <CoverageRow checked={addressComplete} label="Address">
+          {/* v9 final: structured address — separate slots so admin
+              fixes one field without re-typing the whole line.
+              Effective values fall back to bp.address / bp.city /
+              bp.state; ZIP has no bp fallback. Single-line render
+              when read-only. */}
+          {editable ? (
+            <div className="space-y-1">
+              <input
+                type="text"
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+                onBlur={() => saveField("street", street)}
+                placeholder="Street + suite"
+                className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              />
+              <div className="grid grid-cols-[1fr_56px_88px] gap-1">
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  onBlur={() => saveField("city", city)}
+                  placeholder="City"
+                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                />
+                <input
+                  type="text"
+                  value={stateField}
+                  onChange={(e) => setStateField(e.target.value.toUpperCase())}
+                  onBlur={() => saveField("state", stateField)}
+                  placeholder="ST"
+                  maxLength={2}
+                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm uppercase focus:border-gray-400 focus:outline-none"
+                />
+                <input
+                  type="text"
+                  value={zip}
+                  onChange={(e) => setZip(e.target.value)}
+                  onBlur={() => saveField("zip", zip)}
+                  placeholder="ZIP"
+                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                />
+              </div>
+              {!addressComplete && (
+                <p className="text-[10px] text-gray-500">
+                  {!hasZip
+                    ? "Add ZIP — required for snail mail."
+                    : "Fill all four fields for snail mail."}
+                </p>
+              )}
+            </div>
+          ) : composedAddress ? (
+            <span className="block truncate text-gray-700">
+              {composedAddress}
+            </span>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
+        <CoverageRow checked={Boolean(phone)} label="Phone">
+          {editable ? (
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              onBlur={() => saveField("phone", phone)}
+              placeholder="(555) 123-4567"
+              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          ) : phone ? (
+            <a href={`tel:${phone}`} className="block truncate text-emerald-700 hover:underline">
+              {phone}
+            </a>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
+        <CoverageRow checked={Boolean(email)} label="Email">
+          {editable ? (
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => saveField("email", email)}
+              placeholder="info@agency.com"
+              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          ) : (
+            <span className="block truncate text-gray-700">
+              {email || <span className="text-gray-400">Not on file</span>}
+            </span>
+          )}
+        </CoverageRow>
+        <CoverageRow checked={Boolean(website)} label="Website">
+          {editable ? (
+            <input
+              type="url"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              onBlur={() => saveField("website", website)}
+              placeholder="https://agency.com"
+              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          ) : website ? (
+            <a
+              href={website.startsWith("http") ? website : `https://${website}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block truncate text-emerald-700 hover:underline"
+            >
+              {website}
+            </a>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
+        <CoverageRow checked={Boolean(contactFormUrl)} label="Contact form">
+          {editable ? (
+            <input
+              type="url"
+              value={contactFormUrl}
+              onChange={(e) => setContactFormUrl(e.target.value)}
+              onBlur={() => saveField("contact_form_url", contactFormUrl)}
+              placeholder="https://agency.com/contact"
+              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          ) : contactFormUrl ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <a
+                href={contactFormUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block truncate text-emerald-700 hover:underline"
+              >
+                {contactFormUrl}
+              </a>
+              {lastContactFormOutcome && (
+                <span
+                  className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                    lastContactFormOutcome === "submitted"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {lastContactFormOutcome === "not_available"
+                    ? "Not available"
+                    : lastContactFormOutcome.charAt(0).toUpperCase() +
+                      lastContactFormOutcome.slice(1)}
+                </span>
+              )}
+            </div>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
+        <CoverageRow checked={Boolean(fax)} label="Fax">
+          {editable ? (
+            <input
+              type="tel"
+              value={fax}
+              onChange={(e) => setFax(e.target.value)}
+              onBlur={() => saveField("fax", fax)}
+              placeholder="(555) 123-9999"
+              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+            />
+          ) : (
+            <span className="block truncate text-gray-700">
+              {fax || <span className="text-gray-400">Not on file · coming soon</span>}
+            </span>
+          )}
+        </CoverageRow>
+      </dl>
+    </div>
+  );
+}
+
+/**
+ * v9 final: explicit save state. Three modes:
+ *   saving=field     → "Saving…"
+ *   savedAt recent   → "Saved · just now"  (≤ 3s)
+ *   savedAt older    → hidden (signal stops being noise)
+ * Mounted in the General Contact header so the cue lives next to
+ * what's being saved, not buried below.
+ */
+function SaveStatusBadge({
+  saving,
+  savedAt,
+}: {
+  saving: string | null;
+  savedAt: number | null;
+}) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!savedAt || saving) return;
+    const t = setTimeout(() => setTick((x) => x + 1), 3000);
+    return () => clearTimeout(t);
+  }, [savedAt, saving]);
+  if (saving) {
+    return (
+      <span className="text-[11px] font-medium text-gray-500">Saving…</span>
+    );
+  }
+  if (savedAt && Date.now() - savedAt < 3000) {
+    return (
+      <span className="text-[11px] font-medium text-emerald-700">
+        ✓ Saved
+      </span>
+    );
+  }
+  return null;
+}
+
+// ── ContactRow ──────────────────────────────────────────────────────────
+
+/**
+ * v9 Phase 9 step 8: detect whether a contact has any cadence work
+ * already (pending tasks, prior email_sent touchpoints, or an
+ * explicit informational-only marker). Used to gate the post-launch
+ * "How should we proceed?" banner — banner only shows for newly-
+ * added contacts that haven't been routed yet.
+ */
+function contactHasCadenceWork(contactId: string, ctx: DrawerContext): boolean {
+  // Pending tasks tagged with this recipient_contact_id (per-recipient
+  // cadence mode).
+  const hasPendingTask = ctx.pending_tasks.some((t) => {
+    const p = t.payload as Record<string, unknown> | null;
+    return p?.recipient_contact_id === contactId;
+  });
+  if (hasPendingTask) return true;
+  // Email sent to this contact (legacy or per-recipient).
+  const hasSentTouchpoint = ctx.touchpoints.some((t) => {
+    if (t.touchpoint_type !== "email_sent") return false;
+    if (t.contact_id === contactId) return true;
+    const p = t.payload as Record<string, unknown> | null;
+    return p?.recipient_contact_id === contactId;
+  });
+  if (hasSentTouchpoint) return true;
+  // Informational-only marker explicitly set by admin.
+  const hasInformationalMarker = ctx.touchpoints.some((t) => {
+    if (t.touchpoint_type !== "note_added") return false;
+    const p = t.payload as Record<string, unknown> | null;
+    return (
+      p?.contact_id === contactId &&
+      (p?.informational_only === true || typeof p?.enrolled_mode === "string")
+    );
+  });
+  return hasInformationalMarker;
+}
+
+function ContactRow({
+  contact,
+  action,
+  setError,
+  editable,
+  hasCadenceWork,
+  isPostLaunch,
+}: {
+  contact: Contact;
+  action: ActionFn;
+  setError: (m: string | null) => void;
+  editable: boolean;
+  /** v9 Phase 9: when false AND isPostLaunch, banner shows asking
+   *  admin how to enroll this newly-discovered contact. */
+  hasCadenceWork: boolean;
+  isPostLaunch: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [firstName, setFirstName] = useState(contact.first_name ?? "");
+  const [lastName, setLastName] = useState(contact.last_name ?? "");
+  const [title, setTitle] = useState(contact.title ?? "");
+  const [role, setRole] = useState<string>(
+    contact.role && PROVIDER_CONTACT_ROLES.includes(contact.role)
+      ? contact.role
+      : contact.role
+        ? OTHER
+        : "",
+  );
+  const [roleOther, setRoleOther] = useState(
+    contact.role && !PROVIDER_CONTACT_ROLES.includes(contact.role)
+      ? contact.role
+      : "",
+  );
+  const [email, setEmail] = useState(contact.email ?? "");
+  const [phone, setPhone] = useState(contact.phone ?? "");
+  const [mobile, setMobile] = useState(contact.mobile ?? "");
+  const [extension, setExtension] = useState(contact.extension ?? "");
+  const [saving, setSaving] = useState(false);
+
+  const isActive = contact.status === "active";
+  const displayName =
+    [contact.title, contact.first_name, contact.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || contact.name;
+
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const resolvedRole =
+        role === OTHER ? roleOther.trim() || null : role || null;
+      await action("update_contact", {
+        contact_id: contact.id,
+        first_name: firstName || null,
+        last_name: lastName || null,
+        title: title || null,
+        role: resolvedRole,
+        email: email.trim() || null,
+        phone: phone.trim() || null,
+        mobile: mobile.trim() || null,
+        extension: extension.trim() || null,
+      });
+      setExpanded(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save contact");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleStatus = async () => {
+    setError(null);
+    try {
+      if (isActive) {
+        await action("mark_contact_stale", { contact_id: contact.id });
+      } else {
+        await action("update_contact", {
+          contact_id: contact.id,
+          status: "active",
+        });
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update status");
+    }
+  };
+
+  // v9 Phase 9 step 8: enrollment banner shows when outreach is
+  // already in flight AND this contact has no cadence work yet
+  // (no pending tasks, no prior sends, no informational marker).
+  // Admin picks how to route them — send-now or full cadence,
+  // gated by the contact's email/phone availability.
+  const showEnrollBanner =
+    isPostLaunch && isActive && !hasCadenceWork;
+
+  if (!expanded) {
+    return (
+      <div
+        className={`flex flex-col gap-0 rounded-md border ${
+          isActive
+            ? "border-gray-200 bg-white"
+            : "border-gray-100 bg-gray-50 text-gray-400"
+        }`}
+      >
+        <div className="flex items-start justify-between gap-3 px-3 py-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="truncate text-sm font-medium text-gray-900">
+                {displayName || "(unnamed)"}
+              </span>
+              {contact.is_primary && (
+                <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
+                  PRIMARY
+                </span>
+              )}
+              {!isActive && (
+                <span className="rounded bg-gray-200 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-600">
+                  {contact.status}
+                </span>
+              )}
+            </div>
+            {contact.role && (
+              <p className="mt-0.5 truncate text-[11px] text-gray-500">
+                {contact.role}
+              </p>
+            )}
+            <p className="mt-0.5 truncate text-xs text-gray-600">
+              {contact.email || (
+                <span className="text-gray-400">No email</span>
+              )}
+              {contact.phone && (
+                <span className="text-gray-400">
+                  {" · "}
+                  {contact.phone}
+                  {contact.extension ? ` ext ${contact.extension}` : ""}
+                </span>
+              )}
+              {contact.mobile && (
+                <span className="text-gray-400"> · 📱 {contact.mobile}</span>
+              )}
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            <button
+              onClick={() => setExpanded(true)}
+              className="text-[11px] font-medium text-emerald-700 hover:underline"
+            >
+              Edit
+            </button>
+            <button
+              onClick={toggleStatus}
+              title={
+                isActive
+                  ? "Exclude from outreach sends (preserves history)."
+                  : "Reactivate this contact for outreach sends."
+              }
+              className="text-[11px] font-medium text-gray-500 hover:text-gray-700 hover:underline"
+            >
+              {isActive ? "Mark inactive" : "Reactivate"}
+            </button>
+          </div>
+        </div>
+        {showEnrollBanner && (
+          <EnrollmentBanner
+            contact={contact}
+            action={action}
+            setError={setError}
+          />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2 rounded-md border border-gray-300 bg-white px-3 py-3">
+      <div className="grid grid-cols-2 gap-2">
+        <LabeledInput
+          label="First name"
+          value={firstName}
+          onChange={setFirstName}
+        />
+        <LabeledInput
+          label="Last name"
+          value={lastName}
+          onChange={setLastName}
+        />
+      </div>
+      <LabeledInput
+        label="Title (Dr., Mr., etc.)"
+        value={title}
+        onChange={setTitle}
+      />
+      <div>
+        <label className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-gray-500">
+          Role
+        </label>
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+        >
+          <option value="">(no role)</option>
+          {PROVIDER_CONTACT_ROLES.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
+        {role === OTHER && (
+          <input
+            type="text"
+            value={roleOther}
+            onChange={(e) => setRoleOther(e.target.value)}
+            placeholder="Custom role"
+            className="mt-1 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+          />
+        )}
+      </div>
+      <LabeledInput label="Email" value={email} onChange={setEmail} type="email" />
+      <div className="grid grid-cols-3 gap-2">
+        <div className="col-span-2">
+          <LabeledInput label="Phone" value={phone} onChange={setPhone} type="tel" />
+        </div>
+        <LabeledInput label="Ext" value={extension} onChange={setExtension} />
+      </div>
+      <LabeledInput
+        label="Mobile (optional)"
+        value={mobile}
+        onChange={setMobile}
+        type="tel"
+      />
+      <div className="flex justify-end gap-2 pt-1">
+        <button
+          onClick={() => setExpanded(false)}
+          className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={save}
+          disabled={saving}
+          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── AddContactInline ────────────────────────────────────────────────────
+
+function AddContactInline({
+  orgName,
+  action,
+  setError,
+}: {
+  orgName: string;
+  action: ActionFn;
+  setError: (m: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState("");
+  const [roleOther, setRoleOther] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [extension, setExtension] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const submit = async () => {
+    const resolvedRole =
+      role === OTHER ? roleOther.trim() || null : role || null;
+    setSaving(true);
+    setError(null);
+    try {
+      const derivedName =
+        [firstName, lastName].filter(Boolean).join(" ").trim() ||
+        resolvedRole ||
+        orgName;
+      await action("add_contact", {
+        name: derivedName,
+        first_name: firstName || null,
+        last_name: lastName || null,
+        role: resolvedRole,
+        email: email.trim() || null,
+        phone: phone.trim() || null,
+        mobile: mobile.trim() || null,
+        extension: extension.trim() || null,
+      });
+      setFirstName("");
+      setLastName("");
+      setRole("");
+      setRoleOther("");
+      setEmail("");
+      setPhone("");
+      setMobile("");
+      setExtension("");
+      setOpen(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to add contact");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="mt-2 text-xs font-medium text-emerald-700 hover:underline"
+      >
+        + Add contact
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-2 space-y-2 rounded-md border border-emerald-200 bg-emerald-50/30 px-3 py-3">
+      <div className="grid grid-cols-2 gap-2">
+        <LabeledInput
+          label="First name"
+          value={firstName}
+          onChange={setFirstName}
+        />
+        <LabeledInput
+          label="Last name"
+          value={lastName}
+          onChange={setLastName}
+        />
+      </div>
+      <div>
+        <label className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-gray-500">
+          Role
+        </label>
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+        >
+          <option value="">(no role)</option>
+          {PROVIDER_CONTACT_ROLES.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
+        {role === OTHER && (
+          <input
+            type="text"
+            value={roleOther}
+            onChange={(e) => setRoleOther(e.target.value)}
+            placeholder="Custom role"
+            className="mt-1 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+          />
+        )}
+      </div>
+      <LabeledInput label="Email" value={email} onChange={setEmail} type="email" />
+      <div className="grid grid-cols-3 gap-2">
+        <div className="col-span-2">
+          <LabeledInput label="Phone" value={phone} onChange={setPhone} type="tel" />
+        </div>
+        <LabeledInput label="Ext" value={extension} onChange={setExtension} />
+      </div>
+      <LabeledInput
+        label="Mobile (optional)"
+        value={mobile}
+        onChange={setMobile}
+        type="tel"
+      />
+      <div className="flex justify-end gap-2 pt-1">
+        <button
+          onClick={() => setOpen(false)}
+          className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={submit}
+          disabled={saving}
+          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+        >
+          {saving ? "Adding…" : "Add contact"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Small helpers ───────────────────────────────────────────────────────
+
+function CoverageRow({
+  checked,
+  label,
+  children,
+}: {
+  checked: boolean;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <span
+        aria-hidden
+        className={`pt-0.5 ${checked ? "text-emerald-600" : "text-gray-300"}`}
+      >
+        {checked ? "✓" : "—"}
+      </span>
+      <span className="pt-0.5 text-[11px] font-medium uppercase tracking-wide text-gray-500">
+        {label}
+      </span>
+      <div className="min-w-0">{children}</div>
+    </>
+  );
+}
+
+/**
+ * v9 Phase 9 step 8: post-launch enrollment banner. Shows on
+ * newly-discovered contacts (no cadence work yet) so admin can
+ * route them explicitly — never auto-sends. Channel options gate
+ * on the contact's email/phone availability.
+ */
+function EnrollmentBanner({
+  contact,
+  action,
+  setError,
+}: {
+  contact: Contact;
+  action: ActionFn;
+  setError: (m: string | null) => void;
+}) {
+  const [saving, setSaving] = useState<string | null>(null);
+  const hasEmail = Boolean(contact.email && contact.email.trim().length > 0);
+  const hasPhone = Boolean(
+    (contact.phone && contact.phone.trim().length > 0) ||
+      (contact.mobile && contact.mobile.trim().length > 0),
+  );
+
+  const dispatch = async (mode: string) => {
+    setSaving(mode);
+    setError(null);
+    try {
+      await action("enroll_contact_in_cadence", {
+        contact_id: contact.id,
+        mode,
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to enroll contact");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const buttonClass =
+    "rounded-md border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50";
+  const secondaryClass =
+    "rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50";
+
+  return (
+    <div className="border-t border-emerald-200 bg-emerald-50/40 px-3 py-2">
+      <p className="text-[11px] text-emerald-900">
+        Just added · outreach already in flight. How should we proceed?
+      </p>
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
+        {hasEmail && hasPhone && (
+          <>
+            <button
+              onClick={() => dispatch("send_now_both")}
+              disabled={saving != null}
+              className={buttonClass}
+              title="Queue one Day-0 email + one Day-0 call for this recipient now."
+            >
+              {saving === "send_now_both" ? "Queuing…" : "Send Day 0 (email + call)"}
+            </button>
+            <button
+              onClick={() => dispatch("full_both")}
+              disabled={saving != null}
+              className={buttonClass}
+              title="Queue the full provider cadence (3 emails + 3 calls) starting today."
+            >
+              {saving === "full_both" ? "Queuing…" : "Run full cadence"}
+            </button>
+          </>
+        )}
+        {hasEmail && !hasPhone && (
+          <>
+            <button
+              onClick={() => dispatch("send_now_email")}
+              disabled={saving != null}
+              className={buttonClass}
+            >
+              {saving === "send_now_email" ? "Queuing…" : "Send Day 0 email"}
+            </button>
+            <button
+              onClick={() => dispatch("full_email_cadence")}
+              disabled={saving != null}
+              className={buttonClass}
+            >
+              {saving === "full_email_cadence" ? "Queuing…" : "Run email cadence"}
+            </button>
+          </>
+        )}
+        {!hasEmail && hasPhone && (
+          <>
+            <button
+              onClick={() => dispatch("send_now_call")}
+              disabled={saving != null}
+              className={buttonClass}
+            >
+              {saving === "send_now_call" ? "Queuing…" : "Queue Day 0 call"}
+            </button>
+            <button
+              onClick={() => dispatch("full_call_cadence")}
+              disabled={saving != null}
+              className={buttonClass}
+            >
+              {saving === "full_call_cadence" ? "Queuing…" : "Run call cadence"}
+            </button>
+          </>
+        )}
+        {hasEmail && hasPhone && (
+          <>
+            <button
+              onClick={() => dispatch("full_email_cadence")}
+              disabled={saving != null}
+              className={secondaryClass}
+              title="Email cadence only — calls skipped for this recipient."
+            >
+              Email cadence only
+            </button>
+            <button
+              onClick={() => dispatch("full_call_cadence")}
+              disabled={saving != null}
+              className={secondaryClass}
+              title="Call cadence only — emails skipped for this recipient."
+            >
+              Call cadence only
+            </button>
+          </>
+        )}
+        <button
+          onClick={() => dispatch("informational")}
+          disabled={saving != null}
+          className={secondaryClass}
+          title="Keep in the contact list but don't send anything."
+        >
+          {saving === "informational" ? "Saving…" : "Informational only"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * v9 final: contact-form pre-flight banner. Surfaces whenever a
+ * contact_form_url is on file AND no contact_form_submitted
+ * touchpoint exists. Mounted by NextStepCard pre-launch (gates the
+ * Launch button) and by the SnapshotCard post-launch (catches URLs
+ * added after the cadence is in motion).
+ *
+ * Carries a short pre-written message + Copy button so admin can
+ * paste it into the provider's contact form in one motion. Message
+ * personalizes on the presence of a Specific Contact name. Each
+ * outcome click writes one log_contact_form_outcome touchpoint;
+ * the banner hides on the next refresh.
+ */
+export function ContactFormBanner({
+  url,
+  action,
+  setError,
+  campusName,
+  specificContactName,
+}: {
+  url: string;
+  action: ActionFn;
+  setError: (m: string | null) => void;
+  /** Campus / Site name for the message body. Falls back to "your
+   *  university" if unknown. */
+  campusName?: string | null;
+  /** First active Specific Contact's display name, if any. When
+   *  present, message asks for them by name; otherwise it asks for
+   *  someone on the leadership / hiring team. */
+  specificContactName?: string | null;
+}) {
+  const [saving, setSaving] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const site = campusName?.trim() || "your university";
+  const message = specificContactName?.trim()
+    ? `Hi, this is Grazie, assistant to Dr. Logan DuBose. We were hoping to connect with ${specificContactName.trim()} regarding a student caregiver initiative connected to ${site}. Would you be able to point us in the right direction?`
+    : `Hi, this is Grazie, assistant to Dr. Logan DuBose. We're hoping to connect with someone on your leadership or hiring team regarding a student caregiver initiative connected to ${site}. Could someone point us in the right direction?`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError("Couldn't copy to clipboard");
+    }
+  };
+
+  const dispatch = async (outcome: string) => {
+    setSaving(outcome);
+    setError(null);
+    try {
+      await action("log_contact_form_outcome", { outcome, url });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to log outcome");
+    } finally {
+      setSaving(null);
+    }
+  };
+  return (
+    <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-xs text-gray-700">
+          Contact form on file — has it been submitted yet?
+        </p>
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 text-[11px] font-medium text-emerald-700 hover:underline"
+        >
+          Open form ↗
+        </a>
+      </div>
+      <div className="mt-2 rounded-md border border-gray-200 bg-white px-2.5 py-2">
+        <p className="whitespace-pre-line text-[11px] leading-relaxed text-gray-700">
+          {message}
+        </p>
+        <button
+          onClick={handleCopy}
+          className="mt-1.5 rounded-md border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          {copied ? "✓ Copied" : "Copy message"}
+        </button>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {(
+          [
+            { value: "submitted", label: "Submitted" },
+            { value: "skipped", label: "Skipped" },
+            { value: "not_available", label: "Not available" },
+          ] as const
+        ).map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => dispatch(opt.value)}
+            disabled={saving != null}
+            className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {saving === opt.value ? "Logging…" : opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LabeledInput({
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+}) {
+  return (
+    <div>
+      <label className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-gray-500">
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+      />
+    </div>
+  );
+}

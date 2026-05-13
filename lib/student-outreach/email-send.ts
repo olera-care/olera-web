@@ -371,10 +371,11 @@ function composeFooterText(): string {
     ``,
     `Dr. Logan DuBose, MD, MBA`,
     `Texas A&M College of Medicine, Class of 2022`,
-    `Affiliate Faculty, Texas A&M School of Public Health`,
-    `Researcher, funded by NIH SBIR Program`,
-    `General Practitioner (GP), Licensed in VA`,
-    `Co-founder, www.olera.care`,
+    `Affiliate Partner, Texas A&M Center for Community Health and Aging`,
+    `Researcher funded by the National Institutes of Health Small Business Innovation Research Program`,
+    `General Practitioner, Fredericksburg Christian Health Clinic, Virginia`,
+    `Director, Texas A&M Student Caregiver Program (${PROGRAM_URL})`,
+    `Co-founder, Olera Inc., www.olera.care`,
     `Schedule a meeting: ${CALENDLY_URL}`,
     ``,
     `Reply STOP if you would like us to stop reaching out.`,
@@ -383,7 +384,10 @@ function composeFooterText(): string {
 
 /**
  * Dr. Logan DuBose signature block. Photo + credentials + Calendly
- * CTA. Carries the trust scaffolding (NIH, Texas A&M, MD + MBA).
+ * CTA. Carries the trust scaffolding (Texas A&M lineage, NIH
+ * funding, clinical practice, Olera co-founder) and folds the
+ * program URL into the directorship line so it lives in the
+ * signature instead of the body copy.
  */
 function loganSignatureHtml(): string {
   const photoUrl = LOGAN_PHOTO_URL;
@@ -396,10 +400,11 @@ function loganSignatureHtml(): string {
     <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
       <p style="margin:0 0 4px;font-weight:600;color:#111827;">Dr. Logan DuBose, MD, MBA</p>
       <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
-      <p style="margin:0 0 2px;">Affiliate Faculty, Texas A&amp;M School of Public Health</p>
-      <p style="margin:0 0 2px;">Researcher, funded by NIH SBIR Program</p>
-      <p style="margin:0 0 2px;">General Practitioner (GP), Licensed in VA</p>
-      <p style="margin:0 0 8px;">Co-founder, <a href="https://www.olera.care" style="color:#059669;">www.olera.care</a></p>
+      <p style="margin:0 0 2px;">Affiliate Partner, Texas A&amp;M Center for Community Health and Aging</p>
+      <p style="margin:0 0 2px;">Researcher funded by the National Institutes of Health Small Business Innovation Research Program</p>
+      <p style="margin:0 0 2px;">General Practitioner, Fredericksburg Christian Health Clinic, Virginia</p>
+      <p style="margin:0 0 2px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Texas A&amp;M Student Caregiver Program</a></p>
+      <p style="margin:0 0 8px;">Co-founder, Olera Inc., <a href="https://www.olera.care" style="color:#059669;">www.olera.care</a></p>
       <p style="margin:0;">
         <a href="${CALENDLY_URL}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
       </p>

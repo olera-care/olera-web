@@ -341,29 +341,29 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
   if (type === "provider") {
     if (day === 0) {
       return [
-        `"Hi, this is {admin_first_name} calling on behalf of Dr. Logan DuBose regarding the {campus_name} Student Caregiver Program."`,
+        `"Hi, this is {admin_first_name} calling from Dr. Logan DuBose's office. I'm a research assistant on the {campus_name} Student Caregiver Program."`,
         ``,
-        `"We came across {organization_name} while identifying home care agencies near {campus_name} to invite into the program."`,
+        `"I came across {organization_name} while we were identifying home care agencies near {campus_name} for the program, and I wanted to reach out personally."`,
         ``,
-        `"Through the program, Olera matches {campus_name} pre-nursing and pre-medical students with local home care agencies to help fill vacant caregiver roles, PRN shifts, and staffing needs. The students are reliable and motivated by clinical experience and recommendation letters more than compensation."`,
+        `"The program matches {campus_name} pre-health students with home care agencies to help fill caregiver roles, PRN shifts, and staffing needs. These are pre-nursing and pre-medical students, motivated more by clinical experience and recommendation letters than compensation, who show up reliably for the long hours caregiver work requires."`,
         ``,
         tips([
-          "Leave a voicemail if unavailable. Reference today's email from Grazie and the {campus_name} Student Caregiver Program.",
           "If a receptionist answers, ask for the hiring coordinator or whoever handles caregiver staffing.",
-          "Confirm the best email for sending program information.",
+          "Confirm the best email for the program packet if you reach a new contact.",
+          "Leave a voicemail if unavailable. Reference today's email from Grazie and the {campus_name} Student Caregiver Program.",
           "Ask permission to resend the information packet if useful.",
         ]),
       ].join("\n");
     }
     if (day === 1) {
       return [
-        `"Hi, this is {admin_first_name} from the {campus_name} Student Caregiver Program, following up on yesterday's email and call about Dr. Logan DuBose's program."`,
+        `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, following up on yesterday's email and call about the {campus_name} Student Caregiver Program."`,
         ``,
-        `"We are hoping to connect with whoever handles caregiver hiring at {organization_name}. The program can help fill vacant shifts and PRN staffing needs with reliable {campus_name} pre-health students who are pursuing professional school pathways."`,
+        `"Just hoping to connect with whoever handles caregiver hiring at {organization_name}. The program can help cover vacant shifts and PRN gaps with reliable {campus_name} pre-health students."`,
         ``,
         tips([
           "Ask for the hiring coordinator if the receptionist answers.",
-          "Confirm who handles caregiver staffing.",
+          "Confirm who handles caregiver staffing if you are not sure.",
           "Offer to resend the information packet via email.",
           "Leave a voicemail if unavailable. Reference prior outreach and Dr. DuBose's calendar.",
         ]),
@@ -371,9 +371,9 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
     }
     if (day === 5) {
       return [
-        `"Hi, this is {admin_first_name} from the {campus_name} Student Caregiver Program, circling back one more time on Dr. Logan DuBose's program at {organization_name}."`,
+        `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, circling back one more time on the {campus_name} Student Caregiver Program at {organization_name}."`,
         ``,
-        `"We are still hoping to share how the program works with whoever handles caregiver hiring, and whether it might be a fit for filling vacant shifts and PRN coverage."`,
+        `"Just hoping to share how the program works with whoever handles caregiver hiring, and whether it might be a fit. Happy to send the packet to the best person to receive it."`,
         ``,
         tips([
           "Keep the tone light and non-pushy.",
@@ -384,7 +384,7 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
       ].join("\n");
     }
   }
-  return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} and offer to schedule a quick informational call with Dr. DuBose.`;
+  return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} and offer to schedule a quick call with Dr. DuBose.`;
 }
 
 /**

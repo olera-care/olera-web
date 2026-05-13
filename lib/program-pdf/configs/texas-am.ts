@@ -90,10 +90,10 @@ export const TEXAS_AM: ProgramPdfConfig = {
     },
   ],
   steps: [
-    "Agency logs in at olera.care/medjobs/providers and reviews the program participation terms.",
-    "Agency acknowledges the terms and joins the program.",
-    "Olera refers screened Texas A&M pre-health students for caregiver roles.",
-    "Agency interviews, hires, and onboards the students who fit.",
+    "Sign in to the program portal.",
+    "Acknowledge participation terms.",
+    "Receive screened student referrals.",
+    "Interview, hire, and onboard.",
   ],
   vetting: [
     "Screened pre-nursing and pre-medical applicants.",

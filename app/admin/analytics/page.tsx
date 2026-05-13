@@ -181,20 +181,6 @@ interface ProviderResponseByVariant {
   unassigned: ProviderResponseMetrics;
 }
 
-interface AwaitingResponseLead {
-  connection_id: string;
-  family_name: string;
-  provider_name: string;
-  provider_slug: string;
-  created_at: string;
-  age_hours: number;
-  signals: {
-    email_clicked: boolean;
-    lead_opened: boolean;
-    contact_revealed: boolean;
-  };
-}
-
 interface ReferrerBreakdown {
   ai_chat: number;
   search: number;
@@ -237,7 +223,6 @@ interface SummaryResponse {
     entry_source_breakdown: EntrySourceBreakdown;
     provider_response: ProviderResponseMetrics;
     provider_response_by_variant: ProviderResponseByVariant;
-    awaiting_response: AwaitingResponseLead[];
   };
   prior: {
     counts: WindowedCounts;
@@ -255,7 +240,6 @@ interface SummaryResponse {
     entry_source_breakdown: EntrySourceBreakdown;
     provider_response: ProviderResponseMetrics;
     provider_response_by_variant: ProviderResponseByVariant;
-    awaiting_response: AwaitingResponseLead[];
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -2318,6 +2302,7 @@ interface ResponseLead {
   family_name: string;
   family_email: string | null;
   provider_name: string;
+  provider_email: string | null;
   provider_slug: string;
   message_preview: string;
   created_at: string;
@@ -2573,15 +2558,22 @@ function ResponseLeadsList({
                     )}
                   </td>
                   <td className="px-4 py-2.5">
-                    {lead.provider_slug ? (
-                      <Link
-                        href={`/provider/${lead.provider_slug}`}
-                        className="text-emerald-700 hover:text-emerald-800"
-                      >
-                        {lead.provider_name}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-900">{lead.provider_name}</span>
+                    <div>
+                      {lead.provider_slug ? (
+                        <Link
+                          href={`/provider/${lead.provider_slug}`}
+                          className="text-emerald-700 hover:text-emerald-800"
+                        >
+                          {lead.provider_name}
+                        </Link>
+                      ) : (
+                        <span className="text-gray-900">{lead.provider_name}</span>
+                      )}
+                    </div>
+                    {lead.provider_email && (
+                      <div className="text-[11px] text-gray-400 truncate max-w-[180px]" title={lead.provider_email}>
+                        {lead.provider_email}
+                      </div>
                     )}
                   </td>
                   <td className="px-4 py-2.5 text-gray-600 max-w-[220px]">
@@ -2691,7 +2683,12 @@ function ResponseLeadsList({
               </div>
               <div className="flex gap-2">
                 <dt className="w-20 shrink-0 text-gray-400">Provider</dt>
-                <dd className="text-gray-900">{pendingDelete.provider_name}</dd>
+                <dd className="text-gray-900">
+                  {pendingDelete.provider_name}
+                  {pendingDelete.provider_email && (
+                    <span className="block text-xs text-gray-500">{pendingDelete.provider_email}</span>
+                  )}
+                </dd>
               </div>
               <div className="flex gap-2">
                 <dt className="w-20 shrink-0 text-gray-400">Sent</dt>

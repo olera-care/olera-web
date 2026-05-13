@@ -221,20 +221,6 @@ interface ProviderResponseByVariant {
   unassigned: ProviderResponseMetrics;
 }
 
-interface AwaitingResponseLead {
-  connection_id: string;
-  family_name: string;
-  provider_name: string;
-  provider_slug: string;
-  created_at: string;
-  age_hours: number;
-  signals: {
-    email_clicked: boolean;
-    lead_opened: boolean;
-    contact_revealed: boolean;
-  };
-}
-
 // Submissions by entry source — accounts.signup_source bucketed for the
 // "did editorial-mounted SBF produce signups?" question. The existing
 // benefits funnel above is provider-page-only (gated on provider_activity
@@ -271,7 +257,6 @@ type WindowResult = {
   entry_source_breakdown: EntrySourceBreakdown;
   provider_response: ProviderResponseMetrics;
   provider_response_by_variant: ProviderResponseByVariant;
-  awaiting_response: AwaitingResponseLead[];
 };
 
 const EMPTY_COUNTS = (): WindowedCounts => ({
@@ -1216,7 +1201,6 @@ async function fetchWindow(
   type ResponseVariantBucket = "legacy" | "compare" | "unassigned";
   const responseTimes: number[] = [];
   let respondedLeads = 0;
-  const awaitingResponse: AwaitingResponseLead[] = [];
   const byVariant: Record<ResponseVariantBucket, { total: number; responded: number; times: number[] }> = {
     legacy: { total: 0, responded: 0, times: [] },
     compare: { total: 0, responded: 0, times: [] },
@@ -1263,48 +1247,6 @@ async function fetchWindow(
         (1000 * 60 * 60);
       responseTimes.push(responseTimeHours);
       byVariant[variantKey].times.push(responseTimeHours);
-    } else {
-      // Awaiting response
-      const ageHours = (Date.now() - new Date(conn.created_at).getTime()) / (1000 * 60 * 60);
-      awaitingResponse.push({
-        connection_id: conn.id,
-        family_name: conn.from_profile?.display_name || "Unknown",
-        provider_name: conn.to_profile?.display_name || "Unknown",
-        provider_slug: conn.to_profile?.slug || conn.to_profile?.source_provider_id || "",
-        created_at: conn.created_at,
-        age_hours: ageHours,
-        signals: { email_clicked: false, lead_opened: false, contact_revealed: false },
-      });
-    }
-  }
-
-  // Sort awaiting by age (oldest first)
-  awaitingResponse.sort((a, b) => b.age_hours - a.age_hours);
-
-  // Enrich awaiting leads with engagement signals from provider_activity
-  const providerSlugs = awaitingResponse.map((a) => a.provider_slug).filter(Boolean);
-  if (providerSlugs.length > 0) {
-    const { data: activities } = await db
-      .from("provider_activity")
-      .select("provider_id, event_type")
-      .in("provider_id", providerSlugs)
-      .in("event_type", ["email_click", "lead_opened", "contact_revealed"]);
-
-    const activityByProvider = new Map<string, Set<string>>();
-    for (const act of (activities ?? []) as Array<{ provider_id: string; event_type: string }>) {
-      if (!activityByProvider.has(act.provider_id)) {
-        activityByProvider.set(act.provider_id, new Set());
-      }
-      activityByProvider.get(act.provider_id)!.add(act.event_type);
-    }
-
-    for (const lead of awaitingResponse) {
-      const events = activityByProvider.get(lead.provider_slug) || new Set();
-      lead.signals = {
-        email_clicked: events.has("email_click"),
-        lead_opened: events.has("lead_opened"),
-        contact_revealed: events.has("contact_revealed"),
-      };
     }
   }
 
@@ -1351,7 +1293,6 @@ async function fetchWindow(
     entry_source_breakdown: entrySourceBreakdown,
     provider_response: providerResponse,
     provider_response_by_variant: providerResponseByVariant,
-    awaiting_response: awaitingResponse.slice(0, 10), // Top 10 oldest
   };
 }
 
@@ -1583,7 +1524,6 @@ export async function GET(request: NextRequest) {
         entry_source_breakdown: windowedRes.entry_source_breakdown,
         provider_response: windowedRes.provider_response,
         provider_response_by_variant: windowedRes.provider_response_by_variant,
-        awaiting_response: windowedRes.awaiting_response,
       },
       prior: prior
         ? {
@@ -1602,7 +1542,6 @@ export async function GET(request: NextRequest) {
             entry_source_breakdown: prior.entry_source_breakdown,
             provider_response: prior.provider_response,
             provider_response_by_variant: prior.provider_response_by_variant,
-            awaiting_response: prior.awaiting_response,
           }
         : null,
       insight,

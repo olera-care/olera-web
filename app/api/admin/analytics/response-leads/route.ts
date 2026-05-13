@@ -22,6 +22,7 @@ interface ResponseLead {
   family_name: string;
   family_email: string | null;
   provider_name: string;
+  provider_email: string | null;
   provider_slug: string;
   message_preview: string;
   created_at: string;
@@ -171,6 +172,7 @@ export async function GET(req: NextRequest) {
       family_name: conn.from_profile?.display_name || "Care Seeker",
       family_email: conn.from_profile?.email || null,
       provider_name: conn.to_profile?.display_name || "Unknown",
+      provider_email: conn.to_profile?.email || null,
       provider_slug: conn.to_profile?.slug || conn.to_profile?.source_provider_id || "",
       message_preview: messagePreview,
       created_at: conn.created_at,

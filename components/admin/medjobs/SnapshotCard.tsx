@@ -163,6 +163,16 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
           }
           action={action}
           setError={setError}
+          campusName={ctx.campus?.name ?? null}
+          specificContactName={(() => {
+            const first = activeContacts[0];
+            if (!first) return null;
+            const named = [first.first_name, first.last_name]
+              .filter(Boolean)
+              .join(" ")
+              .trim();
+            return named || first.name || null;
+          })()}
         />
       )}
 
@@ -1214,20 +1224,50 @@ function EnrollmentBanner({
  * contact_form_url is on file AND no contact_form_submitted
  * touchpoint exists. Mounted by NextStepCard pre-launch (gates the
  * Launch button) and by the SnapshotCard post-launch (catches URLs
- * added after the cadence is in motion). Each call to dispatch
- * writes one log_contact_form_outcome touchpoint; the banner hides
- * on the next refresh.
+ * added after the cadence is in motion).
+ *
+ * Carries a short pre-written message + Copy button so admin can
+ * paste it into the provider's contact form in one motion. Message
+ * personalizes on the presence of a Specific Contact name. Each
+ * outcome click writes one log_contact_form_outcome touchpoint;
+ * the banner hides on the next refresh.
  */
 export function ContactFormBanner({
   url,
   action,
   setError,
+  campusName,
+  specificContactName,
 }: {
   url: string;
   action: ActionFn;
   setError: (m: string | null) => void;
+  /** Campus / Site name for the message body. Falls back to "your
+   *  university" if unknown. */
+  campusName?: string | null;
+  /** First active Specific Contact's display name, if any. When
+   *  present, message asks for them by name; otherwise it asks for
+   *  someone on the leadership / hiring team. */
+  specificContactName?: string | null;
 }) {
   const [saving, setSaving] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const site = campusName?.trim() || "your university";
+  const message = specificContactName?.trim()
+    ? `Hi, this is Grazie, assistant to Dr. Logan DuBose. We were hoping to connect with ${specificContactName.trim()} regarding a student caregiver initiative connected to ${site}. Would you be able to point us in the right direction?`
+    : `Hi, this is Grazie, assistant to Dr. Logan DuBose. We're hoping to connect with someone on your leadership or hiring team regarding a student caregiver initiative connected to ${site}. Could someone point us in the right direction?`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError("Couldn't copy to clipboard");
+    }
+  };
+
   const dispatch = async (outcome: string) => {
     setSaving(outcome);
     setError(null);
@@ -1254,7 +1294,18 @@ export function ContactFormBanner({
           Open form ↗
         </a>
       </div>
-      <div className="mt-1.5 flex flex-wrap gap-1.5">
+      <div className="mt-2 rounded-md border border-gray-200 bg-white px-2.5 py-2">
+        <p className="whitespace-pre-line text-[11px] leading-relaxed text-gray-700">
+          {message}
+        </p>
+        <button
+          onClick={handleCopy}
+          className="mt-1.5 rounded-md border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          {copied ? "✓ Copied" : "Copy message"}
+        </button>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
         {(
           [
             { value: "submitted", label: "Submitted" },

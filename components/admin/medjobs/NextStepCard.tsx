@@ -378,6 +378,20 @@ function ProspectBody({
             url={ctx.outreach.research_data?.general_contact?.contact_form_url ?? ""}
             action={action}
             setError={setError}
+            campusName={ctx.campus?.name ?? null}
+            specificContactName={(() => {
+              const first = ctx.contacts.find(
+                (c) =>
+                  c.status === "active" &&
+                  (c.first_name?.trim() || c.last_name?.trim() || c.name?.trim()),
+              );
+              if (!first) return null;
+              const named = [first.first_name, first.last_name]
+                .filter(Boolean)
+                .join(" ")
+                .trim();
+              return named || first.name || null;
+            })()}
           />
         </div>
       )}

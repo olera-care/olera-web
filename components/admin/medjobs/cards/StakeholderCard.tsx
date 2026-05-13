@@ -165,6 +165,25 @@ export function StakeholderCard({
   // rows that haven't been hydrated yet.
   const kindLabel = KIND_LABELS[row.kind ?? row.stakeholder_type ?? "student_org"];
 
+  // v9 final: per-recipient card copy hierarchy (Calls + Replies
+  // fan-out only). Three card "shapes" share this shell:
+  //   General Contact   → title = org name; subtitle =
+  //                       "Provider · General Contact · Near {campus}"
+  //   Specific Contact  → title = "{contact} · {org}" (org bolded);
+  //                       subtitle =
+  //                       "Provider · Specific Contact · {role} ·
+  //                        Near {campus}"
+  //   Non-fan-out row   → legacy title + subtitle (outreach as a
+  //                       whole — Prospects / All / Archive). The
+  //                       recipient_kind discriminator is null in
+  //                       this case.
+  const isGeneralCard = row.recipient_kind === "general";
+  const isSpecificCard = row.recipient_kind === "specific";
+  const titleText =
+    isGeneralCard
+      ? row.organization_name
+      : row.primary_contact_name || row.organization_name;
+
   return (
     <div
       role="button"
@@ -183,22 +202,63 @@ export function StakeholderCard({
         {/* LEFT: descriptive content stacked top-down */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className={`truncate text-sm ${unread ? "font-semibold" : "font-medium"} text-gray-900`}>
-              {row.primary_contact_name || row.organization_name}
-            </p>
+            {isSpecificCard ? (
+              <p className="truncate text-sm text-gray-900">
+                <span className={unread ? "font-semibold" : "font-medium"}>
+                  {row.primary_contact_name || row.organization_name}
+                </span>
+                {row.primary_contact_name &&
+                  row.primary_contact_name !== row.organization_name && (
+                    <>
+                      <span className="font-normal text-gray-500"> · </span>
+                      <span
+                        className={
+                          unread ? "font-semibold" : "font-semibold text-gray-900"
+                        }
+                      >
+                        {row.organization_name}
+                      </span>
+                    </>
+                  )}
+              </p>
+            ) : (
+              <p
+                className={`truncate text-sm ${
+                  unread ? "font-semibold" : "font-medium"
+                } text-gray-900`}
+              >
+                {titleText}
+              </p>
+            )}
             {headlineAccessory}
           </div>
           <p className="mt-0.5 truncate text-xs text-gray-500">
-            {row.primary_contact_name &&
-              row.primary_contact_name !== row.organization_name && (
+            {isGeneralCard || isSpecificCard ? (
               <>
-                {row.organization_name}
-                {row.department && row.department !== row.organization_name && ` · ${row.department}`}
+                {kindLabel}
                 {" · "}
+                {isGeneralCard ? "General Contact" : "Specific Contact"}
+                {isSpecificCard &&
+                  row.primary_contact_role &&
+                  ` · ${row.primary_contact_role}`}
+                {row.campus_name && ` · Near ${row.campus_name}`}
+              </>
+            ) : (
+              <>
+                {row.primary_contact_name &&
+                  row.primary_contact_name !== row.organization_name && (
+                    <>
+                      {row.organization_name}
+                      {row.department &&
+                        row.department !== row.organization_name &&
+                        ` · ${row.department}`}
+                      {" · "}
+                    </>
+                  )}
+                {row.campus_name} · {kindLabel}
+                {row.primary_contact_role && ` · ${row.primary_contact_role}`}
               </>
             )}
-            {row.campus_name} · {kindLabel}
-            {row.primary_contact_role && ` · ${row.primary_contact_role}`}
           </p>
           {footnote}
           {pill && (

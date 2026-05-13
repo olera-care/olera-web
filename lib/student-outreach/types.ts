@@ -360,6 +360,12 @@ export interface TabRow extends OutreachRow {
    *  Powers the "Open in directory ↗" overflow shortcut without an
    *  extra fetch. Null for stakeholder rows. */
   provider_slug?: string | null;
+  /** v9 final: per-recipient card identifier for Calls/Replies fan-out.
+   *  'general' = synthetic General Contact card; 'specific' = a
+   *  named Specific Contact card; null = non-fan-out row (Prospects,
+   *  All, Archive — represents the outreach as a whole). Drives the
+   *  card's copy hierarchy. */
+  recipient_kind?: "general" | "specific" | null;
 }
 
 /** Legacy alias kept while cleaning up old call sites. */

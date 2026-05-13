@@ -132,6 +132,9 @@ export interface TabRow extends OutreachRow {
   /** v9 final: business_profiles.slug for kind='provider' rows.
    *  Powers the row-card "Open in directory" shortcut. */
   provider_slug?: string | null;
+  /** v9 final: per-recipient card identifier. 'general' / 'specific'
+   *  on Calls + Replies fan-out rows; null elsewhere. */
+  recipient_kind?: "general" | "specific" | null;
 }
 
 export async function GET(req: NextRequest) {
@@ -1226,6 +1229,7 @@ async function hydrateRows(
     recipient_name: string | null;
     recipient_phone: string | null;
     recipient_role: string | null;
+    recipient_kind: "general" | "specific" | null;
   }
   const dueCallTasks: DueCallTaskExpanded[] = [];
   const hasPendingEmail = new Set<string>();
@@ -1259,6 +1263,12 @@ async function hydrateRows(
         typeof t.payload?.recipient_role === "string"
           ? (t.payload.recipient_role as string)
           : null;
+      const kindRaw =
+        typeof t.payload?.recipient_kind === "string"
+          ? (t.payload.recipient_kind as string)
+          : null;
+      const kind: "general" | "specific" | null =
+        kindRaw === "general" || kindRaw === "specific" ? kindRaw : null;
       dueCallTasks.push({
         task_id: t.id,
         outreach_id: t.outreach_id,
@@ -1266,6 +1276,7 @@ async function hydrateRows(
         recipient_name: name,
         recipient_phone: phone,
         recipient_role: role,
+        recipient_kind: kind,
       });
       // Legacy by-outreach maps still populated so non-Calls tabs that
       // peek at due_call_task continue to work.
@@ -1455,12 +1466,16 @@ async function hydrateRows(
           row_key: `${row.id}-${t.task_id}`,
           primary_contact_name: t.recipient_name ?? primary?.name ?? null,
           primary_contact_phone: t.recipient_phone ?? primary?.phone ?? null,
-          primary_contact_role: t.recipient_role ?? primary?.role ?? null,
+          primary_contact_role:
+            t.recipient_kind === "general"
+              ? "General Contact"
+              : t.recipient_role ?? primary?.role ?? null,
           due_call_task: { id: t.task_id, due_at: t.due_at },
           // One recipient per emitted row — list is redundant but
           // populated for compatibility with any caller that still
           // peeks at it.
           due_call_recipients: t.recipient_name ? [t.recipient_name] : [],
+          recipient_kind: t.recipient_kind,
         });
       }
     } else if (tab === "replies") {
@@ -1495,6 +1510,7 @@ async function hydrateRows(
               : primary?.role ?? null,
           due_call_task: null,
           due_call_recipients: [],
+          recipient_kind: r.recipient_kind,
         });
       }
     } else {

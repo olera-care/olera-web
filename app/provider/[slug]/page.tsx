@@ -20,6 +20,7 @@ import ClaimBadge from "@/components/providers/ClaimBadge";
 import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBar";
 import MobileProviderTopNav from "@/components/providers/MobileProviderTopNav";
 import MobileClaimLink from "@/components/providers/MobileClaimLink";
+import MobilePricingTooltip from "@/components/providers/MobilePricingTooltip";
 import PriceEstimate from "@/components/providers/PriceEstimate";
 import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
 import { getPricingConfig } from "@/lib/pricing-config";
@@ -890,39 +891,64 @@ export default async function ProviderPage({
                   <p className="text-sm text-gray-500 mt-1">{locationStr}</p>
                 )}
 
-                {/* Row 2: Category */}
-                {categoryLabel && (
-                  <p className="text-sm text-gray-500 mt-0.5">{categoryLabel}</p>
-                )}
+                {/* Row 2: Category + up to 2 highlights (dot-separated) */}
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {[
+                    categoryLabel,
+                    ...highlights.slice(0, 2).map((h) => h.label),
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
 
-                {/* Row 3: Rating | Pricing (Airbnb-style with divider) */}
-                <div className="flex items-center justify-center gap-4 mt-4">
-                  {/* Rating */}
-                  {hasRating && rating != null && (
-                    <>
-                      <div className="flex flex-col items-center">
-                        <div className="flex items-center gap-1">
-                          <span className="text-lg font-bold text-gray-900">{rating.toFixed(1)}</span>
-                          <StarIcon className="w-4 h-4 text-amber-400" />
+                {/* Row 3: Two-column layout — Reviews | Pricing */}
+                <div className="flex items-stretch justify-center mt-4">
+                  {/* Left column: Reviews */}
+                  <div className="flex flex-col items-center justify-center px-4">
+                    {hasRating && rating != null ? (
+                      <>
+                        <span className="text-xl font-bold text-gray-900">{rating.toFixed(1)}</span>
+                        <div className="flex gap-0.5 mt-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <StarIcon
+                              key={star}
+                              className="w-3 h-3 text-gray-900"
+                              filled={star <= Math.round(rating)}
+                            />
+                          ))}
                         </div>
-                        <span className="text-xs text-gray-400">Google</span>
-                      </div>
-                      <div className="h-8 w-px bg-gray-200" />
-                    </>
-                  )}
+                        <span className="text-xs text-gray-400 mt-0.5">
+                          {googleReviewsData?.review_count
+                            ? `${googleReviewsData.review_count} Google Review${googleReviewsData.review_count !== 1 ? "s" : ""}`
+                            : "Google"}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-sm font-medium text-gray-500">No reviews yet</span>
+                        <span className="text-xs text-gray-400 mt-0.5">Be first to review</span>
+                      </>
+                    )}
+                  </div>
 
-                  {/* Pricing */}
-                  <div className="flex flex-col items-center">
+                  {/* Divider */}
+                  <div className="w-px bg-gray-200 self-stretch" />
+
+                  {/* Right column: Pricing */}
+                  <div className="flex flex-col items-center justify-center px-4">
                     {pricingConfig?.tier === 3 && !hasPriceRange ? (
-                      <>
-                        <span className="text-sm font-medium text-gray-700">Medicare/Medicaid</span>
-                        <span className="text-xs text-gray-400">may cover</span>
-                      </>
+                      <MobilePricingTooltip
+                        topText="Medicare/Medicaid"
+                        bottomText="may cover"
+                        tooltipContent={pricingConfig.coverageNote?.({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined }) || pricingConfig.disclaimer({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined })}
+                      />
                     ) : hasPriceRange ? (
-                      <>
-                        <span className="text-lg font-bold text-gray-900">{priceRange}</span>
-                        <span className="text-xs text-gray-400">est.</span>
-                      </>
+                      <MobilePricingTooltip
+                        topText={priceRange!}
+                        bottomText="est."
+                        tooltipContent={pricingConfig?.disclaimer({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined }) || "Price is an estimate and may vary. Contact the provider for exact rates."}
+                        isPrice
+                      />
                     ) : (
                       <>
                         <span className="text-sm font-medium text-gray-700">Contact</span>

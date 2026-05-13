@@ -592,47 +592,69 @@ export default function MobileStickyBottomCTA({
       })
     : "recently";
 
+  // Parse price display
+  const getPriceDisplay = () => {
+    if (!priceRange) {
+      return { price: "Contact for pricing", subtitle: "Pricing not listed" };
+    }
+    const isHourly = priceRange.includes("/hr");
+    const isMonthly = priceRange.includes("/mo");
+    const priceWithoutUnit = priceRange.replace(/\/(hr|mo)$/i, "").trim();
+
+    if (isHourly) {
+      return { price: priceWithoutUnit, subtitle: "Estimated hourly cost" };
+    }
+    if (isMonthly) {
+      return { price: priceWithoutUnit, subtitle: "Estimated monthly cost" };
+    }
+    // Default case (no unit specified)
+    return { price: priceRange, subtitle: "Estimated cost" };
+  };
+
+  const { price, subtitle } = getPriceDisplay();
+
   return (
     <>
       {/*
        * Document-flow spacer — keeps page content from being permanently
        * hidden behind the fixed sticky bar on mobile.
-       * Height = bar content (~76 px) + iPhone safe-area-inset-bottom.
        */}
       <div
         className="md:hidden"
         aria-hidden="true"
-        style={{ height: "calc(76px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ height: "calc(140px + env(safe-area-inset-bottom, 0px))" }}
       />
 
-      {/* ── Sticky bottom bar ── */}
+      {/* ── Sticky bottom bar (always visible) ── */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
-          visible && !benefitsInView && !keyboardOpen ? "translate-y-0" : "translate-y-full"
+          !benefitsInView && !keyboardOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >
         <div
-          className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]"
+          className="bg-white border-t border-gray-200"
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
-          <div className="flex items-center gap-4 px-4 py-3.5">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 truncate">
-                What does this cost?
+          <div className="px-5 pt-4 pb-5">
+            {/* Pricing info */}
+            <div className="mb-4">
+              <p className="text-[22px] font-bold text-gray-900 leading-tight">
+                {price}
               </p>
-              <p className="text-[11px] text-gray-400">
-                No spam. No sales calls.
+              <p className="text-[14px] text-gray-500 mt-0.5">
+                {subtitle}
               </p>
             </div>
 
+            {/* Full-width CTA button */}
             <button
               onClick={() => {
                 fireSheetOpenEvent();
                 setSheetOpen(true);
               }}
-              className="flex-shrink-0 px-5 py-3 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[13px] font-semibold transition-colors"
+              className="w-full py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors"
             >
-              Check cost
+              Check cost & availability
             </button>
           </div>
         </div>

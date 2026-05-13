@@ -196,40 +196,67 @@ export default function MobileStickyCompare({
     };
   }, []);
 
+  // Parse price display
+  const getPriceDisplay = () => {
+    if (!priceRange) {
+      return { price: "Contact for pricing", subtitle: "Pricing not listed" };
+    }
+    const isHourly = priceRange.includes("/hr");
+    const isMonthly = priceRange.includes("/mo");
+    const priceWithoutUnit = priceRange.replace(/\/(hr|mo)$/i, "").trim();
+
+    if (isHourly) {
+      return { price: priceWithoutUnit, subtitle: "Estimated hourly cost" };
+    }
+    if (isMonthly) {
+      return { price: priceWithoutUnit, subtitle: "Estimated monthly cost" };
+    }
+    return { price: priceRange, subtitle: "Estimated cost" };
+  };
+
+  const { price, subtitle } = getPriceDisplay();
+
   return (
     <>
       {/* Document-flow spacer */}
       <div
         className="md:hidden"
         aria-hidden="true"
-        style={{ height: "calc(76px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ height: "calc(160px + env(safe-area-inset-bottom, 0px))" }}
       />
 
-      {/* Sticky bottom bar */}
+      {/* Sticky bottom bar (always visible) */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
-          visible && !benefitsInView && !keyboardOpen
+          !benefitsInView && !keyboardOpen
             ? "translate-y-0"
             : "translate-y-full"
         }`}
       >
         <div
-          className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]"
+          className="bg-white border-t border-gray-200"
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
-          <div className="flex items-center gap-4 px-4 py-3.5">
-            <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-bold text-gray-900 leading-tight">
-                How do they compare?
+          <div className="px-5 pt-4 pb-5">
+            {/* Pricing info */}
+            <div className="mb-3">
+              <p className="text-[22px] font-bold text-gray-900 leading-tight">
+                {price}
               </p>
-              <p className="text-[13px] text-gray-500 mt-0.5">
-                Side by side with {nearbyCount || 2} nearby home{nearbyCount !== 1 ? "s" : ""}
+              <p className="text-[14px] text-gray-500 mt-0.5">
+                {subtitle}
               </p>
             </div>
 
+            {/* Compare context */}
+            <p className="text-[13px] text-gray-600 mb-4">
+              Compare with {nearbyCount || 2} nearby home{nearbyCount !== 1 ? "s" : ""}
+            </p>
+
+            {/* Full-width CTA button */}
             <button
               onClick={handleCompareClick}
-              className="flex-shrink-0 px-6 py-3 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-xl text-[15px] font-semibold transition-colors"
+              className="w-full py-4 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-xl text-[16px] font-semibold transition-colors"
             >
               Compare
             </button>

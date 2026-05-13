@@ -81,7 +81,7 @@ export default function CollapsibleSection({
   const isOpen = !!forceOpen || !collapsed;
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white mb-6">
+    <div id={storageKey} className="rounded-2xl border border-gray-100 bg-white mb-6 scroll-mt-24">
       <button
         type="button"
         onClick={() => setCollapsed((c) => !c)}

@@ -8,7 +8,7 @@ import Select from "@/components/ui/Select";
 import { PROVIDER_CATEGORIES } from "@/lib/types";
 import { useCitySearch } from "@/hooks/use-city-search";
 import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
-import EmailTimeline from "@/components/admin/EmailTimeline";
+import ProviderCommsTimeline from "@/components/admin/ProviderCommsTimeline";
 import type { DirectoryProvider } from "@/lib/types";
 
 interface ImageMetadata {
@@ -27,6 +27,8 @@ interface ImageMetadata {
   review_status: string;
 }
 
+type ProviderSource = "scraped" | "user-created";
+
 export default function AdminDirectoryDetailPage() {
   const { providerId } = useParams<{ providerId: string }>();
   const router = useRouter();
@@ -39,6 +41,14 @@ export default function AdminDirectoryDetailPage() {
   const [rawImages, setRawImages] = useState<string[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [source, setSource] = useState<ProviderSource>("scraped");
+  // Canonical olera-providers.provider_id from the API response. URLs accept
+  // multiple input shapes (op.provider_id, op.slug, bp.id, bp.slug) but PATCH
+  // + image action endpoints require the exact provider_id. Without this, a
+  // user clicking through from an analytics top-providers link (op.slug URL)
+  // would get 404s on every save. Falls back to the URL param for the brief
+  // window before fetch completes (no handlers run that early anyway).
+  const [canonicalProviderId, setCanonicalProviderId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Owner/staff state (stored in business_profiles.metadata.staff)
@@ -82,6 +92,13 @@ export default function AdminDirectoryDetailPage() {
       setOriginalData({ ...data.provider });
       setImages(data.images ?? []);
       setRawImages(data.rawImages ?? []);
+      setSource(data.source === "user-created" ? "user-created" : "scraped");
+      // For scraped: olera-providers.provider_id. For user-created: the BP UUID.
+      // Fallback: the URL param (only hit in transient/error states).
+      const cid = (data.provider?.provider_id as string | undefined)
+        || (data.businessProfileId as string | undefined)
+        || providerId;
+      setCanonicalProviderId(cid);
 
       // Populate staff/owner data
       const staff = data.staffData as Record<string, string> | null;
@@ -149,8 +166,9 @@ export default function AdminDirectoryDetailPage() {
       return;
     }
 
+    const id = canonicalProviderId ?? providerId;
     try {
-      const res = await fetch(`/api/admin/directory/${providerId}`, {
+      const res = await fetch(`/api/admin/directory/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(delta),
@@ -173,15 +191,16 @@ export default function AdminDirectoryDetailPage() {
 
   async function handleImageAction(action: string, imageUrl?: string, newType?: string) {
     setActionLoading(`${action}-${imageUrl || ""}`);
+    const id = canonicalProviderId ?? providerId;
     try {
-      const res = await fetch(`/api/admin/images/${providerId}`, {
+      const res = await fetch(`/api/admin/images/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, image_url: imageUrl, new_type: newType }),
       });
       if (res.ok) {
         // Refresh detail to get updated images
-        const detailRes = await fetch(`/api/admin/directory/${providerId}`);
+        const detailRes = await fetch(`/api/admin/directory/${id}`);
         if (detailRes.ok) {
           const data = await detailRes.json();
           const prevCount = images.length + rawImages.length;
@@ -228,10 +247,11 @@ export default function AdminDirectoryDetailPage() {
 
   async function handleImageUpload(file: File) {
     setUploading(true);
+    const id = canonicalProviderId ?? providerId;
     try {
       const body = new FormData();
       body.append("file", file);
-      body.append("providerId", providerId);
+      body.append("providerId", id);
 
       const res = await fetch("/api/admin/directory/upload", {
         method: "POST",
@@ -240,7 +260,7 @@ export default function AdminDirectoryDetailPage() {
 
       if (res.ok) {
         // Refresh to show new image
-        const detailRes = await fetch(`/api/admin/directory/${providerId}`);
+        const detailRes = await fetch(`/api/admin/directory/${id}`);
         if (detailRes.ok) {
           const data = await detailRes.json();
           setFormData((prev) => ({ ...prev, provider_images: data.provider.provider_images }));
@@ -272,6 +292,7 @@ export default function AdminDirectoryDetailPage() {
   async function handleSaveStaff() {
     setSavingStaff(true);
     setStaffMessage(null);
+    const id = canonicalProviderId ?? providerId;
     try {
       const staffData = {
         name: staffName.trim(),
@@ -280,7 +301,7 @@ export default function AdminDirectoryDetailPage() {
         image: staffImage,
         care_motivation: staffCareMotivation.trim() || undefined,
       };
-      const res = await fetch(`/api/admin/directory/${providerId}`, {
+      const res = await fetch(`/api/admin/directory/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ _staff: staffName.trim() ? staffData : null }),
@@ -308,10 +329,11 @@ export default function AdminDirectoryDetailPage() {
 
   async function handleStaffPhotoUpload(file: File) {
     setUploadingStaffPhoto(true);
+    const id = canonicalProviderId ?? providerId;
     try {
       const body = new FormData();
       body.append("file", file);
-      body.append("providerId", providerId);
+      body.append("providerId", id);
 
       const res = await fetch("/api/admin/directory/upload", {
         method: "POST",
@@ -322,7 +344,7 @@ export default function AdminDirectoryDetailPage() {
         const data = await res.json();
         if (data.imageUrl) setStaffImage(data.imageUrl);
         // Also refresh provider images
-        const detailRes = await fetch(`/api/admin/directory/${providerId}`);
+        const detailRes = await fetch(`/api/admin/directory/${id}`);
         if (detailRes.ok) {
           const detail = await detailRes.json();
           setImages(detail.images ?? []);
@@ -343,6 +365,75 @@ export default function AdminDirectoryDetailPage() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-lg text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  if (source === "user-created") {
+    // Lite mode for providers who self-registered via business_profiles without
+    // claiming a scraped listing. The full editing surface assumes olera-providers
+    // shape and isn't safe to render against a BP row. Comms timeline is the
+    // load-bearing reason this page exists — user-created providers get emails
+    // and produce activity events exactly like scraped ones.
+    const bp = formData as Record<string, unknown>;
+    const displayName = (bp.display_name as string) || "Provider";
+    const bpSlug = typeof bp.slug === "string" ? bp.slug : null;
+    const city = (bp.city as string) || null;
+    const state = (bp.state as string) || null;
+    const claimState = (bp.claim_state as string) || null;
+    return (
+      <div className="max-w-4xl">
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            href="/admin/directory"
+            className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Directory
+          </Link>
+          {bpSlug && (
+            <Link
+              href={`/provider/${bpSlug}`}
+              target="_blank"
+              className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Open public page &rarr;
+            </Link>
+          )}
+        </div>
+
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+              User-created
+            </span>
+            {claimState && (
+              <Badge variant={claimState === "claimed" ? "verified" : "default"}>
+                {claimState}
+              </Badge>
+            )}
+            {(city || state) && (
+              <span className="text-sm text-gray-600">
+                {[city, state].filter(Boolean).join(", ")}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mb-6 text-sm text-amber-800">
+          This provider self-registered without claiming a scraped listing. The full
+          editing surface isn&apos;t available here yet — use{" "}
+          <Link href="/admin/verification" className="font-medium underline">/admin/verification</Link>
+          {" "}for claim review.
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Comms timeline</h2>
+          <ProviderCommsTimeline providerId={canonicalProviderId ?? providerId} viewAllEmailsHref={`/admin/emails?provider_id=${canonicalProviderId ?? providerId}`} />
+        </div>
       </div>
     );
   }
@@ -780,9 +871,9 @@ export default function AdminDirectoryDetailPage() {
           )}
         </Section>
 
-        {/* Automated emails */}
-        <Section title="Automated emails">
-          <EmailTimeline providerId={providerId} viewAllHref={`/admin/emails?provider_id=${providerId}`} />
+        {/* Comms timeline — emails + on-site activity, interleaved */}
+        <Section title="Comms timeline">
+          <ProviderCommsTimeline providerId={canonicalProviderId ?? providerId} viewAllEmailsHref={`/admin/emails?provider_id=${canonicalProviderId ?? providerId}`} />
         </Section>
 
         {/* Facility Manager / Owner */}
@@ -883,8 +974,9 @@ export default function AdminDirectoryDetailPage() {
               <button
                 onClick={async () => {
                   setSaving(true);
+                  const id = canonicalProviderId ?? providerId;
                   try {
-                    const res = await fetch(`/api/admin/directory/${providerId}`, {
+                    const res = await fetch(`/api/admin/directory/${id}`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ deleted: false }),
@@ -921,8 +1013,9 @@ export default function AdminDirectoryDetailPage() {
                 onClick={async () => {
                   if (!confirm(`Are you sure you want to delete "${provider.provider_name}"? It will be hidden from public search.`)) return;
                   setSaving(true);
+                  const id = canonicalProviderId ?? providerId;
                   try {
-                    const res = await fetch(`/api/admin/directory/${providerId}`, {
+                    const res = await fetch(`/api/admin/directory/${id}`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ deleted: true }),

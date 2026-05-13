@@ -17,6 +17,10 @@ import { variantSurfaceLabel, variantSubLabel } from "@/lib/analytics/variant-co
 import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
 import { ctaVariantLabel, ctaVariantSubLabel } from "@/lib/analytics/cta-variant-copy";
 import CTAVariantSessionsList from "@/components/admin/CTAVariantSessionsList";
+import {
+  PROVIDER_EMAIL_FUNNEL_LABELS,
+  PROVIDER_EMAIL_FUNNEL_ORDER,
+} from "@/lib/analytics/provider-email-funnels";
 
 interface WindowedCounts {
   page_view: number;
@@ -77,6 +81,42 @@ interface QaEmailIssue {
   type: "bounced" | "complained";
 }
 
+// Generalized provider-comms funnel — same data shape used by every email_type
+// bucket (Q&A, weekly digest, verification reminders, claim flow, profile
+// nudges, connections, plus `all` which is the union). Sent/Delivered/Opened/
+// Clicked are raw email_log row counts; the downstream four are
+// |clicked_set ∩ event_set| in window (approximate attribution — anchored on
+// activity time, not email send time). Engagement bounce = clicked but did
+// none of the four downstream events.
+interface ProviderCommsFunnel {
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  // Distinct providers who clicked ≥1 email of this bucket — the proper
+  // denominator for engagement_bounces (clicked is a raw row count).
+  distinct_clickers: number;
+  signed_in: number;
+  answered: number;
+  clicked_dashboard: number;
+  edited_profile: number;
+  engagement_bounces: number;
+  top_bouncers: Array<{
+    provider_id: string;
+    last_clicked_email_type: string;
+    last_clicked_at: string;
+  }>;
+}
+
+interface ProviderCommsFunnelByType {
+  all: ProviderCommsFunnel;
+  question_received: ProviderCommsFunnel;
+  weekly_digest: ProviderCommsFunnel;
+  verification: ProviderCommsFunnel;
+  nudges: ProviderCommsFunnel;
+  connections: ProviderCommsFunnel;
+}
+
 interface BenefitsFunnel {
   // Distinct sessions that saw the module render. Apples-to-apples top-of-
   // funnel for all four arms (benefits_entry_viewed for the 3 form arms,
@@ -120,11 +160,9 @@ interface CTAFunnel {
   converted: number;
 }
 
-interface CTAFunnelByVariant {
-  legacy: CTAFunnel;
-  compare: CTAFunnel;
-  unassigned: CTAFunnel;
-}
+// Dynamically supports all CTA variants from CTA_VARIANTS
+type CTAVariantKeyWithUnassigned = CTAVariant | "unassigned";
+type CTAFunnelByVariant = Record<CTAVariantKeyWithUnassigned, CTAFunnel>;
 
 // Provider response rate tracking — closes the loop on CTA effectiveness
 interface ProviderResponseMetrics {
@@ -135,25 +173,8 @@ interface ProviderResponseMetrics {
   awaiting_response_count: number;
 }
 
-interface ProviderResponseByVariant {
-  legacy: ProviderResponseMetrics;
-  compare: ProviderResponseMetrics;
-  unassigned: ProviderResponseMetrics;
-}
-
-interface AwaitingResponseLead {
-  connection_id: string;
-  family_name: string;
-  provider_name: string;
-  provider_slug: string;
-  created_at: string;
-  age_hours: number;
-  signals: {
-    email_clicked: boolean;
-    lead_opened: boolean;
-    contact_revealed: boolean;
-  };
-}
+// Dynamically supports all CTA variants from CTA_VARIANTS
+type ProviderResponseByVariant = Record<CTAVariantKeyWithUnassigned, ProviderResponseMetrics>;
 
 interface ReferrerBreakdown {
   ai_chat: number;
@@ -188,6 +209,7 @@ interface SummaryResponse {
     qa_funnel: ProviderQaFunnel;
     qa_funnel_by_variant: ProviderQaFunnelByVariant;
     qa_email_issues: QaEmailIssue[];
+    provider_comms_funnel_by_type: ProviderCommsFunnelByType;
     benefits_funnel: BenefitsFunnel;
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
     cta_funnel: CTAFunnel;
@@ -196,7 +218,6 @@ interface SummaryResponse {
     entry_source_breakdown: EntrySourceBreakdown;
     provider_response: ProviderResponseMetrics;
     provider_response_by_variant: ProviderResponseByVariant;
-    awaiting_response: AwaitingResponseLead[];
   };
   prior: {
     counts: WindowedCounts;
@@ -205,6 +226,7 @@ interface SummaryResponse {
     qa_funnel: ProviderQaFunnel;
     qa_funnel_by_variant: ProviderQaFunnelByVariant;
     qa_email_issues: QaEmailIssue[];
+    provider_comms_funnel_by_type: ProviderCommsFunnelByType;
     benefits_funnel: BenefitsFunnel;
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
     cta_funnel: CTAFunnel;
@@ -213,7 +235,6 @@ interface SummaryResponse {
     entry_source_breakdown: EntrySourceBreakdown;
     provider_response: ProviderResponseMetrics;
     provider_response_by_variant: ProviderResponseByVariant;
-    awaiting_response: AwaitingResponseLead[];
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -337,6 +358,16 @@ export default function AdminAnalyticsPage() {
         loading={loading && !!summary}
       >
         <QaFunnelCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Provider Comms Funnel"
+        storageKey="providerCommsFunnel"
+        defaultCollapsed={true}
+        forceOpen={!!searchParams.get("comms_filter")}
+        loading={loading && !!summary}
+      >
+        <ProviderCommsFunnelCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
       {/* Every section starts collapsed; the operator opens what they
@@ -864,6 +895,189 @@ function VariantSplit({ byVariant }: { byVariant: ProviderQaFunnelByVariant }) {
       )}
     </div>
   );
+}
+
+// ── Provider Comms Funnel ────────────────────────────────────────────────
+//
+// The Q&A funnel above is the focused report for one email type. This card
+// is the across-types view: pick an email-type bucket (or "All provider
+// email") and see the same funnel walk + the engagement-bounce panel.
+//
+// Filter is client-side state — the API returns every bucket on a single
+// /summary call so switching is instant. URL param `?comms_filter=` syncs
+// it for cross-links from the automations page.
+
+type ProviderCommsFilterKey = keyof ProviderCommsFunnelByType;
+
+function isCommsFilterKey(s: string | null): s is ProviderCommsFilterKey {
+  return !!s && (PROVIDER_EMAIL_FUNNEL_ORDER as readonly string[]).includes(s);
+}
+
+function ProviderCommsFunnelCard({
+  summary,
+  loading,
+  range,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+  range: DateRangeValue;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlFilter = searchParams.get("comms_filter");
+  const initial: ProviderCommsFilterKey = isCommsFilterKey(urlFilter) ? urlFilter : "all";
+  const [filter, setFilter] = useState<ProviderCommsFilterKey>(initial);
+
+  // Keep state in sync if the URL changes (back/forward, cross-link from
+  // another surface). When the URL drops the param entirely, reset to "all"
+  // so the dropdown doesn't lie about the rendered view.
+  useEffect(() => {
+    if (isCommsFilterKey(urlFilter)) {
+      if (urlFilter !== filter) setFilter(urlFilter);
+    } else if (urlFilter === null && filter !== "all") {
+      setFilter("all");
+    }
+    // intentionally not depending on `filter` — we only react to URL changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlFilter]);
+
+  const onChangeFilter = (next: ProviderCommsFilterKey) => {
+    setFilter(next);
+    // Write to URL so the section's state survives reloads and is shareable.
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === "all") params.delete("comms_filter");
+    else params.set("comms_filter", next);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  if (loading && !summary) {
+    return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
+  }
+  if (!summary) return null;
+
+  // Defensive: if the server response predates this field (stale cache or
+  // partial deploy), bail with a quiet placeholder rather than crashing on
+  // [filter] indexing into undefined.
+  if (!summary.windowed.provider_comms_funnel_by_type) {
+    return <p className="text-sm text-gray-400">Provider comms funnel not available in this response — server may be on an older deploy.</p>;
+  }
+
+  const f = summary.windowed.provider_comms_funnel_by_type[filter];
+  const pf = summary.prior?.provider_comms_funnel_by_type?.[filter] ?? null;
+
+  const stages: Array<{ label: string; value: number; prior: number | null; prev: number | null; tooltip: string }> = [
+    { label: "Sent", value: f.sent, prior: pf?.sent ?? null, prev: null,
+      tooltip: "Provider-bound emails of this type dispatched in this window (cohort denominator). One row per send in email_log." },
+    { label: "Delivered", value: f.delivered, prior: pf?.delivered ?? null, prev: f.sent,
+      tooltip: "Resend confirmed acceptance by recipient mailserver. % shown is delivery rate (delivered / sent)." },
+    { label: "Opened", value: f.opened, prior: pf?.opened ?? null, prev: f.delivered,
+      tooltip: "Provider opened the email (Resend webhook 'opened'). Apple Mail Privacy Protection prefetches images on receipt, inflating opens 30-50% for that cohort — clicks are the cleaner signal. % shown is open rate (opened / delivered)." },
+    { label: "Clicked", value: f.clicked, prior: pf?.clicked ?? null, prev: f.opened,
+      tooltip: "Provider clicked a tracked link in the email. % shown is click-to-open rate (CTOR)." },
+    { label: "Signed in", value: f.signed_in, prior: pf?.signed_in ?? null, prev: f.clicked,
+      tooltip: "Distinct providers who both clicked an email in this bucket AND did a one-click sign-in in window (any action: question / lead / review). Approximate attribution — anchored on activity time, not the email send. A provider who got multiple email types in the window may be counted in each bucket they clicked." },
+    { label: "Answered", value: f.answered, prior: pf?.answered ?? null, prev: f.clicked,
+      tooltip: "Distinct providers who clicked an email in this bucket AND answered ≥1 question in window. Same approximate-attribution caveat as Signed in." },
+    { label: "Clicked dashboard", value: f.clicked_dashboard, prior: pf?.clicked_dashboard ?? null, prev: f.clicked,
+      tooltip: "Distinct providers who clicked an email in this bucket AND clicked any dashboard CTA in window — union of the analytics teaser on /onboard and the dashboard hero on /provider." },
+    { label: "Edited profile", value: f.edited_profile, prior: pf?.edited_profile ?? null, prev: f.clicked,
+      tooltip: "Distinct providers who clicked an email in this bucket AND saved a profile edit in window. Lagging activation indicator." },
+  ];
+
+  // Denominator is distinct clickers, not raw click rows — engagement_bounces
+  // is distinct providers, so mixing units (bounces / raw clicks) would over-
+  // count clicks when a provider clicked multiple emails in the same bucket.
+  const bouncePct = f.distinct_clickers > 0 ? Math.round((f.engagement_bounces / f.distinct_clickers) * 100) : null;
+
+  return (
+    <>
+      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+        <p className="text-xs text-gray-500">
+          Cohort: provider emails sent {rangeLabel(range).toLowerCase()}, filtered to{" "}
+          <span className="font-medium text-gray-700">{PROVIDER_EMAIL_FUNNEL_LABELS[filter]}</span>.
+          Step % is conversion from the previous stage (Delivered → Sent, Opened → Delivered, Clicked → Opened, downstream → Clicked).
+        </p>
+        <label className="inline-flex items-center gap-1.5 text-xs">
+          <span className="text-gray-500">Filter</span>
+          <select
+            value={filter}
+            onChange={(e) => onChangeFilter(e.target.value as ProviderCommsFilterKey)}
+            className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700"
+          >
+            {PROVIDER_EMAIL_FUNNEL_ORDER.map((k) => (
+              <option key={k} value={k}>{PROVIDER_EMAIL_FUNNEL_LABELS[k]}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-4">
+        {stages.map((s) => <FunnelStat key={s.label} {...s} />)}
+      </div>
+
+      {/* Engagement bounce panel ─────────────────────────────────────── */}
+      <div className="mt-6 pt-5 border-t border-gray-100">
+        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
+          Engagement bounces
+        </div>
+        <p className="text-[11px] text-gray-400 mb-3">
+          Providers who clicked an email of this bucket but produced none of the four downstream events in window. The diagnostic for &ldquo;they came in &mdash; what happened?&rdquo;
+        </p>
+        <div className="grid grid-cols-2 gap-x-5 gap-y-4 mb-4 max-w-md">
+          <div title="Distinct providers who clicked but did nothing measurable on-site.">
+            <div className="text-[26px] font-semibold tabular-nums leading-none text-gray-900">{f.engagement_bounces.toLocaleString()}</div>
+            <div className="text-xs text-gray-500 mt-1.5 leading-tight">Clicked &amp; bounced</div>
+            <div className="text-[10.5px] tabular-nums mt-1.5 leading-none">
+              {bouncePct !== null ? (
+                <span className="text-gray-500 font-medium">{bouncePct}% of {f.distinct_clickers.toLocaleString()} clickers</span>
+              ) : <span className="invisible">.</span>}
+            </div>
+          </div>
+        </div>
+
+        {f.top_bouncers.length === 0 ? (
+          <p className="text-sm text-gray-400">No engagement bounces in window.</p>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-gray-100">
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-100 bg-gray-50/60 text-[10px] uppercase tracking-wider text-gray-400">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium">Provider</th>
+                  <th className="px-3 py-2 text-left font-medium">Last clicked email</th>
+                  <th className="px-3 py-2 text-right font-medium">When</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {f.top_bouncers.map((b) => (
+                  <tr key={b.provider_id} className="text-gray-700">
+                    <td className="px-3 py-2">
+                      <Link href={`/admin/directory/${b.provider_id}`} className="text-teal-700 hover:underline">{b.provider_id}</Link>
+                    </td>
+                    <td className="px-3 py-2 text-gray-600">{b.last_clicked_email_type}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-500" title={new Date(b.last_clicked_at).toLocaleString()}>
+                      {timeAgoShort(b.last_clicked_at)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// Compact "Nm/Nh/Nd ago" formatter used by the engagement-bouncers table.
+function timeAgoShort(iso: string): string {
+  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
 }
 
 // ── Family Intake ────────────────────────────────────────────────────────
@@ -1762,8 +1976,10 @@ function CTAVariantSplit({
   const router = useRouter();
   const searchParams = useSearchParams();
   const expandedRaw = searchParams.get("cta_variant");
+  // Valid keys: all CTA_VARIANTS + "unassigned"
+  const validKeys = new Set<string>([...CTA_VARIANTS, "unassigned"]);
   const expandedVariant: CTAVariantKey | null =
-    expandedRaw && (expandedRaw === "legacy" || expandedRaw === "compare" || expandedRaw === "unassigned")
+    expandedRaw && validKeys.has(expandedRaw)
       ? (expandedRaw as CTAVariantKey)
       : null;
 
@@ -1785,7 +2001,8 @@ function CTAVariantSplit({
   const dateFrom = resolved.from ?? null;
   const dateTo = resolved.to ?? null;
 
-  const totalAssigned = byVariant.legacy.impressions + byVariant.compare.impressions;
+  // Sum impressions across all actual CTA variants (not unassigned)
+  const totalAssigned = CTA_VARIANTS.reduce((sum, v) => sum + (byVariant[v]?.impressions ?? 0), 0);
   const waitingForFirstImpression = totalAssigned === 0;
 
   const rate = (num: number, den: number) =>
@@ -1794,10 +2011,12 @@ function CTAVariantSplit({
   // Variants that track the "engaged" step (save_comparison_clicked)
   const ENGAGED_VARIANTS = new Set<CTAVariantKey>(["compare"]);
 
-  const arms: Array<{ key: CTAVariantKey; label: string; description: string }> = [
-    { key: "legacy", label: "Legacy CTA", description: "Current CTA design (ConnectionCardWithRedirect + MobileStickyBottomCTA)" },
-    { key: "compare", label: "Compare CTA", description: "Side-by-side comparison with 2 nearby providers (CompareCard + MobileStickyCompare)" },
-  ];
+  // Dynamically generate arms from CTA_VARIANTS for consistent coverage
+  const arms: Array<{ key: CTAVariantKey; label: string; description: string }> = CTA_VARIANTS.map(v => ({
+    key: v,
+    label: ctaVariantLabel(v),
+    description: ctaVariantSubLabel(v),
+  }));
 
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">
@@ -2027,10 +2246,11 @@ function ProviderResponseVariantSplit({
 }: {
   byVariant: ProviderResponseByVariant;
 }) {
-  const arms: Array<{ key: keyof ProviderResponseByVariant; label: string }> = [
-    { key: "legacy", label: "Legacy CTA" },
-    { key: "compare", label: "Compare CTA" },
-  ];
+  // Dynamically generate arms from CTA_VARIANTS for consistent coverage
+  const arms: Array<{ key: keyof ProviderResponseByVariant; label: string }> = CTA_VARIANTS.map(v => ({
+    key: v,
+    label: ctaVariantLabel(v),
+  }));
 
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">
@@ -2076,14 +2296,42 @@ function ProviderResponseVariantSplit({
 
 // ResponseLeadsList — paginated list of leads with filters and nudge functionality.
 // Replaces the old static AwaitingResponseList with a full-featured drill-in.
-type ResponseLeadFilter = "all" | "awaiting" | "responded";
+type ResponseLeadFilter = "all" | "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
+
+interface FilterCounts {
+  all: number;
+  needs_attention: number;
+  provider_nudged: number;
+  family_nudged: number;
+  responded: number;
+  no_email: number;
+}
+
+interface ProfileCompleteness {
+  percentage: number;
+  missingFields: string[];
+}
 
 interface ResponseLead {
   connection_id: string;
+  // Family info
+  family_id: string;
   family_name: string;
   family_email: string | null;
+  family_phone: string | null;
+  family_completeness: ProfileCompleteness;
+  family_is_published: boolean;
+  family_nudged_at: string | null;
+  family_publish_nudged_at: string | null;
+  // Provider info
+  provider_id: string;
   provider_name: string;
+  provider_email: string | null;
+  provider_phone: string | null;
   provider_slug: string;
+  provider_completeness: ProfileCompleteness;
+  provider_nudged_at: string | null;
+  // Lead info
   message_preview: string;
   created_at: string;
   age_hours: number;
@@ -2091,7 +2339,6 @@ interface ResponseLead {
   response_time_hours: number | null;
   provider_response: string | null;
   cta_variant: string | null;
-  nudged_at: string | null;
 }
 
 const PAGE_SIZE = 50;
@@ -2103,20 +2350,30 @@ function ResponseLeadsList({
   dateFrom: string | null;
   dateTo: string | null;
 }) {
-  const [filter, setFilter] = useState<ResponseLeadFilter>("awaiting");
+  const [filter, setFilter] = useState<ResponseLeadFilter>("needs_attention");
   const [leads, setLeads] = useState<ResponseLead[]>([]);
   const [total, setTotal] = useState<number | null>(null);
+  const [counts, setCounts] = useState<FilterCounts | null>(null);
   const [truncated, setTruncated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [nudging, setNudging] = useState<string | null>(null);
-  const [nudgeSuccess, setNudgeSuccess] = useState<string | null>(null);
+  // Nudge state: tracks which party (family/provider/familyPublish) is being nudged for which connection
+  const [nudgingProvider, setNudgingProvider] = useState<string | null>(null);
+  const [nudgingFamily, setNudgingFamily] = useState<string | null>(null);
+  const [nudgingFamilyPublish, setNudgingFamilyPublish] = useState<string | null>(null);
+  const [nudgeSuccess, setNudgeSuccess] = useState<{ id: string; type: "family" | "provider" | "familyPublish" } | null>(null);
   const [nudgeError, setNudgeError] = useState<string | null>(null);
   // Delete state
   const [pendingDelete, setPendingDelete] = useState<ResponseLead | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  // Add email state (inline editing) - now tracks which party
+  const [editingEmail, setEditingEmail] = useState<{ id: string; type: "family" | "provider" } | null>(null);
+  const [emailInput, setEmailInput] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [emailAddSuccess, setEmailAddSuccess] = useState<{ id: string; type: "family" | "provider" } | null>(null);
+  const [emailAddError, setEmailAddError] = useState<string | null>(null);
 
   // Track timeout IDs for cleanup on unmount
   const timeoutRefs = useRef<Set<NodeJS.Timeout>>(new Set());
@@ -2147,8 +2404,9 @@ function ResponseLeadsList({
 
         const res = await fetch(`/api/admin/analytics/response-leads?${params.toString()}`);
         if (!res.ok) throw new Error("fetch failed");
-        const data: { total: number; leads: ResponseLead[]; truncated?: boolean } = await res.json();
+        const data: { total: number; leads: ResponseLead[]; counts: FilterCounts; truncated?: boolean } = await res.json();
         setTotal(data.total);
+        setCounts(data.counts);
         setTruncated(data.truncated ?? false);
         setLeads((prev) => (append ? [...prev, ...data.leads] : data.leads));
       } catch {
@@ -2165,8 +2423,9 @@ function ResponseLeadsList({
     fetchPage(0, false);
   }, [fetchPage]);
 
-  const handleNudge = useCallback(async (connectionId: string) => {
-    setNudging(connectionId);
+  // Nudge provider to respond to the lead
+  const handleNudgeProvider = useCallback(async (connectionId: string) => {
+    setNudgingProvider(connectionId);
     setNudgeError(null);
     setNudgeSuccess(null);
 
@@ -2183,15 +2442,10 @@ function ResponseLeadsList({
         throw new Error(data.error || "Failed to send nudge");
       }
 
-      setNudgeSuccess(connectionId);
-      // Update local state to show nudged indicator
-      const nudgedAt = new Date().toISOString();
-      setLeads((prev) =>
-        prev.map((l) =>
-          l.connection_id === connectionId ? { ...l, nudged_at: nudgedAt } : l
-        )
-      );
-      // Clear "Sent" message after 3 seconds (will show "Nudged" after)
+      setNudgeSuccess({ id: connectionId, type: "provider" });
+      // Refetch to update counts and move lead to correct tab
+      fetchPage(0, false);
+      // Clear "Sent" message after 3 seconds
       const successTimeout = setTimeout(() => setNudgeSuccess(null), 3000);
       timeoutRefs.current.add(successTimeout);
     } catch (err) {
@@ -2199,9 +2453,77 @@ function ResponseLeadsList({
       const errorTimeout = setTimeout(() => setNudgeError(null), 5000);
       timeoutRefs.current.add(errorTimeout);
     } finally {
-      setNudging(null);
+      setNudgingProvider(null);
     }
-  }, []);
+  }, [fetchPage]);
+
+  // Nudge family to complete their profile
+  const handleNudgeFamily = useCallback(async (connectionId: string, familyId: string) => {
+    setNudgingFamily(connectionId);
+    setNudgeError(null);
+    setNudgeSuccess(null);
+
+    try {
+      const res = await fetch("/api/admin/nudge-family", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection_id: connectionId, family_profile_id: familyId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send nudge");
+      }
+
+      setNudgeSuccess({ id: connectionId, type: "family" });
+      // Refetch to update counts and move lead to correct tab
+      fetchPage(0, false);
+      // Clear "Sent" message after 3 seconds
+      const successTimeout = setTimeout(() => setNudgeSuccess(null), 3000);
+      timeoutRefs.current.add(successTimeout);
+    } catch (err) {
+      setNudgeError(err instanceof Error ? err.message : "Failed to send nudge");
+      const errorTimeout = setTimeout(() => setNudgeError(null), 5000);
+      timeoutRefs.current.add(errorTimeout);
+    } finally {
+      setNudgingFamily(null);
+    }
+  }, [fetchPage]);
+
+  // Nudge family to publish their profile (when complete but not published)
+  const handleNudgeFamilyPublish = useCallback(async (connectionId: string, familyId: string) => {
+    setNudgingFamilyPublish(connectionId);
+    setNudgeError(null);
+    setNudgeSuccess(null);
+
+    try {
+      const res = await fetch("/api/admin/nudge-family-publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection_id: connectionId, family_profile_id: familyId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send nudge");
+      }
+
+      setNudgeSuccess({ id: connectionId, type: "familyPublish" });
+      // Refetch to update counts and move lead to correct tab
+      fetchPage(0, false);
+      // Clear "Sent" message after 3 seconds
+      const successTimeout = setTimeout(() => setNudgeSuccess(null), 3000);
+      timeoutRefs.current.add(successTimeout);
+    } catch (err) {
+      setNudgeError(err instanceof Error ? err.message : "Failed to send nudge");
+      const errorTimeout = setTimeout(() => setNudgeError(null), 5000);
+      timeoutRefs.current.add(errorTimeout);
+    } finally {
+      setNudgingFamilyPublish(null);
+    }
+  }, [fetchPage]);
 
   const confirmDelete = useCallback(async () => {
     if (!pendingDelete) return;
@@ -2229,12 +2551,62 @@ function ResponseLeadsList({
     }
   }, [pendingDelete]);
 
+  // Handle inline email add for either family or provider
+  const handleAddEmail = useCallback(async (lead: ResponseLead, partyType: "family" | "provider") => {
+    const profileId = partyType === "family" ? lead.family_id : lead.provider_id;
+    if (!emailInput.trim() || !profileId) return;
+
+    // Basic email validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.trim())) {
+      setEmailAddError("Invalid email format");
+      return;
+    }
+
+    setSavingEmail(true);
+    setEmailAddError(null);
+
+    try {
+      const res = await fetch("/api/admin/leads/add-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profileId,
+          email: emailInput.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || "Failed to save email");
+      }
+
+      setEmailAddSuccess({ id: lead.connection_id, type: partyType });
+      setEditingEmail(null);
+      setEmailInput("");
+      // Refetch to update counts and move lead to correct tab
+      fetchPage(0, false);
+
+      // Clear success message after 3 seconds
+      const successTimeout = setTimeout(() => setEmailAddSuccess(null), 3000);
+      timeoutRefs.current.add(successTimeout);
+    } catch (err) {
+      setEmailAddError(err instanceof Error ? err.message : "Failed to save");
+      const errorTimeout = setTimeout(() => setEmailAddError(null), 5000);
+      timeoutRefs.current.add(errorTimeout);
+    } finally {
+      setSavingEmail(false);
+    }
+  }, [emailInput, fetchPage]);
+
   const hasMore = total !== null && leads.length < total;
 
-  const FILTER_CHIPS: Array<{ key: ResponseLeadFilter; label: string }> = [
-    { key: "all", label: "All" },
-    { key: "awaiting", label: "Awaiting" },
-    { key: "responded", label: "Responded" },
+  const FILTER_TABS: Array<{ key: ResponseLeadFilter; label: string; description: string }> = [
+    { key: "all", label: "All", description: "All leads" },
+    { key: "needs_attention", label: "Needs Attention", description: "Ready to nudge" },
+    { key: "provider_nudged", label: "Provider Nudged", description: "Waiting on provider" },
+    { key: "family_nudged", label: "Family Nudged", description: "Waiting on family" },
+    { key: "responded", label: "Responded", description: "Provider replied" },
+    { key: "no_email", label: "No Email", description: "Need email first" },
   ];
 
   return (
@@ -2251,27 +2623,35 @@ function ResponseLeadsList({
               {filter !== "all" && (
                 <span className="text-gray-400">
                   {" "}
-                  · filtered to {filter === "awaiting" ? "awaiting response" : "responded"}
+                  · {FILTER_TABS.find((t) => t.key === filter)?.description || filter}
                 </span>
               )}
             </div>
           )}
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {FILTER_CHIPS.map(({ key, label }) => {
+          {FILTER_TABS.map(({ key, label }) => {
             const active = filter === key;
+            const count = counts?.[key] ?? 0;
             return (
               <button
                 key={key}
                 type="button"
                 onClick={() => setFilter(key)}
-                className={`text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors ${
+                className={`text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors flex items-center gap-1.5 ${
                   active
                     ? "bg-gray-900 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
                 }`}
               >
                 {label}
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    active ? "bg-white/20 text-white" : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  {count}
+                </span>
               </button>
             );
           })}
@@ -2289,6 +2669,11 @@ function ResponseLeadsList({
       {nudgeError && (
         <div className="mb-3 px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
           {nudgeError}
+        </div>
+      )}
+      {emailAddError && (
+        <div className="mb-3 px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
+          {emailAddError}
         </div>
       )}
 
@@ -2315,101 +2700,302 @@ function ResponseLeadsList({
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left px-4 py-2 font-medium text-gray-600">Family</th>
-                <th className="text-left px-4 py-2 font-medium text-gray-600">Provider</th>
+                <th className="text-left px-4 py-2 font-medium text-gray-600 w-[280px]">Family</th>
+                <th className="text-left px-4 py-2 font-medium text-gray-600 w-[280px]">Provider</th>
                 <th className="text-left px-4 py-2 font-medium text-gray-600">Response</th>
-                <th className="text-right px-4 py-2 font-medium text-gray-600">Sent</th>
-                <th className="text-center px-4 py-2 font-medium text-gray-600 w-20">Action</th>
+                <th className="text-right px-4 py-2 font-medium text-gray-600 w-20">Sent</th>
                 <th className="px-2 py-2 font-medium w-8" aria-label="Delete" />
               </tr>
             </thead>
             <tbody>
-              {leads.map((lead) => (
-                <tr
-                  key={lead.connection_id}
-                  className="group border-b border-gray-100 last:border-0 hover:bg-gray-50/40"
-                >
-                  <td className="px-4 py-2.5">
-                    <div className="text-gray-900">{lead.family_name}</div>
-                    {lead.family_email && (
-                      <div className="text-[11px] text-gray-400 truncate max-w-[180px]" title={lead.family_email}>
-                        {lead.family_email}
+              {leads.map((lead) => {
+                const isEditingFamilyEmail = editingEmail?.id === lead.connection_id && editingEmail.type === "family";
+                const isEditingProviderEmail = editingEmail?.id === lead.connection_id && editingEmail.type === "provider";
+                const familyEmailSuccess = emailAddSuccess?.id === lead.connection_id && emailAddSuccess.type === "family";
+                const providerEmailSuccess = emailAddSuccess?.id === lead.connection_id && emailAddSuccess.type === "provider";
+                const familyNudgeSuccess = nudgeSuccess?.id === lead.connection_id && nudgeSuccess.type === "family";
+                const familyPublishNudgeSuccess = nudgeSuccess?.id === lead.connection_id && nudgeSuccess.type === "familyPublish";
+                const providerNudgeSuccess = nudgeSuccess?.id === lead.connection_id && nudgeSuccess.type === "provider";
+
+                return (
+                  <tr
+                    key={lead.connection_id}
+                    className="group border-b border-gray-100 last:border-0 hover:bg-gray-50/40"
+                  >
+                    {/* Family Column */}
+                    <td className="px-4 py-3 align-top">
+                      <div className="space-y-2">
+                        {/* Name and contact */}
+                        <div>
+                          <div className="text-gray-900 font-medium text-[13px]">{lead.family_name}</div>
+                          {lead.family_email ? (
+                            <div className="text-[11px] text-gray-400 truncate max-w-[200px]" title={lead.family_email}>
+                              {lead.family_email}
+                            </div>
+                          ) : (
+                            <div className="text-[11px] text-amber-500 italic">no email</div>
+                          )}
+                          {lead.family_phone && (
+                            <div className="text-[11px] text-gray-400">{lead.family_phone}</div>
+                          )}
+                        </div>
+
+                        {/* Completeness + action (inline) */}
+                        <div className="text-[11px] text-gray-500">
+                          {familyEmailSuccess ? (
+                            <span className="text-emerald-600">Email added</span>
+                          ) : isEditingFamilyEmail ? (
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                handleAddEmail(lead, "family");
+                              }}
+                              className="flex items-center gap-1"
+                            >
+                              <input
+                                type="email"
+                                placeholder="email@example.com"
+                                value={emailInput}
+                                onChange={(e) => setEmailInput(e.target.value)}
+                                className="w-28 px-2 py-1 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400"
+                                disabled={savingEmail}
+                                autoFocus
+                              />
+                              <button
+                                type="submit"
+                                disabled={savingEmail || !emailInput.trim()}
+                                className="text-[11px] text-gray-600 hover:text-gray-900 disabled:opacity-50"
+                              >
+                                {savingEmail ? "..." : "Save"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEmail(null);
+                                  setEmailInput("");
+                                  setEmailAddError(null);
+                                }}
+                                className="text-[11px] text-gray-400 hover:text-gray-600"
+                              >
+                                ✕
+                              </button>
+                            </form>
+                          ) : !lead.family_email ? (
+                            <span>
+                              {lead.family_completeness.percentage}% ·{" "}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEmail({ id: lead.connection_id, type: "family" });
+                                  setEmailInput("");
+                                  setEmailAddError(null);
+                                }}
+                                className="text-gray-600 hover:text-gray-900 underline underline-offset-2"
+                              >
+                                Add email
+                              </button>
+                            </span>
+                          ) : lead.family_completeness.percentage < 80 ? (
+                            <span>
+                              {lead.family_completeness.percentage}% ·{" "}
+                              {familyNudgeSuccess ? (
+                                <span className="text-emerald-600">Sent</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleNudgeFamily(lead.connection_id, lead.family_id)}
+                                  disabled={nudgingFamily === lead.connection_id}
+                                  className="text-gray-600 hover:text-gray-900 underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
+                                  title="Nudge family to complete profile"
+                                >
+                                  {nudgingFamily === lead.connection_id ? "..." : "Nudge"}
+                                </button>
+                              )}
+                              {lead.family_nudged_at && (
+                                <span className="text-gray-400 ml-1">
+                                  ({formatLeadAge((Date.now() - new Date(lead.family_nudged_at).getTime()) / (1000 * 60 * 60))})
+                                </span>
+                              )}
+                            </span>
+                          ) : !lead.family_is_published ? (
+                            <span>
+                              {lead.family_completeness.percentage}% ·{" "}
+                              {familyPublishNudgeSuccess ? (
+                                <span className="text-emerald-600">Sent</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleNudgeFamilyPublish(lead.connection_id, lead.family_id)}
+                                  disabled={nudgingFamilyPublish === lead.connection_id}
+                                  className="text-gray-600 hover:text-gray-900 underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
+                                  title="Nudge family to publish profile"
+                                >
+                                  {nudgingFamilyPublish === lead.connection_id ? "..." : "Publish"}
+                                </button>
+                              )}
+                              {lead.family_publish_nudged_at && (
+                                <span className="text-gray-400 ml-1">
+                                  ({formatLeadAge((Date.now() - new Date(lead.family_publish_nudged_at).getTime()) / (1000 * 60 * 60))})
+                                </span>
+                              )}
+                            </span>
+                          ) : (
+                            <span className="text-emerald-600">Published ✓</span>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {lead.provider_slug ? (
-                      <Link
-                        href={`/provider/${lead.provider_slug}`}
-                        className="text-emerald-700 hover:text-emerald-800"
+                    </td>
+
+                    {/* Provider Column */}
+                    <td className="px-4 py-3 align-top">
+                      <div className="space-y-2">
+                        {/* Name and contact */}
+                        <div>
+                          {lead.provider_slug ? (
+                            <Link
+                              href={`/admin/directory/${lead.provider_slug}`}
+                              className="text-emerald-700 hover:text-emerald-800 font-medium text-[13px]"
+                            >
+                              {lead.provider_name}
+                            </Link>
+                          ) : (
+                            <span className="text-gray-900 font-medium text-[13px]">{lead.provider_name}</span>
+                          )}
+                          {lead.provider_email ? (
+                            <div className="text-[11px] text-gray-400 truncate max-w-[200px]" title={lead.provider_email}>
+                              {lead.provider_email}
+                            </div>
+                          ) : (
+                            <div className="text-[11px] text-amber-500 italic">no email</div>
+                          )}
+                          {lead.provider_phone && (
+                            <div className="text-[11px] text-gray-400">{lead.provider_phone}</div>
+                          )}
+                        </div>
+
+                        {/* Completeness + action (inline) */}
+                        <div className="text-[11px] text-gray-500">
+                          {lead.responded ? (
+                            <span className="text-emerald-600">Replied ✓</span>
+                          ) : providerEmailSuccess ? (
+                            <span className="text-emerald-600">Email added</span>
+                          ) : isEditingProviderEmail ? (
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                handleAddEmail(lead, "provider");
+                              }}
+                              className="flex items-center gap-1"
+                            >
+                              <input
+                                type="email"
+                                placeholder="email@example.com"
+                                value={emailInput}
+                                onChange={(e) => setEmailInput(e.target.value)}
+                                className="w-28 px-2 py-1 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400"
+                                disabled={savingEmail}
+                                autoFocus
+                              />
+                              <button
+                                type="submit"
+                                disabled={savingEmail || !emailInput.trim()}
+                                className="text-[11px] text-gray-600 hover:text-gray-900 disabled:opacity-50"
+                              >
+                                {savingEmail ? "..." : "Save"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEmail(null);
+                                  setEmailInput("");
+                                  setEmailAddError(null);
+                                }}
+                                className="text-[11px] text-gray-400 hover:text-gray-600"
+                              >
+                                ✕
+                              </button>
+                            </form>
+                          ) : !lead.provider_email ? (
+                            <span>
+                              {lead.provider_completeness.percentage}% ·{" "}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEmail({ id: lead.connection_id, type: "provider" });
+                                  setEmailInput("");
+                                  setEmailAddError(null);
+                                }}
+                                className="text-gray-600 hover:text-gray-900 underline underline-offset-2"
+                              >
+                                Add email
+                              </button>
+                            </span>
+                          ) : (
+                            <span>
+                              {lead.provider_completeness.percentage}% ·{" "}
+                              {providerNudgeSuccess ? (
+                                <span className="text-emerald-600">Sent</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleNudgeProvider(lead.connection_id)}
+                                  disabled={nudgingProvider === lead.connection_id}
+                                  className="text-gray-600 hover:text-gray-900 underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
+                                  title="Nudge provider to respond"
+                                >
+                                  {nudgingProvider === lead.connection_id ? "..." : "Nudge"}
+                                </button>
+                              )}
+                              {lead.provider_nudged_at && (
+                                <span className="text-gray-400 ml-1">
+                                  ({formatLeadAge((Date.now() - new Date(lead.provider_nudged_at).getTime()) / (1000 * 60 * 60))})
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Response Column */}
+                    <td className="px-4 py-3 align-top text-gray-600 max-w-[220px]">
+                      {lead.provider_response ? (
+                        <span className="text-xs block" title={lead.provider_response}>
+                          &ldquo;{lead.provider_response.length > 80
+                            ? lead.provider_response.substring(0, 77) + "..."
+                            : lead.provider_response}&rdquo;
+                        </span>
+                      ) : (
+                        <span className="text-gray-300 text-xs">Awaiting response</span>
+                      )}
+                    </td>
+
+                    {/* Sent Column */}
+                    <td className="px-4 py-3 align-top text-right text-gray-500 whitespace-nowrap">
+                      {formatLeadAge(lead.age_hours)}
+                    </td>
+
+                    {/* Delete Column */}
+                    <td className="px-2 py-3 align-top w-8 text-right">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteError(null);
+                          setPendingDelete(lead);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
+                        aria-label="Delete this lead"
+                        title="Delete this lead"
                       >
-                        {lead.provider_name}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-900">{lead.provider_name}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-600 max-w-[220px]">
-                    {lead.provider_response ? (
-                      <span className="text-xs truncate block" title={lead.provider_response}>
-                        &ldquo;{lead.provider_response.length > 60
-                          ? lead.provider_response.substring(0, 57) + "..."
-                          : lead.provider_response}&rdquo;
-                      </span>
-                    ) : (
-                      <span className="text-gray-300 text-xs">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5 text-right text-gray-500 whitespace-nowrap">
-                    {formatLeadAge(lead.age_hours)}
-                  </td>
-                  <td className="px-4 py-2.5 text-center">
-                    {lead.responded ? (
-                      <span className="text-xs text-emerald-600">Replied</span>
-                    ) : (
-                      <div className="flex flex-col items-center gap-0.5">
-                        {nudgeSuccess === lead.connection_id ? (
-                          <span className="text-xs text-emerald-600">Sent</span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleNudge(lead.connection_id)}
-                            disabled={nudging === lead.connection_id}
-                            className="text-xs text-amber-600 hover:text-amber-700 disabled:opacity-50"
-                            title={lead.nudged_at ? "Send another reminder" : "Send reminder to provider"}
-                          >
-                            {nudging === lead.connection_id ? "..." : "Nudge"}
-                          </button>
-                        )}
-                        {lead.nudged_at && (
-                          <span className="text-[10px] text-gray-400">
-                            {formatLeadAge(
-                              (Date.now() - new Date(lead.nudged_at).getTime()) / (1000 * 60 * 60)
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-2 py-2.5 w-8 text-right">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteError(null);
-                        setPendingDelete(lead);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
-                      aria-label="Delete this lead"
-                      title="Delete this lead"
-                    >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -2456,7 +3042,12 @@ function ResponseLeadsList({
               </div>
               <div className="flex gap-2">
                 <dt className="w-20 shrink-0 text-gray-400">Provider</dt>
-                <dd className="text-gray-900">{pendingDelete.provider_name}</dd>
+                <dd className="text-gray-900">
+                  {pendingDelete.provider_name}
+                  {pendingDelete.provider_email && (
+                    <span className="block text-xs text-gray-500">{pendingDelete.provider_email}</span>
+                  )}
+                </dd>
               </div>
               <div className="flex gap-2">
                 <dt className="w-20 shrink-0 text-gray-400">Sent</dt>
@@ -2847,14 +3438,12 @@ function TopProvidersCard({
               {sorted.map((p) => (
                 <tr key={p.provider_id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
                   <td className="px-6 py-2.5">
-                    <a
-                      href={`/provider/${p.provider_id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      href={`/admin/directory/${p.provider_id}`}
                       className="text-emerald-700 hover:underline"
                     >
                       {p.provider_name || p.provider_id}
-                    </a>
+                    </Link>
                     {p.provider_name && (
                       <div className="text-[11px] font-mono text-gray-400 mt-0.5">
                         {p.provider_id}
@@ -2952,14 +3541,12 @@ function LatestEventsCard({
                     <EventBadge type={e.event_type} />
                   </td>
                   <td className="px-6 py-2 font-mono text-xs">
-                    <a
-                      href={`/provider/${e.provider_id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      href={`/admin/directory/${e.provider_id}`}
                       className="text-emerald-700 hover:underline break-all"
                     >
                       {e.provider_id}
-                    </a>
+                    </Link>
                   </td>
                 </tr>
               ))}

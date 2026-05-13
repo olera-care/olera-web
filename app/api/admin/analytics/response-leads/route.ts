@@ -1,28 +1,49 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
+import {
+  calculateFamilyCompleteness,
+  calculateProviderCompleteness,
+} from "@/lib/admin/profile-completeness";
 
 /**
  * GET /api/admin/analytics/response-leads
  *
  * Paginated endpoint for the Provider Response Rates admin drill-in.
  * Returns a list of leads with response status, message preview, and
- * engagement signals. Supports filters for responded/awaiting status
- * and CTA variant.
+ * engagement signals. Supports filters for actionability tabs and CTA variant.
  *
  * Query params:
  *   date_from, date_to  - ISO timestamps (optional)
- *   filter              - "all" | "awaiting" | "responded" (default: "all")
- *   variant             - "legacy" | "compare" | "all" (default: "all")
+ *   filter              - "all" | "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email" (default: "all")
+ *   variant             - CTA variant filter, "all" for any (default: "all")
  *   limit               - 1-100, default 50
  *   offset              - >= 0, default 0
+ *
+ * Response includes `counts` object with totals for each filter category.
  */
+
+interface ProfileCompleteness {
+  percentage: number;
+  missingFields: string[];
+}
 
 interface ResponseLead {
   connection_id: string;
+  family_id: string;
   family_name: string;
   family_email: string | null;
+  family_phone: string | null;
+  family_completeness: ProfileCompleteness;
+  family_is_published: boolean; // care_post.status === "active"
+  family_nudged_at: string | null; // Nudged to complete profile
+  family_publish_nudged_at: string | null; // Nudged to publish profile
+  provider_id: string; // Profile UUID for linking to /admin/directory/[providerId]
   provider_name: string;
+  provider_email: string | null;
+  provider_phone: string | null;
   provider_slug: string;
+  provider_completeness: ProfileCompleteness;
+  provider_nudged_at: string | null;
   message_preview: string;
   created_at: string;
   age_hours: number;
@@ -30,7 +51,6 @@ interface ResponseLead {
   response_time_hours: number | null;
   provider_response: string | null; // First non-auto-reply message from provider
   cta_variant: string | null;
-  nudged_at: string | null;
 }
 
 type ThreadMessage = {
@@ -64,6 +84,7 @@ export async function GET(req: NextRequest) {
   const offset = Math.max(0, parseInt(searchParams.get("offset") || "0", 10));
 
   // Build query for connections (leads)
+  // We fetch comprehensive profile data to calculate completeness metrics
   let query = db
     .from("connections")
     .select(
@@ -74,8 +95,33 @@ export async function GET(req: NextRequest) {
       message,
       metadata,
       created_at,
-      from_profile:business_profiles!connections_from_profile_id_fkey(display_name, email),
-      to_profile:business_profiles!connections_to_profile_id_fkey(display_name, slug, source_provider_id, email)
+      from_profile:business_profiles!connections_from_profile_id_fkey(
+        id,
+        display_name,
+        email,
+        phone,
+        image_url,
+        city,
+        description,
+        care_types,
+        metadata
+      ),
+      to_profile:business_profiles!connections_to_profile_id_fkey(
+        id,
+        display_name,
+        email,
+        phone,
+        image_url,
+        slug,
+        source_provider_id,
+        website,
+        address,
+        city,
+        state,
+        description,
+        care_types,
+        metadata
+      )
     `,
       { count: "exact" }
     )
@@ -117,10 +163,9 @@ export async function GET(req: NextRequest) {
     const thread = (meta.thread as ThreadMessage[]) || [];
     const ctaVariant = (meta.cta_variant as string) || null;
 
-    // Apply variant filter
-    if (variant !== "all") {
-      if (variant === "legacy" && ctaVariant !== "legacy") continue;
-      if (variant === "compare" && ctaVariant !== "compare") continue;
+    // Apply variant filter (dynamic - works for any variant value)
+    if (variant !== "all" && ctaVariant !== variant) {
+      continue;
     }
 
     // Find first provider message (non-auto-reply)
@@ -137,11 +182,8 @@ export async function GET(req: NextRequest) {
     // Extract provider's response text (full - frontend truncates for display)
     const providerResponse: string | null = providerMsg?.text || null;
 
-    // Apply filter
-    if (filter === "awaiting" && responded) continue;
-    if (filter === "responded" && !responded) continue;
-
-    // Extract message preview from the connection's message JSON or first thread message
+    // Extract message preview from the connection's message JSON or family's thread message
+    // We want the FAMILY's message, not the provider's auto-reply
     let messagePreview = "";
     if (conn.message) {
       try {
@@ -153,9 +195,14 @@ export async function GET(req: NextRequest) {
         messagePreview = String(conn.message);
       }
     }
-    // Fall back to first thread message if no direct message
-    if (!messagePreview && thread.length > 0 && thread[0].text) {
-      messagePreview = thread[0].text;
+    // Fall back to first FAMILY message in thread (skip provider auto-replies)
+    if (!messagePreview && thread.length > 0) {
+      const familyMessage = thread.find(
+        (m) => m.from_profile_id === conn.from_profile_id && m.text && !m.is_auto_reply
+      );
+      if (familyMessage?.text) {
+        messagePreview = familyMessage.text;
+      }
     }
     // Truncate to 50 chars
     if (messagePreview.length > 50) {
@@ -164,14 +211,42 @@ export async function GET(req: NextRequest) {
 
     const ageHours = (Date.now() - new Date(conn.created_at).getTime()) / (1000 * 60 * 60);
 
-    const nudgedAt = (meta.nudged_at as string) || null;
+    // Parse nudge timestamps (separate for family profile, family publish, and provider)
+    const providerNudgedAt = (meta.nudged_at as string) || null;
+    const familyNudgedAt = (meta.family_nudged_at as string) || null;
+    const familyPublishNudgedAt = (meta.family_publish_nudged_at as string) || null;
+
+    // Calculate profile completeness for both parties
+    const familyCompleteness = conn.from_profile
+      ? calculateFamilyCompleteness(conn.from_profile, conn.from_profile.email)
+      : { percentage: 0, missingFields: [] };
+
+    const providerCompleteness = conn.to_profile
+      ? calculateProviderCompleteness(conn.to_profile)
+      : { percentage: 0, missingFields: [] };
+
+    // Check if family profile is published (care_post.status === "active")
+    const familyMeta = (conn.from_profile?.metadata as Record<string, unknown>) ?? {};
+    const carePost = familyMeta.care_post as { status?: string } | undefined;
+    const familyIsPublished = carePost?.status === "active";
 
     allLeads.push({
       connection_id: conn.id,
+      family_id: conn.from_profile_id || "",
       family_name: conn.from_profile?.display_name || "Care Seeker",
       family_email: conn.from_profile?.email || null,
+      family_phone: conn.from_profile?.phone || null,
+      family_completeness: familyCompleteness,
+      family_is_published: familyIsPublished,
+      family_nudged_at: familyNudgedAt,
+      family_publish_nudged_at: familyPublishNudgedAt,
+      provider_id: conn.to_profile_id || "",
       provider_name: conn.to_profile?.display_name || "Unknown",
+      provider_email: conn.to_profile?.email || null,
+      provider_phone: conn.to_profile?.phone || null,
       provider_slug: conn.to_profile?.slug || conn.to_profile?.source_provider_id || "",
+      provider_completeness: providerCompleteness,
+      provider_nudged_at: providerNudgedAt,
       message_preview: messagePreview,
       created_at: conn.created_at,
       age_hours: ageHours,
@@ -179,15 +254,67 @@ export async function GET(req: NextRequest) {
       response_time_hours: responseTimeHours ? Math.round(responseTimeHours * 10) / 10 : null,
       provider_response: providerResponse,
       cta_variant: ctaVariant,
-      nudged_at: nudgedAt,
     });
   }
 
+  // Categorize leads for tab counts (computed once per lead)
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  type Category = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
+
+  const categorizedLeads = allLeads.map((lead) => {
+    const hasProviderEmail = !!lead.provider_email;
+    const providerNudgedRecently = lead.provider_nudged_at
+      ? now - new Date(lead.provider_nudged_at).getTime() < SEVEN_DAYS_MS
+      : false;
+
+    // Check if family was nudged recently (either profile completion or publish nudge)
+    const familyNudgedRecently =
+      (lead.family_nudged_at
+        ? now - new Date(lead.family_nudged_at).getTime() < SEVEN_DAYS_MS
+        : false) ||
+      (lead.family_publish_nudged_at
+        ? now - new Date(lead.family_publish_nudged_at).getTime() < SEVEN_DAYS_MS
+        : false);
+
+    // Order matters: responded takes priority (goal achieved), then check actionability
+    // Provider nudge takes priority over family nudge (waiting on provider response)
+    let category: Category;
+    if (lead.responded) category = "responded";
+    else if (!hasProviderEmail) category = "no_email";
+    else if (providerNudgedRecently) category = "provider_nudged";
+    else if (familyNudgedRecently) category = "family_nudged";
+    else category = "needs_attention";
+
+    return { lead, category };
+  });
+
+  // Compute counts for each category
+  const counts = {
+    all: allLeads.length,
+    needs_attention: 0,
+    provider_nudged: 0,
+    family_nudged: 0,
+    responded: 0,
+    no_email: 0,
+  };
+
+  for (const { category } of categorizedLeads) {
+    counts[category]++;
+  }
+
+  // Apply filter
+  const filteredLeads =
+    filter === "all"
+      ? allLeads
+      : categorizedLeads.filter(({ category }) => category === filter).map(({ lead }) => lead);
+
   // Get total count after filtering
-  const total = allLeads.length;
+  const total = filteredLeads.length;
 
   // Apply pagination
-  const paginatedLeads = allLeads.slice(offset, offset + limit);
+  const paginatedLeads = filteredLeads.slice(offset, offset + limit);
 
   // Warn if we hit the query limit (data may be incomplete)
   const truncated = (connectionsRaw?.length ?? 0) >= 5000;
@@ -195,6 +322,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     total,
     leads: paginatedLeads,
+    counts,
     truncated,
   });
 }

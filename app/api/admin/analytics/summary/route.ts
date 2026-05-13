@@ -5,6 +5,12 @@ import {
   REFERRER_CLASSES,
   type ReferrerClass,
 } from "@/lib/analytics/referrer";
+import {
+  PROVIDER_EMAIL_FUNNEL_TYPES,
+  bucketForEmailType,
+  type ProviderEmailFunnelKey,
+} from "@/lib/analytics/provider-email-funnels";
+import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
 
 const PROVIDER_EVENT_TYPES = [
   "page_view",
@@ -102,6 +108,40 @@ type ProviderQaFunnelByVariant = {
   B: ProviderQaVariantRow;
   unassigned: ProviderQaVariantRow;
 };
+// Generalized provider-comms funnel — same shape as the Q&A funnel but across
+// every provider-bound email_type bucket. Filter keys + email_type mapping
+// live in lib/analytics/provider-email-funnels.ts. Sent/Delivered/Opened/Clicked
+// are raw email_log row counts; the downstream four are distinct providers
+// (approximate attribution: anchored on activity time in window, not on the
+// email send). Engagement bounce = clicked-providers − any-success-event
+// providers, per bucket.
+type ProviderCommsFunnel = {
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  /** Distinct providers who clicked ≥1 email of this bucket in window — the proper denominator for engagement_bounces (clicked is a raw row count and would mix units). */
+  distinct_clickers: number;
+  signed_in: number;
+  answered: number;
+  clicked_dashboard: number;
+  edited_profile: number;
+  engagement_bounces: number;
+  /** Top 10 most-recent engagement bouncers — providers who clicked an email of this bucket but produced none of the four downstream events in window. */
+  top_bouncers: Array<{
+    provider_id: string;
+    last_clicked_email_type: string;
+    last_clicked_at: string;
+  }>;
+};
+type ProviderCommsFunnelByType = {
+  all: ProviderCommsFunnel;
+  question_received: ProviderCommsFunnel;
+  weekly_digest: ProviderCommsFunnel;
+  verification: ProviderCommsFunnel;
+  nudges: ProviderCommsFunnel;
+  connections: ProviderCommsFunnel;
+};
 // Care-seeker benefits intake funnel. Distinct sessions per stage. Read from
 // provider_activity (where session_id + variant are persisted on every event);
 // seeker_activity.benefits_completed is unusable here because it carries
@@ -151,13 +191,10 @@ type CTAFunnel = {
   engaged: number;
   converted: number;
 };
-// Per-variant breakdown. Supports legacy, compare, and future variants.
+// Per-variant breakdown. Dynamically supports all variants from CTA_VARIANTS.
 type CTAVariantRow = CTAFunnel;
-type CTAFunnelByVariant = {
-  legacy: CTAVariantRow;
-  compare: CTAVariantRow;
-  unassigned: CTAVariantRow;
-};
+type CTAVariantKey = CTAVariant | "unassigned";
+type CTAFunnelByVariant = Record<CTAVariantKey, CTAVariantRow>;
 // Page-view referrer breakdown — counts page_view events by traffic class
 // (ai_chat / search / social / olera_internal / direct / other). Lets us
 // watch the AI-chat slice grow as ChatGPT/Claude/Gemini/Perplexity start
@@ -176,25 +213,7 @@ interface ProviderResponseMetrics {
   awaiting_response_count: number;
 }
 
-interface ProviderResponseByVariant {
-  legacy: ProviderResponseMetrics;
-  compare: ProviderResponseMetrics;
-  unassigned: ProviderResponseMetrics;
-}
-
-interface AwaitingResponseLead {
-  connection_id: string;
-  family_name: string;
-  provider_name: string;
-  provider_slug: string;
-  created_at: string;
-  age_hours: number;
-  signals: {
-    email_clicked: boolean;
-    lead_opened: boolean;
-    contact_revealed: boolean;
-  };
-}
+type ProviderResponseByVariant = Record<CTAVariantKey, ProviderResponseMetrics>;
 
 // Submissions by entry source — accounts.signup_source bucketed for the
 // "did editorial-mounted SBF produce signups?" question. The existing
@@ -223,6 +242,7 @@ type WindowResult = {
   qa_funnel: ProviderQaFunnel;
   qa_funnel_by_variant: ProviderQaFunnelByVariant;
   qa_email_issues: QaEmailIssue[];
+  provider_comms_funnel_by_type: ProviderCommsFunnelByType;
   benefits_funnel: BenefitsFunnel;
   benefits_funnel_by_variant: BenefitsFunnelByVariant;
   cta_funnel: CTAFunnel;
@@ -231,7 +251,6 @@ type WindowResult = {
   entry_source_breakdown: EntrySourceBreakdown;
   provider_response: ProviderResponseMetrics;
   provider_response_by_variant: ProviderResponseByVariant;
-  awaiting_response: AwaitingResponseLead[];
 };
 
 const EMPTY_COUNTS = (): WindowedCounts => ({
@@ -285,6 +304,27 @@ const EMPTY_FUNNEL_BY_VARIANT = (): ProviderQaFunnelByVariant => ({
   B: EMPTY_VARIANT_ROW(),
   unassigned: EMPTY_VARIANT_ROW(),
 });
+const EMPTY_COMMS_FUNNEL = (): ProviderCommsFunnel => ({
+  sent: 0,
+  delivered: 0,
+  opened: 0,
+  clicked: 0,
+  distinct_clickers: 0,
+  signed_in: 0,
+  answered: 0,
+  clicked_dashboard: 0,
+  edited_profile: 0,
+  engagement_bounces: 0,
+  top_bouncers: [],
+});
+const EMPTY_COMMS_FUNNEL_BY_TYPE = (): ProviderCommsFunnelByType => ({
+  all: EMPTY_COMMS_FUNNEL(),
+  question_received: EMPTY_COMMS_FUNNEL(),
+  weekly_digest: EMPTY_COMMS_FUNNEL(),
+  verification: EMPTY_COMMS_FUNNEL(),
+  nudges: EMPTY_COMMS_FUNNEL(),
+  connections: EMPTY_COMMS_FUNNEL(),
+});
 const EMPTY_BENEFITS_FUNNEL = (): BenefitsFunnel => ({
   impressions: 0,
   started: 0,
@@ -311,10 +351,9 @@ const EMPTY_CTA_FUNNEL = (): CTAFunnel => ({
   converted: 0,
 });
 const EMPTY_CTA_FUNNEL_BY_VARIANT = (): CTAFunnelByVariant => ({
-  legacy: EMPTY_CTA_FUNNEL(),
-  compare: EMPTY_CTA_FUNNEL(),
+  ...Object.fromEntries(CTA_VARIANTS.map(v => [v, EMPTY_CTA_FUNNEL()])),
   unassigned: EMPTY_CTA_FUNNEL(),
-});
+}) as CTAFunnelByVariant;
 const EMPTY_REFERRER_BREAKDOWN = (): ReferrerBreakdown => ({
   ai_chat: 0,
   search: 0,
@@ -340,10 +379,9 @@ const EMPTY_PROVIDER_RESPONSE = (): ProviderResponseMetrics => ({
 });
 
 const EMPTY_PROVIDER_RESPONSE_BY_VARIANT = (): ProviderResponseByVariant => ({
-  legacy: EMPTY_PROVIDER_RESPONSE(),
-  compare: EMPTY_PROVIDER_RESPONSE(),
+  ...Object.fromEntries(CTA_VARIANTS.map(v => [v, EMPTY_PROVIDER_RESPONSE()])),
   unassigned: EMPTY_PROVIDER_RESPONSE(),
-});
+}) as ProviderResponseByVariant;
 
 /**
  * Pull all relevant events for one date window and bucket them into the
@@ -409,6 +447,21 @@ async function fetchWindow(
     .limit(50000);
   if (from) funnelQ = funnelQ.gte("created_at", from);
   if (to) funnelQ = funnelQ.lt("created_at", to);
+
+  // Provider Comms Funnel — generalized cohort: every provider-bound email
+  // sent in the window, partitioned by email_type bucket. Carries provider_id
+  // so engagement bounce can join client-side against the downstream-activity
+  // sets built from `distinctRes`. Selects only the columns needed (no
+  // metadata.variant — A/B variant analysis stays in the Q&A funnel above).
+  // Limit 50000 ≈ years at current provider-email volume.
+  let commsFunnelQ = db
+    .from("email_log")
+    .select("email_type, provider_id, delivered_at, first_opened_at, first_clicked_at")
+    .in("email_type", [...PROVIDER_EMAIL_FUNNEL_TYPES.all])
+    .eq("recipient_type", "provider")
+    .limit(50000);
+  if (from) commsFunnelQ = commsFunnelQ.gte("created_at", from);
+  if (to) commsFunnelQ = commsFunnelQ.lt("created_at", to);
 
   // Issues: bounce + complaint events in the window. We pull broadly here and
   // restrict to the Q&A cohort via a secondary email_log lookup below — volume
@@ -516,12 +569,13 @@ async function fetchWindow(
   if (from) connectionsQ = connectionsQ.gte("created_at", from);
   if (to) connectionsQ = connectionsQ.lt("created_at", to);
 
-  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, issuesEventsRes, benefitsRes, outreachRes, multiProviderRes, accountsRes, ctaRes, connectionsRes] = await Promise.all([
+  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, commsFunnelRes, issuesEventsRes, benefitsRes, outreachRes, multiProviderRes, accountsRes, ctaRes, connectionsRes] = await Promise.all([
     providerQ,
     seekerQ,
     distinctQ,
     openersQ,
     funnelQ,
+    commsFunnelQ,
     issuesEventsQ,
     benefitsQ,
     outreachQ,
@@ -536,6 +590,7 @@ async function fetchWindow(
   if (distinctRes.error) return { error: "distinct window query failed" };
   if (openersRes.error) return { error: "Q&A email openers query failed" };
   if (funnelRes.error) return { error: "Q&A funnel query failed" };
+  if (commsFunnelRes.error) return { error: "Provider comms funnel query failed" };
   if (outreachRes.error) return { error: "outreach funnel query failed" };
   if (multiProviderRes.error) return { error: "multi_provider funnel query failed" };
   if (issuesEventsRes.error) return { error: "Q&A issues query failed" };
@@ -589,6 +644,11 @@ async function fetchWindow(
     // rather than derived later so a provider isn't double-counted when
     // they used both paths.
     any_dashboard_clickers: new Set<string>(),
+    // Every one_click_access regardless of action (question | lead | review)
+    // — feeds the generalized Provider Comms Funnel's `signed_in` column.
+    // qa_signins / lead_engagers stay separate for the Q&A funnel and the
+    // Providers strip.
+    any_signin: new Set<string>(),
   };
   for (const r of (distinctRes.data ?? []) as Array<{
     provider_id: string | null;
@@ -598,6 +658,7 @@ async function fetchWindow(
     const pid = r.provider_id;
     if (!pid) continue;
     if (r.event_type === "one_click_access") {
+      sets.any_signin.add(pid);
       const action = r.metadata?.action;
       if (action === "question") sets.qa_signins.add(pid);
       else if (action === "lead") sets.lead_engagers.add(pid);
@@ -719,6 +780,130 @@ async function fetchWindow(
     .map(([reason, v]) => ({ reason, count: v.count, type: v.type }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
+
+  // ── Provider Comms Funnel rollup ────────────────────────────────────────
+  // Generalize the Q&A funnel pattern across every provider-bound email
+  // bucket. Sent/Delivered/Opened/Clicked are raw email_log row counts per
+  // bucket. The downstream four are distinct providers in window who did the
+  // event (approximate attribution — same model as the Q&A funnel above).
+  // Engagement bounce per bucket = providers who clicked an email of that
+  // bucket but produced none of the four downstream events in window.
+  //
+  // The `all` bucket is a union across the six specific buckets. A provider
+  // who clicked emails of two different buckets is counted in each — that's
+  // the price of approximate attribution; tooltip in the UI names it.
+  const commsFunnel = EMPTY_COMMS_FUNNEL_BY_TYPE();
+  type CommsBucketKey = Exclude<ProviderEmailFunnelKey, "all">;
+  const SPECIFIC_BUCKETS: CommsBucketKey[] = ["question_received", "weekly_digest", "verification", "nudges", "connections"];
+  // Per-bucket sets of provider_ids who clicked at least one email of that
+  // bucket in window. The `all` set is the union, built incrementally.
+  const clickedByBucket: Record<ProviderEmailFunnelKey, Set<string>> = {
+    all: new Set(),
+    question_received: new Set(),
+    weekly_digest: new Set(),
+    verification: new Set(),
+    nudges: new Set(),
+    connections: new Set(),
+  };
+  // Track per-provider their most-recent click (across all buckets) — feeds
+  // the engagement-bouncer top-10 list. Per-bucket maps too so the bucket's
+  // top-10 only lists providers who clicked an email of THAT bucket.
+  type ClickRecord = { last_clicked_at: string; last_clicked_email_type: string };
+  const lastClickByProviderByBucket: Record<ProviderEmailFunnelKey, Map<string, ClickRecord>> = {
+    all: new Map(),
+    question_received: new Map(),
+    weekly_digest: new Map(),
+    verification: new Map(),
+    nudges: new Map(),
+    connections: new Map(),
+  };
+
+  for (const r of (commsFunnelRes.data ?? []) as Array<{
+    email_type: string | null;
+    provider_id: string | null;
+    delivered_at: string | null;
+    first_opened_at: string | null;
+    first_clicked_at: string | null;
+  }>) {
+    const et = r.email_type ?? "";
+    const bucket = bucketForEmailType(et);
+    if (!bucket) continue; // not a provider-comms email type
+    // Increment row counters in the specific bucket AND `all`.
+    for (const k of [bucket, "all" as const] as ProviderEmailFunnelKey[]) {
+      const f = commsFunnel[k];
+      f.sent += 1;
+      if (r.delivered_at) f.delivered += 1;
+      if (r.first_opened_at) f.opened += 1;
+      if (r.first_clicked_at) f.clicked += 1;
+    }
+    // Click-set + last-click tracking only when we have both a provider_id
+    // and a click. Pre-migration rows lacking provider_id are still counted
+    // in the row totals above, just not in engagement-bounce.
+    if (r.first_clicked_at && r.provider_id) {
+      const pid = r.provider_id;
+      clickedByBucket[bucket].add(pid);
+      clickedByBucket.all.add(pid);
+      for (const k of [bucket, "all" as const] as ProviderEmailFunnelKey[]) {
+        const m = lastClickByProviderByBucket[k];
+        const existing = m.get(pid);
+        if (!existing || r.first_clicked_at > existing.last_clicked_at) {
+          m.set(pid, { last_clicked_at: r.first_clicked_at, last_clicked_email_type: et });
+        }
+      }
+    }
+  }
+
+  // Global success set — distinct providers who did any of the four downstream
+  // events in window. Same source data as the Q&A funnel's projections, just
+  // unioned. `any_signin` covers all one_click_access actions (question/lead/
+  // review); `any_dashboard_clickers` covers teaser + hero union; the other
+  // two are direct activity events.
+  const successSet = new Set<string>();
+  for (const pid of sets.any_signin) successSet.add(pid);
+  for (const pid of sets.question_answerers) successSet.add(pid);
+  for (const pid of sets.any_dashboard_clickers) successSet.add(pid);
+  for (const pid of sets.profile_editors) successSet.add(pid);
+
+  // Per-bucket: compute downstream counts as |clicked_set ∩ event_set| so
+  // each column reads "of the providers who clicked an email of this bucket,
+  // how many also did event X in window?" That's the more useful read than
+  // a window-global distinct count: it ties the downstream column to the
+  // bucket's cohort. The Q&A funnel above projects globally; this funnel
+  // localizes, which is the point of having both.
+  const intersect = (clicked: Set<string>, evt: Set<string>): number => {
+    let n = 0;
+    for (const pid of clicked) if (evt.has(pid)) n += 1;
+    return n;
+  };
+  for (const k of (["all", ...SPECIFIC_BUCKETS] as ProviderEmailFunnelKey[])) {
+    const f = commsFunnel[k];
+    const clicked = clickedByBucket[k];
+    f.distinct_clickers = clicked.size;
+    f.signed_in = intersect(clicked, sets.any_signin);
+    f.answered = intersect(clicked, sets.question_answerers);
+    f.clicked_dashboard = intersect(clicked, sets.any_dashboard_clickers);
+    f.edited_profile = intersect(clicked, sets.profile_editors);
+
+    // Engagement bouncers — clicked, but in NONE of the four downstream sets.
+    const bouncerIds: string[] = [];
+    for (const pid of clicked) {
+      if (!successSet.has(pid)) bouncerIds.push(pid);
+    }
+    f.engagement_bounces = bouncerIds.length;
+
+    // Top 10 most-recent — sorted desc by last_clicked_at.
+    const m = lastClickByProviderByBucket[k];
+    f.top_bouncers = bouncerIds
+      .map((pid) => {
+        const rec = m.get(pid);
+        return rec
+          ? { provider_id: pid, last_clicked_at: rec.last_clicked_at, last_clicked_email_type: rec.last_clicked_email_type }
+          : null;
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null)
+      .sort((a, b) => b.last_clicked_at.localeCompare(a.last_clicked_at))
+      .slice(0, 10);
+  }
 
   // Benefits intake funnel rollup. Build per-stage Sets keyed on session_id —
   // distinct sessions, not raw events. A session that re-enters the form
@@ -921,7 +1106,7 @@ async function fetchWindow(
 
   // CTA Variants A/B funnel rollup. Distinct sessions per stage.
   // impression → clicked → engaged (save_comparison_clicked) → converted (lead_received with cta_variant).
-  type CTABucket = "legacy" | "compare" | "unassigned";
+  // Dynamically supports all variants from CTA_VARIANTS.
   const emptyCtaStages = (): Record<keyof CTAFunnel, Set<string>> => ({
     impressions: new Set(),
     clicked: new Set(),
@@ -929,12 +1114,13 @@ async function fetchWindow(
     converted: new Set(),
   });
   const ctaStageSets = emptyCtaStages();
-  const ctaByVariantSets: Record<CTABucket, Record<keyof CTAFunnel, Set<string>>> = {
-    legacy: emptyCtaStages(),
-    compare: emptyCtaStages(),
+  // Build variant sets dynamically from CTA_VARIANTS
+  const ctaByVariantSets: Record<CTAVariantKey, Record<keyof CTAFunnel, Set<string>>> = {
+    ...Object.fromEntries(CTA_VARIANTS.map(v => [v, emptyCtaStages()])),
     unassigned: emptyCtaStages(),
-  };
-  const CTA_VARIANT_BUCKETS = new Set<CTABucket>(["legacy", "compare"]);
+  } as Record<CTAVariantKey, Record<keyof CTAFunnel, Set<string>>>;
+  // Set of known variants for bucket assignment
+  const CTA_VARIANT_BUCKETS = new Set<string>(CTA_VARIANTS);
 
   for (const r of (ctaRes.data ?? []) as Array<{
     event_type: string;
@@ -951,9 +1137,9 @@ async function fetchWindow(
       variant = r.metadata?.cta_variant as string | null;
     }
 
-    const bucket: CTABucket =
-      typeof variant === "string" && CTA_VARIANT_BUCKETS.has(variant as CTABucket)
-        ? (variant as CTABucket)
+    const bucket: CTAVariantKey =
+      typeof variant === "string" && CTA_VARIANT_BUCKETS.has(variant)
+        ? (variant as CTAVariant)
         : "unassigned";
 
     // Determine stage
@@ -984,17 +1170,16 @@ async function fetchWindow(
     engaged: ctaStageSets.engaged.size,
     converted: ctaStageSets.converted.size,
   };
-  const ctaSizesFor = (b: CTABucket): CTAVariantRow => ({
+  const ctaSizesFor = (b: CTAVariantKey): CTAVariantRow => ({
     impressions: ctaByVariantSets[b].impressions.size,
     clicked: ctaByVariantSets[b].clicked.size,
     engaged: ctaByVariantSets[b].engaged.size,
     converted: ctaByVariantSets[b].converted.size,
   });
   const ctaFunnelByVariant: CTAFunnelByVariant = {
-    legacy: ctaSizesFor("legacy"),
-    compare: ctaSizesFor("compare"),
+    ...Object.fromEntries(CTA_VARIANTS.map(v => [v, ctaSizesFor(v)])),
     unassigned: ctaSizesFor("unassigned"),
-  };
+  } as CTAFunnelByVariant;
 
   // Provider response rates — calculate whether providers are replying to leads.
   // Thread messages in metadata.thread, provider responded = any message where
@@ -1005,15 +1190,15 @@ async function fetchWindow(
     created_at: string;
     is_auto_reply?: boolean;
   };
-  type ResponseVariantBucket = "legacy" | "compare" | "unassigned";
+  // Dynamically supports all variants from CTA_VARIANTS
   const responseTimes: number[] = [];
   let respondedLeads = 0;
-  const awaitingResponse: AwaitingResponseLead[] = [];
-  const byVariant: Record<ResponseVariantBucket, { total: number; responded: number; times: number[] }> = {
-    legacy: { total: 0, responded: 0, times: [] },
-    compare: { total: 0, responded: 0, times: [] },
-    unassigned: { total: 0, responded: 0, times: [] },
-  };
+  type ResponseVariantData = { total: number; responded: number; times: number[] };
+  const emptyResponseData = (): ResponseVariantData => ({ total: 0, responded: 0, times: [] });
+  const byVariant: Record<CTAVariantKey, ResponseVariantData> = {
+    ...Object.fromEntries(CTA_VARIANTS.map(v => [v, emptyResponseData()])),
+    unassigned: emptyResponseData(),
+  } as Record<CTAVariantKey, ResponseVariantData>;
 
   const connectionsRaw = (connectionsRes.data ?? []) as Array<{
     id: string;
@@ -1036,8 +1221,10 @@ async function fetchWindow(
     const meta = conn.metadata ?? {};
     const thread = (meta.thread as ThreadMessage[]) || [];
     const variant = (meta.cta_variant as string) || "unassigned";
-    const variantKey: ResponseVariantBucket =
-      variant === "legacy" || variant === "compare" ? variant : "unassigned";
+    const variantKey: CTAVariantKey =
+      typeof variant === "string" && CTA_VARIANT_BUCKETS.has(variant)
+        ? (variant as CTAVariant)
+        : "unassigned";
 
     byVariant[variantKey].total++;
 
@@ -1055,48 +1242,6 @@ async function fetchWindow(
         (1000 * 60 * 60);
       responseTimes.push(responseTimeHours);
       byVariant[variantKey].times.push(responseTimeHours);
-    } else {
-      // Awaiting response
-      const ageHours = (Date.now() - new Date(conn.created_at).getTime()) / (1000 * 60 * 60);
-      awaitingResponse.push({
-        connection_id: conn.id,
-        family_name: conn.from_profile?.display_name || "Unknown",
-        provider_name: conn.to_profile?.display_name || "Unknown",
-        provider_slug: conn.to_profile?.slug || conn.to_profile?.source_provider_id || "",
-        created_at: conn.created_at,
-        age_hours: ageHours,
-        signals: { email_clicked: false, lead_opened: false, contact_revealed: false },
-      });
-    }
-  }
-
-  // Sort awaiting by age (oldest first)
-  awaitingResponse.sort((a, b) => b.age_hours - a.age_hours);
-
-  // Enrich awaiting leads with engagement signals from provider_activity
-  const providerSlugs = awaitingResponse.map((a) => a.provider_slug).filter(Boolean);
-  if (providerSlugs.length > 0) {
-    const { data: activities } = await db
-      .from("provider_activity")
-      .select("provider_id, event_type")
-      .in("provider_id", providerSlugs)
-      .in("event_type", ["email_click", "lead_opened", "contact_revealed"]);
-
-    const activityByProvider = new Map<string, Set<string>>();
-    for (const act of (activities ?? []) as Array<{ provider_id: string; event_type: string }>) {
-      if (!activityByProvider.has(act.provider_id)) {
-        activityByProvider.set(act.provider_id, new Set());
-      }
-      activityByProvider.get(act.provider_id)!.add(act.event_type);
-    }
-
-    for (const lead of awaitingResponse) {
-      const events = activityByProvider.get(lead.provider_slug) || new Set();
-      lead.signals = {
-        email_clicked: events.has("email_click"),
-        lead_opened: events.has("lead_opened"),
-        contact_revealed: events.has("contact_revealed"),
-      };
     }
   }
 
@@ -1122,10 +1267,14 @@ async function fetchWindow(
 
   const providerResponse = buildResponseMetrics(connections.length, respondedLeads, responseTimes);
   const providerResponseByVariant: ProviderResponseByVariant = {
-    legacy: buildResponseMetrics(byVariant.legacy.total, byVariant.legacy.responded, byVariant.legacy.times),
-    compare: buildResponseMetrics(byVariant.compare.total, byVariant.compare.responded, byVariant.compare.times),
+    ...Object.fromEntries(
+      CTA_VARIANTS.map(v => [
+        v,
+        buildResponseMetrics(byVariant[v].total, byVariant[v].responded, byVariant[v].times),
+      ])
+    ),
     unassigned: buildResponseMetrics(byVariant.unassigned.total, byVariant.unassigned.responded, byVariant.unassigned.times),
-  };
+  } as ProviderResponseByVariant;
 
   return {
     counts,
@@ -1134,6 +1283,7 @@ async function fetchWindow(
     qa_funnel: funnel,
     qa_funnel_by_variant: funnelByVariant,
     qa_email_issues: qaEmailIssues,
+    provider_comms_funnel_by_type: commsFunnel,
     benefits_funnel: benefitsFunnel,
     benefits_funnel_by_variant: benefitsFunnelByVariant,
     cta_funnel: ctaFunnel,
@@ -1142,7 +1292,6 @@ async function fetchWindow(
     entry_source_breakdown: entrySourceBreakdown,
     provider_response: providerResponse,
     provider_response_by_variant: providerResponseByVariant,
-    awaiting_response: awaitingResponse.slice(0, 10), // Top 10 oldest
   };
 }
 
@@ -1365,6 +1514,7 @@ export async function GET(request: NextRequest) {
         qa_funnel: windowedRes.qa_funnel,
         qa_funnel_by_variant: windowedRes.qa_funnel_by_variant,
         qa_email_issues: windowedRes.qa_email_issues,
+        provider_comms_funnel_by_type: windowedRes.provider_comms_funnel_by_type,
         benefits_funnel: windowedRes.benefits_funnel,
         benefits_funnel_by_variant: windowedRes.benefits_funnel_by_variant,
         cta_funnel: windowedRes.cta_funnel,
@@ -1373,7 +1523,6 @@ export async function GET(request: NextRequest) {
         entry_source_breakdown: windowedRes.entry_source_breakdown,
         provider_response: windowedRes.provider_response,
         provider_response_by_variant: windowedRes.provider_response_by_variant,
-        awaiting_response: windowedRes.awaiting_response,
       },
       prior: prior
         ? {
@@ -1383,6 +1532,7 @@ export async function GET(request: NextRequest) {
             qa_funnel: prior.qa_funnel,
             qa_funnel_by_variant: prior.qa_funnel_by_variant,
             qa_email_issues: prior.qa_email_issues,
+            provider_comms_funnel_by_type: prior.provider_comms_funnel_by_type,
             benefits_funnel: prior.benefits_funnel,
             benefits_funnel_by_variant: prior.benefits_funnel_by_variant,
             cta_funnel: prior.cta_funnel,
@@ -1391,7 +1541,6 @@ export async function GET(request: NextRequest) {
             entry_source_breakdown: prior.entry_source_breakdown,
             provider_response: prior.provider_response,
             provider_response_by_variant: prior.provider_response_by_variant,
-            awaiting_response: prior.awaiting_response,
           }
         : null,
       insight,

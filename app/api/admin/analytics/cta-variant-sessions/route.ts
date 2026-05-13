@@ -6,10 +6,11 @@ import { CTA_VARIANTS } from "@/lib/analytics/cta-variant";
 // the CTA funnel for one A/B arm. Stages:
 //   impression → user saw the CTA on a provider page
 //   clicked    → user clicked the CTA to open the form/sheet
+//   engaged    → user clicked "Save this comparison" (Compare variant only)
 //   converted  → user submitted the lead form (lead_received)
 export type CTASessionRow = {
   session_id: string;
-  furthest_stage: "impression" | "clicked" | "converted";
+  furthest_stage: "impression" | "clicked" | "engaged" | "converted";
   provider_id: string | null;
   first_seen: string;            // ISO timestamp of the earliest event in window
   submitter: string | null;      // email address when converted
@@ -26,7 +27,8 @@ const VALID_VARIANTS = new Set(CTA_VARIANTS);
 const STAGE_RANK: Record<CTASessionRow["furthest_stage"], number> = {
   impression: 0,
   clicked: 1,
-  converted: 2,
+  engaged: 2,
+  converted: 3,
 };
 
 function parseLimit(raw: string | null): number {
@@ -137,10 +139,14 @@ export async function GET(request: NextRequest) {
       // Filter to this variant's events only.
       if (row.metadata?.variant !== variant) continue;
 
-      const stage: CTASessionRow["furthest_stage"] | null =
-        row.event_type === "cta_variant_impression" ? "impression"
-        : row.event_type === "cta_variant_clicked" ? "clicked"
-        : null;
+      let stage: CTASessionRow["furthest_stage"] | null = null;
+      if (row.event_type === "cta_variant_impression") {
+        stage = "impression";
+      } else if (row.event_type === "cta_variant_clicked") {
+        // Check for "engaged" stage (save_comparison_clicked action, Compare variant only)
+        const action = row.metadata?.action;
+        stage = action === "save_comparison_clicked" ? "engaged" : "clicked";
+      }
       if (!stage) continue;
       upgrade(sid, stage, row.created_at, row.provider_id ?? null, null);
     }
@@ -184,7 +190,7 @@ export async function GET(request: NextRequest) {
     );
     // Apply stage filter if provided. Uses "at least this stage" logic so
     // filter counts match the cumulative header counts.
-    if (stageFilter && ["impression", "clicked", "converted"].includes(stageFilter)) {
+    if (stageFilter && ["impression", "clicked", "engaged", "converted"].includes(stageFilter)) {
       const minRank = STAGE_RANK[stageFilter as CTASessionRow["furthest_stage"]];
       all = all.filter((s) => STAGE_RANK[s.furthest_stage] >= minRank);
     }

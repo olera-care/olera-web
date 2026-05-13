@@ -109,6 +109,36 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: [],
     relatedAdminPath: "/admin/staffing-outreach",
   },
+  {
+    id: "lead-response-nudge",
+    name: "Lead response nudge",
+    description:
+      "Weekly nudge to providers who haven't responded to leads. Targets connections 3+ days old where provider has not replied and was not nudged in the last 7 days. Sends one consolidated email per provider.",
+    recipientCohort: "Providers with unanswered leads (3+ days old, not nudged in 7 days).",
+    audience: "Providers",
+    fn: "nudge",
+    schedule: "0 14 * * 4",
+    humanSchedule: "Thursdays, 14:00 UTC (~9 AM ET)",
+    path: "/api/cron/lead-response-nudge",
+    emailTypes: ["provider_nudge"],
+    successSignal: "Provider responds to the lead.",
+    relatedAdminPath: "/admin/analytics",
+  },
+  {
+    id: "lead-family-nudge",
+    name: "Lead family nudge",
+    description:
+      "Twice-weekly nudge to families with active leads who need to complete or publish their profile. One email per family per run.",
+    recipientCohort: "Families with leads 2+ days old whose profile is incomplete (<80%) or not published.",
+    audience: "Care seekers",
+    fn: "nudge",
+    schedule: "0 15 * * 2,5",
+    humanSchedule: "Tuesdays & Fridays, 15:00 UTC (~10 AM ET)",
+    path: "/api/cron/lead-family-nudge",
+    emailTypes: ["family_nudge", "go_live_reminder"],
+    successSignal: "Family completes or publishes their profile.",
+    relatedAdminPath: "/admin/analytics",
+  },
 
   // ── Care seekers ───────────────────────────────────────────────────
   {

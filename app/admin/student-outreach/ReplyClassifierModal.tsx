@@ -185,7 +185,7 @@ export function ReplyClassifierModal({
             <ChoiceCard
               active={choice === "not_interested"}
               onSelect={() => setChoice("not_interested")}
-              label="They said no thanks"
+              label="Not interested"
               blurb="Polite decline. Row closes as Not interested; cadence stops and they leave the active workflow."
               tone="danger"
             />

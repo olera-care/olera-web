@@ -2296,7 +2296,15 @@ function ProviderResponseVariantSplit({
 
 // ResponseLeadsList — paginated list of leads with filters and nudge functionality.
 // Replaces the old static AwaitingResponseList with a full-featured drill-in.
-type ResponseLeadFilter = "all" | "awaiting" | "responded";
+type ResponseLeadFilter = "all" | "needs_attention" | "nudged_this_week" | "responded" | "no_email";
+
+interface FilterCounts {
+  all: number;
+  needs_attention: number;
+  nudged_this_week: number;
+  responded: number;
+  no_email: number;
+}
 
 interface ProfileCompleteness {
   percentage: number;
@@ -2341,9 +2349,10 @@ function ResponseLeadsList({
   dateFrom: string | null;
   dateTo: string | null;
 }) {
-  const [filter, setFilter] = useState<ResponseLeadFilter>("awaiting");
+  const [filter, setFilter] = useState<ResponseLeadFilter>("needs_attention");
   const [leads, setLeads] = useState<ResponseLead[]>([]);
   const [total, setTotal] = useState<number | null>(null);
+  const [counts, setCounts] = useState<FilterCounts | null>(null);
   const [truncated, setTruncated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -2394,8 +2403,9 @@ function ResponseLeadsList({
 
         const res = await fetch(`/api/admin/analytics/response-leads?${params.toString()}`);
         if (!res.ok) throw new Error("fetch failed");
-        const data: { total: number; leads: ResponseLead[]; truncated?: boolean } = await res.json();
+        const data: { total: number; leads: ResponseLead[]; counts: FilterCounts; truncated?: boolean } = await res.json();
         setTotal(data.total);
+        setCounts(data.counts);
         setTruncated(data.truncated ?? false);
         setLeads((prev) => (append ? [...prev, ...data.leads] : data.leads));
       } catch {
@@ -2612,10 +2622,12 @@ function ResponseLeadsList({
 
   const hasMore = total !== null && leads.length < total;
 
-  const FILTER_CHIPS: Array<{ key: ResponseLeadFilter; label: string }> = [
-    { key: "all", label: "All" },
-    { key: "awaiting", label: "Awaiting" },
-    { key: "responded", label: "Responded" },
+  const FILTER_TABS: Array<{ key: ResponseLeadFilter; label: string; description: string }> = [
+    { key: "all", label: "All", description: "All leads" },
+    { key: "needs_attention", label: "Needs Attention", description: "Ready to nudge" },
+    { key: "nudged_this_week", label: "Nudged", description: "Waiting for response" },
+    { key: "responded", label: "Responded", description: "Provider replied" },
+    { key: "no_email", label: "No Email", description: "Need email first" },
   ];
 
   return (
@@ -2632,27 +2644,35 @@ function ResponseLeadsList({
               {filter !== "all" && (
                 <span className="text-gray-400">
                   {" "}
-                  · filtered to {filter === "awaiting" ? "awaiting response" : "responded"}
+                  · {FILTER_TABS.find((t) => t.key === filter)?.description || filter}
                 </span>
               )}
             </div>
           )}
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {FILTER_CHIPS.map(({ key, label }) => {
+          {FILTER_TABS.map(({ key, label }) => {
             const active = filter === key;
+            const count = counts?.[key] ?? 0;
             return (
               <button
                 key={key}
                 type="button"
                 onClick={() => setFilter(key)}
-                className={`text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors ${
+                className={`text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors flex items-center gap-1.5 ${
                   active
                     ? "bg-gray-900 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
                 }`}
               >
                 {label}
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    active ? "bg-white/20 text-white" : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  {count}
+                </span>
               </button>
             );
           })}

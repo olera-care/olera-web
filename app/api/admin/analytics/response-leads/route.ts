@@ -10,15 +10,16 @@ import {
  *
  * Paginated endpoint for the Provider Response Rates admin drill-in.
  * Returns a list of leads with response status, message preview, and
- * engagement signals. Supports filters for responded/awaiting status
- * and CTA variant.
+ * engagement signals. Supports filters for actionability tabs and CTA variant.
  *
  * Query params:
  *   date_from, date_to  - ISO timestamps (optional)
- *   filter              - "all" | "awaiting" | "responded" (default: "all")
- *   variant             - "legacy" | "compare" | "guide" | "all" (default: "all")
+ *   filter              - "all" | "needs_attention" | "nudged_this_week" | "responded" | "no_email" (default: "all")
+ *   variant             - CTA variant filter, "all" for any (default: "all")
  *   limit               - 1-100, default 50
  *   offset              - >= 0, default 0
+ *
+ * Response includes `counts` object with totals for each filter category.
  */
 
 interface ProfileCompleteness {
@@ -181,10 +182,6 @@ export async function GET(req: NextRequest) {
     // Extract provider's response text (full - frontend truncates for display)
     const providerResponse: string | null = providerMsg?.text || null;
 
-    // Apply filter
-    if (filter === "awaiting" && responded) continue;
-    if (filter === "responded" && !responded) continue;
-
     // Extract message preview from the connection's message JSON or first thread message
     let messagePreview = "";
     if (conn.message) {
@@ -254,11 +251,52 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  // Categorize leads for tab counts (computed once per lead)
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  type Category = "needs_attention" | "nudged_this_week" | "responded" | "no_email";
+
+  const categorizedLeads = allLeads.map((lead) => {
+    const hasProviderEmail = !!lead.provider_email;
+    const providerNudgedRecently = lead.provider_nudged_at
+      ? now - new Date(lead.provider_nudged_at).getTime() < SEVEN_DAYS_MS
+      : false;
+
+    // Order matters: responded takes priority (goal achieved), then check actionability
+    let category: Category;
+    if (lead.responded) category = "responded";
+    else if (!hasProviderEmail) category = "no_email";
+    else if (providerNudgedRecently) category = "nudged_this_week";
+    else category = "needs_attention";
+
+    return { lead, category };
+  });
+
+  // Compute counts for each category
+  const counts = {
+    all: allLeads.length,
+    needs_attention: 0,
+    nudged_this_week: 0,
+    responded: 0,
+    no_email: 0,
+  };
+
+  for (const { category } of categorizedLeads) {
+    counts[category]++;
+  }
+
+  // Apply filter
+  const filteredLeads =
+    filter === "all"
+      ? allLeads
+      : categorizedLeads.filter(({ category }) => category === filter).map(({ lead }) => lead);
+
   // Get total count after filtering
-  const total = allLeads.length;
+  const total = filteredLeads.length;
 
   // Apply pagination
-  const paginatedLeads = allLeads.slice(offset, offset + limit);
+  const paginatedLeads = filteredLeads.slice(offset, offset + limit);
 
   // Warn if we hit the query limit (data may be incomplete)
   const truncated = (connectionsRaw?.length ?? 0) >= 5000;
@@ -266,6 +304,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     total,
     leads: paginatedLeads,
+    counts,
     truncated,
   });
 }

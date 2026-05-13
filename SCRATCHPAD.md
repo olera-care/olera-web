@@ -7,6 +7,52 @@
 
 ## Current Focus
 
+### 2026-05-13 (Wed) — Provider comms visibility: generalize the Q&A funnel + add per-provider drill-down (design locked, about to implement)
+
+TJ on `jolly-wright`: the Automation Console + analytics page each tell half the story. Automations is campaign-centric — Sent / Delivered / Opened / Clicked / Bounced **per cron**, stops at the click. The analytics page's `Provider Q&A Email Funnel` is the *only* surface that crosses from email-domain into provider-action-domain — but it's hardcoded to `email_type = "question_received"`. Every other provider email (digest, verification reminders, claim, nudges) has no equivalent. TJ's words: *"I need to know what providers do after they land, not just if they click."* Diagnosed it as **the classic campaign-vs-audience reconciliation problem.**
+
+**Design locked (via AskUserQuestion):**
+- **Request A first, then B.** A = generalize the Q&A funnel into a "Provider Comms Funnel" section on `/admin/analytics`. B = per-provider drill-down ("Comms timeline" tab on `/admin/directory/[providerId]`).
+- **Approximate attribution** (not strict). Same model as today's Q&A funnel — anchored on activity time within the window, not on email send time. Cheap; ships fast. Strict attribution would require `?em=<email_log_id>` tokens in every emailed link + every template change; explicitly deferred.
+- **Engagement bounce** = clicked email but produced zero of the 4 downstream events within the window. Not Resend hard-bounce (that's already covered for Q&A; cross-type panel is a small add).
+- **Four downstream events**, identical for every email type filter: `one_click_access` (Signed in), `question_responded` (Answered), `provider_picker_clicked ∪ analytics_teaser_cta_clicked` (Clicked dashboard), `provider_profile_edited` (Edited profile).
+
+**Request A — SHIPPED (on `jolly-wright`, awaiting browser test):**
+- `lib/analytics/provider-email-funnels.ts` (new): typed mapping with 6 buckets — `all`, `question_received`, `weekly_digest` (= `weekly_analytics_digest`), `verification` (the full claim/verification arc: 8 email types), `nudges` (`provider_nudge`, `provider_incomplete_profile`), `connections` (`connection_request`, `new_message`, `new_review`, `reach_out_accepted`). Dropped the `claim` bucket from the original sketch after grepping recipientType — `claim_notification` is admin-bound, not provider. Staffing + MedJobs explicitly excluded (separate audiences).
+- `app/api/admin/analytics/summary/route.ts`: added `provider_comms_funnel_by_type` field. New `commsFunnelQ` runs alongside the existing Q&A funnel query (kept untouched so the A/B variant logic is undisturbed). Aggregation: one pass over email_log rows, partition by bucket via `bucketForEmailType`, row counts go into the specific bucket AND `all` (so `all` is the union, not double-counted within a single email). Downstream counts use **per-bucket intersection** — `signed_in = |clicked_set ∩ any_signin|` etc. — a tighter framing than the Q&A funnel's window-global projections, on purpose (each downstream column ties to "of those who clicked an email of THIS bucket, how many did event X?"). Engagement bounce = `clicked_set − (any_signin ∪ question_answerers ∪ any_dashboard_clickers ∪ profile_editors)`. Top-10 bouncers: per-bucket map of `provider_id → {last_clicked_at, last_clicked_email_type}`, filtered to bouncers, sorted desc, sliced. Added `sets.any_signin` to capture **all** `one_click_access` actions (question | lead | review) — the existing code only bucketed question/lead.
+- `app/admin/analytics/page.tsx`: new "Provider Comms Funnel" `<CollapsibleSection>` (storageKey `providerCommsFunnel`) sitting right below the existing Q&A section. `<ProviderCommsFunnelCard>` reads `?comms_filter=` from URL, syncs via `router.replace`. Header has a dropdown (6 options, "All provider email" default). Funnel grid: 8 stages (Sent / Delivered / Opened / Clicked / Signed in / Answered / Clicked dashboard / Edited profile) using the existing `FunnelStat` component. Engagement bounce panel below: count + % of clicked + top-10 table (provider_id linked to `/admin/directory/[id]`, last_clicked_email_type, time-ago).
+- `app/admin/automations/[id]/page.tsx`: cross-link "See provider-action funnel →" in the MPP-caveat footnote on the Overview tab. Maps the cron's `emailTypes[]` via `bucketForEmailType`; if all types resolve to one bucket, link pre-sets the filter; if zero types map (e.g. family-bound crons), no link rendered.
+- `components/admin/CollapsibleSection.tsx`: added `id={storageKey}` + `scroll-mt-24` so the cross-link's `#providerCommsFunnel` anchor scrolls correctly under the sticky header. Tiny, low-risk change — benefits every existing section equally.
+
+**Validation:** `tsc --noEmit` 0 errors. `eslint` clean on the new code (the 4 `react/no-unescaped-entities` errors in the file pre-existed on the CTA section's apostrophes). `npm run check:crons` passes. Not yet browser-tested — needs the Vercel preview to confirm the funnel renders correctly with real data.
+
+**Pre-test self-review caught 4 things (all fixed in-session):**
+- 🟡 Unit-mix bug in engagement-bounce %: `f.clicked` is raw row count, `f.engagement_bounces` is distinct providers — dividing them mixed units. Added `f.distinct_clickers = clickedByBucket[k].size` as the proper denominator. UI now reads "X of Y clickers" instead of "X% of clicked".
+- 🟢 URL-state drift: when `?comms_filter` was deep-linked then removed (browser back from /admin/analytics?comms_filter=verification → /admin/analytics), the dropdown stayed on "verification" while the URL was clean. useEffect now resets to "all" when urlFilter becomes null.
+- 🟢 Stale-deploy crash: `summary.windowed.provider_comms_funnel_by_type[filter]` would throw if a transient response predated the new field. Added a defensive guard that renders a placeholder instead.
+- 🟢 Label/order duplication: `COMMS_FILTER_LABELS` + `COMMS_FILTER_ORDER` were defined in both the lib and the page. Removed the page-local copies, imported from the lib. Also: added `add_email_notification` to the CONNECTIONS bucket (provider-bound lead email; was missing).
+
+**Files touched / created:**
+- NEW `lib/analytics/provider-email-funnels.ts`
+- M `app/api/admin/analytics/summary/route.ts`
+- M `app/admin/analytics/page.tsx`
+- M `app/admin/automations/[id]/page.tsx`
+- M `components/admin/CollapsibleSection.tsx`
+
+**Plan for Request B (after A ships, ~half day):**
+- New "Comms timeline" tab on `/admin/directory/[providerId]`. Single query against `email_log` + `provider_activity` joined client-side by `provider_id`. Interleaved chronologically: emails on the left (subject + status pill via the existing `EmailStatusPill`), activity events on the right. CRM contact-card view. Reuses `components/admin/EmailTimeline.tsx` as the starting point — it already does the email half; just need to add the activity half + the merge.
+
+**Blindspots flagged to TJ:**
+- Apple Mail Privacy Protection inflates Opens 30-50% — tooltip caveat already in the Q&A section, will mirror in the new one.
+- Approximate attribution noisier on single-type views than on `all` (a provider may have received multiple email types in the window); tooltip will name this.
+- Cron registry already has a `successSignal` text field but it's free-text — the new mapping file becomes the machine-readable version for *just* the downstream-event mapping. They coexist.
+- Bounces/complaints across all provider email types aren't aggregated anywhere today. Small cross-type panel is the easy add but deferred until A ships.
+- The event_type allowlist + DB CHECK constraint trap ([feedback_event_allowlist_needs_db_migration](.claude/projects/-Users-tfalohun-Desktop-olera-web/memory/feedback_event_allowlist_needs_db_migration.md)) — not triggered here since we're querying existing event types, not adding new ones.
+
+**Resume next session here →** (1) Browser-test Request A on a Vercel preview deploy from `jolly-wright`: open `/admin/analytics`, scroll to "Provider Comms Funnel", confirm the `all` view shows non-zero numbers, switch through each bucket, confirm the engagement bounce panel + top-10 list render. Then from `/admin/automations/[id]` (e.g. weekly-provider-digest), click "See provider-action funnel →" and confirm it deep-links to the section with the right filter pre-set. (2) Open PR `jolly-wright → staging`. (3) Build Request B: "Comms timeline" tab on `/admin/directory/[providerId]`. Single query against `email_log` + `provider_activity` joined client-side by `provider_id`, interleaved chronologically. `components/admin/EmailTimeline.tsx` already does the email half — extend with the activity half. CRM contact-card view. Roughly half a day. No DB migration. (4) Defer for later: a cross-type bounce/complaint panel (small add — current Q&A funnel only shows it for one bucket).
+
+---
+
 ### 2026-05-12 (Tue, even later) — Automation Console Phase 2 — per-recipient view + email timelines (PR #797, on staging)
 
 Built on `feature/automation-console-phase2` (off `staging`). The linkage call from Phase 1 got decided: **Option C — the hybrid**. Don't thread a `cron_run_id` through every `sendEmail`; instead add one nullable `email_log.cron_run_id` column and have `withCronRun()` stamp it at run-end.

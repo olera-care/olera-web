@@ -32,70 +32,105 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
   let text: string;
   switch (t.touchpoint_type) {
     case "stage_change": {
+      // E3: narrate stage transitions as complete sentences. Terminal
+      // and conversion transitions get stronger language so the
+      // timeline reads as the relationship's story, not a state log.
       const from = String(p.from ?? "?");
       const to = String(p.to ?? "?");
       const fromLabel = labelFor(from);
       const toLabel = labelFor(to);
-      const reopen = p.reopen ? " (reopened)" : "";
-      text = `Stage: ${fromLabel} → ${toLabel}${reopen}`;
+      if (p.reopen) {
+        text = `Row reopened from ${fromLabel} back to ${toLabel}.`;
+      } else if (to === "active_partner") {
+        text = `Row converted — now an active partner.`;
+      } else if (to === "not_interested") {
+        text = `Row closed as Not interested.`;
+      } else if (to === "do_not_contact") {
+        text = `Row closed as Do Not Contact — communications stopped.`;
+      } else if (to === "no_response_closed") {
+        text = `Row archived after no response.`;
+      } else if (to === "wrong_contact") {
+        text = `Row closed — contact was unreachable.`;
+      } else if (to === "redirected") {
+        text = `Row redirected to a different stakeholder.`;
+      } else {
+        text = `Row moved from ${fromLabel} to ${toLabel}.`;
+      }
       break;
     }
     case "email_sent": {
       const tmpl = p.template ? ` (${p.template})` : "";
-      text = `Email sent${contactSuffix}${contactName}${tmpl}`;
+      text = `Sent email${contactSuffix}${contactName}${tmpl}.`;
       break;
     }
     case "email_replied":
-      text = `Reply received${contactSuffix}${contactName}`;
+      text = `Reply received${contactSuffix}${contactName} — cadence stopped.`;
       break;
     case "email_bounced":
-      text = `Email bounced${contactSuffix}`;
+      text = `Email bounced${contactSuffix} — address needs correction.`;
       break;
     case "email_complained":
-      text = `Marked as spam${contactSuffix} (auto-DNC)`;
+      text = `Email marked as spam${contactSuffix} — row auto-closed (do not contact).`;
       break;
     case "email_failed":
-      text = `Email send failed${contactSuffix}`;
+      text = `Email send failed${contactSuffix}.`;
       break;
 
     case "call_no_answer":
-      text = `Call: no answer${contactName}`;
+      text = `Called${contactName} — no answer. Row reappears on the next phone day.`;
       break;
     case "call_voicemail":
-      text = `Call: voicemail left${contactName}`;
+      text = `Called${contactName} — voicemail / message left. Row now awaiting callback.`;
       break;
-    case "call_connected":
-      text = `Call connected${contactName}`;
+    case "call_connected": {
+      // Outcome carries the engagement detail (connected_engaged,
+      // promised_callback, convert_to_client, etc.) — render the
+      // human-facing consequence when known.
+      const outcome = t.outcome ?? "";
+      if (outcome === "connected_engaged") {
+        text = `Reached${contactName} — interested. Cadence stopped; row moved to Replies.`;
+      } else if (outcome === "promised_callback") {
+        text = `Reached${contactName} — promised callback. Row awaiting their return call.`;
+      } else if (outcome === "convert_to_client") {
+        text = `Reached${contactName} — converted to Client.`;
+      } else if (outcome === "convert_to_partner") {
+        text = `Reached${contactName} — committing to Partner.`;
+      } else if (outcome === "connected_not_interested") {
+        text = `Reached${contactName} — not interested. Row closed.`;
+      } else {
+        text = `Reached${contactName} on the phone.`;
+      }
       break;
+    }
     case "call_wrong_number":
-      text = `Call: wrong number${contactName}`;
+      text = `Called${contactName} — wrong number. Row closed.`;
       break;
 
     case "ig_dm_sent":
-      text = `Instagram DM sent${contactName}`;
+      text = `Sent Instagram DM${contactName}.`;
       break;
     case "ig_dm_replied":
-      text = `Instagram DM reply received${contactName}`;
+      text = `Reply received via Instagram DM${contactName} — cadence stopped.`;
       break;
     case "contact_form_submitted":
-      text = `Submitted contact form`;
+      text = `Submitted the agency's contact form.`;
       break;
 
     case "meeting_scheduled": {
       const at = p.meeting_at ? ` for ${formatDate(String(p.meeting_at))}` : "";
       const kind = p.kind ? ` (${p.kind})` : "";
-      text = `Meeting scheduled${at}${kind}`;
+      text = `Meeting scheduled${at}${kind} — row moved to Meetings.`;
       break;
     }
     case "meeting_held":
-      text = t.outcome ? `Meeting held — ${t.outcome}` : `Meeting held`;
+      text = t.outcome ? `Meeting held — ${t.outcome}.` : `Meeting held.`;
       break;
     case "meeting_no_show":
-      text = `Meeting no-show`;
+      text = `Meeting no-show.`;
       break;
     case "meeting_rescheduled": {
       const at = p.meeting_at ? ` to ${formatDate(String(p.meeting_at))}` : "";
-      text = `Meeting rescheduled${at}`;
+      text = `Meeting rescheduled${at}.`;
       break;
     }
 
@@ -125,45 +160,45 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
 
     case "distribution_confirmed": {
       const ev = p.evidence ? ` — evidence: ${p.evidence}` : "";
-      text = `Marked as Partner${ev}`;
+      text = `Marked as Partner${ev}.`;
       break;
     }
 
     case "contact_added":
-      text = p.initial ? `Initial contact added` : `Contact added${contactName}`;
+      text = p.initial ? `Initial contact added.` : `Contact added${contactName}.`;
       break;
     case "contact_marked_stale": {
       const newStatus = p.new_status ?? "stale";
-      text = `Contact marked ${newStatus}${contactName}`;
+      text = `Contact marked ${newStatus}${contactName}.`;
       break;
     }
     case "contact_replaced":
-      text = `Contact replaced${contactName}`;
+      text = `Contact replaced${contactName}.`;
       break;
 
     case "redirect_initiated":
-      text = `Redirected to a new stakeholder`;
+      text = `Redirected to a new stakeholder.`;
       break;
     case "note_added": {
       const fields = Array.isArray(p.fields_updated) ? p.fields_updated.join(", ") : "";
-      text = fields ? `Notes / research updated (${fields})` : `Note added`;
+      text = fields ? `Notes / research updated (${fields}).` : `Note added.`;
       break;
     }
     case "snoozed": {
       const until = p.snoozed_until ? ` until ${formatDate(String(p.snoozed_until))}` : "";
-      text = `Snoozed${until}`;
+      text = `Snoozed${until}.`;
       break;
     }
     case "task_cancelled":
-      text = `Task cancelled${p.reason ? ` (${p.reason})` : ""}`;
+      text = `Task cancelled${p.reason ? ` (${p.reason})` : ""}.`;
       break;
     case "task_superseded": {
-      const reason = p.reason === "stage_change" ? "(stage advanced)" : "";
-      text = `Pending task(s) superseded ${reason}`.trim();
+      const reason = p.reason === "stage_change" ? " — stage advanced" : "";
+      text = `Pending tasks superseded${reason}.`;
       break;
     }
     case "system_seasonal_due":
-      text = `Seasonal check-in due`;
+      text = `Seasonal check-in due.`;
       break;
 
     default:

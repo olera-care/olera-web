@@ -98,6 +98,46 @@ export async function POST(
   }
   const row = outreach as OutreachRow;
 
+  // ── Conversion routing map ──────────────────────────────────────────
+  //
+  // Provider rows (kind='provider') convert to Clients via make_client,
+  // which writes business_profiles.metadata.interview_terms_accepted_at.
+  // That metadata flag is what unlocks Partner Prospects for catchment
+  // Sites (see lib/medjobs/partner-prospect-gate.ts).
+  //
+  // Stakeholder rows convert to Partners via mark_partner, which writes
+  // distribution_evidence on the outreach row and queues the first
+  // seasonal email.
+  //
+  // The two paths are NOT interchangeable. Picking mark_partner on a
+  // provider row half-converts (sets active_partner status but never
+  // unlocks Partner Prospects). All four Log surfaces gate this:
+  //
+  //   PROVIDER conversion (→ make_client):
+  //     - LogCallOutcomeModal:  convert_to_client outcome (provider only)
+  //     - CallForEmailModal:    convert_to_client engagement (provider modal)
+  //     - ReplyClassifierModal: not offered (gated by !isProvider; convert
+  //                             via Call modal or T&C/Stripe signal)
+  //     - LogMeetingModal:      not offered (gated by !isProvider; convert
+  //                             via Call modal — see R1 commit)
+  //
+  //   STAKEHOLDER conversion (→ mark_partner):
+  //     - LogCallOutcomeModal:  convert_to_partner outcome (stakeholder only)
+  //     - ReplyClassifierModal: committed classification (stakeholder only)
+  //     - LogMeetingModal:      done_partner status (stakeholder only)
+  //
+  // Terminal closeouts (→ transitionStage to closed status):
+  //   - mark_not_interested      → "not_interested"
+  //   - mark_dnc                 → "do_not_contact"
+  //   - mark_wrong_contact       → "wrong_contact"
+  //   - mark_no_response_closed  → "no_response_closed" (auto-revives on
+  //                                inbound email_replied — see handleLogReply)
+  //   - reopen                   → flips closed rows back to engaged
+  //
+  // Every conversion + terminal action emits a stage_change touchpoint
+  // and cancels obsolete tasks via tasksToCancelOnExit. Single-writer
+  // discipline: all mutations route through here.
+
   try {
     switch (action) {
       // ── Field updates ───────────────────────────────────────────────

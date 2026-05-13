@@ -159,13 +159,15 @@ function bodyToHtml(text: string): string {
 
 /**
  * v9 final: HTML footer composer. Appended after the email body
- * on every send. Composes five blocks top-to-bottom:
+ * on every send. Six-block stack in the order the user wants
+ * recipients to read it:
  *
- *   1. Divider line
- *   2. "Reply STOP if you would like us to stop reaching out."
- *   3. "Message Approved by Dr. Logan DuBose, MD/MBA"
- *   4. Dr. Logan DuBose signature block (photo + credentials)
- *   5. Grazie Belandres signature block (photo + title)
+ *   1. "Best, Grazie"               (warm sign-off, inline)
+ *   2. Grazie Belandres signature   (photo + role + contact)
+ *   3. Divider line
+ *   4. "Message Approved by Dr. Logan DuBose, MD/MBA"
+ *   5. Dr. Logan DuBose signature   (photo + credentials)
+ *   6. "Reply STOP …"               (compliance line, smallest)
  *
  * Single source of truth — template bodies don't include any of
  * these. Keeps email chrome consistent across every variant and
@@ -173,12 +175,20 @@ function bodyToHtml(text: string): string {
  */
 function composeFooterHtml(): string {
   return [
-    `<div style="margin-top:24px;border-top:1px solid #e5e7eb;padding-top:16px;font-size:12px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">`,
-    `  <p style="margin:0 0 6px;">Reply STOP if you would like us to stop reaching out.</p>`,
-    `  <p style="margin:0 0 16px;font-weight:500;color:#374151;">Message Approved by Dr. Logan DuBose, MD/MBA</p>`,
-    `</div>`,
-    loganSignatureHtml(),
+    // 1+2: warm sign-off + Grazie block. Sits directly under the
+    //      body so the email reads like a real note from Grazie,
+    //      not a marketing footer.
+    `<p style="margin:16px 0 4px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
+    `<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Grazie</p>`,
     grazieSignatureHtml(),
+    // 3: divider — separates the sender identity from the
+    //    "approved by" attribution + principal signature.
+    `<hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;" />`,
+    // 4+5: Approved-by line + Logan block.
+    `<p style="margin:0 0 8px;font-size:12px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">Message Approved by Dr. Logan DuBose, MD/MBA</p>`,
+    loganSignatureHtml(),
+    // 6: compliance line — bottom, smallest, gray.
+    `<p style="margin:24px 0 0;font-size:11px;line-height:1.5;color:#9ca3af;font-family:Inter,Arial,sans-serif;">Reply STOP if you would like us to stop reaching out.</p>`,
   ].join("\n");
 }
 
@@ -190,9 +200,15 @@ function composeFooterHtml(): string {
 function composeFooterText(): string {
   return [
     ``,
-    `---`,
-    `Reply STOP if you would like us to stop reaching out.`,
+    `Best,`,
+    `Grazie`,
     ``,
+    `Grazie Belandres`,
+    `Research Assistant to Dr. Logan DuBose`,
+    `${PROGRAM_URL}`,
+    `grazie@olera.care`,
+    ``,
+    `---`,
     `Message Approved by Dr. Logan DuBose, MD/MBA`,
     ``,
     `Dr. Logan DuBose, MD, MBA`,
@@ -201,12 +217,9 @@ function composeFooterText(): string {
     `Researcher, funded by NIH SBIR Program`,
     `General Practitioner (GP), Licensed in VA`,
     `Co-founder, www.olera.care`,
-    `Schedule a meeting: https://calendly.com/caregivers979/home-care-agency-manager-interview`,
+    `Schedule a meeting: ${CALENDLY_URL}`,
     ``,
-    `Grazie Belandres`,
-    `Research Assistant to Dr. Logan DuBose`,
-    `${PROGRAM_URL}`,
-    `grazie@olera.care`,
+    `Reply STOP if you would like us to stop reaching out.`,
   ].join("\n");
 }
 

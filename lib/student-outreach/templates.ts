@@ -83,11 +83,16 @@ const PLACEHOLDER = {
 };
 
 /**
- * Shared CTA line — appears as the last line of every email body
- * before the signature block. Markdown link syntax that
- * bodyToHtml() converts to <a href>.
+ * Inline call-scheduling phrases. Embedded into the closing
+ * sentence of each template rather than rendered as a standalone
+ * CTA line — keeps the email reading like a personal note from
+ * Grazie, not a marketing template. The label varies by context
+ * (Day 0 is longer + descriptive; follow-ups are shorter +
+ * conversational); bodyToHtml turns the markdown link into a
+ * clickable inline <a href>.
  */
-const SCHEDULE_CTA = `[Schedule a 15-minute informational call with Dr. Logan DuBose](${PLACEHOLDER.calendlyUrl})`;
+const SCHEDULE_LINK_LONG = `[schedule a quick informational call with him directly](${PLACEHOLDER.calendlyUrl})`;
+const SCHEDULE_LINK_SHORT = `[share more on a quick call](${PLACEHOLDER.calendlyUrl})`;
 
 // ── Public API ──────────────────────────────────────────────────────────
 
@@ -224,9 +229,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `**For ${PLACEHOLDER.orgName} members, this is a paid clinical opportunity that fits alongside coursework and gives them experience and recommendation letters relevant to health professions.**`,
           ``,
-          `If this would be useful for your group, Dr. DuBose would be happy to share more on a quick 15-minute call. Please see the attached information packet for program details.`,
-          ``,
-          SCHEDULE_CTA,
+          `If this would be useful for your group, Dr. DuBose would be happy to ${SCHEDULE_LINK_SHORT}. Please see the attached information packet for program details.`,
         ].join("\n"),
       };
     case "advisor":
@@ -241,9 +244,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `**For your pre-health advisees, this offers a paid clinical opportunity that fits alongside coursework and aligns with the experience that strengthens applications.**`,
           ``,
-          `If this would be useful for your advisees, Dr. DuBose would be happy to share more on a quick 15-minute call. Please see the attached information packet for program details.`,
-          ``,
-          SCHEDULE_CTA,
+          `If this would be useful for your advisees, Dr. DuBose would be happy to ${SCHEDULE_LINK_SHORT}. Please see the attached information packet for program details.`,
         ].join("\n"),
       };
     case "dept_head":
@@ -258,9 +259,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `**For students in your department, this is a paid clinical opportunity that fits alongside coursework and aligns with the experience that strengthens health professions applications.**`,
           ``,
-          `With your approval, Dr. DuBose would be happy to share more about the program on a quick 15-minute call. Please see the attached information packet for program details.`,
-          ``,
-          SCHEDULE_CTA,
+          `With your approval, Dr. DuBose would be happy to ${SCHEDULE_LINK_SHORT}. Please see the attached information packet for program details.`,
         ].join("\n"),
       };
     case "professor":
@@ -275,9 +274,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `**For pre-health students in your courses, this is a paid clinical opportunity that fits alongside coursework and gives them experience and recommendation letters relevant to health professions.**`,
           ``,
-          `If you would be open to forwarding this information to your students, Dr. DuBose would be happy to share more on a quick 15-minute call. Please see the attached information packet for program details.`,
-          ``,
-          SCHEDULE_CTA,
+          `If you would be open to forwarding this information to your students, Dr. DuBose would be happy to ${SCHEDULE_LINK_SHORT}. Please see the attached information packet for program details.`,
         ].join("\n"),
       };
   }
@@ -293,9 +290,7 @@ export function followupLightEmail(_ctx: TemplateContext): EmailDraft {
       ``,
       `Just following up on my earlier note regarding Dr. Logan DuBose's ${PLACEHOLDER.campus} Student Caregiver Program.`,
       ``,
-      `Dr. DuBose would be happy to share more on a quick 15-minute call, or we can continue the conversation over email. Please see the attached information packet with program details.`,
-      ``,
-      SCHEDULE_CTA,
+      `Dr. DuBose would be happy to ${SCHEDULE_LINK_SHORT}, or we can continue the conversation over email. Please see the attached information packet with program details.`,
     ].join("\n"),
   };
 }
@@ -308,9 +303,7 @@ export function followupSocialProofEmail(_ctx: TemplateContext): EmailDraft {
       ``,
       `Following up on Dr. Logan DuBose's ${PLACEHOLDER.campus} Student Caregiver Program. Students at peer campuses are picking up paid caregiving hours alongside their coursework that supports their health professions applications.`,
       ``,
-      `If you would like the program materials to share with your students or advisees, please reply and I will send them over. Dr. DuBose is also happy to share more on a quick 15-minute call.`,
-      ``,
-      SCHEDULE_CTA,
+      `If you would like the program materials to share with your students or advisees, please reply and I will send them over. Dr. DuBose is also happy to ${SCHEDULE_LINK_SHORT}.`,
     ].join("\n"),
   };
 }
@@ -321,13 +314,11 @@ export function followupFinalEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Dr. Logan DuBose would be happy to share more about the ${PLACEHOLDER.campus} Student Caregiver Program if there is interest from your team.`,
+      `Dr. Logan DuBose would be happy to ${SCHEDULE_LINK_SHORT} about the ${PLACEHOLDER.campus} Student Caregiver Program if there is interest from your team.`,
       ``,
       `If now is not the right time, we appreciate your time and will circle back next term. If there is a better person at ${PLACEHOLDER.orgName} to coordinate with, we would be grateful for a redirect.`,
       ``,
       `Thank you for your time.`,
-      ``,
-      SCHEDULE_CTA,
     ].join("\n"),
   };
 }
@@ -405,9 +396,7 @@ export function providerIntroEmail(
       ``,
       `We would like to invite ${PLACEHOLDER.orgName} to join the program and begin accepting students to supplement your caregiver workforce.`,
       ``,
-      `If you are interested, you can reply directly to this email, continue the conversation with Dr. DuBose over email, or schedule a quick informational call with him directly. Please see the attached information packet with program details and agency participation information.`,
-      ``,
-      SCHEDULE_CTA,
+      `If you are interested, you can reply directly to this email, continue the conversation with Dr. DuBose over email, or ${SCHEDULE_LINK_LONG}. Please see the attached information packet with program details and agency participation information.`,
     ].join("\n"),
   };
 }
@@ -428,9 +417,7 @@ export function providerFollowupEmail(
       ...greetingBlock,
       `Just following up on my earlier note and calls regarding Dr. Logan DuBose's ${PLACEHOLDER.campus} Student Caregiver Program.`,
       ``,
-      `Dr. DuBose would be happy to share more about the program on a quick 15-minute call, or we are happy to continue the conversation over email. Please see the attached information packet with highlights about the program and how participation works for home care agencies.`,
-      ``,
-      SCHEDULE_CTA,
+      `Dr. DuBose would be happy to ${SCHEDULE_LINK_SHORT}, or we can continue the conversation over email. Please see the attached information packet with highlights about the program and how participation works for home care agencies.`,
     ].join("\n"),
   };
 }
@@ -449,15 +436,13 @@ export function providerFinalEmail(
     subject,
     body: [
       ...greetingBlock,
-      `Dr. Logan DuBose would be happy to share more about the ${PLACEHOLDER.campus} Student Caregiver Program.`,
+      `Dr. Logan DuBose would be happy to ${SCHEDULE_LINK_SHORT} about the ${PLACEHOLDER.campus} Student Caregiver Program.`,
       ``,
       `If there is interest from your leadership team, this program can help supplement your caregiver workforce, fill vacant shifts, and improve client engagement with qualified pre-nursing and pre-medical students vetted by our team and referred to agencies for hire.`,
       ``,
       `If there is a better person for us to speak with regarding caregiver hiring at ${PLACEHOLDER.orgName}, we are also happy to reach out to them directly.`,
       ``,
       `Thank you for your time. Please see the attached program information and agency participation details.`,
-      ``,
-      SCHEDULE_CTA,
     ].join("\n"),
   };
 }

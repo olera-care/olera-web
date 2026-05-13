@@ -42,6 +42,13 @@ export default function AdminDirectoryDetailPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [source, setSource] = useState<ProviderSource>("scraped");
+  // Canonical olera-providers.provider_id from the API response. URLs accept
+  // multiple input shapes (op.provider_id, op.slug, bp.id, bp.slug) but PATCH
+  // + image action endpoints require the exact provider_id. Without this, a
+  // user clicking through from an analytics top-providers link (op.slug URL)
+  // would get 404s on every save. Falls back to the URL param for the brief
+  // window before fetch completes (no handlers run that early anyway).
+  const [canonicalProviderId, setCanonicalProviderId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Owner/staff state (stored in business_profiles.metadata.staff)
@@ -86,6 +93,12 @@ export default function AdminDirectoryDetailPage() {
       setImages(data.images ?? []);
       setRawImages(data.rawImages ?? []);
       setSource(data.source === "user-created" ? "user-created" : "scraped");
+      // For scraped: olera-providers.provider_id. For user-created: the BP UUID.
+      // Fallback: the URL param (only hit in transient/error states).
+      const cid = (data.provider?.provider_id as string | undefined)
+        || (data.businessProfileId as string | undefined)
+        || providerId;
+      setCanonicalProviderId(cid);
 
       // Populate staff/owner data
       const staff = data.staffData as Record<string, string> | null;
@@ -153,8 +166,9 @@ export default function AdminDirectoryDetailPage() {
       return;
     }
 
+    const id = canonicalProviderId ?? providerId;
     try {
-      const res = await fetch(`/api/admin/directory/${providerId}`, {
+      const res = await fetch(`/api/admin/directory/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(delta),
@@ -177,15 +191,16 @@ export default function AdminDirectoryDetailPage() {
 
   async function handleImageAction(action: string, imageUrl?: string, newType?: string) {
     setActionLoading(`${action}-${imageUrl || ""}`);
+    const id = canonicalProviderId ?? providerId;
     try {
-      const res = await fetch(`/api/admin/images/${providerId}`, {
+      const res = await fetch(`/api/admin/images/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, image_url: imageUrl, new_type: newType }),
       });
       if (res.ok) {
         // Refresh detail to get updated images
-        const detailRes = await fetch(`/api/admin/directory/${providerId}`);
+        const detailRes = await fetch(`/api/admin/directory/${id}`);
         if (detailRes.ok) {
           const data = await detailRes.json();
           const prevCount = images.length + rawImages.length;
@@ -232,10 +247,11 @@ export default function AdminDirectoryDetailPage() {
 
   async function handleImageUpload(file: File) {
     setUploading(true);
+    const id = canonicalProviderId ?? providerId;
     try {
       const body = new FormData();
       body.append("file", file);
-      body.append("providerId", providerId);
+      body.append("providerId", id);
 
       const res = await fetch("/api/admin/directory/upload", {
         method: "POST",
@@ -244,7 +260,7 @@ export default function AdminDirectoryDetailPage() {
 
       if (res.ok) {
         // Refresh to show new image
-        const detailRes = await fetch(`/api/admin/directory/${providerId}`);
+        const detailRes = await fetch(`/api/admin/directory/${id}`);
         if (detailRes.ok) {
           const data = await detailRes.json();
           setFormData((prev) => ({ ...prev, provider_images: data.provider.provider_images }));
@@ -276,6 +292,7 @@ export default function AdminDirectoryDetailPage() {
   async function handleSaveStaff() {
     setSavingStaff(true);
     setStaffMessage(null);
+    const id = canonicalProviderId ?? providerId;
     try {
       const staffData = {
         name: staffName.trim(),
@@ -284,7 +301,7 @@ export default function AdminDirectoryDetailPage() {
         image: staffImage,
         care_motivation: staffCareMotivation.trim() || undefined,
       };
-      const res = await fetch(`/api/admin/directory/${providerId}`, {
+      const res = await fetch(`/api/admin/directory/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ _staff: staffName.trim() ? staffData : null }),
@@ -312,10 +329,11 @@ export default function AdminDirectoryDetailPage() {
 
   async function handleStaffPhotoUpload(file: File) {
     setUploadingStaffPhoto(true);
+    const id = canonicalProviderId ?? providerId;
     try {
       const body = new FormData();
       body.append("file", file);
-      body.append("providerId", providerId);
+      body.append("providerId", id);
 
       const res = await fetch("/api/admin/directory/upload", {
         method: "POST",
@@ -326,7 +344,7 @@ export default function AdminDirectoryDetailPage() {
         const data = await res.json();
         if (data.imageUrl) setStaffImage(data.imageUrl);
         // Also refresh provider images
-        const detailRes = await fetch(`/api/admin/directory/${providerId}`);
+        const detailRes = await fetch(`/api/admin/directory/${id}`);
         if (detailRes.ok) {
           const detail = await detailRes.json();
           setImages(detail.images ?? []);
@@ -414,7 +432,7 @@ export default function AdminDirectoryDetailPage() {
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Comms timeline</h2>
-          <ProviderCommsTimeline providerId={providerId} viewAllEmailsHref={`/admin/emails?provider_id=${providerId}`} />
+          <ProviderCommsTimeline providerId={canonicalProviderId ?? providerId} viewAllEmailsHref={`/admin/emails?provider_id=${canonicalProviderId ?? providerId}`} />
         </div>
       </div>
     );
@@ -855,7 +873,7 @@ export default function AdminDirectoryDetailPage() {
 
         {/* Comms timeline — emails + on-site activity, interleaved */}
         <Section title="Comms timeline">
-          <ProviderCommsTimeline providerId={providerId} viewAllEmailsHref={`/admin/emails?provider_id=${providerId}`} />
+          <ProviderCommsTimeline providerId={canonicalProviderId ?? providerId} viewAllEmailsHref={`/admin/emails?provider_id=${canonicalProviderId ?? providerId}`} />
         </Section>
 
         {/* Facility Manager / Owner */}
@@ -956,8 +974,9 @@ export default function AdminDirectoryDetailPage() {
               <button
                 onClick={async () => {
                   setSaving(true);
+                  const id = canonicalProviderId ?? providerId;
                   try {
-                    const res = await fetch(`/api/admin/directory/${providerId}`, {
+                    const res = await fetch(`/api/admin/directory/${id}`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ deleted: false }),
@@ -994,8 +1013,9 @@ export default function AdminDirectoryDetailPage() {
                 onClick={async () => {
                   if (!confirm(`Are you sure you want to delete "${provider.provider_name}"? It will be hidden from public search.`)) return;
                   setSaving(true);
+                  const id = canonicalProviderId ?? providerId;
                   try {
-                    const res = await fetch(`/api/admin/directory/${providerId}`, {
+                    const res = await fetch(`/api/admin/directory/${id}`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ deleted: true }),

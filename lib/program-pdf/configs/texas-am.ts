@@ -3,10 +3,17 @@
  *
  * Each university config drives the React-PDF Template (one file
  * in this directory per campus slug). To add a new university:
- *   1. Copy texas-a-and-m.ts → <slug>.ts
+ *   1. Copy texas-am.ts → <slug>.ts
  *   2. Swap the copy + accent color + assets
  *   3. Register in configs/index.ts
  *   4. /api/medjobs/program-pdf?university=<slug> renders it
+ *
+ * IMPORTANT: the `slug` field below MUST match
+ * student_outreach_campuses.slug. The attachment wiring looks up
+ * the config by outreach.campus.slug at send time — a mismatch
+ * means no PDF attaches (silent fallback to the env-var generic).
+ * Texas A&M's canonical slug is `texas-am` (see
+ * lib/student-outreach/universities.ts + migration 064 seed).
  *
  * The Template component (lib/program-pdf/Template.tsx) consumes
  * this shape only — no university-specific code in the renderer
@@ -15,7 +22,7 @@
 
 export interface ProgramPdfConfig {
   /** Stable slug — matches student_outreach_campuses.slug so the
-   *  attachment can be looked up by outreach.campus_slug. */
+   *  attachment can be looked up by outreach.campus.slug. */
   slug: string;
   /** University display name used in the title + body. */
   universityName: string;
@@ -48,8 +55,8 @@ export interface ProgramPdfConfig {
   ctaLabel: string;
 }
 
-export const TEXAS_A_AND_M: ProgramPdfConfig = {
-  slug: "texas-a-and-m",
+export const TEXAS_AM: ProgramPdfConfig = {
+  slug: "texas-am",
   universityName: "Texas A&M University",
   universityShort: "Texas A&M",
   localArea: "Bryan/College Station area",

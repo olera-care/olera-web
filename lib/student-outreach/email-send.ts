@@ -97,6 +97,12 @@ export interface SendOutreachEmailInput {
    *  for legacy callers or stakeholder rows with no registered
    *  config — those fall back to the env-var-driven generic PDF. */
   campus_slug?: string | null;
+  /** v9 final: per-campus PDF override URL from
+   *  student_outreach_campuses.program_pdf_url. When set, the
+   *  attachment loader uses this URL instead of the code-defined
+   *  template. Lets admin attach a bespoke PDF without code
+   *  changes. */
+  campus_program_pdf_url?: string | null;
   organization_name: string;
   /** Logged on touchpoints + email_log; not used for Reply-To. */
   admin_first_name: string;
@@ -126,28 +132,76 @@ export interface SendOutreachEmailResult {
 }
 
 /**
- * v9 final: attachment loader. Three sources, in priority order:
- *   1. Per-university Program PDF generated on demand from
- *      lib/program-pdf (when campus_slug matches a registered
- *      config). Cached in-process per slug.
- *   2. Env-var-driven generic flyer (STUDENT_OUTREACH_FLYER_URL),
+ * v9 final: attachment loader. Four sources, in priority order:
+ *   1. Per-campus override URL from student_outreach_campuses.
+ *      program_pdf_url. Lets admin attach a bespoke PDF without
+ *      code changes — fetched + base64'd at send time, cached
+ *      per URL in-process.
+ *   2. Per-university code-defined Program PDF generated on
+ *      demand from lib/program-pdf (when campus_slug matches a
+ *      registered config). Cached in-process per slug.
+ *   3. Env-var-driven generic flyer (STUDENT_OUTREACH_FLYER_URL),
  *      used when the campus isn't configured yet or the caller
  *      doesn't pass a slug.
- *   3. No attachment (silent — send proceeds without a PDF). The
+ *   4. No attachment (silent — send proceeds without a PDF). The
  *      body copy that references "the attached information
  *      packet" still goes; the recipient won't have the PDF, but
  *      the send doesn't fail.
  */
 const cachedProgramPdfBySlug = new Map<string, { content: string; filename: string }>();
+const cachedCustomPdfByUrl = new Map<string, { content: string; filename: string; type: string }>();
 let cachedEnvAttachment: { content: string; type: string } | null = null;
 let cachedEnvAttachmentChecked = false;
 
 async function loadProgramPdfAttachment(
   campusSlug: string | null | undefined,
+  campusProgramPdfUrl: string | null | undefined,
 ): Promise<
   Array<{ filename: string; content: string; encoding?: string; type?: string }> | undefined
 > {
-  // Path 1: per-university Program PDF.
+  // Path 1: per-campus admin override URL.
+  if (campusProgramPdfUrl) {
+    const cached = cachedCustomPdfByUrl.get(campusProgramPdfUrl);
+    if (cached) {
+      return [
+        {
+          filename: cached.filename,
+          content: cached.content,
+          encoding: "base64",
+          type: cached.type,
+        },
+      ];
+    }
+    try {
+      const res = await fetch(campusProgramPdfUrl);
+      if (res.ok) {
+        const buf = await res.arrayBuffer();
+        const filename =
+          decodeURIComponent(
+            campusProgramPdfUrl.split("/").pop() ?? "",
+          ).split("?")[0] || "program.pdf";
+        const entry = {
+          filename,
+          content: Buffer.from(buf).toString("base64"),
+          type: res.headers.get("content-type") ?? "application/pdf",
+        };
+        cachedCustomPdfByUrl.set(campusProgramPdfUrl, entry);
+        return [
+          {
+            filename: entry.filename,
+            content: entry.content,
+            encoding: "base64",
+            type: entry.type,
+          },
+        ];
+      }
+    } catch (err) {
+      console.error("[email-send] campus override PDF fetch failed:", err);
+      // fall through to code-defined config
+    }
+  }
+
+  // Path 2: per-university code-defined Program PDF.
   if (campusSlug && getProgramPdfConfig(campusSlug)) {
     const cached = cachedProgramPdfBySlug.get(campusSlug);
     if (cached) {
@@ -389,7 +443,10 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 export async function sendOutreachEmail(
   input: SendOutreachEmailInput,
 ): Promise<SendOutreachEmailResult> {
-  const attachments = await loadProgramPdfAttachment(input.campus_slug ?? null);
+  const attachments = await loadProgramPdfAttachment(
+    input.campus_slug ?? null,
+    input.campus_program_pdf_url ?? null,
+  );
 
   const staticVars = {
     organization_name: input.organization_name,

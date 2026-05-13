@@ -171,6 +171,11 @@ export interface Campus {
   research_complete: boolean;
   created_at: string;
   updated_at: string;
+  /** v9 final: optional per-campus PDF override (migration 080).
+   *  Set via SQL today; admin upload UI ships in a follow-up. When
+   *  populated, supersedes the code-defined template config for
+   *  attaching to provider outreach emails. */
+  program_pdf_url?: string | null;
 }
 
 export interface OutreachRow {

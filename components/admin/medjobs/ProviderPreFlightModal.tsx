@@ -68,6 +68,12 @@ interface Props {
    *  "PDF attached" indicator so admin sees the package contents
    *  before launching. */
   campusSlug?: string | null;
+  /** v9 final: per-campus PDF override URL from
+   *  student_outreach_campuses.program_pdf_url. When set, the
+   *  attachment loader uses this file instead of the code-defined
+   *  template; PreFlight surfaces both the filename and the
+   *  "Custom upload" source label so admin knows what's going. */
+  campusProgramPdfUrl?: string | null;
   contacts: Contact[];
   /**
    * v9 final: effective General Contact for the outreach row —
@@ -156,20 +162,34 @@ export function ProviderPreFlightModal({
   organizationName,
   campusName,
   campusSlug,
+  campusProgramPdfUrl,
   contacts,
   generalContact,
   onCancel,
   onSubmit,
 }: Props) {
   // v9 final: surface the Program PDF that will be attached so
-  // admin sees the outreach package before launching. The config
-  // registry maps campus slug → filename; if no config, no PDF
-  // indicator (and no PDF attaches at send time either).
+  // admin sees the outreach package before launching. Resolution
+  // mirrors the server's loadProgramPdfAttachment order:
+  //   1. campus.program_pdf_url override (custom upload)
+  //   2. lib/program-pdf/configs/<slug>.ts (template config)
+  //   3. null — no PDF indicator, no attachment
   const programPdfAttachment = (() => {
+    if (campusProgramPdfUrl) {
+      const filename =
+        decodeURIComponent(campusProgramPdfUrl.split("/").pop() ?? "")
+          .split("?")[0] || "program.pdf";
+      return {
+        source: "custom" as const,
+        filename,
+        previewUrl: campusProgramPdfUrl,
+      };
+    }
     if (!campusSlug) return null;
     const config = getProgramPdfConfig(campusSlug);
     if (!config) return null;
     return {
+      source: "template" as const,
       filename: `${config.slug}-student-caregiver-program.pdf`,
       previewUrl: `/api/medjobs/program-pdf?university=${config.slug}`,
     };
@@ -418,27 +438,43 @@ export function ProviderPreFlightModal({
             </p>
           )}
 
-          {/* v9 final: PDF attachment indicator. Surfaces the
-              per-campus Program PDF that will attach to every
-              outreach email so admin sees the package contents
-              before launching. Provides a preview link admin can
-              open to inspect the actual PDF. */}
-          {programPdfAttachment && (
-            <section className="rounded-md border border-gray-200 bg-white">
-              <header className="border-b border-gray-100 px-3 py-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                  PDF attachment
-                </p>
-              </header>
+          {/* v9 final: PDF attachment indicator. Two modes:
+              programPdfAttachment is set    → green confirmation
+                                                with filename + source
+                                                label + Preview link
+              null (no config + no override) → amber notice so admin
+                                                knows the send goes
+                                                without a PDF
+              Either way, the source of truth is visible before launch. */}
+          <section className="rounded-md border border-gray-200 bg-white">
+            <header className="border-b border-gray-100 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                PDF attachment
+              </p>
+            </header>
+            {programPdfAttachment ? (
               <div className="flex items-center justify-between gap-2 px-3 py-2.5">
                 <div className="flex items-center gap-2">
                   <span aria-hidden className="text-base">📎</span>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {programPdfAttachment.filename}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium text-gray-900">
+                        {programPdfAttachment.filename}
+                      </p>
+                      <span
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                          programPdfAttachment.source === "custom"
+                            ? "bg-blue-50 text-blue-700"
+                            : "bg-emerald-50 text-emerald-700"
+                        }`}
+                      >
+                        {programPdfAttachment.source === "custom"
+                          ? "Custom upload"
+                          : `Default · ${campusName} template`}
+                      </span>
+                    </div>
                     <p className="text-[11px] text-gray-500">
-                      One-page program packet, attached to every outreach email.
+                      Attached to every outreach email queued from this launch.
                     </p>
                   </div>
                 </div>
@@ -451,8 +487,17 @@ export function ProviderPreFlightModal({
                   Preview ↗
                 </a>
               </div>
-            </section>
-          )}
+            ) : (
+              <div className="px-3 py-2.5">
+                <p className="text-xs text-amber-800">
+                  No PDF configured for this campus. The send will go
+                  without an attachment. To wire one up, register a
+                  config in <code className="rounded bg-gray-100 px-1 font-mono text-[10px]">lib/program-pdf/configs/</code>{" "}
+                  or set <code className="rounded bg-gray-100 px-1 font-mono text-[10px]">program_pdf_url</code> on the campus row.
+                </p>
+              </div>
+            )}
+          </section>
 
           {/* Recipients section */}
           <section className="rounded-md border border-gray-200 bg-white">

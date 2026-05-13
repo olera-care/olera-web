@@ -7,13 +7,13 @@
  * agnostic — only this registry needs an edit.
  */
 
-import { TEXAS_A_AND_M } from "./texas-a-and-m";
-import type { ProgramPdfConfig } from "./texas-a-and-m";
+import { TEXAS_AM } from "./texas-am";
+import type { ProgramPdfConfig } from "./texas-am";
 
 export type { ProgramPdfConfig };
 
 export const PROGRAM_PDF_CONFIGS: Record<string, ProgramPdfConfig> = {
-  [TEXAS_A_AND_M.slug]: TEXAS_A_AND_M,
+  [TEXAS_AM.slug]: TEXAS_AM,
 };
 
 /** Returns the config for a campus slug, or null if not configured. */

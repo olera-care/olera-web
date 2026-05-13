@@ -457,6 +457,7 @@ function ProspectBody({
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus.name}
           campusSlug={ctx.campus.slug}
+          campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
           contacts={ctx.contacts}
           generalContact={{
             email:

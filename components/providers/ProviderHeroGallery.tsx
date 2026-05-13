@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { ProfileCategory } from "@/lib/types";
 
@@ -37,6 +37,9 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
   const [fallbackFailed, setFallbackFailed] = useState(false);
   const [anyRealImageLoaded, setAnyRealImageLoaded] = useState(false);
+  // Track hover/touch state for showing arrows on mobile
+  const [showArrows, setShowArrows] = useState(false);
+  const hideArrowsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const validImages = images.filter((_, i) => !failedImages.has(i));
   const safeIndex = Math.min(currentIndex, Math.max(0, validImages.length - 1));
@@ -49,6 +52,20 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
 
   const goNext = () => setCurrentIndex((i) => (i + 1) % validImages.length);
   const goPrev = () => setCurrentIndex((i) => (i - 1 + validImages.length) % validImages.length);
+
+  // Show arrows on touch/click, hide after 2 seconds of inactivity
+  const handleGalleryInteraction = () => {
+    setShowArrows(true);
+    if (hideArrowsTimer.current) clearTimeout(hideArrowsTimer.current);
+    hideArrowsTimer.current = setTimeout(() => setShowArrows(false), 2000);
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (hideArrowsTimer.current) clearTimeout(hideArrowsTimer.current);
+    };
+  }, []);
 
   if (showGradient) {
     return (
@@ -67,7 +84,11 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
   }
 
   return (
-    <div className="relative w-full aspect-[3/2] rounded-none md:max-w-md md:rounded-2xl overflow-hidden bg-gray-100">
+    <div
+      className="group relative w-full aspect-[3/2] rounded-none md:max-w-md md:rounded-2xl overflow-hidden bg-gray-100"
+      onClick={handleGalleryInteraction}
+      onTouchStart={handleGalleryInteraction}
+    >
       {/* Base layer: stock photo. Stays visible until a real image loads on top
           (or stays forever if all real images fail). */}
       {showFallback && (
@@ -103,32 +124,44 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
 
       {showCarouselUI && (
         <>
-          {/* Left arrow */}
+          {/* Left arrow - hidden by default on mobile, shows on hover (desktop) or tap (mobile) */}
           {safeIndex > 0 && (
             <button
-              onClick={goPrev}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:scale-110 transition-transform cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                goPrev();
+                handleGalleryInteraction();
+              }}
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center transition-opacity cursor-pointer md:opacity-0 md:group-hover:opacity-100 ${
+                showArrows ? "opacity-100" : "opacity-0"
+              }`}
               aria-label="Previous photo"
             >
-              <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
           )}
-          {/* Right arrow */}
+          {/* Right arrow - hidden by default on mobile, shows on hover (desktop) or tap (mobile) */}
           {safeIndex < validImages.length - 1 && (
             <button
-              onClick={goNext}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:scale-110 transition-transform cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                goNext();
+                handleGalleryInteraction();
+              }}
+              className={`absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center transition-opacity cursor-pointer md:opacity-0 md:group-hover:opacity-100 ${
+                showArrows ? "opacity-100" : "opacity-0"
+              }`}
               aria-label="Next photo"
             >
-              <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </button>
           )}
-          {/* Photo count */}
-          <span className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+          {/* Photo count - centered at bottom */}
+          <span className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
             {safeIndex + 1}/{validImages.length}
           </span>
         </>

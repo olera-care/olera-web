@@ -207,6 +207,8 @@ export interface MobileCTARouterProps {
   similarProviders?: CompareProvider[];
   /** Pricing tier (3 = Medicare/Medicaid) */
   pricingTier?: number | null;
+  /** Pricing disclaimer text for tooltip */
+  pricingDisclaimer?: string | null;
 }
 
 /**
@@ -235,6 +237,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
     highlights,
     similarProviders,
     pricingTier,
+    pricingDisclaimer,
   } = props;
 
   const isPreview = isCTAPreviewMode();
@@ -253,6 +256,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerImage={providerImage}
           priceRange={priceRange}
           pricingTier={pricingTier}
+          pricingDisclaimer={pricingDisclaimer}
           rating={rating}
           reviewCount={reviewCount}
           services={careTypes}
@@ -273,6 +277,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerImage={providerImage}
           priceRange={priceRange}
           pricingTier={pricingTier}
+          pricingDisclaimer={pricingDisclaimer}
           ctaVariant={variant}
           ctaPreviewMode={isPreview}
         />
@@ -284,6 +289,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerName={providerName}
           priceRange={priceRange}
           pricingTier={pricingTier}
+          pricingDisclaimer={pricingDisclaimer}
           providerId={providerId}
           providerSlug={providerSlug}
           reviewCount={reviewCount}

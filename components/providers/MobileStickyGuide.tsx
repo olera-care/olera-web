@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
 import GuideBottomSheet from "./GuideBottomSheet";
@@ -15,6 +16,8 @@ interface MobileStickyGuideProps {
   priceRange?: string | null;
   /** Pricing tier (3 = Medicare/Medicaid) */
   pricingTier?: number | null;
+  /** Pricing disclaimer text for tooltip */
+  pricingDisclaimer?: string | null;
   ctaVariant?: string | null;
   ctaPreviewMode?: boolean;
 }
@@ -33,6 +36,7 @@ export default function MobileStickyGuide({
   providerImage,
   priceRange,
   pricingTier,
+  pricingDisclaimer,
   ctaVariant,
   ctaPreviewMode = false,
 }: MobileStickyGuideProps) {
@@ -45,6 +49,7 @@ export default function MobileStickyGuide({
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isMessageSubmitting, setIsMessageSubmitting] = useState(false);
+  const [showPricingTooltip, setShowPricingTooltip] = useState(false);
 
   // Get user email for logged-in flow
   const userEmail = user?.email || "";
@@ -199,6 +204,32 @@ export default function MobileStickyGuide({
     };
   }, []);
 
+  // Pricing tooltip ref and outside-click handler
+  const tooltipButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!showPricingTooltip) return;
+
+    const handleOutside = (e: TouchEvent | MouseEvent) => {
+      if (tooltipButtonRef.current && !tooltipButtonRef.current.contains(e.target as Node)) {
+        setShowPricingTooltip(false);
+      }
+    };
+    document.addEventListener("touchstart", handleOutside);
+    document.addEventListener("mousedown", handleOutside);
+    return () => {
+      document.removeEventListener("touchstart", handleOutside);
+      document.removeEventListener("mousedown", handleOutside);
+    };
+  }, [showPricingTooltip]);
+
+  // Close tooltip when sticky bar hides (benefits in view or keyboard open)
+  useEffect(() => {
+    if ((benefitsInView || keyboardOpen) && showPricingTooltip) {
+      setShowPricingTooltip(false);
+    }
+  }, [benefitsInView, keyboardOpen, showPricingTooltip]);
+
   // Parse price display
   const getPriceDisplay = () => {
     // Medicare/Medicaid tier (tier 3) without explicit pricing
@@ -304,9 +335,33 @@ export default function MobileStickyGuide({
                 <p className="text-[22px] font-bold text-gray-900 leading-tight">
                   {price}
                 </p>
-                <p className="text-[14px] text-gray-500 mt-0.5">
-                  {subtitle}
-                </p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="text-[14px] text-gray-500">{subtitle}</span>
+                  {pricingDisclaimer && (
+                    <button
+                      ref={tooltipButtonRef}
+                      type="button"
+                      onClick={() => setShowPricingTooltip((prev) => !prev)}
+                      className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+                      aria-label="Pricing info"
+                      aria-expanded={showPricingTooltip}
+                    >
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Full-width CTA button */}
@@ -369,9 +424,33 @@ export default function MobileStickyGuide({
               <p className="text-[22px] font-bold text-gray-900 leading-tight">
                 {price}
               </p>
-              <p className="text-[14px] text-gray-500 mt-0.5">
-                {subtitle}
-              </p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className="text-[14px] text-gray-500">{subtitle}</span>
+                {pricingDisclaimer && (
+                  <button
+                    ref={tooltipButtonRef}
+                    type="button"
+                    onClick={() => setShowPricingTooltip((prev) => !prev)}
+                    className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+                    aria-label="Pricing info"
+                    aria-expanded={showPricingTooltip}
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Checklist value prop */}
@@ -395,6 +474,22 @@ export default function MobileStickyGuide({
           </div>
         </div>
       </div>
+
+      {/* ── Pricing tooltip portal ── */}
+      {showPricingTooltip &&
+        pricingDisclaimer &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed left-4 right-4 z-[100] md:hidden"
+            style={{ bottom: "calc(160px + env(safe-area-inset-bottom, 0px))" }}
+          >
+            <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
+              <p>{pricingDisclaimer}</p>
+            </div>
+          </div>,
+          document.body
+        )}
 
       {/* Guide bottom sheet */}
       <GuideBottomSheet

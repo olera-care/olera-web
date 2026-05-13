@@ -908,18 +908,17 @@ export default async function ProviderPage({
                   ) : null;
                 })()}
 
-                {/* Row 3: Two-column layout — Reviews | Pricing (centered, subtle border) */}
-                <div className="flex items-center justify-center gap-6 mt-4 py-4 border border-gray-100 rounded-xl">
-                  {/* Left column: Reviews */}
+                {/* Row 3: Rating box (centered, subtle border) */}
+                <div className="flex items-center justify-center mt-4 py-5 border border-gray-100 rounded-xl">
                   <div className="flex flex-col items-center text-center">
                     {hasRating && rating != null ? (
                       <>
-                        <span className="text-xl font-bold text-gray-900">{rating.toFixed(1)}</span>
-                        <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                        <span className="text-3xl font-bold text-gray-900">{rating.toFixed(1)}</span>
+                        <div className="flex items-center justify-center gap-1 mt-1">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <svg
                               key={star}
-                              className={`w-3 h-3 ${star <= Math.round(rating) ? "text-gray-500" : "text-gray-300"}`}
+                              className={`w-5 h-5 ${star <= Math.round(rating) ? "text-gray-500" : "text-gray-300"}`}
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -927,45 +926,13 @@ export default async function ProviderPage({
                             </svg>
                           ))}
                         </div>
+                        <span className="text-xs text-gray-500 mt-1">on Google</span>
                       </>
                     ) : (
                       <>
-                        <span className="text-xl font-bold text-gray-900">No reviews</span>
-                        <span className="text-xs text-gray-500 font-medium mt-0.5">Be first</span>
+                        <span className="text-2xl font-bold text-gray-900">No reviews yet</span>
+                        <span className="text-sm text-gray-500 mt-1">Be the first to review</span>
                       </>
-                    )}
-                  </div>
-
-                  {/* Divider - short, centered */}
-                  <div className="w-px h-8 bg-gray-200" />
-
-                  {/* Right column: Pricing */}
-                  <div className="flex flex-col items-center text-center">
-                    {pricingConfig?.tier === 3 && !hasPriceRange ? (
-                      <MobilePricingTooltip
-                        topText="Medicare/Medicaid"
-                        bottomText="may cover"
-                        tooltipContent={pricingConfig.coverageNote?.({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined }) || pricingConfig.disclaimer({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined })}
-                      />
-                    ) : hasPriceRange ? (() => {
-                      // Parse price to remove unit and determine type
-                      const isHourly = priceRange!.includes("/hr");
-                      const isMonthly = priceRange!.includes("/mo");
-                      const priceWithoutUnit = priceRange!.replace(/\/(hr|mo)$/i, "").trim();
-                      const priceLabel = isHourly ? "Hourly est." : isMonthly ? "Monthly est." : "est.";
-                      return (
-                        <MobilePricingTooltip
-                          topText={priceWithoutUnit}
-                          bottomText={priceLabel}
-                          tooltipContent={pricingConfig?.disclaimer({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined }) || "Price is an estimate and may vary. Contact the provider for exact rates."}
-                        />
-                      );
-                    })() : (
-                      <MobilePricingTooltip
-                        topText="Contact"
-                        bottomText="for pricing"
-                        tooltipContent="This provider has not published their pricing. Contact them directly for a personalized quote."
-                      />
                     )}
                   </div>
                 </div>
@@ -1519,6 +1486,11 @@ export default async function ProviderPage({
         providerName={profile.display_name}
         priceRange={priceRange}
         pricingTier={pricingConfig?.tier}
+        pricingDisclaimer={pricingConfig?.disclaimer({
+          providerName: profile.display_name,
+          city: profile.city ?? undefined,
+          state: profile.state ?? undefined,
+        })}
         providerId={profile.id}
         providerSlug={profile.slug}
         reviewCount={googleReviewsData?.review_count ?? reviewCount}

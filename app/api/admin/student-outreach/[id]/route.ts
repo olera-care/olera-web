@@ -990,13 +990,26 @@ async function handleMarkMeetingScheduled(
 async function handleFlagWantsMeeting(
   db: DB,
   row: OutreachRow,
-  body: { notes?: string },
+  body: { notes?: string; no_show?: boolean },
   userId: string,
 ) {
   // Mark engaged if not yet — cancels cadence so we're not still emailing
   // while coordinating a meeting.
   if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
     await transitionStage(db, row, "engaged", userId, "wants a meeting");
+  }
+  // P6: when the admin is logging a no-show / cancellation that they're
+  // about to reschedule, emit the existing meeting_no_show touchpoint
+  // FIRST so the timeline shows the no-show event. Then the
+  // note_added{reason: meeting_in_flight} below lands as the most
+  // recent touchpoint — state-derivation's DESC scan hits it first
+  // and keeps meeting_state = "in_flight" so the row stays in the
+  // Meetings queue ready to be rebooked.
+  if (body.no_show) {
+    await insertTouchpoint(db, row.id, "meeting_no_show", userId, {
+      channel: "meeting",
+      notes: body.notes ?? null,
+    });
   }
   await insertTouchpoint(db, row.id, "note_added", userId, {
     notes: body.notes ?? null,

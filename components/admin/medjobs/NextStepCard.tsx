@@ -98,13 +98,7 @@ export function NextStepCard({
   const { markMoved } = useRecentMoves();
   const action: ActionFn = async (actionName, payload) => {
     const result = await rawAction(actionName, payload);
-    const outcome =
-      typeof payload?.outcome === "string"
-        ? payload.outcome
-        : typeof payload?.classification === "string"
-          ? (payload.classification as string)
-          : undefined;
-    const message = logActionSuccessMessage(actionName, outcome);
+    const message = logActionSuccessMessage(actionName, payload ?? null);
     if (message) {
       toast(message);
       markMoved(ctx.outreach.id);
@@ -847,6 +841,14 @@ function MeetingSetBody({
                 });
               } else if (mstatus === "finding_time") {
                 await action("flag_wants_meeting", { notes: payload.notes });
+              } else if (mstatus === "no_show") {
+                // P6: emits the existing meeting_no_show touchpoint
+                // (currently unused), then the standard meeting_in_flight
+                // note. Row stays in Meetings as in_flight for rescheduling.
+                await action("flag_wants_meeting", {
+                  notes: payload.notes,
+                  no_show: true,
+                });
               } else if (mstatus === "done_followup") {
                 await action("mark_meeting_followup", { notes: payload.notes });
               } else if (mstatus === "done_partner" && partner) {

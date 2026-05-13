@@ -256,13 +256,7 @@ export function MedJobsTabPage({
         throw new Error(e || "Action failed");
       }
       // E1: surface a progression toast for meaningful Log actions.
-      const outcome =
-        typeof payload.outcome === "string"
-          ? payload.outcome
-          : typeof payload.classification === "string"
-            ? (payload.classification as string)
-            : undefined;
-      const message = logActionSuccessMessage(action, outcome);
+      const message = logActionSuccessMessage(action, payload);
       if (message) {
         toast(message);
         // E2: also mark the row as recently moved so the destination
@@ -814,6 +808,12 @@ export function MedJobsTabPage({
               } else if (status === "finding_time") {
                 await callAction(logMeetingRow.id, "flag_wants_meeting", {
                   notes: payload.notes,
+                });
+              } else if (status === "no_show") {
+                // P6: emit meeting_no_show + keep meeting_state in_flight.
+                await callAction(logMeetingRow.id, "flag_wants_meeting", {
+                  notes: payload.notes,
+                  no_show: true,
                 });
               } else if (status === "done_followup") {
                 await callAction(logMeetingRow.id, "mark_meeting_followup", {

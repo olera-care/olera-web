@@ -36,15 +36,20 @@ import type { DistributionEvidence } from "@/lib/student-outreach/types";
 // to the existing make_client action, writing
 // business_profiles.metadata.interview_terms_accepted_at and unlocking
 // Partner Prospects for catchment Sites. Parallels done_partner for
-// stakeholders. No new backend touchpoint, no new status, no new
-// outcome enum.
+// stakeholders.
+// P6: no_show is a UI-level choice key — dispatches flag_wants_meeting
+// with payload.no_show=true so the route handler emits the existing
+// meeting_no_show touchpoint AND keeps meeting_state in_flight for
+// rescheduling. No new backend action, no new touchpoint type — the
+// meeting_no_show touchpoint already existed but was unused.
 export type MeetingStatus =
   | "finding_time"
   | "booked"
   | "done_partner"
   | "done_client"
   | "done_followup"
-  | "not_a_fit";
+  | "not_a_fit"
+  | "no_show";
 
 interface Props {
   organizationName: string;
@@ -97,6 +102,7 @@ export function LogMeetingModal({
   const isPartner = status === "done_partner";
   const isClient = status === "done_client";
   const isNotAFit = status === "not_a_fit";
+  const isNoShow = status === "no_show";
   const notesRequired = status === "done_followup";
   const notesPlaceholder =
     status === "done_followup"
@@ -115,7 +121,9 @@ export function LogMeetingModal({
         ? "Send to Replies"
         : isNotAFit
           ? "Close as not a fit"
-          : "Save";
+          : isNoShow
+            ? "Log no-show"
+            : "Save";
 
   const titleText =
     initialStatus === "booked" ? "Update or complete meeting" : "Log meeting";
@@ -226,6 +234,12 @@ export function LogMeetingModal({
               onSelect={() => setStatus("not_a_fit")}
               label="Not a fit"
               blurb="Meeting happened, but they're not the right partner. Closes the row as Not interested; cancels pending tasks."
+            />
+            <StatusCard
+              active={status === "no_show"}
+              onSelect={() => setStatus("no_show")}
+              label="No-show / cancelled — rescheduling"
+              blurb="They didn't show up or cancelled at the last minute. Logs the no-show event and keeps the row in Meetings ready to re-book."
             />
           </div>
 

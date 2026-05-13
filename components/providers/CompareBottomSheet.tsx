@@ -32,7 +32,7 @@ interface CompareBottomSheetProps {
   ctaPreviewMode?: boolean;
 }
 
-type FooterState = "initial" | "email_capture" | "submitting" | "success";
+type FooterState = "initial" | "email_capture" | "submitting" | "success" | "provider_email_block" | "family_required";
 
 /**
  * Mobile comparison bottom sheet with vertical stacked cards.
@@ -50,14 +50,24 @@ export default function CompareBottomSheet({
   ctaPreviewMode = false,
 }: CompareBottomSheetProps) {
   const router = useRouter();
-  const { user, activeProfile } = useAuth();
+  const { user, activeProfile, openAuth } = useAuth();
   const isLoggedIn = !!user && !!activeProfile;
   const userEmail = user?.email || "";
+
+  // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
+  const isNonFamilyProfile = activeProfile &&
+    (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
+  const accountTypeLabel = activeProfile?.type === "organization"
+    ? "provider"
+    : (activeProfile?.type === "caregiver" || activeProfile?.type === "student")
+    ? "caregiver"
+    : "current";
 
   const [mounted, setMounted] = useState(false);
   const [footerState, setFooterState] = useState<FooterState>("initial");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const saveClickFiredRef = useRef(false);
@@ -130,11 +140,13 @@ export default function CompareBottomSheet({
     const keyHandler = (e: KeyboardEvent) => handleKeyDownRef.current(e);
 
     if (isOpen) {
-      setFooterState("initial");
+      // Show family required state if logged in as provider/caregiver/student
+      setFooterState(isNonFamilyProfile ? "family_required" : "initial");
       setSelectedProviderIds(new Set(allProviders.map((p) => p.id)));
       setShowSimilar(false);
       setEmail("");
       setError(null);
+      setBlockedEmail(null);
       saveClickFiredRef.current = false;
       document.body.style.overflow = "hidden";
       document.addEventListener("keydown", keyHandler);
@@ -143,7 +155,7 @@ export default function CompareBottomSheet({
       document.body.style.overflow = "";
       document.removeEventListener("keydown", keyHandler);
     };
-  }, [isOpen]); // Only re-run when isOpen changes, not when handleKeyDown changes
+  }, [isOpen, isNonFamilyProfile]); // Re-run when isOpen or profile type changes
 
   // Close sheet when viewport switches to desktop (above md breakpoint)
   // This prevents scroll lock from persisting when sheet is hidden via CSS
@@ -237,6 +249,13 @@ export default function CompareBottomSheet({
 
       const data = await response.json();
 
+      // Handle provider email block (shouldn't happen for logged-in users, but safety check)
+      if (!response.ok && data.code === "PROVIDER_EMAIL") {
+        setBlockedEmail(userEmail);
+        setFooterState("provider_email_block");
+        return;
+      }
+
       if (!response.ok) {
         setError(data.error || "Something went wrong. Please try again.");
         setFooterState("initial");
@@ -291,6 +310,13 @@ export default function CompareBottomSheet({
       });
 
       const data = await response.json();
+
+      // Handle provider email block
+      if (!response.ok && data.code === "PROVIDER_EMAIL") {
+        setBlockedEmail(email.trim());
+        setFooterState("provider_email_block");
+        return;
+      }
 
       if (!response.ok) {
         setError(data.error || "Something went wrong. Please try again.");
@@ -547,6 +573,70 @@ export default function CompareBottomSheet({
               </div>
               <h3 className="text-lg font-bold text-gray-900">Saved.</h3>
               <p className="text-sm text-gray-500 mt-1">Taking you to your saved comparison...</p>
+            </div>
+          )}
+
+          {footerState === "family_required" && (
+            <div className="py-4 text-center">
+              <div className="w-12 h-12 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Family account required</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Care comparison requests can only be sent from a family account.
+              </p>
+              <button
+                onClick={() => {
+                  onClose();
+                  openAuth({ defaultMode: "sign-up", intent: "family" });
+                }}
+                className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+              >
+                Create Family Account
+              </button>
+              <p className="text-xs text-gray-400 mt-3">
+                Use a different email than your {accountTypeLabel} account.
+              </p>
+            </div>
+          )}
+
+          {footerState === "provider_email_block" && (
+            <div className="py-4 text-center">
+              <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Provider email detected</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                The email <span className="font-medium text-gray-800">{blockedEmail}</span> is linked to a provider account.
+              </p>
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setBlockedEmail(null);
+                    setFooterState("email_capture");
+                    setEmail("");
+                  }}
+                  className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+                >
+                  Use Different Email
+                </button>
+                <button
+                  onClick={() => {
+                    onClose();
+                    openAuth({ defaultMode: "sign-in" });
+                  }}
+                  className="w-full py-3 px-4 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-300 transition-colors"
+                >
+                  Sign In Instead
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-3">
+                Family accounts require a separate email from provider accounts.
+              </p>
             </div>
           )}
         </div>

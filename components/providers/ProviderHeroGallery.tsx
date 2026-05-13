@@ -160,8 +160,8 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
               </svg>
             </button>
           )}
-          {/* Photo count - centered at bottom */}
-          <span className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+          {/* Photo count */}
+          <span className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
             {safeIndex + 1}/{validImages.length}
           </span>
         </>

@@ -2355,27 +2355,29 @@ function ResponseLeadsList({
                   <td className="px-4 py-2.5 text-center">
                     {lead.responded ? (
                       <span className="text-xs text-emerald-600">Replied</span>
-                    ) : nudgeSuccess === lead.connection_id ? (
-                      <span className="text-xs text-emerald-600">Sent</span>
-                    ) : lead.nudged_at ? (
-                      <span
-                        className="text-xs text-gray-400 cursor-default"
-                        title={`Nudged ${formatLeadAge(
-                          (Date.now() - new Date(lead.nudged_at).getTime()) / (1000 * 60 * 60)
-                        )}`}
-                      >
-                        Nudged
-                      </span>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleNudge(lead.connection_id)}
-                        disabled={nudging === lead.connection_id}
-                        className="text-xs text-amber-600 hover:text-amber-700 disabled:opacity-50"
-                        title="Send reminder to provider"
-                      >
-                        {nudging === lead.connection_id ? "..." : "Nudge"}
-                      </button>
+                      <div className="flex flex-col items-center gap-0.5">
+                        {nudgeSuccess === lead.connection_id ? (
+                          <span className="text-xs text-emerald-600">Sent</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleNudge(lead.connection_id)}
+                            disabled={nudging === lead.connection_id}
+                            className="text-xs text-amber-600 hover:text-amber-700 disabled:opacity-50"
+                            title={lead.nudged_at ? "Send another reminder" : "Send reminder to provider"}
+                          >
+                            {nudging === lead.connection_id ? "..." : "Nudge"}
+                          </button>
+                        )}
+                        {lead.nudged_at && (
+                          <span className="text-[10px] text-gray-400">
+                            {formatLeadAge(
+                              (Date.now() - new Date(lead.nudged_at).getTime()) / (1000 * 60 * 60)
+                            )}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </td>
                   <td className="px-2 py-2.5 w-8 text-right">

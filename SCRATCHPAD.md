@@ -7,7 +7,51 @@
 
 ## Current Focus
 
-### 2026-05-13 (Wed, late morning) — Request B: per-provider Comms Timeline on /admin/directory/[providerId] (built, awaiting browser test)
+### 2026-05-13 (Wed, midday) — PR #803: lite admin detail mode for user-created providers (worktree ready, NOT YET BUILT)
+
+**Status:** Worktree set up at `/Users/tfalohun/.claude-worktrees/olera-web/lite-admin-detail`, branch `feature/lite-admin-detail-mode`, off staging tip `01a63dde` (which includes both #799 and #802 merged). node_modules symlinked. Zero code written yet — this entry is the pickup brief after a context compact.
+
+**Why this PR exists:** TJ spotted a UX flaw while testing PR #802 on staging. Clicking a row in `/admin/directory` for "user-created" providers (yellow USER-CREATED badge — providers who self-registered via `business_profiles` without an `olera-providers` scraped row) opens the public `/provider/<slug>` page in a new tab. That's because the existing admin detail page hard-404s when there's no `olera-providers` row (see `app/api/admin/directory/[providerId]/route.ts:60-65`). User-created rows have no admin destination today. The public page is a useful secondary action but NOT the primary one — the admin detail (where Comms timeline lives) should be the destination.
+
+**Why this is its own PR (#803) and not bundled with #802:** I initially recommended a separate PR for reviewability. TJ overrode for efficiency. After saving SCRATCHPAD as the natural break point, I revisited and re-recommended separating — three reasons: (1) #802 is a coherent shippable piece (unified Comms timeline); the UX fix is a different story (admin detail page now supports user-created providers); (2) #802 value lands on staging in minutes, decoupled from the lite-mode work; (3) zero shared diff between the two pieces. TJ agreed, merged #802, and asked me to start #803.
+
+**Implementation plan (concrete files + changes):**
+
+1. **`app/api/admin/directory/[providerId]/route.ts`** — GET handler currently does `.from("olera-providers").eq("provider_id", providerId).single()` and returns 404 on miss. Extend: on miss, fall back to `business_profiles` lookup (try `id` UUID first, then `slug`). Return `{provider, source: "user-created" | "scraped", ...}`. The `source` field is new. For "user-created", `provider` carries `business_profiles` shape (display_name, slug, contact info, metadata.staff, etc.) — NOT `olera-providers` shape. Document the shape difference in JSDoc. **PATCH handler is out of scope for this PR** — user-created providers stay read-only.
+
+2. **`app/admin/directory/[providerId]/page.tsx`** — currently renders ~10 sections of form inputs assuming `formData` is olera-providers shape. When `source === "user-created"`, render a stripped-down view: provider name as heading + small "User-created" badge + a "Open public page →" link button (replacing the existing public-page-as-primary-affordance) + the `<ProviderCommsTimeline>` mount + a banner explaining "Full editing UI not available for user-created providers yet — use /admin/verification for claim review." Keep `<Section>` wrapper component identical. The fetch already has the `source` field after step 1.
+
+3. **`app/admin/directory/page.tsx`** — current row-click handler:
+   ```ts
+   if (isBpOnly) {
+     if (provider.slug) window.open(`/provider/${provider.slug}`, "_blank", "noopener,noreferrer");
+   } else {
+     router.push(`/admin/directory/${provider.provider_id}`);
+   }
+   ```
+   New: always `router.push("/admin/directory/${id}")`. The `id` is whatever provider.provider_id is — for scraped rows it's the slug, for user-created rows it's likely the business_profile.id UUID (need to verify in the existing /api/admin/directory list endpoint). Drop the window.open path entirely. The public-page link moves into the detail view.
+
+**Verify before coding:** what is `provider.provider_id` on user-created rows? Check `/api/admin/directory` list endpoint (route.ts). If it's the business_profile.id UUID, the admin detail page needs to accept UUIDs in the URL slot — the URL pattern `[providerId]` is flexible TEXT so this works at the router level. The backend resolver does the lookup logic.
+
+**Files to touch:**
+- M `app/api/admin/directory/[providerId]/route.ts` — fallback lookup + source field
+- M `app/admin/directory/[providerId]/page.tsx` — conditional render for user-created
+- M `app/admin/directory/page.tsx` — unify row click
+
+**Validation plan after build:**
+- tsc 0 errors, eslint clean
+- Browser-test on Vercel preview: scraped provider → full detail page (unchanged); user-created provider → lite detail with Comms timeline + public-page button
+- Spot-check: provider whose `email_log` rows are stored under business_profile.id should populate the timeline (the resolver from #802 catches both variants)
+
+**Resume next session here →** Start with step 1: read `app/api/admin/directory/[providerId]/route.ts` and `app/api/admin/directory/route.ts` (list endpoint) to understand current shapes, then implement the fallback. Step 2 and 3 follow directly. Single-commit-able. After build, push, open PR #803 targeting staging.
+
+**Two deferred follow-ups (still pending, not blocking #803):**
+- Migrate legacy `/api/admin/emails` `.eq("provider_id")` to use `lib/provider-id-variants.ts` resolver for consistency (~10 lines).
+- Polish pass on activity-event labels in `app/api/admin/directory/[providerId]/comms-timeline/route.ts` `summarizeActivity()` once we see real staging data shape.
+
+---
+
+### 2026-05-13 (Wed, late morning) — Request B: per-provider Comms Timeline on /admin/directory/[providerId] (built, merged in PR #802)
 
 PR #799 (Request A) merged to staging at 13:23 UTC. Worktree spun up off staging tip (`11ad30c5`), branch `feature/provider-comms-timeline`. Request B replaces the existing single-purpose `<EmailTimeline>` mount on the provider directory page with a unified `<ProviderCommsTimeline>` that interleaves emails AND meaningful on-Olera activity events chronologically — the CRM contact-card view that answers "what is THIS provider experiencing?" rather than "is this campaign performing?"
 

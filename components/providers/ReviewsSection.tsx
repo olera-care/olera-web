@@ -501,16 +501,16 @@ export default function ReviewsSection({
             })}
           </div>
 
-          {/* Footer actions - stacked on mobile, inline on desktop */}
-          <div className="flex flex-col gap-4 mt-6 md:flex-row md:items-center md:justify-between md:gap-4">
-            {/* Show all reviews link (text link on mobile, styled on desktop) */}
+          {/* Footer actions - side by side */}
+          <div className="flex flex-row items-center gap-3 mt-6">
+            {/* Show all reviews button */}
             {hasMore && (
               <button
                 onClick={() => {
                   setScrollToReviewId(null);
                   setAllReviewsModalOpen(true);
                 }}
-                className="text-sm font-semibold text-gray-900 underline underline-offset-2 hover:text-gray-700 transition-colors md:no-underline md:px-6 md:py-3 md:bg-gray-100 md:rounded-xl md:hover:bg-gray-200 md:hover:text-gray-900"
+                className="flex-1 px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center"
               >
                 Show all {reviewCount} reviews
               </button>
@@ -521,7 +521,7 @@ export default function ReviewsSection({
               <Link
                 href={reviewPageUrl}
                 rel="nofollow"
-                className="w-full md:w-auto px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center"
+                className="flex-1 px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center"
               >
                 Leave a review
               </Link>

@@ -11,6 +11,7 @@ import {
   type ProviderEmailFunnelKey,
 } from "@/lib/analytics/provider-email-funnels";
 import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
+import { resolveSlugsForRawIds } from "@/lib/provider-id-variants";
 
 const PROVIDER_EVENT_TYPES = [
   "page_view",
@@ -818,6 +819,21 @@ async function fetchWindow(
     connections: new Map(),
   };
 
+  // email_log.provider_id is a mix of olera-providers.provider_id (short
+  // codes) and business_profiles.id (UUIDs); provider_activity.provider_id
+  // is slug-only. Without canonicalization the click set lives in a
+  // different namespace from the downstream-event sets and the four
+  // intersections below are ~always empty. Resolve raw → slug once for
+  // the window so the loop adds slugs to clickedByBucket.
+  const rawClickedIds = new Set<string>();
+  for (const r of (commsFunnelRes.data ?? []) as Array<{
+    provider_id: string | null;
+    first_clicked_at: string | null;
+  }>) {
+    if (r.first_clicked_at && r.provider_id) rawClickedIds.add(r.provider_id);
+  }
+  const slugByRawClickedId = await resolveSlugsForRawIds(db, rawClickedIds);
+
   for (const r of (commsFunnelRes.data ?? []) as Array<{
     email_type: string | null;
     provider_id: string | null;
@@ -840,14 +856,17 @@ async function fetchWindow(
     // and a click. Pre-migration rows lacking provider_id are still counted
     // in the row totals above, just not in engagement-bounce.
     if (r.first_clicked_at && r.provider_id) {
-      const pid = r.provider_id;
-      clickedByBucket[bucket].add(pid);
-      clickedByBucket.all.add(pid);
+      // Fall through to raw id when the row's id is already a slug (some
+      // older sends wrote slug directly) or doesn't resolve — better to
+      // pass through than drop the row from the click set entirely.
+      const slug = slugByRawClickedId.get(r.provider_id) ?? r.provider_id;
+      clickedByBucket[bucket].add(slug);
+      clickedByBucket.all.add(slug);
       for (const k of [bucket, "all" as const] as ProviderEmailFunnelKey[]) {
         const m = lastClickByProviderByBucket[k];
-        const existing = m.get(pid);
+        const existing = m.get(slug);
         if (!existing || r.first_clicked_at > existing.last_clicked_at) {
-          m.set(pid, { last_clicked_at: r.first_clicked_at, last_clicked_email_type: et });
+          m.set(slug, { last_clicked_at: r.first_clicked_at, last_clicked_email_type: et });
         }
       }
     }

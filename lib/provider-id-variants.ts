@@ -110,3 +110,61 @@ export async function resolveProviderIdVariants(
 
   return { slug: canonical, businessProfileId, allVariants: Array.from(variants) };
 }
+
+/**
+ * Reverse direction of resolveProviderIdVariants: given a bag of raw IDs
+ * (mix of olera-providers.provider_id short codes and business_profiles.id
+ * UUIDs, as stored in email_log.provider_id), return a Map of rawId → slug.
+ *
+ * Used by /api/admin/analytics/summary so the Provider Comms Funnel can
+ * intersect clicked-providers (email_log, raw id) with downstream-activity
+ * providers (provider_activity, slug-only). Without canonicalization the two
+ * sets live in disjoint namespaces and the intersection is always ~empty.
+ *
+ * IDs already in slug form (or unresolvable) are absent from the returned
+ * map — callers should fall back to the raw value with `map.get(raw) ?? raw`.
+ *
+ * Two bulk `IN` lookups regardless of input size, partitioned by id shape.
+ */
+export async function resolveSlugsForRawIds(
+  db: SupabaseClient,
+  rawIds: Iterable<string>,
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  const ids = [...new Set([...rawIds])].filter((s) => typeof s === "string" && s.length > 0);
+  if (ids.length === 0) return map;
+
+  const uuidLike: string[] = [];
+  const codeLike: string[] = [];
+  for (const id of ids) {
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+      uuidLike.push(id);
+    } else {
+      codeLike.push(id);
+    }
+  }
+
+  try {
+    if (codeLike.length > 0) {
+      const { data } = await db
+        .from("olera-providers")
+        .select("provider_id, slug")
+        .in("provider_id", codeLike);
+      for (const r of (data ?? []) as Array<{ provider_id: string | null; slug: string | null }>) {
+        if (r.provider_id && r.slug) map.set(r.provider_id, r.slug);
+      }
+    }
+    if (uuidLike.length > 0) {
+      const { data } = await db
+        .from("business_profiles")
+        .select("id, slug")
+        .in("id", uuidLike);
+      for (const r of (data ?? []) as Array<{ id: string | null; slug: string | null }>) {
+        if (r.id && r.slug) map.set(r.id, r.slug);
+      }
+    }
+  } catch (err) {
+    console.error("[provider-id-variants] reverse lookup failed:", err);
+  }
+  return map;
+}

@@ -42,8 +42,9 @@ export default function CollapsibleSection({
   // SSR-safe: render with the prop-supplied default until the first effect
   // reads localStorage. Hydration mismatch is avoided because the initial
   // render matches what the server produces (default), and the localStorage
-  // override only applies post-mount.
-  const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  // override only applies post-mount. forceOpen wins on the initial state
+  // too, so deep-linked sections don't flash closed before opening.
+  const [collapsed, setCollapsed] = useState(forceOpen ? false : defaultCollapsed);
   const [hydrated, setHydrated] = useState(false);
   // Capture forceOpen at first mount only — if the prop later flips truthy
   // (e.g. dropdown writes a URL param the section reads via searchParams),
@@ -52,8 +53,9 @@ export default function CollapsibleSection({
 
   useEffect(() => {
     if (forceOpenOnMountRef.current) {
-      // Deep-linked open beats stored collapsed state.
-      setCollapsed(false);
+      // Already rendered open via the useState initializer; skip localStorage
+      // so a deep-link arrival doesn't get the user's prior collapsed choice
+      // dragged on top of it mid-render.
       setHydrated(true);
       return;
     }

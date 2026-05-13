@@ -13,6 +13,8 @@ interface MobileStickyGuideProps {
   providerState?: string | null;
   providerImage?: string | null;
   priceRange?: string | null;
+  /** Pricing tier (3 = Medicare/Medicaid) */
+  pricingTier?: number | null;
   ctaVariant?: string | null;
   ctaPreviewMode?: boolean;
 }
@@ -30,6 +32,7 @@ export default function MobileStickyGuide({
   providerState,
   providerImage,
   priceRange,
+  pricingTier,
   ctaVariant,
   ctaPreviewMode = false,
 }: MobileStickyGuideProps) {
@@ -40,7 +43,6 @@ export default function MobileStickyGuide({
   const isNonFamilyProfile = activeProfile &&
     (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
 
-  const [visible, setVisible] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isMessageSubmitting, setIsMessageSubmitting] = useState(false);
 
@@ -119,21 +121,6 @@ export default function MobileStickyGuide({
     // Reset click tracking so user can open again
     clickFiredRef.current = false;
   }, []);
-
-  // Scroll visibility with hysteresis
-  const handleScroll = useCallback(() => {
-    setVisible((prev) => {
-      if (window.scrollY > 100) return true;
-      if (window.scrollY < 30) return false;
-      return prev;
-    });
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
 
   // Benefits module suppression
   useEffect(() => {
@@ -214,6 +201,10 @@ export default function MobileStickyGuide({
 
   // Parse price display
   const getPriceDisplay = () => {
+    // Medicare/Medicaid tier (tier 3) without explicit pricing
+    if (pricingTier === 3 && !priceRange) {
+      return { price: "Medicare/Medicaid", subtitle: "may cover this care" };
+    }
     if (!priceRange) {
       return { price: "Contact for pricing", subtitle: "Pricing not listed" };
     }

@@ -14,6 +14,8 @@ interface MobileStickyCompareProps {
   providerPhone?: string | null;
   providerImage?: string | null;
   priceRange?: string | null;
+  /** Pricing tier (3 = Medicare/Medicaid) */
+  pricingTier?: number | null;
   rating?: number | null;
   reviewCount?: number | null;
   services?: string[];
@@ -39,6 +41,7 @@ export default function MobileStickyCompare({
   providerPhone,
   providerImage,
   priceRange,
+  pricingTier,
   rating,
   reviewCount,
   services,
@@ -47,7 +50,6 @@ export default function MobileStickyCompare({
   ctaVariant,
   ctaPreviewMode = false,
 }: MobileStickyCompareProps) {
-  const [visible, setVisible] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   // Suppression flags (same as other mobile CTAs)
@@ -102,22 +104,6 @@ export default function MobileStickyCompare({
     // Reset click tracking so user can open again
     clickFiredRef.current = false;
   }, []);
-
-
-  // Scroll visibility with hysteresis
-  const handleScroll = useCallback(() => {
-    setVisible((prev) => {
-      if (window.scrollY > 100) return true;
-      if (window.scrollY < 30) return false;
-      return prev;
-    });
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
 
   // Benefits module suppression
   useEffect(() => {
@@ -198,6 +184,10 @@ export default function MobileStickyCompare({
 
   // Parse price display
   const getPriceDisplay = () => {
+    // Medicare/Medicaid tier (tier 3) without explicit pricing
+    if (pricingTier === 3 && !priceRange) {
+      return { price: "Medicare/Medicaid", subtitle: "may cover this care" };
+    }
     if (!priceRange) {
       return { price: "Contact for pricing", subtitle: "Pricing not listed" };
     }

@@ -200,6 +200,8 @@ function MobileEmailCaptureForm({
 interface MobileStickyBottomCTAProps {
   providerName: string;
   priceRange: string | null;
+  /** Pricing tier (3 = Medicare/Medicaid) */
+  pricingTier?: number | null;
   // ConnectionCard props
   providerId: string;
   providerSlug: string;
@@ -225,6 +227,7 @@ interface MobileStickyBottomCTAProps {
 export default function MobileStickyBottomCTA({
   providerName,
   priceRange,
+  pricingTier,
   providerId,
   providerSlug,
   reviewCount,
@@ -239,7 +242,6 @@ export default function MobileStickyBottomCTA({
   ctaPreviewMode = false,
 }: MobileStickyBottomCTAProps) {
   const router = useRouter();
-  const [visible, setVisible] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   // Suppression flag: true when the in-page #benefits module is ≥50% in
   // viewport (Door A vs Door B competing-CTA fix). Applies to all benefits
@@ -280,24 +282,6 @@ export default function MobileStickyBottomCTA({
     ctaSurface,
     ctaPreviewMode,
   });
-
-  // ── Scroll visibility for sticky bar ──
-  // Hysteresis: show at >100px, only hide again at <30px.
-  // Prevents the bar from flickering during iOS rubber-band scrolling where
-  // scrollY can momentarily dip to 0 even mid-page.
-  const handleScroll = useCallback(() => {
-    setVisible((prev) => {
-      if (window.scrollY > 100) return true;
-      if (window.scrollY < 30) return false;
-      return prev; // Between 30–100: keep current visibility
-    });
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
 
   // Suppress the sticky bar when the benefits module is in view. The module
   // has its own primary CTA (email capture) and we don't want two competing
@@ -594,6 +578,10 @@ export default function MobileStickyBottomCTA({
 
   // Parse price display
   const getPriceDisplay = () => {
+    // Medicare/Medicaid tier (tier 3) without explicit pricing
+    if (pricingTier === 3 && !priceRange) {
+      return { price: "Medicare/Medicaid", subtitle: "may cover this care" };
+    }
     if (!priceRange) {
       return { price: "Contact for pricing", subtitle: "Pricing not listed" };
     }

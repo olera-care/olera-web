@@ -1518,6 +1518,7 @@ export default async function ProviderPage({
       <MobileCTAVariantRouter
         providerName={profile.display_name}
         priceRange={priceRange}
+        pricingTier={pricingConfig?.tier}
         providerId={profile.id}
         providerSlug={profile.slug}
         reviewCount={googleReviewsData?.review_count ?? reviewCount}

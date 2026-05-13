@@ -205,6 +205,8 @@ export interface MobileCTARouterProps {
   highlights?: string[];
   /** Similar providers for compare variant */
   similarProviders?: CompareProvider[];
+  /** Pricing tier (3 = Medicare/Medicaid) */
+  pricingTier?: number | null;
 }
 
 /**
@@ -232,6 +234,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
     rating,
     highlights,
     similarProviders,
+    pricingTier,
   } = props;
 
   const isPreview = isCTAPreviewMode();
@@ -249,6 +252,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerPhone={phone}
           providerImage={providerImage}
           priceRange={priceRange}
+          pricingTier={pricingTier}
           rating={rating}
           reviewCount={reviewCount}
           services={careTypes}
@@ -268,6 +272,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerState={providerState}
           providerImage={providerImage}
           priceRange={priceRange}
+          pricingTier={pricingTier}
           ctaVariant={variant}
           ctaPreviewMode={isPreview}
         />
@@ -278,6 +283,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
         <MobileStickyBottomCTA
           providerName={providerName}
           priceRange={priceRange}
+          pricingTier={pricingTier}
           providerId={providerId}
           providerSlug={providerSlug}
           reviewCount={reviewCount}

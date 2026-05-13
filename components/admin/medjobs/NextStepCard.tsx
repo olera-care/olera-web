@@ -700,6 +700,12 @@ function CallDueBody({
   setError: (m: string | null) => void;
 }) {
   const [showLogCall, setShowLogCall] = useState(false);
+  // A call-due row may also be one admin opened from the Replies tab
+  // (mid_cadence / awaiting_callback / etc.). Surface a secondary
+  // "Log reply" affordance so admin can classify a reply without
+  // bouncing back to the Replies tab. The Call CTA remains primary
+  // since deriveStage already determined a call task is due.
+  const [showLogReply, setShowLogReply] = useState(false);
   const primaryContact =
     ctx.contacts.find((c) => c.is_primary && c.status === "active") ?? null;
   const contactName = primaryContact
@@ -761,7 +767,56 @@ function CallDueBody({
         >
           Log call outcome →
         </button>
+        <button
+          onClick={() => setShowLogReply(true)}
+          title="They replied by email or voicemail? Log the reply instead."
+          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          Log reply
+        </button>
       </div>
+
+      {showLogReply && (
+        <ReplyClassifierModal
+          organizationName={ctx.outreach.organization_name}
+          source="email_reply"
+          rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
+          onCancel={() => setShowLogReply(false)}
+          onSubmit={async (classification, payload, _partner, redirect) => {
+            try {
+              if (classification === "became_client") {
+                await action("make_client", { notes: payload.notes });
+              } else if (classification === "redirected" && redirect) {
+                const derivedName =
+                  [redirect.first_name, redirect.last_name]
+                    .filter(Boolean)
+                    .join(" ")
+                    .trim() || redirect.email;
+                await action("add_contact", {
+                  name: derivedName,
+                  first_name: redirect.first_name || null,
+                  last_name: redirect.last_name || null,
+                  email: redirect.email || null,
+                });
+                await action("classify_reply", {
+                  classification: "keep_emailing",
+                  notes: payload.notes,
+                });
+              } else {
+                await action("classify_reply", {
+                  classification,
+                  notes: payload.notes,
+                  meeting_at: payload.meeting_at,
+                });
+              }
+              setShowLogReply(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+              throw e;
+            }
+          }}
+        />
+      )}
 
       {showLogCall && (
         <LogCallOutcomeModal

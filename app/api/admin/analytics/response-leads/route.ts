@@ -1,5 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
+import {
+  calculateFamilyCompleteness,
+  calculateProviderCompleteness,
+} from "@/lib/admin/profile-completeness";
 
 /**
  * GET /api/admin/analytics/response-leads
@@ -12,19 +16,31 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
  * Query params:
  *   date_from, date_to  - ISO timestamps (optional)
  *   filter              - "all" | "awaiting" | "responded" (default: "all")
- *   variant             - "legacy" | "compare" | "all" (default: "all")
+ *   variant             - "legacy" | "compare" | "guide" | "all" (default: "all")
  *   limit               - 1-100, default 50
  *   offset              - >= 0, default 0
  */
 
+interface ProfileCompleteness {
+  percentage: number;
+  missingFields: string[];
+}
+
 interface ResponseLead {
   connection_id: string;
+  family_id: string;
   family_name: string;
   family_email: string | null;
+  family_phone: string | null;
+  family_completeness: ProfileCompleteness;
+  family_nudged_at: string | null;
   provider_id: string; // Profile UUID for linking to /admin/directory/[providerId]
   provider_name: string;
   provider_email: string | null;
+  provider_phone: string | null;
   provider_slug: string;
+  provider_completeness: ProfileCompleteness;
+  provider_nudged_at: string | null;
   message_preview: string;
   created_at: string;
   age_hours: number;
@@ -32,7 +48,6 @@ interface ResponseLead {
   response_time_hours: number | null;
   provider_response: string | null; // First non-auto-reply message from provider
   cta_variant: string | null;
-  nudged_at: string | null;
 }
 
 type ThreadMessage = {
@@ -66,6 +81,7 @@ export async function GET(req: NextRequest) {
   const offset = Math.max(0, parseInt(searchParams.get("offset") || "0", 10));
 
   // Build query for connections (leads)
+  // We fetch comprehensive profile data to calculate completeness metrics
   let query = db
     .from("connections")
     .select(
@@ -76,8 +92,33 @@ export async function GET(req: NextRequest) {
       message,
       metadata,
       created_at,
-      from_profile:business_profiles!connections_from_profile_id_fkey(display_name, email),
-      to_profile:business_profiles!connections_to_profile_id_fkey(display_name, slug, source_provider_id, email)
+      from_profile:business_profiles!connections_from_profile_id_fkey(
+        id,
+        display_name,
+        email,
+        phone,
+        image_url,
+        city,
+        description,
+        care_types,
+        metadata
+      ),
+      to_profile:business_profiles!connections_to_profile_id_fkey(
+        id,
+        display_name,
+        email,
+        phone,
+        image_url,
+        slug,
+        source_provider_id,
+        website,
+        address,
+        city,
+        state,
+        description,
+        care_types,
+        metadata
+      )
     `,
       { count: "exact" }
     )
@@ -119,10 +160,9 @@ export async function GET(req: NextRequest) {
     const thread = (meta.thread as ThreadMessage[]) || [];
     const ctaVariant = (meta.cta_variant as string) || null;
 
-    // Apply variant filter
-    if (variant !== "all") {
-      if (variant === "legacy" && ctaVariant !== "legacy") continue;
-      if (variant === "compare" && ctaVariant !== "compare") continue;
+    // Apply variant filter (dynamic - works for any variant value)
+    if (variant !== "all" && ctaVariant !== variant) {
+      continue;
     }
 
     // Find first provider message (non-auto-reply)
@@ -166,16 +206,34 @@ export async function GET(req: NextRequest) {
 
     const ageHours = (Date.now() - new Date(conn.created_at).getTime()) / (1000 * 60 * 60);
 
-    const nudgedAt = (meta.nudged_at as string) || null;
+    // Parse nudge timestamps (separate for family and provider)
+    const providerNudgedAt = (meta.nudged_at as string) || null;
+    const familyNudgedAt = (meta.family_nudged_at as string) || null;
+
+    // Calculate profile completeness for both parties
+    const familyCompleteness = conn.from_profile
+      ? calculateFamilyCompleteness(conn.from_profile, conn.from_profile.email)
+      : { percentage: 0, missingFields: [] };
+
+    const providerCompleteness = conn.to_profile
+      ? calculateProviderCompleteness(conn.to_profile)
+      : { percentage: 0, missingFields: [] };
 
     allLeads.push({
       connection_id: conn.id,
+      family_id: conn.from_profile_id || "",
       family_name: conn.from_profile?.display_name || "Care Seeker",
       family_email: conn.from_profile?.email || null,
+      family_phone: conn.from_profile?.phone || null,
+      family_completeness: familyCompleteness,
+      family_nudged_at: familyNudgedAt,
       provider_id: conn.to_profile_id || "",
       provider_name: conn.to_profile?.display_name || "Unknown",
       provider_email: conn.to_profile?.email || null,
+      provider_phone: conn.to_profile?.phone || null,
       provider_slug: conn.to_profile?.slug || conn.to_profile?.source_provider_id || "",
+      provider_completeness: providerCompleteness,
+      provider_nudged_at: providerNudgedAt,
       message_preview: messagePreview,
       created_at: conn.created_at,
       age_hours: ageHours,
@@ -183,7 +241,6 @@ export async function GET(req: NextRequest) {
       response_time_hours: responseTimeHours ? Math.round(responseTimeHours * 10) / 10 : null,
       provider_response: providerResponse,
       cta_variant: ctaVariant,
-      nudged_at: nudgedAt,
     });
   }
 

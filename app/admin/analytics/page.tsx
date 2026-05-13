@@ -2298,14 +2298,29 @@ function ProviderResponseVariantSplit({
 // Replaces the old static AwaitingResponseList with a full-featured drill-in.
 type ResponseLeadFilter = "all" | "awaiting" | "responded";
 
+interface ProfileCompleteness {
+  percentage: number;
+  missingFields: string[];
+}
+
 interface ResponseLead {
   connection_id: string;
+  // Family info
+  family_id: string;
   family_name: string;
   family_email: string | null;
-  provider_id: string; // Profile UUID for linking to /admin/directory/[providerId]
+  family_phone: string | null;
+  family_completeness: ProfileCompleteness;
+  family_nudged_at: string | null;
+  // Provider info
+  provider_id: string;
   provider_name: string;
   provider_email: string | null;
+  provider_phone: string | null;
   provider_slug: string;
+  provider_completeness: ProfileCompleteness;
+  provider_nudged_at: string | null;
+  // Lead info
   message_preview: string;
   created_at: string;
   age_hours: number;
@@ -2313,7 +2328,6 @@ interface ResponseLead {
   response_time_hours: number | null;
   provider_response: string | null;
   cta_variant: string | null;
-  nudged_at: string | null;
 }
 
 const PAGE_SIZE = 50;
@@ -2332,18 +2346,20 @@ function ResponseLeadsList({
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [nudging, setNudging] = useState<string | null>(null);
-  const [nudgeSuccess, setNudgeSuccess] = useState<string | null>(null);
+  // Nudge state: tracks which party (family/provider) is being nudged for which connection
+  const [nudgingProvider, setNudgingProvider] = useState<string | null>(null);
+  const [nudgingFamily, setNudgingFamily] = useState<string | null>(null);
+  const [nudgeSuccess, setNudgeSuccess] = useState<{ id: string; type: "family" | "provider" } | null>(null);
   const [nudgeError, setNudgeError] = useState<string | null>(null);
   // Delete state
   const [pendingDelete, setPendingDelete] = useState<ResponseLead | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  // Add email state (inline editing)
-  const [editingEmailId, setEditingEmailId] = useState<string | null>(null);
+  // Add email state (inline editing) - now tracks which party
+  const [editingEmail, setEditingEmail] = useState<{ id: string; type: "family" | "provider" } | null>(null);
   const [emailInput, setEmailInput] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
-  const [emailAddSuccess, setEmailAddSuccess] = useState<string | null>(null);
+  const [emailAddSuccess, setEmailAddSuccess] = useState<{ id: string; type: "family" | "provider" } | null>(null);
   const [emailAddError, setEmailAddError] = useState<string | null>(null);
 
   // Track timeout IDs for cleanup on unmount
@@ -2393,8 +2409,9 @@ function ResponseLeadsList({
     fetchPage(0, false);
   }, [fetchPage]);
 
-  const handleNudge = useCallback(async (connectionId: string) => {
-    setNudging(connectionId);
+  // Nudge provider to respond to the lead
+  const handleNudgeProvider = useCallback(async (connectionId: string) => {
+    setNudgingProvider(connectionId);
     setNudgeError(null);
     setNudgeSuccess(null);
 
@@ -2411,15 +2428,15 @@ function ResponseLeadsList({
         throw new Error(data.error || "Failed to send nudge");
       }
 
-      setNudgeSuccess(connectionId);
+      setNudgeSuccess({ id: connectionId, type: "provider" });
       // Update local state to show nudged indicator
       const nudgedAt = new Date().toISOString();
       setLeads((prev) =>
         prev.map((l) =>
-          l.connection_id === connectionId ? { ...l, nudged_at: nudgedAt } : l
+          l.connection_id === connectionId ? { ...l, provider_nudged_at: nudgedAt } : l
         )
       );
-      // Clear "Sent" message after 3 seconds (will show "Nudged" after)
+      // Clear "Sent" message after 3 seconds
       const successTimeout = setTimeout(() => setNudgeSuccess(null), 3000);
       timeoutRefs.current.add(successTimeout);
     } catch (err) {
@@ -2427,7 +2444,46 @@ function ResponseLeadsList({
       const errorTimeout = setTimeout(() => setNudgeError(null), 5000);
       timeoutRefs.current.add(errorTimeout);
     } finally {
-      setNudging(null);
+      setNudgingProvider(null);
+    }
+  }, []);
+
+  // Nudge family to complete their profile
+  const handleNudgeFamily = useCallback(async (connectionId: string, familyId: string) => {
+    setNudgingFamily(connectionId);
+    setNudgeError(null);
+    setNudgeSuccess(null);
+
+    try {
+      const res = await fetch("/api/admin/nudge-family", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection_id: connectionId, family_profile_id: familyId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send nudge");
+      }
+
+      setNudgeSuccess({ id: connectionId, type: "family" });
+      // Update local state to show nudged indicator
+      const nudgedAt = new Date().toISOString();
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.connection_id === connectionId ? { ...l, family_nudged_at: nudgedAt } : l
+        )
+      );
+      // Clear "Sent" message after 3 seconds
+      const successTimeout = setTimeout(() => setNudgeSuccess(null), 3000);
+      timeoutRefs.current.add(successTimeout);
+    } catch (err) {
+      setNudgeError(err instanceof Error ? err.message : "Failed to send nudge");
+      const errorTimeout = setTimeout(() => setNudgeError(null), 5000);
+      timeoutRefs.current.add(errorTimeout);
+    } finally {
+      setNudgingFamily(null);
     }
   }, []);
 
@@ -2457,9 +2513,10 @@ function ResponseLeadsList({
     }
   }, [pendingDelete]);
 
-  // Handle inline email add
-  const handleAddEmail = useCallback(async (lead: ResponseLead) => {
-    if (!emailInput.trim() || !lead.provider_id) return;
+  // Handle inline email add for either family or provider
+  const handleAddEmail = useCallback(async (lead: ResponseLead, partyType: "family" | "provider") => {
+    const profileId = partyType === "family" ? lead.family_id : lead.provider_id;
+    if (!emailInput.trim() || !profileId) return;
 
     // Basic email validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.trim())) {
@@ -2475,7 +2532,7 @@ function ResponseLeadsList({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          profileId: lead.provider_id,
+          profileId,
           email: emailInput.trim(),
         }),
       });
@@ -2489,12 +2546,14 @@ function ResponseLeadsList({
       setLeads((prev) =>
         prev.map((l) =>
           l.connection_id === lead.connection_id
-            ? { ...l, provider_email: emailInput.trim() }
+            ? partyType === "family"
+              ? { ...l, family_email: emailInput.trim() }
+              : { ...l, provider_email: emailInput.trim() }
             : l
         )
       );
-      setEmailAddSuccess(lead.connection_id);
-      setEditingEmailId(null);
+      setEmailAddSuccess({ id: lead.connection_id, type: partyType });
+      setEditingEmail(null);
       setEmailInput("");
 
       // Clear success message after 3 seconds
@@ -2600,166 +2659,318 @@ function ResponseLeadsList({
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left px-4 py-2 font-medium text-gray-600">Family</th>
-                <th className="text-left px-4 py-2 font-medium text-gray-600">Provider</th>
+                <th className="text-left px-4 py-2 font-medium text-gray-600 w-[280px]">Family</th>
+                <th className="text-left px-4 py-2 font-medium text-gray-600 w-[280px]">Provider</th>
                 <th className="text-left px-4 py-2 font-medium text-gray-600">Response</th>
-                <th className="text-right px-4 py-2 font-medium text-gray-600">Sent</th>
-                <th className="text-center px-4 py-2 font-medium text-gray-600 w-20">Action</th>
+                <th className="text-right px-4 py-2 font-medium text-gray-600 w-20">Sent</th>
                 <th className="px-2 py-2 font-medium w-8" aria-label="Delete" />
               </tr>
             </thead>
             <tbody>
-              {leads.map((lead) => (
-                <tr
-                  key={lead.connection_id}
-                  className="group border-b border-gray-100 last:border-0 hover:bg-gray-50/40"
-                >
-                  <td className="px-4 py-2.5">
-                    <div className="text-gray-900">{lead.family_name}</div>
-                    {lead.family_email && (
-                      <div className="text-[11px] text-gray-400 truncate max-w-[180px]" title={lead.family_email}>
-                        {lead.family_email}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <div>
-                      {lead.provider_slug ? (
-                        <Link
-                          href={`/provider/${lead.provider_slug}`}
-                          className="text-emerald-700 hover:text-emerald-800"
-                        >
-                          {lead.provider_name}
-                        </Link>
-                      ) : (
-                        <span className="text-gray-900">{lead.provider_name}</span>
-                      )}
-                    </div>
-                    {lead.provider_email ? (
-                      <div className="text-[11px] text-gray-400 truncate max-w-[180px]" title={lead.provider_email}>
-                        {lead.provider_email}
-                      </div>
-                    ) : (
-                      <div className="text-[11px] text-amber-500 italic">
-                        no email
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-600 max-w-[220px]">
-                    {lead.provider_response ? (
-                      <span className="text-xs truncate block" title={lead.provider_response}>
-                        &ldquo;{lead.provider_response.length > 60
-                          ? lead.provider_response.substring(0, 57) + "..."
-                          : lead.provider_response}&rdquo;
-                      </span>
-                    ) : (
-                      <span className="text-gray-300 text-xs">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5 text-right text-gray-500 whitespace-nowrap">
-                    {formatLeadAge(lead.age_hours)}
-                  </td>
-                  <td className="px-4 py-2.5 text-center">
-                    {lead.responded ? (
-                      <span className="text-xs text-emerald-600">Replied</span>
-                    ) : !lead.provider_email ? (
-                      // No email — inline form to add one
-                      emailAddSuccess === lead.connection_id ? (
-                        <span className="text-xs text-emerald-600">Email added</span>
-                      ) : editingEmailId === lead.connection_id ? (
-                        <form
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            handleAddEmail(lead);
-                          }}
-                          className="flex items-center gap-1"
-                        >
-                          <input
-                            type="email"
-                            placeholder="email@example.com"
-                            value={emailInput}
-                            onChange={(e) => setEmailInput(e.target.value)}
-                            className="w-32 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            disabled={savingEmail}
-                            autoFocus
-                          />
-                          <button
-                            type="submit"
-                            disabled={savingEmail || !emailInput.trim()}
-                            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                          >
-                            {savingEmail ? "..." : "Save"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingEmailId(null);
-                              setEmailInput("");
-                              setEmailAddError(null);
-                            }}
-                            className="px-1.5 py-1 text-xs text-gray-400 hover:text-gray-600"
-                          >
-                            ✕
-                          </button>
-                        </form>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditingEmailId(lead.connection_id);
-                            setEmailInput("");
-                            setEmailAddError(null);
-                          }}
-                          className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
-                          title="Add email to enable nudging"
-                        >
-                          Add email
-                        </button>
-                      )
-                    ) : (
-                      <div className="flex flex-col items-center gap-0.5">
-                        {nudgeSuccess === lead.connection_id ? (
-                          <span className="text-xs text-emerald-600">Sent</span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleNudge(lead.connection_id)}
-                            disabled={nudging === lead.connection_id}
-                            className="text-xs text-amber-600 hover:text-amber-700 disabled:opacity-50"
-                            title={lead.nudged_at ? "Send another reminder" : "Send reminder to provider"}
-                          >
-                            {nudging === lead.connection_id ? "..." : "Nudge"}
-                          </button>
-                        )}
-                        {lead.nudged_at && (
-                          <span className="text-[10px] text-gray-400">
-                            {formatLeadAge(
-                              (Date.now() - new Date(lead.nudged_at).getTime()) / (1000 * 60 * 60)
-                            )}
+              {leads.map((lead) => {
+                const isEditingFamilyEmail = editingEmail?.id === lead.connection_id && editingEmail.type === "family";
+                const isEditingProviderEmail = editingEmail?.id === lead.connection_id && editingEmail.type === "provider";
+                const familyEmailSuccess = emailAddSuccess?.id === lead.connection_id && emailAddSuccess.type === "family";
+                const providerEmailSuccess = emailAddSuccess?.id === lead.connection_id && emailAddSuccess.type === "provider";
+                const familyNudgeSuccess = nudgeSuccess?.id === lead.connection_id && nudgeSuccess.type === "family";
+                const providerNudgeSuccess = nudgeSuccess?.id === lead.connection_id && nudgeSuccess.type === "provider";
+
+                return (
+                  <tr
+                    key={lead.connection_id}
+                    className="group border-b border-gray-100 last:border-0 hover:bg-gray-50/40"
+                  >
+                    {/* Family Column */}
+                    <td className="px-4 py-3 align-top">
+                      <div className="space-y-2">
+                        {/* Name and contact */}
+                        <div>
+                          <div className="text-gray-900 font-medium text-[13px]">{lead.family_name}</div>
+                          {lead.family_email ? (
+                            <div className="text-[11px] text-gray-400 truncate max-w-[200px]" title={lead.family_email}>
+                              {lead.family_email}
+                            </div>
+                          ) : (
+                            <div className="text-[11px] text-amber-500 italic">no email</div>
+                          )}
+                          {lead.family_phone && (
+                            <div className="text-[11px] text-gray-400">{lead.family_phone}</div>
+                          )}
+                        </div>
+
+                        {/* Completeness bar */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                lead.family_completeness.percentage >= 80
+                                  ? "bg-emerald-500"
+                                  : lead.family_completeness.percentage >= 50
+                                  ? "bg-amber-400"
+                                  : "bg-red-400"
+                              }`}
+                              style={{ width: `${lead.family_completeness.percentage}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-gray-400 tabular-nums w-8">
+                            {lead.family_completeness.percentage}%
                           </span>
-                        )}
+                        </div>
+
+                        {/* Nudge button or add email */}
+                        <div className="flex items-center gap-2">
+                          {familyEmailSuccess ? (
+                            <span className="text-[11px] text-emerald-600">Email added</span>
+                          ) : isEditingFamilyEmail ? (
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                handleAddEmail(lead, "family");
+                              }}
+                              className="flex items-center gap-1"
+                            >
+                              <input
+                                type="email"
+                                placeholder="email@example.com"
+                                value={emailInput}
+                                onChange={(e) => setEmailInput(e.target.value)}
+                                className="w-28 px-2 py-1 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                disabled={savingEmail}
+                                autoFocus
+                              />
+                              <button
+                                type="submit"
+                                disabled={savingEmail || !emailInput.trim()}
+                                className="px-1.5 py-1 text-[11px] bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                              >
+                                {savingEmail ? "..." : "Save"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEmail(null);
+                                  setEmailInput("");
+                                  setEmailAddError(null);
+                                }}
+                                className="text-[11px] text-gray-400 hover:text-gray-600"
+                              >
+                                ✕
+                              </button>
+                            </form>
+                          ) : !lead.family_email ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingEmail({ id: lead.connection_id, type: "family" });
+                                setEmailInput("");
+                                setEmailAddError(null);
+                              }}
+                              className="text-[11px] text-blue-600 hover:text-blue-700 hover:underline"
+                            >
+                              + Add email
+                            </button>
+                          ) : lead.family_completeness.percentage < 80 ? (
+                            <div className="flex items-center gap-2">
+                              {familyNudgeSuccess ? (
+                                <span className="text-[11px] text-emerald-600">Sent</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleNudgeFamily(lead.connection_id, lead.family_id)}
+                                  disabled={nudgingFamily === lead.connection_id}
+                                  className="text-[11px] px-2 py-0.5 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50"
+                                  title="Nudge family to complete profile"
+                                >
+                                  {nudgingFamily === lead.connection_id ? "..." : "Nudge"}
+                                </button>
+                              )}
+                              {lead.family_nudged_at && (
+                                <span className="text-[10px] text-gray-400">
+                                  {formatLeadAge(
+                                    (Date.now() - new Date(lead.family_nudged_at).getTime()) / (1000 * 60 * 60)
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-emerald-600">Complete</span>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </td>
-                  <td className="px-2 py-2.5 w-8 text-right">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteError(null);
-                        setPendingDelete(lead);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
-                      aria-label="Delete this lead"
-                      title="Delete this lead"
-                    >
+                    </td>
+
+                    {/* Provider Column */}
+                    <td className="px-4 py-3 align-top">
+                      <div className="space-y-2">
+                        {/* Name and contact */}
+                        <div>
+                          {lead.provider_slug ? (
+                            <Link
+                              href={`/provider/${lead.provider_slug}`}
+                              className="text-emerald-700 hover:text-emerald-800 font-medium text-[13px]"
+                            >
+                              {lead.provider_name}
+                            </Link>
+                          ) : (
+                            <span className="text-gray-900 font-medium text-[13px]">{lead.provider_name}</span>
+                          )}
+                          {lead.provider_email ? (
+                            <div className="text-[11px] text-gray-400 truncate max-w-[200px]" title={lead.provider_email}>
+                              {lead.provider_email}
+                            </div>
+                          ) : (
+                            <div className="text-[11px] text-amber-500 italic">no email</div>
+                          )}
+                          {lead.provider_phone && (
+                            <div className="text-[11px] text-gray-400">{lead.provider_phone}</div>
+                          )}
+                        </div>
+
+                        {/* Completeness bar */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                lead.provider_completeness.percentage >= 80
+                                  ? "bg-emerald-500"
+                                  : lead.provider_completeness.percentage >= 50
+                                  ? "bg-amber-400"
+                                  : "bg-red-400"
+                              }`}
+                              style={{ width: `${lead.provider_completeness.percentage}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-gray-400 tabular-nums w-8">
+                            {lead.provider_completeness.percentage}%
+                          </span>
+                        </div>
+
+                        {/* Status / Nudge button / add email */}
+                        <div className="flex items-center gap-2">
+                          {lead.responded ? (
+                            <span className="text-[11px] text-emerald-600 flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              Replied
+                            </span>
+                          ) : providerEmailSuccess ? (
+                            <span className="text-[11px] text-emerald-600">Email added</span>
+                          ) : isEditingProviderEmail ? (
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                handleAddEmail(lead, "provider");
+                              }}
+                              className="flex items-center gap-1"
+                            >
+                              <input
+                                type="email"
+                                placeholder="email@example.com"
+                                value={emailInput}
+                                onChange={(e) => setEmailInput(e.target.value)}
+                                className="w-28 px-2 py-1 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                disabled={savingEmail}
+                                autoFocus
+                              />
+                              <button
+                                type="submit"
+                                disabled={savingEmail || !emailInput.trim()}
+                                className="px-1.5 py-1 text-[11px] bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                              >
+                                {savingEmail ? "..." : "Save"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEmail(null);
+                                  setEmailInput("");
+                                  setEmailAddError(null);
+                                }}
+                                className="text-[11px] text-gray-400 hover:text-gray-600"
+                              >
+                                ✕
+                              </button>
+                            </form>
+                          ) : !lead.provider_email ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingEmail({ id: lead.connection_id, type: "provider" });
+                                setEmailInput("");
+                                setEmailAddError(null);
+                              }}
+                              className="text-[11px] text-blue-600 hover:text-blue-700 hover:underline"
+                            >
+                              + Add email
+                            </button>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              {providerNudgeSuccess ? (
+                                <span className="text-[11px] text-emerald-600">Sent</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleNudgeProvider(lead.connection_id)}
+                                  disabled={nudgingProvider === lead.connection_id}
+                                  className="text-[11px] px-2 py-0.5 rounded bg-amber-50 text-amber-600 hover:bg-amber-100 disabled:opacity-50"
+                                  title="Nudge provider to respond"
+                                >
+                                  {nudgingProvider === lead.connection_id ? "..." : "Nudge"}
+                                </button>
+                              )}
+                              {lead.provider_nudged_at && (
+                                <span className="text-[10px] text-gray-400">
+                                  {formatLeadAge(
+                                    (Date.now() - new Date(lead.provider_nudged_at).getTime()) / (1000 * 60 * 60)
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Response Column */}
+                    <td className="px-4 py-3 align-top text-gray-600 max-w-[220px]">
+                      {lead.provider_response ? (
+                        <span className="text-xs block" title={lead.provider_response}>
+                          &ldquo;{lead.provider_response.length > 80
+                            ? lead.provider_response.substring(0, 77) + "..."
+                            : lead.provider_response}&rdquo;
+                        </span>
+                      ) : (
+                        <span className="text-gray-300 text-xs">Awaiting response</span>
+                      )}
+                    </td>
+
+                    {/* Sent Column */}
+                    <td className="px-4 py-3 align-top text-right text-gray-500 whitespace-nowrap">
+                      {formatLeadAge(lead.age_hours)}
+                    </td>
+
+                    {/* Delete Column */}
+                    <td className="px-2 py-3 align-top w-8 text-right">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteError(null);
+                          setPendingDelete(lead);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
+                        aria-label="Delete this lead"
+                        title="Delete this lead"
+                      >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

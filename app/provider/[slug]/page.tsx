@@ -22,6 +22,7 @@ import MobileProviderTopNav from "@/components/providers/MobileProviderTopNav";
 import MobileClaimLink from "@/components/providers/MobileClaimLink";
 import MobilePricingTooltip from "@/components/providers/MobilePricingTooltip";
 import MobileClaimTooltip from "@/components/providers/MobileClaimTooltip";
+import { MobileManageLink } from "@/components/providers/MobileManageLink";
 import PriceEstimate from "@/components/providers/PriceEstimate";
 import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
 import { getPricingConfig } from "@/lib/pricing-config";
@@ -907,14 +908,14 @@ export default async function ProviderPage({
                   ) : null;
                 })()}
 
-                {/* Row 3: Two-column layout — Reviews | Pricing (full width) */}
-                <div className="flex items-center justify-between mt-4">
-                  {/* Left column: Reviews (align left) */}
-                  <div className="flex flex-col items-start">
+                {/* Row 3: Two-column layout — Reviews | Pricing (centered) */}
+                <div className="flex items-center justify-center gap-6 mt-4">
+                  {/* Left column: Reviews */}
+                  <div className="flex flex-col items-center text-center">
                     {hasRating && rating != null ? (
                       <>
                         <span className="text-xl font-bold text-gray-900">{rating.toFixed(1)}</span>
-                        <div className="flex items-center gap-0.5">
+                        <div className="flex items-center justify-center gap-0.5">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <svg
                               key={star}
@@ -929,7 +930,7 @@ export default async function ProviderPage({
                       </>
                     ) : (
                       <>
-                        <span className="text-base font-semibold text-gray-900">No reviews</span>
+                        <span className="text-xl font-bold text-gray-900">No reviews</span>
                         <span className="text-xs text-gray-500 font-medium">Be first</span>
                       </>
                     )}
@@ -938,14 +939,13 @@ export default async function ProviderPage({
                   {/* Divider - short, centered */}
                   <div className="w-px h-8 bg-gray-200" />
 
-                  {/* Right column: Pricing (align right) */}
-                  <div className="flex flex-col items-end">
+                  {/* Right column: Pricing */}
+                  <div className="flex flex-col items-center text-center">
                     {pricingConfig?.tier === 3 && !hasPriceRange ? (
                       <MobilePricingTooltip
                         topText="Medicare/Medicaid"
                         bottomText="may cover"
                         tooltipContent={pricingConfig.coverageNote?.({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined }) || pricingConfig.disclaimer({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined })}
-                        align="right"
                       />
                     ) : hasPriceRange ? (() => {
                       // Parse price to remove unit and determine type
@@ -958,8 +958,6 @@ export default async function ProviderPage({
                           topText={priceWithoutUnit}
                           bottomText={priceLabel}
                           tooltipContent={pricingConfig?.disclaimer({ providerName: profile.display_name, city: profile.city ?? undefined, state: profile.state ?? undefined }) || "Price is an estimate and may vary. Contact the provider for exact rates."}
-                          isPrice
-                          align="right"
                         />
                       );
                     })() : (
@@ -967,7 +965,6 @@ export default async function ProviderPage({
                         topText="Contact"
                         bottomText="for pricing"
                         tooltipContent="This provider has not published their pricing. Contact them directly for a personalized quote."
-                        align="right"
                       />
                     )}
                   </div>
@@ -1029,12 +1026,15 @@ export default async function ProviderPage({
                           </div>
                           <p className="text-sm text-gray-500 mt-0.5">
                             Are you the owner?{" "}
-                            <a
-                              href={`/provider/onboarding?org=${profile.slug}`}
-                              className="font-semibold text-primary-600 hover:text-primary-700"
-                            >
-                              Manage this page →
-                            </a>
+                            <MobileManageLink
+                              providerName={profile.display_name}
+                              providerSlug={profile.slug}
+                              providerId={profile.id}
+                              sourceProviderId={profile.source_provider_id}
+                              providerEmail={profile.email}
+                              providerCity={profile.city}
+                              providerState={profile.state}
+                            />
                           </p>
                         </>
                       )}

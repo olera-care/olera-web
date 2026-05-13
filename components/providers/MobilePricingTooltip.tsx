@@ -7,8 +7,6 @@ interface MobilePricingTooltipProps {
   topText: string;
   bottomText: string;
   tooltipContent: string;
-  /** When true, renders topText as large bold price */
-  isPrice?: boolean;
   /** Alignment of content */
   align?: "left" | "center" | "right";
 }
@@ -17,13 +15,12 @@ export default function MobilePricingTooltip({
   topText,
   bottomText,
   tooltipContent,
-  isPrice = false,
   align = "center",
 }: MobilePricingTooltipProps) {
   const alignClass = {
-    left: "items-start",
-    center: "items-center",
-    right: "items-end",
+    left: "items-start text-left",
+    center: "items-center text-center",
+    right: "items-end text-right",
   }[align];
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0 });
@@ -53,19 +50,15 @@ export default function MobilePricingTooltip({
 
   return (
     <div className={`flex flex-col ${alignClass}`}>
-      {/* Top line: Price or Medicare/Medicaid (large, bold) */}
-      <span
-        className={
-          isPrice
-            ? "text-xl font-bold text-gray-900"
-            : "text-base font-semibold text-gray-900"
-        }
-      >
+      {/* Top line: Always large, bold (price, Medicare/Medicaid, or Contact) */}
+      <span className="text-xl font-bold text-gray-900">
         {topText}
       </span>
 
-      {/* Bottom line: Subtitle with tooltip (matches star row size) */}
-      <div className="flex items-center gap-0.5">
+      {/* Bottom line: Subtitle with tooltip (centered with balanced spacer) */}
+      <div className="flex items-center justify-center gap-0.5">
+        {/* Invisible spacer to balance the icon on the right */}
+        <span className="w-5 h-5" aria-hidden="true" />
         <span className="text-xs text-gray-500 font-medium">{bottomText}</span>
         <button
           ref={buttonRef}

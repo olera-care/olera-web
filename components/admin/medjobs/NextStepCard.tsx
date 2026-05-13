@@ -456,6 +456,7 @@ function ProspectBody({
         <ProviderPreFlightModal
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus.name}
+          campusSlug={ctx.campus.slug}
           contacts={ctx.contacts}
           generalContact={{
             email:

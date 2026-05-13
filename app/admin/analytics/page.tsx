@@ -2580,19 +2580,11 @@ function ResponseLeadsList({
         throw new Error(data?.error || "Failed to save email");
       }
 
-      // Update local state with the new email
-      setLeads((prev) =>
-        prev.map((l) =>
-          l.connection_id === lead.connection_id
-            ? partyType === "family"
-              ? { ...l, family_email: emailInput.trim() }
-              : { ...l, provider_email: emailInput.trim() }
-            : l
-        )
-      );
       setEmailAddSuccess({ id: lead.connection_id, type: partyType });
       setEditingEmail(null);
       setEmailInput("");
+      // Refetch to update counts and move lead to correct tab
+      fetchPage(0, false);
 
       // Clear success message after 3 seconds
       const successTimeout = setTimeout(() => setEmailAddSuccess(null), 3000);
@@ -2604,7 +2596,7 @@ function ResponseLeadsList({
     } finally {
       setSavingEmail(false);
     }
-  }, [emailInput]);
+  }, [emailInput, fetchPage]);
 
   const hasMore = total !== null && leads.length < total;
 

@@ -47,7 +47,7 @@ type Outcome = "no_answer" | "voicemail" | "connected" | "wrong_number";
 
 const OUTCOME_LABELS: Record<Outcome, string> = {
   no_answer: "No answer",
-  voicemail: "Voicemail",
+  voicemail: "Voicemail / message left",
   connected: "Reached someone",
   wrong_number: "Wrong number",
 };
@@ -331,7 +331,7 @@ export function CallForEmailModal({
               onChange={(e) => setNotes(e.target.value)}
               placeholder={
                 outcome === "voicemail"
-                  ? "What did the voicemail say? When to try again?"
+                  ? "Voicemail or front-desk message? What did they say or when to try again?"
                   : outcome === "connected"
                     ? "Anything they said that's useful for future outreach?"
                     : "Context for this call attempt."

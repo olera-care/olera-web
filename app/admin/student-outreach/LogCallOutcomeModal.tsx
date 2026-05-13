@@ -73,8 +73,8 @@ const DIDNT_REACH: Outcome[] = [
   },
   {
     key: "voicemail",
-    label: "Left a voicemail",
-    blurb: "Row moves to Replies as awaiting callback. Future call days still fire on schedule.",
+    label: "Left a voicemail / message with front desk",
+    blurb: "Row moves to Replies as awaiting callback. Future call days still fire on schedule. (Add what they said in notes — voicemail vs. front-desk message vs. office hours, etc.)",
   },
 ];
 

@@ -502,21 +502,21 @@ export default function ReviewsSection({
           </div>
 
           {/* Footer actions - stacked on mobile, inline on desktop */}
-          <div className="flex flex-col gap-3 mt-6 md:flex-row md:items-center md:justify-between md:gap-4">
-            {/* Show all reviews button */}
+          <div className="flex flex-col gap-4 mt-6 md:flex-row md:items-center md:justify-between md:gap-4">
+            {/* Show all reviews link (text link on mobile, styled on desktop) */}
             {hasMore && (
               <button
                 onClick={() => {
                   setScrollToReviewId(null);
                   setAllReviewsModalOpen(true);
                 }}
-                className="w-full md:w-auto px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                className="text-sm font-semibold text-gray-900 underline underline-offset-2 hover:text-gray-700 transition-colors md:no-underline md:px-6 md:py-3 md:bg-gray-100 md:rounded-xl md:hover:bg-gray-200 md:hover:text-gray-900"
               >
                 Show all {reviewCount} reviews
               </button>
             )}
 
-            {/* Add review button (hidden for non-family profiles) */}
+            {/* Add review button */}
             {canWriteReview && (
               <Link
                 href={reviewPageUrl}

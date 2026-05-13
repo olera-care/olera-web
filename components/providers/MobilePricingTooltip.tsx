@@ -52,7 +52,7 @@ export default function MobilePricingTooltip({
   }, [showTooltip]);
 
   return (
-    <div className={`flex flex-col ${alignClass}`}
+    <div className={`flex flex-col ${alignClass}`}>
       <div className="flex items-center gap-1">
         <span
           className={

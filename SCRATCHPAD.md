@@ -17,17 +17,34 @@ PR #799 (Request A) merged to staging at 13:23 UTC. Worktree spun up off staging
 - `components/admin/ProviderCommsTimeline.tsx` (new): client component, single fetch, table layout with two row types — emails show 📧 icon + email_type + subject + EmailStatusPill + preview-expand button; activity rows show ⚡ icon + event_type + summary, colspan=3 for the wider content. Reuses the shared `<EmailStatusPill>` for status. Preview expansion reuses the existing `/api/admin/emails` POST handler.
 - `app/admin/directory/[providerId]/page.tsx` (modified): swapped `EmailTimeline` import + mount for `ProviderCommsTimeline`. Section title changed from "Automated emails" to "Comms timeline". `EmailTimeline` component is preserved — still used on `/admin/care-seekers/[seekerId]` filtered by recipient email.
 
-**Validation:** `tsc --noEmit` 0 errors. `eslint` clean on the 3 new files. Not yet browser-tested.
+**Validation:** `tsc --noEmit` 0 errors. `eslint` clean on the 3 new files. Not yet browser-tested at end of initial build.
 
 **Why TJ chose to keep going after I recommended pausing:** the real risks of doing B in the same session were (1) data correctness on the ID-variant resolution and (2) stacked rollback complexity if A needs a hotfix tomorrow. The first I addressed by building the resolver as commit #1 of the work; the second is acceptable because A and B touch different surfaces (analytics page vs directory page), so a surgical revert is doable either direction. The soft "context budget / fresh attention" framing didn't survive scrutiny.
 
-**Files touched:**
+**PR #802 opened** (`feature/provider-comms-timeline → staging`): https://github.com/olera-care/olera-web/pull/802
+
+**Pre-test self-review caught 4 issues (commit `46c42025`):**
+- 🟡 Resolver could miss multiple `business_profiles` rows pointing to the same `source_provider_id` (no UNIQUE constraint on that column). Was using `.maybeSingle()`. Now collects all matching rows up to a defensive cap of 10, appends every UUID to `allVariants`.
+- 🟡 Misleading total counts: route was returning `totalEmails: emailEvents.length` which is the FETCHED count, capped at `perSourceCap=200`. For a provider with 1000+ events, the UI's "N of M events" line would lie. Added two parallel count-only queries (`count: 'exact', head: true`) for honest totals. New shape: `totalEmails` + `totalActivity` (true counts) plus `fetchedEmails` + `fetchedActivity` (debugging).
+- 🟡 Behavioral regression vs existing EmailTimeline: hardcoded `recipient_type='provider'` was tighter than the existing surface (which uses no recipient_type filter). Would silently drop legacy rows where the column is null. Relaxed to `.or("recipient_type.is.null,recipient_type.eq.provider")` — still excludes admin/family recipients (semantically right).
+- 🟢 Variant chip was hidden when count=1, mismatching the pre-test instructions to operator. Now renders always with proper plural handling.
+
+**TJ flagged a real UX flaw mid-test (will be addressed in this PR, not a follow-up):** clicking a row in `/admin/directory` for "user-created" providers (rows with the yellow USER-CREATED badge — providers who self-registered via `business_profiles` without an `olera-providers` scraped row) **opens the public `/provider/<slug>` page in a new tab** instead of an admin detail view. That's because the existing admin detail page hard-404s when there's no `olera-providers` row (see `app/api/admin/directory/[providerId]/route.ts:60-65`). So user-created rows have no admin destination today. TJ's correct read: the public page link is a useful secondary action, NOT the primary one — the admin detail (where Comms timeline lives) should be the destination, even if the editing surface is limited for user-created.
+
+**Decision: extend PR #802 with a "lite admin detail mode" for user-created providers rather than spinning a separate PR.** Reasoning: efficient (no separate review cycle), tightly coupled (both pieces are about making admin work flow naturally toward the Comms timeline), small enough scope (~1 hour) that it doesn't bloat the PR semantically. Three options were considered (full edit support, lite mode w/ just Comms timeline, redirect to /admin/verification); chose lite mode because the Comms timeline is the load-bearing reason a user-created provider has admin value (they get emails + take actions exactly like scraped providers — editing their fields can wait).
+
+**Files touched so far (commits `ef829368` + `46c42025` on `feature/provider-comms-timeline`):**
 - NEW `lib/provider-id-variants.ts`
 - NEW `app/api/admin/directory/[providerId]/comms-timeline/route.ts`
 - NEW `components/admin/ProviderCommsTimeline.tsx`
-- M `app/admin/directory/[providerId]/page.tsx` (4-line swap)
+- M `app/admin/directory/[providerId]/page.tsx` (4-line mount swap)
 
-**Resume next session here →** (1) Browser-test on Vercel preview from `feature/provider-comms-timeline`: open `/admin/directory/<a-claimed-provider-slug>`, confirm the Comms timeline section renders, emails interleave with activity events in correct time order, preview-expand works, ID variants line at the bottom shows "1 ID variants" (or "2 ID variants" for claimed providers with a business profile). (2) Open PR `feature/provider-comms-timeline → staging`. (3) After both A and B bake on staging for a day, promote `staging → main`. (4) Two follow-ups worth tracking, neither blocking: the legacy `/api/admin/emails` `.eq("provider_id")` filter has the same single-variant bug — should switch it to use the new resolver for consistency (small, ~10 lines); polish pass on activity-event labels once we see real data shape in staging.
+**About to add (lite admin detail mode):**
+- M `app/api/admin/directory/[providerId]/route.ts` — fall back to `business_profiles` lookup (by `id` UUID or `slug`) when `olera-providers` is missing. Return `{provider, source: "user-created" | "scraped", ...}` so the page can render appropriately.
+- M `app/admin/directory/[providerId]/page.tsx` — render a stripped-down view when `source === "user-created"`: provider name + claim status + "Open public page →" button + the Comms timeline. No editing form, no image manager, no Google rating, no facility-manager block.
+- M `app/admin/directory/page.tsx` — change the row-click handler to always `router.push(/admin/directory/<id>)`, with the `id` being whichever identifier the row carries (slug for scraped, business_profile.id for user-created). Drop the `window.open(/provider/<slug>)` path entirely; public-page access is now via the button inside the detail.
+
+**Resume next session here →** Implementing the lite-mode extension now in the same PR (#802). After that ships and #802 is reviewed/merged, the two follow-ups still hold: (1) migrate legacy `/api/admin/emails` to use the new resolver for consistency; (2) polish pass on activity-event labels once we see real staging data shape.
 
 ---
 

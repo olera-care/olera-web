@@ -339,6 +339,30 @@ export default function AdminAnalyticsPage() {
 
       <BulkCollapseToolbar />
 
+      {/* Section order is curation: Family Intake and Provider Comms Funnel
+          carry the highest-leverage operator decisions, so they sit up top.
+          The windowed KPI roll-up and the legacy Q&A funnel are reference
+          tables — useful but not where the eye should land first. */}
+      <CollapsibleSection
+        title="Family Intake"
+        storageKey="benefitsFunnel"
+        defaultCollapsed={true}
+        forceOpen={!!searchParams.get("variant")}
+        loading={loading && !!summary}
+      >
+        <BenefitsFunnelCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Provider Comms Funnel"
+        storageKey="providerCommsFunnel"
+        defaultCollapsed={true}
+        forceOpen={!!searchParams.get("comms_filter")}
+        loading={loading && !!summary}
+      >
+        <ProviderCommsFunnelCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
       {/* WindowedCard's section title is the date range itself, matching the
           existing in-card heading so the operator's mental anchor doesn't
           change. */}
@@ -358,30 +382,6 @@ export default function AdminAnalyticsPage() {
         loading={loading && !!summary}
       >
         <QaFunnelCard summary={summary} loading={loading} range={range} />
-      </CollapsibleSection>
-
-      <CollapsibleSection
-        title="Provider Comms Funnel"
-        storageKey="providerCommsFunnel"
-        defaultCollapsed={true}
-        forceOpen={!!searchParams.get("comms_filter")}
-        loading={loading && !!summary}
-      >
-        <ProviderCommsFunnelCard summary={summary} loading={loading} range={range} />
-      </CollapsibleSection>
-
-      {/* Every section starts collapsed; the operator opens what they
-          want and the choice persists across reloads. forceOpen still
-          pins Family Intake open when a ?variant=... drill-in URL is
-          present, so deep links never land on a closed section. */}
-      <CollapsibleSection
-        title="Family Intake"
-        storageKey="benefitsFunnel"
-        defaultCollapsed={true}
-        forceOpen={!!searchParams.get("variant")}
-        loading={loading && !!summary}
-      >
-        <BenefitsFunnelCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -972,16 +972,23 @@ function ProviderCommsFunnelCard({
       tooltip: "Resend confirmed acceptance by recipient mailserver. % shown is delivery rate (delivered / sent)." },
     { label: "Opened", value: f.opened, prior: pf?.opened ?? null, prev: f.delivered,
       tooltip: "Provider opened the email (Resend webhook 'opened'). Apple Mail Privacy Protection prefetches images on receipt, inflating opens 30-50% for that cohort — clicks are the cleaner signal. % shown is open rate (opened / delivered)." },
-    { label: "Clicked", value: f.clicked, prior: pf?.clicked ?? null, prev: f.opened,
-      tooltip: "Provider clicked a tracked link in the email. % shown is click-to-open rate (CTOR)." },
-    { label: "Signed in", value: f.signed_in, prior: pf?.signed_in ?? null, prev: f.clicked,
-      tooltip: "Distinct providers who both clicked an email in this bucket AND did a one-click sign-in in window (any action: question / lead / review). Approximate attribution — anchored on activity time, not the email send. A provider who got multiple email types in the window may be counted in each bucket they clicked." },
-    { label: "Answered", value: f.answered, prior: pf?.answered ?? null, prev: f.clicked,
-      tooltip: "Distinct providers who clicked an email in this bucket AND answered ≥1 question in window. Same approximate-attribution caveat as Signed in." },
-    { label: "Clicked dashboard", value: f.clicked_dashboard, prior: pf?.clicked_dashboard ?? null, prev: f.clicked,
-      tooltip: "Distinct providers who clicked an email in this bucket AND clicked any dashboard CTA in window — union of the analytics teaser on /onboard and the dashboard hero on /provider." },
-    { label: "Edited profile", value: f.edited_profile, prior: pf?.edited_profile ?? null, prev: f.clicked,
-      tooltip: "Distinct providers who clicked an email in this bucket AND saved a profile edit in window. Lagging activation indicator." },
+    // The four downstream rows are distinct-provider counts. Comparing them
+    // against the raw email_log click row count produced misleading % drops
+    // (e.g. 374 click rows → 54 distinct signed-in providers reads as "14%
+    // of prev" but lots of those 374 are scanner prefetches or re-clicks).
+    // Showing distinct_clickers as the Clicked value, and using it as the
+    // denominator for the four downstream rows, keeps the cascade unit-
+    // consistent. Raw click rows are still surfaced in the tooltip.
+    { label: "Clicked", value: f.distinct_clickers, prior: pf?.distinct_clickers ?? null, prev: f.opened,
+      tooltip: `Distinct providers who clicked a tracked link in the email. Raw click rows: ${f.clicked.toLocaleString()} (a single provider may click multiple times, and email security scanners often prefetch links, both of which inflate the raw row count). % shown is rough click-through (distinct clickers / raw opens) — opens are also raw rows so the rate is approximate.` },
+    { label: "Signed in", value: f.signed_in, prior: pf?.signed_in ?? null, prev: f.distinct_clickers,
+      tooltip: "Distinct providers who both clicked an email in this bucket AND did a one-click sign-in in window (any action: question / lead / review). Approximate attribution — anchored on activity time, not the email send. A provider who got multiple email types in the window may be counted in each bucket they clicked. % shown is sign-in rate among distinct clickers." },
+    { label: "Answered", value: f.answered, prior: pf?.answered ?? null, prev: f.distinct_clickers,
+      tooltip: "Distinct providers who clicked an email in this bucket AND answered ≥1 question in window. Same approximate-attribution caveat as Signed in. % shown is answer rate among distinct clickers." },
+    { label: "Clicked dashboard", value: f.clicked_dashboard, prior: pf?.clicked_dashboard ?? null, prev: f.distinct_clickers,
+      tooltip: "Distinct providers who clicked an email in this bucket AND clicked any dashboard CTA in window — union of the analytics teaser on /onboard and the dashboard hero on /provider. % shown is dashboard-click rate among distinct clickers." },
+    { label: "Edited profile", value: f.edited_profile, prior: pf?.edited_profile ?? null, prev: f.distinct_clickers,
+      tooltip: "Distinct providers who clicked an email in this bucket AND saved a profile edit in window. Lagging activation indicator. % shown is profile-edit rate among distinct clickers." },
   ];
 
   // Denominator is distinct clickers, not raw click rows — engagement_bounces
@@ -995,7 +1002,7 @@ function ProviderCommsFunnelCard({
         <p className="text-xs text-gray-500">
           Cohort: provider emails sent {rangeLabel(range).toLowerCase()}, filtered to{" "}
           <span className="font-medium text-gray-700">{PROVIDER_EMAIL_FUNNEL_LABELS[filter]}</span>.
-          Step % is conversion from the previous stage (Delivered → Sent, Opened → Delivered, Clicked → Opened, downstream → Clicked).
+          Step % is conversion from the previous stage. Clicked is distinct providers (raw click rows shown in the tooltip); the four downstream rows compare against that distinct-clicker denominator.
         </p>
         <label className="inline-flex items-center gap-1.5 text-xs">
           <span className="text-gray-500">Filter</span>

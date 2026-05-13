@@ -9,12 +9,15 @@
  * mechanic stays per-section (no shared store) without sacrificing
  * one-click bulk control.
  *
- * forceOpen: when truthy, the section is held open regardless of stored
- * state — used to keep a deep-linked drill-in (e.g. ?variant=outreach)
- * visible even if the operator had previously collapsed that section.
+ * forceOpen: when truthy on first mount, the section opens regardless of
+ * stored state — used to keep a deep-linked drill-in (e.g. ?variant=outreach)
+ * visible even if the operator had previously collapsed that section. The
+ * collapse toggle remains clickable after mount; otherwise URL params that
+ * the section itself maintains (e.g. ?comms_filter=) would lock the section
+ * open as soon as the operator interacts with any in-section control.
  */
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 interface CollapsibleSectionProps {
   title: ReactNode;
@@ -42,8 +45,18 @@ export default function CollapsibleSection({
   // override only applies post-mount.
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const [hydrated, setHydrated] = useState(false);
+  // Capture forceOpen at first mount only — if the prop later flips truthy
+  // (e.g. dropdown writes a URL param the section reads via searchParams),
+  // we don't want to override the user's subsequent collapse choice.
+  const forceOpenOnMountRef = useRef(!!forceOpen);
 
   useEffect(() => {
+    if (forceOpenOnMountRef.current) {
+      // Deep-linked open beats stored collapsed state.
+      setCollapsed(false);
+      setHydrated(true);
+      return;
+    }
     try {
       const stored = localStorage.getItem(STORAGE_PREFIX + storageKey);
       if (stored !== null) setCollapsed(stored === "1");
@@ -78,16 +91,15 @@ export default function CollapsibleSection({
     return () => window.removeEventListener(BULK_EVENT, onBulk);
   }, []);
 
-  const isOpen = !!forceOpen || !collapsed;
+  const isOpen = !collapsed;
 
   return (
     <div id={storageKey} className="rounded-2xl border border-gray-100 bg-white mb-6 scroll-mt-24">
       <button
         type="button"
         onClick={() => setCollapsed((c) => !c)}
-        disabled={!!forceOpen}
         aria-expanded={isOpen}
-        className="w-full flex items-center gap-3 px-6 py-5 text-left hover:bg-gray-50/40 transition-colors disabled:hover:bg-transparent disabled:cursor-default"
+        className="w-full flex items-center gap-3 px-6 py-5 text-left hover:bg-gray-50/40 transition-colors"
       >
         <span
           className={`inline-block text-gray-400 text-sm transition-transform ${

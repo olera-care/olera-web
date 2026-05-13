@@ -965,14 +965,14 @@ export default async function ProviderPage({
                 </div>
 
                 {/* ── Mobile Claim Status Section ── */}
-                <div className="mt-6 pt-4 border-t border-gray-100">
+                <div className="mt-6 pt-4 border-t border-gray-100 text-left">
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">
                       {displayClaimState === "claimed" && staff?.image ? (
                         <Image
                           src={staff.image}
-                          alt={staff.name}
+                          alt={staff.name || "Manager"}
                           width={48}
                           height={48}
                           className="w-12 h-12 rounded-full object-cover"

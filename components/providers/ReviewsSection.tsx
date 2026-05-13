@@ -350,7 +350,7 @@ export default function ReviewsSection({
               return (
                 <div
                   key={review.id}
-                  className="group/review shadow-sm hover:shadow-md transition-shadow rounded-2xl p-5 bg-white"
+                  className="group/review border border-gray-100 md:border-0 md:shadow-sm md:hover:shadow-md transition-shadow rounded-xl md:rounded-2xl p-5 bg-white"
                 >
                   {/* Header */}
                   <div className="flex items-center justify-between mb-3">

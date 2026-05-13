@@ -9,7 +9,7 @@ import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { CompareProvider } from "./CompareBottomSheet";
 
-type FooterState = "initial" | "email_capture" | "submitting" | "success";
+type FooterState = "initial" | "email_capture" | "submitting" | "success" | "provider_email_block";
 
 interface CompareOverlayProps {
   isOpen: boolean;
@@ -21,13 +21,9 @@ interface CompareOverlayProps {
 }
 
 /**
- * Desktop comparison drawer - compact right-side panel.
- * Same flow and card design as mobile, adapted for desktop.
- *
- * Visual flow:
- * 1. Initially shows only the current provider (collapsed state)
- * 2. User can click "Compare with N nearby homes" to reveal similar providers
- * 3. All selection/save logic remains unchanged
+ * Desktop comparison panel - wide right-side drawer.
+ * Pre-populates all 3 providers immediately for quick comparison.
+ * Users can remove providers they don't want before saving.
  */
 export default function CompareOverlay({
   isOpen,
@@ -38,16 +34,17 @@ export default function CompareOverlay({
   ctaPreviewMode = false,
 }: CompareOverlayProps) {
   const router = useRouter();
-  const { user, activeProfile } = useAuth();
+  const { user, activeProfile, openAuth } = useAuth();
   const [footerState, setFooterState] = useState<FooterState>("initial");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const saveClickFiredRef = useRef(false);
   const emailInputRef = useRef<HTMLInputElement>(null);
 
-  // Stepped flow: initially show only current provider
-  const [showSimilar, setShowSimilar] = useState(false);
+  // Show all providers immediately (pre-populated comparison)
+  const [showSimilar, setShowSimilar] = useState(true);
 
   // Check if user is logged in
   const isLoggedIn = !!user && !!activeProfile;
@@ -64,11 +61,11 @@ export default function CompareOverlay({
     () => new Set(allProviders.map((p) => p.id))
   );
 
-  // Reset selection and stepped flow when overlay opens
+  // Reset selection when overlay opens (all providers pre-selected)
   useEffect(() => {
     if (isOpen) {
       setSelectedProviderIds(new Set(allProviders.map((p) => p.id)));
-      setShowSimilar(false);
+      setShowSimilar(true);
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -139,6 +136,13 @@ export default function CompareOverlay({
       });
 
       const data = await res.json();
+
+      // Handle provider email block (shouldn't happen for logged-in users, but safety check)
+      if (!res.ok && data.code === "PROVIDER_EMAIL") {
+        setBlockedEmail(userEmail);
+        setFooterState("provider_email_block");
+        return;
+      }
 
       if (!res.ok) {
         setError(data.error || "Something went wrong");
@@ -217,6 +221,13 @@ export default function CompareOverlay({
       });
 
       const data = await res.json();
+
+      // Handle provider email block
+      if (!res.ok && data.code === "PROVIDER_EMAIL") {
+        setBlockedEmail(email.trim());
+        setFooterState("provider_email_block");
+        return;
+      }
 
       if (!res.ok) {
         setError(data.error || "Something went wrong");
@@ -318,9 +329,9 @@ export default function CompareOverlay({
         aria-hidden="true"
       />
 
-      {/* Right-side drawer */}
+      {/* Right-side panel - wider for comfortable comparison */}
       <div
-        className="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl flex flex-col animate-panel-in-right"
+        className="absolute inset-y-0 right-0 w-[90vw] max-w-2xl bg-white shadow-2xl flex flex-col animate-panel-in-right"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -328,9 +339,7 @@ export default function CompareOverlay({
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-4">
               <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                {showSimilar
-                  ? `${currentProvider.name} next to ${similarProviders.length} nearby home${similarProviders.length !== 1 ? "s" : ""}`
-                  : `Save ${currentProvider.name}`}
+                Compare {allProviders.length} provider{allProviders.length !== 1 ? "s" : ""}
               </h2>
               <p className="text-sm text-gray-500 mt-1">
                 {categoryLocationStr}
@@ -406,56 +415,69 @@ export default function CompareOverlay({
               )}
             </div>
           ) : footerState === "initial" ? (
-            /* Initial state */
+            /* Initial state - Save button is primary */
             <>
               {error && (
                 <p className="text-sm text-red-600 mb-3">{error}</p>
               )}
-              {/* Collapsed state: Compare is primary, Save is secondary */}
-              {!showSimilar && hasSimilarProviders ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setShowSimilar(true)}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
-                  >
-                    Compare with {similarProviders.length} more
-                  </button>
-                  <p className="text-center text-[13px] text-gray-500 mt-2.5">
-                    or{" "}
-                    <button
-                      type="button"
-                      onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
-                      className="text-gray-700 font-medium hover:text-gray-900 underline underline-offset-2"
-                    >
-                      just save this one
-                    </button>
-                  </p>
-                </>
-              ) : (
-                /* Expanded state OR no similar providers: Save is primary */
-                <>
-                  <button
-                    type="button"
-                    onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
-                    disabled={showSimilar && selectedCount === 0}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
-                  >
-                    {selectedCount === 0
-                      ? "Select at least one"
-                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                    </svg>
-                  </button>
-                  <p className="text-center text-xs text-gray-500 mt-2">
-                    {isLoggedIn
-                      ? `Saving as ${userEmail}`
-                      : "Save now, message when ready"}
-                  </p>
-                </>
-              )}
+              <button
+                type="button"
+                onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
+                disabled={selectedCount === 0}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
+              >
+                {selectedCount === 0
+                  ? "Select at least one"
+                  : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </button>
+              <p className="text-center text-xs text-gray-500 mt-2">
+                {isLoggedIn
+                  ? `Saving as ${userEmail}`
+                  : "Save now, message when ready"}
+              </p>
             </>
+          ) : footerState === "provider_email_block" ? (
+            /* Provider email block state */
+            <div className="py-3 text-center">
+              <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Provider email detected
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                The email <span className="font-medium text-gray-800">{blockedEmail}</span> is linked to a provider account. Please use a different email.
+              </p>
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setBlockedEmail(null);
+                    setFooterState("email_capture");
+                    setEmail("");
+                  }}
+                  className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+                >
+                  Use Different Email
+                </button>
+                <button
+                  onClick={() => {
+                    onClose();
+                    openAuth({ defaultMode: "sign-in" });
+                  }}
+                  className="w-full py-3 px-4 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-300 transition-colors"
+                >
+                  Sign In Instead
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-3">
+                Family accounts require a separate email from provider accounts.
+              </p>
+            </div>
           ) : (
             /* Email capture state */
             <form
@@ -466,9 +488,9 @@ export default function CompareOverlay({
             >
               <div className="mb-3">
                 <h3 className="text-lg font-bold text-gray-900">
-                  {showSimilar ? `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}` : "Save this provider"}
+                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
                 </h3>
-                <p className="text-sm text-gray-500">Add your email so you don&apos;t lose it.</p>
+                <p className="text-sm text-gray-500">We&apos;ll send you a summary to compare.</p>
               </div>
 
               <div className="flex flex-col gap-3">
@@ -494,7 +516,7 @@ export default function CompareOverlay({
                   type="submit"
                   className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
                 >
-                  {showSimilar ? `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}` : "Save this provider"}
+                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                   </svg>

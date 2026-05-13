@@ -17,19 +17,32 @@ export function ctaVariantLabel(variant: CTAVariant): string {
       return "Legacy CTA";
     case "compare":
       return "Compare";
+    case "guide":
+      return "Guide";
+    default: {
+      // Exhaustive check — TypeScript will error if a variant is missing above
+      const _exhaustive: never = variant;
+      throw new Error(`Unknown CTA variant: ${_exhaustive}`);
+    }
   }
 }
 
 // One-line description of what each arm puts in front of a visitor.
 // Used as the small sublabel under the variant name in the traffic-
 // allocation dial. Adding a new arm requires extending the switch;
-// TypeScript will flag a missing case because the input is typed as
-// CTAVariant (the union derived from CTA_VARIANTS).
+// TypeScript will error on the exhaustive check if a case is missing.
 export function ctaVariantSubLabel(variant: CTAVariant): string {
   switch (variant) {
     case "legacy":
       return "Current CTA design";
     case "compare":
       return "Compare with nearby providers";
+    case "guide":
+      return "PDF guide download";
+    default: {
+      // Exhaustive check — TypeScript will error if a variant is missing above
+      const _exhaustive: never = variant;
+      throw new Error(`Unknown CTA variant: ${_exhaustive}`);
+    }
   }
 }

@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { getPricingConfig } from "@/lib/pricing-config";
+import { useAuth } from "@/components/auth/AuthProvider";
 import CompareOverlay from "@/components/providers/CompareOverlay";
 import type { CompareProvider } from "@/components/providers/CompareBottomSheet";
 
@@ -49,7 +50,17 @@ export default function CompareCard({
   ctaVariant,
   ctaPreviewMode = false,
 }: CompareCardProps) {
+  const { activeProfile, openAuth } = useAuth();
   const [overlayOpen, setOverlayOpen] = useState(false);
+
+  // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
+  const isNonFamilyProfile = activeProfile &&
+    (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
+  const accountTypeLabel = activeProfile?.type === "organization"
+    ? "provider"
+    : (activeProfile?.type === "caregiver" || activeProfile?.type === "student")
+    ? "caregiver"
+    : "current";
 
   // Build current provider object
   const currentProvider: CompareProvider = {
@@ -109,6 +120,38 @@ export default function CompareCard({
     setOverlayOpen(false);
     clickFiredRef.current = false;
   }, []);
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RENDER: Non-family profile guard (provider/caregiver/student logged in)
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (isNonFamilyProfile) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+        <div className="px-5 py-6 text-center">
+          <div className="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Family account required
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Care comparison requests can only be sent from a family account. Create one to compare providers.
+          </p>
+          <button
+            onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
+            className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+          >
+            Create Family Account
+          </button>
+          <p className="text-xs text-gray-400 mt-3">
+            Use a different email than your {accountTypeLabel} account.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

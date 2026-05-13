@@ -32,14 +32,12 @@ interface CompareBottomSheetProps {
   ctaPreviewMode?: boolean;
 }
 
-type FooterState = "initial" | "email_capture" | "submitting" | "success";
+type FooterState = "initial" | "email_capture" | "submitting" | "success" | "provider_email_block" | "family_required";
 
 /**
  * Mobile comparison bottom sheet with vertical stacked cards.
- * Visual flow:
- * 1. Initially shows only the current provider (collapsed state)
- * 2. User can tap "Compare with N nearby homes" to reveal similar providers
- * 3. All selection/save logic remains unchanged
+ * Pre-populates all 3 providers immediately for quick comparison.
+ * Users can remove providers they don't want before saving.
  */
 export default function CompareBottomSheet({
   isOpen,
@@ -50,20 +48,30 @@ export default function CompareBottomSheet({
   ctaPreviewMode = false,
 }: CompareBottomSheetProps) {
   const router = useRouter();
-  const { user, activeProfile } = useAuth();
+  const { user, activeProfile, openAuth } = useAuth();
   const isLoggedIn = !!user && !!activeProfile;
   const userEmail = user?.email || "";
+
+  // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
+  const isNonFamilyProfile = activeProfile &&
+    (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
+  const accountTypeLabel = activeProfile?.type === "organization"
+    ? "provider"
+    : (activeProfile?.type === "caregiver" || activeProfile?.type === "student")
+    ? "caregiver"
+    : "current";
 
   const [mounted, setMounted] = useState(false);
   const [footerState, setFooterState] = useState<FooterState>("initial");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const saveClickFiredRef = useRef(false);
 
-  // Stepped flow: initially show only current provider
-  const [showSimilar, setShowSimilar] = useState(false);
+  // Show all providers immediately (pre-populated comparison)
+  const [showSimilar, setShowSimilar] = useState(true);
 
   // All providers: current first, then similar
   // Memoized to prevent unnecessary callback recreations
@@ -130,11 +138,13 @@ export default function CompareBottomSheet({
     const keyHandler = (e: KeyboardEvent) => handleKeyDownRef.current(e);
 
     if (isOpen) {
-      setFooterState("initial");
+      // Show family required state if logged in as provider/caregiver/student
+      setFooterState(isNonFamilyProfile ? "family_required" : "initial");
       setSelectedProviderIds(new Set(allProviders.map((p) => p.id)));
-      setShowSimilar(false);
+      setShowSimilar(true);
       setEmail("");
       setError(null);
+      setBlockedEmail(null);
       saveClickFiredRef.current = false;
       document.body.style.overflow = "hidden";
       document.addEventListener("keydown", keyHandler);
@@ -143,7 +153,7 @@ export default function CompareBottomSheet({
       document.body.style.overflow = "";
       document.removeEventListener("keydown", keyHandler);
     };
-  }, [isOpen]); // Only re-run when isOpen changes, not when handleKeyDown changes
+  }, [isOpen, isNonFamilyProfile]); // Re-run when isOpen or profile type changes
 
   // Close sheet when viewport switches to desktop (above md breakpoint)
   // This prevents scroll lock from persisting when sheet is hidden via CSS
@@ -237,6 +247,13 @@ export default function CompareBottomSheet({
 
       const data = await response.json();
 
+      // Handle provider email block (shouldn't happen for logged-in users, but safety check)
+      if (!response.ok && data.code === "PROVIDER_EMAIL") {
+        setBlockedEmail(userEmail);
+        setFooterState("provider_email_block");
+        return;
+      }
+
       if (!response.ok) {
         setError(data.error || "Something went wrong. Please try again.");
         setFooterState("initial");
@@ -291,6 +308,13 @@ export default function CompareBottomSheet({
       });
 
       const data = await response.json();
+
+      // Handle provider email block
+      if (!response.ok && data.code === "PROVIDER_EMAIL") {
+        setBlockedEmail(email.trim());
+        setFooterState("provider_email_block");
+        return;
+      }
 
       if (!response.ok) {
         setError(data.error || "Something went wrong. Please try again.");
@@ -363,9 +387,7 @@ export default function CompareBottomSheet({
         {/* Header */}
         <div className="px-5 pb-4 shrink-0 border-b border-gray-100">
           <h2 className="text-[22px] font-bold text-gray-900 leading-tight pr-10">
-            {showSimilar
-              ? `${currentProvider.name} next to ${similarProviders.length} nearby home${similarProviders.length !== 1 ? "s" : ""}`
-              : `Save ${currentProvider.name}`}
+            Compare {allProviders.length} provider{allProviders.length !== 1 ? "s" : ""}
           </h2>
           <p className="text-[15px] text-gray-500 mt-1">
             {categoryLocationStr}
@@ -396,72 +418,47 @@ export default function CompareBottomSheet({
         <div className="px-5 py-3 border-t border-gray-200 bg-white shrink-0">
           {footerState === "initial" && (
             <>
-              {/* Collapsed state: Compare is primary, Save is secondary */}
-              {!showSimilar && hasSimilarProviders ? (
+              {/* Save button is primary - all providers shown immediately */}
+              {isLoggedIn ? (
                 <>
+                  {error && (
+                    <p className="text-sm text-red-600 mb-3">{error}</p>
+                  )}
                   <button
                     type="button"
-                    onClick={() => setShowSimilar(true)}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
+                    onClick={handleLoggedInSubmit}
+                    disabled={selectedCount === 0}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
                   >
-                    Compare with {similarProviders.length} more
+                    {selectedCount === 0
+                      ? "Select at least one"
+                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
                   </button>
-                  <p className="text-center text-[13px] text-gray-500 mt-2.5">
-                    or{" "}
-                    <button
-                      type="button"
-                      onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
-                      className="text-gray-700 font-medium hover:text-gray-900 underline underline-offset-2"
-                    >
-                      just save this one
-                    </button>
+                  <p className="text-center text-xs text-gray-500 mt-2">
+                    Saving as {userEmail}
                   </p>
                 </>
               ) : (
-                /* Expanded state OR no similar providers: Save is primary */
                 <>
-                  {isLoggedIn ? (
-                    <>
-                      {error && (
-                        <p className="text-sm text-red-600 mb-3">{error}</p>
-                      )}
-                      <button
-                        type="button"
-                        onClick={handleLoggedInSubmit}
-                        disabled={showSimilar && selectedCount === 0}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
-                      >
-                        {selectedCount === 0
-                          ? "Select at least one"
-                          : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                        </svg>
-                      </button>
-                      <p className="text-center text-xs text-gray-500 mt-2">
-                        {showSimilar ? "Save now, message when ready" : `Saving as ${userEmail}`}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleSaveClick}
-                        disabled={showSimilar && selectedCount === 0}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
-                      >
-                        {selectedCount === 0
-                          ? "Select at least one"
-                          : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                        </svg>
-                      </button>
-                      <p className="text-center text-xs text-gray-500 mt-2">
-                        Save now, message when ready
-                      </p>
-                    </>
-                  )}
+                  <button
+                    type="button"
+                    onClick={handleSaveClick}
+                    disabled={selectedCount === 0}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
+                  >
+                    {selectedCount === 0
+                      ? "Select at least one"
+                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                  </button>
+                  <p className="text-center text-xs text-gray-500 mt-2">
+                    Save now, message when ready
+                  </p>
                 </>
               )}
             </>
@@ -492,9 +489,9 @@ export default function CompareBottomSheet({
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <h3 className="text-lg font-bold text-gray-900">
-                  {showSimilar ? `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}` : "Save this provider"}
+                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
                 </h3>
-                <p className="text-sm text-gray-500">Add your email so you don&apos;t lose it.</p>
+                <p className="text-sm text-gray-500">We&apos;ll send you a summary to compare.</p>
               </div>
 
               <div className="flex flex-col gap-3">
@@ -527,7 +524,7 @@ export default function CompareBottomSheet({
                     </>
                   ) : (
                     <>
-                      {showSimilar ? `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}` : "Save this provider"}
+                      Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                       </svg>
@@ -547,6 +544,70 @@ export default function CompareBottomSheet({
               </div>
               <h3 className="text-lg font-bold text-gray-900">Saved.</h3>
               <p className="text-sm text-gray-500 mt-1">Taking you to your saved comparison...</p>
+            </div>
+          )}
+
+          {footerState === "family_required" && (
+            <div className="py-4 text-center">
+              <div className="w-12 h-12 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Family account required</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Care comparison requests can only be sent from a family account.
+              </p>
+              <button
+                onClick={() => {
+                  onClose();
+                  openAuth({ defaultMode: "sign-up", intent: "family" });
+                }}
+                className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+              >
+                Create Family Account
+              </button>
+              <p className="text-xs text-gray-400 mt-3">
+                Use a different email than your {accountTypeLabel} account.
+              </p>
+            </div>
+          )}
+
+          {footerState === "provider_email_block" && (
+            <div className="py-4 text-center">
+              <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Provider email detected</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                The email <span className="font-medium text-gray-800">{blockedEmail}</span> is linked to a provider account.
+              </p>
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setBlockedEmail(null);
+                    setFooterState("email_capture");
+                    setEmail("");
+                  }}
+                  className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+                >
+                  Use Different Email
+                </button>
+                <button
+                  onClick={() => {
+                    onClose();
+                    openAuth({ defaultMode: "sign-in" });
+                  }}
+                  className="w-full py-3 px-4 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-300 transition-colors"
+                >
+                  Sign In Instead
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-3">
+                Family accounts require a separate email from provider accounts.
+              </p>
             </div>
           )}
         </div>

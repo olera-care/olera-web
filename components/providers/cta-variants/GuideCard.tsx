@@ -177,17 +177,15 @@ export default function GuideCard({
     return (
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
         <div className="px-5 pt-5 pb-5">
-          {/* Signed-in: Show pricing first */}
-          {isLoggedIn && (
-            <div className="mb-4 pb-4 border-b border-gray-100">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-                Est. {unitLabel} · {locationStr}
-              </p>
-              <p className="text-xl font-semibold text-gray-900">
-                {priceRange || "Contact for pricing"}
-              </p>
-            </div>
-          )}
+          {/* Pricing header - always visible */}
+          <div className="mb-4 pb-4 border-b border-gray-100">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+              Est. {unitLabel} · {locationStr}
+            </p>
+            <p className="text-xl font-semibold text-gray-900">
+              {priceRange || "Contact for pricing"}
+            </p>
+          </div>
 
           {/* PDF Illustration + Content */}
           <div className="flex gap-4 mb-5">
@@ -214,7 +212,7 @@ export default function GuideCard({
 
             {/* Text content */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-1.5">
+              <div className="flex items-center gap-1.5 mb-1">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-primary-600">
                   Free · For Families
                 </span>
@@ -223,7 +221,7 @@ export default function GuideCard({
               <h3 className="text-xl font-bold text-gray-900 leading-snug">
                 Get our free checklist
               </h3>
-              <p className="text-[14px] text-gray-500 mt-1.5">
+              <p className="text-[14px] text-gray-500 mt-0.5">
                 Questions to ask and costs to expect.
               </p>
             </div>

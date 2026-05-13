@@ -189,11 +189,11 @@ export default function MobileStickyGuide({
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-600 leading-tight">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-primary-600 leading-tight">
                 Free Checklist
               </p>
               <p className="text-[13px] text-gray-500 mt-0.5 leading-tight">
-                Still deciding? We can help.
+                Questions to ask & costs
               </p>
             </div>
 
@@ -201,7 +201,7 @@ export default function MobileStickyGuide({
               onClick={handleGuideClick}
               className="flex-shrink-0 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-xl text-[14px] font-semibold transition-colors flex items-center gap-1.5"
             >
-              Get it free
+              Get Checklist
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>

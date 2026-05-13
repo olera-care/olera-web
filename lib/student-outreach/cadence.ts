@@ -211,8 +211,8 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
       ],
     },
     {
-      day: 2,
-      title: "Day 2 · call attempt",
+      day: 1,
+      title: "Day 1 · follow-up call",
       steps: [{ id: "phone", channel: "phone", required: true }],
     },
     {

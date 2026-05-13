@@ -326,40 +326,65 @@ export function defaultCallScriptsFor(type: CadenceKey): CallScript[] {
 }
 
 function defaultCallScriptForDay(type: CadenceKey, day: number): string {
-  // Provider cadence default scripts. Real talking-points an admin
-  // can use verbatim or adapt. Placeholders get substituted at
-  // PreFlight time ({organization_name}, {campus_name},
-  // {admin_first_name}) and per-task at planSequence time
-  // ({recipient_name}). Stakeholder paths use the generic fallback
-  // for now (admin edits in PreFlight if useful).
+  // Provider cadence default scripts. Two parts per script:
+  //   1. The opening line(s) admin reads when they connect or
+  //      reach voicemail. Verbatim wording in the user's voice.
+  //   2. A "Tips" footer with operational guardrails
+  //      (voicemail vs receptionist vs reach-the-right-person).
+  // Placeholders substitute at PreFlight ({campus_name},
+  // {organization_name}, {admin_first_name}) and per-task at queue
+  // time ({recipient_name}). Stakeholder paths fall through to the
+  // generic line at the bottom — admin can edit in PreFlight.
+  const tips = (lines: string[]): string =>
+    ["Tips:", ...lines.map((l) => `- ${l}`)].join("\n");
+
   if (type === "provider") {
     if (day === 0) {
       return [
-        `"Hi, this is {admin_first_name} calling on behalf of Dr. Logan DuBose at Olera. I'm trying to reach {recipient_name} about a pre-health student caregiver program connected to {campus_name}."`,
+        `"Hi, this is {admin_first_name} calling on behalf of Dr. Logan DuBose regarding Olera's {campus_name} Student Caregiver Program."`,
         ``,
-        `If voicemail: leave a brief message referencing today's email from Grazie. Mention Dr. Logan DuBose, MD MBA — Olera co-founder and Texas A&M College of Medicine alum. Ask for a call back or note that they can grab time on Dr. DuBose's calendar at calendly.com/caregivers979/home-care-agency-manager-interview.`,
+        `"We wanted to share information about a program that connects qualified pre-nursing and pre-medical students with home care agencies to help supplement caregiver workforce and staffing needs."`,
         ``,
-        `If receptionist won't transfer: ask for the name + email of the right person to reach about hiring caregivers. Note that down so we can add them as an Outreach Contact for follow-up.`,
+        tips([
+          "Leave a voicemail if unavailable. Reference today's email from Grazie and the {campus_name} Student Caregiver Program.",
+          "If a receptionist answers, ask for the hiring coordinator or whoever handles caregiver staffing.",
+          "Confirm the best email for sending program information.",
+          "Ask permission to resend the information packet if useful.",
+        ]),
       ].join("\n");
     }
-    if (day === 2) {
+    if (day === 1) {
       return [
-        `"Hi, {admin_first_name} from Olera again — following up on the email and call about Dr. Logan DuBose's pre-health caregiver pilot at {campus_name}. Hoping to catch {recipient_name} or whoever handles caregiver hiring at {organization_name}."`,
+        `"Hi, this is {admin_first_name} from the {campus_name} Student Caregiver Program, following up on the email and previous call regarding Dr. Logan DuBose's {campus_name} Student Caregiver Program."`,
         ``,
-        `If voicemail: mention we've emailed + called once already. Brief reminder of the program. Direct them to Dr. DuBose's Calendly for a 15-min call when convenient.`,
+        `"We sent over information on how the program connects qualified pre-nursing and pre-medical students from {campus_name} with home care agencies to help fill vacant shifts and staffing needs."`,
+        ``,
+        `"We were hoping to connect with whoever handles caregiver hiring at {organization_name} to see if they might be interested in learning more or speaking with Dr. DuBose about the program and how to get started."`,
+        ``,
+        tips([
+          "Ask for the hiring coordinator if the receptionist answers.",
+          "Confirm who handles caregiver staffing.",
+          "Offer to resend the information packet via email.",
+          "Leave a voicemail if unavailable — reference prior outreach and Dr. DuBose's calendar.",
+        ]),
       ].join("\n");
     }
     if (day === 5) {
       return [
-        `"Hi, {admin_first_name} from Olera. Final follow-up call for {recipient_name} or someone on the leadership team at {organization_name} about Dr. Logan DuBose's student caregiver program at {campus_name}."`,
+        `"Hi, this is {admin_first_name} from the {campus_name} Student Caregiver Program, following up once more regarding Dr. Logan DuBose's program at {organization_name}."`,
         ``,
-        `If you reach anyone: briefly recap — paid caregivers from {campus_name}, vetted by Dr. DuBose's pilot. Ask if they'd like 15 min with Dr. DuBose to talk through fit.`,
+        `"We are still hoping to connect with someone who handles caregiver hiring to share how the program works and whether it might be a fit."`,
         ``,
-        `If voicemail again: this is the last cadence call before switching to email-only. Leave Dr. DuBose's Calendly link as the easy path forward.`,
+        tips([
+          "Keep the tone light and non-pushy.",
+          "If there is a better person on the leadership or hiring team, ask for a redirect.",
+          "Confirm the best email if you reach a new contact.",
+          "Leave a voicemail if unavailable — offer Dr. DuBose's calendar as the easy next step.",
+        ]),
       ].join("\n");
     }
   }
-  return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} + Dr. Logan DuBose, and ask for a 15-min intro on Dr. DuBose's calendar.`;
+  return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} and offer to schedule a 15-minute call with Dr. DuBose.`;
 }
 
 /**

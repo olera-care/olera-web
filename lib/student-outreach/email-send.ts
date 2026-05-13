@@ -18,7 +18,13 @@
  */
 
 import { sendEmail } from "@/lib/email";
-import { firstNameOf, salutationFor, substituteVars } from "./templates";
+import {
+  CALENDLY_URL,
+  PROGRAM_URL,
+  firstNameOf,
+  salutationFor,
+  substituteVars,
+} from "./templates";
 import type { StakeholderType } from "./types";
 
 const FROM_ADDRESS = process.env.STUDENT_OUTREACH_FROM_ADDRESS
@@ -111,30 +117,107 @@ async function loadFlyerAttachment(): Promise<
   }
 }
 
+/**
+ * Body markdown → HTML.
+ *
+ * Two markers supported in template bodies:
+ *   **text**       → <strong>text</strong>
+ *   [label](url)   → <a href="url">label</a>
+ *
+ * Everything else: HTML-escape, then paragraphify on blank lines.
+ * Single newlines inside a paragraph become <br>. Keeps templates
+ * readable as plain text in PreFlight previews while rendering
+ * cleanly in email clients.
+ */
 function bodyToHtml(text: string): string {
-  const escaped = text
+  // 1) HTML-escape first so user copy can't inject tags.
+  let s = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
-  return escaped
+
+  // 2) [label](url) → <a href>. Run before **bold** so a link's
+  //    label can itself contain bold text without the brackets
+  //    getting consumed. URL is matched non-greedily.
+  s = s.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    (_m, label: string, href: string) =>
+      `<a href="${href}" style="color:#059669;font-weight:500;">${label}</a>`,
+  );
+
+  // 3) **text** → <strong>. Use a simple non-greedy match — covers
+  //    single-paragraph bold sentences (the canonical template
+  //    use case). Multi-paragraph bold is not supported.
+  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong>${inner}</strong>`);
+
+  // 4) Paragraphify.
+  return s
     .split(/\n{2,}/)
     .map((para) => `<p>${para.replace(/\n/g, "<br>")}</p>`)
     .join("\n");
 }
 
 /**
- * v9: HTML signature block appended after the body. Photo +
- * credentials for Dr. Logan DuBose; "from" identity for Grazie
- * already lives in the body's sign-off (text). Mirrors the
- * existing loganSignature() in lib/staffing-outreach/
- * resend-automation.ts so v9 outreach renders the same trust
- * scaffolding as the staffing pipeline.
+ * v9 final: HTML footer composer. Appended after the email body
+ * on every send. Composes five blocks top-to-bottom:
+ *
+ *   1. Divider line
+ *   2. "Reply STOP if you would like us to stop reaching out."
+ *   3. "Message Approved by Dr. Logan DuBose, MD/MBA"
+ *   4. Dr. Logan DuBose signature block (photo + credentials)
+ *   5. Grazie Belandres signature block (photo + title)
+ *
+ * Single source of truth — template bodies don't include any of
+ * these. Keeps email chrome consistent across every variant and
+ * decouples the sender identity from cadence copy edits.
+ */
+function composeFooterHtml(): string {
+  return [
+    `<div style="margin-top:24px;border-top:1px solid #e5e7eb;padding-top:16px;font-size:12px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">`,
+    `  <p style="margin:0 0 6px;">Reply STOP if you would like us to stop reaching out.</p>`,
+    `  <p style="margin:0 0 16px;font-weight:500;color:#374151;">Message Approved by Dr. Logan DuBose, MD/MBA</p>`,
+    `</div>`,
+    loganSignatureHtml(),
+    grazieSignatureHtml(),
+  ].join("\n");
+}
+
+/**
+ * v9 final: plain-text version of the footer for the text/* MIME
+ * alternative. Resend sends html + text together for accessibility
+ * and spam-score reasons; both must match conceptually.
+ */
+function composeFooterText(): string {
+  return [
+    ``,
+    `---`,
+    `Reply STOP if you would like us to stop reaching out.`,
+    ``,
+    `Message Approved by Dr. Logan DuBose, MD/MBA`,
+    ``,
+    `Dr. Logan DuBose, MD, MBA`,
+    `Texas A&M College of Medicine, Class of 2022`,
+    `Affiliate Faculty, Texas A&M School of Public Health`,
+    `Researcher, funded by NIH SBIR Program`,
+    `General Practitioner (GP), Licensed in VA`,
+    `Co-founder, www.olera.care`,
+    `Schedule a meeting: https://calendly.com/caregivers979/home-care-agency-manager-interview`,
+    ``,
+    `Grazie Belandres`,
+    `Research Assistant to Dr. Logan DuBose`,
+    `${PROGRAM_URL}`,
+    `grazie@olera.care`,
+  ].join("\n");
+}
+
+/**
+ * Dr. Logan DuBose signature block. Photo + credentials + Calendly
+ * CTA. Carries the trust scaffolding (NIH, Texas A&M, MD + MBA).
  */
 function loganSignatureHtml(): string {
   const photoUrl = "https://olera.care/images/for-providers/team/logan.jpg";
-  const calendarUrl = "https://calendly.com/caregivers979/home-care-agency-manager-interview";
   return `
-<table cellpadding="0" cellspacing="0" style="margin-top:24px;border-top:1px solid #e5e7eb;padding-top:20px;">
+<table cellpadding="0" cellspacing="0" style="margin-top:16px;">
   <tr>
     <td style="vertical-align:top;padding-right:16px;">
       <img src="${photoUrl}" alt="Dr. Logan DuBose" width="100" height="100" style="border-radius:8px;display:block;" />
@@ -147,8 +230,38 @@ function loganSignatureHtml(): string {
       <p style="margin:0 0 2px;">General Practitioner (GP), Licensed in VA</p>
       <p style="margin:0 0 8px;">Co-founder, <a href="https://www.olera.care" style="color:#059669;">www.olera.care</a></p>
       <p style="margin:0;">
-        <a href="${calendarUrl}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
+        <a href="${CALENDLY_URL}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
       </p>
+    </td>
+  </tr>
+</table>`;
+}
+
+/**
+ * Grazie Belandres signature block. Sender identity — photo +
+ * "Research Assistant to Dr. Logan DuBose" + program link + email.
+ * Distinct from Dr. DuBose's block above (Grazie is the operator;
+ * Dr. DuBose is the principal admin is being introduced to).
+ *
+ * Headshot URL follows the same /images/for-providers/team/ path
+ * as logan.jpg — upload the actual file at that path; the URL
+ * stays stable across env. If the file isn't on the CDN yet, the
+ * <img> tag still renders (broken-image fallback); recipient still
+ * sees the text block, no copy is lost.
+ */
+function grazieSignatureHtml(): string {
+  const photoUrl = "https://olera.care/images/for-providers/team/grazie.jpg";
+  return `
+<table cellpadding="0" cellspacing="0" style="margin-top:16px;">
+  <tr>
+    <td style="vertical-align:top;padding-right:16px;">
+      <img src="${photoUrl}" alt="Grazie Belandres" width="100" height="100" style="border-radius:8px;display:block;" />
+    </td>
+    <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
+      <p style="margin:0 0 4px;font-weight:600;color:#111827;">Grazie Belandres</p>
+      <p style="margin:0 0 2px;">Research Assistant to Dr. Logan DuBose</p>
+      <p style="margin:0 0 2px;"><a href="${PROGRAM_URL}" style="color:#059669;">${PROGRAM_URL.replace(/^https?:\/\//, "")}</a></p>
+      <p style="margin:0;"><a href="mailto:grazie@olera.care" style="color:#059669;">grazie@olera.care</a></p>
     </td>
   </tr>
 </table>`;
@@ -177,20 +290,20 @@ export async function sendOutreachEmail(
       r.last_name ?? null,
       r.title ?? null,
     );
-    const subject = substituteVars(input.subject, {
+    const vars = {
       first_name: firstName,
       salutation,
       ...staticVars,
-    });
-    const body = substituteVars(input.body, {
-      first_name: firstName,
-      salutation,
-      ...staticVars,
-    });
-    // v9: body body-to-HTML converted, then Dr. Logan signature
-    // appended so every outreach email lands with consistent
-    // trust scaffolding (photo + credentials + Calendly CTA).
-    const html = bodyToHtml(body) + loganSignatureHtml();
+      calendly_url: CALENDLY_URL,
+      program_url: PROGRAM_URL,
+    };
+    const subject = substituteVars(input.subject, vars);
+    const body = substituteVars(input.body, vars);
+    // Body markdown → HTML, then append the canonical footer
+    // (divider + STOP + Approved by + Logan signature + Grazie
+    // signature). Footer is composed once in composeFooterHtml;
+    // body never carries any signature copy.
+    const html = bodyToHtml(body) + composeFooterHtml();
 
     try {
       const send = await sendEmail({

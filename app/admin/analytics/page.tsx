@@ -2761,29 +2761,10 @@ function ResponseLeadsList({
                           )}
                         </div>
 
-                        {/* Completeness bar */}
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all ${
-                                lead.family_completeness.percentage >= 80
-                                  ? "bg-emerald-500"
-                                  : lead.family_completeness.percentage >= 50
-                                  ? "bg-amber-400"
-                                  : "bg-red-400"
-                              }`}
-                              style={{ width: `${lead.family_completeness.percentage}%` }}
-                            />
-                          </div>
-                          <span className="text-[10px] text-gray-400 tabular-nums w-8">
-                            {lead.family_completeness.percentage}%
-                          </span>
-                        </div>
-
-                        {/* Nudge button or add email */}
-                        <div className="flex items-center gap-2">
+                        {/* Completeness + action (inline) */}
+                        <div className="text-[11px] text-gray-500">
                           {familyEmailSuccess ? (
-                            <span className="text-[11px] text-emerald-600">Email added</span>
+                            <span className="text-emerald-600">Email added</span>
                           ) : isEditingFamilyEmail ? (
                             <form
                               onSubmit={(e) => {
@@ -2797,14 +2778,14 @@ function ResponseLeadsList({
                                 placeholder="email@example.com"
                                 value={emailInput}
                                 onChange={(e) => setEmailInput(e.target.value)}
-                                className="w-28 px-2 py-1 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-28 px-2 py-1 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400"
                                 disabled={savingEmail}
                                 autoFocus
                               />
                               <button
                                 type="submit"
                                 disabled={savingEmail || !emailInput.trim()}
-                                className="px-1.5 py-1 text-[11px] bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                                className="text-[11px] text-gray-600 hover:text-gray-900 disabled:opacity-50"
                               >
                                 {savingEmail ? "..." : "Save"}
                               </button>
@@ -2821,65 +2802,66 @@ function ResponseLeadsList({
                               </button>
                             </form>
                           ) : !lead.family_email ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingEmail({ id: lead.connection_id, type: "family" });
-                                setEmailInput("");
-                                setEmailAddError(null);
-                              }}
-                              className="text-[11px] text-blue-600 hover:text-blue-700 hover:underline"
-                            >
-                              + Add email
-                            </button>
+                            <span>
+                              {lead.family_completeness.percentage}% ·{" "}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEmail({ id: lead.connection_id, type: "family" });
+                                  setEmailInput("");
+                                  setEmailAddError(null);
+                                }}
+                                className="text-gray-600 hover:text-gray-900 underline underline-offset-2"
+                              >
+                                Add email
+                              </button>
+                            </span>
                           ) : lead.family_completeness.percentage < 80 ? (
-                            <div className="flex items-center gap-2">
+                            <span>
+                              {lead.family_completeness.percentage}% ·{" "}
                               {familyNudgeSuccess ? (
-                                <span className="text-[11px] text-emerald-600">Sent</span>
+                                <span className="text-emerald-600">Sent</span>
                               ) : (
                                 <button
                                   type="button"
                                   onClick={() => handleNudgeFamily(lead.connection_id, lead.family_id)}
                                   disabled={nudgingFamily === lead.connection_id}
-                                  className="text-[11px] px-2 py-0.5 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50"
+                                  className="text-gray-600 hover:text-gray-900 underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
                                   title="Nudge family to complete profile"
                                 >
                                   {nudgingFamily === lead.connection_id ? "..." : "Nudge"}
                                 </button>
                               )}
                               {lead.family_nudged_at && (
-                                <span className="text-[10px] text-gray-400">
-                                  {formatLeadAge(
-                                    (Date.now() - new Date(lead.family_nudged_at).getTime()) / (1000 * 60 * 60)
-                                  )}
+                                <span className="text-gray-400 ml-1">
+                                  ({formatLeadAge((Date.now() - new Date(lead.family_nudged_at).getTime()) / (1000 * 60 * 60))})
                                 </span>
                               )}
-                            </div>
+                            </span>
                           ) : !lead.family_is_published ? (
-                            <div className="flex items-center gap-2">
+                            <span>
+                              {lead.family_completeness.percentage}% ·{" "}
                               {familyPublishNudgeSuccess ? (
-                                <span className="text-[11px] text-emerald-600">Sent</span>
+                                <span className="text-emerald-600">Sent</span>
                               ) : (
                                 <button
                                   type="button"
                                   onClick={() => handleNudgeFamilyPublish(lead.connection_id, lead.family_id)}
                                   disabled={nudgingFamilyPublish === lead.connection_id}
-                                  className="text-[11px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 disabled:opacity-50"
+                                  className="text-gray-600 hover:text-gray-900 underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
                                   title="Nudge family to publish profile"
                                 >
                                   {nudgingFamilyPublish === lead.connection_id ? "..." : "Publish"}
                                 </button>
                               )}
                               {lead.family_publish_nudged_at && (
-                                <span className="text-[10px] text-gray-400">
-                                  {formatLeadAge(
-                                    (Date.now() - new Date(lead.family_publish_nudged_at).getTime()) / (1000 * 60 * 60)
-                                  )}
+                                <span className="text-gray-400 ml-1">
+                                  ({formatLeadAge((Date.now() - new Date(lead.family_publish_nudged_at).getTime()) / (1000 * 60 * 60))})
                                 </span>
                               )}
-                            </div>
+                            </span>
                           ) : (
-                            <span className="text-[11px] text-emerald-600">Complete</span>
+                            <span className="text-emerald-600">Published ✓</span>
                           )}
                         </div>
                       </div>
@@ -2912,36 +2894,12 @@ function ResponseLeadsList({
                           )}
                         </div>
 
-                        {/* Completeness bar */}
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all ${
-                                lead.provider_completeness.percentage >= 80
-                                  ? "bg-emerald-500"
-                                  : lead.provider_completeness.percentage >= 50
-                                  ? "bg-amber-400"
-                                  : "bg-red-400"
-                              }`}
-                              style={{ width: `${lead.provider_completeness.percentage}%` }}
-                            />
-                          </div>
-                          <span className="text-[10px] text-gray-400 tabular-nums w-8">
-                            {lead.provider_completeness.percentage}%
-                          </span>
-                        </div>
-
-                        {/* Status / Nudge button / add email */}
-                        <div className="flex items-center gap-2">
+                        {/* Completeness + action (inline) */}
+                        <div className="text-[11px] text-gray-500">
                           {lead.responded ? (
-                            <span className="text-[11px] text-emerald-600 flex items-center gap-1">
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                              Replied
-                            </span>
+                            <span className="text-emerald-600">Replied ✓</span>
                           ) : providerEmailSuccess ? (
-                            <span className="text-[11px] text-emerald-600">Email added</span>
+                            <span className="text-emerald-600">Email added</span>
                           ) : isEditingProviderEmail ? (
                             <form
                               onSubmit={(e) => {
@@ -2955,14 +2913,14 @@ function ResponseLeadsList({
                                 placeholder="email@example.com"
                                 value={emailInput}
                                 onChange={(e) => setEmailInput(e.target.value)}
-                                className="w-28 px-2 py-1 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-28 px-2 py-1 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400"
                                 disabled={savingEmail}
                                 autoFocus
                               />
                               <button
                                 type="submit"
                                 disabled={savingEmail || !emailInput.trim()}
-                                className="px-1.5 py-1 text-[11px] bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                                className="text-[11px] text-gray-600 hover:text-gray-900 disabled:opacity-50"
                               >
                                 {savingEmail ? "..." : "Save"}
                               </button>
@@ -2979,40 +2937,42 @@ function ResponseLeadsList({
                               </button>
                             </form>
                           ) : !lead.provider_email ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingEmail({ id: lead.connection_id, type: "provider" });
-                                setEmailInput("");
-                                setEmailAddError(null);
-                              }}
-                              className="text-[11px] text-blue-600 hover:text-blue-700 hover:underline"
-                            >
-                              + Add email
-                            </button>
+                            <span>
+                              {lead.provider_completeness.percentage}% ·{" "}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEmail({ id: lead.connection_id, type: "provider" });
+                                  setEmailInput("");
+                                  setEmailAddError(null);
+                                }}
+                                className="text-gray-600 hover:text-gray-900 underline underline-offset-2"
+                              >
+                                Add email
+                              </button>
+                            </span>
                           ) : (
-                            <div className="flex items-center gap-2">
+                            <span>
+                              {lead.provider_completeness.percentage}% ·{" "}
                               {providerNudgeSuccess ? (
-                                <span className="text-[11px] text-emerald-600">Sent</span>
+                                <span className="text-emerald-600">Sent</span>
                               ) : (
                                 <button
                                   type="button"
                                   onClick={() => handleNudgeProvider(lead.connection_id)}
                                   disabled={nudgingProvider === lead.connection_id}
-                                  className="text-[11px] px-2 py-0.5 rounded bg-amber-50 text-amber-600 hover:bg-amber-100 disabled:opacity-50"
+                                  className="text-gray-600 hover:text-gray-900 underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
                                   title="Nudge provider to respond"
                                 >
                                   {nudgingProvider === lead.connection_id ? "..." : "Nudge"}
                                 </button>
                               )}
                               {lead.provider_nudged_at && (
-                                <span className="text-[10px] text-gray-400">
-                                  {formatLeadAge(
-                                    (Date.now() - new Date(lead.provider_nudged_at).getTime()) / (1000 * 60 * 60)
-                                  )}
+                                <span className="text-gray-400 ml-1">
+                                  ({formatLeadAge((Date.now() - new Date(lead.provider_nudged_at).getTime()) / (1000 * 60 * 60))})
                                 </span>
                               )}
-                            </div>
+                            </span>
                           )}
                         </div>
                       </div>

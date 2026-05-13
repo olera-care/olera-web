@@ -908,18 +908,18 @@ export default async function ProviderPage({
                   ) : null;
                 })()}
 
-                {/* Row 3: Two-column layout — Reviews | Pricing (centered) */}
-                <div className="flex items-center justify-center gap-6 mt-4">
+                {/* Row 3: Two-column layout — Reviews | Pricing (centered, subtle border) */}
+                <div className="flex items-center justify-center gap-6 mt-4 py-4 border border-gray-100 rounded-xl">
                   {/* Left column: Reviews */}
                   <div className="flex flex-col items-center text-center">
                     {hasRating && rating != null ? (
                       <>
                         <span className="text-xl font-bold text-gray-900">{rating.toFixed(1)}</span>
-                        <div className="flex items-center justify-center gap-0.5">
+                        <div className="flex items-center justify-center gap-0.5 mt-0.5">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <svg
                               key={star}
-                              className={`w-3 h-3 ${star <= Math.round(rating) ? "text-gray-900" : "text-gray-300"}`}
+                              className={`w-3 h-3 ${star <= Math.round(rating) ? "text-gray-500" : "text-gray-300"}`}
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -931,7 +931,7 @@ export default async function ProviderPage({
                     ) : (
                       <>
                         <span className="text-xl font-bold text-gray-900">No reviews</span>
-                        <span className="text-xs text-gray-500 font-medium">Be first</span>
+                        <span className="text-xs text-gray-500 font-medium mt-0.5">Be first</span>
                       </>
                     )}
                   </div>
@@ -971,7 +971,7 @@ export default async function ProviderPage({
                 </div>
 
                 {/* ── Mobile Claim Status Section ── */}
-                <div className="mt-6 pt-4 border-t border-gray-100 text-left">
+                <div className="mt-5 pt-5 pb-4 border-b border-gray-100 text-left">
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">

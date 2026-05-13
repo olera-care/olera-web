@@ -56,7 +56,7 @@ export default function MobilePricingTooltip({
       </span>
 
       {/* Bottom line: Subtitle with tooltip (centered with balanced spacer) */}
-      <div className="flex items-center justify-center gap-0.5">
+      <div className="flex items-center justify-center gap-0.5 mt-0.5">
         {/* Invisible spacer to balance the icon on the right */}
         <span className="w-5 h-5" aria-hidden="true" />
         <span className="text-xs text-gray-500 font-medium">{bottomText}</span>

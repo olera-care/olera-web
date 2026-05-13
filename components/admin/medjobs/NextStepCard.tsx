@@ -629,7 +629,7 @@ function InOutreachBody({
           source="email_reply"
           rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setShowLogReply(false)}
-          onSubmit={async (classification, payload) => {
+          onSubmit={async (classification, payload, _partner, redirect) => {
             try {
               if (classification === "became_client") {
                 // P3: provider reply → direct client conversion. Dispatches
@@ -637,6 +637,25 @@ function InOutreachBody({
                 // flag, transitions to active_partner, and unlocks Partner
                 // Prospects for catchment Sites.
                 await action("make_client", { notes: payload.notes });
+              } else if (classification === "redirected" && redirect) {
+                // P4: add the new contact + stop the original cadence
+                // via classify_reply(keep_emailing). Two dispatches so
+                // the timeline narrates both events honestly.
+                const derivedName =
+                  [redirect.first_name, redirect.last_name]
+                    .filter(Boolean)
+                    .join(" ")
+                    .trim() || redirect.email;
+                await action("add_contact", {
+                  name: derivedName,
+                  first_name: redirect.first_name || null,
+                  last_name: redirect.last_name || null,
+                  email: redirect.email || null,
+                });
+                await action("classify_reply", {
+                  classification: "keep_emailing",
+                  notes: payload.notes,
+                });
               } else {
                 await action("classify_reply", {
                   classification,

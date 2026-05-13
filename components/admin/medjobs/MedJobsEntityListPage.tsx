@@ -393,10 +393,27 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
           source={classifierRow.source}
           rowKind={classifierRow.row.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setClassifierRow(null)}
-          onSubmit={async (classification, payload, partner) => {
+          onSubmit={async (classification, payload, partner, redirect) => {
             if (classification === "became_client") {
               // P3: provider reply → direct client conversion.
               await callAction(classifierRow.row.id, "make_client", {
+                notes: payload.notes,
+              });
+            } else if (classification === "redirected" && redirect) {
+              // P4: add the new contact + stop the original cadence.
+              const derivedName =
+                [redirect.first_name, redirect.last_name]
+                  .filter(Boolean)
+                  .join(" ")
+                  .trim() || redirect.email;
+              await callAction(classifierRow.row.id, "add_contact", {
+                name: derivedName,
+                first_name: redirect.first_name || null,
+                last_name: redirect.last_name || null,
+                email: redirect.email || null,
+              });
+              await callAction(classifierRow.row.id, "classify_reply", {
+                classification: "keep_emailing",
                 notes: payload.notes,
               });
             } else {

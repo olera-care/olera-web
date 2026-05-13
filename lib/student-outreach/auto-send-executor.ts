@@ -175,7 +175,7 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
 
   const { data: campus } = await db
     .from("student_outreach_campuses")
-    .select("name")
+    .select("name, slug")
     .eq("id", row.campus_id)
     .single();
 
@@ -292,10 +292,12 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
   // the identity reflected back to the recipient is consistent.
   const adminFirstName = "Grazie";
 
+  const campusRow = campus as { name: string; slug: string } | null;
   const result = await sendOutreachEmail({
     outreach_id: row.id,
     stakeholder_type: row.stakeholder_type,
-    campus_name: (campus as { name: string } | null)?.name ?? "your campus",
+    campus_name: campusRow?.name ?? "your campus",
+    campus_slug: campusRow?.slug ?? null,
     organization_name: row.organization_name,
     admin_first_name: adminFirstName,
     subject,
@@ -376,7 +378,7 @@ async function queueNextSeasonal(db: DB, row: OutreachRow) {
 
   const { data: campus } = await db
     .from("student_outreach_campuses")
-    .select("name")
+    .select("name, slug")
     .eq("id", row.campus_id)
     .single();
 

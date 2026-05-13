@@ -25,6 +25,11 @@ import {
   salutationFor,
   substituteVars,
 } from "./templates";
+import { getProgramPdfConfig } from "@/lib/program-pdf/configs";
+import {
+  programPdfFilename,
+  renderProgramPdf,
+} from "@/lib/program-pdf/generate";
 import type { StakeholderType } from "./types";
 
 const FROM_ADDRESS = process.env.STUDENT_OUTREACH_FROM_ADDRESS
@@ -54,6 +59,11 @@ export interface SendOutreachEmailInput {
   /** Drives stakeholder-aware salutation resolution. */
   stakeholder_type: StakeholderType;
   campus_name: string;
+  /** v9 final: campus slug. Drives which Program PDF is attached
+   *  to the send (per-university config in lib/program-pdf). Null
+   *  for legacy callers or stakeholder rows with no registered
+   *  config — those fall back to the env-var-driven generic PDF. */
+  campus_slug?: string | null;
   organization_name: string;
   /** Logged on touchpoints + email_log; not used for Reply-To. */
   admin_first_name: string;
@@ -82,36 +92,89 @@ export interface SendOutreachEmailResult {
   attachment_present: boolean;
 }
 
-let cachedAttachment: { content: string; type: string } | null = null;
-let cachedAttachmentChecked = false;
+/**
+ * v9 final: attachment loader. Three sources, in priority order:
+ *   1. Per-university Program PDF generated on demand from
+ *      lib/program-pdf (when campus_slug matches a registered
+ *      config). Cached in-process per slug.
+ *   2. Env-var-driven generic flyer (STUDENT_OUTREACH_FLYER_URL),
+ *      used when the campus isn't configured yet or the caller
+ *      doesn't pass a slug.
+ *   3. No attachment (silent — send proceeds without a PDF). The
+ *      body copy that references "the attached information
+ *      packet" still goes; the recipient won't have the PDF, but
+ *      the send doesn't fail.
+ */
+const cachedProgramPdfBySlug = new Map<string, { content: string; filename: string }>();
+let cachedEnvAttachment: { content: string; type: string } | null = null;
+let cachedEnvAttachmentChecked = false;
 
-async function loadFlyerAttachment(): Promise<
+async function loadProgramPdfAttachment(
+  campusSlug: string | null | undefined,
+): Promise<
   Array<{ filename: string; content: string; encoding?: string; type?: string }> | undefined
 > {
-  if (!FLYER_URL) return undefined;
-  if (cachedAttachmentChecked && cachedAttachment) {
-    return [{
-      filename: FLYER_FILENAME,
-      content: cachedAttachment.content,
-      encoding: "base64",
-      type: cachedAttachment.type,
-    }];
+  // Path 1: per-university Program PDF.
+  if (campusSlug && getProgramPdfConfig(campusSlug)) {
+    const cached = cachedProgramPdfBySlug.get(campusSlug);
+    if (cached) {
+      return [
+        {
+          filename: cached.filename,
+          content: cached.content,
+          encoding: "base64",
+          type: "application/pdf",
+        },
+      ];
+    }
+    try {
+      const buf = await renderProgramPdf(campusSlug);
+      const content = buf.toString("base64");
+      const filename = programPdfFilename(campusSlug);
+      cachedProgramPdfBySlug.set(campusSlug, { content, filename });
+      return [
+        {
+          filename,
+          content,
+          encoding: "base64",
+          type: "application/pdf",
+        },
+      ];
+    } catch (err) {
+      console.error("[email-send] program PDF render failed:", err);
+      // fall through to env-var path
+    }
   }
-  cachedAttachmentChecked = true;
+
+  // Path 2: env-var generic flyer (legacy fallback).
+  if (!FLYER_URL) return undefined;
+  if (cachedEnvAttachmentChecked && cachedEnvAttachment) {
+    return [
+      {
+        filename: FLYER_FILENAME,
+        content: cachedEnvAttachment.content,
+        encoding: "base64",
+        type: cachedEnvAttachment.type,
+      },
+    ];
+  }
+  cachedEnvAttachmentChecked = true;
   try {
     const res = await fetch(FLYER_URL);
     if (!res.ok) return undefined;
     const buf = await res.arrayBuffer();
-    cachedAttachment = {
+    cachedEnvAttachment = {
       content: Buffer.from(buf).toString("base64"),
       type: res.headers.get("content-type") ?? "application/pdf",
     };
-    return [{
-      filename: FLYER_FILENAME,
-      content: cachedAttachment.content,
-      encoding: "base64",
-      type: cachedAttachment.type,
-    }];
+    return [
+      {
+        filename: FLYER_FILENAME,
+        content: cachedEnvAttachment.content,
+        encoding: "base64",
+        type: cachedEnvAttachment.type,
+      },
+    ];
   } catch {
     return undefined;
   }
@@ -285,7 +348,7 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 export async function sendOutreachEmail(
   input: SendOutreachEmailInput,
 ): Promise<SendOutreachEmailResult> {
-  const attachments = await loadFlyerAttachment();
+  const attachments = await loadProgramPdfAttachment(input.campus_slug ?? null);
 
   const staticVars = {
     organization_name: input.organization_name,

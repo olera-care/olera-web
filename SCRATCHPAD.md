@@ -7,6 +7,30 @@
 
 ## Current Focus
 
+### 2026-05-13 (Wed, late morning) — Request B: per-provider Comms Timeline on /admin/directory/[providerId] (built, awaiting browser test)
+
+PR #799 (Request A) merged to staging at 13:23 UTC. Worktree spun up off staging tip (`11ad30c5`), branch `feature/provider-comms-timeline`. Request B replaces the existing single-purpose `<EmailTimeline>` mount on the provider directory page with a unified `<ProviderCommsTimeline>` that interleaves emails AND meaningful on-Olera activity events chronologically — the CRM contact-card view that answers "what is THIS provider experiencing?" rather than "is this campaign performing?"
+
+**Implementation:**
+- `lib/provider-id-variants.ts` (new): the ID resolver. URL `[providerId]` is always the `olera-providers.provider_id` slug, but `email_log.provider_id` and `provider_activity.provider_id` are TEXT columns whose callers sometimes write the slug and sometimes the `business_profiles.id` UUID. The resolver does one lookup against `business_profiles.source_provider_id` and returns the union of variants for subsequent `.in("provider_id", variants)` queries. Built this FIRST because A exposed that the existing `/api/admin/emails` route silently misses rows under either variant — confirmed by grep of `app/api/admin/emails/route.ts:72` which uses `.eq("provider_id", X)` single-match. Leaving that legacy route alone (out of scope) and using the new pattern in the new endpoint.
+- `app/api/admin/directory/[providerId]/comms-timeline/route.ts` (new): parallel queries against email_log + provider_activity using the resolver, merged + sorted desc by timestamp, sliced to a configurable limit (default 50, max 200). Activity event allowlist of 11 meaningful events (`one_click_access`, `question_responded`, `provider_profile_edited`, `provider_picker_clicked`, `analytics_teaser_cta_clicked`, `claim_completed`, `dashboard_arrival`, `contact_revealed`, `reviews_cta_clicked`, `lead_opened`, `review_viewed`) — explicitly excludes `page_view` and tracking events that would drown the signal. Conservative `summarizeActivity()` mapper turns event_type + metadata into a one-line label (e.g. `one_click_access` + `metadata.action="question"` → "Signed in via Q&A email (one-click)").
+- `components/admin/ProviderCommsTimeline.tsx` (new): client component, single fetch, table layout with two row types — emails show 📧 icon + email_type + subject + EmailStatusPill + preview-expand button; activity rows show ⚡ icon + event_type + summary, colspan=3 for the wider content. Reuses the shared `<EmailStatusPill>` for status. Preview expansion reuses the existing `/api/admin/emails` POST handler.
+- `app/admin/directory/[providerId]/page.tsx` (modified): swapped `EmailTimeline` import + mount for `ProviderCommsTimeline`. Section title changed from "Automated emails" to "Comms timeline". `EmailTimeline` component is preserved — still used on `/admin/care-seekers/[seekerId]` filtered by recipient email.
+
+**Validation:** `tsc --noEmit` 0 errors. `eslint` clean on the 3 new files. Not yet browser-tested.
+
+**Why TJ chose to keep going after I recommended pausing:** the real risks of doing B in the same session were (1) data correctness on the ID-variant resolution and (2) stacked rollback complexity if A needs a hotfix tomorrow. The first I addressed by building the resolver as commit #1 of the work; the second is acceptable because A and B touch different surfaces (analytics page vs directory page), so a surgical revert is doable either direction. The soft "context budget / fresh attention" framing didn't survive scrutiny.
+
+**Files touched:**
+- NEW `lib/provider-id-variants.ts`
+- NEW `app/api/admin/directory/[providerId]/comms-timeline/route.ts`
+- NEW `components/admin/ProviderCommsTimeline.tsx`
+- M `app/admin/directory/[providerId]/page.tsx` (4-line swap)
+
+**Resume next session here →** (1) Browser-test on Vercel preview from `feature/provider-comms-timeline`: open `/admin/directory/<a-claimed-provider-slug>`, confirm the Comms timeline section renders, emails interleave with activity events in correct time order, preview-expand works, ID variants line at the bottom shows "1 ID variants" (or "2 ID variants" for claimed providers with a business profile). (2) Open PR `feature/provider-comms-timeline → staging`. (3) After both A and B bake on staging for a day, promote `staging → main`. (4) Two follow-ups worth tracking, neither blocking: the legacy `/api/admin/emails` `.eq("provider_id")` filter has the same single-variant bug — should switch it to use the new resolver for consistency (small, ~10 lines); polish pass on activity-event labels once we see real data shape in staging.
+
+---
+
 ### 2026-05-13 (Wed) — Provider comms visibility: generalize the Q&A funnel + add per-provider drill-down (design locked, about to implement)
 
 TJ on `jolly-wright`: the Automation Console + analytics page each tell half the story. Automations is campaign-centric — Sent / Delivered / Opened / Clicked / Bounced **per cron**, stops at the click. The analytics page's `Provider Q&A Email Funnel` is the *only* surface that crosses from email-domain into provider-action-domain — but it's hardcoded to `email_type = "question_received"`. Every other provider email (digest, verification reminders, claim, nudges) has no equivalent. TJ's words: *"I need to know what providers do after they land, not just if they click."* Diagnosed it as **the classic campaign-vs-audience reconciliation problem.**

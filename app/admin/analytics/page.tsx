@@ -2081,6 +2081,7 @@ type ResponseLeadFilter = "all" | "awaiting" | "responded";
 interface ResponseLead {
   connection_id: string;
   family_name: string;
+  family_email: string | null;
   provider_name: string;
   provider_slug: string;
   message_preview: string;
@@ -2326,7 +2327,14 @@ function ResponseLeadsList({
                   key={lead.connection_id}
                   className="group border-b border-gray-100 last:border-0 hover:bg-gray-50/40"
                 >
-                  <td className="px-4 py-2.5 text-gray-900">{lead.family_name}</td>
+                  <td className="px-4 py-2.5">
+                    <div className="text-gray-900">{lead.family_name}</div>
+                    {lead.family_email && (
+                      <div className="text-[11px] text-gray-400 truncate max-w-[180px]" title={lead.family_email}>
+                        {lead.family_email}
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-2.5">
                     {lead.provider_slug ? (
                       <Link
@@ -2426,7 +2434,12 @@ function ResponseLeadsList({
             <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
               <div className="flex gap-2">
                 <dt className="w-20 shrink-0 text-gray-400">Family</dt>
-                <dd className="text-gray-900">{pendingDelete.family_name}</dd>
+                <dd className="text-gray-900">
+                  {pendingDelete.family_name}
+                  {pendingDelete.family_email && (
+                    <span className="block text-xs text-gray-500">{pendingDelete.family_email}</span>
+                  )}
+                </dd>
               </div>
               <div className="flex gap-2">
                 <dt className="w-20 shrink-0 text-gray-400">Provider</dt>

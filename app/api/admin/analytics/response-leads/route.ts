@@ -20,6 +20,7 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
 interface ResponseLead {
   connection_id: string;
   family_name: string;
+  family_email: string | null;
   provider_name: string;
   provider_slug: string;
   message_preview: string;
@@ -72,7 +73,7 @@ export async function GET(req: NextRequest) {
       message,
       metadata,
       created_at,
-      from_profile:business_profiles!connections_from_profile_id_fkey(display_name),
+      from_profile:business_profiles!connections_from_profile_id_fkey(display_name, email),
       to_profile:business_profiles!connections_to_profile_id_fkey(display_name, slug, source_provider_id, email)
     `,
       { count: "exact" }
@@ -164,6 +165,7 @@ export async function GET(req: NextRequest) {
     allLeads.push({
       connection_id: conn.id,
       family_name: conn.from_profile?.display_name || "Care Seeker",
+      family_email: conn.from_profile?.email || null,
       provider_name: conn.to_profile?.display_name || "Unknown",
       provider_slug: conn.to_profile?.slug || conn.to_profile?.source_provider_id || "",
       message_preview: messagePreview,

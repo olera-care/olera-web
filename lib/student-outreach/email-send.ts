@@ -263,7 +263,7 @@ function loganSignatureHtml(): string {
  * sees the text block, no copy is lost.
  */
 function grazieSignatureHtml(): string {
-  const photoUrl = "https://olera.care/images/for-providers/team/grazie.jpg";
+  const photoUrl = "https://olera.care/images/for-providers/team/grazie.png";
   return `
 <table cellpadding="0" cellspacing="0" style="margin-top:16px;">
   <tr>

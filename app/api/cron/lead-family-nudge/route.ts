@@ -242,7 +242,7 @@ export async function GET(request: NextRequest) {
         const familyConnections = connections.filter((c) => c.from_profile_id === familyId);
         for (const fc of familyConnections) {
           const fcMeta = (fc.metadata as Record<string, unknown>) ?? {};
-          await db
+          const { error: updateError } = await db
             .from("connections")
             .update({
               metadata: {
@@ -253,6 +253,13 @@ export async function GET(request: NextRequest) {
               },
             })
             .eq("id", fc.id);
+
+          if (updateError) {
+            console.error(
+              `[cron/lead-family-nudge] Failed to update metadata for ${fc.id}:`,
+              updateError
+            );
+          }
         }
 
         counts.byType.publish_profile++;
@@ -312,7 +319,7 @@ export async function GET(request: NextRequest) {
         const familyConnections = connections.filter((c) => c.from_profile_id === familyId);
         for (const fc of familyConnections) {
           const fcMeta = (fc.metadata as Record<string, unknown>) ?? {};
-          await db
+          const { error: updateError } = await db
             .from("connections")
             .update({
               metadata: {
@@ -323,6 +330,13 @@ export async function GET(request: NextRequest) {
               },
             })
             .eq("id", fc.id);
+
+          if (updateError) {
+            console.error(
+              `[cron/lead-family-nudge] Failed to update metadata for ${fc.id}:`,
+              updateError
+            );
+          }
         }
 
         counts.byType.complete_profile++;

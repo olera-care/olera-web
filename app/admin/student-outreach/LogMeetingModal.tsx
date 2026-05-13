@@ -31,15 +31,18 @@ import {
 import type { DistributionEvidence } from "@/lib/student-outreach/types";
 
 // C3: not_a_fit is a UI-level choice key only — dispatches to the
-// existing mark_not_interested action on submit. No new backend
-// touchpoint, no new status, no new outcome enum. Mirrors the R5
-// pattern of exposing terminal actions inside the Log modal so admin
-// doesn't context-switch to DangerZone for the common post-meeting
-// decline.
+// existing mark_not_interested action on submit.
+// P3: done_client is a provider-only UI-level choice key — dispatches
+// to the existing make_client action, writing
+// business_profiles.metadata.interview_terms_accepted_at and unlocking
+// Partner Prospects for catchment Sites. Parallels done_partner for
+// stakeholders. No new backend touchpoint, no new status, no new
+// outcome enum.
 export type MeetingStatus =
   | "finding_time"
   | "booked"
   | "done_partner"
+  | "done_client"
   | "done_followup"
   | "not_a_fit";
 
@@ -92,6 +95,7 @@ export function LogMeetingModal({
   const [error, setError] = useState<string | null>(null);
 
   const isPartner = status === "done_partner";
+  const isClient = status === "done_client";
   const isNotAFit = status === "not_a_fit";
   const notesRequired = status === "done_followup";
   const notesPlaceholder =
@@ -105,11 +109,13 @@ export function LogMeetingModal({
 
   const submitLabel = isPartner
     ? "Mark as Partner"
-    : status === "done_followup"
-      ? "Send to Replies"
-      : isNotAFit
-        ? "Close as not a fit"
-        : "Save";
+    : isClient
+      ? "Mark as Client"
+      : status === "done_followup"
+        ? "Send to Replies"
+        : isNotAFit
+          ? "Close as not a fit"
+          : "Save";
 
   const titleText =
     initialStatus === "booked" ? "Update or complete meeting" : "Log meeting";
@@ -201,6 +207,14 @@ export function LogMeetingModal({
                 blurb="They committed to sharing with students. Capture the evidence below."
               />
             )}
+            {isProvider && (
+              <StatusCard
+                active={status === "done_client"}
+                onSelect={() => setStatus("done_client")}
+                label="Became a Client ✓"
+                blurb="They committed to the caregiver-hiring pilot. Marks the provider as a Client and unlocks Partner Prospects for catchment Sites."
+              />
+            )}
             <StatusCard
               active={status === "done_followup"}
               onSelect={() => setStatus("done_followup")}
@@ -213,11 +227,6 @@ export function LogMeetingModal({
               label="Not a fit"
               blurb="Meeting happened, but they're not the right partner. Closes the row as Not interested; cancels pending tasks."
             />
-            {isProvider && (
-              <p className="rounded-md bg-blue-50/60 px-3 py-2 text-[11px] text-blue-900">
-                To mark this provider as a Client, use the Log call outcome modal&apos;s &ldquo;Became a Client&rdquo; option — that path writes the conversion metadata that unlocks Partner Prospects.
-              </p>
-            )}
           </div>
 
           {status === "booked" && (

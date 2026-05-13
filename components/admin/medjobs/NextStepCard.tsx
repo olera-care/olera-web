@@ -633,14 +633,23 @@ function InOutreachBody({
         <ReplyClassifierModal
           organizationName={ctx.outreach.organization_name}
           source="email_reply"
+          rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setShowLogReply(false)}
           onSubmit={async (classification, payload) => {
             try {
-              await action("classify_reply", {
-                classification,
-                notes: payload.notes,
-                meeting_at: payload.meeting_at,
-              });
+              if (classification === "became_client") {
+                // P3: provider reply → direct client conversion. Dispatches
+                // the existing make_client action which writes the metadata
+                // flag, transitions to active_partner, and unlocks Partner
+                // Prospects for catchment Sites.
+                await action("make_client", { notes: payload.notes });
+              } else {
+                await action("classify_reply", {
+                  classification,
+                  notes: payload.notes,
+                  meeting_at: payload.meeting_at,
+                });
+              }
               setShowLogReply(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
@@ -842,6 +851,11 @@ function MeetingSetBody({
                 await action("mark_meeting_followup", { notes: payload.notes });
               } else if (mstatus === "done_partner" && partner) {
                 await action("mark_partner", { ...partner });
+              } else if (mstatus === "done_client") {
+                // P3: post-meeting provider conversion. Dispatches
+                // make_client which writes interview_terms_accepted_at
+                // on the business_profile and unlocks Partner Prospects.
+                await action("make_client", { notes: payload.notes });
               } else if (mstatus === "not_a_fit") {
                 // C3: post-meeting decline path. Reuses the existing
                 // mark_not_interested action so the row closes,

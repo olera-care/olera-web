@@ -757,13 +757,20 @@ export function MedJobsTabPage({
           rowKind={classifierRow.row.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setClassifierRow(null)}
           onSubmit={async (classification, payload, partner) => {
-            await callAction(classifierRow.row.id, "classify_reply", {
-              classification,
-              notes: payload.notes,
-              meeting_at: payload.meeting_at,
-            });
-            if (partner) {
-              await callAction(classifierRow.row.id, "mark_partner", { ...partner });
+            if (classification === "became_client") {
+              // P3: provider reply → direct client conversion.
+              await callAction(classifierRow.row.id, "make_client", {
+                notes: payload.notes,
+              });
+            } else {
+              await callAction(classifierRow.row.id, "classify_reply", {
+                classification,
+                notes: payload.notes,
+                meeting_at: payload.meeting_at,
+              });
+              if (partner) {
+                await callAction(classifierRow.row.id, "mark_partner", { ...partner });
+              }
             }
             setClassifierRow(null);
           }}
@@ -817,6 +824,11 @@ export function MedJobsTabPage({
                 // mark_partner; no chained MarkPartnerModal. The meeting
                 // log itself is implicit in the partner conversion.
                 await callAction(logMeetingRow.id, "mark_partner", { ...partner });
+              } else if (status === "done_client") {
+                // P3: post-meeting provider conversion.
+                await callAction(logMeetingRow.id, "make_client", {
+                  notes: payload.notes,
+                });
               } else if (status === "not_a_fit") {
                 // C3: post-meeting decline path.
                 await callAction(logMeetingRow.id, "mark_not_interested", {

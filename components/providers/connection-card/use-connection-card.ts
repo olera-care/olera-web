@@ -319,6 +319,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
           providerSlug,
           intentData: intent,
           session_id: getOrCreateSessionId(),
+          cta_variant: ctaVariant || null,
         }),
       });
 
@@ -369,6 +370,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     intentData,
     refreshAccountData,
     onConnectionCreated,
+    ctaVariant,
   ]);
 
   // ── Handle deferred connection request after auth ──
@@ -459,6 +461,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
           guest: true,
           guestEmail: email,
           session_id: getOrCreateSessionId(),
+          cta_variant: ctaVariant || null,
         }),
       });
 
@@ -500,7 +503,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [providerId, providerName, providerSlug, intentData, router]);
+  }, [providerId, providerName, providerSlug, intentData, router, ctaVariant]);
 
   // ── Connect (submit from intent or returning) ──
   const connect = useCallback(() => {

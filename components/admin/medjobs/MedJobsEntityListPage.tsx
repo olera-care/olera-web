@@ -21,6 +21,8 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useToast } from "@/components/admin/Toast";
+import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
 import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
@@ -139,6 +141,7 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
   }, [refetch]);
   useMedJobsRefresh(refetch);
 
+  const toast = useToast();
   const callAction = useCallback(
     async (
       outreachId: string,
@@ -154,10 +157,19 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
         const { error: e } = await res.json().catch(() => ({ error: "Action failed" }));
         throw new Error(e || "Action failed");
       }
+      // E1: surface a progression toast for meaningful Log actions.
+      const outcome =
+        typeof payload.outcome === "string"
+          ? payload.outcome
+          : typeof payload.classification === "string"
+            ? (payload.classification as string)
+            : undefined;
+      const message = logActionSuccessMessage(action, outcome);
+      if (message) toast(message);
       await refetch();
       refreshMedJobs();
     },
-    [refetch],
+    [refetch, refreshMedJobs, toast],
   );
 
   const handleDrawerAction = useCallback(

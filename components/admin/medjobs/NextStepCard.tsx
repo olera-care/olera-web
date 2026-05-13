@@ -48,6 +48,7 @@ import {
 } from "@/lib/student-outreach/formatters";
 import type { CadenceKey } from "@/lib/student-outreach/cadence";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightReviewModal";
 import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
 import { LogMeetingModal } from "@/app/admin/student-outreach/LogMeetingModal";
@@ -55,6 +56,7 @@ import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcome
 import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { ContactFormBanner } from "@/components/admin/medjobs/SnapshotCard";
+import { useToast } from "@/components/admin/Toast";
 
 type ActionFn = (
   actionName: string,
@@ -79,12 +81,31 @@ export interface NextStepCardProps {
 
 export function NextStepCard({
   ctx,
-  action,
+  action: rawAction,
   setError,
   launchEnabled = false,
   launchDisabledReason,
   beforeLaunch,
 }: NextStepCardProps) {
+  // E1: wrap the action dispatcher so successful Log operations
+  // surface a toast naming the consequence ("Cadence stopped, row
+  // moved to Replies"). Actions not in the message map (e.g.
+  // update_research, update_outreach, update_general_contact) stay
+  // silent — those run on blur and would be noisy to toast.
+  const toast = useToast();
+  const action: ActionFn = async (actionName, payload) => {
+    const result = await rawAction(actionName, payload);
+    const outcome =
+      typeof payload?.outcome === "string"
+        ? payload.outcome
+        : typeof payload?.classification === "string"
+          ? (payload.classification as string)
+          : undefined;
+    const message = logActionSuccessMessage(actionName, outcome);
+    if (message) toast(message);
+    return result;
+  };
+
   // Derive stage from the same source-of-truth used by cards + tabs.
   // The drawer hydrates full touchpoints + pending tasks so we get
   // the most accurate stage (including bounce_fix once webhook

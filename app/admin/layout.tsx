@@ -3,6 +3,7 @@
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import { ToastProvider } from "@/components/admin/Toast";
 import type { ReactNode } from "react";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -48,13 +49,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex">
-      <AdminSidebar adminUser={adminUser} />
-      <div className="flex-1 min-w-0">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {children}
+    <ToastProvider>
+      <div className="min-h-[calc(100vh-4rem)] flex">
+        <AdminSidebar adminUser={adminUser} />
+        <div className="flex-1 min-w-0">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }

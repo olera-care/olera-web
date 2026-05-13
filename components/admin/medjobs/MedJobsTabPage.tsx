@@ -20,6 +20,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useToast } from "@/components/admin/Toast";
+import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
 import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
@@ -239,6 +241,7 @@ export function MedJobsTabPage({
     [],
   );
 
+  const toast = useToast();
   const callAction = useCallback(
     async (outreachId: string, action: string, payload: Record<string, unknown> = {}) => {
       const res = await fetch(`/api/admin/student-outreach/${outreachId}`, {
@@ -250,12 +253,21 @@ export function MedJobsTabPage({
         const { error: e } = await res.json().catch(() => ({ error: "Action failed" }));
         throw new Error(e || "Action failed");
       }
+      // E1: surface a progression toast for meaningful Log actions.
+      const outcome =
+        typeof payload.outcome === "string"
+          ? payload.outcome
+          : typeof payload.classification === "string"
+            ? (payload.classification as string)
+            : undefined;
+      const message = logActionSuccessMessage(action, outcome);
+      if (message) toast(message);
       await refetch();
       // v9.0 Phase 7 Commit K: fan-out so the sidebar fractions +
       // hero counts update live alongside this page's refetch.
       refreshMedJobs();
     },
-    [refetch],
+    [refetch, refreshMedJobs, toast],
   );
 
   const renderRow = useCallback(

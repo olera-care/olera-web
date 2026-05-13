@@ -90,10 +90,10 @@ export const TEXAS_AM: ProgramPdfConfig = {
     },
   ],
   steps: [
-    "Sign in to the program portal.",
-    "Acknowledge participation terms.",
-    "Receive screened student referrals.",
-    "Interview, hire, and onboard.",
+    "Create your account on the program portal.",
+    "Review and acknowledge participation terms.",
+    "Receive screened pre-health student referrals.",
+    "Interview, hire, and onboard the students.",
   ],
   vetting: [
     "Screened pre-nursing and pre-medical applicants.",

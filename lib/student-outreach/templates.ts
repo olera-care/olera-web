@@ -97,27 +97,42 @@ const PLACEHOLDER = {
  * one outbound link — the Calendly CTA. Recipients don't get
  * link-overloaded; the signature carries the rest.
  */
-const SCHEDULE_LINK_FULL = `[schedule a quick informational call with Dr. Logan DuBose](${PLACEHOLDER.calendlyUrl})`;
-const SCHEDULE_LINK_LONG = `[schedule a quick call with Dr. Logan DuBose](${PLACEHOLDER.calendlyUrl})`;
+const SCHEDULE_LINK_FULL = `[schedule a quick informational call with Dr. Logan DuBose directly](${PLACEHOLDER.calendlyUrl})`;
 const SCHEDULE_LINK_SHORT = `[share more on a quick call](${PLACEHOLDER.calendlyUrl})`;
 
 /**
  * Grazie self-introduction line used at the top of every body. The
- * email always opens with greeting → Grazie self-intro → grounding
- * ("I came across..."), then moves into invitation + program. This
- * is the single most important change for tone: recipients see who
- * they're hearing from before they see what we want.
+ * email always opens with greeting → Grazie self-intro (which now
+ * carries Dr. DuBose's headline credentials inline) → grounding /
+ * invitation → program explanation → CTA. Folding the credentials
+ * into the intro removes a separate "The program is directed by..."
+ * sentence later in the body — one introduction, not two.
  */
-const GRAZIE_INTRO = `My name is Grazie Belandres, and I'm a research assistant working with Dr. Logan DuBose.`;
+const GRAZIE_INTRO = `My name is Grazie Belandres, and I'm a research assistant working with Dr. Logan DuBose, MD, MBA, an NIH-funded researcher and Texas A&M College of Medicine alum.`;
 
 /**
- * Dr. DuBose credibility line, used once per body after the bold
- * program explanation. Kept short on purpose; the full credential
- * stack lives in his email signature block, so the body only needs
- * the one anchor that lets the program explanation feel
- * trustworthy.
+ * Reliability/accountability sentence used after the bold program
+ * explanation. Ties students' on-the-job follow-through to a real
+ * incentive mechanism (their applications to professional school
+ * depend on doing the work well), which is what home-care
+ * operators actually respond to. Previous wording ("they show up
+ * for the long, accountable hours that caregiver work requires")
+ * read corporate; this version explains the WHY.
  */
-const LOGAN_CREDIBILITY = `The program is directed by Dr. Logan DuBose, an NIH-funded researcher and Texas A&M College of Medicine alum.`;
+const ACCOUNTABILITY_LINE = `Because their applications to medical, PA, and nursing school depend on doing this work well, they bring the kind of reliability and follow-through most agencies are hoping for.`;
+
+/**
+ * Standard closing for intro emails: warm acceptance frame +
+ * lowered-friction CTA (reply OR call) + attached packet
+ * reference. Followups + finals borrow the second half (reply-or-
+ * call) but skip the "We hope you'll accept this invitation" lead
+ * since the recipient already saw the original ask.
+ */
+const INTRO_CTA_LINES = [
+  `We hope you'll accept this invitation. If you'd like more information before moving forward, you can reply directly to this email or ${SCHEDULE_LINK_FULL}.`,
+  ``,
+  `The attached information packet has the program details.`,
+];
 
 // ── Public API ──────────────────────────────────────────────────────────
 
@@ -144,10 +159,18 @@ export function providerSalutation(_contacts: Contact[] | undefined): string {
 }
 
 /**
- * Optional leadership-team reference line for the general variant.
- * Skips contacts tagged General Office / General Inbox + stale.
+ * Optional leadership-team invitation phrase for the general
+ * variant. Returns a fragment without trailing punctuation so it
+ * can be woven inline into the invitation sentence ("I'm hoping
+ * to reach Jim David, or another member of the leadership team,
+ * to invite {organization_name} to join Olera's..."). Skips
+ * contacts tagged General Office / General Inbox + stale rows.
+ *
+ * Returns null when no named leadership contacts are on the
+ * outreach row — callers fall back to a plain "I'd like to invite
+ * {organization_name}..." opening.
  */
-export function providerLeadershipIntroLine(
+function providerLeadershipInvitationPhrase(
   contacts: Contact[] | undefined,
 ): string | null {
   const named = (contacts ?? [])
@@ -162,13 +185,13 @@ export function providerLeadershipIntroLine(
 
   if (named.length === 0) return null;
   if (named.length === 1) {
-    return `I'm hoping to reach ${named[0]}, or another member of the leadership team.`;
+    return `I'm hoping to reach ${named[0]}, or another member of the leadership team`;
   }
   const list =
     named.length === 2
       ? `${named[0]} or ${named[1]}`
       : `${named.slice(0, -1).join(", ")}, or ${named[named.length - 1]}`;
-  return `I'm hoping to reach ${list}, or another member of the leadership team.`;
+  return `I'm hoping to reach ${list}, or another member of the leadership team`;
 }
 
 /**
@@ -235,10 +258,13 @@ export function salutationFor(
 
 /**
  * Stakeholder intros — same Grazie-first flow as provider intros,
- * but the program value-prop reframes for an academic audience
- * (student opportunity, not staffing relief). Salutation is formal
- * (Dear) for dept_head + professor; friendly (Hi) for student_org +
- * advisor.
+ * but the value-prop reframes for an academic audience (student
+ * opportunity, not staffing relief). Salutation is formal (Dear)
+ * for dept_head + professor; friendly (Hi) for student_org +
+ * advisor. Closing uses a softened version of the provider CTA
+ * ("We hope you'll consider..." instead of "accept this
+ * invitation") because stakeholders are being asked to share the
+ * program with students, not enroll their organization.
  */
 export function introEmail(ctx: TemplateContext): EmailDraft {
   const { stakeholder_type } = ctx;
@@ -247,7 +273,8 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
       ? `Dear ${PLACEHOLDER.salutation},`
       : `Hi ${PLACEHOLDER.salutation},`;
   const subject = `${PLACEHOLDER.campus} Student Caregiver Program`;
-  const programExplanation = `**The program matches ${PLACEHOLDER.campus} pre-nursing and pre-medical students with local home care agencies for paid caregiver roles that fit alongside coursework.** Students gain direct patient-care hours, mentorship, and recommendation letters that strengthen their applications to medical, PA, and nursing school.`;
+  const programExplanation = `**This program matches ${PLACEHOLDER.campus} pre-nursing and pre-medical students with local home care agencies for paid caregiver roles that fit alongside coursework.** Students gain direct patient-care hours, mentorship, and recommendation letters that strengthen their applications to medical, PA, and nursing school.`;
+  const packetLine = `The attached information packet has the program details.`;
 
   switch (stakeholder_type) {
     case "student_org":
@@ -260,13 +287,11 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `I came across ${PLACEHOLDER.orgName} while identifying pre-health student groups at ${PLACEHOLDER.campus} that might be interested in the ${PLACEHOLDER.campus} Student Caregiver Program.`,
           ``,
-          `We'd love to share the program with your members. It's a way for pre-health students to pick up paid clinical hours close to campus while supporting their applications to professional school.`,
-          ``,
           programExplanation,
           ``,
-          LOGAN_CREDIBILITY,
+          `We hope you'll consider sharing the program with your members. If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
           ``,
-          `You can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}. The attached information packet has the program details.`,
+          packetLine,
         ].join("\n"),
       };
     case "advisor":
@@ -279,13 +304,11 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `I came across your office while identifying pre-health advisors at ${PLACEHOLDER.campus} who might find the ${PLACEHOLDER.campus} Student Caregiver Program useful for their advisees.`,
           ``,
-          `We'd love to share the program with your office so it can be passed along to advisees preparing for professional school.`,
-          ``,
           programExplanation,
           ``,
-          LOGAN_CREDIBILITY,
+          `We hope you'll consider passing this along to your advisees. If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
           ``,
-          `You can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}. The attached information packet has the program details.`,
+          packetLine,
         ].join("\n"),
       };
     case "dept_head":
@@ -298,13 +321,11 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `I came across your department while identifying pre-health programs at ${PLACEHOLDER.campus} whose students might benefit from the ${PLACEHOLDER.campus} Student Caregiver Program.`,
           ``,
-          `With your approval, we'd love to share the program with your department so it can reach students preparing for medical, PA, and nursing school.`,
-          ``,
           programExplanation,
           ``,
-          LOGAN_CREDIBILITY,
+          `With your approval, we'd love to share this with your department. If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT} at your convenience.`,
           ``,
-          `Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT} at your convenience. The attached information packet has the program details.`,
+          packetLine,
         ].join("\n"),
       };
     case "professor":
@@ -317,13 +338,11 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `I came across your courses while identifying pre-health faculty at ${PLACEHOLDER.campus} whose students might be interested in the ${PLACEHOLDER.campus} Student Caregiver Program.`,
           ``,
-          `If you'd be open to forwarding the program to interested students, we'd really appreciate it.`,
-          ``,
           programExplanation,
           ``,
-          LOGAN_CREDIBILITY,
+          `If you'd be open to forwarding this to interested students, we'd be grateful. For more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
           ``,
-          `Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT} if any questions come up. The attached information packet has the program details.`,
+          packetLine,
         ].join("\n"),
       };
   }
@@ -339,7 +358,9 @@ export function followupLightEmail(_ctx: TemplateContext): EmailDraft {
       ``,
       `Just following up on my note from earlier this week, in case it got buried.`,
       ``,
-      `If the ${PLACEHOLDER.campus} Student Caregiver Program could be useful for your students or advisees, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}. The attached information packet covers how it works.`,
+      `If the ${PLACEHOLDER.campus} Student Caregiver Program could be useful for your students or advisees and you'd like more information, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
+      ``,
+      `The attached information packet covers how it works.`,
     ].join("\n"),
   };
 }
@@ -350,9 +371,9 @@ export function followupSocialProofEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Following up on the ${PLACEHOLDER.campus} Student Caregiver Program. Pre-health students at peer campuses are picking up paid caregiver hours alongside coursework, which is giving them clinical experience and recommendation letters that strengthen applications to professional school.`,
+      `Following up on the ${PLACEHOLDER.campus} Student Caregiver Program. Pre-health students at peer campuses are picking up paid caregiver hours alongside coursework, which is giving them clinical experience and recommendation letters that strengthen their applications to professional school.`,
       ``,
-      `If you'd like the program materials to share with your students or advisees, just reply and I'll send them over. Dr. DuBose is also happy to ${SCHEDULE_LINK_SHORT}.`,
+      `If you'd like the program materials to share with your students or advisees, just reply and I'll send them over. Dr. DuBose is also happy to ${SCHEDULE_LINK_SHORT} if more information would help.`,
     ].join("\n"),
   };
 }
@@ -363,7 +384,7 @@ export function followupFinalEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Wanted to circle back one last time on the ${PLACEHOLDER.campus} Student Caregiver Program. If there's interest from your team, you can reply directly to this email or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
+      `Wanted to circle back one last time on the ${PLACEHOLDER.campus} Student Caregiver Program. If there's interest from your team and you'd like more information, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
       ``,
       `If now isn't the right time, no worries; we'll check back next term. If there's a better person at ${PLACEHOLDER.orgName} to coordinate with, we'd appreciate a redirect.`,
       ``,
@@ -415,24 +436,33 @@ export const followupEmail = followupLightEmail;
 // {campus_name} is the university whose students would be placed.
 
 /**
- * Provider intro day-0. Flow (per v9 final tone pass):
+ * Provider intro day-0. Flow (per v9.2 final tone pass):
  *
  *   1. Greeting (Hi {first_name}, OR Hello,)
- *   2. Grazie self-intro — recipients see who we are first
- *   3. Grounding ("I came across ... through your website ...")
- *   4. Leadership ask (general variant only, when contacts present)
- *   5. Invitation — surfaced early so the ask is not buried
- *   6. Bold program explanation + concrete student profile
- *   7. Dr. DuBose credibility (after the program explanation; the
- *      detailed credential stack lives in his signature)
- *   8. Simple CTA — reply OR call; packet referenced; no inline
- *      program-page link (it lives in the signature instead)
+ *   2. Grazie self-intro w/ Dr. DuBose credentials inline — one
+ *      introduction, not two; recipients see who we are AND who
+ *      we work for in a single sentence
+ *   3. Grounding + leadership ask + invitation, collapsed into one
+ *      paragraph so the ask isn't buried below scaffolding
+ *   4. Bold program explanation + concrete student profile
+ *   5. Reliability/accountability sentence that ties follow-through
+ *      to professional-school incentives (what operators care
+ *      about) — see ACCOUNTABILITY_LINE
+ *   6. CTA — "We hope you'll accept this invitation. If you'd like
+ *      more information before moving forward, you can reply
+ *      directly to this email or schedule a call." Packet
+ *      referenced on a separate line.
  *
- * Variant differences are minimal: greeting + grounding object
- * change ("I came across {organization_name}" for general,
- * "I came across your contact information on {organization_name}'s
- * website" for named — feels more personal when we have a real
- * inbox to reach).
+ * Variant differences live in the second paragraph:
+ *   named   → "I'd like to invite {organization_name} to join..."
+ *             (specific recipient, no leadership ask)
+ *   general → "I'm hoping to reach {names}, or another member of
+ *             the leadership team, to invite {organization_name}..."
+ *             (when we know the leadership names) OR just
+ *             "I'd like to invite..." when no names are on the row.
+ *
+ * Bold sentence rendered via the **...** markdown marker (see
+ * email-send.ts → bodyToHtml).
  */
 export function providerIntroEmail(
   ctx: TemplateContext,
@@ -442,12 +472,20 @@ export function providerIntroEmail(
   const subject = `${PLACEHOLDER.campus} Student Caregiver Program`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
-  const groundingLine =
-    variant === "named"
-      ? `I came across your contact information on ${PLACEHOLDER.orgName}'s website while identifying home care agencies near ${PLACEHOLDER.campus} for the ${PLACEHOLDER.campus} Student Caregiver Program.`
-      : `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus} for the ${PLACEHOLDER.campus} Student Caregiver Program.`;
-  const leadership =
-    variant === "general" ? providerLeadershipIntroLine(contacts) : null;
+  const leadershipPhrase =
+    variant === "general"
+      ? providerLeadershipInvitationPhrase(contacts)
+      : null;
+  // Grounding + leadership + invitation collapsed into one paragraph
+  // so the ask leads the body, not scaffolding. The leadership phrase
+  // ("I'm hoping to reach X, or another member of the leadership
+  // team,") is woven into the invitation when we have specific names
+  // to surface from the general inbox; otherwise we skip straight to
+  // "I'd like to invite...".
+  const groundingAndInvitation =
+    leadershipPhrase
+      ? `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus}. ${leadershipPhrase}, to invite ${PLACEHOLDER.orgName} to join Olera's ${PLACEHOLDER.campus} Student Caregiver Program and begin receiving student referrals to help support caregiver staffing needs and vacant shifts.`
+      : `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus}. I'd like to invite ${PLACEHOLDER.orgName} to join Olera's ${PLACEHOLDER.campus} Student Caregiver Program and begin receiving student referrals to help support caregiver staffing needs and vacant shifts.`;
   return {
     subject,
     body: [
@@ -455,16 +493,13 @@ export function providerIntroEmail(
       ``,
       GRAZIE_INTRO,
       ``,
-      groundingLine,
-      ...(leadership ? [``, leadership] : []),
+      groundingAndInvitation,
       ``,
-      `We'd like to invite ${PLACEHOLDER.orgName} to join Olera's ${PLACEHOLDER.campus} Student Caregiver Program and begin receiving student referrals to help support caregiver staffing needs and vacant shifts.`,
+      `**This program matches ${PLACEHOLDER.campus} college students with home care agencies to help fill caregiver roles, PRN shifts, and staffing needs with students interested in gaining meaningful healthcare experience.** These are pre-nursing and pre-medical students, future nurses and physicians, motivated more by mentorship, recommendation letters, and clinical experience than by compensation.`,
       ``,
-      `**This program matches ${PLACEHOLDER.campus} college students with home care agencies to help fill caregiver roles, PRN shifts, and staffing needs with students interested in gaining meaningful healthcare experience.** These are pre-nursing and pre-medical students, future nurses and physicians, motivated more by mentorship, recommendation letters, and clinical experience than by compensation. They show up for the long, accountable hours that caregiver work requires.`,
+      ACCOUNTABILITY_LINE,
       ``,
-      LOGAN_CREDIBILITY,
-      ``,
-      `You can reply directly to this email or ${SCHEDULE_LINK_FULL}. The attached information packet has the program details.`,
+      ...INTRO_CTA_LINES,
     ].join("\n"),
   };
 }
@@ -493,7 +528,7 @@ export function providerFollowupEmail(
       ``,
       `If ${PLACEHOLDER.orgName} could use reliable ${PLACEHOLDER.campus} pre-health students to help cover vacant caregiver shifts and PRN gaps, we'd love to share more about how the program works.`,
       ``,
-      `You can reply directly to this email or ${SCHEDULE_LINK_LONG}. Happy to answer questions over email if that's easier — the attached information packet covers the basics.`,
+      `If you'd like more information, you can reply directly to this email or ${SCHEDULE_LINK_FULL}. The attached information packet covers the basics.`,
     ].join("\n"),
   };
 }
@@ -524,7 +559,7 @@ export function providerFinalEmail(
       ``,
       `Wanted to circle back one more time on the ${PLACEHOLDER.campus} Student Caregiver Program.`,
       ``,
-      `If there's interest in receiving student referrals to help with caregiver staffing and vacant shifts at ${PLACEHOLDER.orgName}, you can reply directly to this email or ${SCHEDULE_LINK_LONG}.`,
+      `If there's interest in receiving student referrals to help with caregiver staffing and vacant shifts at ${PLACEHOLDER.orgName}, you can reply directly to this email or ${SCHEDULE_LINK_FULL}.`,
       ``,
       `If now isn't the right time, no worries; we'll check back next term. And if there's a better person at ${PLACEHOLDER.orgName} for us to reach about caregiver hiring, we'd appreciate a quick redirect.`,
       ``,

@@ -164,17 +164,22 @@ const styles = StyleSheet.create({
     borderWidth: 0.75,
     borderColor: GRAY_300,
     borderRadius: 3,
-    padding: 6,
+    padding: 7,
+    // Fixed minHeight so all four boxes match regardless of how
+    // each step text wraps. Sized for one step-number line + a
+    // two-line subtext line at the current font/lineHeight, with
+    // a touch of breathing room.
+    minHeight: 56,
   },
   stepNumber: {
     fontSize: 11,
     color: EMERALD_DARK,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   stepText: {
     fontSize: 8.5,
     color: GRAY_700,
-    lineHeight: 1.35,
+    lineHeight: 1.4,
   },
   // ── Vetting bullets
   vettingBlock: {
@@ -380,10 +385,10 @@ export function ProgramPdfTemplate({
                 <Image src={assets.loganPhotoDataUri} style={styles.sigPhoto} />
               ) : null}
               <View>
-                <Text style={styles.sigName}>Dr. Logan DuBose, MD/MBA</Text>
+                <Text style={styles.sigName}>Dr. Logan DuBose, MD, MBA</Text>
+                <Text style={styles.sigCred}>Texas A&M College of Medicine &apos;22</Text>
                 <Text style={styles.sigCred}>NIH-funded researcher</Text>
-                <Text style={styles.sigCred}>Texas A&M College of Medicine alum</Text>
-                <Text style={styles.sigCred}>Director, Student Caregiver Program</Text>
+                <Text style={styles.sigCred}>Director, Texas A&M Student Caregiver Program</Text>
               </View>
             </View>
             <View style={styles.sigBlock}>

@@ -10,6 +10,7 @@ import {
   bucketForEmailType,
   type ProviderEmailFunnelKey,
 } from "@/lib/analytics/provider-email-funnels";
+import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
 
 const PROVIDER_EVENT_TYPES = [
   "page_view",
@@ -190,13 +191,10 @@ type CTAFunnel = {
   engaged: number;
   converted: number;
 };
-// Per-variant breakdown. Supports legacy, compare, and future variants.
+// Per-variant breakdown. Dynamically supports all variants from CTA_VARIANTS.
 type CTAVariantRow = CTAFunnel;
-type CTAFunnelByVariant = {
-  legacy: CTAVariantRow;
-  compare: CTAVariantRow;
-  unassigned: CTAVariantRow;
-};
+type CTAVariantKey = CTAVariant | "unassigned";
+type CTAFunnelByVariant = Record<CTAVariantKey, CTAVariantRow>;
 // Page-view referrer breakdown — counts page_view events by traffic class
 // (ai_chat / search / social / olera_internal / direct / other). Lets us
 // watch the AI-chat slice grow as ChatGPT/Claude/Gemini/Perplexity start
@@ -215,11 +213,7 @@ interface ProviderResponseMetrics {
   awaiting_response_count: number;
 }
 
-interface ProviderResponseByVariant {
-  legacy: ProviderResponseMetrics;
-  compare: ProviderResponseMetrics;
-  unassigned: ProviderResponseMetrics;
-}
+type ProviderResponseByVariant = Record<CTAVariantKey, ProviderResponseMetrics>;
 
 // Submissions by entry source — accounts.signup_source bucketed for the
 // "did editorial-mounted SBF produce signups?" question. The existing
@@ -357,10 +351,9 @@ const EMPTY_CTA_FUNNEL = (): CTAFunnel => ({
   converted: 0,
 });
 const EMPTY_CTA_FUNNEL_BY_VARIANT = (): CTAFunnelByVariant => ({
-  legacy: EMPTY_CTA_FUNNEL(),
-  compare: EMPTY_CTA_FUNNEL(),
+  ...Object.fromEntries(CTA_VARIANTS.map(v => [v, EMPTY_CTA_FUNNEL()])),
   unassigned: EMPTY_CTA_FUNNEL(),
-});
+}) as CTAFunnelByVariant;
 const EMPTY_REFERRER_BREAKDOWN = (): ReferrerBreakdown => ({
   ai_chat: 0,
   search: 0,
@@ -386,10 +379,9 @@ const EMPTY_PROVIDER_RESPONSE = (): ProviderResponseMetrics => ({
 });
 
 const EMPTY_PROVIDER_RESPONSE_BY_VARIANT = (): ProviderResponseByVariant => ({
-  legacy: EMPTY_PROVIDER_RESPONSE(),
-  compare: EMPTY_PROVIDER_RESPONSE(),
+  ...Object.fromEntries(CTA_VARIANTS.map(v => [v, EMPTY_PROVIDER_RESPONSE()])),
   unassigned: EMPTY_PROVIDER_RESPONSE(),
-});
+}) as ProviderResponseByVariant;
 
 /**
  * Pull all relevant events for one date window and bucket them into the
@@ -1114,7 +1106,7 @@ async function fetchWindow(
 
   // CTA Variants A/B funnel rollup. Distinct sessions per stage.
   // impression → clicked → engaged (save_comparison_clicked) → converted (lead_received with cta_variant).
-  type CTABucket = "legacy" | "compare" | "unassigned";
+  // Dynamically supports all variants from CTA_VARIANTS.
   const emptyCtaStages = (): Record<keyof CTAFunnel, Set<string>> => ({
     impressions: new Set(),
     clicked: new Set(),
@@ -1122,12 +1114,13 @@ async function fetchWindow(
     converted: new Set(),
   });
   const ctaStageSets = emptyCtaStages();
-  const ctaByVariantSets: Record<CTABucket, Record<keyof CTAFunnel, Set<string>>> = {
-    legacy: emptyCtaStages(),
-    compare: emptyCtaStages(),
+  // Build variant sets dynamically from CTA_VARIANTS
+  const ctaByVariantSets: Record<CTAVariantKey, Record<keyof CTAFunnel, Set<string>>> = {
+    ...Object.fromEntries(CTA_VARIANTS.map(v => [v, emptyCtaStages()])),
     unassigned: emptyCtaStages(),
-  };
-  const CTA_VARIANT_BUCKETS = new Set<CTABucket>(["legacy", "compare"]);
+  } as Record<CTAVariantKey, Record<keyof CTAFunnel, Set<string>>>;
+  // Set of known variants for bucket assignment
+  const CTA_VARIANT_BUCKETS = new Set<string>(CTA_VARIANTS);
 
   for (const r of (ctaRes.data ?? []) as Array<{
     event_type: string;
@@ -1144,9 +1137,9 @@ async function fetchWindow(
       variant = r.metadata?.cta_variant as string | null;
     }
 
-    const bucket: CTABucket =
-      typeof variant === "string" && CTA_VARIANT_BUCKETS.has(variant as CTABucket)
-        ? (variant as CTABucket)
+    const bucket: CTAVariantKey =
+      typeof variant === "string" && CTA_VARIANT_BUCKETS.has(variant)
+        ? (variant as CTAVariant)
         : "unassigned";
 
     // Determine stage
@@ -1177,17 +1170,16 @@ async function fetchWindow(
     engaged: ctaStageSets.engaged.size,
     converted: ctaStageSets.converted.size,
   };
-  const ctaSizesFor = (b: CTABucket): CTAVariantRow => ({
+  const ctaSizesFor = (b: CTAVariantKey): CTAVariantRow => ({
     impressions: ctaByVariantSets[b].impressions.size,
     clicked: ctaByVariantSets[b].clicked.size,
     engaged: ctaByVariantSets[b].engaged.size,
     converted: ctaByVariantSets[b].converted.size,
   });
   const ctaFunnelByVariant: CTAFunnelByVariant = {
-    legacy: ctaSizesFor("legacy"),
-    compare: ctaSizesFor("compare"),
+    ...Object.fromEntries(CTA_VARIANTS.map(v => [v, ctaSizesFor(v)])),
     unassigned: ctaSizesFor("unassigned"),
-  };
+  } as CTAFunnelByVariant;
 
   // Provider response rates — calculate whether providers are replying to leads.
   // Thread messages in metadata.thread, provider responded = any message where
@@ -1198,14 +1190,15 @@ async function fetchWindow(
     created_at: string;
     is_auto_reply?: boolean;
   };
-  type ResponseVariantBucket = "legacy" | "compare" | "unassigned";
+  // Dynamically supports all variants from CTA_VARIANTS
   const responseTimes: number[] = [];
   let respondedLeads = 0;
-  const byVariant: Record<ResponseVariantBucket, { total: number; responded: number; times: number[] }> = {
-    legacy: { total: 0, responded: 0, times: [] },
-    compare: { total: 0, responded: 0, times: [] },
-    unassigned: { total: 0, responded: 0, times: [] },
-  };
+  type ResponseVariantData = { total: number; responded: number; times: number[] };
+  const emptyResponseData = (): ResponseVariantData => ({ total: 0, responded: 0, times: [] });
+  const byVariant: Record<CTAVariantKey, ResponseVariantData> = {
+    ...Object.fromEntries(CTA_VARIANTS.map(v => [v, emptyResponseData()])),
+    unassigned: emptyResponseData(),
+  } as Record<CTAVariantKey, ResponseVariantData>;
 
   const connectionsRaw = (connectionsRes.data ?? []) as Array<{
     id: string;
@@ -1228,8 +1221,10 @@ async function fetchWindow(
     const meta = conn.metadata ?? {};
     const thread = (meta.thread as ThreadMessage[]) || [];
     const variant = (meta.cta_variant as string) || "unassigned";
-    const variantKey: ResponseVariantBucket =
-      variant === "legacy" || variant === "compare" ? variant : "unassigned";
+    const variantKey: CTAVariantKey =
+      typeof variant === "string" && CTA_VARIANT_BUCKETS.has(variant)
+        ? (variant as CTAVariant)
+        : "unassigned";
 
     byVariant[variantKey].total++;
 
@@ -1272,10 +1267,14 @@ async function fetchWindow(
 
   const providerResponse = buildResponseMetrics(connections.length, respondedLeads, responseTimes);
   const providerResponseByVariant: ProviderResponseByVariant = {
-    legacy: buildResponseMetrics(byVariant.legacy.total, byVariant.legacy.responded, byVariant.legacy.times),
-    compare: buildResponseMetrics(byVariant.compare.total, byVariant.compare.responded, byVariant.compare.times),
+    ...Object.fromEntries(
+      CTA_VARIANTS.map(v => [
+        v,
+        buildResponseMetrics(byVariant[v].total, byVariant[v].responded, byVariant[v].times),
+      ])
+    ),
     unassigned: buildResponseMetrics(byVariant.unassigned.total, byVariant.unassigned.responded, byVariant.unassigned.times),
-  };
+  } as ProviderResponseByVariant;
 
   return {
     counts,

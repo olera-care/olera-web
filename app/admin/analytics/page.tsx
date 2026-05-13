@@ -160,11 +160,9 @@ interface CTAFunnel {
   converted: number;
 }
 
-interface CTAFunnelByVariant {
-  legacy: CTAFunnel;
-  compare: CTAFunnel;
-  unassigned: CTAFunnel;
-}
+// Dynamically supports all CTA variants from CTA_VARIANTS
+type CTAVariantKeyWithUnassigned = CTAVariant | "unassigned";
+type CTAFunnelByVariant = Record<CTAVariantKeyWithUnassigned, CTAFunnel>;
 
 // Provider response rate tracking — closes the loop on CTA effectiveness
 interface ProviderResponseMetrics {
@@ -175,11 +173,8 @@ interface ProviderResponseMetrics {
   awaiting_response_count: number;
 }
 
-interface ProviderResponseByVariant {
-  legacy: ProviderResponseMetrics;
-  compare: ProviderResponseMetrics;
-  unassigned: ProviderResponseMetrics;
-}
+// Dynamically supports all CTA variants from CTA_VARIANTS
+type ProviderResponseByVariant = Record<CTAVariantKeyWithUnassigned, ProviderResponseMetrics>;
 
 interface ReferrerBreakdown {
   ai_chat: number;
@@ -1981,8 +1976,10 @@ function CTAVariantSplit({
   const router = useRouter();
   const searchParams = useSearchParams();
   const expandedRaw = searchParams.get("cta_variant");
+  // Valid keys: all CTA_VARIANTS + "unassigned"
+  const validKeys = new Set<string>([...CTA_VARIANTS, "unassigned"]);
   const expandedVariant: CTAVariantKey | null =
-    expandedRaw && (expandedRaw === "legacy" || expandedRaw === "compare" || expandedRaw === "unassigned")
+    expandedRaw && validKeys.has(expandedRaw)
       ? (expandedRaw as CTAVariantKey)
       : null;
 
@@ -2004,7 +2001,8 @@ function CTAVariantSplit({
   const dateFrom = resolved.from ?? null;
   const dateTo = resolved.to ?? null;
 
-  const totalAssigned = byVariant.legacy.impressions + byVariant.compare.impressions;
+  // Sum impressions across all actual CTA variants (not unassigned)
+  const totalAssigned = CTA_VARIANTS.reduce((sum, v) => sum + (byVariant[v]?.impressions ?? 0), 0);
   const waitingForFirstImpression = totalAssigned === 0;
 
   const rate = (num: number, den: number) =>
@@ -2013,10 +2011,12 @@ function CTAVariantSplit({
   // Variants that track the "engaged" step (save_comparison_clicked)
   const ENGAGED_VARIANTS = new Set<CTAVariantKey>(["compare"]);
 
-  const arms: Array<{ key: CTAVariantKey; label: string; description: string }> = [
-    { key: "legacy", label: "Legacy CTA", description: "Current CTA design (ConnectionCardWithRedirect + MobileStickyBottomCTA)" },
-    { key: "compare", label: "Compare CTA", description: "Side-by-side comparison with 2 nearby providers (CompareCard + MobileStickyCompare)" },
-  ];
+  // Dynamically generate arms from CTA_VARIANTS for consistent coverage
+  const arms: Array<{ key: CTAVariantKey; label: string; description: string }> = CTA_VARIANTS.map(v => ({
+    key: v,
+    label: ctaVariantLabel(v),
+    description: ctaVariantSubLabel(v),
+  }));
 
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">
@@ -2246,10 +2246,11 @@ function ProviderResponseVariantSplit({
 }: {
   byVariant: ProviderResponseByVariant;
 }) {
-  const arms: Array<{ key: keyof ProviderResponseByVariant; label: string }> = [
-    { key: "legacy", label: "Legacy CTA" },
-    { key: "compare", label: "Compare CTA" },
-  ];
+  // Dynamically generate arms from CTA_VARIANTS for consistent coverage
+  const arms: Array<{ key: keyof ProviderResponseByVariant; label: string }> = CTA_VARIANTS.map(v => ({
+    key: v,
+    label: ctaVariantLabel(v),
+  }));
 
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">

@@ -7,6 +7,26 @@
 
 ## Current Focus
 
+### 2026-05-13 (Wed, late afternoon) — Provider Comms Funnel: slug vs raw-id intersection bug (fix shipped on `fancy-mahavira`)
+
+**Symptom TJ caught:** funnel showed `0 / 0 / 0 / 0` for row 2 (Signed in / Answered / Clicked dashboard / Edited profile) today despite a clear Slack alert that Moore Street Senior Apartments did one_click_access → question_responded → dashboard_arrival via the question_received email.
+
+**Root cause:** the funnel intersects `email_log.provider_id` (mix of `olera-providers.provider_id` short codes + `business_profiles.id` UUIDs — same observation already documented in `lib/provider-id-variants.ts` header) against `provider_activity.provider_id` (slug-only). Disjoint namespaces → intersection is structurally near-empty. Verified empirically:
+- Today's 38 clicks vs 9 sign-ins / 5 answers in activity → 0/0/0/0 raw, **4/2/0/0 after slug canonicalization**
+- Last 7d: 174 distinct click PIDs (109 short-code, 21 UUID, 44 slug-form) vs 36 distinct activity PIDs (33 slug, 0 UUID, 0 short-code) → 0-1 raw intersections, **25/14/2/3 after fix**
+
+The bug existed since the funnel shipped (PR #802); was undercounting by ~1 OOM the whole time. Q&A funnel just above it is fine because it projects activity-set sizes directly (no intersection).
+
+**Fix (commit `e2273150`, branch `fancy-mahavira`, no PR yet):**
+- `lib/provider-id-variants.ts`: new `resolveSlugsForRawIds(db, ids)` helper. Partitions by UUID-shape regex, runs two bulk `IN` lookups (`olera-providers.provider_id → slug`, `business_profiles.id → slug`), returns `Map<rawId, slug>`. Slug-shaped raws / unresolvables are absent from map; caller falls back to raw with `map.get(x) ?? x`.
+- `app/api/admin/analytics/summary/route.ts`: in `fetchWindow()` after `commsFunnelRes`, collect raw clicked ids, resolve once for the window, then in the existing loop store `slug` (resolved or raw fallback) in `clickedByBucket[k]` + `lastClickByProviderByBucket[k]`. Bouncer table's `top_bouncers[].provider_id` is now slug, which matches `/admin/directory/[providerId]`'s accept-any-shape contract.
+
+**Verification done:** standalone simulator against real DB (today + 7d) ran the same partition + lookup + intersect logic and produced the numbers above. tsc --noEmit clean on changed files. /pre-test self-review found 0 additional bugs. Pushed but not yet opened as a PR.
+
+**Resume next session here →** (1) Open PR against staging (no PR exists yet — `gh pr create` ready to run). (2) Browser-verify on Vercel preview that `/admin/analytics` row 2 now shows non-zero numbers and the bouncer table links resolve. (3) Consider whether to backfill: counts for past days will improve on next page-load since computation is live, no migration needed. (4) Open follow-up to retire raw-id storage on `email_log.provider_id` — would prefer slug there too, but that's a wider sender-side change; the canonicalization keeps reads correct in the meantime.
+
+---
+
 ### 2026-05-13 (Wed, afternoon) — PR #805: lite admin detail mode + analytics relinks (built, awaiting browser test → merge)
 
 **Status:** `feature/lite-admin-detail-mode` → staging, https://github.com/olera-care/olera-web/pull/805 — 3 commits, tsc clean, pre-test review found and fixed one PATCH-path bug before TJ tested. Awaiting Vercel preview browser test, then merge.

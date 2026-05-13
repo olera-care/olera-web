@@ -7,6 +7,47 @@
 
 ## Current Focus
 
+### 2026-05-13 (Wed, late morning) — Request B: per-provider Comms Timeline on /admin/directory/[providerId] (built, awaiting browser test)
+
+PR #799 (Request A) merged to staging at 13:23 UTC. Worktree spun up off staging tip (`11ad30c5`), branch `feature/provider-comms-timeline`. Request B replaces the existing single-purpose `<EmailTimeline>` mount on the provider directory page with a unified `<ProviderCommsTimeline>` that interleaves emails AND meaningful on-Olera activity events chronologically — the CRM contact-card view that answers "what is THIS provider experiencing?" rather than "is this campaign performing?"
+
+**Implementation:**
+- `lib/provider-id-variants.ts` (new): the ID resolver. URL `[providerId]` is always the `olera-providers.provider_id` slug, but `email_log.provider_id` and `provider_activity.provider_id` are TEXT columns whose callers sometimes write the slug and sometimes the `business_profiles.id` UUID. The resolver does one lookup against `business_profiles.source_provider_id` and returns the union of variants for subsequent `.in("provider_id", variants)` queries. Built this FIRST because A exposed that the existing `/api/admin/emails` route silently misses rows under either variant — confirmed by grep of `app/api/admin/emails/route.ts:72` which uses `.eq("provider_id", X)` single-match. Leaving that legacy route alone (out of scope) and using the new pattern in the new endpoint.
+- `app/api/admin/directory/[providerId]/comms-timeline/route.ts` (new): parallel queries against email_log + provider_activity using the resolver, merged + sorted desc by timestamp, sliced to a configurable limit (default 50, max 200). Activity event allowlist of 11 meaningful events (`one_click_access`, `question_responded`, `provider_profile_edited`, `provider_picker_clicked`, `analytics_teaser_cta_clicked`, `claim_completed`, `dashboard_arrival`, `contact_revealed`, `reviews_cta_clicked`, `lead_opened`, `review_viewed`) — explicitly excludes `page_view` and tracking events that would drown the signal. Conservative `summarizeActivity()` mapper turns event_type + metadata into a one-line label (e.g. `one_click_access` + `metadata.action="question"` → "Signed in via Q&A email (one-click)").
+- `components/admin/ProviderCommsTimeline.tsx` (new): client component, single fetch, table layout with two row types — emails show 📧 icon + email_type + subject + EmailStatusPill + preview-expand button; activity rows show ⚡ icon + event_type + summary, colspan=3 for the wider content. Reuses the shared `<EmailStatusPill>` for status. Preview expansion reuses the existing `/api/admin/emails` POST handler.
+- `app/admin/directory/[providerId]/page.tsx` (modified): swapped `EmailTimeline` import + mount for `ProviderCommsTimeline`. Section title changed from "Automated emails" to "Comms timeline". `EmailTimeline` component is preserved — still used on `/admin/care-seekers/[seekerId]` filtered by recipient email.
+
+**Validation:** `tsc --noEmit` 0 errors. `eslint` clean on the 3 new files. Not yet browser-tested at end of initial build.
+
+**Why TJ chose to keep going after I recommended pausing:** the real risks of doing B in the same session were (1) data correctness on the ID-variant resolution and (2) stacked rollback complexity if A needs a hotfix tomorrow. The first I addressed by building the resolver as commit #1 of the work; the second is acceptable because A and B touch different surfaces (analytics page vs directory page), so a surgical revert is doable either direction. The soft "context budget / fresh attention" framing didn't survive scrutiny.
+
+**PR #802 opened** (`feature/provider-comms-timeline → staging`): https://github.com/olera-care/olera-web/pull/802
+
+**Pre-test self-review caught 4 issues (commit `46c42025`):**
+- 🟡 Resolver could miss multiple `business_profiles` rows pointing to the same `source_provider_id` (no UNIQUE constraint on that column). Was using `.maybeSingle()`. Now collects all matching rows up to a defensive cap of 10, appends every UUID to `allVariants`.
+- 🟡 Misleading total counts: route was returning `totalEmails: emailEvents.length` which is the FETCHED count, capped at `perSourceCap=200`. For a provider with 1000+ events, the UI's "N of M events" line would lie. Added two parallel count-only queries (`count: 'exact', head: true`) for honest totals. New shape: `totalEmails` + `totalActivity` (true counts) plus `fetchedEmails` + `fetchedActivity` (debugging).
+- 🟡 Behavioral regression vs existing EmailTimeline: hardcoded `recipient_type='provider'` was tighter than the existing surface (which uses no recipient_type filter). Would silently drop legacy rows where the column is null. Relaxed to `.or("recipient_type.is.null,recipient_type.eq.provider")` — still excludes admin/family recipients (semantically right).
+- 🟢 Variant chip was hidden when count=1, mismatching the pre-test instructions to operator. Now renders always with proper plural handling.
+
+**TJ flagged a real UX flaw mid-test (will be addressed in this PR, not a follow-up):** clicking a row in `/admin/directory` for "user-created" providers (rows with the yellow USER-CREATED badge — providers who self-registered via `business_profiles` without an `olera-providers` scraped row) **opens the public `/provider/<slug>` page in a new tab** instead of an admin detail view. That's because the existing admin detail page hard-404s when there's no `olera-providers` row (see `app/api/admin/directory/[providerId]/route.ts:60-65`). So user-created rows have no admin destination today. TJ's correct read: the public page link is a useful secondary action, NOT the primary one — the admin detail (where Comms timeline lives) should be the destination, even if the editing surface is limited for user-created.
+
+**Decision: extend PR #802 with a "lite admin detail mode" for user-created providers rather than spinning a separate PR.** Reasoning: efficient (no separate review cycle), tightly coupled (both pieces are about making admin work flow naturally toward the Comms timeline), small enough scope (~1 hour) that it doesn't bloat the PR semantically. Three options were considered (full edit support, lite mode w/ just Comms timeline, redirect to /admin/verification); chose lite mode because the Comms timeline is the load-bearing reason a user-created provider has admin value (they get emails + take actions exactly like scraped providers — editing their fields can wait).
+
+**Files touched so far (commits `ef829368` + `46c42025` on `feature/provider-comms-timeline`):**
+- NEW `lib/provider-id-variants.ts`
+- NEW `app/api/admin/directory/[providerId]/comms-timeline/route.ts`
+- NEW `components/admin/ProviderCommsTimeline.tsx`
+- M `app/admin/directory/[providerId]/page.tsx` (4-line mount swap)
+
+**About to add (lite admin detail mode):**
+- M `app/api/admin/directory/[providerId]/route.ts` — fall back to `business_profiles` lookup (by `id` UUID or `slug`) when `olera-providers` is missing. Return `{provider, source: "user-created" | "scraped", ...}` so the page can render appropriately.
+- M `app/admin/directory/[providerId]/page.tsx` — render a stripped-down view when `source === "user-created"`: provider name + claim status + "Open public page →" button + the Comms timeline. No editing form, no image manager, no Google rating, no facility-manager block.
+- M `app/admin/directory/page.tsx` — change the row-click handler to always `router.push(/admin/directory/<id>)`, with the `id` being whichever identifier the row carries (slug for scraped, business_profile.id for user-created). Drop the `window.open(/provider/<slug>)` path entirely; public-page access is now via the button inside the detail.
+
+**Resume next session here →** Implementing the lite-mode extension now in the same PR (#802). After that ships and #802 is reviewed/merged, the two follow-ups still hold: (1) migrate legacy `/api/admin/emails` to use the new resolver for consistency; (2) polish pass on activity-event labels once we see real staging data shape.
+
+---
+
 ### 2026-05-13 (Wed) — Provider comms visibility: generalize the Q&A funnel + add per-provider drill-down (design locked, about to implement)
 
 TJ on `jolly-wright`: the Automation Console + analytics page each tell half the story. Automations is campaign-centric — Sent / Delivered / Opened / Clicked / Bounced **per cron**, stops at the click. The analytics page's `Provider Q&A Email Funnel` is the *only* surface that crosses from email-domain into provider-action-domain — but it's hardcoded to `email_type = "question_received"`. Every other provider email (digest, verification reminders, claim, nudges) has no equivalent. TJ's words: *"I need to know what providers do after they land, not just if they click."* Diagnosed it as **the classic campaign-vs-audience reconciliation problem.**

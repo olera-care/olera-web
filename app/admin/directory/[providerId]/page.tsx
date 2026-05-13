@@ -8,7 +8,7 @@ import Select from "@/components/ui/Select";
 import { PROVIDER_CATEGORIES } from "@/lib/types";
 import { useCitySearch } from "@/hooks/use-city-search";
 import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
-import EmailTimeline from "@/components/admin/EmailTimeline";
+import ProviderCommsTimeline from "@/components/admin/ProviderCommsTimeline";
 import type { DirectoryProvider } from "@/lib/types";
 
 interface ImageMetadata {
@@ -780,9 +780,9 @@ export default function AdminDirectoryDetailPage() {
           )}
         </Section>
 
-        {/* Automated emails */}
-        <Section title="Automated emails">
-          <EmailTimeline providerId={providerId} viewAllHref={`/admin/emails?provider_id=${providerId}`} />
+        {/* Comms timeline — emails + on-site activity, interleaved */}
+        <Section title="Comms timeline">
+          <ProviderCommsTimeline providerId={providerId} viewAllEmailsHref={`/admin/emails?provider_id=${providerId}`} />
         </Section>
 
         {/* Facility Manager / Owner */}

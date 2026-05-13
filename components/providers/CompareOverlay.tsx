@@ -339,7 +339,7 @@ export default function CompareOverlay({
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-4">
               <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                Compare {allProviders.length} providers
+                Compare {allProviders.length} provider{allProviders.length !== 1 ? "s" : ""}
               </h2>
               <p className="text-sm text-gray-500 mt-1">
                 {categoryLocationStr}
@@ -488,7 +488,7 @@ export default function CompareOverlay({
             >
               <div className="mb-3">
                 <h3 className="text-lg font-bold text-gray-900">
-                  {showSimilar ? `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}` : "Save this provider"}
+                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
                 </h3>
                 <p className="text-sm text-gray-500">Add your email so you don&apos;t lose it.</p>
               </div>
@@ -516,7 +516,7 @@ export default function CompareOverlay({
                   type="submit"
                   className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
                 >
-                  {showSimilar ? `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}` : "Save this provider"}
+                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                   </svg>

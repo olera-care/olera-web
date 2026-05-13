@@ -387,7 +387,7 @@ export default function CompareBottomSheet({
         {/* Header */}
         <div className="px-5 pb-4 shrink-0 border-b border-gray-100">
           <h2 className="text-[22px] font-bold text-gray-900 leading-tight pr-10">
-            Compare {allProviders.length} providers
+            Compare {allProviders.length} provider{allProviders.length !== 1 ? "s" : ""}
           </h2>
           <p className="text-[15px] text-gray-500 mt-1">
             {categoryLocationStr}

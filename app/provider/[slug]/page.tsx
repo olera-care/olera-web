@@ -934,8 +934,8 @@ export default async function ProviderPage({
                     )}
                   </div>
 
-                  {/* Divider */}
-                  <div className="w-px bg-gray-200 self-stretch my-1" />
+                  {/* Divider - fixed height like Airbnb */}
+                  <div className="w-px h-10 bg-gray-200 self-center" />
 
                   {/* Right column: Pricing */}
                   <div className="flex flex-col items-center justify-center px-4 min-w-[100px]">

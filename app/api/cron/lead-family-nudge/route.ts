@@ -236,19 +236,24 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        // Update connection metadata
+        // Update ALL connections for this family (not just the triggering one)
+        // This ensures the 7-day cooldown applies family-wide
         const nudgedAt = new Date().toISOString();
-        await db
-          .from("connections")
-          .update({
-            metadata: {
-              ...connMeta,
-              family_publish_nudged_at: nudgedAt,
-              family_publish_nudged_by: "cron:lead-family-nudge",
-              family_publish_nudge_count: ((connMeta.family_publish_nudge_count as number) || 0) + 1,
-            },
-          })
-          .eq("id", conn.id);
+        const familyConnections = connections.filter((c) => c.from_profile_id === familyId);
+        for (const fc of familyConnections) {
+          const fcMeta = (fc.metadata as Record<string, unknown>) ?? {};
+          await db
+            .from("connections")
+            .update({
+              metadata: {
+                ...fcMeta,
+                family_publish_nudged_at: nudgedAt,
+                family_publish_nudged_by: "cron:lead-family-nudge",
+                family_publish_nudge_count: ((fcMeta.family_publish_nudge_count as number) || 0) + 1,
+              },
+            })
+            .eq("id", fc.id);
+        }
 
         counts.byType.publish_profile++;
       } else {
@@ -301,19 +306,24 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        // Update connection metadata
+        // Update ALL connections for this family (not just the triggering one)
+        // This ensures the 7-day cooldown applies family-wide
         const nudgedAt = new Date().toISOString();
-        await db
-          .from("connections")
-          .update({
-            metadata: {
-              ...connMeta,
-              family_nudged_at: nudgedAt,
-              family_nudged_by: "cron:lead-family-nudge",
-              family_nudge_count: ((connMeta.family_nudge_count as number) || 0) + 1,
-            },
-          })
-          .eq("id", conn.id);
+        const familyConnections = connections.filter((c) => c.from_profile_id === familyId);
+        for (const fc of familyConnections) {
+          const fcMeta = (fc.metadata as Record<string, unknown>) ?? {};
+          await db
+            .from("connections")
+            .update({
+              metadata: {
+                ...fcMeta,
+                family_nudged_at: nudgedAt,
+                family_nudged_by: "cron:lead-family-nudge",
+                family_nudge_count: ((fcMeta.family_nudge_count as number) || 0) + 1,
+              },
+            })
+            .eq("id", fc.id);
+        }
 
         counts.byType.complete_profile++;
       }

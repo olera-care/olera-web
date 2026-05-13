@@ -816,8 +816,8 @@ export default async function ProviderPage({
         aria-hidden="true"
       />
 
-      {/* ===== Hero Zone — Vanilla Background ===== */}
-      <div className="bg-vanilla-100">
+      {/* ===== Hero Zone — White on mobile, Vanilla on desktop ===== */}
+      <div className="bg-white md:bg-vanilla-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 md:pt-6 pb-8">
 
           {/* Breadcrumbs */}
@@ -864,7 +864,7 @@ export default async function ProviderPage({
             <div className="flex-1 min-w-0 flex flex-col">
               {/* Name + Save */}
               <div className="flex items-start justify-between gap-3">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display text-center md:text-left w-full md:w-auto">
                   {profile.display_name}
                 </h1>
                 <div className="hidden md:block">
@@ -883,62 +883,54 @@ export default async function ProviderPage({
                 </div>
               </div>
 
-              {/* ── Mobile identity layout ── */}
-              <div className="md:hidden">
-                {/* Row 1: Category · Location · Address */}
-                <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 mt-1.5 text-sm text-gray-500">
-                  {categoryLabel && (
-                    <>
-                      <span className="text-gray-700 font-medium">{categoryLabel}</span>
-                      {locationStr && <span className="text-gray-300">·</span>}
-                    </>
-                  )}
-                  {locationStr && <span>{locationStr}</span>}
-                  {profile.address && (
-                    <>
-                      <span className="text-gray-300">·</span>
-                      <span className="truncate max-w-[180px]">{profile.address}</span>
-                    </>
-                  )}
-                </div>
+              {/* ── Mobile identity layout (Airbnb-inspired, centered) ── */}
+              <div className="md:hidden text-center">
+                {/* Row 1: Location (City, State) */}
+                {locationStr && (
+                  <p className="text-sm text-gray-500 mt-1">{locationStr}</p>
+                )}
 
-                {/* Row 2: Price (left) — Rating (right) */}
-                <div className="flex items-center justify-between mt-3">
-                  <div>
+                {/* Row 2: Category */}
+                {categoryLabel && (
+                  <p className="text-sm text-gray-500 mt-0.5">{categoryLabel}</p>
+                )}
+
+                {/* Row 3: Rating | Pricing (Airbnb-style with divider) */}
+                <div className="flex items-center justify-center gap-4 mt-4">
+                  {/* Rating */}
+                  {hasRating && rating != null && (
+                    <>
+                      <div className="flex flex-col items-center">
+                        <div className="flex items-center gap-1">
+                          <span className="text-lg font-bold text-gray-900">{rating.toFixed(1)}</span>
+                          <StarIcon className="w-4 h-4 text-amber-400" />
+                        </div>
+                        <span className="text-xs text-gray-400">Google</span>
+                      </div>
+                      <div className="h-8 w-px bg-gray-200" />
+                    </>
+                  )}
+
+                  {/* Pricing */}
+                  <div className="flex flex-col items-center">
                     {pricingConfig?.tier === 3 && !hasPriceRange ? (
-                      <PricingEducationBadge
-                        category={profile.category!}
-                        providerName={profile.display_name}
-                        city={profile.city ?? undefined}
-                        state={profile.state ?? undefined}
-                      />
+                      <>
+                        <span className="text-sm font-medium text-gray-700">Medicare/Medicaid</span>
+                        <span className="text-xs text-gray-400">may cover</span>
+                      </>
                     ) : hasPriceRange ? (
-                      <PriceEstimate
-                        priceRange={priceRange!}
-                        category={profile.category ?? undefined}
-                        providerName={profile.display_name}
-                        city={profile.city ?? undefined}
-                        state={profile.state ?? undefined}
-                      />
+                      <>
+                        <span className="text-lg font-bold text-gray-900">{priceRange}</span>
+                        <span className="text-xs text-gray-400">est.</span>
+                      </>
                     ) : (
-                      <p className="text-sm text-gray-400">Contact for pricing</p>
+                      <>
+                        <span className="text-sm font-medium text-gray-700">Contact</span>
+                        <span className="text-xs text-gray-400">for pricing</span>
+                      </>
                     )}
                   </div>
-                  {hasRating && rating != null && (
-                    <span className="flex items-center gap-1.5">
-                      <StarIcon className="w-5 h-5 text-amber-400" />
-                      <span className="text-base font-bold text-gray-900">{rating.toFixed(1)}</span>
-                      <span className="text-sm text-gray-400">on Google</span>
-                    </span>
-                  )}
                 </div>
-
-                {/* Row 3: Claim status */}
-                <MobileClaimLink
-                  claimState={displayClaimState}
-                  providerName={profile.display_name}
-                  claimUrl={`/provider/onboarding?org=${profile.slug}`}
-                />
               </div>
 
               {/* ── Desktop identity layout (unchanged) ── */}
@@ -992,19 +984,11 @@ export default async function ProviderPage({
               </div>
 
               {/* Highlight badges — data-driven, variable count (1-4 items) */}
+              {/* Hidden on mobile for cleaner hero, shown on desktop */}
               {highlights.length > 0 && (
-                <div id="highlights" className="scroll-mt-20">
-                  {/* Mobile: flex-wrap chips */}
-                  <div className="md:hidden flex flex-wrap gap-2.5 mt-4">
-                    {highlights.map((h) => (
-                      <div key={h.label} className="bg-gray-50 rounded-xl py-3 px-3.5 flex items-center gap-2.5">
-                        <HighlightIcon icon={h.icon} className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                        <span className="text-sm font-medium text-gray-700 leading-tight">{h.label}</span>
-                      </div>
-                    ))}
-                  </div>
+                <div id="highlights" className="scroll-mt-20 hidden md:block">
                   {/* Desktop: flex-wrap chips */}
-                  <div className="hidden md:flex flex-wrap gap-2 mt-4">
+                  <div className="flex flex-wrap gap-2 mt-4">
                     {highlights.map((h) => (
                       <div key={h.label} className="bg-white border border-gray-200 rounded-lg py-2.5 px-3 flex items-center gap-2">
                         <HighlightIcon icon={h.icon} className="w-4 h-4 text-primary-500 flex-shrink-0" />
@@ -1015,7 +999,8 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── "Manage this page" CTA ── */}
+              {/* ── "Manage this page" CTA — hidden on mobile for cleaner hero ── */}
+              <div className="hidden md:block">
               <ManagePageCTA
                 providerSlug={profile.slug}
                 providerName={profile.display_name}
@@ -1027,10 +1012,11 @@ export default async function ProviderPage({
                 isClaimed={actualClaimState === "claimed"}
                 claimAccountId={claimAccountId}
               />
+              </div>
 
-              {/* Managed by — only show when staff data exists */}
+              {/* Managed by — only show when staff data exists, hidden on mobile */}
               {hasStaff && (
-                <div className="flex items-center gap-2.5 mt-4">
+                <div className="hidden md:flex items-center gap-2.5 mt-4">
                   <div className="relative flex-shrink-0">
                     {staff!.image ? (
                       <Image src={staff!.image} alt={staff!.name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />

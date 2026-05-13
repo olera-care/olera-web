@@ -17,6 +17,10 @@ import { variantSurfaceLabel, variantSubLabel } from "@/lib/analytics/variant-co
 import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
 import { ctaVariantLabel, ctaVariantSubLabel } from "@/lib/analytics/cta-variant-copy";
 import CTAVariantSessionsList from "@/components/admin/CTAVariantSessionsList";
+import {
+  PROVIDER_EMAIL_FUNNEL_LABELS,
+  PROVIDER_EMAIL_FUNNEL_ORDER,
+} from "@/lib/analytics/provider-email-funnels";
 
 interface WindowedCounts {
   page_view: number;
@@ -75,6 +79,42 @@ interface QaEmailIssue {
   reason: string;
   count: number;
   type: "bounced" | "complained";
+}
+
+// Generalized provider-comms funnel — same data shape used by every email_type
+// bucket (Q&A, weekly digest, verification reminders, claim flow, profile
+// nudges, connections, plus `all` which is the union). Sent/Delivered/Opened/
+// Clicked are raw email_log row counts; the downstream four are
+// |clicked_set ∩ event_set| in window (approximate attribution — anchored on
+// activity time, not email send time). Engagement bounce = clicked but did
+// none of the four downstream events.
+interface ProviderCommsFunnel {
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  // Distinct providers who clicked ≥1 email of this bucket — the proper
+  // denominator for engagement_bounces (clicked is a raw row count).
+  distinct_clickers: number;
+  signed_in: number;
+  answered: number;
+  clicked_dashboard: number;
+  edited_profile: number;
+  engagement_bounces: number;
+  top_bouncers: Array<{
+    provider_id: string;
+    last_clicked_email_type: string;
+    last_clicked_at: string;
+  }>;
+}
+
+interface ProviderCommsFunnelByType {
+  all: ProviderCommsFunnel;
+  question_received: ProviderCommsFunnel;
+  weekly_digest: ProviderCommsFunnel;
+  verification: ProviderCommsFunnel;
+  nudges: ProviderCommsFunnel;
+  connections: ProviderCommsFunnel;
 }
 
 interface BenefitsFunnel {
@@ -188,6 +228,7 @@ interface SummaryResponse {
     qa_funnel: ProviderQaFunnel;
     qa_funnel_by_variant: ProviderQaFunnelByVariant;
     qa_email_issues: QaEmailIssue[];
+    provider_comms_funnel_by_type: ProviderCommsFunnelByType;
     benefits_funnel: BenefitsFunnel;
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
     cta_funnel: CTAFunnel;
@@ -205,6 +246,7 @@ interface SummaryResponse {
     qa_funnel: ProviderQaFunnel;
     qa_funnel_by_variant: ProviderQaFunnelByVariant;
     qa_email_issues: QaEmailIssue[];
+    provider_comms_funnel_by_type: ProviderCommsFunnelByType;
     benefits_funnel: BenefitsFunnel;
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
     cta_funnel: CTAFunnel;
@@ -337,6 +379,16 @@ export default function AdminAnalyticsPage() {
         loading={loading && !!summary}
       >
         <QaFunnelCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Provider Comms Funnel"
+        storageKey="providerCommsFunnel"
+        defaultCollapsed={true}
+        forceOpen={!!searchParams.get("comms_filter")}
+        loading={loading && !!summary}
+      >
+        <ProviderCommsFunnelCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
       {/* Every section starts collapsed; the operator opens what they
@@ -864,6 +916,189 @@ function VariantSplit({ byVariant }: { byVariant: ProviderQaFunnelByVariant }) {
       )}
     </div>
   );
+}
+
+// ── Provider Comms Funnel ────────────────────────────────────────────────
+//
+// The Q&A funnel above is the focused report for one email type. This card
+// is the across-types view: pick an email-type bucket (or "All provider
+// email") and see the same funnel walk + the engagement-bounce panel.
+//
+// Filter is client-side state — the API returns every bucket on a single
+// /summary call so switching is instant. URL param `?comms_filter=` syncs
+// it for cross-links from the automations page.
+
+type ProviderCommsFilterKey = keyof ProviderCommsFunnelByType;
+
+function isCommsFilterKey(s: string | null): s is ProviderCommsFilterKey {
+  return !!s && (PROVIDER_EMAIL_FUNNEL_ORDER as readonly string[]).includes(s);
+}
+
+function ProviderCommsFunnelCard({
+  summary,
+  loading,
+  range,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+  range: DateRangeValue;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlFilter = searchParams.get("comms_filter");
+  const initial: ProviderCommsFilterKey = isCommsFilterKey(urlFilter) ? urlFilter : "all";
+  const [filter, setFilter] = useState<ProviderCommsFilterKey>(initial);
+
+  // Keep state in sync if the URL changes (back/forward, cross-link from
+  // another surface). When the URL drops the param entirely, reset to "all"
+  // so the dropdown doesn't lie about the rendered view.
+  useEffect(() => {
+    if (isCommsFilterKey(urlFilter)) {
+      if (urlFilter !== filter) setFilter(urlFilter);
+    } else if (urlFilter === null && filter !== "all") {
+      setFilter("all");
+    }
+    // intentionally not depending on `filter` — we only react to URL changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlFilter]);
+
+  const onChangeFilter = (next: ProviderCommsFilterKey) => {
+    setFilter(next);
+    // Write to URL so the section's state survives reloads and is shareable.
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === "all") params.delete("comms_filter");
+    else params.set("comms_filter", next);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  if (loading && !summary) {
+    return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
+  }
+  if (!summary) return null;
+
+  // Defensive: if the server response predates this field (stale cache or
+  // partial deploy), bail with a quiet placeholder rather than crashing on
+  // [filter] indexing into undefined.
+  if (!summary.windowed.provider_comms_funnel_by_type) {
+    return <p className="text-sm text-gray-400">Provider comms funnel not available in this response — server may be on an older deploy.</p>;
+  }
+
+  const f = summary.windowed.provider_comms_funnel_by_type[filter];
+  const pf = summary.prior?.provider_comms_funnel_by_type?.[filter] ?? null;
+
+  const stages: Array<{ label: string; value: number; prior: number | null; prev: number | null; tooltip: string }> = [
+    { label: "Sent", value: f.sent, prior: pf?.sent ?? null, prev: null,
+      tooltip: "Provider-bound emails of this type dispatched in this window (cohort denominator). One row per send in email_log." },
+    { label: "Delivered", value: f.delivered, prior: pf?.delivered ?? null, prev: f.sent,
+      tooltip: "Resend confirmed acceptance by recipient mailserver. % shown is delivery rate (delivered / sent)." },
+    { label: "Opened", value: f.opened, prior: pf?.opened ?? null, prev: f.delivered,
+      tooltip: "Provider opened the email (Resend webhook 'opened'). Apple Mail Privacy Protection prefetches images on receipt, inflating opens 30-50% for that cohort — clicks are the cleaner signal. % shown is open rate (opened / delivered)." },
+    { label: "Clicked", value: f.clicked, prior: pf?.clicked ?? null, prev: f.opened,
+      tooltip: "Provider clicked a tracked link in the email. % shown is click-to-open rate (CTOR)." },
+    { label: "Signed in", value: f.signed_in, prior: pf?.signed_in ?? null, prev: f.clicked,
+      tooltip: "Distinct providers who both clicked an email in this bucket AND did a one-click sign-in in window (any action: question / lead / review). Approximate attribution — anchored on activity time, not the email send. A provider who got multiple email types in the window may be counted in each bucket they clicked." },
+    { label: "Answered", value: f.answered, prior: pf?.answered ?? null, prev: f.clicked,
+      tooltip: "Distinct providers who clicked an email in this bucket AND answered ≥1 question in window. Same approximate-attribution caveat as Signed in." },
+    { label: "Clicked dashboard", value: f.clicked_dashboard, prior: pf?.clicked_dashboard ?? null, prev: f.clicked,
+      tooltip: "Distinct providers who clicked an email in this bucket AND clicked any dashboard CTA in window — union of the analytics teaser on /onboard and the dashboard hero on /provider." },
+    { label: "Edited profile", value: f.edited_profile, prior: pf?.edited_profile ?? null, prev: f.clicked,
+      tooltip: "Distinct providers who clicked an email in this bucket AND saved a profile edit in window. Lagging activation indicator." },
+  ];
+
+  // Denominator is distinct clickers, not raw click rows — engagement_bounces
+  // is distinct providers, so mixing units (bounces / raw clicks) would over-
+  // count clicks when a provider clicked multiple emails in the same bucket.
+  const bouncePct = f.distinct_clickers > 0 ? Math.round((f.engagement_bounces / f.distinct_clickers) * 100) : null;
+
+  return (
+    <>
+      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+        <p className="text-xs text-gray-500">
+          Cohort: provider emails sent {rangeLabel(range).toLowerCase()}, filtered to{" "}
+          <span className="font-medium text-gray-700">{PROVIDER_EMAIL_FUNNEL_LABELS[filter]}</span>.
+          Step % is conversion from the previous stage (Delivered → Sent, Opened → Delivered, Clicked → Opened, downstream → Clicked).
+        </p>
+        <label className="inline-flex items-center gap-1.5 text-xs">
+          <span className="text-gray-500">Filter</span>
+          <select
+            value={filter}
+            onChange={(e) => onChangeFilter(e.target.value as ProviderCommsFilterKey)}
+            className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700"
+          >
+            {PROVIDER_EMAIL_FUNNEL_ORDER.map((k) => (
+              <option key={k} value={k}>{PROVIDER_EMAIL_FUNNEL_LABELS[k]}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-4">
+        {stages.map((s) => <FunnelStat key={s.label} {...s} />)}
+      </div>
+
+      {/* Engagement bounce panel ─────────────────────────────────────── */}
+      <div className="mt-6 pt-5 border-t border-gray-100">
+        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
+          Engagement bounces
+        </div>
+        <p className="text-[11px] text-gray-400 mb-3">
+          Providers who clicked an email of this bucket but produced none of the four downstream events in window. The diagnostic for &ldquo;they came in &mdash; what happened?&rdquo;
+        </p>
+        <div className="grid grid-cols-2 gap-x-5 gap-y-4 mb-4 max-w-md">
+          <div title="Distinct providers who clicked but did nothing measurable on-site.">
+            <div className="text-[26px] font-semibold tabular-nums leading-none text-gray-900">{f.engagement_bounces.toLocaleString()}</div>
+            <div className="text-xs text-gray-500 mt-1.5 leading-tight">Clicked &amp; bounced</div>
+            <div className="text-[10.5px] tabular-nums mt-1.5 leading-none">
+              {bouncePct !== null ? (
+                <span className="text-gray-500 font-medium">{bouncePct}% of {f.distinct_clickers.toLocaleString()} clickers</span>
+              ) : <span className="invisible">.</span>}
+            </div>
+          </div>
+        </div>
+
+        {f.top_bouncers.length === 0 ? (
+          <p className="text-sm text-gray-400">No engagement bounces in window.</p>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-gray-100">
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-100 bg-gray-50/60 text-[10px] uppercase tracking-wider text-gray-400">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium">Provider</th>
+                  <th className="px-3 py-2 text-left font-medium">Last clicked email</th>
+                  <th className="px-3 py-2 text-right font-medium">When</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {f.top_bouncers.map((b) => (
+                  <tr key={b.provider_id} className="text-gray-700">
+                    <td className="px-3 py-2">
+                      <Link href={`/admin/directory/${b.provider_id}`} className="text-teal-700 hover:underline">{b.provider_id}</Link>
+                    </td>
+                    <td className="px-3 py-2 text-gray-600">{b.last_clicked_email_type}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-500" title={new Date(b.last_clicked_at).toLocaleString()}>
+                      {timeAgoShort(b.last_clicked_at)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// Compact "Nm/Nh/Nd ago" formatter used by the engagement-bouncers table.
+function timeAgoShort(iso: string): string {
+  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
 }
 
 // ── Family Intake ────────────────────────────────────────────────────────

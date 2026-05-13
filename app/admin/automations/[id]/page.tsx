@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
+import { bucketForEmailType } from "@/lib/analytics/provider-email-funnels";
 
 interface Rollup {
   sent: number;
@@ -387,7 +388,29 @@ export default function AutomationDetailPage() {
                       <StatCard value={pct(data.rollup30d.clicked, data.rollup30d.sent)} label="Clicked" />
                       <StatCard value={data.rollup30d.bounced + data.rollup30d.complained} label={data.rollup30d.complained > 0 ? "Bounced / complained" : "Bounced"} danger={data.rollup30d.bounced + data.rollup30d.complained > 0} muted={data.rollup30d.bounced + data.rollup30d.complained === 0} />
                     </div>
-                    <p className="mt-2 text-xs text-gray-400">Open and click rates are inflated by Apple Mail Privacy Protection (it prefetches the tracking pixel and rewrites links) — the trend over time is the real signal.</p>
+                    <p className="mt-2 text-xs text-gray-400">
+                      Open and click rates are inflated by Apple Mail Privacy Protection (it prefetches the tracking pixel and rewrites links) — the trend over time is the real signal.
+                      {(() => {
+                        // Cross-link to the Provider Comms Funnel on /admin/analytics
+                        // pre-filtered to this automation's email-type bucket. If every
+                        // emailType for this job lands in the same bucket, link to it;
+                        // if they span multiple (or none map cleanly), link unfiltered.
+                        if (!data.job.isEmail) return null;
+                        const mapped = data.job.emailTypes
+                          .map(bucketForEmailType)
+                          .filter((b): b is NonNullable<ReturnType<typeof bucketForEmailType>> => b !== null);
+                        if (mapped.length === 0) return null;
+                        const unique = new Set(mapped);
+                        const sole = unique.size === 1 ? mapped[0] : null;
+                        const q = sole ? `?comms_filter=${sole}` : "";
+                        return (
+                          <>
+                            {" "}
+                            <Link href={`/admin/analytics${q}#providerCommsFunnel`} className="text-teal-700 hover:underline">See provider-action funnel →</Link>
+                          </>
+                        );
+                      })()}
+                    </p>
                   </div>
 
                   {data.trend.length >= 2 && (

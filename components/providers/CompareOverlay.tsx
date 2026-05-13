@@ -21,13 +21,9 @@ interface CompareOverlayProps {
 }
 
 /**
- * Desktop comparison drawer - compact right-side panel.
- * Same flow and card design as mobile, adapted for desktop.
- *
- * Visual flow:
- * 1. Initially shows only the current provider (collapsed state)
- * 2. User can click "Compare with N nearby homes" to reveal similar providers
- * 3. All selection/save logic remains unchanged
+ * Desktop comparison panel - wide right-side drawer.
+ * Pre-populates all 3 providers immediately for quick comparison.
+ * Users can remove providers they don't want before saving.
  */
 export default function CompareOverlay({
   isOpen,
@@ -47,8 +43,8 @@ export default function CompareOverlay({
   const saveClickFiredRef = useRef(false);
   const emailInputRef = useRef<HTMLInputElement>(null);
 
-  // Stepped flow: initially show only current provider
-  const [showSimilar, setShowSimilar] = useState(false);
+  // Show all providers immediately (pre-populated comparison)
+  const [showSimilar, setShowSimilar] = useState(true);
 
   // Check if user is logged in
   const isLoggedIn = !!user && !!activeProfile;
@@ -65,11 +61,11 @@ export default function CompareOverlay({
     () => new Set(allProviders.map((p) => p.id))
   );
 
-  // Reset selection and stepped flow when overlay opens
+  // Reset selection when overlay opens (all providers pre-selected)
   useEffect(() => {
     if (isOpen) {
       setSelectedProviderIds(new Set(allProviders.map((p) => p.id)));
-      setShowSimilar(false);
+      setShowSimilar(true);
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -333,9 +329,9 @@ export default function CompareOverlay({
         aria-hidden="true"
       />
 
-      {/* Right-side drawer */}
+      {/* Right-side panel - wider for comfortable comparison */}
       <div
-        className="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl flex flex-col animate-panel-in-right"
+        className="absolute inset-y-0 right-0 w-[90vw] max-w-2xl bg-white shadow-2xl flex flex-col animate-panel-in-right"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -343,9 +339,7 @@ export default function CompareOverlay({
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-4">
               <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                {showSimilar
-                  ? `${currentProvider.name} next to ${similarProviders.length} nearby home${similarProviders.length !== 1 ? "s" : ""}`
-                  : `Save ${currentProvider.name}`}
+                Compare {allProviders.length} providers
               </h2>
               <p className="text-sm text-gray-500 mt-1">
                 {categoryLocationStr}
@@ -421,55 +415,29 @@ export default function CompareOverlay({
               )}
             </div>
           ) : footerState === "initial" ? (
-            /* Initial state */
+            /* Initial state - Save button is primary */
             <>
               {error && (
                 <p className="text-sm text-red-600 mb-3">{error}</p>
               )}
-              {/* Collapsed state: Compare is primary, Save is secondary */}
-              {!showSimilar && hasSimilarProviders ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setShowSimilar(true)}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
-                  >
-                    Compare with {similarProviders.length} more
-                  </button>
-                  <p className="text-center text-[13px] text-gray-500 mt-2.5">
-                    or{" "}
-                    <button
-                      type="button"
-                      onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
-                      className="text-gray-700 font-medium hover:text-gray-900 underline underline-offset-2"
-                    >
-                      just save this one
-                    </button>
-                  </p>
-                </>
-              ) : (
-                /* Expanded state OR no similar providers: Save is primary */
-                <>
-                  <button
-                    type="button"
-                    onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
-                    disabled={showSimilar && selectedCount === 0}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
-                  >
-                    {selectedCount === 0
-                      ? "Select at least one"
-                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                    </svg>
-                  </button>
-                  <p className="text-center text-xs text-gray-500 mt-2">
-                    {isLoggedIn
-                      ? `Saving as ${userEmail}`
-                      : "Save now, message when ready"}
-                  </p>
-                </>
-              )}
+              <button
+                type="button"
+                onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
+                disabled={selectedCount === 0}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
+              >
+                {selectedCount === 0
+                  ? "Select at least one"
+                  : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </button>
+              <p className="text-center text-xs text-gray-500 mt-2">
+                {isLoggedIn
+                  ? `Saving as ${userEmail}`
+                  : "Save now, message when ready"}
+              </p>
             </>
           ) : footerState === "provider_email_block" ? (
             /* Provider email block state */

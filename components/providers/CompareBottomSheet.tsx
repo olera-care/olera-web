@@ -36,10 +36,8 @@ type FooterState = "initial" | "email_capture" | "submitting" | "success" | "pro
 
 /**
  * Mobile comparison bottom sheet with vertical stacked cards.
- * Visual flow:
- * 1. Initially shows only the current provider (collapsed state)
- * 2. User can tap "Compare with N nearby homes" to reveal similar providers
- * 3. All selection/save logic remains unchanged
+ * Pre-populates all 3 providers immediately for quick comparison.
+ * Users can remove providers they don't want before saving.
  */
 export default function CompareBottomSheet({
   isOpen,
@@ -72,8 +70,8 @@ export default function CompareBottomSheet({
   const emailInputRef = useRef<HTMLInputElement>(null);
   const saveClickFiredRef = useRef(false);
 
-  // Stepped flow: initially show only current provider
-  const [showSimilar, setShowSimilar] = useState(false);
+  // Show all providers immediately (pre-populated comparison)
+  const [showSimilar, setShowSimilar] = useState(true);
 
   // All providers: current first, then similar
   // Memoized to prevent unnecessary callback recreations
@@ -143,7 +141,7 @@ export default function CompareBottomSheet({
       // Show family required state if logged in as provider/caregiver/student
       setFooterState(isNonFamilyProfile ? "family_required" : "initial");
       setSelectedProviderIds(new Set(allProviders.map((p) => p.id)));
-      setShowSimilar(false);
+      setShowSimilar(true);
       setEmail("");
       setError(null);
       setBlockedEmail(null);
@@ -389,9 +387,7 @@ export default function CompareBottomSheet({
         {/* Header */}
         <div className="px-5 pb-4 shrink-0 border-b border-gray-100">
           <h2 className="text-[22px] font-bold text-gray-900 leading-tight pr-10">
-            {showSimilar
-              ? `${currentProvider.name} next to ${similarProviders.length} nearby home${similarProviders.length !== 1 ? "s" : ""}`
-              : `Save ${currentProvider.name}`}
+            Compare {allProviders.length} providers
           </h2>
           <p className="text-[15px] text-gray-500 mt-1">
             {categoryLocationStr}
@@ -422,72 +418,47 @@ export default function CompareBottomSheet({
         <div className="px-5 py-3 border-t border-gray-200 bg-white shrink-0">
           {footerState === "initial" && (
             <>
-              {/* Collapsed state: Compare is primary, Save is secondary */}
-              {!showSimilar && hasSimilarProviders ? (
+              {/* Save button is primary - all providers shown immediately */}
+              {isLoggedIn ? (
                 <>
+                  {error && (
+                    <p className="text-sm text-red-600 mb-3">{error}</p>
+                  )}
                   <button
                     type="button"
-                    onClick={() => setShowSimilar(true)}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
+                    onClick={handleLoggedInSubmit}
+                    disabled={selectedCount === 0}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
                   >
-                    Compare with {similarProviders.length} more
+                    {selectedCount === 0
+                      ? "Select at least one"
+                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
                   </button>
-                  <p className="text-center text-[13px] text-gray-500 mt-2.5">
-                    or{" "}
-                    <button
-                      type="button"
-                      onClick={isLoggedIn ? handleLoggedInSubmit : handleSaveClick}
-                      className="text-gray-700 font-medium hover:text-gray-900 underline underline-offset-2"
-                    >
-                      just save this one
-                    </button>
+                  <p className="text-center text-xs text-gray-500 mt-2">
+                    Saving as {userEmail}
                   </p>
                 </>
               ) : (
-                /* Expanded state OR no similar providers: Save is primary */
                 <>
-                  {isLoggedIn ? (
-                    <>
-                      {error && (
-                        <p className="text-sm text-red-600 mb-3">{error}</p>
-                      )}
-                      <button
-                        type="button"
-                        onClick={handleLoggedInSubmit}
-                        disabled={showSimilar && selectedCount === 0}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
-                      >
-                        {selectedCount === 0
-                          ? "Select at least one"
-                          : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                        </svg>
-                      </button>
-                      <p className="text-center text-xs text-gray-500 mt-2">
-                        {showSimilar ? "Save now, message when ready" : `Saving as ${userEmail}`}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleSaveClick}
-                        disabled={showSimilar && selectedCount === 0}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
-                      >
-                        {selectedCount === 0
-                          ? "Select at least one"
-                          : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                        </svg>
-                      </button>
-                      <p className="text-center text-xs text-gray-500 mt-2">
-                        Save now, message when ready
-                      </p>
-                    </>
-                  )}
+                  <button
+                    type="button"
+                    onClick={handleSaveClick}
+                    disabled={selectedCount === 0}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
+                  >
+                    {selectedCount === 0
+                      ? "Select at least one"
+                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                  </button>
+                  <p className="text-center text-xs text-gray-500 mt-2">
+                    Save now, message when ready
+                  </p>
                 </>
               )}
             </>
@@ -518,7 +489,7 @@ export default function CompareBottomSheet({
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <h3 className="text-lg font-bold text-gray-900">
-                  {showSimilar ? `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}` : "Save this provider"}
+                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
                 </h3>
                 <p className="text-sm text-gray-500">Add your email so you don&apos;t lose it.</p>
               </div>
@@ -553,7 +524,7 @@ export default function CompareBottomSheet({
                     </>
                   ) : (
                     <>
-                      {showSimilar ? `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}` : "Save this provider"}
+                      Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                       </svg>

@@ -702,17 +702,22 @@ export function MedJobsTabPage({
           rowKind={callOutcomeRow.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setCallOutcomeRow(null)}
           onSubmit={async (outcome, notes, partner) => {
-            // v9 final: scope the log to this row's specific call task
-            // so the General Contact card and each Specific Contact
-            // card close their own tasks independently. Without
-            // task_id the server falls back to the oldest due call.
-            await callAction(callOutcomeRow.id, "log_call", {
-              outcome,
-              notes,
-              task_id: callOutcomeRow.due_call_task?.id,
-            });
-            if (partner) {
-              await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
+            // R5: terminal admin overrides dispatched directly.
+            if (outcome === "mark_dnc" || outcome === "mark_no_response_closed") {
+              await callAction(callOutcomeRow.id, outcome, { notes });
+            } else {
+              // v9 final: scope the log to this row's specific call task
+              // so the General Contact card and each Specific Contact
+              // card close their own tasks independently. Without
+              // task_id the server falls back to the oldest due call.
+              await callAction(callOutcomeRow.id, "log_call", {
+                outcome,
+                notes,
+                task_id: callOutcomeRow.due_call_task?.id,
+              });
+              if (partner) {
+                await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
+              }
             }
             setCallOutcomeRow(null);
           }}

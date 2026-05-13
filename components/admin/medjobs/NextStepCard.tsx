@@ -723,7 +723,14 @@ function CallDueBody({
           onCancel={() => setShowLogCall(false)}
           onSubmit={async (outcome, notes) => {
             try {
-              await action("log_call_outcome", { outcome, notes });
+              // R5: terminal admin overrides dispatched as their own
+              // actions; everything else flows through log_call_outcome
+              // as before.
+              if (outcome === "mark_dnc" || outcome === "mark_no_response_closed") {
+                await action(outcome, { notes });
+              } else {
+                await action("log_call_outcome", { outcome, notes });
+              }
               setShowLogCall(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");

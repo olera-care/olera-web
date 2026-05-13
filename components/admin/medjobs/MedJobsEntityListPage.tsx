@@ -350,9 +350,14 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
           rowKind={callOutcomeRow.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setCallOutcomeRow(null)}
           onSubmit={async (outcome, notes, partner) => {
-            await callAction(callOutcomeRow.id, "log_call", { outcome, notes });
-            if (partner) {
-              await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
+            // R5: terminal admin overrides dispatched directly.
+            if (outcome === "mark_dnc" || outcome === "mark_no_response_closed") {
+              await callAction(callOutcomeRow.id, outcome, { notes });
+            } else {
+              await callAction(callOutcomeRow.id, "log_call", { outcome, notes });
+              if (partner) {
+                await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
+              }
             }
             setCallOutcomeRow(null);
           }}

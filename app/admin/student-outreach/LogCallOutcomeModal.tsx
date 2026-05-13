@@ -111,6 +111,25 @@ const REACHED_THEM: Outcome[] = [
   },
 ];
 
+// R5: terminal admin overrides exposed inside the Log modal so admins
+// don't context-switch to DangerZone for the two most common closeouts.
+// Parents handle these by dispatching mark_dnc / mark_no_response_closed
+// instead of log_call_outcome (see CallDueBody, MedJobsEntityListPage,
+// MedJobsTabPage dispatch sites). The choice key matches the action
+// name exactly so the parent switch is trivial.
+const OTHER_ACTIONS: Outcome[] = [
+  {
+    key: "mark_dnc",
+    label: "Stop communications",
+    blurb: "They asked us to never contact them again. Closes the row as Do Not Contact; cannot be reopened automatically.",
+  },
+  {
+    key: "mark_no_response_closed",
+    label: "Archive — no response",
+    blurb: "Cadence ran without engagement. Closes the row; will auto-revive if they reply later.",
+  },
+];
+
 export function LogCallOutcomeModal({
   organizationName,
   contactName,
@@ -208,6 +227,12 @@ export function LogCallOutcomeModal({
       <OutcomeGroup
         title="Reached them"
         outcomes={reachedThemFiltered}
+        selected={outcome}
+        onSelect={setOutcome}
+      />
+      <OutcomeGroup
+        title="Other"
+        outcomes={OTHER_ACTIONS}
         selected={outcome}
         onSelect={setOutcome}
       />

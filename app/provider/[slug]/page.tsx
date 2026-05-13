@@ -971,7 +971,7 @@ export default async function ProviderPage({
                 </div>
 
                 {/* ── Mobile Claim Status Section ── */}
-                <div className="mt-5 pt-5 pb-4 border-b border-gray-100 text-left">
+                <div className="mt-4 text-left">
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">

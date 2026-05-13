@@ -28,6 +28,7 @@ interface ResponseLead {
   age_hours: number;
   responded: boolean;
   response_time_hours: number | null;
+  provider_response: string | null; // First non-auto-reply message from provider
   cta_variant: string | null;
   nudged_at: string | null;
 }
@@ -133,6 +134,15 @@ export async function GET(req: NextRequest) {
         (1000 * 60 * 60)
       : null;
 
+    // Extract provider's response text (truncated for preview)
+    let providerResponse: string | null = null;
+    if (providerMsg?.text) {
+      providerResponse = providerMsg.text;
+      if (providerResponse.length > 80) {
+        providerResponse = providerResponse.substring(0, 77) + "...";
+      }
+    }
+
     // Apply filter
     if (filter === "awaiting" && responded) continue;
     if (filter === "responded" && !responded) continue;
@@ -173,6 +183,7 @@ export async function GET(req: NextRequest) {
       age_hours: ageHours,
       responded,
       response_time_hours: responseTimeHours ? Math.round(responseTimeHours * 10) / 10 : null,
+      provider_response: providerResponse,
       cta_variant: ctaVariant,
       nudged_at: nudgedAt,
     });

@@ -2089,6 +2089,7 @@ interface ResponseLead {
   age_hours: number;
   responded: boolean;
   response_time_hours: number | null;
+  provider_response: string | null;
   cta_variant: string | null;
   nudged_at: string | null;
 }
@@ -2316,6 +2317,7 @@ function ResponseLeadsList({
               <tr>
                 <th className="text-left px-4 py-2 font-medium text-gray-600">Family</th>
                 <th className="text-left px-4 py-2 font-medium text-gray-600">Provider</th>
+                <th className="text-left px-4 py-2 font-medium text-gray-600">Response</th>
                 <th className="text-right px-4 py-2 font-medium text-gray-600">Sent</th>
                 <th className="text-center px-4 py-2 font-medium text-gray-600 w-20">Action</th>
                 <th className="px-2 py-2 font-medium w-8" aria-label="Delete" />
@@ -2345,6 +2347,15 @@ function ResponseLeadsList({
                       </Link>
                     ) : (
                       <span className="text-gray-900">{lead.provider_name}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-600 max-w-[220px]">
+                    {lead.provider_response ? (
+                      <span className="text-xs truncate block" title={lead.provider_response}>
+                        &ldquo;{lead.provider_response}&rdquo;
+                      </span>
+                    ) : (
+                      <span className="text-gray-300 text-xs">—</span>
                     )}
                   </td>
                   <td className="px-4 py-2.5 text-right text-gray-500 whitespace-nowrap">

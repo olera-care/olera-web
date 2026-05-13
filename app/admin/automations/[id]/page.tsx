@@ -231,10 +231,12 @@ export default function AutomationDetailPage() {
   useEffect(() => {
     if (!id || !previewType) return;
     setPreview("loading");
+    let cancelled = false;
     fetch(`/api/admin/automations/${id}/preview?type=${encodeURIComponent(previewType)}`)
       .then((r) => (r.ok ? r.json() : r.status === 404 ? Promise.resolve("none") : Promise.reject(new Error())))
-      .then((d) => setPreview(d === "none" ? "none" : (d as PreviewResponse)))
-      .catch(() => setPreview("none"));
+      .then((d) => { if (!cancelled) setPreview(d === "none" ? "none" : (d as PreviewResponse)); })
+      .catch(() => { if (!cancelled) setPreview("none"); });
+    return () => { cancelled = true; };
   }, [id, previewType]);
 
   useEffect(() => {

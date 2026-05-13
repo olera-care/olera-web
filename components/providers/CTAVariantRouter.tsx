@@ -5,8 +5,9 @@ import { useCTAVariant, isCTAPreviewMode } from "@/hooks/use-cta-variant";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
 import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
-import { CompareCard } from "@/components/providers/cta-variants";
+import { CompareCard, GuideCard } from "@/components/providers/cta-variants";
 import MobileStickyCompare from "@/components/providers/MobileStickyCompare";
+import MobileStickyGuide from "@/components/providers/MobileStickyGuide";
 import type { CompareProvider } from "@/components/providers/CompareBottomSheet";
 
 // Props shared by both routers — mirrors ConnectionCardWithRedirect's interface.
@@ -140,6 +141,21 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
           ctaPreviewMode={isPreview}
         />
       );
+    case "guide":
+      return (
+        <GuideCard
+          providerId={providerId}
+          providerName={providerName}
+          providerSlug={providerSlug}
+          providerCategory={providerCategory}
+          providerCity={providerCity}
+          providerState={providerState}
+          providerImage={providerImage}
+          priceRange={priceRange}
+          ctaVariant={variant}
+          ctaPreviewMode={isPreview}
+        />
+      );
     case "legacy":
     default:
       return (
@@ -238,6 +254,19 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           services={careTypes}
           highlights={highlights}
           similarProviders={similarProviders}
+          ctaVariant={variant}
+          ctaPreviewMode={isPreview}
+        />
+      );
+    case "guide":
+      return (
+        <MobileStickyGuide
+          providerName={providerName}
+          providerId={providerId}
+          providerSlug={providerSlug}
+          providerCity={providerCity}
+          providerState={providerState}
+          providerImage={providerImage}
           ctaVariant={variant}
           ctaPreviewMode={isPreview}
         />

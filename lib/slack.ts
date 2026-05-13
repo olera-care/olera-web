@@ -1338,3 +1338,45 @@ export function slackCompareCtaConverted(opts: {
     ],
   };
 }
+
+/**
+ * Guide CTA conversion — fires when a guest user enters their email
+ * to download the senior care guide PDF. Single provider focus.
+ * This is the conversion event for the Guide CTA variant.
+ */
+export function slackGuideCtaConverted(opts: {
+  email: string;
+  providerName: string;
+  providerSlug?: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+  return {
+    text: `Guide CTA Conversion: ${opts.email} downloaded guide on ${opts.providerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "📄 Guide CTA Conversion", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Email:*\n${opts.email}` },
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Source:*\nGuide CTA` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: opts.providerSlug
+              ? `<${siteUrl}/provider/${opts.providerSlug}|View Provider> • <${siteUrl}/admin/activity?actor=families|View Activity>`
+              : `<${siteUrl}/admin/activity?actor=families|View Activity>`,
+          },
+        ],
+      },
+    ],
+  };
+}

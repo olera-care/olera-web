@@ -17,6 +17,8 @@ export function ctaVariantLabel(variant: CTAVariant): string {
       return "Legacy CTA";
     case "compare":
       return "Compare";
+    case "guide":
+      return "Guide";
   }
 }
 
@@ -31,5 +33,7 @@ export function ctaVariantSubLabel(variant: CTAVariant): string {
       return "Current CTA design";
     case "compare":
       return "Compare with nearby providers";
+    case "guide":
+      return "PDF guide download";
   }
 }

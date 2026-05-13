@@ -33,7 +33,9 @@ interface ResponseLead {
   family_email: string | null;
   family_phone: string | null;
   family_completeness: ProfileCompleteness;
-  family_nudged_at: string | null;
+  family_is_published: boolean; // care_post.status === "active"
+  family_nudged_at: string | null; // Nudged to complete profile
+  family_publish_nudged_at: string | null; // Nudged to publish profile
   provider_id: string; // Profile UUID for linking to /admin/directory/[providerId]
   provider_name: string;
   provider_email: string | null;
@@ -206,9 +208,10 @@ export async function GET(req: NextRequest) {
 
     const ageHours = (Date.now() - new Date(conn.created_at).getTime()) / (1000 * 60 * 60);
 
-    // Parse nudge timestamps (separate for family and provider)
+    // Parse nudge timestamps (separate for family profile, family publish, and provider)
     const providerNudgedAt = (meta.nudged_at as string) || null;
     const familyNudgedAt = (meta.family_nudged_at as string) || null;
+    const familyPublishNudgedAt = (meta.family_publish_nudged_at as string) || null;
 
     // Calculate profile completeness for both parties
     const familyCompleteness = conn.from_profile
@@ -219,6 +222,11 @@ export async function GET(req: NextRequest) {
       ? calculateProviderCompleteness(conn.to_profile)
       : { percentage: 0, missingFields: [] };
 
+    // Check if family profile is published (care_post.status === "active")
+    const familyMeta = (conn.from_profile?.metadata as Record<string, unknown>) ?? {};
+    const carePost = familyMeta.care_post as { status?: string } | undefined;
+    const familyIsPublished = carePost?.status === "active";
+
     allLeads.push({
       connection_id: conn.id,
       family_id: conn.from_profile_id || "",
@@ -226,7 +234,9 @@ export async function GET(req: NextRequest) {
       family_email: conn.from_profile?.email || null,
       family_phone: conn.from_profile?.phone || null,
       family_completeness: familyCompleteness,
+      family_is_published: familyIsPublished,
       family_nudged_at: familyNudgedAt,
+      family_publish_nudged_at: familyPublishNudgedAt,
       provider_id: conn.to_profile_id || "",
       provider_name: conn.to_profile?.display_name || "Unknown",
       provider_email: conn.to_profile?.email || null,

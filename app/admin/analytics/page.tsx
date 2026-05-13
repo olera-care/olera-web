@@ -2311,7 +2311,9 @@ interface ResponseLead {
   family_email: string | null;
   family_phone: string | null;
   family_completeness: ProfileCompleteness;
+  family_is_published: boolean;
   family_nudged_at: string | null;
+  family_publish_nudged_at: string | null;
   // Provider info
   provider_id: string;
   provider_name: string;
@@ -2346,10 +2348,11 @@ function ResponseLeadsList({
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Nudge state: tracks which party (family/provider) is being nudged for which connection
+  // Nudge state: tracks which party (family/provider/familyPublish) is being nudged for which connection
   const [nudgingProvider, setNudgingProvider] = useState<string | null>(null);
   const [nudgingFamily, setNudgingFamily] = useState<string | null>(null);
-  const [nudgeSuccess, setNudgeSuccess] = useState<{ id: string; type: "family" | "provider" } | null>(null);
+  const [nudgingFamilyPublish, setNudgingFamilyPublish] = useState<string | null>(null);
+  const [nudgeSuccess, setNudgeSuccess] = useState<{ id: string; type: "family" | "provider" | "familyPublish" } | null>(null);
   const [nudgeError, setNudgeError] = useState<string | null>(null);
   // Delete state
   const [pendingDelete, setPendingDelete] = useState<ResponseLead | null>(null);
@@ -2484,6 +2487,45 @@ function ResponseLeadsList({
       timeoutRefs.current.add(errorTimeout);
     } finally {
       setNudgingFamily(null);
+    }
+  }, []);
+
+  // Nudge family to publish their profile (when complete but not published)
+  const handleNudgeFamilyPublish = useCallback(async (connectionId: string, familyId: string) => {
+    setNudgingFamilyPublish(connectionId);
+    setNudgeError(null);
+    setNudgeSuccess(null);
+
+    try {
+      const res = await fetch("/api/admin/nudge-family-publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection_id: connectionId, family_profile_id: familyId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send nudge");
+      }
+
+      setNudgeSuccess({ id: connectionId, type: "familyPublish" });
+      // Update local state to show nudged indicator
+      const nudgedAt = new Date().toISOString();
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.connection_id === connectionId ? { ...l, family_publish_nudged_at: nudgedAt } : l
+        )
+      );
+      // Clear "Sent" message after 3 seconds
+      const successTimeout = setTimeout(() => setNudgeSuccess(null), 3000);
+      timeoutRefs.current.add(successTimeout);
+    } catch (err) {
+      setNudgeError(err instanceof Error ? err.message : "Failed to send nudge");
+      const errorTimeout = setTimeout(() => setNudgeError(null), 5000);
+      timeoutRefs.current.add(errorTimeout);
+    } finally {
+      setNudgingFamilyPublish(null);
     }
   }, []);
 
@@ -2673,6 +2715,7 @@ function ResponseLeadsList({
                 const familyEmailSuccess = emailAddSuccess?.id === lead.connection_id && emailAddSuccess.type === "family";
                 const providerEmailSuccess = emailAddSuccess?.id === lead.connection_id && emailAddSuccess.type === "provider";
                 const familyNudgeSuccess = nudgeSuccess?.id === lead.connection_id && nudgeSuccess.type === "family";
+                const familyPublishNudgeSuccess = nudgeSuccess?.id === lead.connection_id && nudgeSuccess.type === "familyPublish";
                 const providerNudgeSuccess = nudgeSuccess?.id === lead.connection_id && nudgeSuccess.type === "provider";
 
                 return (
@@ -2788,6 +2831,29 @@ function ResponseLeadsList({
                                 <span className="text-[10px] text-gray-400">
                                   {formatLeadAge(
                                     (Date.now() - new Date(lead.family_nudged_at).getTime()) / (1000 * 60 * 60)
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          ) : !lead.family_is_published ? (
+                            <div className="flex items-center gap-2">
+                              {familyPublishNudgeSuccess ? (
+                                <span className="text-[11px] text-emerald-600">Sent</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleNudgeFamilyPublish(lead.connection_id, lead.family_id)}
+                                  disabled={nudgingFamilyPublish === lead.connection_id}
+                                  className="text-[11px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 disabled:opacity-50"
+                                  title="Nudge family to publish profile"
+                                >
+                                  {nudgingFamilyPublish === lead.connection_id ? "..." : "Publish"}
+                                </button>
+                              )}
+                              {lead.family_publish_nudged_at && (
+                                <span className="text-[10px] text-gray-400">
+                                  {formatLeadAge(
+                                    (Date.now() - new Date(lead.family_publish_nudged_at).getTime()) / (1000 * 60 * 60)
                                   )}
                                 </span>
                               )}

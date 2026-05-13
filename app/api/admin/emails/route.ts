@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search")?.trim() || "";
+    const recipientExact = searchParams.get("recipient")?.trim() || "";
     const emailType = searchParams.get("email_type");
     const recipientType = searchParams.get("recipient_type");
     const status = searchParams.get("status");
@@ -46,7 +47,9 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (search) {
+    if (recipientExact) {
+      query = query.eq("recipient", recipientExact);
+    } else if (search) {
       query = query.ilike("recipient", `%${search}%`);
     }
     if (emailType) {

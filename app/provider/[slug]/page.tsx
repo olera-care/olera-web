@@ -1355,7 +1355,7 @@ export default async function ProviderPage({
                 providerName={profile.display_name}
                 providerSlug={profile.slug}
                 priceRange={priceRange}
-                reviewCount={reviewCount}
+                reviewCount={googleReviewsData?.review_count ?? reviewCount}
                 phone={profile.phone}
                 acceptedPayments={acceptedPayments}
                 careTypes={profile.care_types ?? []}
@@ -1366,7 +1366,7 @@ export default async function ProviderPage({
                 providerCity={profile.city}
                 providerState={profile.state}
                 providerImage={images[0] || null}
-                rating={rating}
+                rating={googleReviewsData?.rating ?? rating}
                 highlights={highlights.map((h) => h.label)}
                 similarProviders={similarProviders.providers.slice(0, 2).map((p) => ({
                   id: p.id,
@@ -1413,7 +1413,7 @@ export default async function ProviderPage({
         priceRange={priceRange}
         providerId={profile.id}
         providerSlug={profile.slug}
-        reviewCount={reviewCount}
+        reviewCount={googleReviewsData?.review_count ?? reviewCount}
         phone={profile.phone}
         acceptedPayments={acceptedPayments}
         careTypes={profile.care_types ?? []}
@@ -1421,7 +1421,7 @@ export default async function ProviderPage({
         providerCity={profile.city}
         providerState={profile.state}
         providerImage={images[0] || null}
-        rating={rating}
+        rating={googleReviewsData?.rating ?? rating}
         highlights={highlights.map((h) => h.label)}
         similarProviders={similarProviders.providers.slice(0, 2).map((p) => ({
           id: p.id,

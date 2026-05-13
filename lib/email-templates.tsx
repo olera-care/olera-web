@@ -1442,3 +1442,45 @@ export function verificationRejectedEmail(opts: {
     </p>
   `);
 }
+
+/**
+ * Nudge email sent by admin to remind a provider about an unanswered lead.
+ * Similar to connectionRequestEmail but framed as a reminder.
+ */
+export function providerNudgeEmail(opts: {
+  providerName: string;
+  familyName: string;
+  messagePreview: string | null;
+  daysSinceInquiry: number;
+  viewUrl: string;
+  providerSlug?: string;
+}): string {
+  const daysText =
+    opts.daysSinceInquiry === 1
+      ? "1 day"
+      : opts.daysSinceInquiry < 1
+        ? "less than a day"
+        : `${opts.daysSinceInquiry} days`;
+
+  const messageBlock = opts.messagePreview
+    ? `<div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+        <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${opts.messagePreview}"</p>
+      </div>`
+    : "";
+
+  return layout(
+    `
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family is waiting to hear from you</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+      <strong>${firstName(opts.familyName)}</strong> reached out to ${opts.providerName} ${daysText} ago and hasn't received a response yet.
+    </p>
+    ${messageBlock}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      A timely response makes all the difference for families navigating care decisions. Even a brief acknowledgment helps families feel supported.
+    </p>
+    <div>${button("View & Respond", opts.viewUrl)}</div>
+    ${offRampBlock(opts.providerSlug)}
+  `,
+    `${firstName(opts.familyName)} is waiting for a response from ${opts.providerName}`
+  );
+}

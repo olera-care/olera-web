@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import PulseHeader from "@/components/admin/PulseHeader";
@@ -126,6 +126,35 @@ interface CTAFunnelByVariant {
   unassigned: CTAFunnel;
 }
 
+// Provider response rate tracking — closes the loop on CTA effectiveness
+interface ProviderResponseMetrics {
+  total_leads: number;
+  responded_leads: number;
+  response_rate_percent: number;
+  median_response_time_hours: number | null;
+  awaiting_response_count: number;
+}
+
+interface ProviderResponseByVariant {
+  legacy: ProviderResponseMetrics;
+  compare: ProviderResponseMetrics;
+  unassigned: ProviderResponseMetrics;
+}
+
+interface AwaitingResponseLead {
+  connection_id: string;
+  family_name: string;
+  provider_name: string;
+  provider_slug: string;
+  created_at: string;
+  age_hours: number;
+  signals: {
+    email_clicked: boolean;
+    lead_opened: boolean;
+    contact_revealed: boolean;
+  };
+}
+
 interface ReferrerBreakdown {
   ai_chat: number;
   search: number;
@@ -165,6 +194,9 @@ interface SummaryResponse {
     cta_funnel_by_variant: CTAFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
     entry_source_breakdown: EntrySourceBreakdown;
+    provider_response: ProviderResponseMetrics;
+    provider_response_by_variant: ProviderResponseByVariant;
+    awaiting_response: AwaitingResponseLead[];
   };
   prior: {
     counts: WindowedCounts;
@@ -179,6 +211,9 @@ interface SummaryResponse {
     cta_funnel_by_variant: CTAFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
     entry_source_breakdown: EntrySourceBreakdown;
+    provider_response: ProviderResponseMetrics;
+    provider_response_by_variant: ProviderResponseByVariant;
+    awaiting_response: AwaitingResponseLead[];
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -326,6 +361,15 @@ export default function AdminAnalyticsPage() {
         loading={loading && !!summary}
       >
         <CTAVariantsCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Provider Response Rates"
+        storageKey="providerResponseRates"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <ProviderResponseCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -1843,6 +1887,620 @@ function CTAVariantSplit({
       )}
     </div>
   );
+}
+
+// Provider Response Rates — tracks whether providers respond to leads generated
+// by CTAs, closing the loop: Impression → Click → Lead → Provider Response.
+function ProviderResponseCard({
+  summary,
+  loading,
+  range,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+  range: DateRangeValue;
+}) {
+  const { from: dateFrom, to: dateTo } = resolveRange(range);
+
+  if (loading && !summary) {
+    return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
+  }
+  if (!summary) return null;
+
+  const r = summary.windowed.provider_response;
+  const pr = summary.prior?.provider_response ?? null;
+  const byVariant = summary.windowed.provider_response_by_variant;
+
+  return (
+    <>
+      <p className="text-xs text-gray-500 mb-5">
+        Provider response metrics {rangeLabel(range).toLowerCase()} —
+        tracks whether providers reply to family leads.
+      </p>
+
+      {/* Top-level stats */}
+      <div className="grid grid-cols-3 gap-x-5 gap-y-4 mb-6">
+        <PercentStat
+          label="Response Rate"
+          value={r.response_rate_percent}
+          prior={pr?.response_rate_percent ?? null}
+          tooltip="Percentage of leads where provider sent at least one message."
+        />
+        <ResponseTimeStat
+          label="Median Response Time"
+          hours={r.median_response_time_hours}
+          priorHours={pr?.median_response_time_hours ?? null}
+          tooltip="Median hours from lead creation to first provider message."
+        />
+        <Stat
+          label="Awaiting Response"
+          value={r.awaiting_response_count}
+          prior={pr?.awaiting_response_count ?? null}
+          tooltip="Leads with no provider reply yet."
+        />
+      </div>
+
+      {/* By variant table */}
+      <ProviderResponseVariantSplit byVariant={byVariant} />
+
+      {/* Full lead list with filters and pagination */}
+      <ResponseLeadsList dateFrom={dateFrom} dateTo={dateTo} />
+    </>
+  );
+}
+
+function PercentStat({
+  label,
+  value,
+  prior,
+  tooltip,
+}: {
+  label: string;
+  value: number;
+  prior: number | null;
+  tooltip: string;
+}) {
+  const animated = useAnimatedCount(value, 600);
+  const isZero = value === 0;
+  const delta = computeDelta(value, prior);
+
+  return (
+    <div title={tooltip} className={`cursor-default ${isZero ? "opacity-50" : ""}`}>
+      <div
+        className={`text-[26px] font-semibold tabular-nums leading-none ${
+          isZero ? "text-gray-400 font-medium" : "text-gray-900"
+        }`}
+      >
+        {animated}%
+      </div>
+      <div className="text-xs text-gray-500 mt-1.5 leading-tight">{label}</div>
+      <DeltaLine delta={delta} />
+    </div>
+  );
+}
+
+function ResponseTimeStat({
+  label,
+  hours,
+  priorHours,
+  tooltip,
+}: {
+  label: string;
+  hours: number | null;
+  priorHours: number | null;
+  tooltip: string;
+}) {
+  const displayValue = hours != null ? `${hours.toFixed(1)} hrs` : "—";
+  const isZero = hours === null;
+
+  const delta = (() => {
+    if (priorHours === null || hours === null) return { state: "noPrior" as const, pctText: "" };
+    if (priorHours === 0 && hours === 0) return { state: "flat" as const, pctText: "no change" };
+    if (priorHours === 0 && hours > 0) return { state: "newSignal" as const, pctText: "new" };
+    const pct = ((hours - priorHours) / priorHours) * 100;
+    const rounded = Math.round(pct);
+    if (Math.abs(rounded) < 1) return { state: "flat" as const, pctText: "flat" };
+    // For response time, lower is better, so we flip the direction
+    return {
+      state: (rounded < 0 ? "up" : "down") as "up" | "down",
+      pctText: `${rounded < 0 ? "↓" : "↑"} ${Math.abs(rounded)}%`,
+    };
+  })();
+
+  return (
+    <div title={tooltip} className={`cursor-default ${isZero ? "opacity-50" : ""}`}>
+      <div
+        className={`text-[26px] font-semibold tabular-nums leading-none ${
+          isZero ? "text-gray-400 font-medium" : "text-gray-900"
+        }`}
+      >
+        {displayValue}
+      </div>
+      <div className="text-xs text-gray-500 mt-1.5 leading-tight">{label}</div>
+      <DeltaLine delta={delta} />
+    </div>
+  );
+}
+
+function ProviderResponseVariantSplit({
+  byVariant,
+}: {
+  byVariant: ProviderResponseByVariant;
+}) {
+  const arms: Array<{ key: keyof ProviderResponseByVariant; label: string }> = [
+    { key: "legacy", label: "Legacy CTA" },
+    { key: "compare", label: "Compare CTA" },
+  ];
+
+  return (
+    <div className="mt-6 pt-5 border-t border-gray-100">
+      <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-3">
+        By CTA Variant
+      </div>
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="text-left px-4 py-2 font-medium text-gray-600">Variant</th>
+              <th className="text-right px-4 py-2 font-medium text-gray-600">Leads</th>
+              <th className="text-right px-4 py-2 font-medium text-gray-600">Responded</th>
+              <th className="text-right px-4 py-2 font-medium text-gray-600">Rate</th>
+              <th className="text-right px-4 py-2 font-medium text-gray-600">Median Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {arms.map(({ key, label }) => {
+              const v = byVariant[key];
+              return (
+                <tr key={key} className="border-b border-gray-100 last:border-0">
+                  <td className="px-4 py-2.5 font-medium text-gray-900">{label}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{v.total_leads}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{v.responded_leads}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums font-medium">
+                    {v.response_rate_percent}%
+                  </td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-gray-600">
+                    {v.median_response_time_hours != null
+                      ? `${v.median_response_time_hours.toFixed(1)} hrs`
+                      : "—"}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ResponseLeadsList — paginated list of leads with filters and nudge functionality.
+// Replaces the old static AwaitingResponseList with a full-featured drill-in.
+type ResponseLeadFilter = "all" | "awaiting" | "responded";
+
+interface ResponseLead {
+  connection_id: string;
+  family_name: string;
+  family_email: string | null;
+  provider_name: string;
+  provider_slug: string;
+  message_preview: string;
+  created_at: string;
+  age_hours: number;
+  responded: boolean;
+  response_time_hours: number | null;
+  provider_response: string | null;
+  cta_variant: string | null;
+  nudged_at: string | null;
+}
+
+const PAGE_SIZE = 50;
+
+function ResponseLeadsList({
+  dateFrom,
+  dateTo,
+}: {
+  dateFrom: string | null;
+  dateTo: string | null;
+}) {
+  const [filter, setFilter] = useState<ResponseLeadFilter>("awaiting");
+  const [leads, setLeads] = useState<ResponseLead[]>([]);
+  const [total, setTotal] = useState<number | null>(null);
+  const [truncated, setTruncated] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [nudging, setNudging] = useState<string | null>(null);
+  const [nudgeSuccess, setNudgeSuccess] = useState<string | null>(null);
+  const [nudgeError, setNudgeError] = useState<string | null>(null);
+  // Delete state
+  const [pendingDelete, setPendingDelete] = useState<ResponseLead | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // Track timeout IDs for cleanup on unmount
+  const timeoutRefs = useRef<Set<NodeJS.Timeout>>(new Set());
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    const refs = timeoutRefs.current;
+    return () => {
+      refs.forEach((id) => clearTimeout(id));
+      refs.clear();
+    };
+  }, []);
+
+  const fetchPage = useCallback(
+    async (offset: number, append: boolean) => {
+      const isInitial = !append;
+      if (isInitial) setLoading(true);
+      else setLoadingMore(true);
+      setError(null);
+
+      try {
+        const params = new URLSearchParams();
+        if (dateFrom) params.set("date_from", dateFrom);
+        if (dateTo) params.set("date_to", dateTo);
+        params.set("filter", filter);
+        params.set("limit", String(PAGE_SIZE));
+        params.set("offset", String(offset));
+
+        const res = await fetch(`/api/admin/analytics/response-leads?${params.toString()}`);
+        if (!res.ok) throw new Error("fetch failed");
+        const data: { total: number; leads: ResponseLead[]; truncated?: boolean } = await res.json();
+        setTotal(data.total);
+        setTruncated(data.truncated ?? false);
+        setLeads((prev) => (append ? [...prev, ...data.leads] : data.leads));
+      } catch {
+        setError("Couldn't load leads. Try again.");
+      } finally {
+        if (isInitial) setLoading(false);
+        else setLoadingMore(false);
+      }
+    },
+    [dateFrom, dateTo, filter]
+  );
+
+  useEffect(() => {
+    fetchPage(0, false);
+  }, [fetchPage]);
+
+  const handleNudge = useCallback(async (connectionId: string) => {
+    setNudging(connectionId);
+    setNudgeError(null);
+    setNudgeSuccess(null);
+
+    try {
+      const res = await fetch("/api/admin/send-nudge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection_id: connectionId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send nudge");
+      }
+
+      setNudgeSuccess(connectionId);
+      // Update local state to show nudged indicator
+      const nudgedAt = new Date().toISOString();
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.connection_id === connectionId ? { ...l, nudged_at: nudgedAt } : l
+        )
+      );
+      // Clear "Sent" message after 3 seconds (will show "Nudged" after)
+      const successTimeout = setTimeout(() => setNudgeSuccess(null), 3000);
+      timeoutRefs.current.add(successTimeout);
+    } catch (err) {
+      setNudgeError(err instanceof Error ? err.message : "Failed to send nudge");
+      const errorTimeout = setTimeout(() => setNudgeError(null), 5000);
+      timeoutRefs.current.add(errorTimeout);
+    } finally {
+      setNudging(null);
+    }
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/admin/analytics/response-leads", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection_id: pendingDelete.connection_id }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || `Delete failed (${res.status})`);
+      }
+      // Remove the deleted row locally
+      const removedId = pendingDelete.connection_id;
+      setLeads((prev) => prev.filter((l) => l.connection_id !== removedId));
+      setTotal((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
+      setPendingDelete(null);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
+  }, [pendingDelete]);
+
+  const hasMore = total !== null && leads.length < total;
+
+  const FILTER_CHIPS: Array<{ key: ResponseLeadFilter; label: string }> = [
+    { key: "all", label: "All" },
+    { key: "awaiting", label: "Awaiting" },
+    { key: "responded", label: "Responded" },
+  ];
+
+  return (
+    <div className="mt-6 pt-5 border-t border-gray-100">
+      {/* Header with filter chips */}
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        <div>
+          <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
+            Leads
+          </div>
+          {total !== null && (
+            <div className="text-xs text-gray-500 mt-0.5">
+              Showing {leads.length} of {total}
+              {filter !== "all" && (
+                <span className="text-gray-400">
+                  {" "}
+                  · filtered to {filter === "awaiting" ? "awaiting response" : "responded"}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {FILTER_CHIPS.map(({ key, label }) => {
+            const active = filter === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFilter(key)}
+                className={`text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors ${
+                  active
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Truncation warning */}
+      {truncated && (
+        <div className="mb-3 px-3 py-2 bg-amber-50 border border-amber-100 rounded-lg text-xs text-amber-700">
+          Results may be incomplete. Only the most recent 5,000 connections are analyzed.
+        </div>
+      )}
+
+      {/* Error/success messages */}
+      {nudgeError && (
+        <div className="mb-3 px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
+          {nudgeError}
+        </div>
+      )}
+
+      {/* Table */}
+      {loading && leads.length === 0 ? (
+        <div className="h-32 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
+      ) : error ? (
+        <div className="px-5 py-6 text-center text-sm text-red-600 border border-gray-200 rounded-lg">
+          {error}
+          <button
+            type="button"
+            onClick={() => fetchPage(0, false)}
+            className="ml-3 underline underline-offset-2 hover:text-red-800"
+          >
+            Retry
+          </button>
+        </div>
+      ) : leads.length === 0 ? (
+        <div className="px-5 py-10 text-center text-sm text-gray-400 border border-gray-200 rounded-lg">
+          No leads in this window.
+        </div>
+      ) : (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="text-left px-4 py-2 font-medium text-gray-600">Family</th>
+                <th className="text-left px-4 py-2 font-medium text-gray-600">Provider</th>
+                <th className="text-left px-4 py-2 font-medium text-gray-600">Response</th>
+                <th className="text-right px-4 py-2 font-medium text-gray-600">Sent</th>
+                <th className="text-center px-4 py-2 font-medium text-gray-600 w-20">Action</th>
+                <th className="px-2 py-2 font-medium w-8" aria-label="Delete" />
+              </tr>
+            </thead>
+            <tbody>
+              {leads.map((lead) => (
+                <tr
+                  key={lead.connection_id}
+                  className="group border-b border-gray-100 last:border-0 hover:bg-gray-50/40"
+                >
+                  <td className="px-4 py-2.5">
+                    <div className="text-gray-900">{lead.family_name}</div>
+                    {lead.family_email && (
+                      <div className="text-[11px] text-gray-400 truncate max-w-[180px]" title={lead.family_email}>
+                        {lead.family_email}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {lead.provider_slug ? (
+                      <Link
+                        href={`/provider/${lead.provider_slug}`}
+                        className="text-emerald-700 hover:text-emerald-800"
+                      >
+                        {lead.provider_name}
+                      </Link>
+                    ) : (
+                      <span className="text-gray-900">{lead.provider_name}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-600 max-w-[220px]">
+                    {lead.provider_response ? (
+                      <span className="text-xs truncate block" title={lead.provider_response}>
+                        &ldquo;{lead.provider_response.length > 60
+                          ? lead.provider_response.substring(0, 57) + "..."
+                          : lead.provider_response}&rdquo;
+                      </span>
+                    ) : (
+                      <span className="text-gray-300 text-xs">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-right text-gray-500 whitespace-nowrap">
+                    {formatLeadAge(lead.age_hours)}
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    {lead.responded ? (
+                      <span className="text-xs text-emerald-600">Replied</span>
+                    ) : (
+                      <div className="flex flex-col items-center gap-0.5">
+                        {nudgeSuccess === lead.connection_id ? (
+                          <span className="text-xs text-emerald-600">Sent</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleNudge(lead.connection_id)}
+                            disabled={nudging === lead.connection_id}
+                            className="text-xs text-amber-600 hover:text-amber-700 disabled:opacity-50"
+                            title={lead.nudged_at ? "Send another reminder" : "Send reminder to provider"}
+                          >
+                            {nudging === lead.connection_id ? "..." : "Nudge"}
+                          </button>
+                        )}
+                        {lead.nudged_at && (
+                          <span className="text-[10px] text-gray-400">
+                            {formatLeadAge(
+                              (Date.now() - new Date(lead.nudged_at).getTime()) / (1000 * 60 * 60)
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-2 py-2.5 w-8 text-right">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteError(null);
+                        setPendingDelete(lead);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
+                      aria-label="Delete this lead"
+                      title="Delete this lead"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Load more */}
+      {hasMore && !loading && (
+        <div className="mt-3 text-center">
+          <button
+            type="button"
+            onClick={() => fetchPage(leads.length, true)}
+            disabled={loadingMore}
+            className="text-xs text-gray-600 hover:text-gray-900 underline underline-offset-2 disabled:opacity-50"
+          >
+            {loadingMore ? "Loading..." : `Load ${Math.min(PAGE_SIZE, total! - leads.length)} more`}
+          </button>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {pendingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-lead-title"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3
+              id="delete-lead-title"
+              className="text-base font-semibold text-gray-900 mb-3"
+            >
+              Delete this lead?
+            </h3>
+            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Family</dt>
+                <dd className="text-gray-900">
+                  {pendingDelete.family_name}
+                  {pendingDelete.family_email && (
+                    <span className="block text-xs text-gray-500">{pendingDelete.family_email}</span>
+                  )}
+                </dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Provider</dt>
+                <dd className="text-gray-900">{pendingDelete.provider_name}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Sent</dt>
+                <dd className="text-gray-900">{formatLeadAge(pendingDelete.age_hours)}</dd>
+              </div>
+            </dl>
+            <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
+              This will permanently delete the connection record. This cannot be undone.
+            </p>
+            {deleteError && (
+              <p className="text-[12px] text-red-600 mb-3">{deleteError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingDelete(null);
+                  setDeleteError(null);
+                }}
+                disabled={deleting}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function formatLeadAge(hours: number): string {
+  if (hours < 24) return `${Math.round(hours)}h ago`;
+  const days = Math.round(hours / 24);
+  return `${days}d ago`;
 }
 
 // Submissions bucketed by entry source. The benefits funnel above is

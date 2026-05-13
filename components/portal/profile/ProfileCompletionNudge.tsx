@@ -72,51 +72,35 @@ export default function ProfileCompletionNudge({
   const firstName = providerName.split(" ")[0] || providerName;
 
   return (
-    <div className="mx-4 sm:mx-6 mt-4 mb-2">
-      <div className="flex items-start gap-3 px-4 py-3.5 bg-primary-50/60 border border-primary-100/60 rounded-xl">
-        {/* Sparkle icon */}
-        <div className="shrink-0 w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-          <svg
-            className="w-4 h-4 text-primary-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
+    <div className="px-4 sm:px-6 py-3">
+      {/* Desktop: single row | Mobile: text row + buttons row */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4">
+        {/* Text */}
+        <p className="text-[14px] text-gray-600 flex-1">
+          <span className="font-medium text-gray-900">Help {firstName} respond faster</span>
+          <span className="hidden sm:inline"> — </span>
+          <span className="block sm:inline">complete your profile</span>
+        </p>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={handleComplete}
+            className="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-[13px] font-semibold rounded-full transition-colors"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"
-            />
-          </svg>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <p className="text-[15px] font-medium text-gray-900">
-            Help {firstName} respond faster
-          </p>
-          <p className="text-[13px] text-gray-500 mt-0.5">
-            Complete your profile so providers can learn about your care needs
-          </p>
-
-          {/* Actions */}
-          <div className="flex items-center gap-3 mt-3">
-            <button
-              type="button"
-              onClick={handleComplete}
-              className="px-4 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-[13px] font-semibold rounded-full transition-colors"
-            >
-              Complete Profile
-            </button>
-            <button
-              type="button"
-              onClick={handleDismiss}
-              className="text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              Maybe Later
-            </button>
-          </div>
+            Complete Profile
+          </button>
+          <button
+            type="button"
+            onClick={handleDismiss}
+            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            aria-label="Dismiss"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>

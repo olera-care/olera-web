@@ -111,26 +111,14 @@ const SCHEDULE_LINK_SHORT = `[share more on a quick call](${PLACEHOLDER.calendly
 const GRAIZE_INTRO = `My name is Graize Belandres, and I'm a research assistant working with Dr. Logan DuBose, MD, MBA, an NIH-funded researcher and Texas A&M College of Medicine alum.`;
 
 /**
- * Reliability/accountability sentence used after the bold program
- * explanation. v9.1 Graize 05.13 audit (Item 5): tighter wording
- * that frames the students as vetted + intrinsically motivated,
- * with the operator-facing payoff stated plainly ("reliability and
- * high-quality engagement"). Avoids the slightly clinical
- * "applications depend on doing this work well" phrasing in favor
- * of language an operator can quote back to their team.
- */
-const ACCOUNTABILITY_LINE = `These students are vetted for ideal caregiver characteristics and are motivated by the desire to gain experience and recommendations — which translates into reliability and high-quality engagement with the clients they support.`;
-
-/**
  * Standard closing for intro emails. v9.1 Graize 05.13 audit
- * (Item 6): tightened CTA. Old version led with "if you'd like
- * more information before moving forward" which was wordy and
- * slightly defensive. New version states the invitation warmly,
- * signals enthusiasm to share more, then offers the two paths
- * (reply or call). Followups + finals borrow the path lines.
+ * (Item 4C): CTA crispened with an explicit "next step" framing
+ * so the recipient knows exactly what action moves things forward.
+ * Followups borrow the reply/call line without the invitation
+ * preamble.
  */
 const INTRO_CTA_LINES = [
-  `We hope you'll accept this invitation, and we'd be excited to share more. You can reply directly to this email or ${SCHEDULE_LINK_FULL}.`,
+  `We hope you'll accept this invitation. The next step is to reply directly to this email expressing interest, or ${SCHEDULE_LINK_FULL}.`,
   ``,
   `The attached information packet has the program details.`,
 ];
@@ -273,8 +261,12 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
     stakeholder_type === "dept_head" || stakeholder_type === "professor"
       ? `Dear ${PLACEHOLDER.salutation},`
       : `Hi ${PLACEHOLDER.salutation},`;
-  const subject = `${PLACEHOLDER.campus} Student Caregiver Program`;
-  const programExplanation = `**This program matches ${PLACEHOLDER.campus} pre-nursing and pre-medical students with local home care agencies for paid caregiver roles that fit alongside coursework.** Students gain direct patient-care hours, mentorship, and recommendation letters that strengthen their applications to medical, PA, and nursing school.`;
+  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiver Program`;
+  // v9.1 Graize 05.13 audit (Item 4A): "patient-care hours" framed
+  // the work too clinically for a caregiving context. "Hands-on
+  // experience working with clients" matches how home-care actually
+  // reads to operators and faculty alike.
+  const programExplanation = `**This program matches ${PLACEHOLDER.campus} pre-nursing and pre-medical students with local home care agencies for paid caregiver roles that fit alongside coursework.** Students gain hands-on experience working with clients, mentorship, and recommendation letters that strengthen their applications to medical, PA, and nursing school.`;
   const packetLine = `The attached information packet has the program details.`;
 
   switch (stakeholder_type) {
@@ -286,7 +278,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           GRAIZE_INTRO,
           ``,
-          `I came across ${PLACEHOLDER.orgName} while identifying pre-health student groups at ${PLACEHOLDER.campus} that might be interested in the ${PLACEHOLDER.campus} Student Caregiver Program.`,
+          `I came across ${PLACEHOLDER.orgName} while identifying pre-health student groups at ${PLACEHOLDER.campus} that might be interested in Olera's ${PLACEHOLDER.campus} Student Caregiver Program.`,
           ``,
           programExplanation,
           ``,
@@ -303,7 +295,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           GRAIZE_INTRO,
           ``,
-          `I came across your office while identifying pre-health advisors at ${PLACEHOLDER.campus} who might find the ${PLACEHOLDER.campus} Student Caregiver Program useful for their advisees.`,
+          `I came across your office while identifying pre-health advisors at ${PLACEHOLDER.campus} who might find Olera's ${PLACEHOLDER.campus} Student Caregiver Program useful for their advisees.`,
           ``,
           programExplanation,
           ``,
@@ -320,7 +312,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           GRAIZE_INTRO,
           ``,
-          `I came across your department while identifying pre-health programs at ${PLACEHOLDER.campus} whose students might benefit from the ${PLACEHOLDER.campus} Student Caregiver Program.`,
+          `I came across your department while identifying pre-health programs at ${PLACEHOLDER.campus} whose students might benefit from Olera's ${PLACEHOLDER.campus} Student Caregiver Program.`,
           ``,
           programExplanation,
           ``,
@@ -337,7 +329,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           GRAIZE_INTRO,
           ``,
-          `I came across your courses while identifying pre-health faculty at ${PLACEHOLDER.campus} whose students might be interested in the ${PLACEHOLDER.campus} Student Caregiver Program.`,
+          `I came across your courses while identifying pre-health faculty at ${PLACEHOLDER.campus} whose students might be interested in Olera's ${PLACEHOLDER.campus} Student Caregiver Program.`,
           ``,
           programExplanation,
           ``,
@@ -353,13 +345,13 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
 
 export function followupLightEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `${PLACEHOLDER.campus} Student Caregiver Program`,
+    subject: `Olera's ${PLACEHOLDER.campus} Student Caregiver Program`,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
       `Just following up on my note from earlier this week, in case it got buried.`,
       ``,
-      `If the ${PLACEHOLDER.campus} Student Caregiver Program could be useful for your students or advisees and you'd like more information, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
+      `If Olera's ${PLACEHOLDER.campus} Student Caregiver Program could be useful for your students or advisees and you'd like more information, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
       ``,
       `The attached information packet covers how it works.`,
     ].join("\n"),
@@ -368,11 +360,11 @@ export function followupLightEmail(_ctx: TemplateContext): EmailDraft {
 
 export function followupSocialProofEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `${PLACEHOLDER.campus} Student Caregiver Program`,
+    subject: `Olera's ${PLACEHOLDER.campus} Student Caregiver Program`,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Following up on the ${PLACEHOLDER.campus} Student Caregiver Program. Pre-health students at peer campuses are picking up paid caregiver hours alongside coursework, which is giving them clinical experience and recommendation letters that strengthen their applications to professional school.`,
+      `Following up on Olera's ${PLACEHOLDER.campus} Student Caregiver Program. Pre-health students at peer campuses are picking up paid caregiver hours alongside coursework, giving them hands-on experience and recommendation letters that strengthen their applications to professional school.`,
       ``,
       `If you'd like the program materials to share with your students or advisees, just reply and I'll send them over. Dr. DuBose is also happy to ${SCHEDULE_LINK_SHORT} if more information would help.`,
     ].join("\n"),
@@ -381,11 +373,11 @@ export function followupSocialProofEmail(_ctx: TemplateContext): EmailDraft {
 
 export function followupFinalEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `${PLACEHOLDER.campus} Student Caregiver Program`,
+    subject: `Olera's ${PLACEHOLDER.campus} Student Caregiver Program`,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Wanted to circle back one last time on the ${PLACEHOLDER.campus} Student Caregiver Program. If there's interest from your team and you'd like more information, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
+      `Wanted to circle back one last time on Olera's ${PLACEHOLDER.campus} Student Caregiver Program. If there's interest from your team and you'd like more information, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
       ``,
       `If now isn't the right time, no worries; we'll check back next term. If there's a better person at ${PLACEHOLDER.orgName} to coordinate with, we'd appreciate a redirect.`,
       ``,
@@ -398,11 +390,11 @@ export function followupFinalEmail(_ctx: TemplateContext): EmailDraft {
 
 export function postAgreedShareEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `Materials for your students: ${PLACEHOLDER.campus} Student Caregiver Program`,
+    subject: `Materials for your students: Olera's ${PLACEHOLDER.campus} Student Caregiver Program`,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Thanks for offering to share the ${PLACEHOLDER.campus} Student Caregiver Program with your students. Below is a short blurb plus a link they can use to learn more and apply.`,
+      `Thanks for offering to share Olera's ${PLACEHOLDER.campus} Student Caregiver Program with your students. Below is a short blurb plus a link they can use to learn more and apply.`,
       ``,
       `Olera connects pre-nursing and pre-medical students with paid caregiving roles at local home care agencies. Learn more and apply: [olera.care/students](${PLACEHOLDER.programUrl})`,
       ``,
@@ -416,7 +408,7 @@ export function partnerSeasonalEmail(
   season: string,
 ): EmailDraft {
   return {
-    subject: `${season} update: ${PLACEHOLDER.campus} Student Caregiver Program`,
+    subject: `${season} update: Olera's ${PLACEHOLDER.campus} Student Caregiver Program`,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
@@ -470,7 +462,7 @@ export function providerIntroEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `${PLACEHOLDER.campus} Student Caregiver Program`;
+  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiver Program`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   const leadershipPhrase =
@@ -497,15 +489,14 @@ export function providerIntroEmail(
       ``,
       groundingAndInvitation,
       ``,
-      // v9.1 Graize audit (Item 5): operational program-explanation
-      // sentence reframed to lead with what the program does
-      // ("matches X with Y to fill Z"), then names the student
-      // population. Cleaner read than the old "matches X with Y...
-      // with students interested in gaining meaningful healthcare
-      // experience" embed.
-      `**This program matches ${PLACEHOLDER.campus} pre-nursing and pre-medical students with home care agencies to fill caregiver roles, PRN shifts, and staffing needs.** These are future nurses and physicians, motivated more by mentorship, recommendation letters, and clinical experience than by compensation.`,
-      ``,
-      ACCOUNTABILITY_LINE,
+      // v9.1 Graize 05.13 audit (Item 4B): bold program explanation
+      // + student-quality sentence merged into a single paragraph.
+      // Prior version had two consecutive paragraphs ("future nurses
+      // and physicians..." + "These students are vetted...") that
+      // restated each other. New version states what the program
+      // does, then characterizes the students in one continuation
+      // sentence — no separate accountability paragraph.
+      `**This program matches ${PLACEHOLDER.campus} pre-nursing and pre-medical students with home care agencies to fill caregiver roles, PRN shifts, and support staffing needs.** These students are vetted for caregiver qualities and are motivated by hands-on experience working with clients, mentorship, and recommendation letters that strengthen their applications to medical, PA, and nursing school.`,
       ``,
       ...INTRO_CTA_LINES,
     ].join("\n"),
@@ -524,7 +515,7 @@ export function providerFollowupEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `${PLACEHOLDER.campus} Student Caregiver Program`;
+  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiver Program`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -539,7 +530,9 @@ export function providerFollowupEmail(
       // medical students" / "caregiver roles, PRN shifts, staffing
       // needs" language as Day 0 + Day 7. Kept short and light per
       // the cadence role (this is the nudge, not the pitch).
-      `If ${PLACEHOLDER.orgName} could use vetted ${PLACEHOLDER.campus} pre-nursing and pre-medical students to help fill caregiver roles, PRN shifts, and staffing needs, we'd be excited to share more. You can reply directly to this email or ${SCHEDULE_LINK_FULL}. The attached information packet covers the basics.`,
+      // v9.1 Graize 05.13 audit (Item 4D): Day 3 CTA mirrors the Day 0
+      // "next step is to..." framing so the cadence stays consistent.
+      `If ${PLACEHOLDER.orgName} could use vetted ${PLACEHOLDER.campus} pre-nursing and pre-medical students to help fill caregiver roles, PRN shifts, and support staffing needs, we'd be excited to share more. The next step is to reply directly to this email expressing interest, or ${SCHEDULE_LINK_FULL}. The attached information packet covers the basics.`,
     ].join("\n"),
   };
 }
@@ -556,7 +549,7 @@ export function providerFinalEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `${PLACEHOLDER.campus} Student Caregiver Program`;
+  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiver Program`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   const thanksLine =
@@ -568,15 +561,14 @@ export function providerFinalEmail(
     body: [
       greeting,
       ``,
-      `Wanted to circle back one more time on the ${PLACEHOLDER.campus} Student Caregiver Program.`,
+      `Wanted to circle back one more time on Olera's ${PLACEHOLDER.campus} Student Caregiver Program.`,
       ``,
-      // v9.1 Graize 05.13 audit (Item 10): aligned terminology with
-      // the Day 0 body — "vetted ${campus} pre-nursing and pre-medical
-      // students" / "caregiver roles, PRN shifts, and staffing needs"
-      // instead of the looser "student referrals". Keeps the cadence
-      // self-consistent so the agency sees the same offer described
-      // the same way at each touch.
-      `If ${PLACEHOLDER.orgName} could use vetted ${PLACEHOLDER.campus} pre-nursing and pre-medical students to help fill caregiver roles, PRN shifts, and staffing needs, you can reply directly to this email or ${SCHEDULE_LINK_FULL}.`,
+      // v9.1 Graize 05.13 audit (Items 4D + 10): Day 7 aligned with
+      // canonical Day 0 terminology ("vetted ${campus} pre-nursing
+      // and pre-medical students" / "caregiver roles, PRN shifts,
+      // support staffing needs") and the "next step is to..." CTA
+      // pattern so the whole cadence reads as one coherent ask.
+      `If ${PLACEHOLDER.orgName} could use vetted ${PLACEHOLDER.campus} pre-nursing and pre-medical students to help fill caregiver roles, PRN shifts, and support staffing needs, the next step is to reply directly to this email or ${SCHEDULE_LINK_FULL}.`,
       ``,
       `If now isn't the right time, no worries; we'll check back next term. And if there's a better person at ${PLACEHOLDER.orgName} for us to reach about caregiver hiring, we'd appreciate a quick redirect.`,
       ``,
@@ -595,7 +587,7 @@ export function callScript(ctx: TemplateContext, day: number): CallScript {
     return {
       title: "Day 0 — referenced email",
       script: [
-        `"Hi, this is ${ctx.admin_first_name ?? "Graize"} calling from Dr. Logan DuBose's office. I'm a research assistant on the ${ctx.campus_name} Student Caregiver Program."`,
+        `"Hi, this is ${ctx.admin_first_name ?? "Graize"} calling from Dr. Logan DuBose's office. I'm a research assistant on Olera's ${ctx.campus_name} Student Caregiver Program."`,
         ``,
         `"I came across ${ctx.organization_name} while we were identifying home care agencies near ${ctx.campus_name} for the program, and I wanted to reach out personally. The program matches ${ctx.campus_name} pre-health students with home care agencies to help fill caregiver roles, PRN shifts, and staffing needs."`,
       ].join("\n"),
@@ -604,7 +596,7 @@ export function callScript(ctx: TemplateContext, day: number): CallScript {
   return {
     title: `Day ${day} follow-up`,
     script: [
-      `"Hi, this is ${ctx.admin_first_name ?? "Graize"} from Dr. Logan DuBose's office, following up on prior outreach about the ${ctx.campus_name} Student Caregiver Program. Just hoping to connect with whoever handles caregiver hiring at ${ctx.organization_name}."`,
+      `"Hi, this is ${ctx.admin_first_name ?? "Graize"} from Dr. Logan DuBose's office, following up on prior outreach about Olera's ${ctx.campus_name} Student Caregiver Program. Just hoping to connect with whoever handles caregiver hiring at ${ctx.organization_name}."`,
     ].join("\n"),
   };
 }

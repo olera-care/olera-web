@@ -341,13 +341,18 @@ export function defaultCallScriptsFor(type: CadenceKey): CallScript[] {
 function defaultCallScriptForDay(type: CadenceKey, day: number): string {
   if (type === "provider") {
     if (day === 0) {
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, calling about the {campus_name} Student Caregiver Program. We just emailed {organization_name} the program details. I'm trying to make sure it reaches the right person — could you point me toward whoever handles caregiver hiring or your leadership team, or share a better email to forward it to?"`;
+      // v9.1 Graize 05.13 audit (Item 6): Day 0 purpose locked in.
+      // Confirm the email arrived, confirm it reached the right
+      // person, ask for a better leadership/hiring contact if not,
+      // and (briefly) signal that the program info + next steps
+      // are already in the email.
+      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, calling about Olera's {campus_name} Student Caregiver Program. We just emailed {organization_name} with the program information and next steps — reply with interest or schedule a quick call with Dr. DuBose. I'm trying to make sure it reached the right person. Could you point me toward whoever handles caregiver hiring or your leadership team, or share a better email to forward it to?"`;
     }
     if (day === 1) {
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, following up on yesterday's email and call about the {campus_name} Student Caregiver Program. Just want to confirm the right contact for caregiver hiring at {organization_name} — would you have a moment, or is there a better email I can forward the program details to?"`;
+      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, following up on yesterday's email and call about Olera's {campus_name} Student Caregiver Program. Just want to confirm the right contact for caregiver hiring at {organization_name} — would you have a moment, or is there a better email I can forward the program details to?"`;
     }
     if (day === 5) {
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, circling back on the {campus_name} Student Caregiver Program. Just making sure the email reached the right person at {organization_name}. Is there someone else on the team I should resend it to?"`;
+      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, circling back on Olera's {campus_name} Student Caregiver Program. Just making sure the email reached the right person at {organization_name}. Is there someone else on the team I should resend it to?"`;
     }
   }
   return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} and ask whether there's a better person to forward the program details to.`;
@@ -368,7 +373,7 @@ export function defaultCallTipsForDay(type: CadenceKey, day: number): string[] {
       return [
         "If a receptionist answers, ask for the hiring coordinator or whoever handles caregiver staffing.",
         "Confirm the best email if you reach a new contact.",
-        "Leave a voicemail if unavailable. Reference today's email from Graize and the {campus_name} Student Caregiver Program.",
+        "Leave a voicemail if unavailable. Reference today's email from Graize and Olera's {campus_name} Student Caregiver Program.",
         "Offer to resend the information packet if useful.",
       ];
     }

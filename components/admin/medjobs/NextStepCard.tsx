@@ -258,13 +258,37 @@ function ProspectBody({
   // Items reference fields in the Provider Profile section below;
   // edits auto-save on blur.
   const gc = ctx.outreach.research_data?.general_contact ?? {};
-  const generalEmail = gc.email ?? ctx.provider_business_profile?.email ?? null;
-  const generalPhone = gc.phone ?? ctx.provider_business_profile?.phone ?? null;
+  // v9.1 Graize 05.13 audit (Item 1): checklist must respect explicit
+  // deletion. Previously `gc.field ?? bp.field` used `??` which treats
+  // both undefined (never set) AND null (admin explicitly cleared) as
+  // "fall through to bp.field". When the directory carried a value,
+  // clearing the General Contact field still showed ✓ on the checklist
+  // because of the silent fallback. Now: undefined → fall back to bp;
+  // null → honor the deletion and treat as missing.
+  const generalEmail =
+    gc.email !== undefined ? gc.email : ctx.provider_business_profile?.email ?? null;
+  const generalPhone =
+    gc.phone !== undefined ? gc.phone : ctx.provider_business_profile?.phone ?? null;
+  // Same undefined-vs-null distinction for the rest of the General
+  // Contact fields. Address parts and website also honor explicit
+  // deletion so the checklist tracks reality, not a stale directory
+  // shadow.
   const generalWebsite =
-    gc.website ?? ctx.provider_business_profile?.website ?? null;
-  const street = gc.street ?? ctx.provider_business_profile?.address ?? "";
-  const cityVal = gc.city ?? ctx.provider_business_profile?.city ?? "";
-  const stateVal = gc.state ?? ctx.provider_business_profile?.state ?? "";
+    gc.website !== undefined
+      ? gc.website
+      : ctx.provider_business_profile?.website ?? null;
+  const street =
+    gc.street !== undefined
+      ? gc.street ?? ""
+      : ctx.provider_business_profile?.address ?? "";
+  const cityVal =
+    gc.city !== undefined
+      ? gc.city ?? ""
+      : ctx.provider_business_profile?.city ?? "";
+  const stateVal =
+    gc.state !== undefined
+      ? gc.state ?? ""
+      : ctx.provider_business_profile?.state ?? "";
   // v9 final: zip falls back to bp.zip (the directory has a ZIP
   // column the checklist was ignoring) so the row passes the
   // address check when the directory already carries the ZIP.
@@ -599,6 +623,19 @@ function InOutreachBody({
 
 // ── call_due ─────────────────────────────────────────────────────────────
 
+/**
+ * v9.1 Graize 05.13 audit (Item 5): Calls drawer Next Step
+ * restructured so the three actions are unmistakable:
+ *   1. CALL pill — names the step the row is on
+ *   2. Phone link — one tap to dial
+ *   3. Suggested script (collapsible) — sourced from the next
+ *      pending outreach_followup_call task's payload, which carries
+ *      the resolved script set at PreFlight time
+ *   4. Log call outcome button — the action that advances the row
+ *
+ * The script is shown as a `<details>` so it doesn't dominate the
+ * card visually, but is one click away when admin needs it.
+ */
 function CallDueBody({
   ctx,
   action,
@@ -618,20 +655,50 @@ function CallDueBody({
         .trim() || primaryContact.name
     : null;
 
+  const nextCallTask = ctx.pending_tasks
+    .filter((t) => t.task_type === "outreach_followup_call")
+    .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+  const callScript =
+    typeof nextCallTask?.payload?.script === "string"
+      ? (nextCallTask.payload.script as string)
+      : null;
+  const callDay =
+    typeof nextCallTask?.payload?.day === "number"
+      ? (nextCallTask.payload.day as number)
+      : null;
+
   return (
     <>
-      <p className="text-sm text-gray-700">
-        Call task is due. Log the outcome to advance the row.
-      </p>
+      <div className="flex items-center gap-2">
+        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+          Call
+        </span>
+        <p className="text-sm font-medium text-gray-900">
+          Next step: make the call, use the script, log the outcome.
+        </p>
+      </div>
       {primaryContact?.phone && (
-        <p className="mt-1 text-xs">
+        <p className="mt-2 text-sm">
           <a
             href={`tel:${primaryContact.phone}`}
-            className="font-medium text-emerald-700 hover:underline"
+            className="font-semibold text-emerald-700 hover:underline"
           >
             📞 {primaryContact.phone}
           </a>
+          {contactName && (
+            <span className="ml-2 text-xs text-gray-500">· {contactName}</span>
+          )}
         </p>
+      )}
+      {callScript && (
+        <details className="mt-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+          <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-gray-600">
+            {callDay != null ? `Day ${callDay} script` : "Suggested script"}
+          </summary>
+          <pre className="mt-2 whitespace-pre-wrap font-sans text-[12px] leading-relaxed text-gray-700">
+            {callScript}
+          </pre>
+        </details>
       )}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button

@@ -244,7 +244,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     flex: 1,
-    paddingRight: 8,
+    // v9.1 Graize 05.13 audit (Item 2C): wider gap between the two
+    // signature blocks so Logan's longer credential ("Director,
+    // Olera's Texas A&M Student Caregiver Program") can't bleed into
+    // Graize's photo. Was 8.
+    paddingRight: 14,
+  },
+  // v9.1 Graize 05.13 audit (Item 2C): inner text column needs an
+  // explicit flex + minWidth:0 so React-PDF wraps the credential
+  // lines inside its own sigBlock rather than overflowing into the
+  // neighboring block. Without this the text can spill rightward.
+  sigText: {
+    flex: 1,
+    minWidth: 0,
   },
   sigPhoto: {
     width: 38,
@@ -318,7 +330,7 @@ export function ProgramPdfTemplate({
               {assets.oleraLogoDataUri ? (
                 <Image src={assets.oleraLogoDataUri} style={styles.brandLogo} />
               ) : null}
-              <Text style={styles.brandWord}>olera</Text>
+              <Text style={styles.brandWord}>Olera</Text>
             </View>
             <Text style={styles.brandTag}>Student Caregiver Program</Text>
           </View>
@@ -407,18 +419,18 @@ export function ProgramPdfTemplate({
               {assets.loganPhotoDataUri ? (
                 <Image src={assets.loganPhotoDataUri} style={styles.sigPhoto} />
               ) : null}
-              <View>
+              <View style={styles.sigText}>
                 <Text style={styles.sigName}>Dr. Logan DuBose, MD, MBA</Text>
                 <Text style={styles.sigCred}>Texas A&M College of Medicine &apos;22</Text>
                 <Text style={styles.sigCred}>NIH-funded researcher</Text>
-                <Text style={styles.sigCred}>Director, Texas A&M Student Caregiver Program</Text>
+                <Text style={styles.sigCred}>Director, Olera&apos;s Texas A&M Student Caregiver Program</Text>
               </View>
             </View>
             <View style={styles.sigBlock}>
               {assets.graziePhotoDataUri ? (
                 <Image src={assets.graziePhotoDataUri} style={styles.sigPhoto} />
               ) : null}
-              <View>
+              <View style={styles.sigText}>
                 <Text style={styles.sigName}>Graize Belandres</Text>
                 <Text style={styles.sigCred}>Research Assistant to</Text>
                 <Text style={styles.sigCred}>Dr. Logan DuBose</Text>

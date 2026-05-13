@@ -54,16 +54,32 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   //   - structured address: street + city + state + valid ZIP
   // Recommended items (contact form, fax) appear in the checklist
   // but do NOT block launch — admin can ship without them.
+  // v9.1 Graize 05.13 audit (Item 1): launch gate respects explicit
+  // deletion. undefined → fall back to business_profile; null → honor
+  // the admin's removal and treat as missing (which gates launch).
+  // Same fix shipped in NextStepCard so the checklist + launch gate
+  // stay in sync.
   const gc = ctx.outreach.research_data?.general_contact ?? {};
-  const generalEmail = gc.email ?? ctx.provider_business_profile?.email ?? null;
-  const generalPhone = gc.phone ?? ctx.provider_business_profile?.phone ?? null;
-  const street = gc.street ?? ctx.provider_business_profile?.address ?? "";
-  const cityVal = gc.city ?? ctx.provider_business_profile?.city ?? "";
-  const stateVal = gc.state ?? ctx.provider_business_profile?.state ?? "";
-  // v9 final: zip falls back to bp.zip (the directory has a ZIP
-  // column the gate was ignoring) so launching isn't blocked when
-  // the directory already carries it.
-  const zipVal = gc.zip ?? ctx.provider_business_profile?.zip ?? "";
+  const generalEmail =
+    gc.email !== undefined ? gc.email : ctx.provider_business_profile?.email ?? null;
+  const generalPhone =
+    gc.phone !== undefined ? gc.phone : ctx.provider_business_profile?.phone ?? null;
+  const street =
+    gc.street !== undefined
+      ? gc.street ?? ""
+      : ctx.provider_business_profile?.address ?? "";
+  const cityVal =
+    gc.city !== undefined
+      ? gc.city ?? ""
+      : ctx.provider_business_profile?.city ?? "";
+  const stateVal =
+    gc.state !== undefined
+      ? gc.state ?? ""
+      : ctx.provider_business_profile?.state ?? "";
+  const zipVal =
+    gc.zip !== undefined
+      ? gc.zip ?? ""
+      : ctx.provider_business_profile?.zip ?? "";
 
   const hasEmail = Boolean(generalEmail?.includes("@"));
   const hasPhone = Boolean(generalPhone);

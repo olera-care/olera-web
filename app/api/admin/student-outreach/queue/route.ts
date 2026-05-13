@@ -1400,6 +1400,16 @@ async function hydrateRows(
     const primary = primaryByOutreach.get(row.id) ?? null;
     const state = stateByOutreach.get(row.id)!;
     const camp = campusMap.get(row.campus_id);
+    // v9 final: provider rows on non-fan-out tabs (Prospects /
+    // Partners / Archive / All) must title to the organization,
+    // never to a Specific Contact. The Provider IS the prospect;
+    // Specific Contacts are supporting data inside the drawer.
+    // Stakeholder rows keep the existing primary-contact-as-title
+    // behavior because their contact often is the addressee.
+    const isProvider = row.kind === "provider";
+    const orgPrimaryName = isProvider ? null : primary?.name ?? null;
+    const orgPrimaryPhone = isProvider ? null : primary?.phone ?? null;
+    const orgPrimaryRole = isProvider ? null : primary?.role ?? null;
     // v8.10.6: archive tab also gets a derived replies-state so card
     // can render "Stale · Xd cold" for outreach_sent rows that landed
     // here via stale derivation.
@@ -1438,13 +1448,15 @@ async function hydrateRows(
         // Outreach made it onto the Calls tab list but has no due
         // task (e.g. coming from a derived state). Render a single
         // card with the legacy primary-contact fallback so the row
-        // isn't lost.
+        // isn't lost. Provider rows still suppress the contact-as-
+        // title (Provider IS the prospect; Specific Contacts live
+        // inside).
         tabRows.push({
           ...baseRow,
           row_key: row.id,
-          primary_contact_name: primary?.name ?? null,
-          primary_contact_phone: primary?.phone ?? null,
-          primary_contact_role: primary?.role ?? null,
+          primary_contact_name: orgPrimaryName,
+          primary_contact_phone: orgPrimaryPhone,
+          primary_contact_role: orgPrimaryRole,
           due_call_task: null,
           due_call_recipients: [],
         });
@@ -1484,14 +1496,14 @@ async function hydrateRows(
         // Outreach is in REPLIES_STATUSES but no email_sent
         // touchpoints yet (just transitioned; Day 0 hasn't fired
         // OR legacy row pre-per-recipient cadence). Render one
-        // card with the primary-contact fallback so the row
-        // isn't lost.
+        // card titled by the organization for provider rows; the
+        // Specific Contact, if any, isn't yet the addressee.
         tabRows.push({
           ...baseRow,
           row_key: row.id,
-          primary_contact_name: primary?.name ?? null,
-          primary_contact_phone: primary?.phone ?? null,
-          primary_contact_role: primary?.role ?? null,
+          primary_contact_name: orgPrimaryName,
+          primary_contact_phone: orgPrimaryPhone,
+          primary_contact_role: orgPrimaryRole,
           due_call_task: null,
           due_call_recipients: [],
         });
@@ -1514,12 +1526,15 @@ async function hydrateRows(
         });
       }
     } else {
+      // Prospects / All / Partners / Archive — non-fan-out tabs.
+      // Provider rows render with the organization as the title;
+      // stakeholder rows keep the contact-as-title pattern.
       tabRows.push({
         ...baseRow,
         row_key: row.id,
-        primary_contact_name: primary?.name ?? null,
-        primary_contact_phone: primary?.phone ?? null,
-        primary_contact_role: primary?.role ?? null,
+        primary_contact_name: orgPrimaryName,
+        primary_contact_phone: orgPrimaryPhone,
+        primary_contact_role: orgPrimaryRole,
         due_call_task: null,
         due_call_recipients: [],
       });

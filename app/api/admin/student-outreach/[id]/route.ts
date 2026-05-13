@@ -2766,6 +2766,26 @@ async function handleMakeClient(db: DB, row: OutreachRow, userId: string) {
     })
     .eq("id", row.id);
   if (srErr) throw new Error(srErr.message);
+
+  // v9 final: clean up every pending operational task on this
+  // outreach. The provider organization just converted — General
+  // Contact cards, Specific Contact cards, queued call follow-ups,
+  // queued cadence emails are all moot. Cancelling here removes
+  // them from Calls / Replies / Meetings instantly so admin
+  // doesn't have to chase ghost cards after conversion. The status
+  // transition above already removes the outreach from those tab
+  // queries, but cancelling pending tasks closes the loop on the
+  // task table too so the per-recipient fan-out counts go to 0
+  // (Calls especially counts pending tasks directly).
+  await db
+    .from("student_outreach_tasks")
+    .update({
+      status: "cancelled",
+      completed_at: nowIso,
+      completed_by: userId,
+    })
+    .eq("outreach_id", row.id)
+    .eq("status", "pending");
 }
 
 async function handleSnooze(

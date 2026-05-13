@@ -19,7 +19,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-type Stage = "impression" | "clicked" | "converted";
+type Stage = "impression" | "clicked" | "engaged" | "converted";
 
 type SessionRow = {
   session_id: string;
@@ -28,6 +28,9 @@ type SessionRow = {
   first_seen: string;
   submitter: string | null;
 };
+
+// Variants that track the "engaged" step (save_comparison_clicked)
+const ENGAGED_VARIANTS = new Set(["compare"]);
 
 type ApiResponse = {
   variant: string;
@@ -40,20 +43,24 @@ const PAGE_SIZE = 50;
 const STAGE_LABEL: Record<Stage, string> = {
   impression: "Impression",
   clicked: "Clicked",
+  engaged: "Engaged",
   converted: "Converted",
 };
 
 const STAGE_BADGE_CLASS: Record<Stage, string> = {
   impression: "bg-gray-100 text-gray-600",
   clicked: "bg-amber-50 text-amber-800",
+  engaged: "bg-blue-50 text-blue-800",
   converted: "bg-emerald-50 text-emerald-800",
 };
 
 // Plain-English description of what hard-deleting this session will cascade to.
 function cascadeSummary(stage: Stage): string {
   const eventsLine = "tracking events for this session (impressions, clicks)";
-  if (stage !== "converted") return `Removes ${eventsLine}.`;
-  return `Removes the lead_received event + ${eventsLine}. Does NOT delete the connection or account.`;
+  if (stage === "converted") {
+    return `Removes the lead_received event + ${eventsLine}. Does NOT delete the connection or account.`;
+  }
+  return `Removes ${eventsLine}.`;
 }
 
 function formatRelativeTime(iso: string): string {
@@ -146,10 +153,17 @@ export default function CTAVariantSessionsList({
 
   const hasMore = total !== null && sessions.length < total;
 
-  const STAGE_CHIPS: Array<{ key: Stage | "all"; label: string }> = [
+  // Whether this variant tracks the "engaged" step
+  const hasEngaged = ENGAGED_VARIANTS.has(variant);
+
+  // Build stage chips - include "Engaged" only for variants that track it
+  const STAGE_CHIPS: Array<{ key: Stage | "all"; label: string; disabled?: boolean; tooltip?: string }> = [
     { key: "all", label: "All" },
     { key: "impression", label: "Impression" },
     { key: "clicked", label: "Clicked" },
+    ...(hasEngaged
+      ? [{ key: "engaged" as const, label: "Engaged" }]
+      : [{ key: "engaged" as const, label: "Engaged", disabled: true, tooltip: "Compare variant only" }]),
     { key: "converted", label: "Converted" },
   ];
 
@@ -170,15 +184,19 @@ export default function CTAVariantSessionsList({
           )}
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {STAGE_CHIPS.map(({ key, label }) => {
+          {STAGE_CHIPS.map(({ key, label, disabled, tooltip }) => {
             const active = stageFilter === key;
             return (
               <button
                 key={key}
                 type="button"
-                onClick={() => setStageFilter(key)}
+                onClick={() => !disabled && setStageFilter(key)}
+                disabled={disabled}
+                title={tooltip}
                 className={`text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors ${
-                  active
+                  disabled
+                    ? "bg-gray-50 text-gray-300 cursor-not-allowed"
+                    : active
                     ? "bg-gray-900 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
                 }`}

@@ -344,13 +344,22 @@ function ProspectBody({
               : "Recommended. Helpful for research, but not required to launch."
           }
         />
+        {/* v9.1 Graize 05.13 audit fix (Items 1+2): contact form URL
+            no longer reads as "done" when nothing is on file. Prior
+            logic was `done={!hasContactFormUrl || contactFormResolved}`
+            which marked the row checked the moment the URL was empty
+            (vacuously satisfied). Admins saw an unchecked profile +
+            checked checklist for the same field. New semantics:
+              no URL on file       → not done, tone "recommended" (like Fax)
+              URL on file, unresolved → not done, tone "required"
+              URL on file, resolved   → done, tone "recommended" */}
         <ChecklistRow
-          done={!hasContactFormUrl || contactFormResolved}
+          done={hasContactFormUrl && contactFormResolved}
           tone={hasContactFormUrl && !contactFormResolved ? "required" : "recommended"}
           label="Contact form URL"
           hint={
             !hasContactFormUrl
-              ? "Paste the link to the agency's contact form page if they have one. The system generates a message you can submit there."
+              ? "Recommended. Paste the link to the agency's contact form page if they have one — the system generates a copy-ready message you can submit there."
               : contactFormResolved
                 ? "Outcome logged."
                 : "URL on file. Copy the generated message from the banner above, submit it through their form, then mark Submitted below. Required when URL is present."

@@ -112,24 +112,25 @@ const GRAIZE_INTRO = `My name is Graize Belandres, and I'm a research assistant 
 
 /**
  * Reliability/accountability sentence used after the bold program
- * explanation. Ties students' on-the-job follow-through to a real
- * incentive mechanism (their applications to professional school
- * depend on doing the work well), which is what home-care
- * operators actually respond to. Previous wording ("they show up
- * for the long, accountable hours that caregiver work requires")
- * read corporate; this version explains the WHY.
+ * explanation. v9.1 Graize 05.13 audit (Item 5): tighter wording
+ * that frames the students as vetted + intrinsically motivated,
+ * with the operator-facing payoff stated plainly ("reliability and
+ * high-quality engagement"). Avoids the slightly clinical
+ * "applications depend on doing this work well" phrasing in favor
+ * of language an operator can quote back to their team.
  */
-const ACCOUNTABILITY_LINE = `Because their applications to medical, PA, and nursing school depend on doing this work well, they bring the kind of reliability and follow-through most agencies are hoping for.`;
+const ACCOUNTABILITY_LINE = `These students are vetted for ideal caregiver characteristics and are motivated by the desire to gain experience and recommendations — which translates into reliability and high-quality engagement with the clients they support.`;
 
 /**
- * Standard closing for intro emails: warm acceptance frame +
- * lowered-friction CTA (reply OR call) + attached packet
- * reference. Followups + finals borrow the second half (reply-or-
- * call) but skip the "We hope you'll accept this invitation" lead
- * since the recipient already saw the original ask.
+ * Standard closing for intro emails. v9.1 Graize 05.13 audit
+ * (Item 6): tightened CTA. Old version led with "if you'd like
+ * more information before moving forward" which was wordy and
+ * slightly defensive. New version states the invitation warmly,
+ * signals enthusiasm to share more, then offers the two paths
+ * (reply or call). Followups + finals borrow the path lines.
  */
 const INTRO_CTA_LINES = [
-  `We hope you'll accept this invitation. If you'd like more information before moving forward, you can reply directly to this email or ${SCHEDULE_LINK_FULL}.`,
+  `We hope you'll accept this invitation, and we'd be excited to share more. You can reply directly to this email or ${SCHEDULE_LINK_FULL}.`,
   ``,
   `The attached information packet has the program details.`,
 ];
@@ -476,16 +477,17 @@ export function providerIntroEmail(
     variant === "general"
       ? providerLeadershipInvitationPhrase(contacts)
       : null;
-  // Grounding + leadership + invitation collapsed into one paragraph
-  // so the ask leads the body, not scaffolding. The leadership phrase
-  // ("I'm hoping to reach X, or another member of the leadership
-  // team,") is woven into the invitation when we have specific names
-  // to surface from the general inbox; otherwise we skip straight to
-  // "I'd like to invite...".
+  // v9.1 Graize 05.13 audit (Item 5): grounding + invitation tightened.
+  // Old version repeated "Olera's {campus} Student Caregiver Program"
+  // and tacked on "begin receiving student referrals to help support
+  // caregiver staffing needs and vacant shifts" which restates the
+  // value of the very next paragraph. New version stops cleanly at
+  // the invitation; the program explanation that follows carries the
+  // operational detail.
   const groundingAndInvitation =
     leadershipPhrase
-      ? `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus}. ${leadershipPhrase}, to invite ${PLACEHOLDER.orgName} to join Olera's ${PLACEHOLDER.campus} Student Caregiver Program and begin receiving student referrals to help support caregiver staffing needs and vacant shifts.`
-      : `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus}. I'd like to invite ${PLACEHOLDER.orgName} to join Olera's ${PLACEHOLDER.campus} Student Caregiver Program and begin receiving student referrals to help support caregiver staffing needs and vacant shifts.`;
+      ? `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus}. ${leadershipPhrase}, to invite ${PLACEHOLDER.orgName} to join Olera's ${PLACEHOLDER.campus} Student Caregiver Program.`
+      : `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus}. I'd like to invite ${PLACEHOLDER.orgName} to join Olera's ${PLACEHOLDER.campus} Student Caregiver Program.`;
   return {
     subject,
     body: [
@@ -495,7 +497,13 @@ export function providerIntroEmail(
       ``,
       groundingAndInvitation,
       ``,
-      `**This program matches ${PLACEHOLDER.campus} college students with home care agencies to help fill caregiver roles, PRN shifts, and staffing needs with students interested in gaining meaningful healthcare experience.** These are pre-nursing and pre-medical students, future nurses and physicians, motivated more by mentorship, recommendation letters, and clinical experience than by compensation.`,
+      // v9.1 Graize audit (Item 5): operational program-explanation
+      // sentence reframed to lead with what the program does
+      // ("matches X with Y to fill Z"), then names the student
+      // population. Cleaner read than the old "matches X with Y...
+      // with students interested in gaining meaningful healthcare
+      // experience" embed.
+      `**This program matches ${PLACEHOLDER.campus} pre-nursing and pre-medical students with home care agencies to fill caregiver roles, PRN shifts, and staffing needs.** These are future nurses and physicians, motivated more by mentorship, recommendation letters, and clinical experience than by compensation.`,
       ``,
       ACCOUNTABILITY_LINE,
       ``,
@@ -526,9 +534,12 @@ export function providerFollowupEmail(
       ``,
       `Just following up on my note from earlier this week, in case it got buried.`,
       ``,
-      `If ${PLACEHOLDER.orgName} could use reliable ${PLACEHOLDER.campus} pre-health students to help cover vacant caregiver shifts and PRN gaps, we'd love to share more about how the program works.`,
-      ``,
-      `If you'd like more information, you can reply directly to this email or ${SCHEDULE_LINK_FULL}. The attached information packet covers the basics.`,
+      // v9.1 Graize 05.13 audit (Item 9): consistency pass — Day 3
+      // now uses the same "vetted ${campus} pre-nursing and pre-
+      // medical students" / "caregiver roles, PRN shifts, staffing
+      // needs" language as Day 0 + Day 7. Kept short and light per
+      // the cadence role (this is the nudge, not the pitch).
+      `If ${PLACEHOLDER.orgName} could use vetted ${PLACEHOLDER.campus} pre-nursing and pre-medical students to help fill caregiver roles, PRN shifts, and staffing needs, we'd be excited to share more. You can reply directly to this email or ${SCHEDULE_LINK_FULL}. The attached information packet covers the basics.`,
     ].join("\n"),
   };
 }
@@ -559,7 +570,13 @@ export function providerFinalEmail(
       ``,
       `Wanted to circle back one more time on the ${PLACEHOLDER.campus} Student Caregiver Program.`,
       ``,
-      `If there's interest in receiving student referrals to help with caregiver staffing and vacant shifts at ${PLACEHOLDER.orgName}, you can reply directly to this email or ${SCHEDULE_LINK_FULL}.`,
+      // v9.1 Graize 05.13 audit (Item 10): aligned terminology with
+      // the Day 0 body — "vetted ${campus} pre-nursing and pre-medical
+      // students" / "caregiver roles, PRN shifts, and staffing needs"
+      // instead of the looser "student referrals". Keeps the cadence
+      // self-consistent so the agency sees the same offer described
+      // the same way at each touch.
+      `If ${PLACEHOLDER.orgName} could use vetted ${PLACEHOLDER.campus} pre-nursing and pre-medical students to help fill caregiver roles, PRN shifts, and staffing needs, you can reply directly to this email or ${SCHEDULE_LINK_FULL}.`,
       ``,
       `If now isn't the right time, no worries; we'll check back next term. And if there's a better person at ${PLACEHOLDER.orgName} for us to reach about caregiver hiring, we'd appreciate a quick redirect.`,
       ``,

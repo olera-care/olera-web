@@ -1305,6 +1305,19 @@ export function ContactFormBanner({
           {copied ? "✓ Copied" : "Copy message"}
         </button>
       </div>
+      {/* v9.1 Graize 05.13 audit (Item 3): short, practical guidance
+          so admins know how to handle the variety of contact forms
+          they'll encounter on agency websites. */}
+      <div className="mt-2 rounded-md border border-gray-200 bg-white px-2.5 py-2 text-[11px] leading-relaxed text-gray-600">
+        <p className="font-semibold text-gray-700">How to submit:</p>
+        <ul className="mt-1 list-disc space-y-0.5 pl-4">
+          <li>Contact forms come in different shapes — use the best available fields and your judgment.</li>
+          <li>Email field → use <span className="font-mono">graize@olera.care</span>.</li>
+          <li>Phone field → use Olera's outreach phone number.</li>
+          <li>Family / client-lead forms → still submit the message if it's the only contact path; the goal is reaching the agency through every available channel.</li>
+          <li>Paste the message above, submit the form, then log the outcome below.</li>
+        </ul>
+      </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {(
           [

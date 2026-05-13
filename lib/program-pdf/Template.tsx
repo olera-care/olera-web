@@ -59,6 +59,15 @@ const styles = StyleSheet.create({
     color: EMERALD_DARK,
     letterSpacing: 0.5,
   },
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  brandLogo: {
+    width: 18,
+    height: 18,
+    marginRight: 6,
+  },
   brandTag: {
     fontSize: 8,
     color: GRAY_500,
@@ -277,10 +286,12 @@ const styles = StyleSheet.create({
 });
 
 export interface ProgramPdfAssets {
-  /** Olera-emerald wordmark not used yet — left for future iteration.
-   *  Photos + QR are base64 data URIs ready for @react-pdf/Image. */
   loganPhotoDataUri?: string;
   graziePhotoDataUri?: string;
+  /** Olera logo (square PNG, ~275×286). Rendered next to the
+   *  "olera" wordmark in the header. Optional so a missing asset
+   *  still produces a renderable PDF (text-only wordmark). */
+  oleraLogoDataUri?: string;
   qrDataUri: string;
 }
 
@@ -299,9 +310,16 @@ export function ProgramPdfTemplate({
     >
       <Page size="LETTER" style={styles.page}>
         {/* ── Header row */}
+        {/* v9.1 Graize 05.13 audit (Item 11): logo rendered next to
+            the "olera" wordmark when the asset is available. */}
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.brandWord}>olera</Text>
+            <View style={styles.brandRow}>
+              {assets.oleraLogoDataUri ? (
+                <Image src={assets.oleraLogoDataUri} style={styles.brandLogo} />
+              ) : null}
+              <Text style={styles.brandWord}>olera</Text>
+            </View>
             <Text style={styles.brandTag}>Student Caregiver Program</Text>
           </View>
           <View>
@@ -318,12 +336,17 @@ export function ProgramPdfTemplate({
         </View>
 
         {/* ── Title */}
+        {/* v9.1 Graize 05.13 audit (Item 11): title now reads
+            "Olera's {university} Student Caregiver Program" to
+            anchor the brand; subtitle uses "Pre-nursing and pre-
+            medical student staffing pipeline" to match the email
+            terminology and remove the vague "pre-health" framing. */}
         <View style={styles.titleBlock}>
           <Text style={styles.programTitle}>
-            {config.universityShort} Student Caregiver Program
+            Olera&apos;s {config.universityShort} Student Caregiver Program
           </Text>
           <Text style={styles.programSubtitle}>
-            A pre-health student staffing pipeline for home care agencies
+            Pre-nursing and pre-medical student staffing pipeline for home care agencies
           </Text>
         </View>
 

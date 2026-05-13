@@ -52,6 +52,7 @@ import {
 import {
   defaultSnapshotsByVariant,
   defaultCallScriptsFor,
+  defaultCallTipsForDay,
   type EmailSnapshot,
   type RecipientPlan,
   type CallScript,
@@ -656,6 +657,7 @@ export function ProviderPreFlightModal({
                         label={`Call script · ${callRows.length} callable`}
                         script={script.script}
                         onChange={(s) => updateScript(d.day, s)}
+                        tips={defaultCallTipsForDay("provider", d.day)}
                       />
                     )}
                     {hasEmailStep && generalRows.length === 0 && namedRows.length === 0 && (
@@ -788,14 +790,24 @@ function VariantEditor({
   );
 }
 
+/**
+ * v9.1 Graize 05.13 audit (Item 8): tips render as a read-only
+ * block underneath the editable script body, not merged into the
+ * script text itself. Admin edits only the script; tips stay
+ * constant per day (defaultCallTipsForDay) and serve as quick
+ * operational reminders for receptionist / voicemail / redirect
+ * handling.
+ */
 function CallScriptEditor({
   label,
   script,
   onChange,
+  tips,
 }: {
   label: string;
   script: string;
   onChange: (s: string) => void;
+  tips?: string[];
 }) {
   return (
     <div className="rounded-md border border-amber-200 bg-white">
@@ -806,10 +818,22 @@ function CallScriptEditor({
         <textarea
           value={script}
           onChange={(e) => onChange(e.target.value)}
-          rows={4}
+          rows={3}
           placeholder="What to say on this call: tone, key references, target ask."
           className="w-full rounded-md border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
         />
+        {tips && tips.length > 0 && (
+          <div className="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+              Tips
+            </p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px] leading-relaxed text-gray-600">
+              {tips.map((t, i) => (
+                <li key={i}>{t}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         <p className="text-[11px] text-gray-500">
           Shown to admin in the Log call modal as reference. Admin can edit
           later if cadence strategy evolves.

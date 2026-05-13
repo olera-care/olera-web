@@ -891,12 +891,14 @@ export default async function ProviderPage({
                   <p className="text-sm text-gray-500 mt-1">{locationStr}</p>
                 )}
 
-                {/* Row 2: Category + up to 2 highlights (dot-separated) */}
+                {/* Row 2: Category + up to 2 highlights (dot-separated, filter duplicates of category) */}
                 {(() => {
-                  const items = [
-                    categoryLabel,
-                    ...highlights.slice(0, 2).map((h) => h.label),
-                  ].filter(Boolean);
+                  const categoryLower = categoryLabel?.toLowerCase() || "";
+                  const filteredHighlights = highlights
+                    .filter((h) => h.label.toLowerCase() !== categoryLower)
+                    .slice(0, 2)
+                    .map((h) => h.label);
+                  const items = [categoryLabel, ...filteredHighlights].filter(Boolean);
                   return items.length > 0 ? (
                     <p className="text-sm text-gray-500 mt-0.5">
                       {items.join(" · ")}
@@ -907,11 +909,11 @@ export default async function ProviderPage({
                 {/* Row 3: Two-column layout — Reviews | Pricing */}
                 <div className="flex items-stretch justify-center mt-4">
                   {/* Left column: Reviews */}
-                  <div className="flex flex-col items-center justify-center px-4">
+                  <div className="flex flex-col items-center justify-center px-4 min-w-[100px]">
                     {hasRating && rating != null ? (
                       <>
                         <span className="text-xl font-bold text-gray-900">{rating.toFixed(1)}</span>
-                        <div className="flex gap-0.5 mt-0.5">
+                        <div className="flex items-center gap-0.5">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <svg
                               key={star}
@@ -923,25 +925,20 @@ export default async function ProviderPage({
                             </svg>
                           ))}
                         </div>
-                        <span className="text-xs text-gray-400 mt-0.5">
-                          {googleReviewsData?.review_count
-                            ? `${googleReviewsData.review_count} Google Review${googleReviewsData.review_count !== 1 ? "s" : ""}`
-                            : "Google"}
-                        </span>
                       </>
                     ) : (
                       <>
-                        <span className="text-sm font-medium text-gray-500">No reviews yet</span>
-                        <span className="text-xs text-gray-400 mt-0.5">Be first to review</span>
+                        <span className="text-base font-semibold text-gray-900">No reviews</span>
+                        <span className="text-xs text-gray-500 font-medium">Be first</span>
                       </>
                     )}
                   </div>
 
                   {/* Divider */}
-                  <div className="w-px bg-gray-200 self-stretch" />
+                  <div className="w-px bg-gray-200 self-stretch my-1" />
 
                   {/* Right column: Pricing */}
-                  <div className="flex flex-col items-center justify-center px-4">
+                  <div className="flex flex-col items-center justify-center px-4 min-w-[100px]">
                     {pricingConfig?.tier === 3 && !hasPriceRange ? (
                       <MobilePricingTooltip
                         topText="Medicare/Medicaid"
@@ -957,8 +954,8 @@ export default async function ProviderPage({
                       />
                     ) : (
                       <>
-                        <span className="text-sm font-medium text-gray-700">Contact</span>
-                        <span className="text-xs text-gray-400">for pricing</span>
+                        <span className="text-base font-semibold text-gray-900">Contact</span>
+                        <span className="text-xs text-gray-500 font-medium">for pricing</span>
                       </>
                     )}
                   </div>

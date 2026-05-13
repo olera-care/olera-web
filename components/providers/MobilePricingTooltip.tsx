@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface MobilePricingTooltipProps {
   topText: string;
@@ -17,12 +18,20 @@ export default function MobilePricingTooltip({
   isPrice = false,
 }: MobilePricingTooltipProps) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!showTooltip) return;
+
+    // Calculate position when tooltip opens
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setTooltipPosition({ top: rect.bottom + 8 });
+    }
+
     const handleOutside = (e: TouchEvent | MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      if (buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
         setShowTooltip(false);
       }
     };
@@ -35,21 +44,22 @@ export default function MobilePricingTooltip({
   }, [showTooltip]);
 
   return (
-    <div className="relative flex flex-col items-center" ref={ref}>
+    <div className="flex flex-col items-center">
       <div className="flex items-center gap-1">
         <span
           className={
             isPrice
               ? "text-xl font-bold text-gray-900"
-              : "text-sm font-medium text-gray-700"
+              : "text-base font-semibold text-gray-900"
           }
         >
           {topText}
         </span>
         <button
+          ref={buttonRef}
           type="button"
           onClick={() => setShowTooltip((prev) => !prev)}
-          className="w-8 h-8 -m-1 flex items-center justify-center text-gray-300 hover:text-gray-400 active:text-gray-500 transition-colors"
+          className="w-8 h-8 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
           aria-label="Pricing info"
           aria-expanded={showTooltip}
         >
@@ -68,16 +78,22 @@ export default function MobilePricingTooltip({
           </svg>
         </button>
       </div>
-      <span className="text-xs text-gray-400">{bottomText}</span>
+      <span className="text-xs text-gray-500 font-medium">{bottomText}</span>
 
-      {/* Tooltip - centered below, constrained to viewport */}
-      {showTooltip && (
-        <div className="absolute top-full mt-2 z-30 w-[min(18rem,calc(100vw-3rem))] left-1/2 -translate-x-1/2">
-          <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
-            <p>{tooltipContent}</p>
-          </div>
-        </div>
-      )}
+      {/* Tooltip - fixed position portal to prevent layout shift */}
+      {showTooltip &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed left-4 right-4 z-[100]"
+            style={{ top: tooltipPosition.top }}
+          >
+            <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
+              <p>{tooltipContent}</p>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

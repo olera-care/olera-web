@@ -225,7 +225,7 @@ export default function GuideCard({
       // Still redirect on error - user expects to go to inbox
       window.location.href = `/portal/inbox`;
     }
-  }, [userEmail, providerId, providerSlug, providerName, ctaVariant, ctaPreviewMode]);
+  }, [userEmail, providerId, providerSlug, providerName]);
 
   // Reset from provider email block
   const resetFromProviderEmailBlock = useCallback(() => {

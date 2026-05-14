@@ -694,6 +694,7 @@ async function handleGuestConnection({
   connectionMetadata.auto_intro = autoIntro;
   if (!providerEmail) connectionMetadata.needs_provider_email = true;
   if (ctaVariant) connectionMetadata.cta_variant = ctaVariant;
+  if (entryPoint) connectionMetadata.entry_point = entryPoint;
 
   // Auto-reply from provider (marked as auto to exclude from unread reminders)
   connectionMetadata.thread = [
@@ -1602,6 +1603,7 @@ export async function POST(request: Request) {
     connectionMetadata.auto_intro = autoIntro;
     if (!providerEmail) connectionMetadata.needs_provider_email = true;
     if (ctaVariant) connectionMetadata.cta_variant = ctaVariant;
+    if (entryPoint) connectionMetadata.entry_point = entryPoint;
 
     // Seed an automatic reply from the provider so the seeker has an
     // unread message in their inbox immediately after connecting.

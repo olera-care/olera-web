@@ -25,7 +25,7 @@ import MobileClaimTooltip from "@/components/providers/MobileClaimTooltip";
 import { MobileManageLink } from "@/components/providers/MobileManageLink";
 import PriceEstimate from "@/components/providers/PriceEstimate";
 import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
-import { getPricingConfig } from "@/lib/pricing-config";
+import { getPricingConfig, getRegionalEstimate } from "@/lib/pricing-config";
 import { getProfileCategoryFallbackImage } from "@/lib/types/provider";
 import ManagePageCTA from "@/components/providers/ManagePageCTA";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
@@ -415,18 +415,19 @@ export default async function ProviderPage({
   // 1. Pre-formatted price_range string (from formatIOSPriceRange)
   // 2. hourly_rate_min/max (legacy home care format)
   // 3. price_min/max with price_unit (fallback, e.g. when price_range wasn't set)
+  // 4. Regional estimate (state/metro average) for non-Tier 3 categories
   const priceUnitSuffix = meta?.price_unit === "HOUR" ? "/hr" : "/mo";
-  const priceRange = (() => {
+  const { priceRange, isRegionalEstimate } = (() => {
     // Primary: pre-formatted string from formatPriceRange
-    if (meta?.price_range) return meta.price_range;
+    if (meta?.price_range) return { priceRange: meta.price_range, isRegionalEstimate: false };
 
     // Legacy hourly format
     if (meta?.hourly_rate_min != null && meta?.hourly_rate_max != null) {
       if (meta.hourly_rate_max > meta.hourly_rate_min) {
-        return `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`;
+        return { priceRange: `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`, isRegionalEstimate: false };
       }
       if (meta.hourly_rate_max === meta.hourly_rate_min) {
-        return `$${meta.hourly_rate_min}/hr`;
+        return { priceRange: `$${meta.hourly_rate_min}/hr`, isRegionalEstimate: false };
       }
       // Invalid: max < min, fall through
     }
@@ -434,23 +435,37 @@ export default async function ProviderPage({
     // Direct price_min/max fallback
     if (meta?.price_min != null && meta?.price_max != null) {
       if (meta.price_max > meta.price_min) {
-        return `$${meta.price_min.toLocaleString()}-${meta.price_max.toLocaleString()}${priceUnitSuffix}`;
+        return { priceRange: `$${meta.price_min.toLocaleString()}-${meta.price_max.toLocaleString()}${priceUnitSuffix}`, isRegionalEstimate: false };
       }
       if (meta.price_max === meta.price_min) {
-        return `$${meta.price_min.toLocaleString()}${priceUnitSuffix}`;
+        return { priceRange: `$${meta.price_min.toLocaleString()}${priceUnitSuffix}`, isRegionalEstimate: false };
       }
       // Invalid: max < min, fall through
     }
 
     // Single price fallbacks
     if (meta?.price_min != null) {
-      return `From $${meta.price_min.toLocaleString()}${priceUnitSuffix}`;
+      return { priceRange: `From $${meta.price_min.toLocaleString()}${priceUnitSuffix}`, isRegionalEstimate: false };
     }
     if (meta?.price_max != null) {
-      return `Up to $${meta.price_max.toLocaleString()}${priceUnitSuffix}`;
+      return { priceRange: `Up to $${meta.price_max.toLocaleString()}${priceUnitSuffix}`, isRegionalEstimate: false };
     }
 
-    return null;
+    // Regional estimate fallback (match card behavior)
+    // Only for non-Tier 3 categories (Tier 3 = Medicare/Medicaid covered)
+    const tierConfig = profile.category ? getPricingConfig(profile.category) : null;
+    if (tierConfig?.tier !== 3 && profile.state) {
+      const regional = getRegionalEstimate(
+        profile.category || "",
+        profile.state,
+        profile.city ?? undefined
+      );
+      if (regional) {
+        return { priceRange: regional.formatted, isRegionalEstimate: true };
+      }
+    }
+
+    return { priceRange: null, isRegionalEstimate: false };
   })();
 
   const rating = meta?.rating;

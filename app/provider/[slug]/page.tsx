@@ -416,13 +416,42 @@ export default async function ProviderPage({
   // 2. hourly_rate_min/max (legacy home care format)
   // 3. price_min/max with price_unit (fallback, e.g. when price_range wasn't set)
   const priceUnitSuffix = meta?.price_unit === "HOUR" ? "/hr" : "/mo";
-  const priceRange =
-    meta?.price_range ||
-    (meta?.hourly_rate_min && meta?.hourly_rate_max
-      ? `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`
-      : meta?.price_min != null && meta?.price_max != null
-        ? `$${meta.price_min.toLocaleString()}-${meta.price_max.toLocaleString()}${priceUnitSuffix}`
-        : null);
+  const priceRange = (() => {
+    // Primary: pre-formatted string from formatPriceRange
+    if (meta?.price_range) return meta.price_range;
+
+    // Legacy hourly format
+    if (meta?.hourly_rate_min != null && meta?.hourly_rate_max != null) {
+      if (meta.hourly_rate_max > meta.hourly_rate_min) {
+        return `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`;
+      }
+      if (meta.hourly_rate_max === meta.hourly_rate_min) {
+        return `$${meta.hourly_rate_min}/hr`;
+      }
+      // Invalid: max < min, fall through
+    }
+
+    // Direct price_min/max fallback
+    if (meta?.price_min != null && meta?.price_max != null) {
+      if (meta.price_max > meta.price_min) {
+        return `$${meta.price_min.toLocaleString()}-${meta.price_max.toLocaleString()}${priceUnitSuffix}`;
+      }
+      if (meta.price_max === meta.price_min) {
+        return `$${meta.price_min.toLocaleString()}${priceUnitSuffix}`;
+      }
+      // Invalid: max < min, fall through
+    }
+
+    // Single price fallbacks
+    if (meta?.price_min != null) {
+      return `From $${meta.price_min.toLocaleString()}${priceUnitSuffix}`;
+    }
+    if (meta?.price_max != null) {
+      return `Up to $${meta.price_max.toLocaleString()}${priceUnitSuffix}`;
+    }
+
+    return null;
+  })();
 
   const rating = meta?.rating;
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);

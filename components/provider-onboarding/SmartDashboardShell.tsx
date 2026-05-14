@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Provider } from "@/lib/types/provider";
 import type { Profile, OrganizationMetadata } from "@/lib/types";
-import { parseProviderImages, getPrimaryImage } from "@/lib/types/provider";
+import { parseProviderImages, getPrimaryImage, formatPriceRange } from "@/lib/types/provider";
 import {
   calculateProfileCompleteness,
   type ExtendedMetadata,
@@ -80,17 +80,11 @@ function providerToProfile(provider: Provider): Profile {
   const images = parseProviderImages(provider.provider_images);
   const primaryImage = getPrimaryImage(provider);
 
-  const isHourly =
-    provider.provider_category === "Home Care (Non-medical)" ||
-    provider.provider_category === "Home Health Care";
-
-  const priceRange =
-    provider.lower_price != null || provider.upper_price != null
-      ? `$${provider.lower_price ?? "?"} - $${provider.upper_price ?? "?"}${isHourly ? "/hr" : "/mo"}`
-      : undefined;
+  // Use centralized formatPriceRange for consistency
+  const priceRange = formatPriceRange(provider);
 
   const metadata: OrganizationMetadata & ExtendedMetadata = {
-    price_range: priceRange,
+    price_range: priceRange ?? undefined,
     images: images.length > 0 ? images : primaryImage ? [primaryImage] : [],
   };
 

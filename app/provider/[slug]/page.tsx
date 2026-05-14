@@ -88,6 +88,7 @@ async function fetchProviderForMeta(slug: string) {
       .from("business_profiles")
       .select("display_name, category, city, state, description, image_url")
       .eq("slug", slug)
+      .eq("is_active", true)
       .in("type", ["organization", "caregiver"])
       .single();
     if (data) {
@@ -336,6 +337,7 @@ export default async function ProviderPage({
         .from("business_profiles")
         .select("*")
         .eq("slug", slug)
+        .eq("is_active", true)
         .in("type", ["organization", "caregiver"])
         .single<Profile>();
       if (data) {

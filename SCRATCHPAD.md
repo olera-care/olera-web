@@ -7,6 +7,28 @@
 
 ## Current Focus
 
+### 2026-05-14 (Thu) — Admin "Delete Provider" cascade fix (PR #820, tested, ready to merge)
+
+**Bug TJ surfaced from teammates:** deleting a provider via `/admin/directory` removed it from the admin UI but it kept appearing on city pages and provider detail pages. Audit traced it: admin PATCH only set `olera-providers.deleted=true`, leaving linked `business_profiles` rows fully active. Two read paths kept serving the listing:
+- `lib/power-pages.ts:255-275` city-page parallel BP query (filters `claim_state=claimed AND is_active=true` — no check against the linked OP's deleted flag)
+- `app/provider/[slug]/page.tsx:332-340` provider-detail BP fallback (no filter; the comment at lines 361-367 explicitly says it's there so claimed BPs survive OP soft-deletes for SEO — but the assumption was that the BP would also be deactivated, which the directory PATCH never did)
+
+**Sizing (before fix):** 40,518 `deleted=true` OPs. 40 had linked active BPs (most unclaimed, naturally excluded by the read-path filters). **3 were claimed+active and currently leaking publicly** — Beverly Farm Group Home (Godfrey, IL), CARE Cafe (Albemarle, NC), Cornerstone at Barnegat 55+ (Barnegat, NJ).
+
+**Fix (PR #820 → staging, branch `graceful-franklin`, 3 commits):**
+- `app/api/admin/directory/[providerId]/route.ts`: PATCH handler cascades `is_active=false` to linked BPs on delete (and `=true` on restore). Gated on actual flip (mirrors the `deleted_at` block 5 lines above) so future idempotent payloads can't clobber an intentional is_active. With the BP deactivated, the provider-detail page's soft-deleted-row branch at line 373 fires → 301 to `/{category}/{state}/{city}`. SEO equity preserved exactly as the original author intended.
+- `app/provider/[slug]/page.tsx`: both BP fallback queries (main render + `generateMetadata`) tightened with `.eq("is_active", true)` so a future re-activated BP can't accidentally undo a takedown.
+- `scripts/backfill-deleted-provider-bps.mjs` (new): one-shot data fix, ordered pagination + idempotent. **Ran against prod, deactivated 40 BPs.** Verified the 3 user-visible leaks were among them and their OP `deletion_reason` values are `data_sweep`/`other` (not `provider_request`), so all three now 301 cleanly.
+- `scripts/create-test-provider.mjs` (new): helper for verifying the cascade end-to-end. Creates an OP + linked claimed BP. `--cleanup <id>` hard-deletes the pair.
+
+**Pre-test self-review caught 1 🟡 medium:** original cascade fired whenever `deleted` was a *key* in the payload, even when unchanged. No current admin code path triggers it (both UI entry points only include `deleted` on an actual flip), but a future bulk-edit form would have stepped on it. Fixed by gating on the same actual-flip check the `deleted_at` block uses.
+
+**TJ tested end-to-end via the test helper — works.** Test pair (`test-cascade-mp64ceyd`) is still alive in prod in soft-deleted state after his test run. Cleanup pending.
+
+**Resume next session here →** (1) Merge PR #820 to staging. (2) Hard-cleanup the test provider: `node scripts/create-test-provider.mjs --cleanup test-cascade-mp64ceyd` (run from `~/Desktop/olera-web` once merged, or worktree now). (3) Bake on staging, then promote to main. (4) Optional follow-up: confirm `/api/admin/deletions/[profileId]` (provider-requested deletion approval, different code path) doesn't have an inverse leak. Quick scan suggests it's fine — it cascades `business_profiles.claim_state="rejected"` plus `olera-providers.deleted=true` together — but worth a confirming audit when convenient.
+
+---
+
 ### 2026-05-13 (Wed, late afternoon) — Provider Comms Funnel: slug vs raw-id intersection bug (fix shipped on `fancy-mahavira`)
 
 **Symptom TJ caught:** funnel showed `0 / 0 / 0 / 0` for row 2 (Signed in / Answered / Clicked dashboard / Edited profile) today despite a clear Slack alert that Moore Street Senior Apartments did one_click_access → question_responded → dashboard_arrival via the question_received email.

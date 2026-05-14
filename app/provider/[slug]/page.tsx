@@ -33,6 +33,7 @@ import ReviewsSection from "@/components/providers/ReviewsSection";
 import CMSQualitySection from "@/components/providers/CMSQualitySection";
 import AiTrustSignalsSection from "@/components/providers/AiTrustSignalsSection";
 import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
+import { LeadCaptureSheetWrapper } from "@/components/providers/lead-capture";
 import BenefitsDiscoveryModule from "@/components/providers/BenefitsDiscoveryModule";
 import type { BenefitsProgram } from "@/components/providers/BenefitsDiscoveryModule";
 import { BenefitsArmGate, AgentOutreachSlot } from "@/components/providers/IntakeVariantSlots";
@@ -1366,7 +1367,7 @@ export default async function ProviderPage({
                       </div>
                     ))}
                   </div>
-                  <ScrollToConnectionCard className="w-full md:w-auto mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                  <ScrollToConnectionCard entryPoint="custom_quote" className="w-full md:w-auto mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
                     Get a custom quote
                   </ScrollToConnectionCard>
                   {pricingConfig && (
@@ -1409,7 +1410,7 @@ export default async function ProviderPage({
                   </div>
                   <p className="mt-5 text-base text-gray-500">
                     For clarity and guidance,{" "}
-                    <ScrollToConnectionCard className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
+                    <ScrollToConnectionCard entryPoint="book_consultation" className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
                       Book a consultation
                     </ScrollToConnectionCard>
                   </p>
@@ -1444,13 +1445,13 @@ export default async function ProviderPage({
                       <h3 className="text-base font-semibold text-gray-900 mb-2">Care motivation</h3>
                       <ExpandableText text={staff!.care_motivation || staff!.bio} maxLength={200} />
                       {/* Desktop: button inline with care motivation */}
-                      <ScrollToConnectionCard className="hidden md:inline-block mt-4 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                      <ScrollToConnectionCard entryPoint="message_host" className="hidden md:inline-block mt-4 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
                         Message {staff!.name.split(" ")[0]}
                       </ScrollToConnectionCard>
                     </div>
                   </div>
                   {/* Mobile: button full-width below */}
-                  <ScrollToConnectionCard className="md:hidden w-full mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center">
+                  <ScrollToConnectionCard entryPoint="message_host" className="md:hidden w-full mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center">
                     Message {staff!.name.split(" ")[0]}
                   </ScrollToConnectionCard>
                   <div className="flex items-center gap-2 mt-6 text-sm text-gray-500">
@@ -1578,6 +1579,21 @@ export default async function ProviderPage({
           services: p.careTypes || [],
           highlights: p.highlights || [],
         }))}
+      />
+
+      {/* Lead capture sheet (unified modal for mobile + desktop) */}
+      <LeadCaptureSheetWrapper
+        providerId={profile.id}
+        providerName={profile.display_name}
+        providerSlug={profile.slug}
+        providerCity={profile.city}
+        providerState={profile.state}
+        providerCategory={profile.category}
+        staff={staff ? {
+          name: staff.name,
+          role: staff.position,
+          image: staff.image || null,
+        } : null}
       />
     </div>
   );

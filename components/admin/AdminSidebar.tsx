@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AdminUser } from "@/lib/types";
@@ -96,20 +96,26 @@ const navSections: NavSection[] = [
 // unread > 0, mirroring the In Basket tab-bar pattern.
 const STAKEHOLDERS_KEY = "stakeholders";
 
-// Sites lives between Calls and Logs deliberately: it's an
-// organizational anchor (territories that generate operational work),
-// not itself an operational queue. The In Basket + the queue tabs
-// above it surface the actual triage work; Sites is the directory of
-// activated territories.
+// MedJobs sidebar order mirrors the In Basket horizontal tab order:
+// hot operational queues (Prospects → Calls → Replies → Meetings) lead,
+// followed by warm relationships (Clients → Partners → Candidates),
+// followed by the organizational anchor (Sites) and the historical
+// layer (Logs). Admins learn one consistent left-to-top order across
+// the sidebar and the In Basket tab bar.
+//
+// Sites lives near the end deliberately: it's an organizational anchor
+// (territories that generate operational work), not itself an
+// operational queue. The In Basket + the queue items above surface the
+// actual triage work; Sites is the directory of activated territories.
 const medjobsItems: NavItem[] = [
   { label: "In Basket",  href: "/admin/medjobs/in-basket" },
   { label: "Prospects",  href: "/admin/medjobs/prospects" },
+  { label: "Calls",      href: "/admin/medjobs/calls" },
+  { label: "Replies",    href: "/admin/medjobs/replies" },
+  { label: "Meetings",   href: "/admin/medjobs/meetings" },
   { label: "Clients",    href: "/admin/medjobs/clients" },
   { label: "Partners",   href: "/admin/medjobs/partners" },
   { label: "Candidates", href: "/admin/medjobs/candidates" },
-  { label: "Replies",    href: "/admin/medjobs/replies" },
-  { label: "Meetings",   href: "/admin/medjobs/meetings" },
-  { label: "Calls",      href: "/admin/medjobs/calls" },
   { label: "Sites",      href: "/admin/medjobs/sites" },
   { label: "Logs",       href: "/admin/medjobs/logs" },
 ];
@@ -229,6 +235,31 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   // — the fraction just doesn't render until the next successful
   // fetch.
   const [sidebarCounts, setSidebarCounts] = useState<SidebarCounts | null>(null);
+
+  // E4: pulse-on-change. When a tab's unread/total count changes, the
+  // count chip briefly flashes an emerald background so admin SEES the
+  // queue update rather than scanning for a number difference. Tracks
+  // previous counts via ref; sets a transient Set of changed keys for
+  // ~800ms; CSS `transition-colors` carries the fade.
+  const prevCountsRef = useRef<SidebarCounts | null>(null);
+  const [pulseKeys, setPulseKeys] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const prev = prevCountsRef.current;
+    prevCountsRef.current = sidebarCounts;
+    if (!sidebarCounts || !prev) return; // first load — just remember
+    const changed = new Set<string>();
+    for (const [key, entry] of Object.entries(sidebarCounts)) {
+      const prevEntry = prev[key];
+      if (!prevEntry || !entry) continue;
+      if (entry.unread !== prevEntry.unread || entry.total !== prevEntry.total) {
+        changed.add(key);
+      }
+    }
+    if (changed.size === 0) return;
+    setPulseKeys(changed);
+    const timer = setTimeout(() => setPulseKeys(new Set()), 800);
+    return () => clearTimeout(timer);
+  }, [sidebarCounts]);
   const refetchCounts = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/medjobs/sidebar-counts");
@@ -384,8 +415,11 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
                       {fraction != null && (
                         <span
                           className={[
-                            "ml-2 text-[11px] tabular-nums",
+                            "ml-2 text-[11px] tabular-nums rounded px-1 transition-colors duration-500",
                             hasUnread ? "font-semibold text-gray-900" : "text-gray-400",
+                            countsKey && pulseKeys.has(countsKey)
+                              ? "bg-emerald-100"
+                              : "bg-transparent",
                           ].join(" ")}
                         >
                           {fraction}

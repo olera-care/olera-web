@@ -284,13 +284,13 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
     };
   }
 
-  // v9: all outreach emails are sent from Grazie (Dr. Logan DuBose's
+  // v9: all outreach emails are sent from Graize (Dr. Logan DuBose's
   // assistant). The {admin_first_name} placeholder still lives in
   // legacy template bodies where the inline sign-off used to live;
   // v9 templates moved the close-out into SIGN_OFF so this default
   // mostly affects legacy text. Replies route via Reply-To env, so
   // the identity reflected back to the recipient is consistent.
-  const adminFirstName = "Grazie";
+  const adminFirstName = "Graize";
 
   const campusRow = campus as
     | { name: string; slug: string; program_pdf_url: string | null }

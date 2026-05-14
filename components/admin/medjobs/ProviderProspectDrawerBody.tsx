@@ -54,22 +54,35 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   //   - structured address: street + city + state + valid ZIP
   // Recommended items (contact form, fax) appear in the checklist
   // but do NOT block launch — admin can ship without them.
+  // v9.1 Graize 05.13 audit (Item 1): launch gate respects explicit
+  // deletion. undefined → fall back to business_profile; null → honor
+  // the admin's removal and treat as missing (which gates launch).
+  // Same fix shipped in NextStepCard so the checklist + launch gate
+  // stay in sync.
   const gc = ctx.outreach.research_data?.general_contact ?? {};
-  const generalEmail = gc.email ?? ctx.provider_business_profile?.email ?? null;
-  const generalPhone = gc.phone ?? ctx.provider_business_profile?.phone ?? null;
-  const generalWebsite =
-    gc.website ?? ctx.provider_business_profile?.website ?? null;
-  const street = gc.street ?? ctx.provider_business_profile?.address ?? "";
-  const cityVal = gc.city ?? ctx.provider_business_profile?.city ?? "";
-  const stateVal = gc.state ?? ctx.provider_business_profile?.state ?? "";
-  // v9 final: zip falls back to bp.zip (the directory has a ZIP
-  // column the gate was ignoring) so launching isn't blocked when
-  // the directory already carries it.
-  const zipVal = gc.zip ?? ctx.provider_business_profile?.zip ?? "";
+  const generalEmail =
+    gc.email !== undefined ? gc.email : ctx.provider_business_profile?.email ?? null;
+  const generalPhone =
+    gc.phone !== undefined ? gc.phone : ctx.provider_business_profile?.phone ?? null;
+  const street =
+    gc.street !== undefined
+      ? gc.street ?? ""
+      : ctx.provider_business_profile?.address ?? "";
+  const cityVal =
+    gc.city !== undefined
+      ? gc.city ?? ""
+      : ctx.provider_business_profile?.city ?? "";
+  const stateVal =
+    gc.state !== undefined
+      ? gc.state ?? ""
+      : ctx.provider_business_profile?.state ?? "";
+  const zipVal =
+    gc.zip !== undefined
+      ? gc.zip ?? ""
+      : ctx.provider_business_profile?.zip ?? "";
 
   const hasEmail = Boolean(generalEmail?.includes("@"));
   const hasPhone = Boolean(generalPhone);
-  const hasWebsite = Boolean(generalWebsite?.trim());
   const addressReady = Boolean(
     street.trim() &&
       cityVal.trim() &&
@@ -78,31 +91,32 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   );
 
   // v9 final: pre-flight gate. Required in every case:
-  //   - website (research entry point)
   //   - General Contact email (org-level outreach lane)
   //   - General Contact phone (call cadence)
   //   - structured address (snail-mail readiness)
   // Required only when a contact_form_url is on file:
   //   - admin must mark Submitted / Skipped / Not available
-  // Recommended (non-blocking) when no URL is on file: Contact form, Fax.
+  // Recommended (non-blocking): Website, Contact form URL, Fax.
+  // Per Graize 05.13 admin feedback: Website was previously required
+  // and blocked launches when an agency had no public site (or only a
+  // social profile). Demoted to recommended so outreach can run with
+  // the four core fields above.
   const contactFormUrl = gc.contact_form_url ?? "";
   const contactFormResolved =
     !contactFormUrl ||
     ctx.touchpoints.some((t) => t.touchpoint_type === "contact_form_submitted");
 
   const launchEnabled =
-    hasWebsite && hasEmail && hasPhone && addressReady && contactFormResolved;
-  const launchDisabledReason = !hasWebsite
-    ? "Add the website before launching."
-    : !hasEmail
-      ? "Add a General Contact email — a Specific Contact email is not enough."
-      : !hasPhone
-        ? "Add a General Contact phone — a Specific Contact phone is not enough."
-        : !addressReady
-          ? "Complete the address (street, city, state, ZIP) before launching."
-          : !contactFormResolved
-            ? "Resolve the contact form (Submitted / Skipped / Not available) before launching."
-            : undefined;
+    hasEmail && hasPhone && addressReady && contactFormResolved;
+  const launchDisabledReason = !hasEmail
+    ? "Add a General Contact email — a Specific Contact email is not enough."
+    : !hasPhone
+      ? "Add a General Contact phone — a Specific Contact phone is not enough."
+      : !addressReady
+        ? "Complete the address (street, city, state, ZIP) before launching."
+        : !contactFormResolved
+          ? "Resolve the contact form (Submitted / Skipped / Not available) before launching."
+          : undefined;
 
   return (
     <div className="space-y-6">

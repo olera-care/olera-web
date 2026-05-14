@@ -73,23 +73,24 @@ export interface TabDef {
 // Categories surface in In Basket only when they have active work
 // (unread + undone, excluding completed which moves to the Logs page).
 // Completed rows move out of In Basket; they don't pad the tab counts.
-// v9.0 Phase 7 Commit K: tab order = relationship importance →
-// responsiveness → cold backlog. Clients lead (highest-value
-// relationships), Partners + Candidates come next as the warm
-// supply/demand sides, then Meetings/Replies/Calls as the hot
-// responsiveness queues, then Prospects + Sites at the end as
-// scalable cold backlogs that work after hot queues clear.
+// v9.1 In Basket tab order mirrors the MedJobs sidebar order so admins
+// learn one consistent operational sequence across both surfaces:
+// Prospects (top of funnel) → Calls / Replies / Meetings (hot
+// responsiveness queues) → Clients / Partners / Candidates (warm
+// relationships and supply side). Sites is intentionally NOT a primary
+// tab here — it's an organizational anchor and lives in the sidebar
+// only. Deep links to ?tab=sites still resolve (the page keeps a
+// graceful render branch) but the tab bar no longer surfaces it.
 //
 // Smart-hide tucks empty tabs away; the active tab anchors the bar.
 export const TABS: TabDef[] = [
+  { key: "prospects",  label: "Prospects",  tooltip: "Stakeholders being researched + provider prospects in catchment. Top of the funnel." },
+  { key: "calls",      label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
+  { key: "replies",    label: "Replies",    tooltip: "Email replies, callbacks, voicemails. Triage and pick the next step." },
+  { key: "meetings",   label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
   { key: "clients",    label: "Clients",    tooltip: "Provider clients with a pending task — onboarding, trial check-in, follow-up." },
   { key: "partners",   label: "Partners",   tooltip: "Active partners with a pending custom task. Smart-hidden when no partners have open tasks." },
   { key: "candidates", label: "Candidates", tooltip: "Live candidates with a pending review or action." },
-  { key: "meetings",   label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
-  { key: "replies",    label: "Replies",    tooltip: "Email replies, callbacks, voicemails. Triage and pick the next step." },
-  { key: "calls",      label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
-  { key: "prospects",  label: "Prospects",  tooltip: "Stakeholders being researched + provider prospects in catchment. Cold backlog — work after hot queues clear." },
-  { key: "sites",      label: "Sites",      tooltip: "Sites needing research or with a pending site-level task. Cold backlog." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at

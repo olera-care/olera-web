@@ -33,7 +33,7 @@ import {
 import type { StakeholderType } from "./types";
 
 /**
- * v9 final: sender identity is Grazie Belandres directly, not a
+ * v9 final: sender identity is Graize Belandres directly, not a
  * generic "Olera Outreach" / noreply address. Recipients see a
  * human name in their inbox + a real mailbox they can reply to,
  * which improves deliverability (lower spam scores for non-
@@ -43,15 +43,15 @@ import type { StakeholderType } from "./types";
  * The address can still be overridden by env var when we move to
  * a dedicated outreach subdomain (see domain-strategy
  * recommendation in the README / ops doc). The display name stays
- * "Grazie Belandres" regardless — the right side of the < > is
+ * "Graize Belandres" regardless — the right side of the < > is
  * the routing identity, the left side is what humans see.
  */
 const FROM_ADDRESS =
   process.env.STUDENT_OUTREACH_FROM_ADDRESS
-  ?? "Grazie Belandres <grazie@olera.care>";
+  ?? "Graize Belandres <graize@olera.care>";
 
 const REPLY_TO_ADDRESS =
-  process.env.STUDENT_OUTREACH_REPLY_TO ?? "grazie@olera.care";
+  process.env.STUDENT_OUTREACH_REPLY_TO ?? "graize@olera.care";
 
 const FLYER_URL = process.env.STUDENT_OUTREACH_FLYER_URL ?? "";
 const FLYER_FILENAME = "olera-student-outreach-flyer.pdf";
@@ -320,8 +320,8 @@ function bodyToHtml(text: string): string {
  * on every send. Six-block stack in the order the user wants
  * recipients to read it:
  *
- *   1. "Best, Grazie"               (warm sign-off, inline)
- *   2. Grazie Belandres signature   (photo + role + contact)
+ *   1. "Best, Graize"               (warm sign-off, inline)
+ *   2. Graize Belandres signature   (photo + role + contact)
  *   3. Divider line
  *   4. "Message Approved by Dr. Logan DuBose, MD/MBA"
  *   5. Dr. Logan DuBose signature   (photo + credentials)
@@ -333,11 +333,11 @@ function bodyToHtml(text: string): string {
  */
 function composeFooterHtml(): string {
   return [
-    // 1+2: warm sign-off + Grazie block. Sits directly under the
-    //      body so the email reads like a real note from Grazie,
+    // 1+2: warm sign-off + Graize block. Sits directly under the
+    //      body so the email reads like a real note from Graize,
     //      not a marketing footer.
     `<p style="margin:16px 0 4px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
-    `<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Grazie</p>`,
+    `<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Graize</p>`,
     grazieSignatureHtml(),
     // 3: divider — separates the sender identity from the
     //    "approved by" attribution + principal signature.
@@ -359,12 +359,12 @@ function composeFooterText(): string {
   return [
     ``,
     `Best,`,
-    `Grazie`,
+    `Graize`,
     ``,
-    `Grazie Belandres`,
+    `Graize Belandres`,
     `Research Assistant to Dr. Logan DuBose`,
     `${PROGRAM_URL}`,
-    `grazie@olera.care`,
+    `graize@olera.care`,
     ``,
     `---`,
     `Message Approved by Dr. Logan DuBose, MD/MBA`,
@@ -414,9 +414,9 @@ function loganSignatureHtml(): string {
 }
 
 /**
- * Grazie Belandres signature block. Sender identity — photo +
+ * Graize Belandres signature block. Sender identity — photo +
  * "Research Assistant to Dr. Logan DuBose" + program link + email.
- * Distinct from Dr. DuBose's block above (Grazie is the operator;
+ * Distinct from Dr. DuBose's block above (Graize is the operator;
  * Dr. DuBose is the principal admin is being introduced to).
  *
  * Headshot URL follows the same /images/for-providers/team/ path
@@ -431,13 +431,13 @@ function grazieSignatureHtml(): string {
 <table cellpadding="0" cellspacing="0" style="margin-top:16px;">
   <tr>
     <td style="vertical-align:top;padding-right:16px;">
-      <img src="${photoUrl}" alt="Grazie Belandres" width="100" height="100" style="border-radius:8px;display:block;" />
+      <img src="${photoUrl}" alt="Graize Belandres" width="100" height="100" style="border-radius:8px;display:block;" />
     </td>
     <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
-      <p style="margin:0 0 4px;font-weight:600;color:#111827;">Grazie Belandres</p>
+      <p style="margin:0 0 4px;font-weight:600;color:#111827;">Graize Belandres</p>
       <p style="margin:0 0 2px;">Research Assistant to Dr. Logan DuBose</p>
       <p style="margin:0 0 2px;"><a href="${PROGRAM_URL}" style="color:#059669;">${PROGRAM_URL.replace(/^https?:\/\//, "")}</a></p>
-      <p style="margin:0;"><a href="mailto:grazie@olera.care" style="color:#059669;">grazie@olera.care</a></p>
+      <p style="margin:0;"><a href="mailto:graize@olera.care" style="color:#059669;">graize@olera.care</a></p>
     </td>
   </tr>
 </table>`;
@@ -479,7 +479,7 @@ export async function sendOutreachEmail(
     const subject = substituteVars(input.subject, vars);
     const body = substituteVars(input.body, vars);
     // Body markdown → HTML, then append the canonical footer
-    // (divider + STOP + Approved by + Logan signature + Grazie
+    // (divider + STOP + Approved by + Logan signature + Graize
     // signature). Footer is composed once in composeFooterHtml;
     // body never carries any signature copy.
     const html = bodyToHtml(body) + composeFooterHtml();

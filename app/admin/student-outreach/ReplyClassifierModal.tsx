@@ -30,12 +30,28 @@ import {
 import type { DistributionEvidence } from "@/lib/student-outreach/types";
 
 // v8.10.8: added "not_interested" — admin's "they said no thanks" path.
+// P3: added "became_client" — provider-only direct conversion path
+// when a reply commits them to the caregiver-hiring pilot. UI-level
+// only; dispatches existing make_client action.
+// P4: added "redirected" — they're sending us to a different decision-
+// maker. UI-level only; dispatches add_contact for the new contact
+// plus classify_reply(keep_emailing) so the original cadence stops
+// and admin continues the thread (now with the new contact in the
+// snapshot list).
 export type ReplyClassification =
   | "keep_emailing"
   | "wants_meeting"
   | "already_booked"
   | "committed"
+  | "became_client"
+  | "redirected"
   | "not_interested";
+
+export interface RedirectContact {
+  first_name: string;
+  last_name: string;
+  email: string;
+}
 
 interface Props {
   organizationName: string;
@@ -59,6 +75,12 @@ interface Props {
     classification: ReplyClassification,
     payload: { notes: string; meeting_at?: string | null },
     partner?: PartnerEvidence,
+    /**
+     * P4: when admin picks "Redirected to another contact", carries
+     * the new-contact details. Parent dispatches add_contact with
+     * this payload + classify_reply(keep_emailing).
+     */
+    redirect?: RedirectContact,
   ) => Promise<void>;
 }
 
@@ -77,6 +99,10 @@ export function ReplyClassifierModal({
   const [evidenceNotes, setEvidenceNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // P4: inline new-contact fields revealed when "redirected" picked.
+  const [redirectFirstName, setRedirectFirstName] = useState("");
+  const [redirectLastName, setRedirectLastName] = useState("");
+  const [redirectEmail, setRedirectEmail] = useState("");
 
   // v8.10.7: title is universal — "Log reply" is the single verb across
   // email replies, voicemails, and callbacks. The source param still
@@ -86,11 +112,23 @@ export function ReplyClassifierModal({
   void source;
 
   const isPartner = choice === "committed";
+  const isRedirect = choice === "redirected";
 
   const submit = async () => {
     if (!choice) {
       setError("Pick what they said.");
       return;
+    }
+    if (isRedirect) {
+      // P4: the new-contact form needs at least one piece of identifying
+      // info — name or email — for the add_contact to make sense.
+      const trimmedFirst = redirectFirstName.trim();
+      const trimmedLast = redirectLastName.trim();
+      const trimmedEmail = redirectEmail.trim();
+      if (!trimmedFirst && !trimmedLast && !trimmedEmail) {
+        setError("Add the new contact's name or email so we know who to follow up with.");
+        return;
+      }
     }
     setSubmitting(true);
     setError(null);
@@ -106,6 +144,13 @@ export function ReplyClassifierModal({
         },
         isPartner
           ? { evidence, evidence_notes: evidenceNotes.trim() }
+          : undefined,
+        isRedirect
+          ? {
+              first_name: redirectFirstName.trim(),
+              last_name: redirectLastName.trim(),
+              email: redirectEmail.trim(),
+            }
           : undefined,
       );
     } catch (e) {
@@ -163,7 +208,7 @@ export function ReplyClassifierModal({
               active={choice === "wants_meeting"}
               onSelect={() => setChoice("wants_meeting")}
               label="They want to meet"
-              blurb="You'll coordinate a time over email. Row moves to Meetings."
+              blurb="Reply with Dr. DuBose's Calendly link (already in his email signature) so they can book directly. Row moves to Meetings."
               tone="warn"
             />
             <ChoiceCard
@@ -182,14 +227,64 @@ export function ReplyClassifierModal({
                 tone="ok"
               />
             )}
+            {isProvider && (
+              <ChoiceCard
+                active={choice === "became_client"}
+                onSelect={() => setChoice("became_client")}
+                label="Became a Client ✓"
+                blurb="They committed to the caregiver-hiring pilot. Marks the provider as a Client and unlocks Partner Prospects for catchment Sites."
+                tone="ok"
+              />
+            )}
+            <ChoiceCard
+              active={choice === "redirected"}
+              onSelect={() => setChoice("redirected")}
+              label="Redirected to another contact"
+              blurb="They pointed us to someone else. Add the new contact below; cadence to the original recipient stops."
+              tone="neutral"
+            />
             <ChoiceCard
               active={choice === "not_interested"}
               onSelect={() => setChoice("not_interested")}
-              label="They said no thanks"
+              label="Not interested"
               blurb="Polite decline. Row closes as Not interested; cadence stops and they leave the active workflow."
               tone="danger"
             />
           </div>
+
+          {isRedirect && (
+            <div className="space-y-2 rounded-md border border-emerald-200 bg-emerald-50/30 px-3 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                New contact
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={redirectFirstName}
+                  onChange={(e) => setRedirectFirstName(e.target.value)}
+                  placeholder="First name"
+                  className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                />
+                <input
+                  type="text"
+                  value={redirectLastName}
+                  onChange={(e) => setRedirectLastName(e.target.value)}
+                  placeholder="Last name"
+                  className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                />
+              </div>
+              <input
+                type="email"
+                value={redirectEmail}
+                onChange={(e) => setRedirectEmail(e.target.value)}
+                placeholder="Email"
+                className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              />
+              <p className="text-[11px] text-gray-500">
+                We&rsquo;ll add this person to the contact list and stop the cadence to the original recipient.
+              </p>
+            </div>
+          )}
 
           {choice === "already_booked" && (
             <label className="block pt-2">
@@ -214,7 +309,7 @@ export function ReplyClassifierModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              placeholder="What did they say? Any context for next steps."
+              placeholder="Optional. Anything the next admin (or future-you) should know — what they said, why you logged this, the next step."
               className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
             />
           </label>

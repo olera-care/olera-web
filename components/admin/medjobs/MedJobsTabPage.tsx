@@ -20,6 +20,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useToast } from "@/components/admin/Toast";
+import { useRecentMoves } from "@/components/admin/RecentMoves";
+import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
 import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
@@ -239,6 +242,8 @@ export function MedJobsTabPage({
     [],
   );
 
+  const toast = useToast();
+  const { markMoved, isRecent } = useRecentMoves();
   const callAction = useCallback(
     async (outreachId: string, action: string, payload: Record<string, unknown> = {}) => {
       const res = await fetch(`/api/admin/student-outreach/${outreachId}`, {
@@ -250,12 +255,20 @@ export function MedJobsTabPage({
         const { error: e } = await res.json().catch(() => ({ error: "Action failed" }));
         throw new Error(e || "Action failed");
       }
+      // E1: surface a progression toast for meaningful Log actions.
+      const message = logActionSuccessMessage(action, payload);
+      if (message) {
+        toast(message);
+        // E2: also mark the row as recently moved so the destination
+        // tab can highlight it.
+        markMoved(outreachId);
+      }
       await refetch();
       // v9.0 Phase 7 Commit K: fan-out so the sidebar fractions +
       // hero counts update live alongside this page's refetch.
       refreshMedJobs();
     },
-    [refetch],
+    [refetch, refreshMedJobs, toast, markMoved],
   );
 
   const renderRow = useCallback(
@@ -263,6 +276,7 @@ export function MedJobsTabPage({
       <RowCard
         tab={tab}
         row={row}
+        recentlyMoved={isRecent(row.id)}
         onOpenDrawer={() => setOpenOutreachId(row.id)}
         onLogCallOutcome={() => setCallOutcomeRow(row)}
         onClassifyReply={(source) => setClassifierRow({ row, source })}
@@ -315,7 +329,7 @@ export function MedJobsTabPage({
         }}
       />
     ),
-    [tab, callAction],
+    [tab, callAction, isRecent],
   );
 
   const visibleTabs = useMemo(() => {
@@ -701,18 +715,30 @@ export function MedJobsTabPage({
           contactPhone={callOutcomeRow.primary_contact_phone}
           rowKind={callOutcomeRow.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setCallOutcomeRow(null)}
-          onSubmit={async (outcome, notes, partner) => {
-            // v9 final: scope the log to this row's specific call task
-            // so the General Contact card and each Specific Contact
-            // card close their own tasks independently. Without
-            // task_id the server falls back to the oldest due call.
-            await callAction(callOutcomeRow.id, "log_call", {
-              outcome,
-              notes,
-              task_id: callOutcomeRow.due_call_task?.id,
-            });
-            if (partner) {
-              await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
+          onSubmit={async (outcome, notes, partner, meetingAt) => {
+            // R5: terminal admin overrides dispatched directly.
+            if (outcome === "mark_dnc" || outcome === "mark_no_response_closed") {
+              await callAction(callOutcomeRow.id, outcome, { notes });
+            } else if (outcome === "meeting_scheduled") {
+              // P1: call-driven meeting commitment dispatches
+              // mark_meeting_scheduled directly.
+              await callAction(callOutcomeRow.id, "mark_meeting_scheduled", {
+                meeting_at: meetingAt ?? null,
+                notes,
+              });
+            } else {
+              // v9 final: scope the log to this row's specific call task
+              // so the General Contact card and each Specific Contact
+              // card close their own tasks independently. Without
+              // task_id the server falls back to the oldest due call.
+              await callAction(callOutcomeRow.id, "log_call", {
+                outcome,
+                notes,
+                task_id: callOutcomeRow.due_call_task?.id,
+              });
+              if (partner) {
+                await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
+              }
             }
             setCallOutcomeRow(null);
           }}
@@ -724,14 +750,38 @@ export function MedJobsTabPage({
           source={classifierRow.source}
           rowKind={classifierRow.row.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setClassifierRow(null)}
-          onSubmit={async (classification, payload, partner) => {
-            await callAction(classifierRow.row.id, "classify_reply", {
-              classification,
-              notes: payload.notes,
-              meeting_at: payload.meeting_at,
-            });
-            if (partner) {
-              await callAction(classifierRow.row.id, "mark_partner", { ...partner });
+          onSubmit={async (classification, payload, partner, redirect) => {
+            if (classification === "became_client") {
+              // P3: provider reply → direct client conversion.
+              await callAction(classifierRow.row.id, "make_client", {
+                notes: payload.notes,
+              });
+            } else if (classification === "redirected" && redirect) {
+              // P4: add the new contact + stop the original cadence.
+              const derivedName =
+                [redirect.first_name, redirect.last_name]
+                  .filter(Boolean)
+                  .join(" ")
+                  .trim() || redirect.email;
+              await callAction(classifierRow.row.id, "add_contact", {
+                name: derivedName,
+                first_name: redirect.first_name || null,
+                last_name: redirect.last_name || null,
+                email: redirect.email || null,
+              });
+              await callAction(classifierRow.row.id, "classify_reply", {
+                classification: "keep_emailing",
+                notes: payload.notes,
+              });
+            } else {
+              await callAction(classifierRow.row.id, "classify_reply", {
+                classification,
+                notes: payload.notes,
+                meeting_at: payload.meeting_at,
+              });
+              if (partner) {
+                await callAction(classifierRow.row.id, "mark_partner", { ...partner });
+              }
             }
             setClassifierRow(null);
           }}
@@ -763,6 +813,7 @@ export function MedJobsTabPage({
               ? logMeetingRow.meeting_at.slice(0, 16)
               : undefined
           }
+          rowKind={logMeetingRow.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setLogMeetingRow(null)}
           onSubmit={async (status: MeetingStatus, payload, partner) => {
             try {
@@ -775,6 +826,12 @@ export function MedJobsTabPage({
                 await callAction(logMeetingRow.id, "flag_wants_meeting", {
                   notes: payload.notes,
                 });
+              } else if (status === "no_show") {
+                // P6: emit meeting_no_show + keep meeting_state in_flight.
+                await callAction(logMeetingRow.id, "flag_wants_meeting", {
+                  notes: payload.notes,
+                  no_show: true,
+                });
               } else if (status === "done_followup") {
                 await callAction(logMeetingRow.id, "mark_meeting_followup", {
                   notes: payload.notes,
@@ -784,6 +841,16 @@ export function MedJobsTabPage({
                 // mark_partner; no chained MarkPartnerModal. The meeting
                 // log itself is implicit in the partner conversion.
                 await callAction(logMeetingRow.id, "mark_partner", { ...partner });
+              } else if (status === "done_client") {
+                // P3: post-meeting provider conversion.
+                await callAction(logMeetingRow.id, "make_client", {
+                  notes: payload.notes,
+                });
+              } else if (status === "not_a_fit") {
+                // C3: post-meeting decline path.
+                await callAction(logMeetingRow.id, "mark_not_interested", {
+                  notes: payload.notes,
+                });
               }
               setLogMeetingRow(null);
             } catch (e) {

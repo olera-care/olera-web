@@ -98,6 +98,46 @@ export async function POST(
   }
   const row = outreach as OutreachRow;
 
+  // ── Conversion routing map ──────────────────────────────────────────
+  //
+  // Provider rows (kind='provider') convert to Clients via make_client,
+  // which writes business_profiles.metadata.interview_terms_accepted_at.
+  // That metadata flag is what unlocks Partner Prospects for catchment
+  // Sites (see lib/medjobs/partner-prospect-gate.ts).
+  //
+  // Stakeholder rows convert to Partners via mark_partner, which writes
+  // distribution_evidence on the outreach row and queues the first
+  // seasonal email.
+  //
+  // The two paths are NOT interchangeable. Picking mark_partner on a
+  // provider row half-converts (sets active_partner status but never
+  // unlocks Partner Prospects). All four Log surfaces gate this:
+  //
+  //   PROVIDER conversion (→ make_client):
+  //     - LogCallOutcomeModal:  convert_to_client outcome (provider only)
+  //     - CallForEmailModal:    convert_to_client engagement (provider modal)
+  //     - ReplyClassifierModal: not offered (gated by !isProvider; convert
+  //                             via Call modal or T&C/Stripe signal)
+  //     - LogMeetingModal:      not offered (gated by !isProvider; convert
+  //                             via Call modal — see R1 commit)
+  //
+  //   STAKEHOLDER conversion (→ mark_partner):
+  //     - LogCallOutcomeModal:  convert_to_partner outcome (stakeholder only)
+  //     - ReplyClassifierModal: committed classification (stakeholder only)
+  //     - LogMeetingModal:      done_partner status (stakeholder only)
+  //
+  // Terminal closeouts (→ transitionStage to closed status):
+  //   - mark_not_interested      → "not_interested"
+  //   - mark_dnc                 → "do_not_contact"
+  //   - mark_wrong_contact       → "wrong_contact"
+  //   - mark_no_response_closed  → "no_response_closed" (auto-revives on
+  //                                inbound email_replied — see handleLogReply)
+  //   - reopen                   → flips closed rows back to engaged
+  //
+  // Every conversion + terminal action emits a stage_change touchpoint
+  // and cancels obsolete tasks via tasksToCancelOnExit. Single-writer
+  // discipline: all mutations route through here.
+
   try {
     switch (action) {
       // ── Field updates ───────────────────────────────────────────────
@@ -158,6 +198,12 @@ export async function POST(
         await handleLogTouch(db, row, body, user.id, "email_bounced", "email");
         break;
       case "log_call":
+      case "log_call_outcome":
+        // log_call_outcome is the name used by NextStepCard's
+        // CallDueBody and the CallForEmailModal engagement bypass.
+        // Both dispatch the same handler — aliasing here so either
+        // name routes correctly without forcing a rename across the
+        // FE call sites.
         await handleLogCall(db, row, body, user.id);
         break;
       case "classify_reply":
@@ -950,13 +996,26 @@ async function handleMarkMeetingScheduled(
 async function handleFlagWantsMeeting(
   db: DB,
   row: OutreachRow,
-  body: { notes?: string },
+  body: { notes?: string; no_show?: boolean },
   userId: string,
 ) {
   // Mark engaged if not yet — cancels cadence so we're not still emailing
   // while coordinating a meeting.
   if (row.status === "outreach_sent" || row.status === "researched" || row.status === "prospect") {
     await transitionStage(db, row, "engaged", userId, "wants a meeting");
+  }
+  // P6: when the admin is logging a no-show / cancellation that they're
+  // about to reschedule, emit the existing meeting_no_show touchpoint
+  // FIRST so the timeline shows the no-show event. Then the
+  // note_added{reason: meeting_in_flight} below lands as the most
+  // recent touchpoint — state-derivation's DESC scan hits it first
+  // and keeps meeting_state = "in_flight" so the row stays in the
+  // Meetings queue ready to be rebooked.
+  if (body.no_show) {
+    await insertTouchpoint(db, row.id, "meeting_no_show", userId, {
+      channel: "meeting",
+      notes: body.notes ?? null,
+    });
   }
   await insertTouchpoint(db, row.id, "note_added", userId, {
     notes: body.notes ?? null,

@@ -71,6 +71,14 @@ export const TEXAS_AM: ProgramPdfConfig = {
     "Local Texas A&M pre-health students ready to supplement your caregiver workforce.",
   heroSubhead:
     "Olera connects pre-nursing and pre-medical students from Texas A&M with home care agencies for paid caregiving experience. Students get the clinical hours and recommendation letters that strengthen their applications to medical, PA, and nursing school. Agencies get reliable, motivated staffing support from a local university talent pool.",
+  // v9.1 Graize 05.13 audit (Item 12): two benefit cards retitled
+  // to better fit the program's actual value to operators + clients.
+  // "Local Aggie talent pipeline" -> "Local evergreen talent pipeline"
+  // makes the perennial-semester point without university-specific
+  // jargon, and reads cleaner. "Pathway to long-term hires" framed
+  // the program as a recruiting funnel; the bigger win is the client-
+  // experience uplift from motivated pre-health caregivers — so it
+  // reframes as "Caregivers your clients remember".
   benefits: [
     {
       title: "Fill vacant shifts and PRN gaps",
@@ -81,12 +89,12 @@ export const TEXAS_AM: ProgramPdfConfig = {
       body: "Students prioritize clinical hours, mentorship, and recommendation letters that support their applications.",
     },
     {
-      title: "Local Aggie talent pipeline",
-      body: "Pre-health students from Bryan/College Station, available semester after semester.",
+      title: "Local evergreen talent pipeline",
+      body: "Pre-nursing and pre-medical students from the Bryan/College Station area, available semester after semester.",
     },
     {
-      title: "Pathway to long-term hires",
-      body: "Strong-fit students often stay on after graduation in caregiver or care-coordinator roles.",
+      title: "Caregivers your clients remember",
+      body: "Intergenerational connection and high-quality engagement from future nurses and physicians who care about the work.",
     },
   ],
   steps: [
@@ -105,5 +113,8 @@ export const TEXAS_AM: ProgramPdfConfig = {
     headline: "1-month free trial. $50/month afterward. Cancel anytime.",
     body: "The fee supports student outreach, vetting, and operational management. Unlimited student referrals included.",
   },
-  ctaLabel: "Learn more and begin participation",
+  // v9.1 Graize 05.13 audit (Item 13): shorter CTA so the label
+  // doesn't truncate next to the QR code. The QR target URL already
+  // takes the reader to the participation page.
+  ctaLabel: "Learn more",
 };

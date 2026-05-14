@@ -909,6 +909,12 @@ export default async function ProviderPage({
 
             {/* Identity */}
             <div className="flex-1 min-w-0 flex flex-col">
+              {/* Mobile eyebrow - category above name */}
+              {categoryLabel && (
+                <p className="md:hidden text-xs font-semibold tracking-wide uppercase text-gray-500 mb-1">
+                  {categoryLabel}
+                </p>
+              )}
               {/* Name + Save */}
               <div className="flex items-start justify-between gap-3">
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left w-full md:w-auto">
@@ -937,17 +943,16 @@ export default async function ProviderPage({
                   <p className="text-sm text-gray-500 mt-1">{locationStr}</p>
                 )}
 
-                {/* Row 2: Category + up to 2 highlights (dot-separated, filter duplicates of category) */}
+                {/* Row 2: Highlights only (category is now eyebrow above name) */}
                 {(() => {
                   const categoryLower = categoryLabel?.toLowerCase() || "";
                   const filteredHighlights = highlights
                     .filter((h) => h.label.toLowerCase() !== categoryLower)
                     .slice(0, 2)
                     .map((h) => h.label);
-                  const items = [categoryLabel, ...filteredHighlights].filter(Boolean);
-                  return items.length > 0 ? (
+                  return filteredHighlights.length > 0 ? (
                     <p className="text-sm text-gray-500 mt-0.5">
-                      {items.join(" · ")}
+                      {filteredHighlights.join(" · ")}
                     </p>
                   ) : null;
                 })()}

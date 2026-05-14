@@ -419,7 +419,7 @@ export default function MobileStickyGuide({
               onClick={handleGuideClick}
               className="w-full py-4 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
             >
-              <span>Get Checklist</span>
+              <span>Get free checklist</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>

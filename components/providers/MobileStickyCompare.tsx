@@ -212,7 +212,7 @@ export default function MobileStickyCompare({
         >
           <div className="px-5 pt-4 pb-5">
             {/* Pricing info */}
-            <div className="mb-3">
+            <div>
               <p className="text-[22px] font-bold text-gray-900 leading-tight">
                 {price}
               </p>
@@ -246,7 +246,7 @@ export default function MobileStickyCompare({
             </div>
 
             {/* Compare context */}
-            <p className="text-[13px] text-gray-600 mb-4">
+            <p className="text-[14px] font-medium text-gray-600 mt-1.5 mb-4">
               Compare with {nearbyCount || 2} nearby home{nearbyCount !== 1 ? "s" : ""}
             </p>
 

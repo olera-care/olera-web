@@ -1,11 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Modal from "@/components/ui/Modal";
 import { useLeadCapture } from "./use-lead-capture";
-import LeadCaptureHeader from "./LeadCaptureHeader";
 import LeadCaptureForm from "./LeadCaptureForm";
 import type { LeadCaptureProps } from "./types";
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 export default function LeadCaptureSheet({
   providerId,
@@ -45,33 +54,23 @@ export default function LeadCaptureSheet({
     wasOpen.current = isOpen;
   }, [isOpen, hook.resetState]);
 
-  // Dynamic title based on entry point and state
-  const getTitle = () => {
-    if (hook.isNonFamilyProfile) {
+  // For block states, we use normal modal with title
+  const useStandardHeader = hook.isNonFamilyProfile || hook.state === "provider_block";
+
+  const getBlockTitle = () => {
+    if (hook.isNonFamilyProfile || hook.state === "provider_block") {
       return "Family account required";
     }
-
-    if (hook.state === "provider_block") {
-      return "Family account required";
-    }
-
-    switch (entryPoint) {
-      case "message_host":
-        return staff ? `Message ${staff.name.split(" ")[0]}` : "Send a Message";
-      case "custom_quote":
-        return "Get a Custom Quote";
-      case "book_consultation":
-        return "Book a Consultation";
-      default:
-        return "Connect";
-    }
+    return undefined;
   };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={getTitle()}
+      title={useStandardHeader ? getBlockTitle() : undefined}
+      hideHeader={!useStandardHeader}
+      closeButtonStyle={useStandardHeader ? "default" : "minimal"}
       size="lg"
     >
       {/* Non-family profile block */}
@@ -147,11 +146,68 @@ export default function LeadCaptureSheet({
         hook.state !== "provider_block" &&
         hook.state !== "success" && (
           <div className="animate-step-in">
-            <LeadCaptureHeader
-              entryPoint={entryPoint}
-              staff={staff}
-              providerName={providerName}
-            />
+            {/* Centered hero section - all entry points */}
+            <div className="text-center pt-4 pb-6">
+              {/* Hero icon/photo */}
+              <div className="relative mx-auto mb-4 w-20 h-20">
+                {entryPoint === "message_host" && staff?.image ? (
+                  <Image
+                    src={staff.image}
+                    alt={staff.name}
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 rounded-full object-cover"
+                  />
+                ) : entryPoint === "message_host" && staff ? (
+                  <div className="w-20 h-20 rounded-full bg-primary-50 flex items-center justify-center">
+                    <span className="text-2xl font-semibold text-primary-600">
+                      {getInitials(staff.name)}
+                    </span>
+                  </div>
+                ) : entryPoint === "custom_quote" ? (
+                  <div className="w-20 h-20 rounded-full bg-primary-50 flex items-center justify-center">
+                    <svg className="w-9 h-9 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                ) : entryPoint === "book_consultation" ? (
+                  <div className="w-20 h-20 rounded-full bg-primary-50 flex items-center justify-center">
+                    <svg className="w-9 h-9 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-primary-50 flex items-center justify-center">
+                    <svg className="w-9 h-9 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              {/* Title */}
+              <p className="text-xl font-semibold text-gray-900">
+                {entryPoint === "message_host" && staff
+                  ? staff.name
+                  : entryPoint === "custom_quote"
+                    ? "Get a Custom Quote"
+                    : entryPoint === "book_consultation"
+                      ? "Book a Consultation"
+                      : "Send a Message"}
+              </p>
+
+              {/* Subtitle */}
+              <p className="text-sm text-gray-500 mt-1">
+                {entryPoint === "message_host" && staff
+                  ? staff.role
+                  : entryPoint === "custom_quote"
+                    ? `${providerName} will respond with pricing details`
+                    : entryPoint === "book_consultation"
+                      ? `Discuss care options with ${providerName}`
+                      : `Connect with ${providerName}`}
+              </p>
+            </div>
+
             <LeadCaptureForm
               key={formKey}
               isLoggedIn={hook.isLoggedIn}

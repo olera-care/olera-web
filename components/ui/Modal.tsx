@@ -19,6 +19,8 @@ interface ModalProps {
   footer?: ReactNode;
   /** Hide the default header (title, close button). Use for custom layouts. */
   hideHeader?: boolean;
+  /** Close button style. "default" has gray background, "minimal" is just the X icon. */
+  closeButtonStyle?: "default" | "minimal";
 }
 
 const sizeClasses: Record<string, string> = {
@@ -49,6 +51,7 @@ export default function Modal({
   onBack,
   footer,
   hideHeader = false,
+  closeButtonStyle = "default",
 }: ModalProps) {
   const isFullscreen = size === "fullscreen";
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -210,11 +213,15 @@ export default function Modal({
           <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
             <button
               onClick={handleClose}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"
+              className={
+                closeButtonStyle === "minimal"
+                  ? "w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+                  : "w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"
+              }
               aria-label="Close"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className={closeButtonStyle === "minimal" ? "w-6 h-6" : "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={closeButtonStyle === "minimal" ? 1.5 : 2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
@@ -247,11 +254,15 @@ export default function Modal({
             {/* Close button */}
             <button
               onClick={handleClose}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors shrink-0"
+              className={
+                closeButtonStyle === "minimal"
+                  ? "w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+                  : "w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors shrink-0"
+              }
               aria-label="Close"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className={closeButtonStyle === "minimal" ? "w-6 h-6" : "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={closeButtonStyle === "minimal" ? 1.5 : 2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>

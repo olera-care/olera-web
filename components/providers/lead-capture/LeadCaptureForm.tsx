@@ -213,7 +213,7 @@ export default function LeadCaptureForm({
 
       {/* Privacy note */}
       <p className="text-xs text-gray-500 text-center">
-        No spam. No sales calls. Your info is kept private.
+        Your information is kept private.
       </p>
     </div>
   );

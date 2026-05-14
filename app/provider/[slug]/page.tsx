@@ -417,17 +417,17 @@ export default async function ProviderPage({
   // 3. price_min/max with price_unit (fallback, e.g. when price_range wasn't set)
   // 4. Regional estimate (state/metro average) for non-Tier 3 categories
   const priceUnitSuffix = meta?.price_unit === "HOUR" ? "/hr" : "/mo";
-  const { priceRange, isRegionalEstimate } = (() => {
+  const priceRange = (() => {
     // Primary: pre-formatted string from formatPriceRange
-    if (meta?.price_range) return { priceRange: meta.price_range, isRegionalEstimate: false };
+    if (meta?.price_range) return meta.price_range;
 
     // Legacy hourly format
     if (meta?.hourly_rate_min != null && meta?.hourly_rate_max != null) {
       if (meta.hourly_rate_max > meta.hourly_rate_min) {
-        return { priceRange: `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`, isRegionalEstimate: false };
+        return `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`;
       }
       if (meta.hourly_rate_max === meta.hourly_rate_min) {
-        return { priceRange: `$${meta.hourly_rate_min}/hr`, isRegionalEstimate: false };
+        return `$${meta.hourly_rate_min}/hr`;
       }
       // Invalid: max < min, fall through
     }
@@ -435,20 +435,20 @@ export default async function ProviderPage({
     // Direct price_min/max fallback
     if (meta?.price_min != null && meta?.price_max != null) {
       if (meta.price_max > meta.price_min) {
-        return { priceRange: `$${meta.price_min.toLocaleString()}-${meta.price_max.toLocaleString()}${priceUnitSuffix}`, isRegionalEstimate: false };
+        return `$${meta.price_min.toLocaleString()}-${meta.price_max.toLocaleString()}${priceUnitSuffix}`;
       }
       if (meta.price_max === meta.price_min) {
-        return { priceRange: `$${meta.price_min.toLocaleString()}${priceUnitSuffix}`, isRegionalEstimate: false };
+        return `$${meta.price_min.toLocaleString()}${priceUnitSuffix}`;
       }
       // Invalid: max < min, fall through
     }
 
     // Single price fallbacks
     if (meta?.price_min != null) {
-      return { priceRange: `From $${meta.price_min.toLocaleString()}${priceUnitSuffix}`, isRegionalEstimate: false };
+      return `From $${meta.price_min.toLocaleString()}${priceUnitSuffix}`;
     }
     if (meta?.price_max != null) {
-      return { priceRange: `Up to $${meta.price_max.toLocaleString()}${priceUnitSuffix}`, isRegionalEstimate: false };
+      return `Up to $${meta.price_max.toLocaleString()}${priceUnitSuffix}`;
     }
 
     // Regional estimate fallback (match card behavior)
@@ -461,11 +461,11 @@ export default async function ProviderPage({
         profile.city ?? undefined
       );
       if (regional) {
-        return { priceRange: regional.formatted, isRegionalEstimate: true };
+        return regional.formatted;
       }
     }
 
-    return { priceRange: null, isRegionalEstimate: false };
+    return null;
   })();
 
   const rating = meta?.rating;
@@ -952,50 +952,44 @@ export default async function ProviderPage({
                   ) : null;
                 })()}
 
-                {/* Row 3: Rating & Reviews box (centered, subtle border) */}
+                {/* Row 3: Rating & Reviews box (centered, subtle border) - only shown if reviews exist */}
                 {(() => {
                   const displayRating = googleReviewsData?.rating ?? rating;
                   const displayReviewCount = googleReviewsData?.review_count ?? 0;
                   const hasReviews = displayRating != null && displayReviewCount > 0;
 
+                  // Don't render the reviews box if no reviews
+                  if (!hasReviews) return null;
+
                   return (
                     <div className="flex items-center justify-center mt-4 py-5 border border-gray-100 rounded-xl">
-                      {hasReviews ? (
-                        /* Two columns: Rating | Review Count */
-                        <div className="flex items-center justify-center gap-6">
-                          {/* Left: Rating + stars */}
-                          <div className="flex flex-col items-center text-center">
-                            <span className="text-2xl font-bold text-gray-900">{displayRating!.toFixed(1)}</span>
-                            <div className="flex items-center justify-center gap-0.5 mt-1">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <svg
-                                  key={star}
-                                  className={`w-4 h-4 ${star <= Math.round(displayRating!) ? "text-gray-500" : "text-gray-300"}`}
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Divider */}
-                          <div className="w-px h-10 bg-gray-200" />
-
-                          {/* Right: Review count */}
-                          <div className="flex flex-col items-center text-center">
-                            <span className="text-2xl font-bold text-gray-900">{displayReviewCount}</span>
-                            <span className="text-xs text-gray-500 mt-1">Google reviews</span>
-                          </div>
-                        </div>
-                      ) : (
-                        /* No reviews: Single centered element */
+                      <div className="flex items-center justify-center gap-6">
+                        {/* Left: Rating + stars */}
                         <div className="flex flex-col items-center text-center">
-                          <span className="text-2xl font-bold text-gray-900">No reviews yet</span>
-                          <span className="text-xs text-gray-500 mt-1">Be the first to leave a review</span>
+                          <span className="text-2xl font-bold text-gray-900">{displayRating!.toFixed(1)}</span>
+                          <div className="flex items-center justify-center gap-0.5 mt-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <svg
+                                key={star}
+                                className={`w-4 h-4 ${star <= Math.round(displayRating!) ? "text-gray-500" : "text-gray-300"}`}
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            ))}
+                          </div>
                         </div>
-                      )}
+
+                        {/* Divider */}
+                        <div className="w-px h-10 bg-gray-200" />
+
+                        {/* Right: Review count */}
+                        <div className="flex flex-col items-center text-center">
+                          <span className="text-2xl font-bold text-gray-900">{displayReviewCount}</span>
+                          <span className="text-xs text-gray-500 mt-1">Google reviews</span>
+                        </div>
+                      </div>
                     </div>
                   );
                 })()}

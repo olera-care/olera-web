@@ -385,6 +385,23 @@ export async function PATCH(
       return NextResponse.json({ error: "Failed to update provider" }, { status: 500 });
     }
 
+    // Cascade the deleted flag to any linked business_profiles. Without this,
+    // a claimed BP keeps `is_active=true` and the city-page BP query + the
+    // provider-detail BP fallback continue surfacing the listing publicly —
+    // the admin UI hides it, but the public site doesn't.
+    // The provider-detail page's soft-deleted redirect path then fires
+    // (preserves SEO equity via 301 to the power page).
+    if ("deleted" in updates) {
+      const targetActive = updates.deleted === true ? false : true;
+      const { error: cascadeError } = await db
+        .from("business_profiles")
+        .update({ is_active: targetActive })
+        .eq("source_provider_id", providerId);
+      if (cascadeError) {
+        console.error("Directory delete cascade to business_profiles failed:", cascadeError);
+      }
+    }
+
     // Build audit diff
     const changedFields: Record<string, { from: unknown; to: unknown }> = {};
     for (const [key, value] of Object.entries(updates)) {

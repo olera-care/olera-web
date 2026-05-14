@@ -210,12 +210,8 @@ export function useLeadCapture({
               });
           }
 
-          // Navigate to welcome page
-          const params = new URLSearchParams({
-            connection: data.connectionId,
-            provider: providerSlug,
-          });
-          router.push(`/welcome?${params.toString()}`);
+          // Navigate to inbox (same as logged-in users)
+          router.push(`/portal/inbox?id=${data.connectionId}`);
           setState("success");
           onClose();
         }

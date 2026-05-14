@@ -54,6 +54,7 @@ export default function GuideBottomSheet({
   const [error, setError] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
+  const [connectionId, setConnectionId] = useState<string | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
 
@@ -180,6 +181,11 @@ export default function GuideBottomSheet({
         });
       }
 
+      // Store connectionId for redirect
+      if (data.connectionId) {
+        setConnectionId(data.connectionId);
+      }
+
       // Store PDF URL and trigger download
       if (data.pdfUrl) {
         setPdfUrl(data.pdfUrl);
@@ -202,8 +208,8 @@ export default function GuideBottomSheet({
 
   // Handle "Open a thread" click
   const handleMessageProvider = useCallback(() => {
-    window.location.href = `/portal/inbox`;
-  }, []);
+    window.location.href = connectionId ? `/portal/inbox?id=${connectionId}` : `/portal/inbox`;
+  }, [connectionId]);
 
   if (!isOpen || !mounted) return null;
 

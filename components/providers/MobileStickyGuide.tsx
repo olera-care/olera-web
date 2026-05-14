@@ -105,13 +105,16 @@ export default function MobileStickyGuide({
         }),
       });
 
-      // Even if there's an error, redirect to inbox (connection may already exist)
-      if (!res.ok) {
+      let connId: string | null = null;
+      if (res.ok) {
+        const data = await res.json();
+        connId = data.connectionId || null;
+      } else {
         console.error("[MobileStickyGuide] guide-save failed:", res.status);
       }
 
-      // Redirect to inbox
-      window.location.href = `/portal/inbox`;
+      // Redirect to inbox with connectionId if available
+      window.location.href = connId ? `/portal/inbox?id=${connId}` : `/portal/inbox`;
     } catch (err) {
       console.error("[MobileStickyGuide] handleMessageProvider error:", err);
       // Still redirect on error - user expects to go to inbox

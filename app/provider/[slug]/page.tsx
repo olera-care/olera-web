@@ -911,7 +911,7 @@ export default async function ProviderPage({
             <div className="flex-1 min-w-0 flex flex-col">
               {/* Name + Save */}
               <div className="flex items-start justify-between gap-3">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display text-center md:text-left w-full md:w-auto">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left w-full md:w-auto">
                   {profile.display_name}
                 </h1>
                 <div className="hidden md:block">
@@ -930,8 +930,8 @@ export default async function ProviderPage({
                 </div>
               </div>
 
-              {/* ── Mobile identity layout (Airbnb-inspired, centered) ── */}
-              <div className="md:hidden text-center">
+              {/* ── Mobile identity layout ── */}
+              <div className="md:hidden">
                 {/* Row 1: Location (City, State) */}
                 {locationStr && (
                   <p className="text-sm text-gray-500 mt-1">{locationStr}</p>

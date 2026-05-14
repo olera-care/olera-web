@@ -269,7 +269,7 @@ export default function MobileStickyGuide({
         <div
           className="md:hidden"
           aria-hidden="true"
-          style={{ height: "calc(100px + env(safe-area-inset-bottom, 0px))" }}
+          style={{ height: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
         />
 
         {/* Sticky bottom bar - Messaging focused (always visible) */}
@@ -355,7 +355,7 @@ export default function MobileStickyGuide({
       <div
         className="md:hidden"
         aria-hidden="true"
-        style={{ height: "calc(110px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ height: "calc(130px + env(safe-area-inset-bottom, 0px))" }}
       />
 
       {/* Sticky bottom bar (always visible) */}
@@ -428,7 +428,7 @@ export default function MobileStickyGuide({
         createPortal(
           <div
             className="fixed left-4 right-4 z-[100] md:hidden"
-            style={{ bottom: "calc(130px + env(safe-area-inset-bottom, 0px))" }}
+            style={{ bottom: "calc(150px + env(safe-area-inset-bottom, 0px))" }}
           >
             <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
               <p>{pricingDisclaimer}</p>

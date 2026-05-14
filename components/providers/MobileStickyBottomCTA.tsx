@@ -576,7 +576,7 @@ export default function MobileStickyBottomCTA({
       <div
         className="md:hidden"
         aria-hidden="true"
-        style={{ height: "calc(100px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ height: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
       />
 
       {/* ── Sticky bottom bar (always visible) ── */}

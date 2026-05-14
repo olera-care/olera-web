@@ -971,7 +971,7 @@ export default async function ProviderPage({
                             {[1, 2, 3, 4, 5].map((star) => (
                               <svg
                                 key={star}
-                                className={`w-4 h-4 ${star <= Math.round(displayRating!) ? "text-gray-500" : "text-gray-300"}`}
+                                className={`w-4 h-4 ${star <= Math.round(displayRating!) ? "text-yellow-400" : "text-gray-300"}`}
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >

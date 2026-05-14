@@ -1347,14 +1347,7 @@ export default async function ProviderPage({
               {/* ── Detailed Pricing ── */}
               {pricingDetails.length > 0 && (
                 <div id="pricing" className="py-8 scroll-mt-20 border-t border-gray-200">
-                  <div className="flex items-start justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 font-display">Prices at {profile.display_name}</h2>
-                    </div>
-                    <ScrollToConnectionCard className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors flex-shrink-0">
-                      Get a custom quote
-                    </ScrollToConnectionCard>
-                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Prices at {profile.display_name}</h2>
                   <div className="space-y-2">
                     {pricingDetails.map((item) => (
                       <div
@@ -1368,6 +1361,9 @@ export default async function ProviderPage({
                       </div>
                     ))}
                   </div>
+                  <ScrollToConnectionCard className="w-full md:w-auto mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                    Get a custom quote
+                  </ScrollToConnectionCard>
                   {pricingConfig && (
                     <p className="text-xs text-gray-400 mt-4 leading-relaxed">
                       {pricingConfig.disclaimer({
@@ -1418,14 +1414,9 @@ export default async function ProviderPage({
               {/* ── Facility Manager — hidden when no staff data ── */}
               {hasStaff && (
                 <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900 font-display">Facility manager</h2>
-                    <ScrollToConnectionCard className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
-                      Connect with us
-                    </ScrollToConnectionCard>
-                  </div>
-                  <div className="flex flex-col sm:flex-row items-start gap-6">
-                    <div className="border border-gray-100 rounded-2xl px-6 pt-8 pb-6 text-center flex-shrink-0 w-52 shadow-md">
+                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Facility manager</h2>
+                  <div className="flex flex-col md:flex-row items-start gap-6">
+                    <div className="border border-gray-100 rounded-2xl px-6 pt-8 pb-6 text-center w-full md:w-52 md:flex-shrink-0 shadow-md">
                       <div className="relative mx-auto mb-5 w-24 h-24">
                         {staff!.image ? (
                           <Image src={staff!.image} alt={staff!.name} width={96} height={96} className="w-24 h-24 rounded-full object-cover" />
@@ -1449,6 +1440,9 @@ export default async function ProviderPage({
                       <ExpandableText text={staff!.care_motivation || staff!.bio} maxLength={200} />
                     </div>
                   </div>
+                  <ScrollToConnectionCard className="w-full md:w-auto mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                    Message {staff!.name.split(" ")[0]}
+                  </ScrollToConnectionCard>
                   <div className="flex items-center gap-2 mt-6 text-sm text-gray-500">
                     <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.22,6.22,0,0,0,1.75,3.75" />

@@ -248,12 +248,6 @@ export default function MobileStickyBottomCTA({
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [showPricingTooltip, setShowPricingTooltip] = useState(false);
-  // Suppression flag: true when the in-page #benefits module is ≥50% in
-  // viewport (Door A vs Door B competing-CTA fix). Applies to all benefits
-  // arms equally — clean A/B impact since the module renders for all of
-  // availability/loss/empathic. The suppression resolves the cannibalization
-  // we identified in the 2026-05-06 funnel review.
-  const [benefitsInView, setBenefitsInView] = useState(false);
 
   // ── Redirect after connection ──
   const handleConnectionCreated = useCallback(
@@ -288,65 +282,7 @@ export default function MobileStickyBottomCTA({
     ctaPreviewMode,
   });
 
-  // Suppress the sticky bar when the benefits module is in view. The module
-  // has its own primary CTA (email capture) and we don't want two competing
-  // CTAs in the same thumb zone. Scroll listener still runs underneath so
-  // the bar reappears when the user scrolls past the module.
-  //
-  // Important: the #benefits DOM element is REPLACED when the variant
-  // resolves (the parent BenefitsDiscoveryModule's render-output type
-  // changes from inline <section> to <EmpathicSingleStep>, so React
-  // unmounts the old section and mounts a new one). A simple
-  // getElementById + observe on mount captures the SSR-rendered legacy
-  // section, which becomes orphaned. We use a MutationObserver to detect
-  // when the #benefits node reference changes and re-attach the
-  // IntersectionObserver to the live element.
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
-
-    let attached: Element | null = null;
-    let io: IntersectionObserver | null = null;
-
-    const intersectionCallback = (entries: IntersectionObserverEntry[]) => {
-      for (const entry of entries) {
-        setBenefitsInView(entry.intersectionRatio >= 0.5);
-      }
-    };
-
-    function attach() {
-      const el = document.getElementById("benefits");
-      if (el === attached) return;
-      // Tear down old observer (if any) and reset visibility — the previous
-      // element is gone or replaced.
-      if (io) {
-        io.disconnect();
-        io = null;
-      }
-      setBenefitsInView(false);
-      attached = el;
-      if (!el) return;
-      io = new IntersectionObserver(intersectionCallback, { threshold: [0, 0.5, 1] });
-      io.observe(el);
-    }
-
-    attach();
-
-    // Watch for #benefits element add/remove/replace. Filter to childList
-    // mutations to avoid firing on every text/attribute change. addedNodes
-    // and removedNodes catch the typical React reconciler unmount/remount
-    // pattern.
-    const mo = typeof MutationObserver !== "undefined" ? new MutationObserver(() => {
-      attach();
-    }) : null;
-    if (mo) mo.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      if (io) io.disconnect();
-      if (mo) mo.disconnect();
-    };
-  }, []);
-
-  // Also suppress when an input is focused — keyboard is open and the sticky
+  // Suppress when an input is focused — keyboard is open and the sticky
   // bar would collide with native chrome. Re-uses the same focusin/focusout
   // pattern as MobileUXPrimitives.useKeyboardOpen.
   const [keyboardOpen, setKeyboardOpen] = useState(false);
@@ -397,10 +333,10 @@ export default function MobileStickyBottomCTA({
 
   // Close tooltip when sticky bar hides (benefits in view or keyboard open)
   useEffect(() => {
-    if ((benefitsInView || keyboardOpen) && showPricingTooltip) {
+    if (keyboardOpen && showPricingTooltip) {
       setShowPricingTooltip(false);
     }
-  }, [benefitsInView, keyboardOpen, showPricingTooltip]);
+  }, [keyboardOpen, showPricingTooltip]);
 
   // Fire cta_variant_clicked when sheet opens (only once per open)
   const sheetClickFiredRef = useRef(false);
@@ -647,7 +583,7 @@ export default function MobileStickyBottomCTA({
       {/* ── Sticky bottom bar (always visible) ── */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
-          !benefitsInView && !keyboardOpen ? "translate-y-0" : "translate-y-full"
+          !keyboardOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >
         <div

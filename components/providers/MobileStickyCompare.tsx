@@ -56,9 +56,6 @@ export default function MobileStickyCompare({
 }: MobileStickyCompareProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [showPricingTooltip, setShowPricingTooltip] = useState(false);
-
-  // Suppression flags (same as other mobile CTAs)
-  const [benefitsInView, setBenefitsInView] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   // Build current provider object for comparison
@@ -108,51 +105,6 @@ export default function MobileStickyCompare({
     setSheetOpen(false);
     // Reset click tracking so user can open again
     clickFiredRef.current = false;
-  }, []);
-
-  // Benefits module suppression
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
-
-    let attached: Element | null = null;
-    let io: IntersectionObserver | null = null;
-
-    const intersectionCallback = (entries: IntersectionObserverEntry[]) => {
-      for (const entry of entries) {
-        setBenefitsInView(entry.intersectionRatio >= 0.5);
-      }
-    };
-
-    function attach() {
-      const el = document.getElementById("benefits");
-      if (el === attached) return;
-      if (io) {
-        io.disconnect();
-        io = null;
-      }
-      setBenefitsInView(false);
-      attached = el;
-      if (!el) return;
-      io = new IntersectionObserver(intersectionCallback, {
-        threshold: [0, 0.5, 1],
-      });
-      io.observe(el);
-    }
-
-    attach();
-
-    const mo =
-      typeof MutationObserver !== "undefined"
-        ? new MutationObserver(() => {
-            attach();
-          })
-        : null;
-    if (mo) mo.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      if (io) io.disconnect();
-      if (mo) mo.disconnect();
-    };
   }, []);
 
   // Keyboard suppression
@@ -208,10 +160,10 @@ export default function MobileStickyCompare({
 
   // Close tooltip when sticky bar hides (benefits in view or keyboard open)
   useEffect(() => {
-    if ((benefitsInView || keyboardOpen) && showPricingTooltip) {
+    if (keyboardOpen && showPricingTooltip) {
       setShowPricingTooltip(false);
     }
-  }, [benefitsInView, keyboardOpen, showPricingTooltip]);
+  }, [keyboardOpen, showPricingTooltip]);
 
   // Parse price display
   const getPriceDisplay = () => {
@@ -249,7 +201,7 @@ export default function MobileStickyCompare({
       {/* Sticky bottom bar (always visible) */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
-          !benefitsInView && !keyboardOpen
+          !keyboardOpen
             ? "translate-y-0"
             : "translate-y-full"
         }`}

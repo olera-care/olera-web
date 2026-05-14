@@ -908,34 +908,53 @@ export default async function ProviderPage({
                   ) : null;
                 })()}
 
-                {/* Row 3: Rating box (centered, subtle border) */}
-                <div className="flex items-center justify-center mt-4 py-5 border border-gray-100 rounded-xl">
-                  <div className="flex flex-col items-center text-center">
-                    {hasRating && rating != null ? (
-                      <>
-                        <span className="text-3xl font-bold text-gray-900">{rating.toFixed(1)}</span>
-                        <div className="flex items-center justify-center gap-1 mt-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <svg
-                              key={star}
-                              className={`w-5 h-5 ${star <= Math.round(rating) ? "text-gray-500" : "text-gray-300"}`}
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                          ))}
+                {/* Row 3: Rating & Reviews box (centered, subtle border) */}
+                {(() => {
+                  const displayRating = googleReviewsData?.rating ?? rating;
+                  const displayReviewCount = googleReviewsData?.review_count ?? 0;
+                  const hasReviews = displayRating != null && displayReviewCount > 0;
+
+                  return (
+                    <div className="flex items-center justify-center mt-4 py-5 border border-gray-100 rounded-xl">
+                      {hasReviews ? (
+                        /* Two columns: Rating | Review Count */
+                        <div className="flex items-center justify-center gap-6">
+                          {/* Left: Rating + stars */}
+                          <div className="flex flex-col items-center text-center">
+                            <span className="text-2xl font-bold text-gray-900">{displayRating!.toFixed(1)}</span>
+                            <div className="flex items-center justify-center gap-0.5 mt-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <svg
+                                  key={star}
+                                  className={`w-4 h-4 ${star <= Math.round(displayRating!) ? "text-gray-500" : "text-gray-300"}`}
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Divider */}
+                          <div className="w-px h-10 bg-gray-200" />
+
+                          {/* Right: Review count */}
+                          <div className="flex flex-col items-center text-center">
+                            <span className="text-2xl font-bold text-gray-900">{displayReviewCount}</span>
+                            <span className="text-xs text-gray-500 mt-1">Google reviews</span>
+                          </div>
                         </div>
-                        <span className="text-xs text-gray-500 mt-1">on Google</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-2xl font-bold text-gray-900">No reviews yet</span>
-                        <span className="text-sm text-gray-500 mt-1">Be the first to review</span>
-                      </>
-                    )}
-                  </div>
-                </div>
+                      ) : (
+                        /* No reviews: Single centered element */
+                        <div className="flex flex-col items-center text-center">
+                          <span className="text-2xl font-bold text-gray-900">No reviews yet</span>
+                          <span className="text-xs text-gray-500 mt-1">Be the first to leave a review</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* ── Mobile Claim Status Section ── */}
                 <div className="mt-4 text-left">

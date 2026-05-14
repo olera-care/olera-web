@@ -574,6 +574,7 @@ export async function POST(request: Request) {
       const connectionMetadata = {
         auto_intro: `Interested in comparing care options.`,
         source: "compare_save",
+        cta_variant: "compare",
         thread: [
           {
             from_profile_id: toProfileId,

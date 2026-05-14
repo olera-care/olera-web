@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { useAuth } from "@/components/auth/AuthProvider";
 import CompareBottomSheet, { type CompareProvider } from "./CompareBottomSheet";
 
 interface MobileStickyCompareProps {
@@ -54,6 +55,12 @@ export default function MobileStickyCompare({
   ctaVariant,
   ctaPreviewMode = false,
 }: MobileStickyCompareProps) {
+  const { activeProfile, openAuth } = useAuth();
+
+  // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
+  const isNonFamilyProfile = activeProfile &&
+    (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
+
   const [sheetOpen, setSheetOpen] = useState(false);
   const [showPricingTooltip, setShowPricingTooltip] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
@@ -188,6 +195,59 @@ export default function MobileStickyCompare({
 
   const priceDisplay = getPriceDisplay();
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RENDER: Non-family profile (provider/caregiver/student)
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (isNonFamilyProfile) {
+    return (
+      <>
+        {/* Document-flow spacer */}
+        <div
+          className="md:hidden"
+          aria-hidden="true"
+          style={{ height: "calc(130px + env(safe-area-inset-bottom, 0px))" }}
+        />
+
+        {/* Sticky bottom bar - Family account required (always visible) */}
+        <div
+          className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
+            !keyboardOpen
+              ? "translate-y-0"
+              : "translate-y-full"
+          }`}
+        >
+          <div
+            className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+            style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+          >
+            <div className="px-5 pt-3 pb-4">
+              {/* Info */}
+              <div className="flex items-center gap-1.5">
+                <p className="text-[16px] font-semibold text-gray-900">
+                  Family account required
+                </p>
+              </div>
+              <p className="text-[13px] text-gray-500 mt-1 mb-3">
+                To contact care providers
+              </p>
+
+              {/* Full-width CTA button */}
+              <button
+                onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
+                className="w-full py-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[16px] font-semibold transition-colors"
+              >
+                Create Family Account
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RENDER: Regular user (guest or logged-in family)
+  // ─────────────────────────────────────────────────────────────────────────────
   return (
     <>
       {/* Document-flow spacer */}

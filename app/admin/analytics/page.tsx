@@ -2267,11 +2267,6 @@ function ConversionSourcesCard({
           </tfoot>
         </table>
       </div>
-
-      {/* Historical data note */}
-      <p className="text-[11px] text-gray-400 mt-2">
-        Note: entry_point tracking was added recently. Historical data may show most leads as &quot;Legacy Connect&quot; until new conversions populate.
-      </p>
     </div>
   );
 }

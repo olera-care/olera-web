@@ -216,12 +216,13 @@ interface ProviderResponseMetrics {
 
 type ProviderResponseByVariant = Record<CTAVariantKey, ProviderResponseMetrics>;
 
-// Conversion sources breakdown — tracks which of the 7 conversion entry points
-// performs best. Uses connection metadata (cta_variant, entry_point) to classify.
+// Conversion sources breakdown — tracks which conversion entry points perform best.
+// Uses connection metadata (cta_variant, entry_point) to classify.
+// Only counts connections with explicit tracking - untracked historical data is excluded.
 type ConversionSourceId =
-  | "legacy_connect"
-  | "compare"
+  | "legacy"
   | "guide"
+  | "compare"
   | "custom_quote"
   | "book_consultation"
   | "message_host"
@@ -1326,18 +1327,12 @@ async function fetchWindow(
 
   // ── Conversion Sources Breakdown ────────────────────────────────────────
   // Categorize connections by their conversion entry point using metadata
-  // fields: cta_variant and entry_point. The 7 sources are:
-  //   - legacy_connect: cta_variant='legacy' AND no entry_point
-  //   - compare: cta_variant='compare'
-  //   - guide: cta_variant='guide'
-  //   - custom_quote: entry_point='custom_quote'
-  //   - book_consultation: entry_point='book_consultation'
-  //   - message_host: entry_point='message_host'
-  //   - qa_variants: entry_point starts with 'qa_'
+  // fields: cta_variant and entry_point. Only counts explicitly tracked leads.
+  // Connections without tracking (historical data) are excluded for clean metrics.
   const conversionCounts: Record<ConversionSourceId, number> = {
-    legacy_connect: 0,
-    compare: 0,
+    legacy: 0,
     guide: 0,
+    compare: 0,
     custom_quote: 0,
     book_consultation: 0,
     message_host: 0,
@@ -1350,6 +1345,7 @@ async function fetchWindow(
     const entryPoint = meta.entry_point as string | undefined;
 
     // Classify by source — entry_point takes precedence for specificity
+    // Skip connections without any tracking (historical untracked data)
     if (entryPoint === "custom_quote") {
       conversionCounts.custom_quote++;
     } else if (entryPoint === "book_consultation") {
@@ -1362,36 +1358,45 @@ async function fetchWindow(
       conversionCounts.guide++;
     } else if (ctaVariant === "compare") {
       conversionCounts.compare++;
-    } else {
-      // Legacy Connect: cta_variant='legacy' OR no variant (pre-variant data)
-      conversionCounts.legacy_connect++;
+    } else if (ctaVariant === "legacy") {
+      conversionCounts.legacy++;
     }
+    // else: no tracking — skip (historical data excluded)
   }
 
   const conversionTotal = Object.values(conversionCounts).reduce((a, b) => a + b, 0);
 
   const CONVERSION_SOURCE_LABELS: Record<ConversionSourceId, string> = {
-    legacy_connect: "Legacy Connect",
-    compare: "Compare CTA",
+    legacy: "Legacy CTA",
     guide: "Guide PDF",
+    compare: "Compare CTA",
     custom_quote: "Get a Custom Quote",
     book_consultation: "Book a Consultation",
     message_host: "Message Staff",
     qa_variants: "Q&A Variants",
   };
 
+  // Fixed order: CTA variants first, then entry_point sources
+  const SOURCE_ORDER: ConversionSourceId[] = [
+    "legacy",
+    "guide",
+    "compare",
+    "custom_quote",
+    "book_consultation",
+    "message_host",
+    "qa_variants",
+  ];
+
   const conversionSourcesBreakdown: ConversionSourcesBreakdown = {
     total: conversionTotal,
-    by_source: (Object.keys(conversionCounts) as ConversionSourceId[])
-      .map((sourceId) => ({
-        source_id: sourceId,
-        label: CONVERSION_SOURCE_LABELS[sourceId],
-        count: conversionCounts[sourceId],
-        percent: conversionTotal > 0
-          ? Math.round((conversionCounts[sourceId] / conversionTotal) * 100)
-          : 0,
-      }))
-      .sort((a, b) => b.count - a.count),
+    by_source: SOURCE_ORDER.map((sourceId) => ({
+      source_id: sourceId,
+      label: CONVERSION_SOURCE_LABELS[sourceId],
+      count: conversionCounts[sourceId],
+      percent: conversionTotal > 0
+        ? Math.round((conversionCounts[sourceId] / conversionTotal) * 100)
+        : 0,
+    })),
   };
 
   return {

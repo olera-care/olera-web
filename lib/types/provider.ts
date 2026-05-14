@@ -67,11 +67,23 @@ const HOURLY_CATEGORIES = new Set([
  */
 export function formatPriceRange(provider: Provider): string | null {
   const suffix = HOURLY_CATEGORIES.has(provider.provider_category) ? "/hr" : "/mo";
-  if (provider.lower_price && provider.upper_price) {
-    return `$${provider.lower_price.toLocaleString()} - $${provider.upper_price.toLocaleString()}${suffix}`;
+  // Use proper null checks (not truthy) so $0 prices aren't lost
+  if (provider.lower_price != null && provider.upper_price != null) {
+    if (provider.upper_price > provider.lower_price) {
+      // Valid range: show both
+      return `$${provider.lower_price.toLocaleString()} - $${provider.upper_price.toLocaleString()}${suffix}`;
+    }
+    if (provider.upper_price === provider.lower_price) {
+      // Equal prices: show single price
+      return `$${provider.lower_price.toLocaleString()}${suffix}`;
+    }
+    // upper < lower is a data issue; fall through to lower-only
   }
-  if (provider.lower_price) {
+  if (provider.lower_price != null) {
     return `From $${provider.lower_price.toLocaleString()}${suffix}`;
+  }
+  if (provider.upper_price != null) {
+    return `Up to $${provider.upper_price.toLocaleString()}${suffix}`;
   }
   if (provider.contact_for_price === "True") {
     return "Contact for pricing";
@@ -461,10 +473,16 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     const frequency = (meta?.price_frequency as string | undefined) || "per month";
     const suffix = frequency === "per hour" ? "/hr" : frequency === "per day" ? "/day" : "/mo";
 
-    if (lowerPrice && upperPrice && upperPrice > lowerPrice) {
+    // Use proper null checks (not truthy) so $0 prices aren't lost
+    if (lowerPrice != null && upperPrice != null && upperPrice > lowerPrice) {
       priceRange = `$${lowerPrice.toLocaleString()} - $${upperPrice.toLocaleString()}${suffix}`;
-    } else if (lowerPrice) {
+    } else if (lowerPrice != null && upperPrice != null && upperPrice === lowerPrice) {
+      // Equal prices: show single price
+      priceRange = `$${lowerPrice.toLocaleString()}${suffix}`;
+    } else if (lowerPrice != null) {
       priceRange = `From $${lowerPrice.toLocaleString()}${suffix}`;
+    } else if (upperPrice != null) {
+      priceRange = `Up to $${upperPrice.toLocaleString()}${suffix}`;
     } else if (meta?.price_range) {
       // Fallback to legacy price_range string
       priceRange = meta.price_range as string;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
 import GuideBottomSheet from "./GuideBottomSheet";
@@ -13,6 +14,10 @@ interface MobileStickyGuideProps {
   providerState?: string | null;
   providerImage?: string | null;
   priceRange?: string | null;
+  /** Pricing tier (3 = Medicare/Medicaid) */
+  pricingTier?: number | null;
+  /** Pricing disclaimer text for tooltip */
+  pricingDisclaimer?: string | null;
   ctaVariant?: string | null;
   ctaPreviewMode?: boolean;
 }
@@ -30,6 +35,8 @@ export default function MobileStickyGuide({
   providerState,
   providerImage,
   priceRange,
+  pricingTier,
+  pricingDisclaimer,
   ctaVariant,
   ctaPreviewMode = false,
 }: MobileStickyGuideProps) {
@@ -40,15 +47,13 @@ export default function MobileStickyGuide({
   const isNonFamilyProfile = activeProfile &&
     (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
 
-  const [visible, setVisible] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isMessageSubmitting, setIsMessageSubmitting] = useState(false);
+  const [showPricingTooltip, setShowPricingTooltip] = useState(false);
 
   // Get user email for logged-in flow
   const userEmail = user?.email || "";
 
-  // Suppression flags (same as other mobile CTAs)
-  const [benefitsInView, setBenefitsInView] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   // Fire analytics when "Get the checklist" is clicked (guest flow)
@@ -120,66 +125,6 @@ export default function MobileStickyGuide({
     clickFiredRef.current = false;
   }, []);
 
-  // Scroll visibility with hysteresis
-  const handleScroll = useCallback(() => {
-    setVisible((prev) => {
-      if (window.scrollY > 100) return true;
-      if (window.scrollY < 30) return false;
-      return prev;
-    });
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
-
-  // Benefits module suppression
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
-
-    let attached: Element | null = null;
-    let io: IntersectionObserver | null = null;
-
-    const intersectionCallback = (entries: IntersectionObserverEntry[]) => {
-      for (const entry of entries) {
-        setBenefitsInView(entry.intersectionRatio >= 0.5);
-      }
-    };
-
-    function attach() {
-      const el = document.getElementById("benefits");
-      if (el === attached) return;
-      if (io) {
-        io.disconnect();
-        io = null;
-      }
-      setBenefitsInView(false);
-      attached = el;
-      if (!el) return;
-      io = new IntersectionObserver(intersectionCallback, {
-        threshold: [0, 0.5, 1],
-      });
-      io.observe(el);
-    }
-
-    attach();
-
-    const mo =
-      typeof MutationObserver !== "undefined"
-        ? new MutationObserver(() => {
-            attach();
-          })
-        : null;
-    if (mo) mo.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      if (io) io.disconnect();
-      if (mo) mo.disconnect();
-    };
-  }, []);
-
   // Keyboard suppression
   useEffect(() => {
     function isTypable(target: EventTarget | null): boolean {
@@ -212,8 +157,58 @@ export default function MobileStickyGuide({
     };
   }, []);
 
+  // Pricing tooltip ref and outside-click handler
+  const tooltipButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!showPricingTooltip) return;
+
+    const handleOutside = (e: TouchEvent | MouseEvent) => {
+      if (tooltipButtonRef.current && !tooltipButtonRef.current.contains(e.target as Node)) {
+        setShowPricingTooltip(false);
+      }
+    };
+    document.addEventListener("touchstart", handleOutside);
+    document.addEventListener("mousedown", handleOutside);
+    return () => {
+      document.removeEventListener("touchstart", handleOutside);
+      document.removeEventListener("mousedown", handleOutside);
+    };
+  }, [showPricingTooltip]);
+
+  // Close tooltip when sticky bar hides (benefits in view or keyboard open)
+  useEffect(() => {
+    if (keyboardOpen && showPricingTooltip) {
+      setShowPricingTooltip(false);
+    }
+  }, [keyboardOpen, showPricingTooltip]);
+
+  // Parse price display
+  const getPriceDisplay = () => {
+    // Medicare/Medicaid tier (tier 3) without explicit pricing
+    if (pricingTier === 3 && !priceRange) {
+      return { price: "Medicare/Medicaid", subtitle: "may cover this care" };
+    }
+    if (!priceRange) {
+      return { price: "Contact for pricing", subtitle: "Pricing not listed" };
+    }
+    const isHourly = priceRange.includes("/hr");
+    const isMonthly = priceRange.includes("/mo");
+    const priceWithoutUnit = priceRange.replace(/\/(hr|mo)$/i, "").trim();
+
+    if (isHourly) {
+      return { price: priceWithoutUnit, subtitle: "Estimated hourly cost" };
+    }
+    if (isMonthly) {
+      return { price: priceWithoutUnit, subtitle: "Estimated monthly cost" };
+    }
+    return { price: priceRange, subtitle: "Estimated cost" };
+  };
+
+  const { price, subtitle } = getPriceDisplay();
+
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: Non-family profile (provider/caregiver/student) - hide sticky bar
+  // RENDER: Non-family profile (provider/caregiver/student)
   // ─────────────────────────────────────────────────────────────────────────────
   if (isNonFamilyProfile) {
     return (
@@ -222,43 +217,38 @@ export default function MobileStickyGuide({
         <div
           className="md:hidden"
           aria-hidden="true"
-          style={{ height: "calc(76px + env(safe-area-inset-bottom, 0px))" }}
+          style={{ height: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
         />
 
-        {/* Sticky bottom bar - Family account required */}
+        {/* Sticky bottom bar - Family account required (always visible) */}
         <div
           className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
-            visible && !benefitsInView && !keyboardOpen
+            !keyboardOpen
               ? "translate-y-0"
               : "translate-y-full"
           }`}
         >
           <div
-            className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]"
+            className="bg-white border-t border-gray-200"
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
           >
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              {/* Heart icon */}
-              <div className="w-10 h-10 bg-primary-50 rounded-lg flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium text-gray-700 leading-tight">
+            <div className="px-5 pt-4 pb-5">
+              {/* Info */}
+              <div className="mb-4">
+                <p className="text-[22px] font-bold text-gray-900 leading-tight">
                   Family account required
                 </p>
-                <p className="text-[12px] text-gray-500 leading-tight">
-                  To contact providers
+                <p className="text-[14px] text-gray-500 mt-0.5">
+                  To contact care providers
                 </p>
               </div>
 
+              {/* Full-width CTA button */}
               <button
                 onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
-                className="flex-shrink-0 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[14px] font-semibold transition-colors"
+                className="w-full py-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[16px] font-semibold transition-colors"
               >
-                Create Account
+                Create Family Account
               </button>
             </div>
           </div>
@@ -277,49 +267,74 @@ export default function MobileStickyGuide({
         <div
           className="md:hidden"
           aria-hidden="true"
-          style={{ height: "calc(76px + env(safe-area-inset-bottom, 0px))" }}
+          style={{ height: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
         />
 
-        {/* Sticky bottom bar - Messaging focused */}
+        {/* Sticky bottom bar - Messaging focused (always visible) */}
         <div
           className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
-            visible && !benefitsInView && !keyboardOpen
+            !keyboardOpen
               ? "translate-y-0"
               : "translate-y-full"
           }`}
         >
           <div
-            className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]"
+            className="bg-white border-t border-gray-200"
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
           >
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              {/* Provider info with pricing */}
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 leading-tight">
-                  {providerCity || "Local"} · Est. Monthly
+            <div className="px-5 pt-4 pb-5">
+              {/* Pricing info */}
+              <div className="mb-4">
+                <p className="text-[22px] font-bold text-gray-900 leading-tight">
+                  {price}
                 </p>
-                <p className="text-[15px] font-semibold text-gray-900 leading-tight mt-0.5">
-                  {priceRange || "Contact for pricing"}
-                </p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="text-[14px] text-gray-500">{subtitle}</span>
+                  {pricingDisclaimer && (
+                    <button
+                      ref={tooltipButtonRef}
+                      type="button"
+                      onClick={() => setShowPricingTooltip((prev) => !prev)}
+                      className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+                      aria-label="Pricing info"
+                      aria-expanded={showPricingTooltip}
+                    >
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
 
+              {/* Full-width CTA button */}
               <button
                 onClick={handleMessageProvider}
                 disabled={isMessageSubmitting}
-                className="flex-shrink-0 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 disabled:bg-gray-400 text-white rounded-xl text-[14px] font-semibold transition-colors flex items-center gap-1.5"
+                className="w-full py-4 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 disabled:bg-gray-400 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {isMessageSubmitting ? (
                   <>
-                    <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    <span>...</span>
+                    <span>Connecting...</span>
                   </>
                 ) : (
                   <>
-                    Message
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <span>Message provider</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                   </>
@@ -341,50 +356,93 @@ export default function MobileStickyGuide({
       <div
         className="md:hidden"
         aria-hidden="true"
-        style={{ height: "calc(76px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ height: "calc(140px + env(safe-area-inset-bottom, 0px))" }}
       />
 
-      {/* Sticky bottom bar */}
+      {/* Sticky bottom bar (always visible) */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
-          visible && !benefitsInView && !keyboardOpen
+          !keyboardOpen
             ? "translate-y-0"
             : "translate-y-full"
         }`}
       >
         <div
-          className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]"
+          className="bg-white border-t border-gray-200"
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
-          <div className="flex items-center gap-4 px-4 py-3.5">
-            {/* PDF icon */}
-            <div className="w-10 h-10 bg-primary-50 rounded-lg flex items-center justify-center shrink-0">
-              <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <div className="px-5 pt-4 pb-5">
+            {/* Pricing info */}
+            <div className="mb-3">
+              <p className="text-[22px] font-bold text-gray-900 leading-tight">
+                {price}
+              </p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className="text-[14px] text-gray-500">{subtitle}</span>
+                {pricingDisclaimer && (
+                  <button
+                    ref={tooltipButtonRef}
+                    type="button"
+                    onClick={() => setShowPricingTooltip((prev) => !prev)}
+                    className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+                    aria-label="Pricing info"
+                    aria-expanded={showPricingTooltip}
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Checklist value prop */}
+            <div className="flex items-center gap-2 mb-4">
+              <svg className="w-4 h-4 text-primary-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
+              <span className="text-[13px] text-gray-600">Free checklist included</span>
             </div>
 
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-primary-600 leading-tight">
-                Free Checklist
-              </p>
-              <p className="text-[13px] text-gray-500 mt-0.5 leading-tight">
-                Questions to ask & costs
-              </p>
-            </div>
-
+            {/* Full-width CTA button */}
             <button
               onClick={handleGuideClick}
-              className="flex-shrink-0 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-xl text-[14px] font-semibold transition-colors flex items-center gap-1.5"
+              className="w-full py-4 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
             >
-              Get Checklist
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <span>Get Checklist</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
             </button>
           </div>
         </div>
       </div>
+
+      {/* ── Pricing tooltip portal ── */}
+      {showPricingTooltip &&
+        pricingDisclaimer &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed left-4 right-4 z-[100] md:hidden"
+            style={{ bottom: "calc(160px + env(safe-area-inset-bottom, 0px))" }}
+          >
+            <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
+              <p>{pricingDisclaimer}</p>
+            </div>
+          </div>,
+          document.body
+        )}
 
       {/* Guide bottom sheet */}
       <GuideBottomSheet

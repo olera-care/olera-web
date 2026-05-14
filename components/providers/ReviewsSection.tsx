@@ -240,37 +240,102 @@ export default function ReviewsSection({
       {hasReviews ? (
         <>
           {/* Rating summary bar */}
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-4">
-              {googleReviewsData && googleReviewsData.rating > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-gray-900">{googleReviewsData.rating.toFixed(1)}</span>
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <StarIcon
-                        key={star}
-                        className={`w-4 h-4 ${star <= Math.round(googleReviewsData.rating) ? "text-amber-400" : "text-gray-200"}`}
-                        filled={star <= Math.round(googleReviewsData.rating)}
-                      />
-                    ))}
+          <div className="mb-6">
+            {/* Mobile: large rating with stacked info beside it */}
+            <div className="md:hidden">
+              {googleReviewsData && googleReviewsData.rating > 0 ? (
+                <div className="flex items-center gap-3">
+                  {/* Large rating number */}
+                  <span className="text-4xl font-bold text-gray-900">{googleReviewsData.rating.toFixed(1)}</span>
+                  {/* Stacked: stars on top, meta below */}
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <StarIcon
+                          key={star}
+                          className={`w-4 h-4 ${star <= Math.round(googleReviewsData.rating) ? "text-amber-400" : "text-gray-200"}`}
+                          filled={star <= Math.round(googleReviewsData.rating)}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <span className="text-gray-500">
+                        {reviewCount} review{reviewCount !== 1 ? "s" : ""}
+                      </span>
+                      {googleMapsUrl && (
+                        <>
+                          <span className="text-gray-300">·</span>
+                          <a
+                            href={googleMapsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                          >
+                            See all on Google
+                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                          </a>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
+              ) : (
+                /* No Google rating - just show review count and link */
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-gray-500">
+                    {reviewCount} review{reviewCount !== 1 ? "s" : ""}
+                  </span>
+                  {googleMapsUrl && (
+                    <>
+                      <span className="text-gray-300">·</span>
+                      <a
+                        href={googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                      >
+                        See all on Google
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                      </a>
+                    </>
+                  )}
+                </div>
               )}
-              <span className="text-sm text-gray-500">
-                {reviewCount} review{reviewCount !== 1 ? "s" : ""}
-              </span>
             </div>
-            {googleMapsUrl && (
-              <a
-                href={googleMapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-              >
-                See all on Google
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
-              </a>
-            )}
+
+            {/* Desktop: inline layout */}
+            <div className="hidden md:flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {googleReviewsData && googleReviewsData.rating > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-gray-900">{googleReviewsData.rating.toFixed(1)}</span>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <StarIcon
+                          key={star}
+                          className={`w-4 h-4 ${star <= Math.round(googleReviewsData.rating) ? "text-amber-400" : "text-gray-200"}`}
+                          filled={star <= Math.round(googleReviewsData.rating)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <span className="text-sm text-gray-500">
+                  {reviewCount} review{reviewCount !== 1 ? "s" : ""}
+                </span>
+              </div>
+              {googleMapsUrl && (
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                >
+                  See all on Google
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                </a>
+              )}
+            </div>
           </div>
 
           {/* Reviews grid — 2 columns on desktop, clean cards */}
@@ -285,7 +350,7 @@ export default function ReviewsSection({
               return (
                 <div
                   key={review.id}
-                  className="group/review shadow-sm hover:shadow-md transition-shadow rounded-2xl p-5 bg-white"
+                  className="group/review border border-gray-100 md:border-0 md:shadow-sm md:hover:shadow-md transition-shadow rounded-xl md:rounded-2xl p-5 bg-white"
                 >
                   {/* Header */}
                   <div className="flex items-center justify-between mb-3">
@@ -437,29 +502,28 @@ export default function ReviewsSection({
           </div>
 
           {/* Footer actions */}
-          <div className="flex items-center justify-between mt-5">
-            {/* Show all reviews button */}
+          <div className="flex flex-row items-center justify-between mt-6">
+            {/* Show all reviews - text link */}
             {hasMore ? (
               <button
                 onClick={() => {
                   setScrollToReviewId(null);
                   setAllReviewsModalOpen(true);
                 }}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 underline underline-offset-2 hover:text-primary-600 transition-colors"
+                className="text-sm font-semibold text-gray-900 underline underline-offset-2 hover:text-gray-600 transition-colors"
               >
                 Show all {reviewCount} reviews
-                <ChevronRightIcon className="w-4 h-4" />
               </button>
             ) : (
               <div />
             )}
 
-            {/* Add review button (hidden for non-family profiles) */}
+            {/* Add review button */}
             {canWriteReview && (
               <Link
                 href={reviewPageUrl}
                 rel="nofollow"
-                className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
+                className="px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center"
               >
                 Leave a review
               </Link>
@@ -480,7 +544,7 @@ export default function ReviewsSection({
             <Link
               href={reviewPageUrl}
               rel="nofollow"
-              className="inline-block px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
+              className="inline-block px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
             >
               Write a review
             </Link>
@@ -498,6 +562,7 @@ export default function ReviewsSection({
         providerName={providerName}
         reviews={allReviews}
         averageRating={averageRating}
+        googleRating={googleReviewsData?.rating}
         scrollToReviewId={scrollToReviewId}
         isDemoMode={showingDemoReviews}
         onWriteReview={() => {

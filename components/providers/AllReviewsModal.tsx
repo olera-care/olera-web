@@ -75,6 +75,8 @@ interface AllReviewsModalProps {
   providerName: string;
   reviews: DisplayReview[];
   averageRating: number;
+  /** Google rating to display (takes precedence over averageRating) */
+  googleRating?: number | null;
   /** ID of review to scroll to on open */
   scrollToReviewId?: string | null;
   /** When true, shows a "Demo" indicator */
@@ -89,6 +91,7 @@ export default function AllReviewsModal({
   providerName,
   reviews,
   averageRating,
+  googleRating,
   scrollToReviewId,
   isDemoMode = false,
   onWriteReview,
@@ -211,9 +214,10 @@ export default function AllReviewsModal({
   const sortedReviews = sortReviews(reviews);
   const reviewCount = reviews.length;
 
-  // Rating display
-  const ratingDisplay = averageRating > 0 ? averageRating.toFixed(1) : "—";
-  const isHighRating = averageRating >= 4.5;
+  // Rating display - prefer Google rating if available
+  const displayRating = googleRating && googleRating > 0 ? googleRating : averageRating;
+  const ratingDisplay = displayRating > 0 ? displayRating.toFixed(1) : null;
+  const isHighRating = displayRating >= 4.5;
 
   if (!isOpen || !mounted) return null;
 
@@ -243,20 +247,19 @@ export default function AllReviewsModal({
         ].join(" ")}
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        {/* Drag handle — mobile */}
-        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0">
-          <div className="w-10 h-1 rounded-full bg-gray-300" />
-        </div>
-
-        {/* Header */}
-        <div className="flex items-start gap-3 px-5 sm:px-7 pt-4 sm:pt-6 pb-0 shrink-0">
-          <div className="flex-1" />
+        {/* Header with close button */}
+        <div className="relative px-5 sm:px-7 pt-4 sm:pt-6 shrink-0">
+          {/* Drag handle — mobile */}
+          <div className="sm:hidden flex justify-center pb-3">
+            <div className="w-10 h-1 rounded-full bg-gray-300" />
+          </div>
+          {/* Close button - absolute positioned */}
           <button
             onClick={handleClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors shrink-0"
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors z-10"
             aria-label="Close"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -265,33 +268,42 @@ export default function AllReviewsModal({
         {/* Scrollable body */}
         <div
           ref={scrollContainerRef}
-          className="px-5 sm:px-7 pt-2 pb-6 flex-1 min-h-0 overflow-y-auto overscroll-contain"
+          className="px-5 sm:px-7 pb-6 flex-1 min-h-0 overflow-y-auto overscroll-contain"
         >
-          {/* Rating hero */}
-          <div className="text-center py-6 border-b border-gray-100 mb-6">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              {isHighRating && <span className="text-3xl">🏆</span>}
-              <span className="text-5xl sm:text-6xl font-bold text-gray-900 font-display tracking-tight">
-                {ratingDisplay}
-              </span>
-              {isHighRating && <span className="text-3xl">🏆</span>}
-            </div>
-            <div className="flex items-center justify-center gap-1 mb-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <StarIcon
-                  key={star}
-                  className={`w-5 h-5 ${star <= Math.round(averageRating) ? "text-primary-500" : "text-gray-200"}`}
-                  filled={star <= Math.round(averageRating)}
-                />
-              ))}
-            </div>
-            {isHighRating && (
-              <p className="text-sm text-gray-600 font-medium">
-                Highly rated by families
-              </p>
+          {/* Rating hero - compact and clean */}
+          <div className="text-center pb-6 border-b border-gray-100 mb-6">
+            {ratingDisplay ? (
+              <>
+                <div className="flex items-center justify-center gap-3 mb-1">
+                  <span className="text-5xl font-bold text-gray-900 font-display tracking-tight">
+                    {ratingDisplay}
+                  </span>
+                  <div className="flex flex-col items-start gap-0.5">
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <StarIcon
+                          key={star}
+                          className={`w-4 h-4 ${star <= Math.round(displayRating) ? "text-amber-400" : "text-gray-200"}`}
+                          filled={star <= Math.round(displayRating)}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      {reviewCount} review{reviewCount !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                </div>
+                {isHighRating && (
+                  <p className="text-sm text-primary-600 font-medium mt-2">
+                    ✨ Highly rated by families
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-gray-500 font-medium py-4">No ratings yet</p>
             )}
             {isDemoMode && (
-              <span className="inline-flex items-center mt-2 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+              <span className="inline-flex items-center mt-3 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
                 Demo Reviews
               </span>
             )}

@@ -110,6 +110,21 @@ export default function Navbar() {
     pathname.startsWith("/provider/medjobs");
   const isProviderWelcome = pathname.startsWith("/provider/welcome");
 
+  // Provider detail page detection — has its own mobile nav (MobileProviderTopNav)
+  // Pattern: /provider/[slug] where slug is not a known portal route
+  const providerPortalRoutes = ["connections", "inbox", "onboarding", "profile", "reviews", "matches", "pro", "qna", "account", "medjobs", "caregivers", "welcome"];
+  const isProviderDetailPage = (() => {
+    if (!pathname.startsWith("/provider/")) return false;
+    const segments = pathname.split("/").filter(Boolean);
+    if (segments.length < 2) return false; // Just "/provider"
+    const slug = segments[1];
+    // Not a detail page if it's a known portal route
+    if (providerPortalRoutes.includes(slug)) return false;
+    // Not a detail page if it ends with /onboard
+    if (pathname.endsWith("/onboard")) return false;
+    return true;
+  })();
+
   // Show auth pill as soon as we know a user session exists.
   const hasSession = !!user;
   // Mode switcher — shown when user has both a family and a provider profile
@@ -203,6 +218,13 @@ export default function Navbar() {
     if (megaMenuCloseTimer.current) { clearTimeout(megaMenuCloseTimer.current); megaMenuCloseTimer.current = null; }
     setIsFindCareOpen(false);
   }, [pathname]);
+
+  // Listen for external toggle-mobile-menu events (from MobileProviderTopNav)
+  useEffect(() => {
+    const handleToggle = () => setIsMobileMenuOpen((prev) => !prev);
+    window.addEventListener("toggle-mobile-menu", handleToggle);
+    return () => window.removeEventListener("toggle-mobile-menu", handleToggle);
+  }, []);
 
   // Reset mobile menu state when menu opens
   // Provider-only accounts (no family profile) should always see provider mode
@@ -602,7 +624,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isPortal || isProviderPortal || pathname.startsWith("/welcome") ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
+        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isProviderDetailPage ? "hidden md:block" : ""} ${isPortal || isProviderPortal || pathname.startsWith("/welcome") ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
         style={{
           transform: navbarVisible ? "translateY(0)" : "translateY(-100%)",
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"

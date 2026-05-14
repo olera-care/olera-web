@@ -960,7 +960,7 @@ export default function Navbar() {
               {/* Mobile Menu Button — always on right */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors"
+                className="lg:hidden w-11 h-11 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
                 aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? (
@@ -983,7 +983,7 @@ export default function Navbar() {
       {isMobileMenuOpen && mounted && createPortal(
         <div className="fixed inset-0 z-[60] lg:hidden bg-white flex flex-col animate-fade-in">
           {/* Header — matches navbar height and padding */}
-          <div className="flex items-center justify-between h-16 px-5 shrink-0">
+          <div className={`flex items-center justify-between h-16 shrink-0 ${(isInboxPage || isMinimalNav) ? "px-[44px]" : "px-5"}`}>
             <Link
               href={logoHref}
               className="flex items-center space-x-2"

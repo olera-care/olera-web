@@ -48,6 +48,7 @@ export default function GuideCard({
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
   const [isMessageSubmitting, setIsMessageSubmitting] = useState(false);
+  const [connectionId, setConnectionId] = useState<string | null>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const clickFiredRef = useRef(false);
 
@@ -169,6 +170,11 @@ export default function GuideCard({
         });
       }
 
+      // Store connectionId for redirect
+      if (data.connectionId) {
+        setConnectionId(data.connectionId);
+      }
+
       // Store PDF URL and trigger download
       if (data.pdfUrl) {
         setPdfUrl(data.pdfUrl);
@@ -213,13 +219,16 @@ export default function GuideCard({
         }),
       });
 
-      // Even if there's an error, redirect to inbox (connection may already exist)
-      if (!res.ok) {
+      let connId: string | null = null;
+      if (res.ok) {
+        const data = await res.json();
+        connId = data.connectionId || null;
+      } else {
         console.error("[GuideCard] guide-save failed:", res.status);
       }
 
-      // Redirect to inbox
-      window.location.href = `/portal/inbox`;
+      // Redirect to inbox with connectionId if available
+      window.location.href = connId ? `/portal/inbox?id=${connId}` : `/portal/inbox`;
     } catch (err) {
       console.error("[GuideCard] handleMessageProvider error:", err);
       // Still redirect on error - user expects to go to inbox
@@ -237,8 +246,8 @@ export default function GuideCard({
 
   // Handle "Open a thread" click in success state (connection already exists)
   const handleOpenThread = useCallback(() => {
-    window.location.href = `/portal/inbox`;
-  }, []);
+    window.location.href = connectionId ? `/portal/inbox?id=${connectionId}` : `/portal/inbox`;
+  }, [connectionId]);
 
   // ─────────────────────────────────────────────────────────────────────────────
   // RENDER: Non-family profile guard (provider/caregiver/student logged in)

@@ -26,8 +26,8 @@ export default function ConnectionCardWithRedirect(
     <ConnectionCard
       {...cardProps}
       onConnectionCreated={(connectionId) => {
-        // Unified experience: all users go to /welcome after connecting
-        router.push(`/welcome?connection=${connectionId}&provider=${props.providerSlug}`);
+        // Unified experience: all users go to inbox after connecting
+        router.push(`/portal/inbox?id=${connectionId}`);
       }}
     />
   );

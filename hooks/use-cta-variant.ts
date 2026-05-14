@@ -21,7 +21,7 @@
  * synchronous and read during initial render.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import {
   assignCTAVariantWeighted,
@@ -34,9 +34,11 @@ import {
 const CTA_PREVIEW_PARAM = "preview_cta";
 import { CTA_VARIANTS } from "@/lib/analytics/cta-variant";
 
-// localStorage key for cached variant (includes version for invalidation)
+// localStorage keys for cached variant
+// Cache is keyed by session ID to ensure variant matches current session
 const CTA_CACHE_KEY = "olera_cta_variant";
 const CTA_VERSION_KEY = "olera_cta_version";
+const CTA_SESSION_KEY = "olera_cta_session";
 
 function getCTAPreviewArm(): CTAVariant | null {
   if (typeof window === "undefined") return null;
@@ -82,12 +84,16 @@ function fetchWeights(): Promise<{ weights: CTAWeightMap; version: number }> {
 }
 
 /**
- * Read cached variant from localStorage (synchronous, no flash).
- * Returns null if no cache or invalid.
+ * Read cached variant from localStorage.
+ * Returns null if no cache, invalid, or session mismatch.
  */
-function getCachedVariant(): CTAVariant | null {
+function getCachedVariant(sessionId: string): CTAVariant | null {
   if (typeof window === "undefined") return null;
   try {
+    // Check session matches - if user cleared cookies, session changed
+    const cachedSession = localStorage.getItem(CTA_SESSION_KEY);
+    if (cachedSession !== sessionId) return null;
+
     const cached = localStorage.getItem(CTA_CACHE_KEY);
     if (cached && (CTA_VARIANTS as readonly string[]).includes(cached)) {
       return cached as CTAVariant;
@@ -112,53 +118,71 @@ function getCachedVersion(): number {
 }
 
 /**
- * Cache the resolved variant and version.
+ * Cache the resolved variant, version, and session ID.
  */
-function setCachedVariant(variant: CTAVariant, version: number): void {
+function setCachedVariant(variant: CTAVariant, version: number, sessionId: string): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(CTA_CACHE_KEY, variant);
     localStorage.setItem(CTA_VERSION_KEY, String(version));
+    localStorage.setItem(CTA_SESSION_KEY, sessionId);
   } catch {
     // localStorage blocked or full
   }
 }
 
+// Safely use useLayoutEffect on client, useEffect on server (avoids SSR warning)
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 /**
  * Returns the CTA variant assigned to the current session.
  *
  * On first visit: Returns null briefly while fetching, then caches result.
- * On return visits: Returns cached variant immediately (no flash), then
- * validates in background and updates if version changed.
+ * On return visits: Reads cached variant in useLayoutEffect (before paint),
+ * then validates in background and updates if version changed.
  */
 export function useCTAVariant(): CTAVariant | null {
-  // Initialize with cached value to prevent flash on return visits
-  const [variant, setVariant] = useState<CTAVariant | null>(() => {
+  // Start with null to avoid hydration mismatch (server can't read localStorage)
+  const [variant, setVariant] = useState<CTAVariant | null>(null);
+
+  // Read cached variant synchronously before paint (client-only)
+  // This prevents flash on return visits and client-side navigation
+  useIsomorphicLayoutEffect(() => {
     // Preview mode takes precedence
     const previewArm = getCTAPreviewArm();
-    if (previewArm) return previewArm;
-    // Return cached variant (or null on first visit)
-    return getCachedVariant();
-  });
+    if (previewArm) {
+      setVariant(previewArm);
+      return;
+    }
 
+    // Read cached variant for current session
+    const sessionId = getOrCreateSessionId();
+    const cached = getCachedVariant(sessionId);
+    if (cached) {
+      setVariant(cached);
+    }
+  }, []);
+
+  // Fetch weights and validate/update cache
   useEffect(() => {
-    // Preview mode already handled in useState initializer
     if (isCTAPreviewMode()) return;
 
     let cancelled = false;
+    const sessionId = getOrCreateSessionId();
+
     fetchWeights().then(({ weights, version }) => {
       if (cancelled) return;
 
       const cachedVersion = getCachedVersion();
-      const cachedVariant = getCachedVariant();
+      const cachedVariant = getCachedVariant(sessionId);
 
       // If version changed or no cache, resolve and cache new variant
       if (version !== cachedVersion || !cachedVariant) {
-        const newVariant = assignCTAVariantWeighted(getOrCreateSessionId(), weights, version);
-        setCachedVariant(newVariant, version);
+        const newVariant = assignCTAVariantWeighted(sessionId, weights, version);
+        setCachedVariant(newVariant, version, sessionId);
         setVariant(newVariant);
       }
-      // If version matches and we have cache, variant is already set from useState init
+      // If version matches and we have cache, variant is already set from layout effect
     });
 
     return () => {

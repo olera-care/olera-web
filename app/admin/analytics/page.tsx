@@ -1019,19 +1019,29 @@ function ProviderCommsFunnelCard({
         </label>
       </div>
 
+      {/* Two-grid layout with a hinge line between: the first row is email-
+          tracking metrics (Resend webhooks — noisy because corporate mail
+          security prefetches every URL); the second row is on-page activity
+          (only fires on a real browser load, so it's the clean human signal).
+          Splitting them lets the caveat live exactly where the units shift,
+          rather than floating below as a generic disclaimer. */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-4">
-        {stages.map((s) => <FunnelStat key={s.label} {...s} />)}
+        {stages.slice(0, 4).map((s) => <FunnelStat key={s.label} {...s} />)}
       </div>
 
-      {/* Quiet footnote — orients first-time readers without competing with
-          the grid. Detail lives in the Signed-in tile's tooltip + the Clicked
-          tile's subscript (raw row count). */}
-      <p
-        className="mt-4 text-[11px] italic text-gray-400 leading-relaxed"
+      <div
+        className="mt-5 mb-5 flex items-start gap-2 text-[11px] italic leading-relaxed text-gray-400"
         title="Empirically, ~78% of recorded clicks fire within 60 seconds of email delivery — the signature of automated link-scanning. Corporate email security tools (Mimecast, Microsoft Defender, Proofpoint, Barracuda) auto-prefetch every URL in incoming mail to scan for malware. Each prefetch hits Resend's tracking pixel and registers as a click, even though no one ever visited the page. One-click sign-in (the `one_click_access` event) only fires after the onboard page loads in a real browser, which filters out scanner traffic — so real human click → sign-in conversion is much closer to 100% than the displayed % suggests."
       >
-        Most clicks here are email-security scanners auto-prefetching links, not humans &mdash; the displayed Click &rarr; Signed-in % understates real conversion. Hover Signed-in for detail.
-      </p>
+        <span aria-hidden="true" className="text-gray-300 select-none">↓</span>
+        <span>
+          Click counts above include automated mail-security prefetches (Mimecast, Defender, Proofpoint, Barracuda auto-fetching every URL). The activity metrics below only fire when a real browser loads the page &mdash; that&rsquo;s the human signal.
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-4">
+        {stages.slice(4).map((s) => <FunnelStat key={s.label} {...s} />)}
+      </div>
 
       {/* Engagement bounce panel ─────────────────────────────────────── */}
       <div className="mt-6 pt-5 border-t border-gray-100">

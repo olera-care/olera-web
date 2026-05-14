@@ -48,6 +48,7 @@ import {
 } from "@/lib/student-outreach/formatters";
 import type { CadenceKey } from "@/lib/student-outreach/cadence";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightReviewModal";
 import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
 import { LogMeetingModal } from "@/app/admin/student-outreach/LogMeetingModal";
@@ -55,6 +56,8 @@ import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcome
 import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { ContactFormBanner } from "@/components/admin/medjobs/SnapshotCard";
+import { useToast } from "@/components/admin/Toast";
+import { useRecentMoves } from "@/components/admin/RecentMoves";
 
 type ActionFn = (
   actionName: string,
@@ -79,12 +82,30 @@ export interface NextStepCardProps {
 
 export function NextStepCard({
   ctx,
-  action,
+  action: rawAction,
   setError,
   launchEnabled = false,
   launchDisabledReason,
   beforeLaunch,
 }: NextStepCardProps) {
+  // E1 + E2: wrap the action dispatcher so successful Log operations
+  // (a) surface a toast naming the consequence and (b) mark the row
+  // as recently moved so the destination tab can highlight it.
+  // Actions not in the message map (e.g. update_research,
+  // update_outreach, update_general_contact) stay silent — those run
+  // on blur and would be noisy to toast or highlight.
+  const toast = useToast();
+  const { markMoved } = useRecentMoves();
+  const action: ActionFn = async (actionName, payload) => {
+    const result = await rawAction(actionName, payload);
+    const message = logActionSuccessMessage(actionName, payload ?? null);
+    if (message) {
+      toast(message);
+      markMoved(ctx.outreach.id);
+    }
+    return result;
+  };
+
   // Derive stage from the same source-of-truth used by cards + tabs.
   // The drawer hydrates full touchpoints + pending tasks so we get
   // the most accurate stage (including bounce_fix once webhook
@@ -258,13 +279,37 @@ function ProspectBody({
   // Items reference fields in the Provider Profile section below;
   // edits auto-save on blur.
   const gc = ctx.outreach.research_data?.general_contact ?? {};
-  const generalEmail = gc.email ?? ctx.provider_business_profile?.email ?? null;
-  const generalPhone = gc.phone ?? ctx.provider_business_profile?.phone ?? null;
+  // v9.1 Graize 05.13 audit (Item 1): checklist must respect explicit
+  // deletion. Previously `gc.field ?? bp.field` used `??` which treats
+  // both undefined (never set) AND null (admin explicitly cleared) as
+  // "fall through to bp.field". When the directory carried a value,
+  // clearing the General Contact field still showed ✓ on the checklist
+  // because of the silent fallback. Now: undefined → fall back to bp;
+  // null → honor the deletion and treat as missing.
+  const generalEmail =
+    gc.email !== undefined ? gc.email : ctx.provider_business_profile?.email ?? null;
+  const generalPhone =
+    gc.phone !== undefined ? gc.phone : ctx.provider_business_profile?.phone ?? null;
+  // Same undefined-vs-null distinction for the rest of the General
+  // Contact fields. Address parts and website also honor explicit
+  // deletion so the checklist tracks reality, not a stale directory
+  // shadow.
   const generalWebsite =
-    gc.website ?? ctx.provider_business_profile?.website ?? null;
-  const street = gc.street ?? ctx.provider_business_profile?.address ?? "";
-  const cityVal = gc.city ?? ctx.provider_business_profile?.city ?? "";
-  const stateVal = gc.state ?? ctx.provider_business_profile?.state ?? "";
+    gc.website !== undefined
+      ? gc.website
+      : ctx.provider_business_profile?.website ?? null;
+  const street =
+    gc.street !== undefined
+      ? gc.street ?? ""
+      : ctx.provider_business_profile?.address ?? "";
+  const cityVal =
+    gc.city !== undefined
+      ? gc.city ?? ""
+      : ctx.provider_business_profile?.city ?? "";
+  const stateVal =
+    gc.state !== undefined
+      ? gc.state ?? ""
+      : ctx.provider_business_profile?.state ?? "";
   // v9 final: zip falls back to bp.zip (the directory has a ZIP
   // column the checklist was ignoring) so the row passes the
   // address check when the directory already carries the ZIP.
@@ -298,27 +343,12 @@ function ProspectBody({
       <p className="mt-0.5 text-xs text-gray-500">
         Add missing info, then launch outreach.
       </p>
+      {showCallForEmailCta && (
+        <p className="mt-1 text-[11px] text-gray-500">
+          Or call them now — if they engage, log it directly (Interested / Became a Client / Not interested) and we&apos;ll close this out without launching the campaign.
+        </p>
+      )}
       <ul className="mt-2 space-y-1 text-xs">
-        <ChecklistRow
-          done={hasWebsite}
-          tone="required"
-          label="Website"
-          hint={
-            hasWebsite
-              ? "Website on file."
-              : "Required. Supports research + outreach validation."
-          }
-        />
-        <ChecklistRow
-          done={addressComplete}
-          tone="required"
-          label="Address"
-          hint={
-            addressComplete
-              ? "Street, city, state, ZIP set — ready for snail mail."
-              : "Required. Need street, city, state, and ZIP."
-          }
-        />
         <ChecklistRow
           done={hasEmail}
           tone="required"
@@ -340,15 +370,49 @@ function ProspectBody({
           }
         />
         <ChecklistRow
-          done={!hasContactFormUrl || contactFormResolved}
+          done={addressComplete}
+          tone="required"
+          label="Address"
+          hint={
+            addressComplete
+              ? "Street, city, state, ZIP set — ready for snail mail."
+              : "Required. Need street, city, state, and ZIP."
+          }
+        />
+        {/* v9.1 admin feedback (Graize 05.13): Website is now
+            recommended, not required. Some agencies have no public
+            website or only a social profile, and we don't want that to
+            block outreach. Launch gate dropped the website check; this
+            row reflects the same tone. */}
+        <ChecklistRow
+          done={hasWebsite}
+          tone="recommended"
+          label="Website"
+          hint={
+            hasWebsite
+              ? "Website on file."
+              : "Recommended. Helpful for research, but not required to launch."
+          }
+        />
+        {/* v9.1 Graize 05.13 audit fix (Items 1+2): contact form URL
+            no longer reads as "done" when nothing is on file. Prior
+            logic was `done={!hasContactFormUrl || contactFormResolved}`
+            which marked the row checked the moment the URL was empty
+            (vacuously satisfied). Admins saw an unchecked profile +
+            checked checklist for the same field. New semantics:
+              no URL on file       → not done, tone "recommended" (like Fax)
+              URL on file, unresolved → not done, tone "required"
+              URL on file, resolved   → done, tone "recommended" */}
+        <ChecklistRow
+          done={hasContactFormUrl && contactFormResolved}
           tone={hasContactFormUrl && !contactFormResolved ? "required" : "recommended"}
-          label="Contact form"
+          label="Contact form URL"
           hint={
             !hasContactFormUrl
-              ? "Add the URL if the agency has a contact form — Day 0 picks it up."
+              ? "Recommended. Paste the link to the agency's contact form page if they have one — the system generates a copy-ready message you can submit there."
               : contactFormResolved
                 ? "Outcome logged."
-                : "URL on file — pick Submitted / Skipped / Not available below. Required when URL is present."
+                : "URL on file. Copy the generated message from the banner above, submit it through their form, then mark Submitted below. Required when URL is present."
           }
         />
         <ChecklistRow
@@ -543,7 +607,10 @@ function InOutreachBody({
   return (
     <>
       <p className="text-sm text-gray-700">
-        Awaiting reply. If you saw a response in your inbox, log it to advance the row.
+        Awaiting reply at graize@olera.care.
+      </p>
+      <p className="mt-1 text-xs text-gray-500">
+        When they respond, continue the conversation directly from your inbox and log the outcome here so the team sees it.
       </p>
       <p className="mt-1 text-xs text-gray-500">{subline}</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -560,14 +627,42 @@ function InOutreachBody({
         <ReplyClassifierModal
           organizationName={ctx.outreach.organization_name}
           source="email_reply"
+          rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setShowLogReply(false)}
-          onSubmit={async (classification, payload) => {
+          onSubmit={async (classification, payload, _partner, redirect) => {
             try {
-              await action("classify_reply", {
-                classification,
-                notes: payload.notes,
-                meeting_at: payload.meeting_at,
-              });
+              if (classification === "became_client") {
+                // P3: provider reply → direct client conversion. Dispatches
+                // the existing make_client action which writes the metadata
+                // flag, transitions to active_partner, and unlocks Partner
+                // Prospects for catchment Sites.
+                await action("make_client", { notes: payload.notes });
+              } else if (classification === "redirected" && redirect) {
+                // P4: add the new contact + stop the original cadence
+                // via classify_reply(keep_emailing). Two dispatches so
+                // the timeline narrates both events honestly.
+                const derivedName =
+                  [redirect.first_name, redirect.last_name]
+                    .filter(Boolean)
+                    .join(" ")
+                    .trim() || redirect.email;
+                await action("add_contact", {
+                  name: derivedName,
+                  first_name: redirect.first_name || null,
+                  last_name: redirect.last_name || null,
+                  email: redirect.email || null,
+                });
+                await action("classify_reply", {
+                  classification: "keep_emailing",
+                  notes: payload.notes,
+                });
+              } else {
+                await action("classify_reply", {
+                  classification,
+                  notes: payload.notes,
+                  meeting_at: payload.meeting_at,
+                });
+              }
               setShowLogReply(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
@@ -582,6 +677,19 @@ function InOutreachBody({
 
 // ── call_due ─────────────────────────────────────────────────────────────
 
+/**
+ * v9.1 Graize 05.13 audit (Item 5): Calls drawer Next Step
+ * restructured so the three actions are unmistakable:
+ *   1. CALL pill — names the step the row is on
+ *   2. Phone link — one tap to dial
+ *   3. Suggested script (collapsible) — sourced from the next
+ *      pending outreach_followup_call task's payload, which carries
+ *      the resolved script set at PreFlight time
+ *   4. Log call outcome button — the action that advances the row
+ *
+ * The script is shown as a `<details>` so it doesn't dominate the
+ * card visually, but is one click away when admin needs it.
+ */
 function CallDueBody({
   ctx,
   action,
@@ -592,6 +700,12 @@ function CallDueBody({
   setError: (m: string | null) => void;
 }) {
   const [showLogCall, setShowLogCall] = useState(false);
+  // A call-due row may also be one admin opened from the Replies tab
+  // (mid_cadence / awaiting_callback / etc.). Surface a secondary
+  // "Log reply" affordance so admin can classify a reply without
+  // bouncing back to the Replies tab. The Call CTA remains primary
+  // since deriveStage already determined a call task is due.
+  const [showLogReply, setShowLogReply] = useState(false);
   const primaryContact =
     ctx.contacts.find((c) => c.is_primary && c.status === "active") ?? null;
   const contactName = primaryContact
@@ -601,20 +715,50 @@ function CallDueBody({
         .trim() || primaryContact.name
     : null;
 
+  const nextCallTask = ctx.pending_tasks
+    .filter((t) => t.task_type === "outreach_followup_call")
+    .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+  const callScript =
+    typeof nextCallTask?.payload?.script === "string"
+      ? (nextCallTask.payload.script as string)
+      : null;
+  const callDay =
+    typeof nextCallTask?.payload?.day === "number"
+      ? (nextCallTask.payload.day as number)
+      : null;
+
   return (
     <>
-      <p className="text-sm text-gray-700">
-        Call task is due. Log the outcome to advance the row.
-      </p>
+      <div className="flex items-center gap-2">
+        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+          Call
+        </span>
+        <p className="text-sm font-medium text-gray-900">
+          Next step: make the call, use the script, log the outcome.
+        </p>
+      </div>
       {primaryContact?.phone && (
-        <p className="mt-1 text-xs">
+        <p className="mt-2 text-sm">
           <a
             href={`tel:${primaryContact.phone}`}
-            className="font-medium text-emerald-700 hover:underline"
+            className="font-semibold text-emerald-700 hover:underline"
           >
             📞 {primaryContact.phone}
           </a>
+          {contactName && (
+            <span className="ml-2 text-xs text-gray-500">· {contactName}</span>
+          )}
         </p>
+      )}
+      {callScript && (
+        <details className="mt-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+          <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-gray-600">
+            {callDay != null ? `Day ${callDay} script` : "Suggested script"}
+          </summary>
+          <pre className="mt-2 whitespace-pre-wrap font-sans text-[12px] leading-relaxed text-gray-700">
+            {callScript}
+          </pre>
+        </details>
       )}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
@@ -623,7 +767,56 @@ function CallDueBody({
         >
           Log call outcome →
         </button>
+        <button
+          onClick={() => setShowLogReply(true)}
+          title="They replied by email or voicemail? Log the reply instead."
+          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          Log reply
+        </button>
       </div>
+
+      {showLogReply && (
+        <ReplyClassifierModal
+          organizationName={ctx.outreach.organization_name}
+          source="email_reply"
+          rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
+          onCancel={() => setShowLogReply(false)}
+          onSubmit={async (classification, payload, _partner, redirect) => {
+            try {
+              if (classification === "became_client") {
+                await action("make_client", { notes: payload.notes });
+              } else if (classification === "redirected" && redirect) {
+                const derivedName =
+                  [redirect.first_name, redirect.last_name]
+                    .filter(Boolean)
+                    .join(" ")
+                    .trim() || redirect.email;
+                await action("add_contact", {
+                  name: derivedName,
+                  first_name: redirect.first_name || null,
+                  last_name: redirect.last_name || null,
+                  email: redirect.email || null,
+                });
+                await action("classify_reply", {
+                  classification: "keep_emailing",
+                  notes: payload.notes,
+                });
+              } else {
+                await action("classify_reply", {
+                  classification,
+                  notes: payload.notes,
+                  meeting_at: payload.meeting_at,
+                });
+              }
+              setShowLogReply(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Save failed");
+              throw e;
+            }
+          }}
+        />
+      )}
 
       {showLogCall && (
         <LogCallOutcomeModal
@@ -632,9 +825,24 @@ function CallDueBody({
           contactPhone={primaryContact?.phone ?? null}
           rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setShowLogCall(false)}
-          onSubmit={async (outcome, notes) => {
+          onSubmit={async (outcome, notes, _partner, meetingAt) => {
             try {
-              await action("log_call_outcome", { outcome, notes });
+              // R5: terminal admin overrides dispatched as their own
+              // actions; everything else flows through log_call_outcome
+              // as before.
+              if (outcome === "mark_dnc" || outcome === "mark_no_response_closed") {
+                await action(outcome, { notes });
+              } else if (outcome === "meeting_scheduled") {
+                // P1: call-driven meeting commitment dispatches
+                // mark_meeting_scheduled directly so the row moves to
+                // Meetings as booked with the optional datetime.
+                await action("mark_meeting_scheduled", {
+                  meeting_at: meetingAt ?? null,
+                  notes,
+                });
+              } else {
+                await action("log_call_outcome", { outcome, notes });
+              }
               setShowLogCall(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Save failed");
@@ -696,6 +904,7 @@ function MeetingSetBody({
           contactName={contactName}
           initialStatus={meetingInitialStatus}
           initialMeetingAt={meetingInitialAt}
+          rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setShowLogMeeting(false)}
           onSubmit={async (mstatus, payload, partner) => {
             try {
@@ -706,10 +915,29 @@ function MeetingSetBody({
                 });
               } else if (mstatus === "finding_time") {
                 await action("flag_wants_meeting", { notes: payload.notes });
+              } else if (mstatus === "no_show") {
+                // P6: emits the existing meeting_no_show touchpoint
+                // (currently unused), then the standard meeting_in_flight
+                // note. Row stays in Meetings as in_flight for rescheduling.
+                await action("flag_wants_meeting", {
+                  notes: payload.notes,
+                  no_show: true,
+                });
               } else if (mstatus === "done_followup") {
                 await action("mark_meeting_followup", { notes: payload.notes });
               } else if (mstatus === "done_partner" && partner) {
                 await action("mark_partner", { ...partner });
+              } else if (mstatus === "done_client") {
+                // P3: post-meeting provider conversion. Dispatches
+                // make_client which writes interview_terms_accepted_at
+                // on the business_profile and unlocks Partner Prospects.
+                await action("make_client", { notes: payload.notes });
+              } else if (mstatus === "not_a_fit") {
+                // C3: post-meeting decline path. Reuses the existing
+                // mark_not_interested action so the row closes,
+                // pending tasks are cancelled via tasksToCancelOnExit,
+                // and the stage_change touchpoint narrates the close.
+                await action("mark_not_interested", { notes: payload.notes });
               }
               setShowLogMeeting(false);
             } catch (e) {

@@ -59,8 +59,9 @@ export function RowCard({
   row,
   ctaSuppressed,
   onReopen,
+  recentlyMoved,
   ...cb
-}: { tab: TabKey; row: TabRow } & RowCardCallbacks & RowCardExtras) {
+}: { tab: TabKey; row: TabRow; recentlyMoved?: boolean } & RowCardCallbacks & RowCardExtras) {
   const slots = buildRowSlots(tab, row, cb);
   // v9.0 Phase 7 Commit K: Reopen prepended to the overflow menu on
   // closed rows. The slot builders' overflow already includes Mark
@@ -82,6 +83,7 @@ export function RowCard({
       overflowMenu={overflow}
       onOpenDrawer={cb.onOpenDrawer}
       unread={row.viewed_at == null}
+      recentlyMoved={recentlyMoved}
     />
   );
 }
@@ -140,6 +142,7 @@ export function StakeholderCard({
   overflowMenu,
   onOpenDrawer,
   unread,
+  recentlyMoved,
 }: {
   row: TabRow;
   pill?: ReactNode;
@@ -150,6 +153,8 @@ export function StakeholderCard({
   onOpenDrawer: () => void;
   /** v9.0 Phase 4: title bolds when unread. */
   unread?: boolean;
+  /** E2: row was just moved here from another tab — flash highlight. */
+  recentlyMoved?: boolean;
 }) {
   // v9.0 Phase 7 Commit I: unified card chrome across all kinds. The
   // earlier amber lane for provider rows is gone — provider vs.
@@ -159,7 +164,11 @@ export function StakeholderCard({
   // Prospects list. Unread state uses the same bold-black border as
   // MedjobsCard so the design language is one.
   const borderClass = unread ? "border-gray-900" : "border-gray-200";
-  const cardClass = `cursor-pointer rounded-lg border ${borderClass} bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500`;
+  // E2: when a row was just moved by a Log action, briefly tint the
+  // card emerald so admin SEES where the work landed. Transitions
+  // fade as the recentlyMoved flag clears.
+  const movedBg = recentlyMoved ? "bg-emerald-50" : "bg-white";
+  const cardClass = `cursor-pointer rounded-lg border ${borderClass} ${movedBg} px-4 py-3 transition-colors duration-500 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500`;
   // Subtitle label: kind label (Provider / Advisor / etc.) — fallback
   // to the legacy stakeholder_type lookup if kind is missing on older
   // rows that haven't been hydrated yet.

@@ -21,6 +21,9 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useToast } from "@/components/admin/Toast";
+import { useRecentMoves } from "@/components/admin/RecentMoves";
+import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
 import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
@@ -139,6 +142,8 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
   }, [refetch]);
   useMedJobsRefresh(refetch);
 
+  const toast = useToast();
+  const { markMoved, isRecent } = useRecentMoves();
   const callAction = useCallback(
     async (
       outreachId: string,
@@ -154,10 +159,20 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
         const { error: e } = await res.json().catch(() => ({ error: "Action failed" }));
         throw new Error(e || "Action failed");
       }
+      // E1: surface a progression toast for meaningful Log actions.
+      const message = logActionSuccessMessage(action, payload);
+      if (message) {
+        toast(message);
+        // E2: same gate marks the row as recently moved so the
+        // destination tab can highlight it. Actions that don't have a
+        // success message (read-only edits like update_research) are
+        // not considered moves.
+        markMoved(outreachId);
+      }
       await refetch();
       refreshMedJobs();
     },
-    [refetch],
+    [refetch, refreshMedJobs, toast, markMoved],
   );
 
   const handleDrawerAction = useCallback(
@@ -181,6 +196,7 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
         <RowCard
           tab={tab}
           row={row}
+          recentlyMoved={isRecent(row.id)}
           // v9.0 Phase 7 Commit K: closed rows suppress the primary
           // CTA — they're history, not action surfaces. The ellipsis
           // still offers Reopen + contextual options.
@@ -349,10 +365,22 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
           contactPhone={callOutcomeRow.primary_contact_phone}
           rowKind={callOutcomeRow.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setCallOutcomeRow(null)}
-          onSubmit={async (outcome, notes, partner) => {
-            await callAction(callOutcomeRow.id, "log_call", { outcome, notes });
-            if (partner) {
-              await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
+          onSubmit={async (outcome, notes, partner, meetingAt) => {
+            // R5: terminal admin overrides dispatched directly.
+            if (outcome === "mark_dnc" || outcome === "mark_no_response_closed") {
+              await callAction(callOutcomeRow.id, outcome, { notes });
+            } else if (outcome === "meeting_scheduled") {
+              // P1: call-driven meeting commitment dispatches
+              // mark_meeting_scheduled directly.
+              await callAction(callOutcomeRow.id, "mark_meeting_scheduled", {
+                meeting_at: meetingAt ?? null,
+                notes,
+              });
+            } else {
+              await callAction(callOutcomeRow.id, "log_call", { outcome, notes });
+              if (partner) {
+                await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
+              }
             }
             setCallOutcomeRow(null);
           }}
@@ -365,14 +393,38 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
           source={classifierRow.source}
           rowKind={classifierRow.row.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setClassifierRow(null)}
-          onSubmit={async (classification, payload, partner) => {
-            await callAction(classifierRow.row.id, "classify_reply", {
-              classification,
-              notes: payload.notes,
-              meeting_at: payload.meeting_at,
-            });
-            if (partner) {
-              await callAction(classifierRow.row.id, "mark_partner", { ...partner });
+          onSubmit={async (classification, payload, partner, redirect) => {
+            if (classification === "became_client") {
+              // P3: provider reply → direct client conversion.
+              await callAction(classifierRow.row.id, "make_client", {
+                notes: payload.notes,
+              });
+            } else if (classification === "redirected" && redirect) {
+              // P4: add the new contact + stop the original cadence.
+              const derivedName =
+                [redirect.first_name, redirect.last_name]
+                  .filter(Boolean)
+                  .join(" ")
+                  .trim() || redirect.email;
+              await callAction(classifierRow.row.id, "add_contact", {
+                name: derivedName,
+                first_name: redirect.first_name || null,
+                last_name: redirect.last_name || null,
+                email: redirect.email || null,
+              });
+              await callAction(classifierRow.row.id, "classify_reply", {
+                classification: "keep_emailing",
+                notes: payload.notes,
+              });
+            } else {
+              await callAction(classifierRow.row.id, "classify_reply", {
+                classification,
+                notes: payload.notes,
+                meeting_at: payload.meeting_at,
+              });
+              if (partner) {
+                await callAction(classifierRow.row.id, "mark_partner", { ...partner });
+              }
             }
             setClassifierRow(null);
           }}
@@ -389,6 +441,7 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
           initialMeetingAt={
             logMeetingRow.meeting_at ? logMeetingRow.meeting_at.slice(0, 16) : undefined
           }
+          rowKind={logMeetingRow.kind === "provider" ? "provider" : "stakeholder"}
           onCancel={() => setLogMeetingRow(null)}
           onSubmit={async (status: MeetingStatus, payload, partner) => {
             try {
@@ -401,12 +454,28 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
                 await callAction(logMeetingRow.id, "flag_wants_meeting", {
                   notes: payload.notes,
                 });
+              } else if (status === "no_show") {
+                // P6: emit meeting_no_show + keep meeting_state in_flight.
+                await callAction(logMeetingRow.id, "flag_wants_meeting", {
+                  notes: payload.notes,
+                  no_show: true,
+                });
               } else if (status === "done_followup") {
                 await callAction(logMeetingRow.id, "mark_meeting_followup", {
                   notes: payload.notes,
                 });
               } else if (status === "done_partner" && partner) {
                 await callAction(logMeetingRow.id, "mark_partner", { ...partner });
+              } else if (status === "done_client") {
+                // P3: post-meeting provider conversion.
+                await callAction(logMeetingRow.id, "make_client", {
+                  notes: payload.notes,
+                });
+              } else if (status === "not_a_fit") {
+                // C3: post-meeting decline path.
+                await callAction(logMeetingRow.id, "mark_not_interested", {
+                  notes: payload.notes,
+                });
               }
               setLogMeetingRow(null);
             } catch (e) {

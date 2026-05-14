@@ -59,6 +59,15 @@ const styles = StyleSheet.create({
     color: EMERALD_DARK,
     letterSpacing: 0.5,
   },
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  brandLogo: {
+    width: 18,
+    height: 18,
+    marginRight: 6,
+  },
   brandTag: {
     fontSize: 8,
     color: GRAY_500,
@@ -235,7 +244,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     flex: 1,
-    paddingRight: 8,
+    // v9.1 Graize 05.13 audit (Item 2C): wider gap between the two
+    // signature blocks so Logan's longer credential ("Director,
+    // Olera's Texas A&M Student Caregiver Program") can't bleed into
+    // Graize's photo. Was 8.
+    paddingRight: 14,
+  },
+  // v9.1 Graize 05.13 audit (Item 2C): inner text column needs an
+  // explicit flex + minWidth:0 so React-PDF wraps the credential
+  // lines inside its own sigBlock rather than overflowing into the
+  // neighboring block. Without this the text can spill rightward.
+  sigText: {
+    flex: 1,
+    minWidth: 0,
   },
   sigPhoto: {
     width: 38,
@@ -277,10 +298,12 @@ const styles = StyleSheet.create({
 });
 
 export interface ProgramPdfAssets {
-  /** Olera-emerald wordmark not used yet — left for future iteration.
-   *  Photos + QR are base64 data URIs ready for @react-pdf/Image. */
   loganPhotoDataUri?: string;
   graziePhotoDataUri?: string;
+  /** Olera logo (square PNG, ~275×286). Rendered next to the
+   *  "olera" wordmark in the header. Optional so a missing asset
+   *  still produces a renderable PDF (text-only wordmark). */
+  oleraLogoDataUri?: string;
   qrDataUri: string;
 }
 
@@ -299,9 +322,16 @@ export function ProgramPdfTemplate({
     >
       <Page size="LETTER" style={styles.page}>
         {/* ── Header row */}
+        {/* v9.1 Graize 05.13 audit (Item 11): logo rendered next to
+            the "olera" wordmark when the asset is available. */}
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.brandWord}>olera</Text>
+            <View style={styles.brandRow}>
+              {assets.oleraLogoDataUri ? (
+                <Image src={assets.oleraLogoDataUri} style={styles.brandLogo} />
+              ) : null}
+              <Text style={styles.brandWord}>Olera</Text>
+            </View>
             <Text style={styles.brandTag}>Student Caregiver Program</Text>
           </View>
           <View>
@@ -318,12 +348,17 @@ export function ProgramPdfTemplate({
         </View>
 
         {/* ── Title */}
+        {/* v9.1 Graize 05.13 audit (Item 11): title now reads
+            "Olera's {university} Student Caregiver Program" to
+            anchor the brand; subtitle uses "Pre-nursing and pre-
+            medical student staffing pipeline" to match the email
+            terminology and remove the vague "pre-health" framing. */}
         <View style={styles.titleBlock}>
           <Text style={styles.programTitle}>
-            {config.universityShort} Student Caregiver Program
+            Olera&apos;s {config.universityShort} Student Caregiver Program
           </Text>
           <Text style={styles.programSubtitle}>
-            A pre-health student staffing pipeline for home care agencies
+            Pre-nursing and pre-medical student staffing pipeline for home care agencies
           </Text>
         </View>
 
@@ -384,22 +419,22 @@ export function ProgramPdfTemplate({
               {assets.loganPhotoDataUri ? (
                 <Image src={assets.loganPhotoDataUri} style={styles.sigPhoto} />
               ) : null}
-              <View>
+              <View style={styles.sigText}>
                 <Text style={styles.sigName}>Dr. Logan DuBose, MD, MBA</Text>
                 <Text style={styles.sigCred}>Texas A&M College of Medicine &apos;22</Text>
                 <Text style={styles.sigCred}>NIH-funded researcher</Text>
-                <Text style={styles.sigCred}>Director, Texas A&M Student Caregiver Program</Text>
+                <Text style={styles.sigCred}>Director, Olera&apos;s Texas A&M Student Caregiver Program</Text>
               </View>
             </View>
             <View style={styles.sigBlock}>
               {assets.graziePhotoDataUri ? (
                 <Image src={assets.graziePhotoDataUri} style={styles.sigPhoto} />
               ) : null}
-              <View>
-                <Text style={styles.sigName}>Grazie Belandres</Text>
+              <View style={styles.sigText}>
+                <Text style={styles.sigName}>Graize Belandres</Text>
                 <Text style={styles.sigCred}>Research Assistant to</Text>
                 <Text style={styles.sigCred}>Dr. Logan DuBose</Text>
-                <Text style={styles.sigCred}>grazie@olera.care</Text>
+                <Text style={styles.sigCred}>graize@olera.care</Text>
               </View>
             </View>
           </View>

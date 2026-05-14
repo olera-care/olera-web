@@ -252,8 +252,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       }
 
       // Step 2: Fetch profiles and membership in parallel
-      // Note: We include inactive student/caregiver profiles so the navbar can detect
-      // caregivers even before they submit a video intro (which sets is_active: true).
+      // Note: We include inactive student/caregiver/organization profiles so the
+      // navbar can detect caregivers before video intro, and so the non-family
+      // profile guard works even when a provider profile has is_active=false.
       // Public listings still filter by is_active: true, so this only affects navbar.
       console.time(profilesLabel);
       const [profilesResult, membershipResult] = await withBoundedTimeout(
@@ -262,7 +263,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             .from("business_profiles")
             .select("*")
             .eq("account_id", account.id)
-            .or("is_active.eq.true,type.in.(student,caregiver)")
+            .or("is_active.eq.true,type.in.(student,caregiver,organization)")
             .order("created_at", { ascending: true }),
           supabase
             .from("memberships")

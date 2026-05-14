@@ -12,15 +12,13 @@
  * shuts off an arm on one surface but not the other.
  *
  * Resolution sequence:
- *   1. Render. Returns `null` (variant unknown).
- *   2. Effect runs. Fetches /api/variant-weights/cta (CDN-cached
- *      ~30s, see app/api/variant-weights/cta/route.ts).
- *   3. Hashes the session id with the version namespace, walks the
- *      weighted-bucket assignment, returns the picked arm.
+ *   1. Render. Reads cached variant from localStorage (instant, no flash).
+ *   2. Effect runs. Fetches /api/variant-weights/cta (CDN-cached ~30s).
+ *   3. Compares version — if changed, re-resolves variant and updates cache.
+ *   4. On first visit (no cache), resolves and caches variant.
  *
- * Components that mount eagerly during SSR should treat `null` as
- * "unknown — don't take action yet" and only hide/swap on a concrete
- * arm value.
+ * This eliminates the flash on return visits since localStorage is
+ * synchronous and read during initial render.
  */
 
 import { useEffect, useState } from "react";
@@ -35,6 +33,10 @@ import {
 // Preview mode support for CTA variants
 const CTA_PREVIEW_PARAM = "preview_cta";
 import { CTA_VARIANTS } from "@/lib/analytics/cta-variant";
+
+// localStorage key for cached variant (includes version for invalidation)
+const CTA_CACHE_KEY = "olera_cta_variant";
+const CTA_VERSION_KEY = "olera_cta_version";
 
 function getCTAPreviewArm(): CTAVariant | null {
   if (typeof window === "undefined") return null;
@@ -80,30 +82,89 @@ function fetchWeights(): Promise<{ weights: CTAWeightMap; version: number }> {
 }
 
 /**
- * Returns the CTA variant assigned to the current session, or `null`
- * while the weights fetch is pending. Stable across re-renders once
- * resolved; stable across components within the same page load
- * (module-level promise cache).
+ * Read cached variant from localStorage (synchronous, no flash).
+ * Returns null if no cache or invalid.
+ */
+function getCachedVariant(): CTAVariant | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const cached = localStorage.getItem(CTA_CACHE_KEY);
+    if (cached && (CTA_VARIANTS as readonly string[]).includes(cached)) {
+      return cached as CTAVariant;
+    }
+  } catch {
+    // localStorage blocked or unavailable
+  }
+  return null;
+}
+
+/**
+ * Get cached version number for invalidation check.
+ */
+function getCachedVersion(): number {
+  if (typeof window === "undefined") return -1;
+  try {
+    const v = localStorage.getItem(CTA_VERSION_KEY);
+    return v ? parseInt(v, 10) : -1;
+  } catch {
+    return -1;
+  }
+}
+
+/**
+ * Cache the resolved variant and version.
+ */
+function setCachedVariant(variant: CTAVariant, version: number): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(CTA_CACHE_KEY, variant);
+    localStorage.setItem(CTA_VERSION_KEY, String(version));
+  } catch {
+    // localStorage blocked or full
+  }
+}
+
+/**
+ * Returns the CTA variant assigned to the current session.
+ *
+ * On first visit: Returns null briefly while fetching, then caches result.
+ * On return visits: Returns cached variant immediately (no flash), then
+ * validates in background and updates if version changed.
  */
 export function useCTAVariant(): CTAVariant | null {
-  const [variant, setVariant] = useState<CTAVariant | null>(null);
-  useEffect(() => {
-    // Admin preview override — bypasses the weights fetch entirely.
-    // Components downstream check isCTAPreviewMode() to suppress event
-    // firing, so the override never contaminates the A/B funnel.
+  // Initialize with cached value to prevent flash on return visits
+  const [variant, setVariant] = useState<CTAVariant | null>(() => {
+    // Preview mode takes precedence
     const previewArm = getCTAPreviewArm();
-    if (previewArm) {
-      setVariant(previewArm);
-      return;
-    }
+    if (previewArm) return previewArm;
+    // Return cached variant (or null on first visit)
+    return getCachedVariant();
+  });
+
+  useEffect(() => {
+    // Preview mode already handled in useState initializer
+    if (isCTAPreviewMode()) return;
+
     let cancelled = false;
     fetchWeights().then(({ weights, version }) => {
       if (cancelled) return;
-      setVariant(assignCTAVariantWeighted(getOrCreateSessionId(), weights, version));
+
+      const cachedVersion = getCachedVersion();
+      const cachedVariant = getCachedVariant();
+
+      // If version changed or no cache, resolve and cache new variant
+      if (version !== cachedVersion || !cachedVariant) {
+        const newVariant = assignCTAVariantWeighted(getOrCreateSessionId(), weights, version);
+        setCachedVariant(newVariant, version);
+        setVariant(newVariant);
+      }
+      // If version matches and we have cache, variant is already set from useState init
     });
+
     return () => {
       cancelled = true;
     };
   }, []);
+
   return variant;
 }

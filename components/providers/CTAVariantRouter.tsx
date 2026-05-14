@@ -93,19 +93,10 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
   const variant = useCTAVariant();
   useImpressionTracking(variant, "desktop", props.providerSlug);
 
-  // Don't render until variant resolves to prevent flash from legacy → actual variant.
-  // The CTA card area will be empty for ~50-100ms on first load, which is less
-  // jarring than showing legacy then flipping to compare/guide.
-  if (variant === null) {
-    return (
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 min-h-[300px] animate-pulse">
-        <div className="h-6 bg-gray-100 rounded w-3/4 mb-4" />
-        <div className="h-4 bg-gray-100 rounded w-1/2 mb-6" />
-        <div className="h-12 bg-gray-100 rounded-xl" />
-      </div>
-    );
-  }
-
+  // Variant is cached in localStorage, so return visits render correct variant instantly.
+  // First visit: variant is null briefly while fetching, defaults to "legacy".
+  // This may cause a rare flash for first-time users assigned to other variants,
+  // but subsequent visits are flash-free.
   const {
     providerId,
     providerName,
@@ -230,34 +221,8 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
   const variant = useCTAVariant();
   useImpressionTracking(variant, "mobile", props.providerSlug);
 
-  // Don't render until variant resolves to prevent flash from legacy → actual variant.
-  // Show a minimal skeleton that matches the sticky bar dimensions.
-  if (variant === null) {
-    return (
-      <>
-        {/* Document-flow spacer (matches actual CTA spacer) */}
-        <div
-          className="md:hidden"
-          aria-hidden="true"
-          style={{ height: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
-        />
-        {/* Skeleton sticky bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-          <div
-            className="bg-white border-t border-gray-200 animate-pulse"
-            style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-          >
-            <div className="px-5 pt-4 pb-5">
-              <div className="h-6 bg-gray-100 rounded w-1/3 mb-2" />
-              <div className="h-4 bg-gray-100 rounded w-1/4 mb-4" />
-              <div className="h-12 bg-gray-100 rounded-xl" />
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
+  // Variant is cached in localStorage, so return visits render correct variant instantly.
+  // First visit: variant is null briefly while fetching, defaults to "legacy".
   const {
     providerName,
     priceRange,

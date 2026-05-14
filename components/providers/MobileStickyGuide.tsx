@@ -219,7 +219,7 @@ export default function MobileStickyGuide({
         <div
           className="md:hidden"
           aria-hidden="true"
-          style={{ height: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
+          style={{ height: "calc(130px + env(safe-area-inset-bottom, 0px))" }}
         />
 
         {/* Sticky bottom bar - Family account required (always visible) */}
@@ -231,19 +231,19 @@ export default function MobileStickyGuide({
           }`}
         >
           <div
-            className="bg-white border-t border-gray-200"
+            className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
           >
-            <div className="px-5 pt-4 pb-5">
+            <div className="px-5 pt-3 pb-4">
               {/* Info */}
-              <div className="mb-4">
-                <p className="text-[22px] font-bold text-gray-900 leading-tight">
+              <div className="flex items-center gap-1.5">
+                <p className="text-[16px] font-semibold text-gray-900">
                   Family account required
                 </p>
-                <p className="text-[14px] text-gray-500 mt-0.5">
-                  To contact care providers
-                </p>
               </div>
+              <p className="text-[13px] text-gray-500 mt-1 mb-3">
+                To contact care providers
+              </p>
 
               {/* Full-width CTA button */}
               <button

@@ -93,9 +93,10 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
   const variant = useCTAVariant();
   useImpressionTracking(variant, "desktop", props.providerSlug);
 
-  // While variant is resolving, show the legacy CTA (avoid layout shift).
-  // Once resolved, variant can only be "legacy" for now, so we always
-  // render ConnectionCardWithRedirect. Future variants would branch here.
+  // Variant is cached in localStorage, so return visits render correct variant instantly.
+  // First visit: variant is null briefly while fetching, defaults to "legacy".
+  // This may cause a rare flash for first-time users assigned to other variants,
+  // but subsequent visits are flash-free.
   const {
     providerId,
     providerName,
@@ -205,6 +206,10 @@ export interface MobileCTARouterProps {
   highlights?: string[];
   /** Similar providers for compare variant */
   similarProviders?: CompareProvider[];
+  /** Pricing tier (3 = Medicare/Medicaid) */
+  pricingTier?: number | null;
+  /** Pricing disclaimer text for tooltip */
+  pricingDisclaimer?: string | null;
 }
 
 /**
@@ -216,6 +221,8 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
   const variant = useCTAVariant();
   useImpressionTracking(variant, "mobile", props.providerSlug);
 
+  // Variant is cached in localStorage, so return visits render correct variant instantly.
+  // First visit: variant is null briefly while fetching, defaults to "legacy".
   const {
     providerName,
     priceRange,
@@ -232,6 +239,8 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
     rating,
     highlights,
     similarProviders,
+    pricingTier,
+    pricingDisclaimer,
   } = props;
 
   const isPreview = isCTAPreviewMode();
@@ -249,6 +258,8 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerPhone={phone}
           providerImage={providerImage}
           priceRange={priceRange}
+          pricingTier={pricingTier}
+          pricingDisclaimer={pricingDisclaimer}
           rating={rating}
           reviewCount={reviewCount}
           services={careTypes}
@@ -268,6 +279,8 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerState={providerState}
           providerImage={providerImage}
           priceRange={priceRange}
+          pricingTier={pricingTier}
+          pricingDisclaimer={pricingDisclaimer}
           ctaVariant={variant}
           ctaPreviewMode={isPreview}
         />
@@ -278,6 +291,8 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
         <MobileStickyBottomCTA
           providerName={providerName}
           priceRange={priceRange}
+          pricingTier={pricingTier}
+          pricingDisclaimer={pricingDisclaimer}
           providerId={providerId}
           providerSlug={providerSlug}
           reviewCount={reviewCount}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Modal from "@/components/ui/Modal";
@@ -200,6 +201,10 @@ function MobileEmailCaptureForm({
 interface MobileStickyBottomCTAProps {
   providerName: string;
   priceRange: string | null;
+  /** Pricing tier (3 = Medicare/Medicaid) */
+  pricingTier?: number | null;
+  /** Pricing disclaimer text for tooltip */
+  pricingDisclaimer?: string | null;
   // ConnectionCard props
   providerId: string;
   providerSlug: string;
@@ -225,6 +230,8 @@ interface MobileStickyBottomCTAProps {
 export default function MobileStickyBottomCTA({
   providerName,
   priceRange,
+  pricingTier,
+  pricingDisclaimer,
   providerId,
   providerSlug,
   reviewCount,
@@ -239,14 +246,8 @@ export default function MobileStickyBottomCTA({
   ctaPreviewMode = false,
 }: MobileStickyBottomCTAProps) {
   const router = useRouter();
-  const [visible, setVisible] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
-  // Suppression flag: true when the in-page #benefits module is ≥50% in
-  // viewport (Door A vs Door B competing-CTA fix). Applies to all benefits
-  // arms equally — clean A/B impact since the module renders for all of
-  // availability/loss/empathic. The suppression resolves the cannibalization
-  // we identified in the 2026-05-06 funnel review.
-  const [benefitsInView, setBenefitsInView] = useState(false);
+  const [showPricingTooltip, setShowPricingTooltip] = useState(false);
 
   // ── Redirect after connection ──
   const handleConnectionCreated = useCallback(
@@ -281,83 +282,7 @@ export default function MobileStickyBottomCTA({
     ctaPreviewMode,
   });
 
-  // ── Scroll visibility for sticky bar ──
-  // Hysteresis: show at >100px, only hide again at <30px.
-  // Prevents the bar from flickering during iOS rubber-band scrolling where
-  // scrollY can momentarily dip to 0 even mid-page.
-  const handleScroll = useCallback(() => {
-    setVisible((prev) => {
-      if (window.scrollY > 100) return true;
-      if (window.scrollY < 30) return false;
-      return prev; // Between 30–100: keep current visibility
-    });
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
-
-  // Suppress the sticky bar when the benefits module is in view. The module
-  // has its own primary CTA (email capture) and we don't want two competing
-  // CTAs in the same thumb zone. Scroll listener still runs underneath so
-  // the bar reappears when the user scrolls past the module.
-  //
-  // Important: the #benefits DOM element is REPLACED when the variant
-  // resolves (the parent BenefitsDiscoveryModule's render-output type
-  // changes from inline <section> to <EmpathicSingleStep>, so React
-  // unmounts the old section and mounts a new one). A simple
-  // getElementById + observe on mount captures the SSR-rendered legacy
-  // section, which becomes orphaned. We use a MutationObserver to detect
-  // when the #benefits node reference changes and re-attach the
-  // IntersectionObserver to the live element.
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
-
-    let attached: Element | null = null;
-    let io: IntersectionObserver | null = null;
-
-    const intersectionCallback = (entries: IntersectionObserverEntry[]) => {
-      for (const entry of entries) {
-        setBenefitsInView(entry.intersectionRatio >= 0.5);
-      }
-    };
-
-    function attach() {
-      const el = document.getElementById("benefits");
-      if (el === attached) return;
-      // Tear down old observer (if any) and reset visibility — the previous
-      // element is gone or replaced.
-      if (io) {
-        io.disconnect();
-        io = null;
-      }
-      setBenefitsInView(false);
-      attached = el;
-      if (!el) return;
-      io = new IntersectionObserver(intersectionCallback, { threshold: [0, 0.5, 1] });
-      io.observe(el);
-    }
-
-    attach();
-
-    // Watch for #benefits element add/remove/replace. Filter to childList
-    // mutations to avoid firing on every text/attribute change. addedNodes
-    // and removedNodes catch the typical React reconciler unmount/remount
-    // pattern.
-    const mo = typeof MutationObserver !== "undefined" ? new MutationObserver(() => {
-      attach();
-    }) : null;
-    if (mo) mo.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      if (io) io.disconnect();
-      if (mo) mo.disconnect();
-    };
-  }, []);
-
-  // Also suppress when an input is focused — keyboard is open and the sticky
+  // Suppress when an input is focused — keyboard is open and the sticky
   // bar would collide with native chrome. Re-uses the same focusin/focusout
   // pattern as MobileUXPrimitives.useKeyboardOpen.
   const [keyboardOpen, setKeyboardOpen] = useState(false);
@@ -386,6 +311,32 @@ export default function MobileStickyBottomCTA({
       document.removeEventListener("focusout", onFocusOut);
     };
   }, []);
+
+  // Pricing tooltip ref and outside-click handler
+  const tooltipButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!showPricingTooltip) return;
+
+    const handleOutside = (e: TouchEvent | MouseEvent) => {
+      if (tooltipButtonRef.current && !tooltipButtonRef.current.contains(e.target as Node)) {
+        setShowPricingTooltip(false);
+      }
+    };
+    document.addEventListener("touchstart", handleOutside);
+    document.addEventListener("mousedown", handleOutside);
+    return () => {
+      document.removeEventListener("touchstart", handleOutside);
+      document.removeEventListener("mousedown", handleOutside);
+    };
+  }, [showPricingTooltip]);
+
+  // Close tooltip when sticky bar hides (benefits in view or keyboard open)
+  useEffect(() => {
+    if (keyboardOpen && showPricingTooltip) {
+      setShowPricingTooltip(false);
+    }
+  }, [keyboardOpen, showPricingTooltip]);
 
   // Fire cta_variant_clicked when sheet opens (only once per open)
   const sheetClickFiredRef = useRef(false);
@@ -592,51 +543,117 @@ export default function MobileStickyBottomCTA({
       })
     : "recently";
 
+  // Parse price display
+  const getPriceDisplay = () => {
+    // Medicare/Medicaid tier (tier 3) without explicit pricing
+    if (pricingTier === 3 && !priceRange) {
+      return { price: "Medicare/Medicaid", subtitle: "may cover this care" };
+    }
+    if (!priceRange) {
+      return { price: "Contact for pricing", subtitle: "Pricing not listed" };
+    }
+    const isHourly = priceRange.includes("/hr");
+    const isMonthly = priceRange.includes("/mo");
+    const priceWithoutUnit = priceRange.replace(/\/(hr|mo)$/i, "").trim();
+
+    if (isHourly) {
+      return { price: priceWithoutUnit, subtitle: "Estimated hourly cost" };
+    }
+    if (isMonthly) {
+      return { price: priceWithoutUnit, subtitle: "Estimated monthly cost" };
+    }
+    // Default case (no unit specified)
+    return { price: priceRange, subtitle: "Estimated cost" };
+  };
+
+  const { price, subtitle } = getPriceDisplay();
+
   return (
     <>
       {/*
        * Document-flow spacer — keeps page content from being permanently
        * hidden behind the fixed sticky bar on mobile.
-       * Height = bar content (~76 px) + iPhone safe-area-inset-bottom.
        */}
       <div
         className="md:hidden"
         aria-hidden="true"
-        style={{ height: "calc(76px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ height: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
       />
 
-      {/* ── Sticky bottom bar ── */}
+      {/* ── Sticky bottom bar (always visible) ── */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
-          visible && !benefitsInView && !keyboardOpen ? "translate-y-0" : "translate-y-full"
+          !keyboardOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >
         <div
-          className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]"
+          className="bg-white border-t border-gray-200"
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
-          <div className="flex items-center gap-4 px-4 py-3.5">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 truncate">
-                What does this cost?
+          <div className="px-5 pt-4 pb-5">
+            {/* Pricing info */}
+            <div className="mb-4">
+              <p className="text-[22px] font-bold text-gray-900 leading-tight">
+                {price}
               </p>
-              <p className="text-[11px] text-gray-400">
-                No spam. No sales calls.
-              </p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className="text-[14px] text-gray-500">{subtitle}</span>
+                {pricingDisclaimer && (
+                  <button
+                    ref={tooltipButtonRef}
+                    type="button"
+                    onClick={() => setShowPricingTooltip((prev) => !prev)}
+                    className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+                    aria-label="Pricing info"
+                    aria-expanded={showPricingTooltip}
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
 
+            {/* Full-width CTA button */}
             <button
               onClick={() => {
                 fireSheetOpenEvent();
                 setSheetOpen(true);
               }}
-              className="flex-shrink-0 px-5 py-3 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[13px] font-semibold transition-colors"
+              className="w-full py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors"
             >
-              Check cost
+              Check cost & availability
             </button>
           </div>
         </div>
       </div>
+
+      {/* ── Pricing tooltip portal ── */}
+      {showPricingTooltip &&
+        pricingDisclaimer &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed left-4 right-4 z-[100] md:hidden"
+            style={{ bottom: "calc(140px + env(safe-area-inset-bottom, 0px))" }}
+          >
+            <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
+              <p>{pricingDisclaimer}</p>
+            </div>
+          </div>,
+          document.body
+        )}
 
       {/* ── Connection bottom sheet ── */}
       <Modal

@@ -18,10 +18,14 @@ import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
 import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBar";
+import MobileProviderTopNav from "@/components/providers/MobileProviderTopNav";
 import MobileClaimLink from "@/components/providers/MobileClaimLink";
+import MobilePricingTooltip from "@/components/providers/MobilePricingTooltip";
+import MobileClaimTooltip from "@/components/providers/MobileClaimTooltip";
+import { MobileManageLink } from "@/components/providers/MobileManageLink";
 import PriceEstimate from "@/components/providers/PriceEstimate";
 import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
-import { getPricingConfig } from "@/lib/pricing-config";
+import { getPricingConfig, getRegionalEstimate } from "@/lib/pricing-config";
 import { getProfileCategoryFallbackImage } from "@/lib/types/provider";
 import ManagePageCTA from "@/components/providers/ManagePageCTA";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
@@ -411,14 +415,58 @@ export default async function ProviderPage({
   // 1. Pre-formatted price_range string (from formatIOSPriceRange)
   // 2. hourly_rate_min/max (legacy home care format)
   // 3. price_min/max with price_unit (fallback, e.g. when price_range wasn't set)
+  // 4. Regional estimate (state/metro average) for non-Tier 3 categories
   const priceUnitSuffix = meta?.price_unit === "HOUR" ? "/hr" : "/mo";
-  const priceRange =
-    meta?.price_range ||
-    (meta?.hourly_rate_min && meta?.hourly_rate_max
-      ? `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`
-      : meta?.price_min != null && meta?.price_max != null
-        ? `$${meta.price_min.toLocaleString()}-${meta.price_max.toLocaleString()}${priceUnitSuffix}`
-        : null);
+  const priceRange = (() => {
+    // Primary: pre-formatted string from formatPriceRange
+    if (meta?.price_range) return meta.price_range;
+
+    // Legacy hourly format
+    if (meta?.hourly_rate_min != null && meta?.hourly_rate_max != null) {
+      if (meta.hourly_rate_max > meta.hourly_rate_min) {
+        return `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`;
+      }
+      if (meta.hourly_rate_max === meta.hourly_rate_min) {
+        return `$${meta.hourly_rate_min}/hr`;
+      }
+      // Invalid: max < min, fall through
+    }
+
+    // Direct price_min/max fallback
+    if (meta?.price_min != null && meta?.price_max != null) {
+      if (meta.price_max > meta.price_min) {
+        return `$${meta.price_min.toLocaleString()}-${meta.price_max.toLocaleString()}${priceUnitSuffix}`;
+      }
+      if (meta.price_max === meta.price_min) {
+        return `$${meta.price_min.toLocaleString()}${priceUnitSuffix}`;
+      }
+      // Invalid: max < min, fall through
+    }
+
+    // Single price fallbacks
+    if (meta?.price_min != null) {
+      return `From $${meta.price_min.toLocaleString()}${priceUnitSuffix}`;
+    }
+    if (meta?.price_max != null) {
+      return `Up to $${meta.price_max.toLocaleString()}${priceUnitSuffix}`;
+    }
+
+    // Regional estimate fallback (match card behavior)
+    // Only for non-Tier 3 categories (Tier 3 = Medicare/Medicaid covered)
+    const tierConfig = profile.category ? getPricingConfig(profile.category) : null;
+    if (tierConfig?.tier !== 3 && profile.state) {
+      const regional = getRegionalEstimate(
+        profile.category || "",
+        profile.state,
+        profile.city ?? undefined
+      );
+      if (regional) {
+        return regional.formatted;
+      }
+    }
+
+    return null;
+  })();
 
   const rating = meta?.rating;
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
@@ -799,14 +847,24 @@ export default async function ProviderPage({
         />
       )}
 
-      {/* Section Navigation (appears on scroll) */}
+      {/* Section Navigation (appears on scroll) - desktop only */}
       <SectionNav
         sections={sectionItems}
         providerName={profile.display_name}
       />
 
-      {/* ===== Hero Zone — Vanilla Background ===== */}
-      <div className="bg-vanilla-100">
+      {/* Mobile Provider Top Nav - always sticky on mobile */}
+      <MobileProviderTopNav />
+
+      {/* Mobile nav spacer - accounts for fixed nav height + safe area on mobile */}
+      <div
+        className="md:hidden"
+        style={{ height: "calc(56px + env(safe-area-inset-top, 0px))" }}
+        aria-hidden="true"
+      />
+
+      {/* ===== Hero Zone — White on mobile, Vanilla on desktop ===== */}
+      <div className="bg-white md:bg-vanilla-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 md:pt-6 pb-8">
 
           {/* Breadcrumbs */}
@@ -853,7 +911,7 @@ export default async function ProviderPage({
             <div className="flex-1 min-w-0 flex flex-col">
               {/* Name + Save */}
               <div className="flex items-start justify-between gap-3">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left w-full md:w-auto">
                   {profile.display_name}
                 </h1>
                 <div className="hidden md:block">
@@ -874,60 +932,139 @@ export default async function ProviderPage({
 
               {/* ── Mobile identity layout ── */}
               <div className="md:hidden">
-                {/* Row 1: Category · Location · Address */}
-                <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 mt-1.5 text-sm text-gray-500">
-                  {categoryLabel && (
-                    <>
-                      <span className="text-gray-700 font-medium">{categoryLabel}</span>
-                      {locationStr && <span className="text-gray-300">·</span>}
-                    </>
-                  )}
-                  {locationStr && <span>{locationStr}</span>}
-                  {profile.address && (
-                    <>
-                      <span className="text-gray-300">·</span>
-                      <span className="truncate max-w-[180px]">{profile.address}</span>
-                    </>
-                  )}
-                </div>
+                {/* Row 1: Location (City, State) */}
+                {locationStr && (
+                  <p className="text-sm text-gray-500 mt-1">{locationStr}</p>
+                )}
 
-                {/* Row 2: Price (left) — Rating (right) */}
-                <div className="flex items-center justify-between mt-3">
-                  <div>
-                    {pricingConfig?.tier === 3 && !hasPriceRange ? (
-                      <PricingEducationBadge
-                        category={profile.category!}
-                        providerName={profile.display_name}
-                        city={profile.city ?? undefined}
-                        state={profile.state ?? undefined}
-                      />
-                    ) : hasPriceRange ? (
-                      <PriceEstimate
-                        priceRange={priceRange!}
-                        category={profile.category ?? undefined}
-                        providerName={profile.display_name}
-                        city={profile.city ?? undefined}
-                        state={profile.state ?? undefined}
-                      />
-                    ) : (
-                      <p className="text-sm text-gray-400">Contact for pricing</p>
-                    )}
+                {/* Row 2: Category + up to 2 highlights (dot-separated, filter duplicates of category) */}
+                {(() => {
+                  const categoryLower = categoryLabel?.toLowerCase() || "";
+                  const filteredHighlights = highlights
+                    .filter((h) => h.label.toLowerCase() !== categoryLower)
+                    .slice(0, 2)
+                    .map((h) => h.label);
+                  const items = [categoryLabel, ...filteredHighlights].filter(Boolean);
+                  return items.length > 0 ? (
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      {items.join(" · ")}
+                    </p>
+                  ) : null;
+                })()}
+
+                {/* Row 3: Rating & Reviews box (centered, subtle border) - only shown if reviews exist */}
+                {(() => {
+                  const displayRating = googleReviewsData?.rating ?? rating;
+                  const displayReviewCount = googleReviewsData?.review_count ?? 0;
+                  const hasReviews = displayRating != null && displayReviewCount > 0;
+
+                  // Don't render the reviews box if no reviews
+                  if (!hasReviews) return null;
+
+                  return (
+                    <div className="flex items-center justify-center mt-4 py-5 border border-gray-100 rounded-xl">
+                      <div className="flex items-center justify-center gap-6">
+                        {/* Left: Rating + stars */}
+                        <div className="flex flex-col items-center text-center">
+                          <span className="text-2xl font-bold text-gray-900">{displayRating!.toFixed(1)}</span>
+                          <div className="flex items-center justify-center gap-0.5 mt-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <svg
+                                key={star}
+                                className={`w-4 h-4 ${star <= Math.round(displayRating!) ? "text-yellow-400" : "text-gray-300"}`}
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="w-px h-10 bg-gray-200" />
+
+                        {/* Right: Review count */}
+                        <div className="flex flex-col items-center text-center">
+                          <span className="text-2xl font-bold text-gray-900">{displayReviewCount}</span>
+                          <span className="text-xs text-gray-500 mt-1">Google reviews</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* ── Mobile Claim Status Section ── */}
+                <div className="mt-4 text-left">
+                  <div className="flex items-center gap-3">
+                    {/* Avatar */}
+                    <div className="relative flex-shrink-0">
+                      {displayClaimState === "claimed" && staff?.image ? (
+                        <Image
+                          src={staff.image}
+                          alt={staff.name || "Manager"}
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : displayClaimState === "claimed" && staff?.name ? (
+                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-gray-500">
+                            {getInitials(staff.name)}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                      )}
+                      {/* Verification badge */}
+                      {displayClaimState === "claimed" && (
+                        <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Text content */}
+                    <div className="flex-1 min-w-0">
+                      {displayClaimState === "claimed" ? (
+                        <>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-primary-600 tracking-wide">CLAIMED</span>
+                            <MobileClaimTooltip content="This business has been verified and is actively managed by its owner on Olera." />
+                          </div>
+                          <p className="text-sm text-gray-600 mt-0.5">
+                            Managed by <span className="font-semibold text-gray-900">{staff?.name || profile.display_name}</span>
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-gray-400 tracking-wide">UNCLAIMED</span>
+                            <MobileClaimTooltip content="This listing has not been claimed by its owner yet. Information shown is from public sources." />
+                          </div>
+                          <p className="text-sm text-gray-500 mt-0.5">
+                            Are you the owner?{" "}
+                            <MobileManageLink
+                              providerName={profile.display_name}
+                              providerSlug={profile.slug}
+                              providerId={profile.id}
+                              sourceProviderId={profile.source_provider_id}
+                              providerEmail={profile.email}
+                              providerCity={profile.city}
+                              providerState={profile.state}
+                            />
+                          </p>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  {hasRating && rating != null && (
-                    <span className="flex items-center gap-1.5">
-                      <StarIcon className="w-5 h-5 text-amber-400" />
-                      <span className="text-base font-bold text-gray-900">{rating.toFixed(1)}</span>
-                      <span className="text-sm text-gray-400">on Google</span>
-                    </span>
-                  )}
                 </div>
-
-                {/* Row 3: Claim status */}
-                <MobileClaimLink
-                  claimState={displayClaimState}
-                  providerName={profile.display_name}
-                  claimUrl={`/provider/onboarding?org=${profile.slug}`}
-                />
               </div>
 
               {/* ── Desktop identity layout (unchanged) ── */}
@@ -981,19 +1118,11 @@ export default async function ProviderPage({
               </div>
 
               {/* Highlight badges — data-driven, variable count (1-4 items) */}
+              {/* Hidden on mobile for cleaner hero, shown on desktop */}
               {highlights.length > 0 && (
-                <div id="highlights" className="scroll-mt-20">
-                  {/* Mobile: flex-wrap chips */}
-                  <div className="md:hidden flex flex-wrap gap-2.5 mt-4">
-                    {highlights.map((h) => (
-                      <div key={h.label} className="bg-gray-50 rounded-xl py-3 px-3.5 flex items-center gap-2.5">
-                        <HighlightIcon icon={h.icon} className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                        <span className="text-sm font-medium text-gray-700 leading-tight">{h.label}</span>
-                      </div>
-                    ))}
-                  </div>
+                <div id="highlights" className="scroll-mt-20 hidden md:block">
                   {/* Desktop: flex-wrap chips */}
-                  <div className="hidden md:flex flex-wrap gap-2 mt-4">
+                  <div className="flex flex-wrap gap-2 mt-4">
                     {highlights.map((h) => (
                       <div key={h.label} className="bg-white border border-gray-200 rounded-lg py-2.5 px-3 flex items-center gap-2">
                         <HighlightIcon icon={h.icon} className="w-4 h-4 text-primary-500 flex-shrink-0" />
@@ -1004,7 +1133,8 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── "Manage this page" CTA ── */}
+              {/* ── "Manage this page" CTA — hidden on mobile for cleaner hero ── */}
+              <div className="hidden md:block">
               <ManagePageCTA
                 providerSlug={profile.slug}
                 providerName={profile.display_name}
@@ -1016,10 +1146,11 @@ export default async function ProviderPage({
                 isClaimed={actualClaimState === "claimed"}
                 claimAccountId={claimAccountId}
               />
+              </div>
 
-              {/* Managed by — only show when staff data exists */}
+              {/* Managed by — only show when staff data exists, hidden on mobile */}
               {hasStaff && (
-                <div className="flex items-center gap-2.5 mt-4">
+                <div className="hidden md:flex items-center gap-2.5 mt-4">
                   <div className="relative flex-shrink-0">
                     {staff!.image ? (
                       <Image src={staff!.image} alt={staff!.name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
@@ -1048,7 +1179,7 @@ export default async function ProviderPage({
 
       {/* ===== Content Zone — White Background ===== */}
       <div className="bg-white" data-spotlight-zone>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 md:py-10">
 
         {/* -- Two-Column Grid (content + sticky sidebar) -- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -1411,6 +1542,12 @@ export default async function ProviderPage({
       <MobileCTAVariantRouter
         providerName={profile.display_name}
         priceRange={priceRange}
+        pricingTier={pricingConfig?.tier}
+        pricingDisclaimer={pricingConfig?.disclaimer({
+          providerName: profile.display_name,
+          city: profile.city ?? undefined,
+          state: profile.state ?? undefined,
+        })}
         providerId={profile.id}
         providerSlug={profile.slug}
         reviewCount={googleReviewsData?.review_count ?? reviewCount}

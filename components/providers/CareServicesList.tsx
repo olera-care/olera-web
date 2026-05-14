@@ -243,7 +243,7 @@ export default function CareServicesList({
       {needsExpand && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="mt-6 px-5 py-2.5 text-sm font-medium text-gray-800 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          className="w-full md:w-auto mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
         >
           {expanded ? "Show less" : `Show all ${services.length} services`}
         </button>

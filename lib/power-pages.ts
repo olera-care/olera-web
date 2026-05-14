@@ -311,7 +311,8 @@ export async function fetchPowerPageData(opts: {
   let isStateAverage = false;
 
   if (pricingConfig.tier !== 3) {
-    const priced = (providers as Provider[]).filter((p) => p.lower_price && p.upper_price);
+    // Use proper null checks so $0 prices aren't excluded
+    const priced = (providers as Provider[]).filter((p) => p.lower_price != null && p.upper_price != null);
 
     if (priced.length >= MIN_SAMPLE_SIZE) {
       // Enough local data — use provider-based average

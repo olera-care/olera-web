@@ -216,6 +216,29 @@ interface ProviderResponseMetrics {
 
 type ProviderResponseByVariant = Record<CTAVariantKey, ProviderResponseMetrics>;
 
+// Conversion sources breakdown — tracks which of the 7 conversion entry points
+// performs best. Uses connection metadata (cta_variant, entry_point) to classify.
+type ConversionSourceId =
+  | "legacy_connect"
+  | "compare"
+  | "guide"
+  | "custom_quote"
+  | "book_consultation"
+  | "message_host"
+  | "qa_variants";
+
+interface ConversionSourceRow {
+  source_id: ConversionSourceId;
+  label: string;
+  count: number;
+  percent: number;
+}
+
+interface ConversionSourcesBreakdown {
+  total: number;
+  by_source: ConversionSourceRow[];
+}
+
 // Submissions by entry source — accounts.signup_source bucketed for the
 // "did editorial-mounted SBF produce signups?" question. The existing
 // benefits funnel above is provider-page-only (gated on provider_activity
@@ -252,6 +275,7 @@ type WindowResult = {
   entry_source_breakdown: EntrySourceBreakdown;
   provider_response: ProviderResponseMetrics;
   provider_response_by_variant: ProviderResponseByVariant;
+  conversion_sources_breakdown: ConversionSourcesBreakdown;
 };
 
 const EMPTY_COUNTS = (): WindowedCounts => ({
@@ -383,6 +407,11 @@ const EMPTY_PROVIDER_RESPONSE_BY_VARIANT = (): ProviderResponseByVariant => ({
   ...Object.fromEntries(CTA_VARIANTS.map(v => [v, EMPTY_PROVIDER_RESPONSE()])),
   unassigned: EMPTY_PROVIDER_RESPONSE(),
 }) as ProviderResponseByVariant;
+
+const EMPTY_CONVERSION_SOURCES_BREAKDOWN = (): ConversionSourcesBreakdown => ({
+  total: 0,
+  by_source: [],
+});
 
 /**
  * Pull all relevant events for one date window and bucket them into the
@@ -1295,6 +1324,76 @@ async function fetchWindow(
     unassigned: buildResponseMetrics(byVariant.unassigned.total, byVariant.unassigned.responded, byVariant.unassigned.times),
   } as ProviderResponseByVariant;
 
+  // ── Conversion Sources Breakdown ────────────────────────────────────────
+  // Categorize connections by their conversion entry point using metadata
+  // fields: cta_variant and entry_point. The 7 sources are:
+  //   - legacy_connect: cta_variant='legacy' AND no entry_point
+  //   - compare: cta_variant='compare'
+  //   - guide: cta_variant='guide'
+  //   - custom_quote: entry_point='custom_quote'
+  //   - book_consultation: entry_point='book_consultation'
+  //   - message_host: entry_point='message_host'
+  //   - qa_variants: entry_point starts with 'qa_'
+  const conversionCounts: Record<ConversionSourceId, number> = {
+    legacy_connect: 0,
+    compare: 0,
+    guide: 0,
+    custom_quote: 0,
+    book_consultation: 0,
+    message_host: 0,
+    qa_variants: 0,
+  };
+
+  for (const conn of connections) {
+    const meta = conn.metadata ?? {};
+    const ctaVariant = meta.cta_variant as string | undefined;
+    const entryPoint = meta.entry_point as string | undefined;
+
+    // Classify by source — entry_point takes precedence for specificity
+    if (entryPoint === "custom_quote") {
+      conversionCounts.custom_quote++;
+    } else if (entryPoint === "book_consultation") {
+      conversionCounts.book_consultation++;
+    } else if (entryPoint === "message_host") {
+      conversionCounts.message_host++;
+    } else if (typeof entryPoint === "string" && entryPoint.startsWith("qa_")) {
+      conversionCounts.qa_variants++;
+    } else if (ctaVariant === "guide") {
+      conversionCounts.guide++;
+    } else if (ctaVariant === "compare") {
+      conversionCounts.compare++;
+    } else {
+      // Legacy Connect: cta_variant='legacy' OR no variant (pre-variant data)
+      conversionCounts.legacy_connect++;
+    }
+  }
+
+  const conversionTotal = Object.values(conversionCounts).reduce((a, b) => a + b, 0);
+
+  const CONVERSION_SOURCE_LABELS: Record<ConversionSourceId, string> = {
+    legacy_connect: "Legacy Connect",
+    compare: "Compare CTA",
+    guide: "Guide PDF",
+    custom_quote: "Get a Custom Quote",
+    book_consultation: "Book a Consultation",
+    message_host: "Message Staff",
+    qa_variants: "Q&A Variants",
+  };
+
+  const conversionSourcesBreakdown: ConversionSourcesBreakdown = {
+    total: conversionTotal,
+    by_source: (Object.keys(conversionCounts) as ConversionSourceId[])
+      .map((sourceId) => ({
+        source_id: sourceId,
+        label: CONVERSION_SOURCE_LABELS[sourceId],
+        count: conversionCounts[sourceId],
+        percent: conversionTotal > 0
+          ? Math.round((conversionCounts[sourceId] / conversionTotal) * 100)
+          : 0,
+      }))
+      .sort((a, b) => b.count - a.count),
+  };
+
   return {
     counts,
     unique_sessions_page_view: uniqueSessions.size,
@@ -1311,6 +1410,7 @@ async function fetchWindow(
     entry_source_breakdown: entrySourceBreakdown,
     provider_response: providerResponse,
     provider_response_by_variant: providerResponseByVariant,
+    conversion_sources_breakdown: conversionSourcesBreakdown,
   };
 }
 
@@ -1542,6 +1642,7 @@ export async function GET(request: NextRequest) {
         entry_source_breakdown: windowedRes.entry_source_breakdown,
         provider_response: windowedRes.provider_response,
         provider_response_by_variant: windowedRes.provider_response_by_variant,
+        conversion_sources_breakdown: windowedRes.conversion_sources_breakdown,
       },
       prior: prior
         ? {
@@ -1560,6 +1661,7 @@ export async function GET(request: NextRequest) {
             entry_source_breakdown: prior.entry_source_breakdown,
             provider_response: prior.provider_response,
             provider_response_by_variant: prior.provider_response_by_variant,
+            conversion_sources_breakdown: prior.conversion_sources_breakdown,
           }
         : null,
       insight,

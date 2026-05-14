@@ -1438,9 +1438,14 @@ export default async function ProviderPage({
                     <div className="flex-1 min-w-0">
                       <h3 className="text-base font-semibold text-gray-900 mb-2">Care motivation</h3>
                       <ExpandableText text={staff!.care_motivation || staff!.bio} maxLength={200} />
+                      {/* Desktop: button inline with care motivation */}
+                      <ScrollToConnectionCard className="hidden md:inline-block mt-4 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                        Message {staff!.name.split(" ")[0]}
+                      </ScrollToConnectionCard>
                     </div>
                   </div>
-                  <ScrollToConnectionCard className="w-full md:w-auto mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                  {/* Mobile: button full-width below */}
+                  <ScrollToConnectionCard className="md:hidden w-full mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center">
                     Message {staff!.name.split(" ")[0]}
                   </ScrollToConnectionCard>
                   <div className="flex items-center gap-2 mt-6 text-sm text-gray-500">

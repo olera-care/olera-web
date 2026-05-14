@@ -470,9 +470,9 @@ export default function ReviewsSection({
           </div>
 
           {/* Footer actions */}
-          <div className="flex flex-row items-center justify-between mt-6">
+          <div className="flex flex-col items-start gap-4 mt-6">
             {/* Show all reviews - text link */}
-            {hasMore ? (
+            {hasMore && (
               <button
                 onClick={() => {
                   setScrollToReviewId(null);
@@ -482,8 +482,6 @@ export default function ReviewsSection({
               >
                 Show all {reviewCount} reviews
               </button>
-            ) : (
-              <div />
             )}
 
             {/* Add review button */}
@@ -491,7 +489,7 @@ export default function ReviewsSection({
               <Link
                 href={reviewPageUrl}
                 rel="nofollow"
-                className="px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center"
+                className="w-full md:w-auto px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center"
               >
                 Leave a review
               </Link>

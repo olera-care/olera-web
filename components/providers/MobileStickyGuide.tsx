@@ -105,13 +105,16 @@ export default function MobileStickyGuide({
         }),
       });
 
-      // Even if there's an error, redirect to inbox (connection may already exist)
-      if (!res.ok) {
+      let connId: string | null = null;
+      if (res.ok) {
+        const data = await res.json();
+        connId = data.connectionId || null;
+      } else {
         console.error("[MobileStickyGuide] guide-save failed:", res.status);
       }
 
-      // Redirect to inbox
-      window.location.href = `/portal/inbox`;
+      // Redirect to inbox with connectionId if available
+      window.location.href = connId ? `/portal/inbox?id=${connId}` : `/portal/inbox`;
     } catch (err) {
       console.error("[MobileStickyGuide] handleMessageProvider error:", err);
       // Still redirect on error - user expects to go to inbox
@@ -183,29 +186,28 @@ export default function MobileStickyGuide({
     }
   }, [keyboardOpen, showPricingTooltip]);
 
-  // Parse price display
+  // Parse price display - single line format
   const getPriceDisplay = () => {
     // Medicare/Medicaid tier (tier 3) without explicit pricing
     if (pricingTier === 3 && !priceRange) {
-      return { price: "Medicare/Medicaid", subtitle: "may cover this care" };
+      return "Medicare/Medicaid may cover";
     }
     if (!priceRange) {
-      return { price: "Contact for pricing", subtitle: "Pricing not listed" };
+      return "Contact for pricing";
     }
     const isHourly = priceRange.includes("/hr");
     const isMonthly = priceRange.includes("/mo");
-    const priceWithoutUnit = priceRange.replace(/\/(hr|mo)$/i, "").trim();
 
     if (isHourly) {
-      return { price: priceWithoutUnit, subtitle: "Estimated hourly cost" };
+      return `${priceRange} estimated`;
     }
     if (isMonthly) {
-      return { price: priceWithoutUnit, subtitle: "Estimated monthly cost" };
+      return `${priceRange} estimated`;
     }
-    return { price: priceRange, subtitle: "Estimated cost" };
+    return `${priceRange} estimated`;
   };
 
-  const { price, subtitle } = getPriceDisplay();
+  const priceDisplay = getPriceDisplay();
 
   // ─────────────────────────────────────────────────────────────────────────────
   // RENDER: Non-family profile (provider/caregiver/student)
@@ -279,42 +281,39 @@ export default function MobileStickyGuide({
           }`}
         >
           <div
-            className="bg-white border-t border-gray-200"
+            className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
           >
-            <div className="px-5 pt-4 pb-5">
-              {/* Pricing info */}
-              <div className="mb-4">
-                <p className="text-[22px] font-bold text-gray-900 leading-tight">
-                  {price}
+            <div className="px-5 pt-3 pb-4">
+              {/* Pricing info - single line */}
+              <div className="flex items-center gap-1.5 mb-3">
+                <p className="text-[16px] font-semibold text-gray-900">
+                  {priceDisplay}
                 </p>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <span className="text-[14px] text-gray-500">{subtitle}</span>
-                  {pricingDisclaimer && (
-                    <button
-                      ref={tooltipButtonRef}
-                      type="button"
-                      onClick={() => setShowPricingTooltip((prev) => !prev)}
-                      className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
-                      aria-label="Pricing info"
-                      aria-expanded={showPricingTooltip}
+                {pricingDisclaimer && (
+                  <button
+                    ref={tooltipButtonRef}
+                    type="button"
+                    onClick={() => setShowPricingTooltip((prev) => !prev)}
+                    className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+                    aria-label="Pricing info"
+                    aria-expanded={showPricingTooltip}
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      <svg
-                        className="w-3.5 h-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                </div>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </button>
+                )}
               </div>
 
               {/* Full-width CTA button */}
@@ -356,7 +355,7 @@ export default function MobileStickyGuide({
       <div
         className="md:hidden"
         aria-hidden="true"
-        style={{ height: "calc(140px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ height: "calc(130px + env(safe-area-inset-bottom, 0px))" }}
       />
 
       {/* Sticky bottom bar (always visible) */}
@@ -368,58 +367,52 @@ export default function MobileStickyGuide({
         }`}
       >
         <div
-          className="bg-white border-t border-gray-200"
+          className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
-          <div className="px-5 pt-4 pb-5">
-            {/* Pricing info */}
-            <div className="mb-3">
-              <p className="text-[22px] font-bold text-gray-900 leading-tight">
-                {price}
+          <div className="px-5 pt-3 pb-4">
+            {/* Pricing info - single line */}
+            <div className="flex items-center gap-1.5">
+              <p className="text-[16px] font-semibold text-gray-900">
+                {priceDisplay}
               </p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-[14px] text-gray-500">{subtitle}</span>
-                {pricingDisclaimer && (
-                  <button
-                    ref={tooltipButtonRef}
-                    type="button"
-                    onClick={() => setShowPricingTooltip((prev) => !prev)}
-                    className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
-                    aria-label="Pricing info"
-                    aria-expanded={showPricingTooltip}
+              {pricingDisclaimer && (
+                <button
+                  ref={tooltipButtonRef}
+                  type="button"
+                  onClick={() => setShowPricingTooltip((prev) => !prev)}
+                  className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+                  aria-label="Pricing info"
+                  aria-expanded={showPricingTooltip}
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </button>
-                )}
-              </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
 
             {/* Checklist value prop */}
-            <div className="flex items-center gap-2 mb-4">
-              <svg className="w-4 h-4 text-primary-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-              <span className="text-[13px] text-gray-600">Free checklist included</span>
-            </div>
+            <p className="text-[13px] text-gray-500 mt-1 mb-3">
+              Free checklist included
+            </p>
 
             {/* Full-width CTA button */}
             <button
               onClick={handleGuideClick}
               className="w-full py-4 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
             >
-              <span>Get Checklist</span>
+              <span>Get free checklist</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
@@ -435,7 +428,7 @@ export default function MobileStickyGuide({
         createPortal(
           <div
             className="fixed left-4 right-4 z-[100] md:hidden"
-            style={{ bottom: "calc(160px + env(safe-area-inset-bottom, 0px))" }}
+            style={{ bottom: "calc(150px + env(safe-area-inset-bottom, 0px))" }}
           >
             <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
               <p>{pricingDisclaimer}</p>

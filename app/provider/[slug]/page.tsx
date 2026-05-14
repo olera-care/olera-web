@@ -33,6 +33,7 @@ import ReviewsSection from "@/components/providers/ReviewsSection";
 import CMSQualitySection from "@/components/providers/CMSQualitySection";
 import AiTrustSignalsSection from "@/components/providers/AiTrustSignalsSection";
 import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
+import { LeadCaptureSheetWrapper } from "@/components/providers/lead-capture";
 import BenefitsDiscoveryModule from "@/components/providers/BenefitsDiscoveryModule";
 import type { BenefitsProgram } from "@/components/providers/BenefitsDiscoveryModule";
 import { BenefitsArmGate, AgentOutreachSlot } from "@/components/providers/IntakeVariantSlots";
@@ -909,6 +910,12 @@ export default async function ProviderPage({
 
             {/* Identity */}
             <div className="flex-1 min-w-0 flex flex-col">
+              {/* Mobile eyebrow - category above name */}
+              {categoryLabel && (
+                <p className="md:hidden text-xs font-semibold tracking-wide uppercase text-gray-500 mb-1">
+                  {categoryLabel}
+                </p>
+              )}
               {/* Name + Save */}
               <div className="flex items-start justify-between gap-3">
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left w-full md:w-auto">
@@ -937,17 +944,16 @@ export default async function ProviderPage({
                   <p className="text-sm text-gray-500 mt-1">{locationStr}</p>
                 )}
 
-                {/* Row 2: Category + up to 2 highlights (dot-separated, filter duplicates of category) */}
+                {/* Row 2: Highlights only (category is now eyebrow above name) */}
                 {(() => {
                   const categoryLower = categoryLabel?.toLowerCase() || "";
                   const filteredHighlights = highlights
                     .filter((h) => h.label.toLowerCase() !== categoryLower)
                     .slice(0, 2)
                     .map((h) => h.label);
-                  const items = [categoryLabel, ...filteredHighlights].filter(Boolean);
-                  return items.length > 0 ? (
+                  return filteredHighlights.length > 0 ? (
                     <p className="text-sm text-gray-500 mt-0.5">
-                      {items.join(" · ")}
+                      {filteredHighlights.join(" · ")}
                     </p>
                   ) : null;
                 })()}
@@ -971,7 +977,7 @@ export default async function ProviderPage({
                             {[1, 2, 3, 4, 5].map((star) => (
                               <svg
                                 key={star}
-                                className={`w-4 h-4 ${star <= Math.round(displayRating!) ? "text-yellow-400" : "text-gray-300"}`}
+                                className={`w-4 h-4 ${star <= Math.round(displayRating!) ? "text-amber-400" : "text-gray-300"}`}
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -1347,14 +1353,7 @@ export default async function ProviderPage({
               {/* ── Detailed Pricing ── */}
               {pricingDetails.length > 0 && (
                 <div id="pricing" className="py-8 scroll-mt-20 border-t border-gray-200">
-                  <div className="flex items-start justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 font-display">Prices at {profile.display_name}</h2>
-                    </div>
-                    <ScrollToConnectionCard className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors flex-shrink-0">
-                      Get a custom quote
-                    </ScrollToConnectionCard>
-                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Prices at {profile.display_name}</h2>
                   <div className="space-y-2">
                     {pricingDetails.map((item) => (
                       <div
@@ -1368,6 +1367,9 @@ export default async function ProviderPage({
                       </div>
                     ))}
                   </div>
+                  <ScrollToConnectionCard entryPoint="custom_quote" className="w-full md:w-auto mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                    Get a custom quote
+                  </ScrollToConnectionCard>
                   {pricingConfig && (
                     <p className="text-xs text-gray-400 mt-4 leading-relaxed">
                       {pricingConfig.disclaimer({
@@ -1408,7 +1410,7 @@ export default async function ProviderPage({
                   </div>
                   <p className="mt-5 text-base text-gray-500">
                     For clarity and guidance,{" "}
-                    <ScrollToConnectionCard className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
+                    <ScrollToConnectionCard entryPoint="book_consultation" className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
                       Book a consultation
                     </ScrollToConnectionCard>
                   </p>
@@ -1418,14 +1420,9 @@ export default async function ProviderPage({
               {/* ── Facility Manager — hidden when no staff data ── */}
               {hasStaff && (
                 <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900 font-display">Facility manager</h2>
-                    <ScrollToConnectionCard className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
-                      Connect with us
-                    </ScrollToConnectionCard>
-                  </div>
-                  <div className="flex flex-col sm:flex-row items-start gap-6">
-                    <div className="border border-gray-100 rounded-2xl px-6 pt-8 pb-6 text-center flex-shrink-0 w-52 shadow-md">
+                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Facility manager</h2>
+                  <div className="flex flex-col md:flex-row items-start gap-6">
+                    <div className="border border-gray-100 rounded-2xl px-6 pt-8 pb-6 text-center w-full md:w-52 md:flex-shrink-0 shadow-md">
                       <div className="relative mx-auto mb-5 w-24 h-24">
                         {staff!.image ? (
                           <Image src={staff!.image} alt={staff!.name} width={96} height={96} className="w-24 h-24 rounded-full object-cover" />
@@ -1447,8 +1444,16 @@ export default async function ProviderPage({
                     <div className="flex-1 min-w-0">
                       <h3 className="text-base font-semibold text-gray-900 mb-2">Care motivation</h3>
                       <ExpandableText text={staff!.care_motivation || staff!.bio} maxLength={200} />
+                      {/* Desktop: button in care motivation column with spacing to align with card bottom */}
+                      <ScrollToConnectionCard entryPoint="message_host" className="hidden md:inline-block mt-6 px-6 py-2.5 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                        Message {staff!.name.split(" ")[0]}
+                      </ScrollToConnectionCard>
                     </div>
                   </div>
+                  {/* Mobile: button full-width below */}
+                  <ScrollToConnectionCard entryPoint="message_host" className="md:hidden w-full mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center">
+                    Message {staff!.name.split(" ")[0]}
+                  </ScrollToConnectionCard>
                   <div className="flex items-center gap-2 mt-6 text-sm text-gray-500">
                     <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.22,6.22,0,0,0,1.75,3.75" />
@@ -1574,6 +1579,21 @@ export default async function ProviderPage({
           services: p.careTypes || [],
           highlights: p.highlights || [],
         }))}
+      />
+
+      {/* Lead capture sheet (unified modal for mobile + desktop) */}
+      <LeadCaptureSheetWrapper
+        providerId={profile.id}
+        providerName={profile.display_name}
+        providerSlug={profile.slug}
+        providerCity={profile.city}
+        providerState={profile.state}
+        providerCategory={profile.category}
+        staff={staff ? {
+          name: staff.name,
+          role: staff.position,
+          image: staff.image || null,
+        } : null}
       />
     </div>
   );

@@ -5,7 +5,7 @@ import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, verifyEmailEmail, careReportEmail } from "@/lib/email-templates";
 import { getPricingForProviderSync, formatPricingRange, getFundingOptions } from "@/lib/pricing-ranges";
-import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
+import { sendSlackAlert, slackNewLead, slackMissingEmail, slackLeadCaptureConverted, slackLegacyConnectConverted } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { startSeekerConversation } from "@/lib/whatsapp-conversation";
@@ -58,6 +58,8 @@ interface GuestConnectionParams {
   /** CTA variant for A/B testing attribution. Passed from the frontend
    *  CTAVariantRouter so conversions can be attributed to a variant arm. */
   ctaVariant?: string | null;
+  /** Entry point for lead capture (custom_quote, book_consultation, message_host) */
+  entryPoint?: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   admin: any;
 }
@@ -72,6 +74,7 @@ async function handleGuestConnection({
   intentData,
   sessionId,
   ctaVariant,
+  entryPoint,
   admin,
 }: GuestConnectionParams) {
   // Validate email format
@@ -691,6 +694,7 @@ async function handleGuestConnection({
   connectionMetadata.auto_intro = autoIntro;
   if (!providerEmail) connectionMetadata.needs_provider_email = true;
   if (ctaVariant) connectionMetadata.cta_variant = ctaVariant;
+  if (entryPoint) connectionMetadata.entry_point = entryPoint;
 
   // Auto-reply from provider (marked as auto to exclude from unread reminders)
   connectionMetadata.thread = [
@@ -970,7 +974,7 @@ async function handleGuestConnection({
     console.error("[whatsapp] Seeker enrichment conversation failed:", seekerWaErr);
   }
 
-  // Slack alert
+  // Slack alert for new lead
   try {
     const careTypeMap: Record<string, string> = {
       home_care: "Home Care",
@@ -984,6 +988,30 @@ async function handleGuestConnection({
       careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
     });
     await sendSlackAlert(alert.text, alert.blocks);
+  } catch {
+    // Non-blocking
+  }
+
+  // Slack alert for conversion (guest account created)
+  try {
+    if (entryPoint) {
+      // Lead Capture conversion (custom_quote, book_consultation, message_host)
+      const conversionAlert = slackLeadCaptureConverted({
+        email: normalizedEmail,
+        providerName,
+        providerSlug,
+        entryPoint,
+      });
+      await sendSlackAlert(conversionAlert.text, conversionAlert.blocks);
+    } else {
+      // Legacy Connect conversion (no entry point)
+      const conversionAlert = slackLegacyConnectConverted({
+        email: normalizedEmail,
+        providerName,
+        providerSlug,
+      });
+      await sendSlackAlert(conversionAlert.text, conversionAlert.blocks);
+    }
   } catch {
     // Non-blocking
   }
@@ -1129,6 +1157,7 @@ export async function POST(request: Request) {
       website, // Honeypot field
       session_id: sessionId,
       cta_variant: ctaVariant,
+      entry_point: entryPoint,
     } = body as {
       providerId: string;
       providerName: string;
@@ -1146,6 +1175,7 @@ export async function POST(request: Request) {
       website?: string; // Honeypot
       session_id?: string;
       cta_variant?: string;
+      entry_point?: string; // Lead capture entry point (custom_quote, book_consultation, message_host)
     };
 
     if (!providerId || !providerName) {
@@ -1179,6 +1209,7 @@ export async function POST(request: Request) {
         intentData,
         sessionId,
         ctaVariant,
+        entryPoint,
         admin,
       });
     }
@@ -1572,6 +1603,7 @@ export async function POST(request: Request) {
     connectionMetadata.auto_intro = autoIntro;
     if (!providerEmail) connectionMetadata.needs_provider_email = true;
     if (ctaVariant) connectionMetadata.cta_variant = ctaVariant;
+    if (entryPoint) connectionMetadata.entry_point = entryPoint;
 
     // Seed an automatic reply from the provider so the seeker has an
     // unread message in their inbox immediately after connecting.

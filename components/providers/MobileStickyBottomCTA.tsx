@@ -543,30 +543,29 @@ export default function MobileStickyBottomCTA({
       })
     : "recently";
 
-  // Parse price display
+  // Parse price display - single line format
   const getPriceDisplay = () => {
     // Medicare/Medicaid tier (tier 3) without explicit pricing
     if (pricingTier === 3 && !priceRange) {
-      return { price: "Medicare/Medicaid", subtitle: "may cover this care" };
+      return "Medicare/Medicaid may cover";
     }
     if (!priceRange) {
-      return { price: "Contact for pricing", subtitle: "Pricing not listed" };
+      return "Contact for pricing";
     }
     const isHourly = priceRange.includes("/hr");
     const isMonthly = priceRange.includes("/mo");
-    const priceWithoutUnit = priceRange.replace(/\/(hr|mo)$/i, "").trim();
 
     if (isHourly) {
-      return { price: priceWithoutUnit, subtitle: "Estimated hourly cost" };
+      return `${priceRange} estimated`;
     }
     if (isMonthly) {
-      return { price: priceWithoutUnit, subtitle: "Estimated monthly cost" };
+      return `${priceRange} estimated`;
     }
     // Default case (no unit specified)
-    return { price: priceRange, subtitle: "Estimated cost" };
+    return `${priceRange} estimated`;
   };
 
-  const { price, subtitle } = getPriceDisplay();
+  const priceDisplay = getPriceDisplay();
 
   return (
     <>
@@ -587,42 +586,39 @@ export default function MobileStickyBottomCTA({
         }`}
       >
         <div
-          className="bg-white border-t border-gray-200"
+          className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
-          <div className="px-5 pt-4 pb-5">
-            {/* Pricing info */}
-            <div className="mb-4">
-              <p className="text-[22px] font-bold text-gray-900 leading-tight">
-                {price}
+          <div className="px-5 pt-3 pb-4">
+            {/* Pricing info - single line */}
+            <div className="flex items-center gap-1.5 mb-3">
+              <p className="text-[16px] font-semibold text-gray-900">
+                {priceDisplay}
               </p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-[14px] text-gray-500">{subtitle}</span>
-                {pricingDisclaimer && (
-                  <button
-                    ref={tooltipButtonRef}
-                    type="button"
-                    onClick={() => setShowPricingTooltip((prev) => !prev)}
-                    className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
-                    aria-label="Pricing info"
-                    aria-expanded={showPricingTooltip}
+              {pricingDisclaimer && (
+                <button
+                  ref={tooltipButtonRef}
+                  type="button"
+                  onClick={() => setShowPricingTooltip((prev) => !prev)}
+                  className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+                  aria-label="Pricing info"
+                  aria-expanded={showPricingTooltip}
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </button>
-                )}
-              </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
 
             {/* Full-width CTA button */}

@@ -200,6 +200,29 @@ interface EntrySourceBreakdown {
   top_editorial_articles: Array<{ slug: string; count: number }>;
 }
 
+// Conversion sources breakdown — tracks which of the 7 conversion entry points
+// performs best. Uses connection metadata (cta_variant, entry_point) to classify.
+type ConversionSourceId =
+  | "legacy_connect"
+  | "compare"
+  | "guide"
+  | "custom_quote"
+  | "book_consultation"
+  | "message_host"
+  | "qa_variants";
+
+interface ConversionSourceRow {
+  source_id: ConversionSourceId;
+  label: string;
+  count: number;
+  percent: number;
+}
+
+interface ConversionSourcesBreakdown {
+  total: number;
+  by_source: ConversionSourceRow[];
+}
+
 interface SummaryResponse {
   windowed: {
     range: { from: string | null; to: string | null };
@@ -218,6 +241,7 @@ interface SummaryResponse {
     entry_source_breakdown: EntrySourceBreakdown;
     provider_response: ProviderResponseMetrics;
     provider_response_by_variant: ProviderResponseByVariant;
+    conversion_sources_breakdown: ConversionSourcesBreakdown;
   };
   prior: {
     counts: WindowedCounts;
@@ -235,6 +259,7 @@ interface SummaryResponse {
     entry_source_breakdown: EntrySourceBreakdown;
     provider_response: ProviderResponseMetrics;
     provider_response_by_variant: ProviderResponseByVariant;
+    conversion_sources_breakdown: ConversionSourcesBreakdown;
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -392,6 +417,15 @@ export default function AdminAnalyticsPage() {
         loading={loading && !!summary}
       >
         <CTAVariantsCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Conversion Sources"
+        storageKey="conversionSources"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <ConversionSourcesCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -2132,6 +2166,112 @@ function CTAVariantSplit({
           {byVariant.unassigned.impressions} sessions in window with no variant assigned (events fired before CTA A/B was wired).
         </p>
       )}
+    </div>
+  );
+}
+
+// ── Conversion Sources ─────────────────────────────────────────────────────
+// Tracks which of the 7 conversion entry points performs best. Uses connection
+// metadata (cta_variant, entry_point) to classify leads by source.
+function ConversionSourcesCard({
+  summary,
+  loading,
+  range,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+  range: DateRangeValue;
+}) {
+  if (loading && !summary) {
+    return <div className="h-40 animate-pulse bg-gray-100 rounded-lg" />;
+  }
+  if (!summary) return null;
+
+  const current = summary.windowed.conversion_sources_breakdown;
+  const prior = summary.prior?.conversion_sources_breakdown ?? null;
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-gray-500">
+        Breakdown of leads by conversion entry point ({rangeLabel(range).toLowerCase()}).
+        Higher-performing sources indicate which CTAs and buttons drive the most conversions.
+      </p>
+
+      {/* Top-level stat */}
+      <div className="grid grid-cols-1 gap-4 mb-4">
+        <Stat
+          label="Total Conversions"
+          value={current.total}
+          prior={prior?.total ?? null}
+          tooltip="Guest accounts created via any conversion path"
+        />
+      </div>
+
+      {/* Sources breakdown table */}
+      <div className="overflow-x-auto -mx-1">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
+              <th className="px-3 py-2 font-medium">Source</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Leads</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">% of Total</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">vs Prior</th>
+            </tr>
+          </thead>
+          <tbody>
+            {current.by_source.map((source) => {
+              const priorSource = prior?.by_source.find((p) => p.source_id === source.source_id);
+              const priorCount = priorSource?.count ?? 0;
+              const deltaPercent =
+                priorCount > 0
+                  ? Math.round(((source.count - priorCount) / priorCount) * 100)
+                  : source.count > 0
+                    ? null // "new" case
+                    : 0;
+
+              return (
+                <tr key={source.source_id} className="border-b border-gray-50 hover:bg-gray-50/40">
+                  <td className="px-3 py-2 text-gray-700">{source.label}</td>
+                  <td className="px-3 py-2 text-right tabular-nums font-medium">{source.count}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-gray-500">{source.percent}%</td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {deltaPercent !== null ? (
+                      <span
+                        className={
+                          deltaPercent > 0
+                            ? "text-green-600"
+                            : deltaPercent < 0
+                              ? "text-red-500"
+                              : "text-gray-400"
+                        }
+                      >
+                        {deltaPercent > 0 ? "↑" : deltaPercent < 0 ? "↓" : "→"} {Math.abs(deltaPercent)}%
+                      </span>
+                    ) : priorCount === 0 && source.count > 0 ? (
+                      <span className="text-gray-400">new</span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-gray-200 font-medium">
+              <td className="px-3 py-2 text-gray-900">Total</td>
+              <td className="px-3 py-2 text-right tabular-nums">{current.total}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-500">100%</td>
+              <td className="px-3 py-2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {/* Historical data note */}
+      <p className="text-[11px] text-gray-400 mt-2">
+        Note: entry_point tracking was added recently. Historical data may show most leads as &quot;Legacy Connect&quot; until new conversions populate.
+      </p>
     </div>
   );
 }

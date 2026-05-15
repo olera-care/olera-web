@@ -365,7 +365,7 @@ export default function MultiProviderCardV2({
       {cardState === "initial" && (
         <div className="p-4 lg:p-6">
           {isLoggedIn ? (
-            /* Logged-in user: show confirmation */
+            /* Logged-in user: show confirmation + expand option */
             <div className="text-center py-4">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-success-100 mb-4">
                 <Check size={28} weight="bold" className="text-success-600" />
@@ -387,8 +387,52 @@ export default function MultiProviderCardV2({
                   transition-all duration-200
                 "
               >
-                Save all {totalAsked} providers
+                Save {totalAsked === 1 ? "provider" : `all ${totalAsked} providers`}
               </button>
+
+              {/* Expand option for logged-in users */}
+              {similarProviders.length > 0 && (
+                <>
+                  <div className="flex items-center justify-center gap-3 my-6">
+                    <div className="h-px w-12 bg-gray-200" />
+                    <span className="text-xs text-gray-400 uppercase tracking-wide">or</span>
+                    <div className="h-px w-12 bg-gray-200" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleExpandToCardStack}
+                    className="
+                      w-full max-w-xs mx-auto flex items-center justify-center
+                      px-4 py-3
+                      bg-gray-50 hover:bg-gray-100
+                      border border-gray-200 hover:border-gray-300
+                      rounded-xl
+                      transition-all duration-200
+                      group
+                    "
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="flex -space-x-3">
+                        {similarProviders.slice(0, 3).map((provider, idx) => (
+                          <ProviderAvatar
+                            key={provider.id}
+                            provider={provider}
+                            size="sm"
+                            className="ring-2 ring-gray-50"
+                            style={{ zIndex: 3 - idx }}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm font-medium text-primary-600 group-hover:text-primary-700">
+                        Ask {similarProviders.length} other provider{similarProviders.length !== 1 ? "s" : ""}
+                      </span>
+                      <svg className="w-4 h-4 text-primary-600 group-hover:text-primary-700" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                      </svg>
+                    </div>
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             /* Guest user: email-first capture form */

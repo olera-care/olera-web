@@ -1182,13 +1182,19 @@ async function fetchWindow(
   } as Record<CTAVariantKey, Record<keyof CTAFunnel, Set<string>>>;
   // Set of known variants for bucket assignment
   const CTA_VARIANT_BUCKETS = new Set<string>(CTA_VARIANTS);
+  // Counter for events without session_id (each counts as unique session)
+  let noSessionCtaCounter = 0;
 
   for (const r of (ctaRes.data ?? []) as Array<{
     event_type: string;
     metadata: Record<string, unknown> | null;
   }>) {
-    const sid = r.metadata?.session_id;
-    if (typeof sid !== "string" || !sid) continue;
+    // Use session_id if available, otherwise generate unique placeholder
+    // This ensures events without session_id are still counted (as individual conversions)
+    const rawSid = r.metadata?.session_id;
+    const sid = typeof rawSid === "string" && rawSid
+      ? rawSid
+      : `__no_session_cta_${noSessionCtaCounter++}`;
 
     // Determine the variant bucket
     let variant: string | null = null;
@@ -1338,10 +1344,9 @@ async function fetchWindow(
   } as ProviderResponseByVariant;
 
   // ── Conversion Sources Breakdown ────────────────────────────────────────
-  // Categorize connections by their conversion entry point using metadata
-  // fields: cta_variant and entry_point. Counts UNIQUE SESSIONS (people who
-  // converted), not individual connections. This aligns with the CTA Funnel
-  // which also counts unique sessions.
+  // Categorize conversions by their entry point. Counts UNIQUE SESSIONS.
+  // Sources: connections (CTA flows) + lead_received events (Q&A flows).
+  // Q&A flows don't create connections, so we need to check lead_received events.
   const conversionSessions: Record<ConversionSourceId, Set<string>> = {
     legacy: new Set(),
     guide: new Set(),
@@ -1351,9 +1356,10 @@ async function fetchWindow(
     message_host: new Set(),
     qa_variants: new Set(),
   };
-  // Counter for connections without session_id (each counts as 1 conversion)
+  // Counter for items without session_id (each counts as 1 conversion)
   let noSessionCounter = 0;
 
+  // 1. Count from connections (CTA flows: Legacy, Compare, Guide, Lead Capture)
   for (const conn of connections) {
     const meta = conn.metadata ?? {};
     const ctaVariant = meta.cta_variant as string | undefined;
@@ -1369,6 +1375,7 @@ async function fetchWindow(
     } else if (entryPoint === "message_host") {
       bucket = "message_host";
     } else if (typeof entryPoint === "string" && entryPoint.startsWith("qa_")) {
+      // Q&A conversions via connection (rare, but possible)
       bucket = "qa_variants";
     } else if (ctaVariant === "guide") {
       bucket = "guide";
@@ -1381,12 +1388,29 @@ async function fetchWindow(
       bucket = "legacy";
     }
 
-    // Count by unique session - if no session_id, use a unique placeholder
+    // Count by unique session
     if (sessionId) {
       conversionSessions[bucket].add(sessionId);
     } else {
-      // No session_id - count each connection as a unique conversion
       conversionSessions[bucket].add(`__no_session_${noSessionCounter++}`);
+    }
+  }
+
+  // 2. Count Q&A conversions from lead_received events (Q&A doesn't create connections)
+  // Q&A conversions have entry_point starting with "qa_" in lead_received events
+  for (const r of (ctaRes.data ?? []) as Array<{
+    event_type: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    if (r.event_type !== "lead_received") continue;
+    const entryPoint = r.metadata?.entry_point as string | undefined;
+    if (typeof entryPoint !== "string" || !entryPoint.startsWith("qa_")) continue;
+
+    const sessionId = r.metadata?.session_id as string | undefined;
+    if (sessionId) {
+      conversionSessions.qa_variants.add(sessionId);
+    } else {
+      conversionSessions.qa_variants.add(`__no_session_qa_${noSessionCounter++}`);
     }
   }
 

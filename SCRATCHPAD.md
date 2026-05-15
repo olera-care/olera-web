@@ -29,6 +29,36 @@
 
 ---
 
+### 2026-05-14 (Wed, midday) — Team alignment notes from morning product-dev meeting (posted to Slack)
+
+Reviewed today's Olera Product Development Meeting (Notion page `3605903a0ffe802ca153de18946962e9`). Drafted a team-facing alignment note through multiple revision passes with TJ. Posted to `#ai-product-development`: https://oleraworkspace.slack.com/archives/C0A91BA205T/p1778786749880819
+
+**Framing TJ approved (canonical for future strategic comms):**
+- Not a pivot. Exploration with aggressive movement. Curiosity + urgency, not commitment.
+- Distribution is the moat. Product will get commoditized. Win or lose on reach at scale.
+- Everything so far has been a dress rehearsal.
+- "Shift as the underlying unit" is a hypothesis being pulled on, not a decision. If it holds, agency/facility/individual collapse into one supply layer.
+- Two paths, sequenced but not framed as phases: students→providers (MedJobs CRM, one signed client gates university outreach), then eventually families→caregivers direct. Research-study evidence backs family engagement; the "snake in the garden" is whether they'd invite a stranger into a parent's home.
+- Esther + TJ continue stabilizing the funnel; the connection work above feeds it (better carrot, better conversions).
+
+**Voice lessons (for future strategic comms drafting):**
+- Provisional prose has different sentence shapes than declarative prose. "The idea we are pulling on" / "if that holds" / "we need to push and see" — not "X is Y."
+- Strategy-memo structure (`Phase 1` / `Phase 2`) leaks commitment even when the vocabulary hedges. The structural noun does the work the words tried to undo.
+- Read the meeting *transcript*, not the AI summary. The summary flattens textured exploration into a clean plan.
+- Match TJ-voice via Oculo Labs strategy memo + CRP brief + `~/Desktop/TJ-hq/.claude/commands/tj-voice.md`. Don't over-anchor on a single sample.
+- Pack punch per sentence. No long preambles.
+
+**Memory files updated this session (outside repo):**
+- `project_olera_3_phasing.md` — two-path exploration framing
+- `project_team_contributors.md` — Grazie spelling (not "Grazy"), Logan attribution for MedJobs CRM
+- `feedback_dont_bake_corrections_into_draft.md` — when TJ corrects framing in meta-conversation, the correction is the spec, not text to include literally
+
+**Resume next session here →** (1) Chantel reconciliation meeting tomorrow (2026-05-15) on care-shifts integration — team needs to pick which version of each overlapping piece (two landing pages, two intake funnels, two dashboards, two scheduling platforms) it converges on. (2) Q&A improvements meeting needs an owner + date. (3) Provider image bug (default placeholder superimposing over uploaded images) is on no one's plate yet. (4) Outstanding code work from prior sessions still applies: PR #802 (Provider Comms Timeline), PR #805 (Lite admin detail mode), and the slug-vs-raw-id intersection fix on `fancy-mahavira` (commit `e2273150`, no PR yet) — see sessions below.
+
+**This session produced:** PR #822 (SCRATCHPAD-only), rebased onto staging after a structural conflict with PR #820's own log entry. No code changes.
+
+---
+
 ### 2026-05-13 (Wed, late afternoon) — Provider Comms Funnel: slug vs raw-id intersection bug (fix shipped on `fancy-mahavira`)
 
 **Symptom TJ caught:** funnel showed `0 / 0 / 0 / 0` for row 2 (Signed in / Answered / Clicked dashboard / Edited profile) today despite a clear Slack alert that Moore Street Senior Apartments did one_click_access → question_responded → dashboard_arrival via the question_received email.

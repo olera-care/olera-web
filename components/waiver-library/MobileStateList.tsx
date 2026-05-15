@@ -19,12 +19,12 @@ export function MobileStateList({ states }: { states: StateData[] }) {
     <div className="mx-auto max-w-2xl px-4 mt-4">
       {matches.length === 0 ? (
         <div className="text-center py-8 text-gray-500 text-sm">
-          No states match &ldquo;{query}&rdquo;.{" "}
+          <p>No states match &ldquo;{query}&rdquo;.</p>
           <button
             onClick={() => setQuery("")}
-            className="text-primary-600 underline underline-offset-2 font-medium"
+            className="mt-3 inline-flex items-center justify-center min-h-[44px] px-5 py-2 rounded-lg text-primary-700 font-semibold bg-primary-50 active:bg-primary-100 transition-colors"
           >
-            Clear
+            Clear search
           </button>
         </div>
       ) : (
@@ -39,6 +39,7 @@ export function MobileStateList({ states }: { states: StateData[] }) {
                 {s.name}
               </span>
               <svg
+                aria-hidden="true"
                 className="w-4 h-4 text-gray-400 shrink-0"
                 fill="none"
                 stroke="currentColor"

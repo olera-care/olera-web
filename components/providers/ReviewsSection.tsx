@@ -226,83 +226,51 @@ export default function ReviewsSection({
 
   return (
     <div className={`py-8 ${hideBorder ? "" : "border-t border-gray-200"}`}>
-      <div className="flex items-center gap-3 mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight">
-          What families are saying
-        </h2>
-        {showingDemoReviews && (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-            Demo
-          </span>
+      <div className="mb-4 md:mb-6">
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight">
+            What families are saying
+          </h2>
+          {showingDemoReviews && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+              Demo
+            </span>
+          )}
+        </div>
+        {/* Mobile subtitle - compact review count + Google link */}
+        {hasReviews && (
+          <div className="md:hidden mt-1 flex items-center gap-1.5 text-sm">
+            {googleReviewsData && googleReviewsData.review_count > reviewCount ? (
+              <span className="text-gray-500">
+                Showing {reviewCount} of {googleReviewsData.review_count} reviews
+              </span>
+            ) : (
+              <span className="text-gray-500">
+                {reviewCount} review{reviewCount !== 1 ? "s" : ""}
+              </span>
+            )}
+            {googleMapsUrl && (
+              <>
+                <span className="text-gray-300">·</span>
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                >
+                  See all on Google
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                </a>
+              </>
+            )}
+          </div>
         )}
       </div>
 
       {hasReviews ? (
         <>
-          {/* Rating summary bar */}
-          <div className="mb-6">
-            {/* Mobile: large rating with stacked info beside it */}
-            <div className="md:hidden">
-              {googleReviewsData && googleReviewsData.rating > 0 ? (
-                <div className="flex items-center gap-3">
-                  {/* Large rating number */}
-                  <span className="text-4xl font-bold text-gray-900">{googleReviewsData.rating.toFixed(1)}</span>
-                  {/* Stacked: stars on top, meta below */}
-                  <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <StarIcon
-                          key={star}
-                          className={`w-4 h-4 ${star <= Math.round(googleReviewsData.rating) ? "text-amber-400" : "text-gray-200"}`}
-                          filled={star <= Math.round(googleReviewsData.rating)}
-                        />
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <span className="text-gray-500">
-                        {reviewCount} review{reviewCount !== 1 ? "s" : ""}
-                      </span>
-                      {googleMapsUrl && (
-                        <>
-                          <span className="text-gray-300">·</span>
-                          <a
-                            href={googleMapsUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                          >
-                            See all on Google
-                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
-                          </a>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                /* No Google rating - just show review count and link */
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-500">
-                    {reviewCount} review{reviewCount !== 1 ? "s" : ""}
-                  </span>
-                  {googleMapsUrl && (
-                    <>
-                      <span className="text-gray-300">·</span>
-                      <a
-                        href={googleMapsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                      >
-                        See all on Google
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
-                      </a>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-
+          {/* Rating summary bar - Desktop only (mobile info is in subtitle above) */}
+          <div className="mb-6 hidden md:block">
             {/* Desktop: inline layout */}
             <div className="hidden md:flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -502,9 +470,9 @@ export default function ReviewsSection({
           </div>
 
           {/* Footer actions */}
-          <div className="flex flex-row items-center justify-between mt-6">
+          <div className="flex flex-col items-start gap-4 mt-6">
             {/* Show all reviews - text link */}
-            {hasMore ? (
+            {hasMore && (
               <button
                 onClick={() => {
                   setScrollToReviewId(null);
@@ -514,8 +482,6 @@ export default function ReviewsSection({
               >
                 Show all {reviewCount} reviews
               </button>
-            ) : (
-              <div />
             )}
 
             {/* Add review button */}
@@ -523,7 +489,7 @@ export default function ReviewsSection({
               <Link
                 href={reviewPageUrl}
                 rel="nofollow"
-                className="px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center"
+                className="w-full md:w-auto px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center"
               >
                 Leave a review
               </Link>

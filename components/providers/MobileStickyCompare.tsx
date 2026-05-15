@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { useAuth } from "@/components/auth/AuthProvider";
 import CompareBottomSheet, { type CompareProvider } from "./CompareBottomSheet";
 
 interface MobileStickyCompareProps {
@@ -54,6 +55,12 @@ export default function MobileStickyCompare({
   ctaVariant,
   ctaPreviewMode = false,
 }: MobileStickyCompareProps) {
+  const { activeProfile, openAuth } = useAuth();
+
+  // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
+  const isNonFamilyProfile = activeProfile &&
+    (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
+
   const [sheetOpen, setSheetOpen] = useState(false);
   const [showPricingTooltip, setShowPricingTooltip] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
@@ -165,37 +172,89 @@ export default function MobileStickyCompare({
     }
   }, [keyboardOpen, showPricingTooltip]);
 
-  // Parse price display
+  // Parse price display - single line format
   const getPriceDisplay = () => {
     // Medicare/Medicaid tier (tier 3) without explicit pricing
     if (pricingTier === 3 && !priceRange) {
-      return { price: "Medicare/Medicaid", subtitle: "may cover this care" };
+      return "Medicare/Medicaid may cover";
     }
     if (!priceRange) {
-      return { price: "Contact for pricing", subtitle: "Pricing not listed" };
+      return "Contact for pricing";
     }
     const isHourly = priceRange.includes("/hr");
     const isMonthly = priceRange.includes("/mo");
-    const priceWithoutUnit = priceRange.replace(/\/(hr|mo)$/i, "").trim();
 
     if (isHourly) {
-      return { price: priceWithoutUnit, subtitle: "Estimated hourly cost" };
+      return `${priceRange} estimated`;
     }
     if (isMonthly) {
-      return { price: priceWithoutUnit, subtitle: "Estimated monthly cost" };
+      return `${priceRange} estimated`;
     }
-    return { price: priceRange, subtitle: "Estimated cost" };
+    return `${priceRange} estimated`;
   };
 
-  const { price, subtitle } = getPriceDisplay();
+  const priceDisplay = getPriceDisplay();
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RENDER: Non-family profile (provider/caregiver/student)
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (isNonFamilyProfile) {
+    return (
+      <>
+        {/* Document-flow spacer */}
+        <div
+          className="md:hidden"
+          aria-hidden="true"
+          style={{ height: "calc(130px + env(safe-area-inset-bottom, 0px))" }}
+        />
+
+        {/* Sticky bottom bar - Family account required (always visible) */}
+        <div
+          className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
+            !keyboardOpen
+              ? "translate-y-0"
+              : "translate-y-full"
+          }`}
+        >
+          <div
+            className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+            style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+          >
+            <div className="px-5 pt-3 pb-4">
+              {/* Info */}
+              <div className="flex items-center gap-1.5">
+                <p className="text-[16px] font-semibold text-gray-900">
+                  Family account required
+                </p>
+              </div>
+              <p className="text-[13px] text-gray-500 mt-1 mb-3">
+                To contact care providers
+              </p>
+
+              {/* Full-width CTA button */}
+              <button
+                onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
+                className="w-full py-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[16px] font-semibold transition-colors"
+              >
+                Create Family Account
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RENDER: Regular user (guest or logged-in family)
+  // ─────────────────────────────────────────────────────────────────────────────
   return (
     <>
       {/* Document-flow spacer */}
       <div
         className="md:hidden"
         aria-hidden="true"
-        style={{ height: "calc(140px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ height: "calc(130px + env(safe-area-inset-bottom, 0px))" }}
       />
 
       {/* Sticky bottom bar (always visible) */}
@@ -207,46 +266,43 @@ export default function MobileStickyCompare({
         }`}
       >
         <div
-          className="bg-white border-t border-gray-200"
+          className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
-          <div className="px-5 pt-4 pb-5">
-            {/* Pricing info */}
-            <div className="mb-3">
-              <p className="text-[22px] font-bold text-gray-900 leading-tight">
-                {price}
+          <div className="px-5 pt-3 pb-4">
+            {/* Pricing info - single line */}
+            <div className="flex items-center gap-1.5">
+              <p className="text-[16px] font-semibold text-gray-900">
+                {priceDisplay}
               </p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-[14px] text-gray-500">{subtitle}</span>
-                {pricingDisclaimer && (
-                  <button
-                    ref={tooltipButtonRef}
-                    type="button"
-                    onClick={() => setShowPricingTooltip((prev) => !prev)}
-                    className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
-                    aria-label="Pricing info"
-                    aria-expanded={showPricingTooltip}
+              {pricingDisclaimer && (
+                <button
+                  ref={tooltipButtonRef}
+                  type="button"
+                  onClick={() => setShowPricingTooltip((prev) => !prev)}
+                  className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+                  aria-label="Pricing info"
+                  aria-expanded={showPricingTooltip}
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </button>
-                )}
-              </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
 
             {/* Compare context */}
-            <p className="text-[13px] text-gray-600 mb-4">
+            <p className="text-[13px] text-gray-500 mt-1 mb-3">
               Compare with {nearbyCount || 2} nearby home{nearbyCount !== 1 ? "s" : ""}
             </p>
 

@@ -188,9 +188,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // Fully onboarded = profile complete AND matches live
   const isFullyOnboarded = isProfileComplete && isMatchesLive;
 
-  // ── Prefetch /welcome so post-enrichment navigation is instant ──
+  // ── Prefetch /portal/inbox so post-enrichment navigation is instant ──
   useEffect(() => {
-    router.prefetch("/welcome");
+    router.prefetch("/portal/inbox");
   }, [router]);
 
   // ── Resolve initial state — show form immediately for everyone ──
@@ -490,9 +490,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
         }
       }
 
-      // Navigate to /welcome with connection info
-      const welcomeUrl = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
-      router.push(welcomeUrl);
+      // Navigate to inbox with connection ID
+      router.push(`/portal/inbox?id=${data.connectionId}`);
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err
@@ -572,7 +571,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
     // ── OPTIMISTIC: Show enrichment instantly (before API) ──
     enrichmentLock.current = true;
-    postEnrichmentRedirect.current = `/welcome?provider=${providerSlug}`;
+    postEnrichmentRedirect.current = `/portal/inbox`;
     setCardState("enrichment");
 
     // ── BACKGROUND: Fire API without blocking the UI ──
@@ -613,9 +612,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
         if (data.connectionId) setConnectionId(data.connectionId);
 
         // Update redirect with real connectionId
-        postEnrichmentRedirect.current = isFullyOnboarded
-          ? `/portal/inbox?id=${data.connectionId}`
-          : `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
+        postEnrichmentRedirect.current = `/portal/inbox?id=${data.connectionId}`;
 
         // Refresh account data in background (non-blocking)
         refreshAccountData().catch(() => {});
@@ -671,7 +668,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
         if (data.created_at) setPendingRequestDate(data.created_at);
 
         // Update redirect with real connectionId
-        postEnrichmentRedirect.current = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
+        postEnrichmentRedirect.current = `/portal/inbox?id=${data.connectionId}`;
 
         // Establish session in background
         if (data.accessToken && data.refreshToken) {
@@ -705,7 +702,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
       console.error("Inquiry form error:", msg);
       setError(msg || "Something went wrong. Please try again.");
     }
-  }, [user, providerId, providerName, providerSlug, refreshAccountData, isFullyOnboarded, ctaVariant, ctaSurface, ctaPreviewMode]);
+  }, [user, providerId, providerName, providerSlug, refreshAccountData, ctaVariant, ctaSurface, ctaPreviewMode]);
 
   // ── Navigate after enrichment (save or skip) ──
   const navigatePostEnrichment = useCallback(() => {

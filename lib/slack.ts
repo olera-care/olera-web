@@ -1380,3 +1380,98 @@ export function slackGuideCtaConverted(opts: {
     ],
   };
 }
+
+/**
+ * Lead Capture conversion — fires when a guest user submits the lead capture
+ * form (Get a Custom Quote, Book a Consultation, Message Staff).
+ * This is the conversion event for inline lead capture actions.
+ */
+export function slackLeadCaptureConverted(opts: {
+  email: string;
+  providerName: string;
+  providerSlug?: string;
+  entryPoint: "custom_quote" | "book_consultation" | "message_host" | string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+  const entryPointLabels: Record<string, string> = {
+    custom_quote: "Get a Custom Quote",
+    book_consultation: "Book a Consultation",
+    message_host: "Message Staff",
+  };
+  const entryLabel = entryPointLabels[opts.entryPoint] || opts.entryPoint;
+
+  return {
+    text: `Lead Capture Conversion: ${opts.email} via "${entryLabel}" on ${opts.providerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "💬 Lead Capture Conversion", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Email:*\n${opts.email}` },
+          { type: "mrkdwn", text: `*Entry Point:*\n${entryLabel}` },
+        ],
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: opts.providerSlug
+              ? `<${siteUrl}/provider/${opts.providerSlug}|View Provider> • <${siteUrl}/admin/activity?actor=families|View Activity>`
+              : `<${siteUrl}/admin/activity?actor=families|View Activity>`,
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Legacy Connect conversion — fires when a guest user submits the legacy
+ * connection card (desktop sidebar or mobile sticky bar).
+ */
+export function slackLegacyConnectConverted(opts: {
+  email: string;
+  providerName: string;
+  providerSlug?: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+  return {
+    text: `Legacy Connect Conversion: ${opts.email} connected with ${opts.providerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🔗 Legacy Connect Conversion", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Email:*\n${opts.email}` },
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: opts.providerSlug
+              ? `<${siteUrl}/provider/${opts.providerSlug}|View Provider> • <${siteUrl}/admin/activity?actor=families|View Activity>`
+              : `<${siteUrl}/admin/activity?actor=families|View Activity>`,
+          },
+        ],
+      },
+    ],
+  };
+}

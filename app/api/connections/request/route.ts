@@ -759,7 +759,9 @@ async function handleGuestConnection({
       // seeker_activity / provider_activity for cannibalization analysis.
       session_id: sessionId || null,
       // cta_variant for CTA A/B testing attribution
-      cta_variant: ctaVariant || null,
+      // Default to "legacy" only for CTA-based conversions (no entry_point)
+      // Lead Capture conversions have entry_point and shouldn't be attributed to a CTA variant
+      cta_variant: entryPoint ? (ctaVariant || null) : (ctaVariant || "legacy"),
       // entry_point for Lead Capture attribution (custom_quote, book_consultation, message_host)
       entry_point: entryPoint || null,
     },
@@ -1675,7 +1677,9 @@ export async function POST(request: Request) {
         // seeker_activity / provider_activity for cannibalization analysis.
         session_id: sessionId || null,
         // cta_variant for CTA A/B testing attribution
-        cta_variant: ctaVariant || null,
+        // Default to "legacy" only for CTA-based conversions (no entry_point)
+        // Lead Capture conversions have entry_point and shouldn't be attributed to a CTA variant
+        cta_variant: entryPoint ? (ctaVariant || null) : (ctaVariant || "legacy"),
         // entry_point for Lead Capture attribution (custom_quote, book_consultation, message_host)
         entry_point: entryPoint || null,
       },

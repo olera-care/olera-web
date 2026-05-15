@@ -113,7 +113,7 @@ async function backfillQaConversions(dryRun: boolean) {
   console.log("Checking for existing lead_received events...");
   const { data: existingEvents, error: eventsError } = await db
     .from("provider_activity")
-    .select("metadata")
+    .select("profile_id, metadata")
     .eq("event_type", "lead_received")
     .like("metadata->>entry_point", "qa_%");
 
@@ -122,15 +122,22 @@ async function backfillQaConversions(dryRun: boolean) {
     process.exit(1);
   }
 
-  // Build a set of already-processed sessions for deduplication
+  // Build sets for deduplication: session_ids AND profile_ids
+  // This ensures idempotency even for accounts without session_id
   const existingSessionIds = new Set<string>();
+  const existingProfileIds = new Set<string>();
   for (const evt of existingEvents || []) {
     const sid = (evt.metadata as Record<string, unknown>)?.session_id;
     if (typeof sid === "string") {
       existingSessionIds.add(sid);
     }
+    if (typeof evt.profile_id === "string") {
+      existingProfileIds.add(evt.profile_id);
+    }
   }
-  console.log(`Found ${existingSessionIds.size} existing Q&A lead_received events.\n`);
+  console.log(`Found ${existingEvents?.length || 0} existing Q&A lead_received events.`);
+  console.log(`  - ${existingSessionIds.size} with session_id`);
+  console.log(`  - ${existingProfileIds.size} unique profile_ids\n`);
 
   // 3. For each account, get the family profile and extract signup_context
   let created = 0;
@@ -140,7 +147,7 @@ async function backfillQaConversions(dryRun: boolean) {
   for (const account of accounts as AccountRow[]) {
     // Skip if we already have an event for this session
     if (account.session_id && existingSessionIds.has(account.session_id)) {
-      console.log(`[SKIP] Account ${account.id} - already has lead_received event`);
+      console.log(`[SKIP] Account ${account.id} - already has lead_received event (by session_id)`);
       skipped++;
       continue;
     }
@@ -160,6 +167,14 @@ async function backfillQaConversions(dryRun: boolean) {
     }
 
     const typedProfile = profile as ProfileRow;
+
+    // Skip if we already have an event for this profile (idempotency for accounts without session_id)
+    if (existingProfileIds.has(typedProfile.id)) {
+      console.log(`[SKIP] Account ${account.id} - already has lead_received event (by profile_id)`);
+      skipped++;
+      continue;
+    }
+
     const signupContext = typedProfile.metadata?.signup_context;
 
     if (!signupContext?.provider_id) {

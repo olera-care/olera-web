@@ -4,8 +4,15 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Script from "next/script";
-import { Check, PartyPopper } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
+
+function CheckIcon({ className, strokeWidth = 2.5 }: { className?: string; strokeWidth?: number }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={strokeWidth} d="M4.5 12.75l6 6 9-13.5" />
+    </svg>
+  );
+}
 
 declare global {
   interface Window {
@@ -159,7 +166,7 @@ function Hero() {
             <Confetti />
             <div className="mt-8 bg-white rounded-2xl p-6 max-w-md text-center animate-[fadeIn_0.4s_ease-out]">
               <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
-                <Check className="w-7 h-7 text-primary-500" strokeWidth={2.5} />
+                <CheckIcon className="w-7 h-7 text-primary-500" strokeWidth={2.5} />
               </div>
               <p className="font-display text-2xl text-gray-900">You&apos;re in!</p>
               <p className="text-sm text-gray-500 mt-2">
@@ -512,7 +519,7 @@ function BottomCta() {
             {submitted ? (
               <div className="mt-8 inline-flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                  <Check className="w-5 h-5 text-primary-700" strokeWidth={2.5} />
+                  <CheckIcon className="w-5 h-5 text-primary-700" strokeWidth={2.5} />
                 </div>
                 <span className="text-lg font-semibold text-gray-900">You&apos;re on the list.</span>
               </div>

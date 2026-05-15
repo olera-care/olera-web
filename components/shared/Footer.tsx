@@ -218,6 +218,16 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                     Young Caregivers
                   </Link>
                 </li>
+                <li>
+                  <Link href="/care-shifts/families" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Hire a caregiver (preview)
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/care-shifts/students" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Earn as a caregiver (preview)
+                  </Link>
+                </li>
               </ul>
             </div>
 

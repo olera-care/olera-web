@@ -1339,45 +1339,67 @@ async function fetchWindow(
 
   // ── Conversion Sources Breakdown ────────────────────────────────────────
   // Categorize connections by their conversion entry point using metadata
-  // fields: cta_variant and entry_point. Only counts explicitly tracked leads.
-  // Connections without tracking (historical data) are excluded for clean metrics.
-  const conversionCounts: Record<ConversionSourceId, number> = {
-    legacy: 0,
-    guide: 0,
-    compare: 0,
-    custom_quote: 0,
-    book_consultation: 0,
-    message_host: 0,
-    qa_variants: 0,
+  // fields: cta_variant and entry_point. Counts UNIQUE SESSIONS (people who
+  // converted), not individual connections. This aligns with the CTA Funnel
+  // which also counts unique sessions.
+  const conversionSessions: Record<ConversionSourceId, Set<string>> = {
+    legacy: new Set(),
+    guide: new Set(),
+    compare: new Set(),
+    custom_quote: new Set(),
+    book_consultation: new Set(),
+    message_host: new Set(),
+    qa_variants: new Set(),
   };
+  // Counter for connections without session_id (each counts as 1 conversion)
+  let noSessionCounter = 0;
 
   for (const conn of connections) {
     const meta = conn.metadata ?? {};
     const ctaVariant = meta.cta_variant as string | undefined;
     const entryPoint = meta.entry_point as string | undefined;
+    const sessionId = meta.session_id as string | undefined;
 
-    // Classify by source — entry_point takes precedence for specificity
-    // Skip connections without any tracking (historical untracked data)
+    // Determine which source bucket this connection belongs to
+    let bucket: ConversionSourceId;
     if (entryPoint === "custom_quote") {
-      conversionCounts.custom_quote++;
+      bucket = "custom_quote";
     } else if (entryPoint === "book_consultation") {
-      conversionCounts.book_consultation++;
+      bucket = "book_consultation";
     } else if (entryPoint === "message_host") {
-      conversionCounts.message_host++;
+      bucket = "message_host";
     } else if (typeof entryPoint === "string" && entryPoint.startsWith("qa_")) {
-      conversionCounts.qa_variants++;
+      bucket = "qa_variants";
     } else if (ctaVariant === "guide") {
-      conversionCounts.guide++;
+      bucket = "guide";
     } else if (ctaVariant === "compare") {
-      conversionCounts.compare++;
+      bucket = "compare";
     } else if (ctaVariant === "legacy") {
-      conversionCounts.legacy++;
+      bucket = "legacy";
     } else {
-      // Connections without tracking default to legacy (current default CTA)
-      // This catches conversions where cta_variant wasn't passed due to race conditions
-      conversionCounts.legacy++;
+      // Connections without tracking default to legacy
+      bucket = "legacy";
+    }
+
+    // Count by unique session - if no session_id, use a unique placeholder
+    if (sessionId) {
+      conversionSessions[bucket].add(sessionId);
+    } else {
+      // No session_id - count each connection as a unique conversion
+      conversionSessions[bucket].add(`__no_session_${noSessionCounter++}`);
     }
   }
+
+  // Convert sets to counts
+  const conversionCounts: Record<ConversionSourceId, number> = {
+    legacy: conversionSessions.legacy.size,
+    guide: conversionSessions.guide.size,
+    compare: conversionSessions.compare.size,
+    custom_quote: conversionSessions.custom_quote.size,
+    book_consultation: conversionSessions.book_consultation.size,
+    message_host: conversionSessions.message_host.size,
+    qa_variants: conversionSessions.qa_variants.size,
+  };
 
   const conversionTotal = Object.values(conversionCounts).reduce((a, b) => a + b, 0);
 

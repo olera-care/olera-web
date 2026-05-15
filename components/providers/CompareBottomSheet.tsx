@@ -428,7 +428,7 @@ export default function CompareBottomSheet({
                     type="button"
                     onClick={handleLoggedInSubmit}
                     disabled={selectedCount === 0}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
                   >
                     {selectedCount === 0
                       ? "Select at least one"
@@ -447,7 +447,7 @@ export default function CompareBottomSheet({
                     type="button"
                     onClick={handleSaveClick}
                     disabled={selectedCount === 0}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
                   >
                     {selectedCount === 0
                       ? "Select at least one"
@@ -470,7 +470,7 @@ export default function CompareBottomSheet({
               <button
                 type="button"
                 disabled
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 text-white rounded-xl text-[15px] font-semibold opacity-70"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-primary-600 text-white rounded-xl text-[15px] font-semibold opacity-70"
               >
                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -512,7 +512,7 @@ export default function CompareBottomSheet({
                 <button
                   type="submit"
                   disabled={footerState === "submitting"}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors disabled:opacity-70"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-[15px] font-semibold transition-colors disabled:opacity-70"
                 >
                   {footerState === "submitting" ? (
                     <>

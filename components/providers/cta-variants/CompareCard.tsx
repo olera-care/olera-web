@@ -187,7 +187,7 @@ export default function CompareCard({
           {/* Compare button */}
           <button
             onClick={handleCompareClick}
-            className="w-full px-5 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors"
+            className="w-full px-5 py-3.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-[15px] font-semibold transition-colors"
           >
             Compare
           </button>

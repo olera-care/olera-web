@@ -309,7 +309,7 @@ export default function MobileStickyCompare({
             {/* Full-width CTA button */}
             <button
               onClick={handleCompareClick}
-              className="w-full py-4 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-xl text-[16px] font-semibold transition-colors"
+              className="w-full py-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[16px] font-semibold transition-colors"
             >
               Compare
             </button>

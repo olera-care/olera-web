@@ -320,7 +320,7 @@ export default function MobileStickyGuide({
               <button
                 onClick={handleMessageProvider}
                 disabled={isMessageSubmitting}
-                className="w-full py-4 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 disabled:bg-gray-400 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full py-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-gray-400 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {isMessageSubmitting ? (
                   <>
@@ -410,7 +410,7 @@ export default function MobileStickyGuide({
             {/* Full-width CTA button */}
             <button
               onClick={handleGuideClick}
-              className="w-full py-4 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
+              className="w-full py-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
             >
               <span>Get free checklist</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>

@@ -851,10 +851,7 @@ export default async function ProviderPage({
       )}
 
       {/* Section Navigation (appears on scroll) - desktop only */}
-      <SectionNav
-        sections={sectionItems}
-        providerName={profile.display_name}
-      />
+      <SectionNav sections={sectionItems} />
 
       {/* Mobile Provider Top Nav - always sticky on mobile */}
       <MobileProviderTopNav />

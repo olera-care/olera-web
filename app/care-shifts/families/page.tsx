@@ -13,10 +13,13 @@ declare global {
   }
 }
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+// Lazy-init Supabase client to avoid build-time errors when env vars aren't available
+function getSupabase() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+}
 
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbwMhSMivX1hSUhz9YzpeIOmFXPmZ1S-0ennboWyiw4KQFAyfBFYtFL1djdSYsot5EA/exec";
 
@@ -116,7 +119,7 @@ function Hero() {
     if (!email.trim()) return;
     setError("");
 
-    const { error: dbError } = await supabase
+    const { error: dbError } = await getSupabase()
       .from("care_shifts_waitlist")
       .insert({ email: email.trim().toLowerCase() });
 
@@ -487,7 +490,7 @@ function BottomCta() {
     e.preventDefault();
     if (!email.trim()) return;
 
-    const { error: dbError } = await supabase
+    const { error: dbError } = await getSupabase()
       .from("care_shifts_waitlist")
       .insert({ email: email.trim().toLowerCase() });
 

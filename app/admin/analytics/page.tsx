@@ -204,27 +204,23 @@ interface EntrySourceBreakdown {
   top_editorial_articles: Array<{ slug: string; count: number }>;
 }
 
-// Conversion sources breakdown — tracks which of the 7 conversion entry points
-// performs best. Uses connection metadata (cta_variant, entry_point) to classify.
-type ConversionSourceId =
-  | "legacy_connect"
-  | "compare"
-  | "guide"
+// Lead Capture Sources — tracks sources not covered by CTA Variants or Q&A:
+// Custom Quote, Book a Consultation, Message Staff.
+type LeadCaptureSourceId =
   | "custom_quote"
   | "book_consultation"
-  | "message_host"
-  | "qa_variants";
+  | "message_host";
 
-interface ConversionSourceRow {
-  source_id: ConversionSourceId;
+interface LeadCaptureSourceRow {
+  source_id: LeadCaptureSourceId;
   label: string;
   count: number;
   percent: number;
 }
 
-interface ConversionSourcesBreakdown {
+interface LeadCaptureSourcesBreakdown {
   total: number;
-  by_source: ConversionSourceRow[];
+  by_source: LeadCaptureSourceRow[];
 }
 
 interface SummaryResponse {
@@ -245,7 +241,7 @@ interface SummaryResponse {
     entry_source_breakdown: EntrySourceBreakdown;
     provider_response: ProviderResponseMetrics;
     provider_response_by_variant: ProviderResponseByVariant;
-    conversion_sources_breakdown: ConversionSourcesBreakdown;
+    lead_capture_sources_breakdown: LeadCaptureSourcesBreakdown;
   };
   prior: {
     counts: WindowedCounts;
@@ -263,7 +259,7 @@ interface SummaryResponse {
     entry_source_breakdown: EntrySourceBreakdown;
     provider_response: ProviderResponseMetrics;
     provider_response_by_variant: ProviderResponseByVariant;
-    conversion_sources_breakdown: ConversionSourcesBreakdown;
+    lead_capture_sources_breakdown: LeadCaptureSourcesBreakdown;
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -424,12 +420,12 @@ export default function AdminAnalyticsPage() {
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Conversion Sources"
-        storageKey="conversionSources"
+        title="Other Lead Capture Sources"
+        storageKey="leadCaptureSources"
         defaultCollapsed={true}
         loading={loading && !!summary}
       >
-        <ConversionSourcesCard summary={summary} loading={loading} range={range} />
+        <LeadCaptureSourcesCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -2177,10 +2173,10 @@ function CTAVariantSplit({
   );
 }
 
-// ── Conversion Sources ─────────────────────────────────────────────────────
-// Tracks which of the 7 conversion entry points performs best. Uses connection
-// metadata (cta_variant, entry_point) to classify leads by source.
-function ConversionSourcesCard({
+// ── Other Lead Capture Sources ────────────────────────────────────────────────
+// Tracks lead capture sources not covered by CTA Variants or Q&A sections:
+// Custom Quote, Book a Consultation, Message Staff.
+function LeadCaptureSourcesCard({
   summary,
   loading,
   range,
@@ -2194,14 +2190,14 @@ function ConversionSourcesCard({
   }
   if (!summary) return null;
 
-  const current = summary.windowed.conversion_sources_breakdown;
-  const prior = summary.prior?.conversion_sources_breakdown ?? null;
+  const current = summary.windowed.lead_capture_sources_breakdown;
+  const prior = summary.prior?.lead_capture_sources_breakdown ?? null;
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-500">
-        Breakdown of leads by conversion entry point ({rangeLabel(range).toLowerCase()}).
-        Higher-performing sources indicate which CTAs and buttons drive the most conversions.
+        Leads from Custom Quote, Book a Consultation, and Message Staff ({rangeLabel(range).toLowerCase()}).
+        CTA and Q&A conversions are tracked in their own dedicated sections above.
       </p>
 
       {/* Top-level stat */}

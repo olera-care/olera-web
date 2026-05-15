@@ -174,11 +174,12 @@ type BenefitsFunnelByVariant = {
   availability: BenefitsVariantRow;
   loss: BenefitsVariantRow;
   empathic: BenefitsVariantRow;
-  outreach: BenefitsVariantRow;        // 4th arm: AI outreach module (H1 demand test)
+  outreach: BenefitsVariantRow;           // 4th arm: AI outreach module (H1 demand test)
   qa_email_capture: BenefitsVariantRow;   // 5th arm: inline Q&A answer expansion (H2 UX test)
-  multi_provider: BenefitsVariantRow;  // 6th arm: multi-provider comparison
-  control: BenefitsVariantRow;         // legacy V2
-  money_loss: BenefitsVariantRow;      // legacy V2
+  multi_provider: BenefitsVariantRow;     // 6th arm: multi-provider comparison
+  multi_provider_v2: BenefitsVariantRow;  // 7th arm: multi-provider V2 (email-first)
+  control: BenefitsVariantRow;            // legacy V2
+  money_loss: BenefitsVariantRow;         // legacy V2
   unassigned: BenefitsVariantRow;
 };
 // CTA Variants A/B funnel. Distinct sessions per stage:
@@ -363,11 +364,12 @@ const EMPTY_BENEFITS_FUNNEL_BY_VARIANT = (): BenefitsFunnelByVariant => ({
   availability: EMPTY_BENEFITS_FUNNEL(),
   loss: EMPTY_BENEFITS_FUNNEL(),
   empathic: EMPTY_BENEFITS_FUNNEL(),
-  outreach: EMPTY_BENEFITS_FUNNEL(),        // 4th arm
+  outreach: EMPTY_BENEFITS_FUNNEL(),           // 4th arm
   qa_email_capture: EMPTY_BENEFITS_FUNNEL(),   // 5th arm
-  multi_provider: EMPTY_BENEFITS_FUNNEL(),  // 6th arm
-  control: EMPTY_BENEFITS_FUNNEL(),         // legacy V2
-  money_loss: EMPTY_BENEFITS_FUNNEL(),      // legacy V2
+  multi_provider: EMPTY_BENEFITS_FUNNEL(),     // 6th arm
+  multi_provider_v2: EMPTY_BENEFITS_FUNNEL(),  // 7th arm
+  control: EMPTY_BENEFITS_FUNNEL(),            // legacy V2
+  money_loss: EMPTY_BENEFITS_FUNNEL(),         // legacy V2
   unassigned: EMPTY_BENEFITS_FUNNEL(),
 });
 const EMPTY_CTA_FUNNEL = (): CTAFunnel => ({
@@ -966,11 +968,12 @@ async function fetchWindow(
     | "availability"
     | "loss"
     | "empathic"
-    | "outreach"        // 4th arm
+    | "outreach"           // 4th arm
     | "qa_email_capture"   // 5th arm
-    | "multi_provider"  // 6th arm
-    | "control"         // legacy V2
-    | "money_loss"      // legacy V2
+    | "multi_provider"     // 6th arm
+    | "multi_provider_v2"  // 7th arm
+    | "control"            // legacy V2
+    | "money_loss"         // legacy V2
     | "unassigned";
   const emptyStages = (): Record<keyof BenefitsFunnel, Set<string>> => ({
     impressions: new Set(),
@@ -988,6 +991,7 @@ async function fetchWindow(
     outreach: emptyStages(),
     qa_email_capture: emptyStages(),
     multi_provider: emptyStages(),
+    multi_provider_v2: emptyStages(),
     control: emptyStages(),
     money_loss: emptyStages(),
     unassigned: emptyStages(),
@@ -1010,6 +1014,7 @@ async function fetchWindow(
     "empathic",
     "qa_email_capture",
     "multi_provider",
+    "multi_provider_v2",
     "control",
     "money_loss",
   ]);
@@ -1075,11 +1080,13 @@ async function fetchWindow(
     }
   }
 
-  // Multi-provider 6th-arm. Lives in provider_activity (anonymous events).
+  // Multi-provider 6th/7th arms. Lives in provider_activity (anonymous events).
   // Event mapping:
   //   multi_provider_viewed     → impressions (wrapper mount in arm)
   //   multi_provider_card_shown → started     (card stack rendered)
   //   multi_provider_converted  → saved       (email captured)
+  // Both multi_provider and multi_provider_v2 use the same event types but
+  // are distinguished by metadata.variant. V2 events carry "multi_provider_v2".
   for (const r of (multiProviderRes.data ?? []) as Array<{
     event_type: string;
     metadata: Record<string, unknown> | null;
@@ -1092,7 +1099,11 @@ async function fetchWindow(
       : r.event_type === "multi_provider_converted" ? "saved"
       : undefined;
     if (!stage) continue;
-    benefitsByVariantSets.multi_provider[stage].add(sid);
+    // Route to the correct variant bucket based on metadata.variant
+    const variantMeta = r.metadata?.variant;
+    const isV2 = variantMeta === "multi_provider_v2";
+    const bucket = isV2 ? "multi_provider_v2" : "multi_provider";
+    benefitsByVariantSets[bucket][stage].add(sid);
   }
 
   // Top-line funnel = the 3 benefits arms only (the embedded form). The
@@ -1123,6 +1134,7 @@ async function fetchWindow(
     outreach: sizesFor("outreach"),
     qa_email_capture: sizesFor("qa_email_capture"),
     multi_provider: sizesFor("multi_provider"),
+    multi_provider_v2: sizesFor("multi_provider_v2"),
     control: sizesFor("control"),
     money_loss: sizesFor("money_loss"),
     unassigned: sizesFor("unassigned"),
@@ -1170,13 +1182,19 @@ async function fetchWindow(
   } as Record<CTAVariantKey, Record<keyof CTAFunnel, Set<string>>>;
   // Set of known variants for bucket assignment
   const CTA_VARIANT_BUCKETS = new Set<string>(CTA_VARIANTS);
+  // Counter for events without session_id (each counts as unique session)
+  let noSessionCtaCounter = 0;
 
   for (const r of (ctaRes.data ?? []) as Array<{
     event_type: string;
     metadata: Record<string, unknown> | null;
   }>) {
-    const sid = r.metadata?.session_id;
-    if (typeof sid !== "string" || !sid) continue;
+    // Use session_id if available, otherwise generate unique placeholder
+    // This ensures events without session_id are still counted (as individual conversions)
+    const rawSid = r.metadata?.session_id;
+    const sid = typeof rawSid === "string" && rawSid
+      ? rawSid
+      : `__no_session_cta_${noSessionCtaCounter++}`;
 
     // Determine the variant bucket
     let variant: string | null = null;
@@ -1203,8 +1221,8 @@ async function fetchWindow(
       } else {
         stage = "clicked";
       }
-    } else if (r.event_type === "lead_received" && r.metadata?.cta_variant) {
-      // Only count lead_received if it has cta_variant attribution
+    } else if (r.event_type === "lead_received") {
+      // Count all lead_received as conversions - those without cta_variant go to "unassigned"
       stage = "converted";
     }
 
@@ -1326,43 +1344,86 @@ async function fetchWindow(
   } as ProviderResponseByVariant;
 
   // ── Conversion Sources Breakdown ────────────────────────────────────────
-  // Categorize connections by their conversion entry point using metadata
-  // fields: cta_variant and entry_point. Only counts explicitly tracked leads.
-  // Connections without tracking (historical data) are excluded for clean metrics.
-  const conversionCounts: Record<ConversionSourceId, number> = {
-    legacy: 0,
-    guide: 0,
-    compare: 0,
-    custom_quote: 0,
-    book_consultation: 0,
-    message_host: 0,
-    qa_variants: 0,
+  // Categorize conversions by their entry point. Counts UNIQUE SESSIONS.
+  // Sources: connections (CTA flows) + lead_received events (Q&A flows).
+  // Q&A flows don't create connections, so we need to check lead_received events.
+  const conversionSessions: Record<ConversionSourceId, Set<string>> = {
+    legacy: new Set(),
+    guide: new Set(),
+    compare: new Set(),
+    custom_quote: new Set(),
+    book_consultation: new Set(),
+    message_host: new Set(),
+    qa_variants: new Set(),
   };
+  // Counter for items without session_id (each counts as 1 conversion)
+  let noSessionCounter = 0;
 
+  // 1. Count from connections (CTA flows: Legacy, Compare, Guide, Lead Capture)
   for (const conn of connections) {
     const meta = conn.metadata ?? {};
     const ctaVariant = meta.cta_variant as string | undefined;
     const entryPoint = meta.entry_point as string | undefined;
+    const sessionId = meta.session_id as string | undefined;
 
-    // Classify by source — entry_point takes precedence for specificity
-    // Skip connections without any tracking (historical untracked data)
+    // Determine which source bucket this connection belongs to
+    let bucket: ConversionSourceId;
     if (entryPoint === "custom_quote") {
-      conversionCounts.custom_quote++;
+      bucket = "custom_quote";
     } else if (entryPoint === "book_consultation") {
-      conversionCounts.book_consultation++;
+      bucket = "book_consultation";
     } else if (entryPoint === "message_host") {
-      conversionCounts.message_host++;
+      bucket = "message_host";
     } else if (typeof entryPoint === "string" && entryPoint.startsWith("qa_")) {
-      conversionCounts.qa_variants++;
+      // Q&A conversions via connection (rare, but possible)
+      bucket = "qa_variants";
     } else if (ctaVariant === "guide") {
-      conversionCounts.guide++;
+      bucket = "guide";
     } else if (ctaVariant === "compare") {
-      conversionCounts.compare++;
+      bucket = "compare";
     } else if (ctaVariant === "legacy") {
-      conversionCounts.legacy++;
+      bucket = "legacy";
+    } else {
+      // Connections without tracking default to legacy
+      bucket = "legacy";
     }
-    // else: no tracking — skip (historical data excluded)
+
+    // Count by unique session
+    if (sessionId) {
+      conversionSessions[bucket].add(sessionId);
+    } else {
+      conversionSessions[bucket].add(`__no_session_${noSessionCounter++}`);
+    }
   }
+
+  // 2. Count Q&A conversions from lead_received events (Q&A doesn't create connections)
+  // Q&A conversions have entry_point starting with "qa_" in lead_received events
+  for (const r of (ctaRes.data ?? []) as Array<{
+    event_type: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    if (r.event_type !== "lead_received") continue;
+    const entryPoint = r.metadata?.entry_point as string | undefined;
+    if (typeof entryPoint !== "string" || !entryPoint.startsWith("qa_")) continue;
+
+    const sessionId = r.metadata?.session_id as string | undefined;
+    if (sessionId) {
+      conversionSessions.qa_variants.add(sessionId);
+    } else {
+      conversionSessions.qa_variants.add(`__no_session_qa_${noSessionCounter++}`);
+    }
+  }
+
+  // Convert sets to counts
+  const conversionCounts: Record<ConversionSourceId, number> = {
+    legacy: conversionSessions.legacy.size,
+    guide: conversionSessions.guide.size,
+    compare: conversionSessions.compare.size,
+    custom_quote: conversionSessions.custom_quote.size,
+    book_consultation: conversionSessions.book_consultation.size,
+    message_host: conversionSessions.message_host.size,
+    qa_variants: conversionSessions.qa_variants.size,
+  };
 
   const conversionTotal = Object.values(conversionCounts).reduce((a, b) => a + b, 0);
 

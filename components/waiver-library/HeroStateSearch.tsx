@@ -6,7 +6,7 @@ export function HeroStateSearch() {
   const { query, setQuery } = useStateSearch();
 
   return (
-    <div className="max-w-sm mx-auto mt-2">
+    <div className="max-w-md sm:max-w-sm mx-auto mt-2">
       <div className="relative">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,7 +19,7 @@ export function HeroStateSearch() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Type your state…"
-          className="block w-full rounded-xl bg-white border-2 border-primary-300 py-2.5 pl-9 pr-4 text-sm text-gray-900 placeholder-gray-400 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_8px_rgba(14,116,144,0.12)] focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
+          className="block w-full rounded-xl bg-white border-2 border-primary-300 py-2.5 pl-9 pr-4 text-base sm:text-sm text-gray-900 placeholder-gray-400 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_8px_rgba(14,116,144,0.12)] focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
         />
         {query && (
           <button

@@ -301,7 +301,7 @@ export default function GuideBottomSheet({
 
                 <button
                   type="submit"
-                  className="w-full px-5 py-3.5 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-5 py-3.5 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
                 >
                   Send & download
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -381,7 +381,7 @@ export default function GuideBottomSheet({
               {/* CTA button */}
               <button
                 onClick={handleMessageProvider}
-                className="w-full px-5 py-3.5 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full px-5 py-3.5 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 Open a thread
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>

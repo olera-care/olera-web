@@ -362,7 +362,7 @@ export default function GuideCard({
           <button
             onClick={handleMessageProvider}
             disabled={isMessageSubmitting}
-            className="w-full px-5 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
+            className="w-full px-5 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
           >
             {isMessageSubmitting ? (
               <>
@@ -452,22 +452,22 @@ export default function GuideCard({
           {/* PDF Illustration + Content */}
           <div className="flex gap-4 mb-5">
             {/* Stylized PDF Preview */}
-            <div className="shrink-0 w-[72px] h-[92px] bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="shrink-0 w-[72px] h-[92px] bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
               {/* Document lines */}
               <div className="absolute inset-x-3 top-4 space-y-1.5">
-                <div className="h-1.5 bg-primary-300/60 rounded-full w-full" />
-                <div className="h-1.5 bg-primary-300/40 rounded-full w-4/5" />
-                <div className="h-1.5 bg-primary-300/40 rounded-full w-full" />
-                <div className="h-1.5 bg-primary-300/30 rounded-full w-3/5" />
+                <div className="h-1.5 bg-gray-300/60 rounded-full w-full" />
+                <div className="h-1.5 bg-gray-300/40 rounded-full w-4/5" />
+                <div className="h-1.5 bg-gray-300/40 rounded-full w-full" />
+                <div className="h-1.5 bg-gray-300/30 rounded-full w-3/5" />
               </div>
               {/* Checkmark badge */}
-              <div className="absolute bottom-2 right-2 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center shadow-sm">
+              <div className="absolute bottom-2 right-2 w-6 h-6 bg-gray-500 rounded-full flex items-center justify-center shadow-sm">
                 <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               {/* PDF label */}
-              <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-white/80 rounded text-[9px] font-bold text-primary-700 uppercase tracking-wide">
+              <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-white/80 rounded text-[9px] font-bold text-gray-600 uppercase tracking-wide">
                 PDF
               </div>
             </div>
@@ -492,7 +492,7 @@ export default function GuideCard({
           {/* CTA button */}
           <button
             onClick={handleGetGuideClick}
-            className="w-full px-5 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
+            className="w-full px-5 py-3.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
           >
             Get free checklist
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -569,7 +569,7 @@ export default function GuideCard({
 
             <button
               type="submit"
-              className="w-full px-5 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
+              className="w-full px-5 py-3.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
             >
               Send & download
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -659,7 +659,7 @@ export default function GuideCard({
         {/* CTA button - connection already exists from email submission */}
         <button
           onClick={handleOpenThread}
-          className="w-full px-5 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
+          className="w-full px-5 py-3.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
         >
           Open a thread
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>

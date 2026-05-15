@@ -116,30 +116,21 @@ function Hero() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const [error, setError] = useState("");
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-    setError("");
+    const cleanEmail = email.trim().toLowerCase();
 
-    const { error: dbError } = await supabase
-      .from("care_shifts_waitlist")
-      .insert({ email: email.trim().toLowerCase() });
+    await supabase
+      .from("feature_waitlist")
+      .insert({ feature: "care_shifts_families", email: cleanEmail });
 
-    if (dbError) {
-      if (dbError.code === "23505") {
-        // Duplicate — still show success, they're already in
-        setSubmitted(true);
-        return;
-      }
-      setError("Something went wrong. Please try again.");
-      return;
-    }
+    // Mirror every lead to the Sheet as a resilient backup, regardless of the
+    // DB outcome — a schema/RLS hiccup must never silently drop a signup.
+    await sendToGoogleSheet(cleanEmail);
 
     setSubmitted(true);
     window.fbq?.("track", "Lead");
-    sendToGoogleSheet(email.trim().toLowerCase());
   };
 
   return (
@@ -493,15 +484,18 @@ function BottomCta() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
+    const cleanEmail = email.trim().toLowerCase();
 
-    const { error: dbError } = await supabase
-      .from("care_shifts_waitlist")
-      .insert({ email: email.trim().toLowerCase() });
+    await supabase
+      .from("feature_waitlist")
+      .insert({ feature: "care_shifts_families", email: cleanEmail });
 
-    if (dbError && dbError.code !== "23505") return;
+    // Mirror to the Sheet regardless of DB outcome so a schema/RLS issue
+    // can't silently drop the lead.
+    await sendToGoogleSheet(cleanEmail);
+
     setSubmitted(true);
     window.fbq?.("track", "Lead");
-    sendToGoogleSheet(email.trim().toLowerCase());
   };
 
   return (

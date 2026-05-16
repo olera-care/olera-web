@@ -76,12 +76,13 @@ export default function QASectionWithVariant({
   // assignment from the admin dial). Returns null while loading.
   const hookVariant = useIntakeVariant();
 
-  // Track multi_provider / multi_provider_v2 impression once variant resolves.
+  // Track multi_provider impression once variant resolves (page load).
+  // V2 tracks its own impression when the card appears (after question),
+  // so we only fire here for V1 to avoid double-counting.
   // Skip in admin preview so inspection doesn't pollute the funnel.
   const impressionTrackedRef = useRef(false);
   useEffect(() => {
-    const isMultiProviderVariant = hookVariant === "multi_provider" || hookVariant === "multi_provider_v2";
-    if (!isMultiProviderVariant || impressionTrackedRef.current) return;
+    if (hookVariant !== "multi_provider" || impressionTrackedRef.current) return;
     impressionTrackedRef.current = true;
     if (isPreviewMode()) return;
     fetch("/api/activity/track", {
@@ -92,7 +93,7 @@ export default function QASectionWithVariant({
         event_type: "multi_provider_viewed",
         related_provider_id: providerId,
         session_id: getOrCreateSessionId(),
-        metadata: { variant: hookVariant },
+        metadata: { variant: "multi_provider" },
       }),
       keepalive: true,
     }).catch(() => {});

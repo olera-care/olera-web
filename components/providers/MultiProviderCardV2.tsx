@@ -70,7 +70,7 @@ export default function MultiProviderCardV2({
 
   const cardRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Note: Impression tracking (multi_provider_viewed) is handled by QASectionWithVariant
+  const viewedTrackedRef = useRef(false);
 
   // Derived state
   const currentCard = similarProviders[currentIndex];
@@ -102,6 +102,18 @@ export default function MultiProviderCardV2({
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Track impression when card appears (after question submitted).
+  // This fires when user sees the email-first V2 card, not on page load.
+  useEffect(() => {
+    if (viewedTrackedRef.current) return;
+    viewedTrackedRef.current = true;
+    trackActivity("multi_provider_viewed", {
+      question_text: question,
+      similar_count: similarProviders.length,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Scroll to ensure card content is visible on mount

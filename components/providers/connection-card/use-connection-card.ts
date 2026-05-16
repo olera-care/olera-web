@@ -319,7 +319,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
           providerSlug,
           intentData: intent,
           session_id: getOrCreateSessionId(),
-          cta_variant: ctaVariant || null,
+          cta_variant: ctaVariant || "legacy",
         }),
       });
 
@@ -461,7 +461,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
           guest: true,
           guestEmail: email,
           session_id: getOrCreateSessionId(),
-          cta_variant: ctaVariant || null,
+          cta_variant: ctaVariant || "legacy",
         }),
       });
 
@@ -600,7 +600,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
               message: "",
             },
             session_id: getOrCreateSessionId(),
-            cta_variant: ctaVariant || null,
+            cta_variant: ctaVariant || "legacy",
           }),
         });
 
@@ -634,7 +634,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
               message: "",
             },
             session_id: getOrCreateSessionId(),
-            cta_variant: ctaVariant || null,
+            cta_variant: ctaVariant || "legacy",
           }),
         });
 

@@ -217,28 +217,24 @@ interface ProviderResponseMetrics {
 
 type ProviderResponseByVariant = Record<CTAVariantKey, ProviderResponseMetrics>;
 
-// Conversion sources breakdown — tracks which conversion entry points perform best.
-// Uses connection metadata (cta_variant, entry_point) to classify.
-// Only counts connections with explicit tracking - untracked historical data is excluded.
-type ConversionSourceId =
-  | "legacy"
-  | "guide"
-  | "compare"
+// Other Lead Capture Sources — tracks lead capture entry points that are NOT
+// CTA variants or Q&A (those are tracked in their own sections).
+// Only includes: Custom Quote, Book Consultation, Message Staff.
+type LeadCaptureSourceId =
   | "custom_quote"
   | "book_consultation"
-  | "message_host"
-  | "qa_variants";
+  | "message_host";
 
-interface ConversionSourceRow {
-  source_id: ConversionSourceId;
+interface LeadCaptureSourceRow {
+  source_id: LeadCaptureSourceId;
   label: string;
   count: number;
   percent: number;
 }
 
-interface ConversionSourcesBreakdown {
+interface LeadCaptureSourcesBreakdown {
   total: number;
-  by_source: ConversionSourceRow[];
+  by_source: LeadCaptureSourceRow[];
 }
 
 // Submissions by entry source — accounts.signup_source bucketed for the
@@ -277,7 +273,7 @@ type WindowResult = {
   entry_source_breakdown: EntrySourceBreakdown;
   provider_response: ProviderResponseMetrics;
   provider_response_by_variant: ProviderResponseByVariant;
-  conversion_sources_breakdown: ConversionSourcesBreakdown;
+  lead_capture_sources_breakdown: LeadCaptureSourcesBreakdown;
 };
 
 const EMPTY_COUNTS = (): WindowedCounts => ({
@@ -411,7 +407,7 @@ const EMPTY_PROVIDER_RESPONSE_BY_VARIANT = (): ProviderResponseByVariant => ({
   unassigned: EMPTY_PROVIDER_RESPONSE(),
 }) as ProviderResponseByVariant;
 
-const EMPTY_CONVERSION_SOURCES_BREAKDOWN = (): ConversionSourcesBreakdown => ({
+const EMPTY_LEAD_CAPTURE_SOURCES_BREAKDOWN = (): LeadCaptureSourcesBreakdown => ({
   total: 0,
   by_source: [],
 });
@@ -1343,119 +1339,73 @@ async function fetchWindow(
     unassigned: buildResponseMetrics(byVariant.unassigned.total, byVariant.unassigned.responded, byVariant.unassigned.times),
   } as ProviderResponseByVariant;
 
-  // ── Conversion Sources Breakdown ────────────────────────────────────────
-  // Categorize conversions by their entry point. Counts UNIQUE SESSIONS.
-  // Sources: connections (CTA flows) + lead_received events (Q&A flows).
-  // Q&A flows don't create connections, so we need to check lead_received events.
-  const conversionSessions: Record<ConversionSourceId, Set<string>> = {
-    legacy: new Set(),
-    guide: new Set(),
-    compare: new Set(),
+  // ── Other Lead Capture Sources ──────────────────────────────────────────
+  // Tracks lead capture entry points that are NOT CTA variants or Q&A
+  // (those are tracked in their own dedicated sections above).
+  // Only includes: Custom Quote, Book Consultation, Message Staff.
+  const leadCaptureSessions: Record<LeadCaptureSourceId, Set<string>> = {
     custom_quote: new Set(),
     book_consultation: new Set(),
     message_host: new Set(),
-    qa_variants: new Set(),
   };
   // Counter for items without session_id (each counts as 1 conversion)
-  let noSessionCounter = 0;
+  let noSessionLeadCaptureCounter = 0;
 
-  // 1. Count from connections (CTA flows: Legacy, Compare, Guide, Lead Capture)
+  // Count only Lead Capture connections (those with entry_point set)
   for (const conn of connections) {
     const meta = conn.metadata ?? {};
-    const ctaVariant = meta.cta_variant as string | undefined;
     const entryPoint = meta.entry_point as string | undefined;
     const sessionId = meta.session_id as string | undefined;
 
-    // Determine which source bucket this connection belongs to
-    let bucket: ConversionSourceId;
+    // Only count Lead Capture sources (skip CTA and Q&A - they're tracked elsewhere)
+    let bucket: LeadCaptureSourceId | null = null;
     if (entryPoint === "custom_quote") {
       bucket = "custom_quote";
     } else if (entryPoint === "book_consultation") {
       bucket = "book_consultation";
     } else if (entryPoint === "message_host") {
       bucket = "message_host";
-    } else if (typeof entryPoint === "string" && entryPoint.startsWith("qa_")) {
-      // Q&A conversions via connection (rare, but possible)
-      bucket = "qa_variants";
-    } else if (ctaVariant === "guide") {
-      bucket = "guide";
-    } else if (ctaVariant === "compare") {
-      bucket = "compare";
-    } else if (ctaVariant === "legacy") {
-      bucket = "legacy";
-    } else {
-      // Connections without tracking default to legacy
-      bucket = "legacy";
     }
+
+    if (!bucket) continue; // Skip CTA and Q&A conversions
 
     // Count by unique session
     if (sessionId) {
-      conversionSessions[bucket].add(sessionId);
+      leadCaptureSessions[bucket].add(sessionId);
     } else {
-      conversionSessions[bucket].add(`__no_session_${noSessionCounter++}`);
-    }
-  }
-
-  // 2. Count Q&A conversions from lead_received events (Q&A doesn't create connections)
-  // Q&A conversions have entry_point starting with "qa_" in lead_received events
-  for (const r of (ctaRes.data ?? []) as Array<{
-    event_type: string;
-    metadata: Record<string, unknown> | null;
-  }>) {
-    if (r.event_type !== "lead_received") continue;
-    const entryPoint = r.metadata?.entry_point as string | undefined;
-    if (typeof entryPoint !== "string" || !entryPoint.startsWith("qa_")) continue;
-
-    const sessionId = r.metadata?.session_id as string | undefined;
-    if (sessionId) {
-      conversionSessions.qa_variants.add(sessionId);
-    } else {
-      conversionSessions.qa_variants.add(`__no_session_qa_${noSessionCounter++}`);
+      leadCaptureSessions[bucket].add(`__no_session_lc_${noSessionLeadCaptureCounter++}`);
     }
   }
 
   // Convert sets to counts
-  const conversionCounts: Record<ConversionSourceId, number> = {
-    legacy: conversionSessions.legacy.size,
-    guide: conversionSessions.guide.size,
-    compare: conversionSessions.compare.size,
-    custom_quote: conversionSessions.custom_quote.size,
-    book_consultation: conversionSessions.book_consultation.size,
-    message_host: conversionSessions.message_host.size,
-    qa_variants: conversionSessions.qa_variants.size,
+  const leadCaptureCounts: Record<LeadCaptureSourceId, number> = {
+    custom_quote: leadCaptureSessions.custom_quote.size,
+    book_consultation: leadCaptureSessions.book_consultation.size,
+    message_host: leadCaptureSessions.message_host.size,
   };
 
-  const conversionTotal = Object.values(conversionCounts).reduce((a, b) => a + b, 0);
+  const leadCaptureTotal = Object.values(leadCaptureCounts).reduce((a, b) => a + b, 0);
 
-  const CONVERSION_SOURCE_LABELS: Record<ConversionSourceId, string> = {
-    legacy: "Legacy CTA",
-    guide: "Guide PDF",
-    compare: "Compare CTA",
+  const LEAD_CAPTURE_SOURCE_LABELS: Record<LeadCaptureSourceId, string> = {
     custom_quote: "Get a Custom Quote",
     book_consultation: "Book a Consultation",
     message_host: "Message Staff",
-    qa_variants: "Q&A Variants",
   };
 
-  // Fixed order: CTA variants first, then entry_point sources
-  const SOURCE_ORDER: ConversionSourceId[] = [
-    "legacy",
-    "guide",
-    "compare",
+  const LEAD_CAPTURE_SOURCE_ORDER: LeadCaptureSourceId[] = [
     "custom_quote",
     "book_consultation",
     "message_host",
-    "qa_variants",
   ];
 
-  const conversionSourcesBreakdown: ConversionSourcesBreakdown = {
-    total: conversionTotal,
-    by_source: SOURCE_ORDER.map((sourceId) => ({
+  const leadCaptureSourcesBreakdown: LeadCaptureSourcesBreakdown = {
+    total: leadCaptureTotal,
+    by_source: LEAD_CAPTURE_SOURCE_ORDER.map((sourceId) => ({
       source_id: sourceId,
-      label: CONVERSION_SOURCE_LABELS[sourceId],
-      count: conversionCounts[sourceId],
-      percent: conversionTotal > 0
-        ? Math.round((conversionCounts[sourceId] / conversionTotal) * 100)
+      label: LEAD_CAPTURE_SOURCE_LABELS[sourceId],
+      count: leadCaptureCounts[sourceId],
+      percent: leadCaptureTotal > 0
+        ? Math.round((leadCaptureCounts[sourceId] / leadCaptureTotal) * 100)
         : 0,
     })),
   };
@@ -1476,7 +1426,7 @@ async function fetchWindow(
     entry_source_breakdown: entrySourceBreakdown,
     provider_response: providerResponse,
     provider_response_by_variant: providerResponseByVariant,
-    conversion_sources_breakdown: conversionSourcesBreakdown,
+    lead_capture_sources_breakdown: leadCaptureSourcesBreakdown,
   };
 }
 
@@ -1708,7 +1658,7 @@ export async function GET(request: NextRequest) {
         entry_source_breakdown: windowedRes.entry_source_breakdown,
         provider_response: windowedRes.provider_response,
         provider_response_by_variant: windowedRes.provider_response_by_variant,
-        conversion_sources_breakdown: windowedRes.conversion_sources_breakdown,
+        lead_capture_sources_breakdown: windowedRes.lead_capture_sources_breakdown,
       },
       prior: prior
         ? {
@@ -1727,7 +1677,7 @@ export async function GET(request: NextRequest) {
             entry_source_breakdown: prior.entry_source_breakdown,
             provider_response: prior.provider_response,
             provider_response_by_variant: prior.provider_response_by_variant,
-            conversion_sources_breakdown: prior.conversion_sources_breakdown,
+            lead_capture_sources_breakdown: prior.lead_capture_sources_breakdown,
           }
         : null,
       insight,

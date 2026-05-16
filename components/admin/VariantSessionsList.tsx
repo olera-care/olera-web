@@ -44,12 +44,21 @@ type ApiResponse = {
 
 const PAGE_SIZE = 50;
 
+// Base labels — care_need is overridden to "Engaged" for multi_provider variants
 const STAGE_LABEL: Record<Stage, string> = {
   impression: "Impression",
   started: "Started",
   care_need: "Care need ✓",
   submitted: "Submitted",
 };
+
+// Get the display label for a stage, accounting for variant-specific naming
+function getStageLabel(stage: Stage, variant: string): string {
+  if (stage === "care_need" && (variant === "multi_provider" || variant === "multi_provider_v2")) {
+    return "Engaged";
+  }
+  return STAGE_LABEL[stage];
+}
 
 const STAGE_BADGE_CLASS: Record<Stage, string> = {
   impression: "bg-gray-100 text-gray-600",
@@ -184,19 +193,23 @@ export default function VariantSessionsList({
   // Variants that skip certain funnel stages. Used for smart empty states.
   // - SBF variants (availability, loss, empathic, control, money_loss):
   //   impression → started → care_need → submitted
-  // - outreach: impression → started → submitted (no care_need)
-  // - qa_email_capture: impression → submitted (no started, no care_need)
-  // - multi_provider: impression → started → submitted (no care_need)
-  const VARIANTS_WITHOUT_CARE_NEED = new Set(["outreach", "qa_email_capture", "multi_provider"]);
+  // - outreach: impression → started → submitted (no care_need/engaged)
+  // - qa_email_capture: impression → submitted (no started, no care_need/engaged)
+  // - multi_provider / multi_provider_v2: impression → started → engaged → submitted
+  const VARIANTS_WITHOUT_CARE_NEED = new Set(["outreach", "qa_email_capture"]);
   const VARIANTS_WITHOUT_STARTED = new Set(["qa_email_capture"]);
+  // Variants that use "Engaged" instead of "Care need" for the third step
+  const VARIANTS_WITH_ENGAGED_LABEL = new Set(["multi_provider", "multi_provider_v2"]);
 
   // All filter buttons shown consistently for all variants.
   // When a stage doesn't apply, we show a smart empty state instead of hiding.
+  // Label for care_need varies by variant (Engaged for multi_provider, Care need for others)
+  const careNeedChipLabel = VARIANTS_WITH_ENGAGED_LABEL.has(variant) ? "Engaged" : "Care need ✓";
   const STAGE_CHIPS: Array<{ key: Stage | "all"; label: string }> = [
     { key: "all", label: "All" },
     { key: "impression", label: "Impression" },
     { key: "started", label: "Started" },
-    { key: "care_need", label: "Care need ✓" },
+    { key: "care_need", label: careNeedChipLabel },
     { key: "submitted", label: "Submitted" },
   ];
 
@@ -229,7 +242,7 @@ export default function VariantSessionsList({
             <div className="text-xs text-gray-600 mt-0.5">
               Showing {sessions.length} of {total}
               {stageFilter !== "all" && (
-                <span className="text-gray-400"> · filtered to {STAGE_LABEL[stageFilter]}</span>
+                <span className="text-gray-400"> · filtered to {getStageLabel(stageFilter, variant)}</span>
               )}
             </div>
           )}
@@ -308,7 +321,7 @@ export default function VariantSessionsList({
                       <span
                         className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full ${STAGE_BADGE_CLASS[s.furthest_stage]}`}
                       >
-                        {STAGE_LABEL[s.furthest_stage]}
+                        {getStageLabel(s.furthest_stage, variant)}
                       </span>
                     </td>
                     <td className="px-3 py-2 text-gray-700">
@@ -426,7 +439,7 @@ export default function VariantSessionsList({
               <div className="flex gap-2">
                 <dt className="w-20 shrink-0 text-gray-400">Stage</dt>
                 <dd className="text-gray-900">
-                  {STAGE_LABEL[pendingDelete.furthest_stage]}
+                  {getStageLabel(pendingDelete.furthest_stage, variant)}
                 </dd>
               </div>
               {pendingDelete.provider_id && (

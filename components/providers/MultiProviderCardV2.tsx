@@ -187,8 +187,11 @@ export default function MultiProviderCardV2({
   }, [cardState, isLoggedIn, currentProvider.id, askedProviders]);
 
   const handleExpandToCardStack = () => {
-    // Note: "started" (multi_provider_card_shown) is tracked on mount.
-    // Expand action is implicit - if they ask other providers, they expanded.
+    // Track engagement - user clicked to see other providers
+    trackActivity("multi_provider_engaged", {
+      question_text: question,
+      similar_count: similarProviders.length,
+    });
     setCardState("expanded");
   };
 

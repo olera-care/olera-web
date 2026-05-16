@@ -539,15 +539,16 @@ async function fetchWindow(
 
   // Multi-provider 6th-arm funnel. Lives in provider_activity (anonymous
   // events). Event mapping:
-  //   multi_provider_viewed     → impressions  (wrapper mount in arm)
-  //   multi_provider_card_shown → started      (card stack rendered after a question)
-  //   multi_provider_converted  → saved        (email captured)
+  //   multi_provider_viewed     → impressions        (wrapper mount in arm)
+  //   multi_provider_card_shown → started            (card stack rendered after a question)
+  //   multi_provider_engaged    → care_need_completed (first card interaction or expand click)
+  //   multi_provider_converted  → saved              (email captured)
   // Other multi_provider_* events (asked, skipped, save_all) are kept in
   // the allowlist for downstream analysis but don't drive the canonical funnel.
   let multiProviderQ = db
     .from("provider_activity")
     .select("event_type, metadata")
-    .in("event_type", ["multi_provider_viewed", "multi_provider_card_shown", "multi_provider_converted"])
+    .in("event_type", ["multi_provider_viewed", "multi_provider_card_shown", "multi_provider_engaged", "multi_provider_converted"])
     .limit(50000);
   if (from) multiProviderQ = multiProviderQ.gte("created_at", from);
   if (to) multiProviderQ = multiProviderQ.lt("created_at", to);
@@ -1095,9 +1096,10 @@ async function fetchWindow(
 
   // Multi-provider 6th/7th arms. Lives in provider_activity (anonymous events).
   // Event mapping:
-  //   multi_provider_viewed     → impressions (wrapper mount in arm)
-  //   multi_provider_card_shown → started     (card stack rendered)
-  //   multi_provider_converted  → saved       (email captured)
+  //   multi_provider_viewed     → impressions         (wrapper mount in arm)
+  //   multi_provider_card_shown → started             (card stack rendered)
+  //   multi_provider_engaged    → care_need_completed (first card interaction or expand click)
+  //   multi_provider_converted  → saved               (email captured)
   // Both multi_provider and multi_provider_v2 use the same event types but
   // are distinguished by metadata.variant. V2 events carry "multi_provider_v2".
   for (const r of (multiProviderRes.data ?? []) as Array<{
@@ -1109,6 +1111,7 @@ async function fetchWindow(
     const stage: keyof BenefitsFunnel | undefined =
       r.event_type === "multi_provider_viewed" ? "impressions"
       : r.event_type === "multi_provider_card_shown" ? "started"
+      : r.event_type === "multi_provider_engaged" ? "care_need_completed"
       : r.event_type === "multi_provider_converted" ? "saved"
       : undefined;
     if (!stage) continue;

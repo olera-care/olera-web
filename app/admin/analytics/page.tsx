@@ -1090,7 +1090,11 @@ function ProviderActivationCard({
               onClick={() => setShowAll((v) => !v)}
               className="text-teal-700 hover:underline"
             >
-              {showAll ? "Show fewer" : `See all ${a.feed.length}`}
+              {showAll
+                ? "Show fewer"
+                : a.feed_total > a.feed.length
+                  ? `Show ${a.feed.length} most recent (of ${a.feed_total})`
+                  : `Show all ${a.feed.length}`}
             </button>
           )}
           {sections.length > 0 && (

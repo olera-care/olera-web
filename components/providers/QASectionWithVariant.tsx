@@ -76,7 +76,8 @@ export default function QASectionWithVariant({
   // assignment from the admin dial). Returns null while loading.
   const hookVariant = useIntakeVariant();
 
-  // Track multi_provider / multi_provider_v2 impression once variant resolves.
+  // Track multi_provider / multi_provider_v2 impression on page load (variant assigned).
+  // Both variants fire at the same point for fair comparison.
   // Skip in admin preview so inspection doesn't pollute the funnel.
   const impressionTrackedRef = useRef(false);
   useEffect(() => {

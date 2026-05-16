@@ -1572,10 +1572,10 @@ function BenefitsVariantSplit({
     { key: "availability" as const, label: "availability", description: "There's help paying for care in {state}." },
     { key: "loss" as const, label: "loss", description: "Most {state} families miss out on help paying for care." },
     { key: "empathic" as const, label: "empathic (single-step D)", description: "Single-step capture w/ value preview. Question-anchored copy." },
-    { key: "outreach" as const, label: "outreach", description: "Our care team gets pricing, availability, and how to start from the top providers — in one email.", isOutreach: true },
-    { key: "qa_email_capture" as const, label: "qa_email_capture", description: "No SBF / no outreach. Q&A enrichment ON with comparison-providers value-promise.", isOutreach: true },
-    { key: "multi_provider" as const, label: "multi_provider", description: "Tinder-style card stack — send question to multiple similar providers.", isOutreach: true },
-    { key: "multi_provider_v2" as const, label: "multi_provider_v2", description: "Email-first variant — shows email capture immediately after first question, optional card stack expansion.", isOutreach: true },
+    { key: "outreach" as const, label: "outreach", description: "Our care team gets pricing, availability, and how to start from the top providers — in one email.", skipEngaged: true },
+    { key: "qa_email_capture" as const, label: "qa_email_capture", description: "No SBF / no outreach. Q&A enrichment ON with comparison-providers value-promise.", skipEngaged: true },
+    { key: "multi_provider" as const, label: "multi_provider", description: "Tinder-style card stack — send question to multiple similar providers." },
+    { key: "multi_provider_v2" as const, label: "multi_provider_v2", description: "Email-first variant — shows email capture immediately after first question, optional card stack expansion." },
   ];
   // Legacy V2 arms only render when they have data in the window — once the
   // historical window rolls past V2, these rows disappear automatically.
@@ -1620,13 +1620,13 @@ function BenefitsVariantSplit({
               <th className="px-3 py-2 font-medium">Variant</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Impressions</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Started</th>
-              <th className="px-3 py-2 font-medium tabular-nums text-right">Care need ✓</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Engaged / Care Need</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Submitted</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Conversion</th>
             </tr>
           </thead>
           <tbody>
-            {activeArms.map(({ key, label, description, isOutreach }) => {
+            {activeArms.map(({ key, label, description, skipEngaged }) => {
               const r = byVariant[key];
               const isExpanded = expandedVariant === key;
               return (
@@ -1662,9 +1662,9 @@ function BenefitsVariantSplit({
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.impressions}</td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
-                    {/* Outreach arm has no middle "care need" step — show — instead of 0. */}
+                    {/* Outreach/qa_email_capture have no engaged step — show — instead of 0. */}
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">
-                      {isOutreach ? <span className="text-gray-300">—</span> : r.care_need_completed}
+                      {skipEngaged ? <span className="text-gray-300">—</span> : r.care_need_completed}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.saved}</td>
                     <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.saved, r.impressions)}</td>

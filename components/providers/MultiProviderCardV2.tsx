@@ -71,6 +71,7 @@ export default function MultiProviderCardV2({
   const cardRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const startedTrackedRef = useRef(false);
+  const engagedTrackedRef = useRef(false);
   // Note: Impression tracking (multi_provider_viewed) is handled by QASectionWithVariant on page load
 
   // Derived state
@@ -97,6 +98,16 @@ export default function MultiProviderCardV2({
       }),
       keepalive: true,
     }).catch(() => {});
+  };
+
+  // Track engagement on first interaction (expand click OR card swipe)
+  const trackEngagementOnce = () => {
+    if (engagedTrackedRef.current) return;
+    engagedTrackedRef.current = true;
+    trackActivity("multi_provider_engaged", {
+      question_text: question,
+      similar_count: similarProviders.length,
+    });
   };
 
   // Mount animation
@@ -187,16 +198,13 @@ export default function MultiProviderCardV2({
   }, [cardState, isLoggedIn, currentProvider.id, askedProviders]);
 
   const handleExpandToCardStack = () => {
-    // Track engagement - user clicked to see other providers
-    trackActivity("multi_provider_engaged", {
-      question_text: question,
-      similar_count: similarProviders.length,
-    });
+    trackEngagementOnce(); // Track engagement - user clicked to see other providers
     setCardState("expanded");
   };
 
   const handleSkip = () => {
     if (isAnimating || !currentCard) return;
+    trackEngagementOnce(); // Track first card interaction
     setIsAnimating(true);
     setAnimationDirection("left");
 
@@ -221,6 +229,7 @@ export default function MultiProviderCardV2({
 
   const handleAsk = async () => {
     if (isAnimating || isSendingQuestion || !currentCard) return;
+    trackEngagementOnce(); // Track first card interaction
     setSendError(null);
     setIsSendingQuestion(true);
 

@@ -278,13 +278,19 @@ interface SummaryResponse {
     answered: number;
     prior: { claimed: number; profile_edits: number; owner_story: number; answered: number };
     section_breakdown: Record<string, number>;
+    weekly: Array<{
+      week_start: string;
+      claimed: number;
+      profile_edits: number;
+      owner_story: number;
+      answered: number;
+    }>;
     feed: Array<{
       provider_id: string;
       provider_name: string | null;
       signal: "claimed" | "edited" | "answered";
       section: string | null;
       when: string;
-      high_intent: boolean;
     }>;
     feed_total: number;
   } | null;
@@ -974,6 +980,36 @@ function isCommsFilterKey(s: string | null): s is ProviderCommsFilterKey {
   return !!s && (PROVIDER_EMAIL_FUNNEL_ORDER as readonly string[]).includes(s);
 }
 
+function Sparkline({ points, className = "" }: { points: number[]; className?: string }) {
+  const w = 60;
+  const h = 16;
+  const pad = 1.5;
+  if (points.length < 2) return <div style={{ width: w, height: h }} className={className} />;
+  const max = Math.max(...points);
+  const min = Math.min(...points);
+  const span = max - min || 1;
+  const stepX = (w - pad * 2) / (points.length - 1);
+  const d = points
+    .map((p, i) => {
+      const x = pad + i * stepX;
+      const y = pad + (h - pad * 2) * (1 - (p - min) / span);
+      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  return (
+    <svg width={w} height={h} className={className} aria-hidden="true">
+      <path
+        d={d}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function ProviderActivationCard({
   summary,
   loading,
@@ -982,7 +1018,6 @@ function ProviderActivationCard({
   loading: boolean;
 }) {
   const [showAll, setShowAll] = useState(false);
-  const [showSections, setShowSections] = useState(false);
 
   if (loading && !summary) {
     return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
@@ -998,11 +1033,11 @@ function ProviderActivationCard({
     );
   }
 
-  const tiles: Array<{ label: string; value: number; prior: number; highIntent?: boolean }> = [
-    { label: "Claimed", value: a.claimed, prior: a.prior.claimed },
-    { label: "Profile edits", value: a.profile_edits, prior: a.prior.profile_edits },
-    { label: "Answered", value: a.answered, prior: a.prior.answered },
-    { label: "Owner story added", value: a.owner_story, prior: a.prior.owner_story, highIntent: true },
+  const tiles: Array<{ label: string; value: number; prior: number; series: number[] }> = [
+    { label: "Claimed", value: a.claimed, prior: a.prior.claimed, series: a.weekly.map((w) => w.claimed) },
+    { label: "Profile edits", value: a.profile_edits, prior: a.prior.profile_edits, series: a.weekly.map((w) => w.profile_edits) },
+    { label: "Answered", value: a.answered, prior: a.prior.answered, series: a.weekly.map((w) => w.answered) },
+    { label: "Owner stories", value: a.owner_story, prior: a.prior.owner_story, series: a.weekly.map((w) => w.owner_story) },
   ];
 
   const signalLabel = (s: "claimed" | "edited" | "answered", section: string | null): string => {
@@ -1015,105 +1050,83 @@ function ProviderActivationCard({
   const sections = Object.entries(a.section_breakdown).sort((x, y) => y[1] - x[1]);
 
   return (
-    <div className="space-y-5">
-      <p className="text-xs text-gray-500">
-        Providers taking ownership actions — server-side, not email-click-gated. Your BD call
-        list; high-intent rows flagged.
-      </p>
-      <p className="text-[11px] text-amber-700 bg-amber-50/60 rounded-md px-2.5 py-1.5 -mt-2">
-        Fixed {a.window_days}-day window — ignores the date filter above (activation is
-        low-volume; a stable window beats daily noise).
+    <div className="space-y-7">
+      <p className="text-xs text-gray-400">
+        Distinct providers acting on their listing, server-side. Fixed {a.window_days}-day
+        window — independent of the date filter above; activation is low-volume, a stable
+        window keeps the trend readable.
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-6">
         {tiles.map((t) => (
-          <div key={t.label} className={t.highIntent ? "rounded-md -m-1 p-1 bg-amber-50/60" : ""}>
+          <div key={t.label}>
             <Stat label={t.label} value={t.value} prior={t.prior} />
+            <Sparkline points={t.series} className="text-teal-600/45 mt-3" />
           </div>
         ))}
       </div>
 
-      <div>
-        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-2.5">
-          Activation feed{" "}
-          <span className="text-gray-300 normal-case tracking-normal">
-            · who to call ({a.feed_total} in window)
-          </span>
-        </div>
-        {a.feed.length === 0 ? (
-          <p className="text-sm text-gray-400">No activation events in window.</p>
-        ) : (
-          <div className="overflow-hidden rounded-lg border border-gray-100">
-            <table className="w-full text-sm">
-              <thead className="border-b border-gray-100 bg-gray-50/60 text-[10px] uppercase tracking-wider text-gray-400">
-                <tr>
-                  <th className="px-3 py-2 text-left font-medium">Provider</th>
-                  <th className="px-3 py-2 text-left font-medium">Signal</th>
-                  <th className="px-3 py-2 text-right font-medium">When</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {visible.map((r, i) => (
-                  <tr key={`${r.provider_id}-${r.when}-${i}`} className="text-gray-700">
-                    <td className="px-3 py-2">
-                      <Link
-                        href={`/admin/directory/${r.provider_id}`}
-                        className="text-teal-700 hover:underline"
-                      >
-                        {r.provider_name ?? r.provider_id}
-                      </Link>
-                    </td>
-                    <td className="px-3 py-2 text-gray-600">
-                      {r.high_intent && (
-                        <span
-                          className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 mr-2 align-middle"
-                          title="High-intent signal"
-                        />
-                      )}
-                      {signalLabel(r.signal, r.section)}
-                    </td>
-                    <td
-                      className="px-3 py-2 text-right tabular-nums text-gray-500"
-                      title={new Date(r.when).toLocaleString()}
-                    >
-                      {timeAgoShort(r.when)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {sections.length > 0 && (
+        <div>
+          <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-2.5">
+            What they&apos;re editing
           </div>
-        )}
-        <div className="mt-2.5 flex items-center gap-4 text-xs">
-          {a.feed.length > 8 && (
-            <button
-              onClick={() => setShowAll((v) => !v)}
-              className="text-teal-700 hover:underline"
-            >
-              {showAll
-                ? "Show fewer"
-                : a.feed_total > a.feed.length
-                  ? `Show ${a.feed.length} most recent (of ${a.feed_total})`
-                  : `Show all ${a.feed.length}`}
-            </button>
-          )}
-          {sections.length > 0 && (
-            <button
-              onClick={() => setShowSections((v) => !v)}
-              className="text-gray-500 hover:text-gray-700 hover:underline"
-            >
-              {showSections ? "Hide section breakdown" : "See section breakdown"}
-            </button>
-          )}
-        </div>
-        {showSections && sections.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-gray-600">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             {sections.map(([sec, n]) => (
-              <span key={sec} className="tabular-nums">
-                <span className="text-gray-400">{sec}</span> {n}
+              <span key={sec} className="text-gray-700">
+                <span className="tabular-nums font-medium">{n}</span>{" "}
+                <span className="text-gray-400">{sec}</span>
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      <div>
+        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-3">
+          Recent activity
+        </div>
+        {a.feed.length === 0 ? (
+          <p className="text-sm text-gray-400">No activation in window.</p>
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {visible.map((r, i) => (
+              <div
+                key={`${r.provider_id}-${r.when}-${i}`}
+                className="flex items-baseline justify-between gap-4 py-2.5"
+              >
+                <Link
+                  href={`/admin/directory/${r.provider_id}`}
+                  className="text-[15px] text-gray-800 hover:text-teal-700 transition-colors truncate"
+                >
+                  {r.provider_name ?? r.provider_id}
+                </Link>
+                <div className="flex items-baseline gap-4 shrink-0">
+                  <span className="text-sm text-gray-500">
+                    {signalLabel(r.signal, r.section)}
+                  </span>
+                  <span
+                    className="text-xs tabular-nums text-gray-400 w-14 text-right"
+                    title={new Date(r.when).toLocaleString()}
+                  >
+                    {timeAgoShort(r.when)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {a.feed.length > 8 && (
+          <button
+            onClick={() => setShowAll((v) => !v)}
+            className="mt-3 text-xs text-gray-500 hover:text-teal-700 transition-colors"
+          >
+            {showAll
+              ? "Show less"
+              : a.feed_total > a.feed.length
+                ? `Show ${a.feed.length} more recent (of ${a.feed_total})`
+                : `Show all ${a.feed.length}`}
+          </button>
         )}
       </div>
     </div>

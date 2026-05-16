@@ -1557,7 +1557,14 @@ type ActivationFeedRow = {
   signal: ActivationSignal;
   section: string | null; // edit section, when signal === "edited"
   when: string; // ISO timestamp
-  high_intent: boolean; // claim, owner-section edit, or repeat-editor (≥2 edits/window)
+};
+// Distinct providers per ISO week, oldest → newest, for the trend sparklines.
+type ActivationWeeklyPoint = {
+  week_start: string; // ISO date of the week bucket start
+  claimed: number;
+  profile_edits: number;
+  owner_story: number;
+  answered: number;
 };
 type ProviderActivation = {
   window_days: number;
@@ -1567,6 +1574,7 @@ type ProviderActivation = {
   answered: number;
   prior: { claimed: number; profile_edits: number; owner_story: number; answered: number };
   section_breakdown: Record<string, number>; // section → distinct providers (current window)
+  weekly: ActivationWeeklyPoint[]; // trailing 12 ISO weeks, oldest → newest
   feed: ActivationFeedRow[];
   feed_total: number;
 };
@@ -1574,17 +1582,23 @@ type ProviderActivation = {
 async function fetchProviderActivation(
   db: ReturnType<typeof getServiceClient>,
 ): Promise<ProviderActivation | { error: string }> {
-  const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const WINDOW_MS = 30 * DAY_MS;
+  const WEEK_MS = 7 * DAY_MS;
+  const WEEKS = 12;
   const now = Date.now();
   const since30 = new Date(now - WINDOW_MS).toISOString();
   const since60 = new Date(now - 2 * WINDOW_MS).toISOString();
+  const since84 = new Date(now - WEEKS * WEEK_MS).toISOString();
 
-  // One 60d scan covers current (last 30d) + prior (30–60d) windows.
+  // One ~12-week scan covers the current (30d) + prior (30–60d) windows AND
+  // the weekly trend sparklines. Volume is low (claims/edits/answers only,
+  // no page_views), so this stays well under the row cap.
   const { data, error } = await db
     .from("provider_activity")
     .select("provider_id, event_type, metadata, created_at")
     .in("event_type", ["claim_completed", "provider_profile_edited", "question_responded"])
-    .gte("created_at", since60)
+    .gte("created_at", since84)
     .order("created_at", { ascending: false })
     .limit(50000);
   if (error) return { error: "provider activation query failed" };
@@ -1616,33 +1630,53 @@ async function fetchProviderActivation(
     answered: new Set<string>(),
   };
   const sectionProviders = new Map<string, Set<string>>();
-  const editCountByProvider = new Map<string, number>();
+  // weekIdx 0 = oldest of the 12 weeks, WEEKS-1 = most recent. Distinct
+  // providers per metric per week for the trend sparklines.
+  const weeklySets = Array.from({ length: WEEKS }, () => ({
+    claimed: new Set<string>(),
+    edits: new Set<string>(),
+    owner: new Set<string>(),
+    answered: new Set<string>(),
+  }));
+  const weekIndexOf = (createdAtMs: number): number => {
+    const idx = Math.floor((createdAtMs - (now - WEEKS * WEEK_MS)) / WEEK_MS);
+    return Math.min(WEEKS - 1, Math.max(0, idx));
+  };
   type RawFeed = { pid: string; signal: ActivationSignal; section: string | null; when: string };
   const feedRaw: RawFeed[] = [];
 
   for (const r of rows) {
     if (!r.provider_id) continue;
     const pid = canon(r.provider_id);
+    const createdMs = new Date(r.created_at).getTime();
     const isCurrent = r.created_at >= since30;
-    const bucket = isCurrent ? cur : prv;
+    // bucket is current (<30d), prior (30–60d), or null for 60–84d rows —
+    // those only feed the 12-week sparkline, never the KPI/delta counts.
+    const bucket = isCurrent ? cur : r.created_at >= since60 ? prv : null;
+    const wk = weeklySets[weekIndexOf(createdMs)];
     if (r.event_type === "claim_completed") {
-      bucket.claimed.add(pid);
+      bucket?.claimed.add(pid);
+      wk.claimed.add(pid);
       if (isCurrent) feedRaw.push({ pid, signal: "claimed", section: null, when: r.created_at });
     } else if (r.event_type === "provider_profile_edited") {
-      bucket.edits.add(pid);
+      bucket?.edits.add(pid);
+      wk.edits.add(pid);
       const section =
         typeof r.metadata?.section === "string" ? (r.metadata.section as string) : null;
-      if (section === "owner") bucket.owner.add(pid);
+      if (section === "owner") {
+        bucket?.owner.add(pid);
+        wk.owner.add(pid);
+      }
       if (isCurrent) {
         if (section) {
           if (!sectionProviders.has(section)) sectionProviders.set(section, new Set());
           sectionProviders.get(section)!.add(pid);
         }
-        editCountByProvider.set(pid, (editCountByProvider.get(pid) ?? 0) + 1);
         feedRaw.push({ pid, signal: "edited", section, when: r.created_at });
       }
     } else if (r.event_type === "question_responded") {
-      bucket.answered.add(pid);
+      bucket?.answered.add(pid);
+      wk.answered.add(pid);
       if (isCurrent) feedRaw.push({ pid, signal: "answered", section: null, when: r.created_at });
     }
   }
@@ -1680,14 +1714,18 @@ async function fetchProviderActivation(
     signal: f.signal,
     section: f.section,
     when: f.when,
-    high_intent:
-      f.signal === "claimed" ||
-      (f.signal === "edited" && f.section === "owner") ||
-      (f.signal === "edited" && (editCountByProvider.get(f.pid) ?? 0) >= 2),
   }));
 
   const section_breakdown: Record<string, number> = {};
   for (const [sec, set] of sectionProviders) section_breakdown[sec] = set.size;
+
+  const weekly: ActivationWeeklyPoint[] = weeklySets.map((wk, i) => ({
+    week_start: new Date(now - (WEEKS - i) * WEEK_MS).toISOString().slice(0, 10),
+    claimed: wk.claimed.size,
+    profile_edits: wk.edits.size,
+    owner_story: wk.owner.size,
+    answered: wk.answered.size,
+  }));
 
   return {
     window_days: 30,
@@ -1702,6 +1740,7 @@ async function fetchProviderActivation(
       answered: prv.answered.size,
     },
     section_breakdown,
+    weekly,
     feed,
     feed_total: feedRaw.length,
   };

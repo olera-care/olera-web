@@ -1620,7 +1620,7 @@ function BenefitsVariantSplit({
               <th className="px-3 py-2 font-medium">Variant</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Impressions</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Started</th>
-              <th className="px-3 py-2 font-medium tabular-nums text-right">Engaged</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Engaged / Care Need</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Submitted</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Conversion</th>
             </tr>

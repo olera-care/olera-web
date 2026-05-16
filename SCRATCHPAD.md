@@ -7,6 +7,28 @@
 
 ## Current Focus
 
+### 2026-05-16 (Fri) — Care Shifts staging arc: #824 review → #832 cleanup → #833 deletion → #838 mobile triage (all merged to staging)
+
+**Context:** Chantel's combined care-shifts work (PR #824, ~15K lines, mostly hardcoded mock) was reviewed and merged to staging per the morning CareShifts Demo meeting (merge-first, integrate-later; keep siloed). Then a multi-PR reconciliation:
+
+- **#824 merged** (`cefe9862`-prior). Family-facing browse + student landing + caregiver dashboards/care-log/apply. Architecture map + lead-loss caveats in Notion PR-merge reports.
+- **#832 merged** — restored the live family-portal nav that #824's `Navbar.tsx`/`LayoutShell.tsx` dev-branch artifacts had silently swapped for mocked caregiver surfaces; added paired footer previews; resurrected the orphaned families waitlist landing (`/care-shifts/families`, from PR #674).
+- **#833 merged** (`ae196479`) — `/pre-test` caught the resurrected waitlist writing to a **nonexistent `care_shifts_waitlist` table** (real table is `feature_waitlist {feature,email,...}`) with a non-functional "fallback" → 100% lead loss. TJ's product call: family front door is `/care-shifts` (the browse, "Compassionate care, half the cost"), **not** a waitlist. So the page was *deleted* (kills build break + lead-loss + redundancy at the root). Footer "Hire a caregiver (preview)" → `/care-shifts`. Resolved a delete/modify conflict from #835's scope-bleed (a CTA-tracking PR that bundled an unrelated `lucide-react` dep + families-page edit).
+- **#838 merged** (`9b16ce47`) — `/mobilize` triage of `/care-shifts`. Page had **zero mobile-first breakpoints** (3,510 lines, `sm:`/`md:` = 0). Fixed: full-width hero, headline `display-md→sm:lg→lg:xl`, `<br/>` now `lg:`-only, single-column card grid, two-pane stacks on mobile, side-panel `hidden lg:block`, filter pill `flex w-full` (was `inline-flex` clipping) + icon-only search + viewport-capped dropdowns. +19/−19, every change `sm:`/`lg:`-guarded so desktop is byte-identical. TJ confirmed good on staging.
+
+**Decisions made:**
+- **Family front door = `/care-shifts`** (the browse), not a pre-launch waitlist. Waitlist work preserved on `care-shift-lead` branch / PR #674 if ever wanted.
+- **Care Shifts is a volatile early mockup** — TJ: "might look entirely different in a week, don't over-optimize." Triage-level only until it stabilizes. Saved to memory (`feedback_care_shifts_mockup_dont_overoptimize.md`). Do NOT proactively push the deferred full structural mobilize.
+- Merge-to-staging is the verification surface for mobile work (staging IS the QA preview); merge-then-eyeball legitimate for staging, not main.
+
+**Team notified:** posted staging landing-page links to `#ai-product-development` (footer-under-Company location, siloed framing, pre-empted mobile caveat).
+
+**Notion:** three PR-merge reports filed (#832, #833, #838) under PR Merge Reports.
+
+**Resume next session here →** (1) Care-shifts is parked at triage — don't deepen unless TJ asks. (2) **Deferred, not lost:** full structural mobilize (card→full-screen profile, sticky Connect, bottom-sheet filters, 48px tap targets, `dvh`); remove now-unused `lucide-react` from package.json (#835 scope-bleed cruft, needs lockfile regen in a working npm env); pre-main-promotion safeguards PR (noindex/robots/password-gate before staging→main); close PR #674 (waitlist source) + #778 (superseded by #824), decide #675 (provider banner). (3) Esther owns inbox-integration assessment per the meeting; Chantel ~60% on care-shifts ops planning.
+
+---
+
 ### 2026-05-14 (Thu) — Admin "Delete Provider" cascade fix (PR #820, tested, ready to merge)
 
 **Bug TJ surfaced from teammates:** deleting a provider via `/admin/directory` removed it from the admin UI but it kept appearing on city pages and provider detail pages. Audit traced it: admin PATCH only set `olera-providers.deleted=true`, leaving linked `business_profiles` rows fully active. Two read paths kept serving the listing:

@@ -41,41 +41,44 @@ export async function GET(request: NextRequest) {
     const from = dateFrom ? new Date(dateFrom) : null;
     const to = dateTo ? new Date(dateTo) : now;
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
-    const queryStart = priorFrom ?? from ?? null;
 
-    let q = db
+    // KPI counts use count:exact/head:true. The old approach fetched rows
+    // and counted them in JS, but PostgREST's max-rows ceiling (10k on this
+    // project) silently overrides even an explicit .limit(50000) — so once
+    // anonymous page_views in the window exceeded 10k the headline pinned at
+    // exactly 10,000 (real value was ~19k). A head count returns no rows and
+    // is not subject to that cap. Anonymous filter (session_id present and
+    // non-empty) is pushed server-side so KPI and series stay identical.
+    let curCountQ = db
       .from("provider_activity")
-      .select("created_at, metadata")
+      .select("*", { count: "exact", head: true })
       .eq("event_type", "page_view")
-      .order("created_at", { ascending: true })
-      .limit(50000);
-    if (queryStart) q = q.gte("created_at", queryStart.toISOString());
-    if (dateTo) q = q.lt("created_at", dateTo);
-
-    const { data: rows, error } = await q;
-    if (error) {
-      console.error("Admin analytics views stats error:", error);
+      .not("metadata->>session_id", "is", null)
+      .neq("metadata->>session_id", "");
+    if (from) curCountQ = curCountQ.gte("created_at", from.toISOString());
+    if (dateTo) curCountQ = curCountQ.lt("created_at", dateTo);
+    const { count: curCount, error: curErr } = await curCountQ;
+    if (curErr) {
+      console.error("Admin analytics views stats (current count) error:", curErr);
       return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
     }
+    const kpiCurrent = curCount ?? 0;
 
-    const allRows = rows ?? [];
-
-    // Filter to anonymous events only (those carrying a session_id in metadata).
-    const isAnonymous = (r: (typeof allRows)[number]) => {
-      const meta = r.metadata as Record<string, unknown> | null | undefined;
-      return typeof meta?.session_id === "string" && meta.session_id.length > 0;
-    };
-
-    const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t < to : true);
-    const inPrior = (t: Date) => !!priorFrom && !!from && t >= priorFrom && t < from;
-
-    let kpiCurrent = 0;
     let kpiPrior = 0;
-    for (const r of allRows) {
-      if (!isAnonymous(r)) continue;
-      const t = new Date(r.created_at);
-      if (inRange(t)) kpiCurrent++;
-      else if (inPrior(t)) kpiPrior++;
+    if (priorFrom && from) {
+      const { count: priorCount, error: priorErr } = await db
+        .from("provider_activity")
+        .select("*", { count: "exact", head: true })
+        .eq("event_type", "page_view")
+        .not("metadata->>session_id", "is", null)
+        .neq("metadata->>session_id", "")
+        .gte("created_at", priorFrom.toISOString())
+        .lt("created_at", from.toISOString());
+      if (priorErr) {
+        console.error("Admin analytics views stats (prior count) error:", priorErr);
+        return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
+      }
+      kpiPrior = priorCount ?? 0;
     }
 
     let delta: number | null = null;
@@ -84,10 +87,35 @@ export async function GET(request: NextRequest) {
       else delta = Math.round(((kpiCurrent - kpiPrior) / kpiPrior) * 100);
     }
 
-    const seriesTimestamps = allRows
-      .filter(isAnonymous)
-      .map((r) => new Date(r.created_at))
-      .filter(inRange);
+    // Series (chart) needs per-event timestamps. Paginate the current-range
+    // fetch in max-rows-sized pages so the chart isn't capped either. Bounded
+    // at MAX_SERIES_ROWS so a pathological "all time" range can't trigger
+    // runaway pagination — the KPI total above stays exact regardless, so a
+    // bounded chart at extreme volume is an acceptable tradeoff.
+    const PAGE = 10000;
+    const MAX_SERIES_ROWS = 100000;
+    const seriesTimestamps: Date[] = [];
+    for (let offset = 0; offset < MAX_SERIES_ROWS; offset += PAGE) {
+      let pq = db
+        .from("provider_activity")
+        .select("created_at")
+        .eq("event_type", "page_view")
+        .not("metadata->>session_id", "is", null)
+        .neq("metadata->>session_id", "")
+        .order("created_at", { ascending: true })
+        .range(offset, offset + PAGE - 1);
+      if (from) pq = pq.gte("created_at", from.toISOString());
+      if (dateTo) pq = pq.lt("created_at", dateTo);
+      const { data: page, error: pErr } = await pq;
+      if (pErr) {
+        console.error("Admin analytics views stats (series) error:", pErr);
+        return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
+      }
+      const batch = page ?? [];
+      for (const r of batch) seriesTimestamps.push(new Date(r.created_at));
+      if (batch.length < PAGE) break;
+    }
+
     const bucket: Bucket = from
       ? resolveBucket(from, to)
       : resolveBucket(seriesTimestamps[0] ?? now, now);

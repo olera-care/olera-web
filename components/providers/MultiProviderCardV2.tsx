@@ -70,6 +70,7 @@ export default function MultiProviderCardV2({
 
   const cardRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const startedTrackedRef = useRef(false);
   // Note: Impression tracking (multi_provider_viewed) is handled by QASectionWithVariant on page load
 
   // Derived state
@@ -104,6 +105,17 @@ export default function MultiProviderCardV2({
     return () => clearTimeout(timer);
   }, []);
 
+  // Track "started" when V2 card appears (after question submitted).
+  // This matches V1 behavior where card_shown fires on mount.
+  useEffect(() => {
+    if (startedTrackedRef.current) return;
+    startedTrackedRef.current = true;
+    trackActivity("multi_provider_card_shown", {
+      question_text: question,
+      similar_count: similarProviders.length,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Scroll to ensure card content is visible on mount
   useEffect(() => {
@@ -175,10 +187,8 @@ export default function MultiProviderCardV2({
   }, [cardState, isLoggedIn, currentProvider.id, askedProviders]);
 
   const handleExpandToCardStack = () => {
-    trackActivity("multi_provider_card_shown", {
-      question_text: question,
-      similar_count: similarProviders.length,
-    });
+    // Note: "started" (multi_provider_card_shown) is tracked on mount.
+    // Expand action is implicit - if they ask other providers, they expanded.
     setCardState("expanded");
   };
 

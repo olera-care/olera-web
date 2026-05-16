@@ -722,7 +722,11 @@ async function fetchWindow(
       if (action === "question") sets.qa_signins.add(pid);
       else if (action === "lead") sets.lead_engagers.add(pid);
     } else if (r.event_type === "claim_completed") {
-      if (r.metadata?.source === "page") sets.page_claims.add(pid);
+      // Count all claims regardless of source. The legacy filter required
+      // source==="page", but the page flow was superseded by instant-claim
+      // (source="instant_claim") and email (source="email"); "page" is
+      // effectively never emitted, so this tile silently read ~0.
+      sets.page_claims.add(pid);
     } else if (r.event_type === "question_responded") {
       sets.question_answerers.add(pid);
     } else if (r.event_type === "analytics_teaser_cta_clicked") {
@@ -1532,6 +1536,177 @@ function capitalize(s: string): string {
  * NOTE: botRejects is per-Vercel-lambda-instance (in-memory). Numbers will
  * undercount across regions; acceptable for Phase 0 sanity-check.
  */
+
+// ── Provider Activation ─────────────────────────────────────────────────────
+// The honest "are providers activating" view, deliberately decoupled from the
+// email-click-gated Comms Funnel. Forensic finding (2026-05-16): of every
+// profile editor in a 7d window, 100% were notified by us but ~2/3 never had
+// a click recorded (Apple MPP / proxies / one-click links / verification
+// emails) — so the click-gated funnel structurally undercounts activation
+// ~3x. This panel counts the activation events directly (server-side, not
+// pixel-dependent), un-gated, on a fixed 30d rolling window independent of the
+// page's date picker. It is a count + a named BD feed, NOT an attribution
+// funnel. Claims are counted across ALL sources: the legacy page flow emits
+// source="page" (now effectively dead), the email flow source="email", and
+// the live instant-claim flow source="instant_claim" — the old funnel only
+// matched "page", which is why claims read ~0.
+type ActivationSignal = "claimed" | "edited" | "answered";
+type ActivationFeedRow = {
+  provider_id: string; // canonical (olera-providers.slug space)
+  provider_name: string | null;
+  signal: ActivationSignal;
+  section: string | null; // edit section, when signal === "edited"
+  when: string; // ISO timestamp
+  high_intent: boolean; // claim, owner-section edit, or repeat-editor (≥2 edits/window)
+};
+type ProviderActivation = {
+  window_days: number;
+  claimed: number;
+  profile_edits: number;
+  owner_story: number;
+  answered: number;
+  prior: { claimed: number; profile_edits: number; owner_story: number; answered: number };
+  section_breakdown: Record<string, number>; // section → distinct providers (current window)
+  feed: ActivationFeedRow[];
+  feed_total: number;
+};
+
+async function fetchProviderActivation(
+  db: ReturnType<typeof getServiceClient>,
+): Promise<ProviderActivation | { error: string }> {
+  const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const since30 = new Date(now - WINDOW_MS).toISOString();
+  const since60 = new Date(now - 2 * WINDOW_MS).toISOString();
+
+  // One 60d scan covers current (last 30d) + prior (30–60d) windows.
+  const { data, error } = await db
+    .from("provider_activity")
+    .select("provider_id, event_type, metadata, created_at")
+    .in("event_type", ["claim_completed", "provider_profile_edited", "question_responded"])
+    .gte("created_at", since60)
+    .order("created_at", { ascending: false })
+    .limit(50000);
+  if (error) return { error: "provider activation query failed" };
+
+  const rows = (data ?? []) as Array<{
+    provider_id: string | null;
+    event_type: string;
+    metadata: Record<string, unknown> | null;
+    created_at: string;
+  }>;
+
+  // Canonicalize so one provider isn't split across id formats (bp.slug vs
+  // op.slug vs UUID) — same helper the Comms Funnel uses post-#834.
+  const rawIds = new Set<string>();
+  for (const r of rows) if (r.provider_id) rawIds.add(r.provider_id);
+  const canonMap = await resolveCanonicalProviderKeys(db, rawIds);
+  const canon = (id: string): string => canonMap.get(id) ?? id;
+
+  const cur = {
+    claimed: new Set<string>(),
+    edits: new Set<string>(),
+    owner: new Set<string>(),
+    answered: new Set<string>(),
+  };
+  const prv = {
+    claimed: new Set<string>(),
+    edits: new Set<string>(),
+    owner: new Set<string>(),
+    answered: new Set<string>(),
+  };
+  const sectionProviders = new Map<string, Set<string>>();
+  const editCountByProvider = new Map<string, number>();
+  type RawFeed = { pid: string; signal: ActivationSignal; section: string | null; when: string };
+  const feedRaw: RawFeed[] = [];
+
+  for (const r of rows) {
+    if (!r.provider_id) continue;
+    const pid = canon(r.provider_id);
+    const isCurrent = r.created_at >= since30;
+    const bucket = isCurrent ? cur : prv;
+    if (r.event_type === "claim_completed") {
+      bucket.claimed.add(pid);
+      if (isCurrent) feedRaw.push({ pid, signal: "claimed", section: null, when: r.created_at });
+    } else if (r.event_type === "provider_profile_edited") {
+      bucket.edits.add(pid);
+      const section =
+        typeof r.metadata?.section === "string" ? (r.metadata.section as string) : null;
+      if (section === "owner") bucket.owner.add(pid);
+      if (isCurrent) {
+        if (section) {
+          if (!sectionProviders.has(section)) sectionProviders.set(section, new Set());
+          sectionProviders.get(section)!.add(pid);
+        }
+        editCountByProvider.set(pid, (editCountByProvider.get(pid) ?? 0) + 1);
+        feedRaw.push({ pid, signal: "edited", section, when: r.created_at });
+      }
+    } else if (r.event_type === "question_responded") {
+      bucket.answered.add(pid);
+      if (isCurrent) feedRaw.push({ pid, signal: "answered", section: null, when: r.created_at });
+    }
+  }
+
+  // Human-readable names for the feed (olera-providers first, then BP).
+  const feedPids = [...new Set(feedRaw.map((f) => f.pid))];
+  const nameByPid = new Map<string, string>();
+  for (let i = 0; i < feedPids.length; i += 200) {
+    const chunk = feedPids.slice(i, i + 200);
+    const { data: opn } = await db
+      .from("olera-providers")
+      .select("slug, provider_name")
+      .in("slug", chunk);
+    for (const n of (opn ?? []) as Array<{ slug: string | null; provider_name: string | null }>) {
+      if (n.slug && n.provider_name) nameByPid.set(n.slug, n.provider_name);
+    }
+  }
+  const stillUnnamed = feedPids.filter((p) => !nameByPid.has(p));
+  for (let i = 0; i < stillUnnamed.length; i += 200) {
+    const chunk = stillUnnamed.slice(i, i + 200);
+    const { data: bpn } = await db
+      .from("business_profiles")
+      .select("slug, display_name")
+      .in("slug", chunk);
+    for (const b of (bpn ?? []) as Array<{ slug: string | null; display_name: string | null }>) {
+      if (b.slug && b.display_name) nameByPid.set(b.slug, b.display_name);
+    }
+  }
+
+  feedRaw.sort((a, b) => b.when.localeCompare(a.when));
+  const FEED_CAP = 60;
+  const feed: ActivationFeedRow[] = feedRaw.slice(0, FEED_CAP).map((f) => ({
+    provider_id: f.pid,
+    provider_name: nameByPid.get(f.pid) ?? null,
+    signal: f.signal,
+    section: f.section,
+    when: f.when,
+    high_intent:
+      f.signal === "claimed" ||
+      (f.signal === "edited" && f.section === "owner") ||
+      (f.signal === "edited" && (editCountByProvider.get(f.pid) ?? 0) >= 2),
+  }));
+
+  const section_breakdown: Record<string, number> = {};
+  for (const [sec, set] of sectionProviders) section_breakdown[sec] = set.size;
+
+  return {
+    window_days: 30,
+    claimed: cur.claimed.size,
+    profile_edits: cur.edits.size,
+    owner_story: cur.owner.size,
+    answered: cur.answered.size,
+    prior: {
+      claimed: prv.claimed.size,
+      profile_edits: prv.edits.size,
+      owner_story: prv.owner.size,
+      answered: prv.answered.size,
+    },
+    section_breakdown,
+    feed,
+    feed_total: feedRaw.length,
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthUser();
@@ -1563,7 +1738,7 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [windowedRes, priorRes, last7dViewsRes, latestRes] = await Promise.all([
+    const [windowedRes, priorRes, last7dViewsRes, latestRes, activationRes] = await Promise.all([
       fetchWindow(db, windowFrom, windowTo),
       priorFrom ? fetchWindow(db, priorFrom, priorTo) : Promise.resolve(null),
       // Top providers: 7d page_views only, anonymous (session_id present).
@@ -1579,6 +1754,8 @@ export async function GET(request: NextRequest) {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(50),
+      // Provider Activation panel — own fixed 30d window, click-gate-free.
+      fetchProviderActivation(db),
     ]);
 
     if ("error" in windowedRes) {
@@ -1597,6 +1774,13 @@ export async function GET(request: NextRequest) {
       console.error("[admin/analytics/summary] latest rows query failed:", latestRes.error);
       return NextResponse.json({ error: "Failed to load latest events" }, { status: 500 });
     }
+
+    if ("error" in activationRes) {
+      console.error("[admin/analytics/summary] activation fetch failed:", activationRes.error);
+      // Non-fatal — the rest of the page still renders without the panel.
+    }
+    const activation: ProviderActivation | null =
+      activationRes && !("error" in activationRes) ? activationRes : null;
 
     const prior: WindowResult | null = priorRes && !("error" in priorRes) ? priorRes : null;
 
@@ -1703,6 +1887,7 @@ export async function GET(request: NextRequest) {
       insight,
       botRejects,
       topProviders,
+      provider_activation: activation,
       latestEvents: latestRes.data ?? [],
     });
   } catch (err) {

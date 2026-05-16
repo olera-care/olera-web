@@ -270,6 +270,24 @@ interface SummaryResponse {
     unique_sessions_7d: number;
     last_seen: string;
   }>;
+  provider_activation: {
+    window_days: number;
+    claimed: number;
+    profile_edits: number;
+    owner_story: number;
+    answered: number;
+    prior: { claimed: number; profile_edits: number; owner_story: number; answered: number };
+    section_breakdown: Record<string, number>;
+    feed: Array<{
+      provider_id: string;
+      provider_name: string | null;
+      signal: "claimed" | "edited" | "answered";
+      section: string | null;
+      when: string;
+      high_intent: boolean;
+    }>;
+    feed_total: number;
+  } | null;
   latestEvents: Array<{
     id: string;
     provider_id: string;
@@ -376,6 +394,15 @@ export default function AdminAnalyticsPage() {
         loading={loading && !!summary}
       >
         <BenefitsFunnelCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Provider Activation"
+        storageKey="providerActivation"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <ProviderActivationCard summary={summary} loading={loading} />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -656,10 +683,10 @@ function WindowedCard({
                 tooltip="Distinct providers who clicked through a question-notification email and auto-signed in."
               />
               <Stat
-                label="Page-flow claims"
+                label="Claimed"
                 value={summary.windowed.provider_distinct_counts.page_claims}
                 prior={summary.prior?.provider_distinct_counts.page_claims ?? null}
-                tooltip="Distinct providers who claimed their listing from a public provider page (not from email)."
+                tooltip="Distinct providers who claimed their listing in this window (any source — email, instant-claim, or legacy page flow)."
               />
               <Stat
                 label="Answered questions"
@@ -945,6 +972,148 @@ type ProviderCommsFilterKey = keyof ProviderCommsFunnelByType;
 
 function isCommsFilterKey(s: string | null): s is ProviderCommsFilterKey {
   return !!s && (PROVIDER_EMAIL_FUNNEL_ORDER as readonly string[]).includes(s);
+}
+
+function ProviderActivationCard({
+  summary,
+  loading,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const [showSections, setShowSections] = useState(false);
+
+  if (loading && !summary) {
+    return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
+  }
+  if (!summary) return null;
+
+  const a = summary.provider_activation;
+  if (!a) {
+    return (
+      <p className="text-sm text-gray-400">
+        Provider activation not available in this response — server may be on an older deploy.
+      </p>
+    );
+  }
+
+  const tiles: Array<{ label: string; value: number; prior: number; highIntent?: boolean }> = [
+    { label: "Claimed", value: a.claimed, prior: a.prior.claimed },
+    { label: "Profile edits", value: a.profile_edits, prior: a.prior.profile_edits },
+    { label: "Answered", value: a.answered, prior: a.prior.answered },
+    { label: "Owner story added", value: a.owner_story, prior: a.prior.owner_story, highIntent: true },
+  ];
+
+  const signalLabel = (s: "claimed" | "edited" | "answered", section: string | null): string => {
+    if (s === "claimed") return "Claimed listing";
+    if (s === "answered") return "Answered a question";
+    return section ? `Edited · ${section}` : "Edited profile";
+  };
+
+  const visible = showAll ? a.feed : a.feed.slice(0, 8);
+  const sections = Object.entries(a.section_breakdown).sort((x, y) => y[1] - x[1]);
+
+  return (
+    <div className="space-y-5">
+      <p className="text-xs text-gray-500 leading-relaxed">
+        Distinct providers taking deliberate ownership actions in the last{" "}
+        <span className="font-medium">{a.window_days} days</span>. Counted directly from
+        server-side activity events — <span className="font-medium">not</span> gated on an email
+        click, so it doesn&apos;t lose the ~⅔ of activators whose click is eaten by Apple Mail /
+        proxies. This is the &ldquo;is the product activating providers&rdquo; read and your BD
+        call list — high-intent rows (claim, owner story, repeat-editor) are flagged.
+      </p>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-4">
+        {tiles.map((t) => (
+          <div key={t.label} className={t.highIntent ? "rounded-md -m-1 p-1 bg-amber-50/60" : ""}>
+            <Stat label={t.label} value={t.value} prior={t.prior} />
+          </div>
+        ))}
+      </div>
+
+      <div>
+        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-2.5">
+          Activation feed{" "}
+          <span className="text-gray-300 normal-case tracking-normal">
+            · who to call ({a.feed_total} in window)
+          </span>
+        </div>
+        {a.feed.length === 0 ? (
+          <p className="text-sm text-gray-400">No activation events in window.</p>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-gray-100">
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-100 bg-gray-50/60 text-[10px] uppercase tracking-wider text-gray-400">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium">Provider</th>
+                  <th className="px-3 py-2 text-left font-medium">Signal</th>
+                  <th className="px-3 py-2 text-right font-medium">When</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {visible.map((r, i) => (
+                  <tr key={`${r.provider_id}-${r.when}-${i}`} className="text-gray-700">
+                    <td className="px-3 py-2">
+                      <Link
+                        href={`/admin/directory/${r.provider_id}`}
+                        className="text-teal-700 hover:underline"
+                      >
+                        {r.provider_name ?? r.provider_id}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-2 text-gray-600">
+                      {r.high_intent && (
+                        <span
+                          className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 mr-2 align-middle"
+                          title="High-intent signal"
+                        />
+                      )}
+                      {signalLabel(r.signal, r.section)}
+                    </td>
+                    <td
+                      className="px-3 py-2 text-right tabular-nums text-gray-500"
+                      title={new Date(r.when).toLocaleString()}
+                    >
+                      {timeAgoShort(r.when)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div className="mt-2.5 flex items-center gap-4 text-xs">
+          {a.feed.length > 8 && (
+            <button
+              onClick={() => setShowAll((v) => !v)}
+              className="text-teal-700 hover:underline"
+            >
+              {showAll ? "Show fewer" : `See all ${a.feed.length}`}
+            </button>
+          )}
+          {sections.length > 0 && (
+            <button
+              onClick={() => setShowSections((v) => !v)}
+              className="text-gray-500 hover:text-gray-700 hover:underline"
+            >
+              {showSections ? "Hide section breakdown" : "See section breakdown"}
+            </button>
+          )}
+        </div>
+        {showSections && sections.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-gray-600">
+            {sections.map(([sec, n]) => (
+              <span key={sec} className="tabular-nums">
+                <span className="text-gray-400">{sec}</span> {n}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function ProviderCommsFunnelCard({

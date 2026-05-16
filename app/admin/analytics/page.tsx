@@ -1016,18 +1016,13 @@ function ProviderActivationCard({
 
   return (
     <div className="space-y-5">
-      <p className="text-xs text-gray-500 leading-relaxed">
-        Distinct providers taking deliberate ownership actions in the last{" "}
-        <span className="font-medium">{a.window_days} days</span>. Counted directly from
-        server-side activity events — <span className="font-medium">not</span> gated on an email
-        click, so it doesn&apos;t lose the ~⅔ of activators whose click is eaten by Apple Mail /
-        proxies. This is the &ldquo;is the product activating providers&rdquo; read and your BD
-        call list — high-intent rows (claim, owner story, repeat-editor) are flagged.
+      <p className="text-xs text-gray-500">
+        Providers taking ownership actions — server-side, not email-click-gated. Your BD call
+        list; high-intent rows flagged.
       </p>
       <p className="text-[11px] text-amber-700 bg-amber-50/60 rounded-md px-2.5 py-1.5 -mt-2">
-        Fixed {a.window_days}-day rolling window — intentionally <span className="font-medium">not</span>{" "}
-        affected by the date filter above. Activation is low-volume; a stable window keeps the
-        signal readable instead of daily noise.
+        Fixed {a.window_days}-day window — ignores the date filter above (activation is
+        low-volume; a stable window beats daily noise).
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-4">

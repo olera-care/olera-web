@@ -4,7 +4,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import PulseHeader from "@/components/admin/PulseHeader";
-import {
+import DateRangePopover, {
   resolveRange,
   rangeLabel,
   type DateRangeValue,
@@ -1010,6 +1010,181 @@ function Sparkline({ points, className = "" }: { points: number[]; className?: s
   );
 }
 
+type DrillMetric = "claimed" | "profile_edits" | "answered" | "owner_story";
+type DrillProvider = {
+  provider_id: string;
+  provider_name: string | null;
+  last_at: string;
+  count: number;
+  sections: string[];
+};
+
+function ActivationDrillModal({
+  metric,
+  label,
+  onClose,
+}: {
+  metric: DrillMetric;
+  label: string;
+  onClose: () => void;
+}) {
+  const [range, setRangeState] = useState<DateRangeValue>({
+    preset: "30d",
+    customFrom: "",
+    customTo: "",
+  });
+  const [providers, setProviders] = useState<DrillProvider[]>([]);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const LIMIT = 50;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  // Changing range resets pagination; offset changes append.
+  const setRange = useCallback((next: DateRangeValue) => {
+    setRangeState(next);
+    setOffset(0);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+    const { from, to } = resolveRange(range);
+    const params = new URLSearchParams({
+      metric,
+      offset: String(offset),
+      limit: String(LIMIT),
+    });
+    if (from) params.set("date_from", from);
+    if (to) params.set("date_to", to);
+    fetch(`/api/admin/analytics/activation-drill?${params.toString()}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((data) => {
+        if (cancelled) return;
+        setProviders((prev) =>
+          offset === 0 ? data.providers : [...prev, ...data.providers],
+        );
+        setTotal(data.total);
+        setHasMore(data.has_more);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setError(true);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [metric, range, offset]);
+
+  const detailText = (p: DrillProvider): string => {
+    if (metric === "profile_edits" || metric === "owner_story") {
+      return p.sections.length > 0 ? p.sections.join(", ") : "profile";
+    }
+    return p.count > 1 ? `×${p.count}` : "";
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-gray-900/30 backdrop-blur-[1px] p-4 sm:p-8 overflow-y-auto"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-2xl bg-white rounded-2xl shadow-xl mt-8 mb-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-gray-50">
+          <div>
+            <div className="text-base font-semibold text-gray-900">{label}</div>
+            <div className="text-xs text-gray-400 mt-0.5">
+              {loading && providers.length === 0
+                ? "Loading…"
+                : `${total.toLocaleString()} provider${total === 1 ? "" : "s"} · ${rangeLabel(range)}`}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <DateRangePopover value={range} onChange={setRange} />
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="text-gray-400 hover:text-gray-700 text-xl leading-none px-1"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
+          {error ? (
+            <p className="text-sm text-gray-400 py-8 text-center">
+              Couldn&apos;t load this cohort. Try again.
+            </p>
+          ) : loading && providers.length === 0 ? (
+            <div className="space-y-2 py-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-8 rounded bg-gray-50 animate-pulse" />
+              ))}
+            </div>
+          ) : providers.length === 0 ? (
+            <p className="text-sm text-gray-400 py-8 text-center">
+              No providers in this range.
+            </p>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {providers.map((p, i) => (
+                <div
+                  key={`${p.provider_id}-${i}`}
+                  className="flex items-baseline justify-between gap-4 py-2.5"
+                >
+                  <Link
+                    href={`/admin/directory/${p.provider_id}`}
+                    className="text-[15px] text-gray-800 hover:text-teal-700 transition-colors truncate"
+                  >
+                    {p.provider_name ?? p.provider_id}
+                  </Link>
+                  <div className="flex items-baseline gap-4 shrink-0">
+                    {detailText(p) && (
+                      <span className="text-sm text-gray-500">{detailText(p)}</span>
+                    )}
+                    <span
+                      className="text-xs tabular-nums text-gray-400 w-14 text-right"
+                      title={new Date(p.last_at).toLocaleString()}
+                    >
+                      {timeAgoShort(p.last_at)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {hasMore && !loading && (
+            <button
+              onClick={() => setOffset((o) => o + LIMIT)}
+              className="mt-3 text-xs text-gray-500 hover:text-teal-700 transition-colors"
+            >
+              Show more
+            </button>
+          )}
+          {loading && providers.length > 0 && (
+            <p className="mt-3 text-xs text-gray-400">Loading…</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ProviderActivationCard({
   summary,
   loading,
@@ -1018,6 +1193,7 @@ function ProviderActivationCard({
   loading: boolean;
 }) {
   const [showAll, setShowAll] = useState(false);
+  const [drill, setDrill] = useState<{ metric: DrillMetric; label: string } | null>(null);
 
   if (loading && !summary) {
     return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
@@ -1033,11 +1209,17 @@ function ProviderActivationCard({
     );
   }
 
-  const tiles: Array<{ label: string; value: number; prior: number; series: number[] }> = [
-    { label: "Claimed", value: a.claimed, prior: a.prior.claimed, series: a.weekly.map((w) => w.claimed) },
-    { label: "Profile edits", value: a.profile_edits, prior: a.prior.profile_edits, series: a.weekly.map((w) => w.profile_edits) },
-    { label: "Answered", value: a.answered, prior: a.prior.answered, series: a.weekly.map((w) => w.answered) },
-    { label: "Owner stories", value: a.owner_story, prior: a.prior.owner_story, series: a.weekly.map((w) => w.owner_story) },
+  const tiles: Array<{
+    metric: DrillMetric;
+    label: string;
+    value: number;
+    prior: number;
+    series: number[];
+  }> = [
+    { metric: "claimed", label: "Claimed", value: a.claimed, prior: a.prior.claimed, series: a.weekly.map((w) => w.claimed) },
+    { metric: "profile_edits", label: "Profile edits", value: a.profile_edits, prior: a.prior.profile_edits, series: a.weekly.map((w) => w.profile_edits) },
+    { metric: "answered", label: "Answered", value: a.answered, prior: a.prior.answered, series: a.weekly.map((w) => w.answered) },
+    { metric: "owner_story", label: "Owner stories", value: a.owner_story, prior: a.prior.owner_story, series: a.weekly.map((w) => w.owner_story) },
   ];
 
   const signalLabel = (s: "claimed" | "edited" | "answered", section: string | null): string => {
@@ -1059,10 +1241,19 @@ function ProviderActivationCard({
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-6">
         {tiles.map((t) => (
-          <div key={t.label}>
+          <button
+            key={t.label}
+            type="button"
+            onClick={() => setDrill({ metric: t.metric, label: t.label })}
+            className="group text-left rounded-lg -m-1.5 p-1.5 hover:bg-gray-50/70 transition-colors"
+            title={`See the providers behind "${t.label}"`}
+          >
             <Stat label={t.label} value={t.value} prior={t.prior} />
-            <Sparkline points={t.series} className="text-teal-600/45 mt-3" />
-          </div>
+            <Sparkline
+              points={t.series}
+              className="text-teal-600/45 group-hover:text-teal-600/70 transition-colors mt-3"
+            />
+          </button>
         ))}
       </div>
 
@@ -1129,6 +1320,14 @@ function ProviderActivationCard({
           </button>
         )}
       </div>
+
+      {drill && (
+        <ActivationDrillModal
+          metric={drill.metric}
+          label={drill.label}
+          onClose={() => setDrill(null)}
+        />
+      )}
     </div>
   );
 }

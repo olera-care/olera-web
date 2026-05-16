@@ -11,7 +11,7 @@ import {
   type ProviderEmailFunnelKey,
 } from "@/lib/analytics/provider-email-funnels";
 import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
-import { resolveSlugsForRawIds } from "@/lib/provider-id-variants";
+import { resolveSlugsForRawIds, resolveCanonicalProviderKeys } from "@/lib/provider-id-variants";
 
 const PROVIDER_EVENT_TYPES = [
   "page_view",
@@ -628,6 +628,35 @@ async function fetchWindow(
   if (ctaRes.error) return { error: "CTA funnel query failed" };
   if (connectionsRes.error) return { error: "connections query failed" };
 
+  // ── Canonicalize every provider id to one namespace (olera-providers.slug)
+  // BEFORE bucketing. The Provider Comms Funnel intersects the click set
+  // (email_log) with downstream-event sets (provider_activity). email_log
+  // ids resolve via resolveSlugsForRawIds; dashboard-origin activity events
+  // (provider_picker_clicked / provider_profile_edited) write the suffixed
+  // business_profiles.slug. Without a shared key the "Clicked dashboard" /
+  // "Edited profile" columns are structurally ~0 for claimed providers whose
+  // BP slug differs from their OP slug. Resolve raw click ids first, then
+  // canonicalize BOTH sides through one map (idempotent on OP/page slugs, so
+  // the already-correct columns don't move).
+  const rawClickedIds = new Set<string>();
+  for (const r of (commsFunnelRes.data ?? []) as Array<{
+    provider_id: string | null;
+    first_clicked_at: string | null;
+  }>) {
+    if (r.first_clicked_at && r.provider_id) rawClickedIds.add(r.provider_id);
+  }
+  const slugByRawClickedId = await resolveSlugsForRawIds(db, rawClickedIds);
+
+  const canonUniverse = new Set<string>();
+  for (const r of (distinctRes.data ?? []) as Array<{ provider_id: string | null }>) {
+    if (r.provider_id) canonUniverse.add(r.provider_id);
+  }
+  for (const raw of rawClickedIds) {
+    canonUniverse.add(slugByRawClickedId.get(raw) ?? raw);
+  }
+  const canonByKey = await resolveCanonicalProviderKeys(db, canonUniverse);
+  const canon = (id: string): string => canonByKey.get(id) ?? id;
+
   const counts = EMPTY_COUNTS();
   const uniqueSessions = new Set<string>();
   const referrerBreakdown = EMPTY_REFERRER_BREAKDOWN();
@@ -684,8 +713,8 @@ async function fetchWindow(
     event_type: string;
     metadata: Record<string, unknown> | null;
   }>) {
-    const pid = r.provider_id;
-    if (!pid) continue;
+    if (!r.provider_id) continue;
+    const pid = canon(r.provider_id);
     if (r.event_type === "one_click_access") {
       sets.any_signin.add(pid);
       const action = r.metadata?.action;
@@ -847,21 +876,8 @@ async function fetchWindow(
     connections: new Map(),
   };
 
-  // email_log.provider_id is a mix of olera-providers.provider_id (short
-  // codes) and business_profiles.id (UUIDs); provider_activity.provider_id
-  // is slug-only. Without canonicalization the click set lives in a
-  // different namespace from the downstream-event sets and the four
-  // intersections below are ~always empty. Resolve raw → slug once for
-  // the window so the loop adds slugs to clickedByBucket.
-  const rawClickedIds = new Set<string>();
-  for (const r of (commsFunnelRes.data ?? []) as Array<{
-    provider_id: string | null;
-    first_clicked_at: string | null;
-  }>) {
-    if (r.first_clicked_at && r.provider_id) rawClickedIds.add(r.provider_id);
-  }
-  const slugByRawClickedId = await resolveSlugsForRawIds(db, rawClickedIds);
-
+  // rawClickedIds + slugByRawClickedId + canon were computed up-front so the
+  // distinct-event sets above and the click set below share one namespace.
   for (const r of (commsFunnelRes.data ?? []) as Array<{
     email_type: string | null;
     provider_id: string | null;
@@ -886,8 +902,9 @@ async function fetchWindow(
     if (r.first_clicked_at && r.provider_id) {
       // Fall through to raw id when the row's id is already a slug (some
       // older sends wrote slug directly) or doesn't resolve — better to
-      // pass through than drop the row from the click set entirely.
-      const slug = slugByRawClickedId.get(r.provider_id) ?? r.provider_id;
+      // pass through than drop the row from the click set entirely. Then
+      // canon() collapses it to the OP-slug namespace the activity sets use.
+      const slug = canon(slugByRawClickedId.get(r.provider_id) ?? r.provider_id);
       clickedByBucket[bucket].add(slug);
       clickedByBucket.all.add(slug);
       for (const k of [bucket, "all" as const] as ProviderEmailFunnelKey[]) {

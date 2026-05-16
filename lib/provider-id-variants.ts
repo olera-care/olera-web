@@ -168,3 +168,113 @@ export async function resolveSlugsForRawIds(
   }
   return map;
 }
+
+/**
+ * Canonicalize a bag of raw provider ids to ONE stable key:
+ * `olera-providers.slug`.
+ *
+ * `resolveSlugsForRawIds` only normalizes the click side (email_log) and
+ * maps a UUID to `business_profiles.slug` — which for claimed providers is
+ * the random-suffixed slug (e.g. "arya-home-healthcare-burke-va-2kgh").
+ * Dashboard-origin events (provider_picker_clicked, provider_profile_edited)
+ * also write that suffixed business_profiles.slug, while digest/email_log
+ * and question_responded sit in the un-suffixed olera-providers.slug space.
+ * The Provider Comms Funnel intersects those sets, so "Clicked dashboard"
+ * and "Edited profile" were structurally ~0 for any claimed provider whose
+ * BP slug differs from their OP slug.
+ *
+ * This collapses every shape to the OP slug:
+ *   - business_profiles.id (UUID)  → bp.source_provider_id → op.slug
+ *   - business_profiles.slug       → bp.source_provider_id → op.slug
+ *   - olera-providers.provider_id  → op.slug
+ *   - olera-providers.slug / page slug / unresolvable → ABSENT
+ *     (caller does `map.get(raw) ?? raw`, so these stay themselves —
+ *      keeping the already-correct columns idempotent)
+ *
+ * Apply to BOTH sides of the intersection so they share one namespace.
+ * Up to four bulk IN lookups regardless of input size.
+ */
+export async function resolveCanonicalProviderKeys(
+  db: SupabaseClient,
+  rawIds: Iterable<string>,
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  const ids = [...new Set([...rawIds])].filter((s) => typeof s === "string" && s.length > 0);
+  if (ids.length === 0) return map;
+
+  const uuidLike: string[] = [];
+  const codeLike: string[] = [];
+  for (const id of ids) {
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+      uuidLike.push(id);
+    } else {
+      codeLike.push(id);
+    }
+  }
+
+  try {
+    // Direct: olera-providers.provider_id → slug (already-canonical owners).
+    const opSlugByProviderId = new Map<string, string>();
+    if (codeLike.length > 0) {
+      const { data } = await db
+        .from("olera-providers")
+        .select("provider_id, slug")
+        .in("provider_id", codeLike);
+      for (const r of (data ?? []) as Array<{ provider_id: string | null; slug: string | null }>) {
+        if (r.provider_id && r.slug) {
+          opSlugByProviderId.set(r.provider_id, r.slug);
+          map.set(r.provider_id, r.slug);
+        }
+      }
+    }
+
+    // business_profiles → source_provider_id, by UUID id and by slug.
+    const bpRows: Array<{ key: string; source_provider_id: string | null }> = [];
+    if (uuidLike.length > 0) {
+      const { data } = await db
+        .from("business_profiles")
+        .select("id, source_provider_id")
+        .in("id", uuidLike);
+      for (const r of (data ?? []) as Array<{ id: string | null; source_provider_id: string | null }>) {
+        if (r.id) bpRows.push({ key: r.id, source_provider_id: r.source_provider_id });
+      }
+    }
+    if (codeLike.length > 0) {
+      const { data } = await db
+        .from("business_profiles")
+        .select("slug, source_provider_id")
+        .in("slug", codeLike);
+      for (const r of (data ?? []) as Array<{ slug: string | null; source_provider_id: string | null }>) {
+        if (r.slug) bpRows.push({ key: r.slug, source_provider_id: r.source_provider_id });
+      }
+    }
+
+    // Resolve any not-yet-known source_provider_ids → op.slug, then map the
+    // BP keys (UUID / bp.slug) through to the canonical OP slug.
+    const needSpids = [
+      ...new Set(
+        bpRows
+          .map((b) => b.source_provider_id)
+          .filter((s): s is string => !!s && !opSlugByProviderId.has(s)),
+      ),
+    ];
+    if (needSpids.length > 0) {
+      const { data } = await db
+        .from("olera-providers")
+        .select("provider_id, slug")
+        .in("provider_id", needSpids);
+      for (const r of (data ?? []) as Array<{ provider_id: string | null; slug: string | null }>) {
+        if (r.provider_id && r.slug) opSlugByProviderId.set(r.provider_id, r.slug);
+      }
+    }
+    for (const b of bpRows) {
+      if (b.source_provider_id) {
+        const op = opSlugByProviderId.get(b.source_provider_id);
+        if (op && !map.has(b.key)) map.set(b.key, op);
+      }
+    }
+  } catch (err) {
+    console.error("[provider-id-variants] canonical resolve failed:", err);
+  }
+  return map;
+}

@@ -107,6 +107,32 @@ export async function GET(request: NextRequest) {
 
     const events = activity ?? [];
 
+    // ── 1a. Pre-fetch emails opted out of the analytics digest ──
+    // Claimed providers' opt-out lives at business_profiles.metadata; this
+    // table (migration 084) covers unclaimed providers, who have no
+    // business_profiles row and whose canonical record (olera-providers)
+    // has no metadata column. The per-send filter ORs membership in this
+    // set with the existing metadata check so a single unsubscribe stops
+    // the email no matter which path resolved the recipient.
+    const { data: unsubRows, error: unsubErr } = await db
+      .from("provider_unsubscribes")
+      .select("email")
+      .eq("channel", "analytics_digest")
+      // Explicit high cap — the Supabase client defaults to 1000 rows, and a
+      // silently truncated opt-out set would let truncated-off providers keep
+      // getting emailed (the exact leak this table exists to close).
+      .limit(100000);
+
+    if (unsubErr) {
+      console.error("[weekly-provider-digest] unsubscribes query failed:", unsubErr);
+      throw new Error("Failed to load unsubscribes");
+    }
+
+    const unsubscribedEmails = new Set<string>();
+    for (const row of (unsubRows ?? []) as Array<{ email: string | null }>) {
+      if (row.email) unsubscribedEmails.add(row.email.toLowerCase());
+    }
+
     // ── 1b. Find providers with live unanswered questions ──
     // Recipient source #2: every provider with at least one open question
     // (answered_at IS NULL, status NOT IN archived/rejected). This is the
@@ -278,13 +304,12 @@ export async function GET(request: NextRequest) {
     // app/api/admin/questions/add-email/route.ts:
     //   - olera-providers.slug = providerId
     //   - olera-providers.provider_id = providerId (legacy alphanumeric)
-    // NOTE: olera-providers has no `metadata` column, so the per-provider
-    // analytics_digest_unsubscribed opt-out can't be stored there -- synthesized
-    // rows carry metadata: null. (The unsubscribe route's olera-providers branch
-    // has the same limitation; a real opt-out store for unclaimed providers is a
-    // separate follow-up.) Errors are surfaced explicitly -- a bad column here
-    // silently empties the result set, which is exactly how the missing-metadata
-    // bug shipped once.
+    // NOTE: olera-providers has no `metadata` column, so synthesized rows
+    // carry metadata: null. The per-provider opt-out for unclaimed providers
+    // lives in the sibling provider_unsubscribes table (migration 084) and is
+    // applied in the send loop via unsubscribedEmails. Errors here are
+    // surfaced explicitly -- a bad column silently empties the result set,
+    // which is exactly how the missing-metadata bug shipped once.
     type IosProvider = {
       provider_id: string;
       slug: string | null;
@@ -411,7 +436,7 @@ export async function GET(request: NextRequest) {
       }
 
       const meta = (bp.metadata as Record<string, unknown> | null) || {};
-      if (meta.analytics_digest_unsubscribed === true) {
+      if (meta.analytics_digest_unsubscribed === true || unsubscribedEmails.has(emailKey)) {
         // Mark this email as handled so a second bucket-key for the same
         // physical provider (e.g. slug vs legacy ID) can't bypass the opt-out
         // by resolving to a different record without the flag.
@@ -520,6 +545,12 @@ export async function GET(request: NextRequest) {
           html,
           emailType: "weekly_analytics_digest",
           recipientType: "provider",
+          // Stamp the email_log row with the same id the answer endpoint
+          // writes to provider_activity.provider_id (question.provider_id ==
+          // this loop's providerId). Without it every digest row logs
+          // provider_id=null and the Provider Comms Funnel's weekly_digest
+          // column (answered / edited / signed-in) is structurally zero.
+          providerId,
         });
         sent += 1;
         sentEmails.add(emailKey);

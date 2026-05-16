@@ -11,7 +11,7 @@ import {
   type ProviderEmailFunnelKey,
 } from "@/lib/analytics/provider-email-funnels";
 import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
-import { resolveSlugsForRawIds } from "@/lib/provider-id-variants";
+import { resolveSlugsForRawIds, resolveCanonicalProviderKeys } from "@/lib/provider-id-variants";
 
 const PROVIDER_EVENT_TYPES = [
   "page_view",
@@ -217,28 +217,24 @@ interface ProviderResponseMetrics {
 
 type ProviderResponseByVariant = Record<CTAVariantKey, ProviderResponseMetrics>;
 
-// Conversion sources breakdown — tracks which conversion entry points perform best.
-// Uses connection metadata (cta_variant, entry_point) to classify.
-// Only counts connections with explicit tracking - untracked historical data is excluded.
-type ConversionSourceId =
-  | "legacy"
-  | "guide"
-  | "compare"
+// Other Lead Capture Sources — tracks lead capture entry points that are NOT
+// CTA variants or Q&A (those are tracked in their own sections).
+// Only includes: Custom Quote, Book Consultation, Message Staff.
+type LeadCaptureSourceId =
   | "custom_quote"
   | "book_consultation"
-  | "message_host"
-  | "qa_variants";
+  | "message_host";
 
-interface ConversionSourceRow {
-  source_id: ConversionSourceId;
+interface LeadCaptureSourceRow {
+  source_id: LeadCaptureSourceId;
   label: string;
   count: number;
   percent: number;
 }
 
-interface ConversionSourcesBreakdown {
+interface LeadCaptureSourcesBreakdown {
   total: number;
-  by_source: ConversionSourceRow[];
+  by_source: LeadCaptureSourceRow[];
 }
 
 // Submissions by entry source — accounts.signup_source bucketed for the
@@ -277,7 +273,7 @@ type WindowResult = {
   entry_source_breakdown: EntrySourceBreakdown;
   provider_response: ProviderResponseMetrics;
   provider_response_by_variant: ProviderResponseByVariant;
-  conversion_sources_breakdown: ConversionSourcesBreakdown;
+  lead_capture_sources_breakdown: LeadCaptureSourcesBreakdown;
 };
 
 const EMPTY_COUNTS = (): WindowedCounts => ({
@@ -411,7 +407,7 @@ const EMPTY_PROVIDER_RESPONSE_BY_VARIANT = (): ProviderResponseByVariant => ({
   unassigned: EMPTY_PROVIDER_RESPONSE(),
 }) as ProviderResponseByVariant;
 
-const EMPTY_CONVERSION_SOURCES_BREAKDOWN = (): ConversionSourcesBreakdown => ({
+const EMPTY_LEAD_CAPTURE_SOURCES_BREAKDOWN = (): LeadCaptureSourcesBreakdown => ({
   total: 0,
   by_source: [],
 });
@@ -543,15 +539,16 @@ async function fetchWindow(
 
   // Multi-provider 6th-arm funnel. Lives in provider_activity (anonymous
   // events). Event mapping:
-  //   multi_provider_viewed     → impressions  (wrapper mount in arm)
-  //   multi_provider_card_shown → started      (card stack rendered after a question)
-  //   multi_provider_converted  → saved        (email captured)
+  //   multi_provider_viewed     → impressions        (wrapper mount in arm)
+  //   multi_provider_card_shown → started            (card stack rendered after a question)
+  //   multi_provider_engaged    → care_need_completed (first card interaction or expand click)
+  //   multi_provider_converted  → saved              (email captured)
   // Other multi_provider_* events (asked, skipped, save_all) are kept in
   // the allowlist for downstream analysis but don't drive the canonical funnel.
   let multiProviderQ = db
     .from("provider_activity")
     .select("event_type, metadata")
-    .in("event_type", ["multi_provider_viewed", "multi_provider_card_shown", "multi_provider_converted"])
+    .in("event_type", ["multi_provider_viewed", "multi_provider_card_shown", "multi_provider_engaged", "multi_provider_converted"])
     .limit(50000);
   if (from) multiProviderQ = multiProviderQ.gte("created_at", from);
   if (to) multiProviderQ = multiProviderQ.lt("created_at", to);
@@ -632,6 +629,35 @@ async function fetchWindow(
   if (ctaRes.error) return { error: "CTA funnel query failed" };
   if (connectionsRes.error) return { error: "connections query failed" };
 
+  // ── Canonicalize every provider id to one namespace (olera-providers.slug)
+  // BEFORE bucketing. The Provider Comms Funnel intersects the click set
+  // (email_log) with downstream-event sets (provider_activity). email_log
+  // ids resolve via resolveSlugsForRawIds; dashboard-origin activity events
+  // (provider_picker_clicked / provider_profile_edited) write the suffixed
+  // business_profiles.slug. Without a shared key the "Clicked dashboard" /
+  // "Edited profile" columns are structurally ~0 for claimed providers whose
+  // BP slug differs from their OP slug. Resolve raw click ids first, then
+  // canonicalize BOTH sides through one map (idempotent on OP/page slugs, so
+  // the already-correct columns don't move).
+  const rawClickedIds = new Set<string>();
+  for (const r of (commsFunnelRes.data ?? []) as Array<{
+    provider_id: string | null;
+    first_clicked_at: string | null;
+  }>) {
+    if (r.first_clicked_at && r.provider_id) rawClickedIds.add(r.provider_id);
+  }
+  const slugByRawClickedId = await resolveSlugsForRawIds(db, rawClickedIds);
+
+  const canonUniverse = new Set<string>();
+  for (const r of (distinctRes.data ?? []) as Array<{ provider_id: string | null }>) {
+    if (r.provider_id) canonUniverse.add(r.provider_id);
+  }
+  for (const raw of rawClickedIds) {
+    canonUniverse.add(slugByRawClickedId.get(raw) ?? raw);
+  }
+  const canonByKey = await resolveCanonicalProviderKeys(db, canonUniverse);
+  const canon = (id: string): string => canonByKey.get(id) ?? id;
+
   const counts = EMPTY_COUNTS();
   const uniqueSessions = new Set<string>();
   const referrerBreakdown = EMPTY_REFERRER_BREAKDOWN();
@@ -688,15 +714,19 @@ async function fetchWindow(
     event_type: string;
     metadata: Record<string, unknown> | null;
   }>) {
-    const pid = r.provider_id;
-    if (!pid) continue;
+    if (!r.provider_id) continue;
+    const pid = canon(r.provider_id);
     if (r.event_type === "one_click_access") {
       sets.any_signin.add(pid);
       const action = r.metadata?.action;
       if (action === "question") sets.qa_signins.add(pid);
       else if (action === "lead") sets.lead_engagers.add(pid);
     } else if (r.event_type === "claim_completed") {
-      if (r.metadata?.source === "page") sets.page_claims.add(pid);
+      // Count all claims regardless of source. The legacy filter required
+      // source==="page", but the page flow was superseded by instant-claim
+      // (source="instant_claim") and email (source="email"); "page" is
+      // effectively never emitted, so this tile silently read ~0.
+      sets.page_claims.add(pid);
     } else if (r.event_type === "question_responded") {
       sets.question_answerers.add(pid);
     } else if (r.event_type === "analytics_teaser_cta_clicked") {
@@ -851,21 +881,8 @@ async function fetchWindow(
     connections: new Map(),
   };
 
-  // email_log.provider_id is a mix of olera-providers.provider_id (short
-  // codes) and business_profiles.id (UUIDs); provider_activity.provider_id
-  // is slug-only. Without canonicalization the click set lives in a
-  // different namespace from the downstream-event sets and the four
-  // intersections below are ~always empty. Resolve raw → slug once for
-  // the window so the loop adds slugs to clickedByBucket.
-  const rawClickedIds = new Set<string>();
-  for (const r of (commsFunnelRes.data ?? []) as Array<{
-    provider_id: string | null;
-    first_clicked_at: string | null;
-  }>) {
-    if (r.first_clicked_at && r.provider_id) rawClickedIds.add(r.provider_id);
-  }
-  const slugByRawClickedId = await resolveSlugsForRawIds(db, rawClickedIds);
-
+  // rawClickedIds + slugByRawClickedId + canon were computed up-front so the
+  // distinct-event sets above and the click set below share one namespace.
   for (const r of (commsFunnelRes.data ?? []) as Array<{
     email_type: string | null;
     provider_id: string | null;
@@ -890,8 +907,9 @@ async function fetchWindow(
     if (r.first_clicked_at && r.provider_id) {
       // Fall through to raw id when the row's id is already a slug (some
       // older sends wrote slug directly) or doesn't resolve — better to
-      // pass through than drop the row from the click set entirely.
-      const slug = slugByRawClickedId.get(r.provider_id) ?? r.provider_id;
+      // pass through than drop the row from the click set entirely. Then
+      // canon() collapses it to the OP-slug namespace the activity sets use.
+      const slug = canon(slugByRawClickedId.get(r.provider_id) ?? r.provider_id);
       clickedByBucket[bucket].add(slug);
       clickedByBucket.all.add(slug);
       for (const k of [bucket, "all" as const] as ProviderEmailFunnelKey[]) {
@@ -1082,9 +1100,10 @@ async function fetchWindow(
 
   // Multi-provider 6th/7th arms. Lives in provider_activity (anonymous events).
   // Event mapping:
-  //   multi_provider_viewed     → impressions (wrapper mount in arm)
-  //   multi_provider_card_shown → started     (card stack rendered)
-  //   multi_provider_converted  → saved       (email captured)
+  //   multi_provider_viewed     → impressions         (wrapper mount in arm)
+  //   multi_provider_card_shown → started             (card stack rendered)
+  //   multi_provider_engaged    → care_need_completed (first card interaction or expand click)
+  //   multi_provider_converted  → saved               (email captured)
   // Both multi_provider and multi_provider_v2 use the same event types but
   // are distinguished by metadata.variant. V2 events carry "multi_provider_v2".
   for (const r of (multiProviderRes.data ?? []) as Array<{
@@ -1096,6 +1115,7 @@ async function fetchWindow(
     const stage: keyof BenefitsFunnel | undefined =
       r.event_type === "multi_provider_viewed" ? "impressions"
       : r.event_type === "multi_provider_card_shown" ? "started"
+      : r.event_type === "multi_provider_engaged" ? "care_need_completed"
       : r.event_type === "multi_provider_converted" ? "saved"
       : undefined;
     if (!stage) continue;
@@ -1343,119 +1363,73 @@ async function fetchWindow(
     unassigned: buildResponseMetrics(byVariant.unassigned.total, byVariant.unassigned.responded, byVariant.unassigned.times),
   } as ProviderResponseByVariant;
 
-  // ── Conversion Sources Breakdown ────────────────────────────────────────
-  // Categorize conversions by their entry point. Counts UNIQUE SESSIONS.
-  // Sources: connections (CTA flows) + lead_received events (Q&A flows).
-  // Q&A flows don't create connections, so we need to check lead_received events.
-  const conversionSessions: Record<ConversionSourceId, Set<string>> = {
-    legacy: new Set(),
-    guide: new Set(),
-    compare: new Set(),
+  // ── Other Lead Capture Sources ──────────────────────────────────────────
+  // Tracks lead capture entry points that are NOT CTA variants or Q&A
+  // (those are tracked in their own dedicated sections above).
+  // Only includes: Custom Quote, Book Consultation, Message Staff.
+  const leadCaptureSessions: Record<LeadCaptureSourceId, Set<string>> = {
     custom_quote: new Set(),
     book_consultation: new Set(),
     message_host: new Set(),
-    qa_variants: new Set(),
   };
   // Counter for items without session_id (each counts as 1 conversion)
-  let noSessionCounter = 0;
+  let noSessionLeadCaptureCounter = 0;
 
-  // 1. Count from connections (CTA flows: Legacy, Compare, Guide, Lead Capture)
+  // Count only Lead Capture connections (those with entry_point set)
   for (const conn of connections) {
     const meta = conn.metadata ?? {};
-    const ctaVariant = meta.cta_variant as string | undefined;
     const entryPoint = meta.entry_point as string | undefined;
     const sessionId = meta.session_id as string | undefined;
 
-    // Determine which source bucket this connection belongs to
-    let bucket: ConversionSourceId;
+    // Only count Lead Capture sources (skip CTA and Q&A - they're tracked elsewhere)
+    let bucket: LeadCaptureSourceId | null = null;
     if (entryPoint === "custom_quote") {
       bucket = "custom_quote";
     } else if (entryPoint === "book_consultation") {
       bucket = "book_consultation";
     } else if (entryPoint === "message_host") {
       bucket = "message_host";
-    } else if (typeof entryPoint === "string" && entryPoint.startsWith("qa_")) {
-      // Q&A conversions via connection (rare, but possible)
-      bucket = "qa_variants";
-    } else if (ctaVariant === "guide") {
-      bucket = "guide";
-    } else if (ctaVariant === "compare") {
-      bucket = "compare";
-    } else if (ctaVariant === "legacy") {
-      bucket = "legacy";
-    } else {
-      // Connections without tracking default to legacy
-      bucket = "legacy";
     }
+
+    if (!bucket) continue; // Skip CTA and Q&A conversions
 
     // Count by unique session
     if (sessionId) {
-      conversionSessions[bucket].add(sessionId);
+      leadCaptureSessions[bucket].add(sessionId);
     } else {
-      conversionSessions[bucket].add(`__no_session_${noSessionCounter++}`);
-    }
-  }
-
-  // 2. Count Q&A conversions from lead_received events (Q&A doesn't create connections)
-  // Q&A conversions have entry_point starting with "qa_" in lead_received events
-  for (const r of (ctaRes.data ?? []) as Array<{
-    event_type: string;
-    metadata: Record<string, unknown> | null;
-  }>) {
-    if (r.event_type !== "lead_received") continue;
-    const entryPoint = r.metadata?.entry_point as string | undefined;
-    if (typeof entryPoint !== "string" || !entryPoint.startsWith("qa_")) continue;
-
-    const sessionId = r.metadata?.session_id as string | undefined;
-    if (sessionId) {
-      conversionSessions.qa_variants.add(sessionId);
-    } else {
-      conversionSessions.qa_variants.add(`__no_session_qa_${noSessionCounter++}`);
+      leadCaptureSessions[bucket].add(`__no_session_lc_${noSessionLeadCaptureCounter++}`);
     }
   }
 
   // Convert sets to counts
-  const conversionCounts: Record<ConversionSourceId, number> = {
-    legacy: conversionSessions.legacy.size,
-    guide: conversionSessions.guide.size,
-    compare: conversionSessions.compare.size,
-    custom_quote: conversionSessions.custom_quote.size,
-    book_consultation: conversionSessions.book_consultation.size,
-    message_host: conversionSessions.message_host.size,
-    qa_variants: conversionSessions.qa_variants.size,
+  const leadCaptureCounts: Record<LeadCaptureSourceId, number> = {
+    custom_quote: leadCaptureSessions.custom_quote.size,
+    book_consultation: leadCaptureSessions.book_consultation.size,
+    message_host: leadCaptureSessions.message_host.size,
   };
 
-  const conversionTotal = Object.values(conversionCounts).reduce((a, b) => a + b, 0);
+  const leadCaptureTotal = Object.values(leadCaptureCounts).reduce((a, b) => a + b, 0);
 
-  const CONVERSION_SOURCE_LABELS: Record<ConversionSourceId, string> = {
-    legacy: "Legacy CTA",
-    guide: "Guide PDF",
-    compare: "Compare CTA",
+  const LEAD_CAPTURE_SOURCE_LABELS: Record<LeadCaptureSourceId, string> = {
     custom_quote: "Get a Custom Quote",
     book_consultation: "Book a Consultation",
     message_host: "Message Staff",
-    qa_variants: "Q&A Variants",
   };
 
-  // Fixed order: CTA variants first, then entry_point sources
-  const SOURCE_ORDER: ConversionSourceId[] = [
-    "legacy",
-    "guide",
-    "compare",
+  const LEAD_CAPTURE_SOURCE_ORDER: LeadCaptureSourceId[] = [
     "custom_quote",
     "book_consultation",
     "message_host",
-    "qa_variants",
   ];
 
-  const conversionSourcesBreakdown: ConversionSourcesBreakdown = {
-    total: conversionTotal,
-    by_source: SOURCE_ORDER.map((sourceId) => ({
+  const leadCaptureSourcesBreakdown: LeadCaptureSourcesBreakdown = {
+    total: leadCaptureTotal,
+    by_source: LEAD_CAPTURE_SOURCE_ORDER.map((sourceId) => ({
       source_id: sourceId,
-      label: CONVERSION_SOURCE_LABELS[sourceId],
-      count: conversionCounts[sourceId],
-      percent: conversionTotal > 0
-        ? Math.round((conversionCounts[sourceId] / conversionTotal) * 100)
+      label: LEAD_CAPTURE_SOURCE_LABELS[sourceId],
+      count: leadCaptureCounts[sourceId],
+      percent: leadCaptureTotal > 0
+        ? Math.round((leadCaptureCounts[sourceId] / leadCaptureTotal) * 100)
         : 0,
     })),
   };
@@ -1476,7 +1450,7 @@ async function fetchWindow(
     entry_source_breakdown: entrySourceBreakdown,
     provider_response: providerResponse,
     provider_response_by_variant: providerResponseByVariant,
-    conversion_sources_breakdown: conversionSourcesBreakdown,
+    lead_capture_sources_breakdown: leadCaptureSourcesBreakdown,
   };
 }
 
@@ -1562,6 +1536,216 @@ function capitalize(s: string): string {
  * NOTE: botRejects is per-Vercel-lambda-instance (in-memory). Numbers will
  * undercount across regions; acceptable for Phase 0 sanity-check.
  */
+
+// ── Provider Activation ─────────────────────────────────────────────────────
+// The honest "are providers activating" view, deliberately decoupled from the
+// email-click-gated Comms Funnel. Forensic finding (2026-05-16): of every
+// profile editor in a 7d window, 100% were notified by us but ~2/3 never had
+// a click recorded (Apple MPP / proxies / one-click links / verification
+// emails) — so the click-gated funnel structurally undercounts activation
+// ~3x. This panel counts the activation events directly (server-side, not
+// pixel-dependent), un-gated, on a fixed 30d rolling window independent of the
+// page's date picker. It is a count + a named BD feed, NOT an attribution
+// funnel. Claims are counted across ALL sources: the legacy page flow emits
+// source="page" (now effectively dead), the email flow source="email", and
+// the live instant-claim flow source="instant_claim" — the old funnel only
+// matched "page", which is why claims read ~0.
+type ActivationSignal = "claimed" | "edited" | "answered";
+type ActivationFeedRow = {
+  provider_id: string; // canonical (olera-providers.slug space)
+  provider_name: string | null;
+  signal: ActivationSignal;
+  section: string | null; // edit section, when signal === "edited"
+  when: string; // ISO timestamp
+};
+// Distinct providers per ISO week, oldest → newest, for the trend sparklines.
+type ActivationWeeklyPoint = {
+  week_start: string; // ISO date of the week bucket start
+  claimed: number;
+  profile_edits: number;
+  owner_story: number;
+  answered: number;
+};
+type ProviderActivation = {
+  window_days: number;
+  claimed: number;
+  profile_edits: number;
+  owner_story: number;
+  answered: number;
+  prior: { claimed: number; profile_edits: number; owner_story: number; answered: number };
+  section_breakdown: Record<string, number>; // section → distinct providers (current window)
+  weekly: ActivationWeeklyPoint[]; // trailing 12 ISO weeks, oldest → newest
+  feed: ActivationFeedRow[];
+  feed_total: number;
+};
+
+async function fetchProviderActivation(
+  db: ReturnType<typeof getServiceClient>,
+): Promise<ProviderActivation | { error: string }> {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const WINDOW_MS = 30 * DAY_MS;
+  const WEEK_MS = 7 * DAY_MS;
+  const WEEKS = 12;
+  const now = Date.now();
+  const since30 = new Date(now - WINDOW_MS).toISOString();
+  const since60 = new Date(now - 2 * WINDOW_MS).toISOString();
+  const since84 = new Date(now - WEEKS * WEEK_MS).toISOString();
+
+  // One ~12-week scan covers the current (30d) + prior (30–60d) windows AND
+  // the weekly trend sparklines. Volume is low (claims/edits/answers only,
+  // no page_views), so this stays well under the row cap.
+  const { data, error } = await db
+    .from("provider_activity")
+    .select("provider_id, event_type, metadata, created_at")
+    .in("event_type", ["claim_completed", "provider_profile_edited", "question_responded"])
+    .gte("created_at", since84)
+    .order("created_at", { ascending: false })
+    .limit(50000);
+  if (error) return { error: "provider activation query failed" };
+
+  const rows = (data ?? []) as Array<{
+    provider_id: string | null;
+    event_type: string;
+    metadata: Record<string, unknown> | null;
+    created_at: string;
+  }>;
+
+  // Canonicalize so one provider isn't split across id formats (bp.slug vs
+  // op.slug vs UUID) — same helper the Comms Funnel uses post-#834.
+  const rawIds = new Set<string>();
+  for (const r of rows) if (r.provider_id) rawIds.add(r.provider_id);
+  const canonMap = await resolveCanonicalProviderKeys(db, rawIds);
+  const canon = (id: string): string => canonMap.get(id) ?? id;
+
+  const cur = {
+    claimed: new Set<string>(),
+    edits: new Set<string>(),
+    owner: new Set<string>(),
+    answered: new Set<string>(),
+  };
+  const prv = {
+    claimed: new Set<string>(),
+    edits: new Set<string>(),
+    owner: new Set<string>(),
+    answered: new Set<string>(),
+  };
+  const sectionProviders = new Map<string, Set<string>>();
+  // weekIdx 0 = oldest of the 12 weeks, WEEKS-1 = most recent. Distinct
+  // providers per metric per week for the trend sparklines.
+  const weeklySets = Array.from({ length: WEEKS }, () => ({
+    claimed: new Set<string>(),
+    edits: new Set<string>(),
+    owner: new Set<string>(),
+    answered: new Set<string>(),
+  }));
+  const weekIndexOf = (createdAtMs: number): number => {
+    const idx = Math.floor((createdAtMs - (now - WEEKS * WEEK_MS)) / WEEK_MS);
+    return Math.min(WEEKS - 1, Math.max(0, idx));
+  };
+  type RawFeed = { pid: string; signal: ActivationSignal; section: string | null; when: string };
+  const feedRaw: RawFeed[] = [];
+
+  for (const r of rows) {
+    if (!r.provider_id) continue;
+    const pid = canon(r.provider_id);
+    const createdMs = new Date(r.created_at).getTime();
+    const isCurrent = r.created_at >= since30;
+    // bucket is current (<30d), prior (30–60d), or null for 60–84d rows —
+    // those only feed the 12-week sparkline, never the KPI/delta counts.
+    const bucket = isCurrent ? cur : r.created_at >= since60 ? prv : null;
+    const wk = weeklySets[weekIndexOf(createdMs)];
+    if (r.event_type === "claim_completed") {
+      bucket?.claimed.add(pid);
+      wk.claimed.add(pid);
+      if (isCurrent) feedRaw.push({ pid, signal: "claimed", section: null, when: r.created_at });
+    } else if (r.event_type === "provider_profile_edited") {
+      bucket?.edits.add(pid);
+      wk.edits.add(pid);
+      const section =
+        typeof r.metadata?.section === "string" ? (r.metadata.section as string) : null;
+      if (section === "owner") {
+        bucket?.owner.add(pid);
+        wk.owner.add(pid);
+      }
+      if (isCurrent) {
+        if (section) {
+          if (!sectionProviders.has(section)) sectionProviders.set(section, new Set());
+          sectionProviders.get(section)!.add(pid);
+        }
+        feedRaw.push({ pid, signal: "edited", section, when: r.created_at });
+      }
+    } else if (r.event_type === "question_responded") {
+      bucket?.answered.add(pid);
+      wk.answered.add(pid);
+      if (isCurrent) feedRaw.push({ pid, signal: "answered", section: null, when: r.created_at });
+    }
+  }
+
+  // Human-readable names for the feed (olera-providers first, then BP).
+  const feedPids = [...new Set(feedRaw.map((f) => f.pid))];
+  const nameByPid = new Map<string, string>();
+  for (let i = 0; i < feedPids.length; i += 200) {
+    const chunk = feedPids.slice(i, i + 200);
+    const { data: opn } = await db
+      .from("olera-providers")
+      .select("slug, provider_name")
+      .in("slug", chunk);
+    for (const n of (opn ?? []) as Array<{ slug: string | null; provider_name: string | null }>) {
+      if (n.slug && n.provider_name) nameByPid.set(n.slug, n.provider_name);
+    }
+  }
+  const stillUnnamed = feedPids.filter((p) => !nameByPid.has(p));
+  for (let i = 0; i < stillUnnamed.length; i += 200) {
+    const chunk = stillUnnamed.slice(i, i + 200);
+    const { data: bpn } = await db
+      .from("business_profiles")
+      .select("slug, display_name")
+      .in("slug", chunk);
+    for (const b of (bpn ?? []) as Array<{ slug: string | null; display_name: string | null }>) {
+      if (b.slug && b.display_name) nameByPid.set(b.slug, b.display_name);
+    }
+  }
+
+  feedRaw.sort((a, b) => b.when.localeCompare(a.when));
+  const FEED_CAP = 60;
+  const feed: ActivationFeedRow[] = feedRaw.slice(0, FEED_CAP).map((f) => ({
+    provider_id: f.pid,
+    provider_name: nameByPid.get(f.pid) ?? null,
+    signal: f.signal,
+    section: f.section,
+    when: f.when,
+  }));
+
+  const section_breakdown: Record<string, number> = {};
+  for (const [sec, set] of sectionProviders) section_breakdown[sec] = set.size;
+
+  const weekly: ActivationWeeklyPoint[] = weeklySets.map((wk, i) => ({
+    week_start: new Date(now - (WEEKS - i) * WEEK_MS).toISOString().slice(0, 10),
+    claimed: wk.claimed.size,
+    profile_edits: wk.edits.size,
+    owner_story: wk.owner.size,
+    answered: wk.answered.size,
+  }));
+
+  return {
+    window_days: 30,
+    claimed: cur.claimed.size,
+    profile_edits: cur.edits.size,
+    owner_story: cur.owner.size,
+    answered: cur.answered.size,
+    prior: {
+      claimed: prv.claimed.size,
+      profile_edits: prv.edits.size,
+      owner_story: prv.owner.size,
+      answered: prv.answered.size,
+    },
+    section_breakdown,
+    weekly,
+    feed,
+    feed_total: feedRaw.length,
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthUser();
@@ -1593,7 +1777,7 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [windowedRes, priorRes, last7dViewsRes, latestRes] = await Promise.all([
+    const [windowedRes, priorRes, last7dViewsRes, latestRes, activationRes] = await Promise.all([
       fetchWindow(db, windowFrom, windowTo),
       priorFrom ? fetchWindow(db, priorFrom, priorTo) : Promise.resolve(null),
       // Top providers: 7d page_views only, anonymous (session_id present).
@@ -1609,6 +1793,8 @@ export async function GET(request: NextRequest) {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(50),
+      // Provider Activation panel — own fixed 30d window, click-gate-free.
+      fetchProviderActivation(db),
     ]);
 
     if ("error" in windowedRes) {
@@ -1627,6 +1813,13 @@ export async function GET(request: NextRequest) {
       console.error("[admin/analytics/summary] latest rows query failed:", latestRes.error);
       return NextResponse.json({ error: "Failed to load latest events" }, { status: 500 });
     }
+
+    if ("error" in activationRes) {
+      console.error("[admin/analytics/summary] activation fetch failed:", activationRes.error);
+      // Non-fatal — the rest of the page still renders without the panel.
+    }
+    const activation: ProviderActivation | null =
+      activationRes && !("error" in activationRes) ? activationRes : null;
 
     const prior: WindowResult | null = priorRes && !("error" in priorRes) ? priorRes : null;
 
@@ -1708,7 +1901,7 @@ export async function GET(request: NextRequest) {
         entry_source_breakdown: windowedRes.entry_source_breakdown,
         provider_response: windowedRes.provider_response,
         provider_response_by_variant: windowedRes.provider_response_by_variant,
-        conversion_sources_breakdown: windowedRes.conversion_sources_breakdown,
+        lead_capture_sources_breakdown: windowedRes.lead_capture_sources_breakdown,
       },
       prior: prior
         ? {
@@ -1727,12 +1920,13 @@ export async function GET(request: NextRequest) {
             entry_source_breakdown: prior.entry_source_breakdown,
             provider_response: prior.provider_response,
             provider_response_by_variant: prior.provider_response_by_variant,
-            conversion_sources_breakdown: prior.conversion_sources_breakdown,
+            lead_capture_sources_breakdown: prior.lead_capture_sources_breakdown,
           }
         : null,
       insight,
       botRejects,
       topProviders,
+      provider_activation: activation,
       latestEvents: latestRes.data ?? [],
     });
   } catch (err) {

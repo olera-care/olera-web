@@ -7,6 +7,66 @@
 
 ## Current Focus
 
+### 2026-05-16 (Fri) — Care Shifts staging arc: #824 review → #832 cleanup → #833 deletion → #838 mobile triage (all merged to staging)
+
+**Context:** Chantel's combined care-shifts work (PR #824, ~15K lines, mostly hardcoded mock) was reviewed and merged to staging per the morning CareShifts Demo meeting (merge-first, integrate-later; keep siloed). Then a multi-PR reconciliation:
+
+- **#824 merged** (`cefe9862`-prior). Family-facing browse + student landing + caregiver dashboards/care-log/apply. Architecture map + lead-loss caveats in Notion PR-merge reports.
+- **#832 merged** — restored the live family-portal nav that #824's `Navbar.tsx`/`LayoutShell.tsx` dev-branch artifacts had silently swapped for mocked caregiver surfaces; added paired footer previews; resurrected the orphaned families waitlist landing (`/care-shifts/families`, from PR #674).
+- **#833 merged** (`ae196479`) — `/pre-test` caught the resurrected waitlist writing to a **nonexistent `care_shifts_waitlist` table** (real table is `feature_waitlist {feature,email,...}`) with a non-functional "fallback" → 100% lead loss. TJ's product call: family front door is `/care-shifts` (the browse, "Compassionate care, half the cost"), **not** a waitlist. So the page was *deleted* (kills build break + lead-loss + redundancy at the root). Footer "Hire a caregiver (preview)" → `/care-shifts`. Resolved a delete/modify conflict from #835's scope-bleed (a CTA-tracking PR that bundled an unrelated `lucide-react` dep + families-page edit).
+- **#838 merged** (`9b16ce47`) — `/mobilize` triage of `/care-shifts`. Page had **zero mobile-first breakpoints** (3,510 lines, `sm:`/`md:` = 0). Fixed: full-width hero, headline `display-md→sm:lg→lg:xl`, `<br/>` now `lg:`-only, single-column card grid, two-pane stacks on mobile, side-panel `hidden lg:block`, filter pill `flex w-full` (was `inline-flex` clipping) + icon-only search + viewport-capped dropdowns. +19/−19, every change `sm:`/`lg:`-guarded so desktop is byte-identical. TJ confirmed good on staging.
+
+**Decisions made:**
+- **Family front door = `/care-shifts`** (the browse), not a pre-launch waitlist. Waitlist work preserved on `care-shift-lead` branch / PR #674 if ever wanted.
+- **Care Shifts is a volatile early mockup** — TJ: "might look entirely different in a week, don't over-optimize." Triage-level only until it stabilizes. Saved to memory (`feedback_care_shifts_mockup_dont_overoptimize.md`). Do NOT proactively push the deferred full structural mobilize.
+- Merge-to-staging is the verification surface for mobile work (staging IS the QA preview); merge-then-eyeball legitimate for staging, not main.
+
+**Team notified:** posted staging landing-page links to `#ai-product-development` (footer-under-Company location, siloed framing, pre-empted mobile caveat).
+
+**Notion:** three PR-merge reports filed (#832, #833, #838) under PR Merge Reports.
+
+**Resume next session here →** (1) Care-shifts is parked at triage — don't deepen unless TJ asks. (2) **Deferred, not lost:** full structural mobilize (card→full-screen profile, sticky Connect, bottom-sheet filters, 48px tap targets, `dvh`); remove now-unused `lucide-react` from package.json (#835 scope-bleed cruft, needs lockfile regen in a working npm env); pre-main-promotion safeguards PR (noindex/robots/password-gate before staging→main); close PR #674 (waitlist source) + #778 (superseded by #824), decide #675 (provider banner). (3) Esther owns inbox-integration assessment per the meeting; Chantel ~60% on care-shifts ops planning.
+---
+
+### 2026-05-15→16 (Fri–Sat) — Weekly digest reliability + Provider Activation panel/redesign/drill + page-views counter fix (PR #834 merged, PR #840 open)
+
+Long session, three connected threads. All on shared file `app/api/admin/analytics/summary/route.ts` — sequenced deliberately to avoid stacking semantic rewrites.
+
+**Thread 1 — Weekly digest hardening before Monday's full-pool auto-fire (PR #834 `warm-gates` → staging, MERGED 2026-05-16 via admin-bypass, staging `3a2bd172`).**
+- **Unclaimed-provider unsubscribes never persisted.** `app/api/providers/unsubscribe/route.ts` olera-providers branch wrote to a non-existent `metadata` column = silent no-op; providers saw the confirmation page but kept getting the digest. Fix: new `supabase/migrations/084_provider_unsubscribes.sql` (email-keyed `(email,channel)` table). Digest pre-fetches it (`app/api/cron/weekly-provider-digest/route.ts`) and ORs into the existing opt-out gate. Pre-test caught a silent 1000-row Supabase default-limit truncation → added explicit `.limit(100000)`.
+- **Digest never stamped `email_log.provider_id`** → 100% of `weekly_analytics_digest` rows had `provider_id=null` → Comms Funnel weekly_digest column structurally 0 despite 44 answerers/14d. Fix: stamp the loop `providerId` in the sendEmail call.
+- **Comms-funnel namespace split**: dashboard events use suffixed `business_profiles.slug`; digest/email_log + `question_responded` use `olera-providers.slug`. Added `resolveCanonicalProviderKeys` to `lib/provider-id-variants.ts`, applied symmetrically to both sides of the funnel intersection in summary route.
+- **Backfill (already run against prod, irreversible-but-additive):** `scripts/backfill-digest-email-log-provider-id.js` repaired 2,281 NULL rows. Verified 0 NULL remaining, 401 clicks now attributable, weekly_digest "Answered" 0→32. Reconciled via two independent forensics.
+- Migration 084 applied in Supabase by TJ + verified (CHECK enforced, upsert/conflict/delete round-trip). `/pr-merge` Phase 6 Notion report filed (PR Merge Reports, page `3625903a-0ffe-8186-8c86-e16f03e3a285`).
+
+**Thread 2 — Diagnosed why activation looks like ~0.** Forensic over 7d profile editors: **100% were notified by us, but ~2/3 never registered a tracked click** (Apple MPP / proxies / one-click links / verification emails). The Comms Funnel gates every downstream metric on `email_log.first_clicked_at`, so it structurally undercounts activation ~3x. Also found `claim_completed` had THREE emitters (`claim-listing`→`source:"page"`, `claim/finalize`→`"email"`, `claim-instant`→`"instant_claim"`); the page flow is dead, so the funnel's `source==="page"` filter made **104 claims/30d 100% invisible**.
+
+**Thread 3 — Provider Activation panel (PR #840 `provider-activation-panel` → staging, OPEN).**
+- New `fetchProviderActivation()` in summary route: un-gated 30d-rolling distinct counts (Claimed / Profile edits / Answered / Owner story) + prior-30d + section breakdown + named BD feed (cap 60), canonicalized via the #834 helper. Wired into the GET `Promise.all` + `provider_activation` response field; non-fatal on error.
+- New `ProviderActivationCard` in `app/admin/analytics/page.tsx`, collapsible section placed ABOVE Provider Comms Funnel. Tile order (TJ's call): Claimed | Profile edits | Answered | **Owner story added** (high-intent, amber emphasis slot). Progressive disclosure: feed expander + "See section breakdown".
+- Fixed the dead `page_claims` filter (now counts all claim sources); relabeled the existing "Page-flow claims" tile → "Claimed". Verified isolated — `pickInsight` doesn't read it, no funnel/composite regression.
+- Verified against prod: Claimed 104, Owner story 4, Answered 85, 9 distinct editors — reconcile with the forensic. Type-check 0 errors.
+- Pre-test caught + fixed: feed expander over-promised ("See all 284" but only 60 sent) → relabeled "Show 60 most recent (of 284)".
+
+**Decisions made (with why):**
+- Email-keyed `provider_unsubscribes` (not slug) — digest dedupes recipients by email; one unsubscribe must cover all id variants.
+- Backfill resolves email→`olera-providers.slug` table-direct, NOT by reconstructing the open-questions audience — that filter excludes providers who already answered, i.e. exactly the converters we most need to attribute.
+- Provider Activation is a SEPARATE un-gated panel, not a patch to the click-gated funnel. Backward-attribution rebuild of the Comms Funnel **deliberately deferred** (larger; would stack a 3rd semantic rewrite on the same file as #834/#837).
+- Omitted "last email touched" feed column in v1 — re-enters the email↔provider identity fragility this session just fixed; feed is BD-actionable without it.
+- Merged #834 via documented admin-bypass (TJ sole `merge-admins` bypass actor; standard merge correctly blocked by ruleset).
+
+**Continued 2026-05-16 — PR #840 grew through a design loop (all pushed, branch `provider-activation-panel`):**
+- **Page-views counter fixed** (`app/api/admin/analytics/views/stats/route.ts`): was pinned at exactly 10,000 — row-fetch + JS count hit PostgREST's `max-rows` ceiling, which overrides even `.limit(50000)`. Real value ~19,235. Now `count:exact/head:true` for KPI (uncapped) + paginated/bounded series. Same silent-truncation class as the digest/funnel bugs.
+- **Activation panel reframed BD→health-read** (TJ: "we're feeling out usage to inform product, not working a call list"). Went through `~/Desktop/olera-hq/docs/Design Inspirations` (Perena, Wispr). Killed both explainer blocks + amber-as-warning; 4 stats are the typographic hero each with a 12-week distinct-provider **sparkline**; section breakdown promoted to always-on ("What they're editing"); feed demoted to a calm borderless chronological strip (no dedupe/high-intent — repeated multi-section edits are a *useful* usage pattern in a health read). Removed the BD-only `high_intent` field.
+- Pre-test caught a regression I introduced: extending the scan 60d→84d (for sparklines) made the prior bucket catch 30–84d instead of 30–60d → would corrupt every delta % as data ages. Fixed: `prv` strictly 30–60d; 60–84d feeds only the sparkline.
+- **Cohort drill-down** (new `app/api/admin/analytics/activation-drill/route.ts` + `ActivationDrillModal` in page.tsx): the 4 KPI tiles are clickable → modal listing the distinct providers behind that metric, reusing the analytics `DateRangePopover` (full presets + custom + specific-date, defaults 30d so it reconciles with the tile, widen freely). Owner-stories drill = the owner-section editors (TJ's original ask). Summary panel stays fixed-30d; drill is the separate flexible-range surface. Verified vs prod: 30d == tiles (104/10/85/4), all-time widens (answered 85→107).
+
+**Decisions added:** summary vs detail are different intents — never share a window (summary fixed-30d health read; drill range-parameterized investigative). Reuse `DateRangePopover` not `/admin/activity` (latter's `?days=N` is a weaker control + wrong framing = forcing it). Drill is study/understand, not outbound (no contact/export affordances).
+
+**Resume next session here →** (1) QA PR #840 on staging end-to-end (`/admin/analytics` → expand "Provider Activation": sparklines render, "What they're editing" visible, feed calm/borderless, click each of 4 KPI tiles → drill modal opens, date picker widens past 30d, owner-stories shows the owner editors; Comms Funnel + page-views counter unregressed). (2) Promote #840 staging→main after bake. (3) **Monday 2026-05-18 13:00 UTC**: weekly-provider-digest auto-cron fires `?limit=2000` to full reachable pool — should run clean with #834's unsubscribe persistence + providerId stamp live (migration 084 in prod). Watch `/admin/automations` + complaint rate. (4) Open Q for TJ: two "Claimed" numbers (windowed-strip vs 30d panel) — intentional, both tooltipped; reconcile only if it bugs him. (5) Deferred: backward-attribution rebuild of the Comms Funnel.
+
+---
+
 ### 2026-05-14 (Thu) — Admin "Delete Provider" cascade fix (PR #820, tested, ready to merge)
 
 **Bug TJ surfaced from teammates:** deleting a provider via `/admin/directory` removed it from the admin UI but it kept appearing on city pages and provider detail pages. Audit traced it: admin PATCH only set `olera-providers.deleted=true`, leaving linked `business_profiles` rows fully active. Two read paths kept serving the listing:

@@ -265,6 +265,7 @@ export async function GET(request: NextRequest) {
       // summary route:
       //   multi_provider_viewed     → impression
       //   multi_provider_card_shown → started
+      //   multi_provider_engaged    → care_need (displayed as "Engaged" in UI)
       //   multi_provider_converted  → submitted
       // Submitter email is on the _converted event metadata directly
       // (capture flow stores it before/with the activity insert).
@@ -274,6 +275,7 @@ export async function GET(request: NextRequest) {
         .in("event_type", [
           "multi_provider_viewed",
           "multi_provider_card_shown",
+          "multi_provider_engaged",
           "multi_provider_converted",
         ])
         .order("created_at", { ascending: false })
@@ -304,6 +306,7 @@ export async function GET(request: NextRequest) {
         const stage: VariantSessionRow["furthest_stage"] | null =
           row.event_type === "multi_provider_viewed" ? "impression"
           : row.event_type === "multi_provider_card_shown" ? "started"
+          : row.event_type === "multi_provider_engaged" ? "care_need"
           : row.event_type === "multi_provider_converted" ? "submitted"
           : null;
         if (!stage) continue;

@@ -4,7 +4,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import PulseHeader from "@/components/admin/PulseHeader";
-import {
+import DateRangePopover, {
   resolveRange,
   rangeLabel,
   type DateRangeValue,
@@ -204,27 +204,23 @@ interface EntrySourceBreakdown {
   top_editorial_articles: Array<{ slug: string; count: number }>;
 }
 
-// Conversion sources breakdown — tracks which of the 7 conversion entry points
-// performs best. Uses connection metadata (cta_variant, entry_point) to classify.
-type ConversionSourceId =
-  | "legacy_connect"
-  | "compare"
-  | "guide"
+// Lead Capture Sources — tracks sources not covered by CTA Variants or Q&A:
+// Custom Quote, Book a Consultation, Message Staff.
+type LeadCaptureSourceId =
   | "custom_quote"
   | "book_consultation"
-  | "message_host"
-  | "qa_variants";
+  | "message_host";
 
-interface ConversionSourceRow {
-  source_id: ConversionSourceId;
+interface LeadCaptureSourceRow {
+  source_id: LeadCaptureSourceId;
   label: string;
   count: number;
   percent: number;
 }
 
-interface ConversionSourcesBreakdown {
+interface LeadCaptureSourcesBreakdown {
   total: number;
-  by_source: ConversionSourceRow[];
+  by_source: LeadCaptureSourceRow[];
 }
 
 interface SummaryResponse {
@@ -245,7 +241,7 @@ interface SummaryResponse {
     entry_source_breakdown: EntrySourceBreakdown;
     provider_response: ProviderResponseMetrics;
     provider_response_by_variant: ProviderResponseByVariant;
-    conversion_sources_breakdown: ConversionSourcesBreakdown;
+    lead_capture_sources_breakdown: LeadCaptureSourcesBreakdown;
   };
   prior: {
     counts: WindowedCounts;
@@ -263,7 +259,7 @@ interface SummaryResponse {
     entry_source_breakdown: EntrySourceBreakdown;
     provider_response: ProviderResponseMetrics;
     provider_response_by_variant: ProviderResponseByVariant;
-    conversion_sources_breakdown: ConversionSourcesBreakdown;
+    lead_capture_sources_breakdown: LeadCaptureSourcesBreakdown;
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -274,6 +270,30 @@ interface SummaryResponse {
     unique_sessions_7d: number;
     last_seen: string;
   }>;
+  provider_activation: {
+    window_days: number;
+    claimed: number;
+    profile_edits: number;
+    owner_story: number;
+    answered: number;
+    prior: { claimed: number; profile_edits: number; owner_story: number; answered: number };
+    section_breakdown: Record<string, number>;
+    weekly: Array<{
+      week_start: string;
+      claimed: number;
+      profile_edits: number;
+      owner_story: number;
+      answered: number;
+    }>;
+    feed: Array<{
+      provider_id: string;
+      provider_name: string | null;
+      signal: "claimed" | "edited" | "answered";
+      section: string | null;
+      when: string;
+    }>;
+    feed_total: number;
+  } | null;
   latestEvents: Array<{
     id: string;
     provider_id: string;
@@ -383,6 +403,15 @@ export default function AdminAnalyticsPage() {
       </CollapsibleSection>
 
       <CollapsibleSection
+        title="Provider Activation (last 30 days)"
+        storageKey="providerActivation"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <ProviderActivationCard summary={summary} loading={loading} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
         title="Provider Comms Funnel"
         storageKey="providerCommsFunnel"
         defaultCollapsed={true}
@@ -424,12 +453,12 @@ export default function AdminAnalyticsPage() {
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Conversion Sources"
-        storageKey="conversionSources"
+        title="Other Lead Capture Sources"
+        storageKey="leadCaptureSources"
         defaultCollapsed={true}
         loading={loading && !!summary}
       >
-        <ConversionSourcesCard summary={summary} loading={loading} range={range} />
+        <LeadCaptureSourcesCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -660,10 +689,10 @@ function WindowedCard({
                 tooltip="Distinct providers who clicked through a question-notification email and auto-signed in."
               />
               <Stat
-                label="Page-flow claims"
+                label="Claimed"
                 value={summary.windowed.provider_distinct_counts.page_claims}
                 prior={summary.prior?.provider_distinct_counts.page_claims ?? null}
-                tooltip="Distinct providers who claimed their listing from a public provider page (not from email)."
+                tooltip="Distinct providers who claimed their listing in this window (any source — email, instant-claim, or legacy page flow)."
               />
               <Stat
                 label="Answered questions"
@@ -949,6 +978,358 @@ type ProviderCommsFilterKey = keyof ProviderCommsFunnelByType;
 
 function isCommsFilterKey(s: string | null): s is ProviderCommsFilterKey {
   return !!s && (PROVIDER_EMAIL_FUNNEL_ORDER as readonly string[]).includes(s);
+}
+
+function Sparkline({ points, className = "" }: { points: number[]; className?: string }) {
+  const w = 60;
+  const h = 16;
+  const pad = 1.5;
+  if (points.length < 2) return <div style={{ width: w, height: h }} className={className} />;
+  const max = Math.max(...points);
+  const min = Math.min(...points);
+  const span = max - min || 1;
+  const stepX = (w - pad * 2) / (points.length - 1);
+  const d = points
+    .map((p, i) => {
+      const x = pad + i * stepX;
+      const y = pad + (h - pad * 2) * (1 - (p - min) / span);
+      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  return (
+    <svg width={w} height={h} className={className} aria-hidden="true">
+      <path
+        d={d}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+type DrillMetric = "claimed" | "profile_edits" | "answered" | "owner_story";
+type DrillProvider = {
+  provider_id: string;
+  provider_name: string | null;
+  last_at: string;
+  count: number;
+  sections: string[];
+};
+
+function ActivationDrillModal({
+  metric,
+  label,
+  onClose,
+}: {
+  metric: DrillMetric;
+  label: string;
+  onClose: () => void;
+}) {
+  const [range, setRangeState] = useState<DateRangeValue>({
+    preset: "30d",
+    customFrom: "",
+    customTo: "",
+  });
+  const [providers, setProviders] = useState<DrillProvider[]>([]);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const LIMIT = 50;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  // Changing range resets pagination; offset changes append.
+  const setRange = useCallback((next: DateRangeValue) => {
+    setRangeState(next);
+    setOffset(0);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+    const { from, to } = resolveRange(range);
+    const params = new URLSearchParams({
+      metric,
+      offset: String(offset),
+      limit: String(LIMIT),
+    });
+    if (from) params.set("date_from", from);
+    if (to) params.set("date_to", to);
+    fetch(`/api/admin/analytics/activation-drill?${params.toString()}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((data) => {
+        if (cancelled) return;
+        setProviders((prev) =>
+          offset === 0 ? data.providers : [...prev, ...data.providers],
+        );
+        setTotal(data.total);
+        setHasMore(data.has_more);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setError(true);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [metric, range, offset]);
+
+  const detailText = (p: DrillProvider): string => {
+    if (metric === "profile_edits" || metric === "owner_story") {
+      return p.sections.length > 0 ? p.sections.join(", ") : "profile";
+    }
+    return p.count > 1 ? `×${p.count}` : "";
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-gray-900/30 backdrop-blur-[1px] p-4 sm:p-8 overflow-y-auto"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-2xl bg-white rounded-2xl shadow-xl mt-8 mb-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-gray-50">
+          <div>
+            <div className="text-base font-semibold text-gray-900">{label}</div>
+            <div className="text-xs text-gray-400 mt-0.5">
+              {loading && providers.length === 0
+                ? "Loading…"
+                : `${total.toLocaleString()} provider${total === 1 ? "" : "s"} · ${rangeLabel(range)}`}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <DateRangePopover value={range} onChange={setRange} />
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="text-gray-400 hover:text-gray-700 text-xl leading-none px-1"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
+          {error ? (
+            <p className="text-sm text-gray-400 py-8 text-center">
+              Couldn&apos;t load this cohort. Try again.
+            </p>
+          ) : loading && providers.length === 0 ? (
+            <div className="space-y-2 py-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-8 rounded bg-gray-50 animate-pulse" />
+              ))}
+            </div>
+          ) : providers.length === 0 ? (
+            <p className="text-sm text-gray-400 py-8 text-center">
+              No providers in this range.
+            </p>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {providers.map((p, i) => (
+                <div
+                  key={`${p.provider_id}-${i}`}
+                  className="flex items-baseline justify-between gap-4 py-2.5"
+                >
+                  <Link
+                    href={`/admin/directory/${p.provider_id}`}
+                    className="text-[15px] text-gray-800 hover:text-teal-700 transition-colors truncate"
+                  >
+                    {p.provider_name ?? p.provider_id}
+                  </Link>
+                  <div className="flex items-baseline gap-4 shrink-0">
+                    {detailText(p) && (
+                      <span className="text-sm text-gray-500">{detailText(p)}</span>
+                    )}
+                    <span
+                      className="text-xs tabular-nums text-gray-400 w-14 text-right"
+                      title={new Date(p.last_at).toLocaleString()}
+                    >
+                      {timeAgoShort(p.last_at)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {hasMore && !loading && (
+            <button
+              onClick={() => setOffset((o) => o + LIMIT)}
+              className="mt-3 text-xs text-gray-500 hover:text-teal-700 transition-colors"
+            >
+              Show more
+            </button>
+          )}
+          {loading && providers.length > 0 && (
+            <p className="mt-3 text-xs text-gray-400">Loading…</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProviderActivationCard({
+  summary,
+  loading,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const [drill, setDrill] = useState<{ metric: DrillMetric; label: string } | null>(null);
+
+  if (loading && !summary) {
+    return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
+  }
+  if (!summary) return null;
+
+  const a = summary.provider_activation;
+  if (!a) {
+    return (
+      <p className="text-sm text-gray-400">
+        Provider activation not available in this response — server may be on an older deploy.
+      </p>
+    );
+  }
+
+  const tiles: Array<{
+    metric: DrillMetric;
+    label: string;
+    value: number;
+    prior: number;
+    series: number[];
+  }> = [
+    { metric: "claimed", label: "Claimed", value: a.claimed, prior: a.prior.claimed, series: a.weekly.map((w) => w.claimed) },
+    { metric: "profile_edits", label: "Profile edits", value: a.profile_edits, prior: a.prior.profile_edits, series: a.weekly.map((w) => w.profile_edits) },
+    { metric: "answered", label: "Answered", value: a.answered, prior: a.prior.answered, series: a.weekly.map((w) => w.answered) },
+    { metric: "owner_story", label: "Owner stories", value: a.owner_story, prior: a.prior.owner_story, series: a.weekly.map((w) => w.owner_story) },
+  ];
+
+  const signalLabel = (s: "claimed" | "edited" | "answered", section: string | null): string => {
+    if (s === "claimed") return "Claimed listing";
+    if (s === "answered") return "Answered a question";
+    return section ? `Edited · ${section}` : "Edited profile";
+  };
+
+  const visible = showAll ? a.feed : a.feed.slice(0, 8);
+  const sections = Object.entries(a.section_breakdown).sort((x, y) => y[1] - x[1]);
+
+  return (
+    <div className="space-y-7">
+      <p className="text-xs text-gray-400">
+        Distinct providers acting on their listing, server-side. Fixed {a.window_days}-day
+        window — independent of the date filter above; activation is low-volume, a stable
+        window keeps the trend readable.
+      </p>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-6">
+        {tiles.map((t) => (
+          <button
+            key={t.label}
+            type="button"
+            onClick={() => setDrill({ metric: t.metric, label: t.label })}
+            className="group text-left rounded-lg -m-1.5 p-1.5 hover:bg-gray-50/70 transition-colors"
+            title={`See the providers behind "${t.label}"`}
+          >
+            <Stat label={t.label} value={t.value} prior={t.prior} />
+            <Sparkline
+              points={t.series}
+              className="text-teal-600/45 group-hover:text-teal-600/70 transition-colors mt-3"
+            />
+          </button>
+        ))}
+      </div>
+
+      {sections.length > 0 && (
+        <div>
+          <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-2.5">
+            What they&apos;re editing
+          </div>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            {sections.map(([sec, n]) => (
+              <span key={sec} className="text-gray-700">
+                <span className="tabular-nums font-medium">{n}</span>{" "}
+                <span className="text-gray-400">{sec}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-3">
+          Recent activity
+        </div>
+        {a.feed.length === 0 ? (
+          <p className="text-sm text-gray-400">No activation in window.</p>
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {visible.map((r, i) => (
+              <div
+                key={`${r.provider_id}-${r.when}-${i}`}
+                className="flex items-baseline justify-between gap-4 py-2.5"
+              >
+                <Link
+                  href={`/admin/directory/${r.provider_id}`}
+                  className="text-[15px] text-gray-800 hover:text-teal-700 transition-colors truncate"
+                >
+                  {r.provider_name ?? r.provider_id}
+                </Link>
+                <div className="flex items-baseline gap-4 shrink-0">
+                  <span className="text-sm text-gray-500">
+                    {signalLabel(r.signal, r.section)}
+                  </span>
+                  <span
+                    className="text-xs tabular-nums text-gray-400 w-14 text-right"
+                    title={new Date(r.when).toLocaleString()}
+                  >
+                    {timeAgoShort(r.when)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {a.feed.length > 8 && (
+          <button
+            onClick={() => setShowAll((v) => !v)}
+            className="mt-3 text-xs text-gray-500 hover:text-teal-700 transition-colors"
+          >
+            {showAll
+              ? "Show less"
+              : a.feed_total > a.feed.length
+                ? `Show ${a.feed.length} more recent (of ${a.feed_total})`
+                : `Show all ${a.feed.length}`}
+          </button>
+        )}
+      </div>
+
+      {drill && (
+        <ActivationDrillModal
+          metric={drill.metric}
+          label={drill.label}
+          onClose={() => setDrill(null)}
+        />
+      )}
+    </div>
+  );
 }
 
 function ProviderCommsFunnelCard({
@@ -1576,10 +1957,10 @@ function BenefitsVariantSplit({
     { key: "availability" as const, label: "availability", description: "There's help paying for care in {state}." },
     { key: "loss" as const, label: "loss", description: "Most {state} families miss out on help paying for care." },
     { key: "empathic" as const, label: "empathic (single-step D)", description: "Single-step capture w/ value preview. Question-anchored copy." },
-    { key: "outreach" as const, label: "outreach", description: "Our care team gets pricing, availability, and how to start from the top providers — in one email.", isOutreach: true },
-    { key: "qa_email_capture" as const, label: "qa_email_capture", description: "No SBF / no outreach. Q&A enrichment ON with comparison-providers value-promise.", isOutreach: true },
-    { key: "multi_provider" as const, label: "multi_provider", description: "Tinder-style card stack — send question to multiple similar providers.", isOutreach: true },
-    { key: "multi_provider_v2" as const, label: "multi_provider_v2", description: "Email-first variant — shows email capture immediately after first question, optional card stack expansion.", isOutreach: true },
+    { key: "outreach" as const, label: "outreach", description: "Our care team gets pricing, availability, and how to start from the top providers — in one email.", skipEngaged: true },
+    { key: "qa_email_capture" as const, label: "qa_email_capture", description: "No SBF / no outreach. Q&A enrichment ON with comparison-providers value-promise.", skipEngaged: true },
+    { key: "multi_provider" as const, label: "multi_provider", description: "Tinder-style card stack — send question to multiple similar providers." },
+    { key: "multi_provider_v2" as const, label: "multi_provider_v2", description: "Email-first variant — shows email capture immediately after first question, optional card stack expansion." },
   ];
   // Legacy V2 arms only render when they have data in the window — once the
   // historical window rolls past V2, these rows disappear automatically.
@@ -1624,13 +2005,13 @@ function BenefitsVariantSplit({
               <th className="px-3 py-2 font-medium">Variant</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Impressions</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Started</th>
-              <th className="px-3 py-2 font-medium tabular-nums text-right">Care need ✓</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Engaged / Care Need</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Submitted</th>
               <th className="px-3 py-2 font-medium tabular-nums text-right">Conversion</th>
             </tr>
           </thead>
           <tbody>
-            {activeArms.map(({ key, label, description, isOutreach }) => {
+            {activeArms.map(({ key, label, description, skipEngaged }) => {
               const r = byVariant[key];
               const isExpanded = expandedVariant === key;
               return (
@@ -1666,9 +2047,9 @@ function BenefitsVariantSplit({
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.impressions}</td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.started}</td>
-                    {/* Outreach arm has no middle "care need" step — show — instead of 0. */}
+                    {/* Outreach/qa_email_capture have no engaged step — show — instead of 0. */}
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">
-                      {isOutreach ? <span className="text-gray-300">—</span> : r.care_need_completed}
+                      {skipEngaged ? <span className="text-gray-300">—</span> : r.care_need_completed}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.saved}</td>
                     <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.saved, r.impressions)}</td>
@@ -2177,10 +2558,10 @@ function CTAVariantSplit({
   );
 }
 
-// ── Conversion Sources ─────────────────────────────────────────────────────
-// Tracks which of the 7 conversion entry points performs best. Uses connection
-// metadata (cta_variant, entry_point) to classify leads by source.
-function ConversionSourcesCard({
+// ── Other Lead Capture Sources ────────────────────────────────────────────────
+// Tracks lead capture sources not covered by CTA Variants or Q&A sections:
+// Custom Quote, Book a Consultation, Message Staff.
+function LeadCaptureSourcesCard({
   summary,
   loading,
   range,
@@ -2194,14 +2575,14 @@ function ConversionSourcesCard({
   }
   if (!summary) return null;
 
-  const current = summary.windowed.conversion_sources_breakdown;
-  const prior = summary.prior?.conversion_sources_breakdown ?? null;
+  const current = summary.windowed.lead_capture_sources_breakdown;
+  const prior = summary.prior?.lead_capture_sources_breakdown ?? null;
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-500">
-        Breakdown of leads by conversion entry point ({rangeLabel(range).toLowerCase()}).
-        Higher-performing sources indicate which CTAs and buttons drive the most conversions.
+        Leads from Custom Quote, Book a Consultation, and Message Staff ({rangeLabel(range).toLowerCase()}).
+        CTA and Q&A conversions are tracked in their own dedicated sections above.
       </p>
 
       {/* Top-level stat */}

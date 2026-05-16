@@ -2743,12 +2743,12 @@ function SearchBar({ selectedTypes, setSelectedTypes, priceMin, setPriceMin, pri
   return (
     <div className="mt-6 relative z-30" ref={ref}>
       <p className="text-text-sm text-gray-500 mb-3">Filter to find the right caregiver</p>
-      <div className="inline-flex items-stretch bg-white rounded-full border border-gray-200 shadow-md">
+      <div className="flex w-full sm:inline-flex sm:w-auto items-stretch bg-white rounded-full border border-gray-200 shadow-md">
         {/* Care type section */}
-        <div className="relative">
+        <div className="relative flex-1 sm:flex-none min-w-0">
           <button
             onClick={() => setOpenDropdown(openDropdown === "care" ? null : "care")}
-            className="flex items-center gap-2.5 h-full px-6 py-3 text-text-md text-gray-800 hover:bg-gray-50 transition-colors rounded-l-full"
+            className="flex w-full sm:w-auto items-center justify-center sm:justify-start gap-2.5 h-full px-3 sm:px-6 py-3 text-text-md text-gray-800 hover:bg-gray-50 transition-colors rounded-l-full"
           >
             {selectedTypes.length > 0 ? (
               <span className="flex items-center gap-1.5">
@@ -2763,7 +2763,7 @@ function SearchBar({ selectedTypes, setSelectedTypes, priceMin, setPriceMin, pri
             </svg>
           </button>
           {openDropdown === "care" && (
-            <div className="absolute top-full left-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl py-3 z-50 border border-gray-100" style={{ maxHeight: "400px", overflowY: "auto" }}>
+            <div className="absolute top-full left-0 mt-3 w-72 max-w-[calc(100vw-2.5rem)] bg-white rounded-2xl shadow-2xl py-3 z-50 border border-gray-100" style={{ maxHeight: "400px", overflowY: "auto" }}>
               <p className="px-5 pb-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Select care types</p>
               {CARE_TYPES.map((type) => {
                 const isSelected = selectedTypes.includes(type);
@@ -2796,10 +2796,10 @@ function SearchBar({ selectedTypes, setSelectedTypes, priceMin, setPriceMin, pri
         <div className="w-px bg-gray-200 my-2" />
 
         {/* Price section */}
-        <div className="relative">
+        <div className="relative flex-1 sm:flex-none min-w-0">
           <button
             onClick={() => setOpenDropdown(openDropdown === "price" ? null : "price")}
-            className="flex items-center gap-2.5 h-full px-6 py-3 text-text-md text-gray-800 hover:bg-gray-50 transition-colors"
+            className="flex w-full sm:w-auto items-center justify-center sm:justify-start gap-2.5 h-full px-3 sm:px-6 py-3 text-text-md text-gray-800 hover:bg-gray-50 transition-colors"
           >
             <span className="font-medium">{priceLabel}</span>
             <svg className={`w-4 h-4 text-gray-400 transition-transform ${openDropdown === "price" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -2807,7 +2807,7 @@ function SearchBar({ selectedTypes, setSelectedTypes, priceMin, setPriceMin, pri
             </svg>
           </button>
           {openDropdown === "price" && (
-            <div className="absolute top-full right-0 mt-3 w-[340px] bg-white rounded-2xl shadow-2xl p-6 z-50 border border-gray-100">
+            <div className="absolute top-full right-0 mt-3 w-[340px] max-w-[calc(100vw-2.5rem)] bg-white rounded-2xl shadow-2xl p-6 z-50 border border-gray-100">
               <p className="text-text-md font-semibold text-gray-800 mb-4">Price range</p>
 
               {/* Min / Max inputs */}
@@ -2873,12 +2873,12 @@ function SearchBar({ selectedTypes, setSelectedTypes, priceMin, setPriceMin, pri
         {/* Search button */}
         <button
           onClick={onSearch}
-          className="flex items-center gap-2 px-7 py-3 bg-primary-600 hover:bg-primary-700 text-white text-text-md font-semibold transition-colors rounded-r-full"
+          className="flex shrink-0 items-center gap-2 px-4 sm:px-7 py-3 bg-primary-600 hover:bg-primary-700 text-white text-text-md font-semibold transition-colors rounded-r-full"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
           </svg>
-          Search
+          <span className="hidden sm:inline">Search</span>
         </button>
       </div>
     </div>
@@ -3299,13 +3299,13 @@ function CareShiftsPageInner() {
         <div className="absolute -left-16 top-1/2 -translate-y-1/2 w-[450px] h-[350px] rounded-full bg-primary-200/35 blur-3xl" />
         <div className="absolute left-1/3 -bottom-8 w-[300px] h-[200px] rounded-full bg-vanilla-300/25 blur-3xl" />
 
-        <div className="max-w-[1600px] mx-auto px-8 relative">
+        <div className="max-w-[1600px] mx-auto px-5 sm:px-8 relative">
           <div className="flex">
             {/* Left column — text, search, trust */}
-            <div className="w-[58%] py-12 lg:py-16 relative z-10">
+            <div className="w-full lg:w-[58%] py-12 lg:py-16 relative z-10">
               <span className="inline-block bg-warning-100 text-warning-700 text-text-xs font-semibold px-2.5 py-1 rounded-md uppercase tracking-wide mb-3">New in Houston</span>
-              <h1 className="font-display text-display-lg lg:text-display-xl text-gray-900 font-normal leading-tight">
-                Compassionate care,<br />half the cost.
+              <h1 className="font-display text-display-md sm:text-display-lg lg:text-display-xl text-gray-900 font-normal leading-tight">
+                Compassionate care,<br className="hidden lg:block" /> half the cost.
               </h1>
               <p className="text-text-md lg:text-text-lg text-gray-500 mt-2 max-w-lg">
                 Verified medical students providing in-home care you can trust.
@@ -3337,10 +3337,10 @@ function CareShiftsPageInner() {
       </div>
 
       {/* Two-pane Airbnb layout: 2-col cards | profile panel */}
-      <div className="max-w-[1600px] mx-auto px-8 py-6 relative z-0">
-        <div className="flex gap-8">
+      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 py-6 relative z-0">
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Left — 2-column card grid, flows with page */}
-          <div className="w-[58%] flex-shrink-0 relative z-0">
+          <div className="w-full lg:w-[58%] lg:flex-shrink-0 relative z-0">
             <div className="flex items-center justify-between mb-4">
               <p className="text-text-sm text-gray-500">
                 Showing {filteredCaregivers.length === 0 ? "0" : `${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, filteredCaregivers.length)}`} of {filteredCaregivers.length} students{(activeCareTypes.length > 0 || !isDefaultPrice) && <button onClick={() => { setActiveCareTypes([]); setSelectedCareTypes([]); setPriceMin(15); setPriceMax(50); setCurrentPage(1); }} className="ml-2 text-primary-600 hover:text-primary-700 font-medium underline">Clear filters</button>}
@@ -3363,7 +3363,7 @@ function CareShiftsPageInner() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {paginated.map((cg, i) => (
                   <CaregiverCard
                     key={cg.id}
@@ -3413,7 +3413,7 @@ function CareShiftsPageInner() {
           </div>
 
           {/* Right — profile panel, clips with "see more" gradient that expands inline */}
-          <div className={`flex-1 min-w-0 relative z-0 ${profileExpanded ? "" : "sticky top-6"}`}>
+          <div className={`hidden lg:block flex-1 min-w-0 relative z-0 ${profileExpanded ? "" : "lg:sticky lg:top-6"}`}>
             <div
               className={`bg-gray-100 rounded-2xl border border-gray-200 relative transition-all duration-300 ${
                 profileExpanded ? "" : "max-h-[calc(100vh-120px)] overflow-hidden"

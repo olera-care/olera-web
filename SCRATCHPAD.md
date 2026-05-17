@@ -7,6 +7,25 @@
 
 ## Current Focus
 
+### 2026-05-17 (Sun) — @wehaveprepared.com fraud ring: domain block shipped (PR #844) + cleanup SQL prepared (TJ runs it)
+
+**Context:** Esther flagged in #ai-product-development that `@wehaveprepared.com` accounts exploited the pre-April-7 account-separation gap — created **family** accounts, then also **claimed provider listings** they didn't own (Visiting Angels, Griswold, Andwell, Home Helpers, HomeWell, Casa Care, Seniors Helping Seniors, Right at Home). Real providers hit a dead end claiming their own listings. TJ took the task; Esther's hard constraint = don't delete real listings.
+
+**Investigation (read-only, `scripts/investigate-wehaveprepared.mjs`):** **28 accounts with profiles** on the domain — 23 dual-profile (Esther's count) **+5 single-profile** she'd missed. 24 family profiles, 33 provider profiles. Only **1** linked to a real directory listing (`olera-providers` `mKQD35X`, HomeWell Care Services). 1 anomaly: a `verified`/`self_service` BrightStar Care row on the fraud domain.
+
+**Shipped — PR #844 → staging (branch `elegant-spence`):**
+- `lib/email-validation.ts`: `BLOCKED_DOMAINS` + `isBlockedEmailDomain()` (subdomain-aware), enforced at 4 entry points — `check-email`, `check-email-type` (pre-OTP UX gate) and `create-profile`, `claim-instant` (hard 403). Typechecks clean (only 3 preexisting unrelated `@react-pdf` errors).
+- `scripts/cleanup-wehaveprepared-fraud.sql`: STEP 0 preview → STEP 1 dry-run (`ROLLBACK`) → STEP 2 apply (`COMMIT`) → STEP 3 verify. Deletes fraud family profiles, **unclaims** (not deletes) provider profiles, mirrors the admin unclaim API exactly, **never references `olera-providers`**. FK cascades verified safe (migration `001` + `033/035/041/062`).
+- `scripts/investigate-wehaveprepared.mjs`: read-only audit (in the PR for auditability).
+
+**Decisions made:**
+- Teardown = **unclaim only** (Esther's plan): reversible, directory untouched, no auth-user/account deletion. (Rejected: full teardown / row deletion.)
+- Execution = **TJ runs the SQL himself** in the Supabase SQL editor; AI prepares only. The strict separation that closed the hole was **code, not a migration** (commits `d5f05f83`, `3eea1761`) — hence no DB constraint, hence these predating accounts need manual SQL.
+- Account separation enforcement has **no DB-level constraint** — purely route-handler code. Documented in memory `project_wehaveprepared_fraud.md`.
+
+**Resume next session here →** (1) **Blocked on TJ**: run STEP 0→1→2→3 in Supabase SQL editor + decide BrightStar (STEP 0c — recommend unclaim it, reversible). (2) When TJ says done → re-run `investigate-wehaveprepared.mjs` to confirm 0 dual-profiles remain, update `project_wehaveprepared_fraud.md`. (3) Merge PR #844 → staging → main per normal flow. (4) Optional, not in scope: ~31 fabricated fake provider profiles stay `is_active=true`/`unclaimed` after cleanup — could `is_active=false` them to stop polluting the directory; offered, awaiting TJ call.
+---
+
 ### 2026-05-16 (Fri) — Care Shifts staging arc: #824 review → #832 cleanup → #833 deletion → #838 mobile triage (all merged to staging)
 
 **Context:** Chantel's combined care-shifts work (PR #824, ~15K lines, mostly hardcoded mock) was reviewed and merged to staging per the morning CareShifts Demo meeting (merge-first, integrate-later; keep siloed). Then a multi-PR reconciliation:

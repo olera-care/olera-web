@@ -2925,6 +2925,8 @@ function ResponseLeadsList({
   const [savingEmail, setSavingEmail] = useState(false);
   const [emailAddSuccess, setEmailAddSuccess] = useState<{ id: string; type: "family" | "provider" } | null>(null);
   const [emailAddError, setEmailAddError] = useState<string | null>(null);
+  // Conversation drawer state
+  const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
 
   // Track timeout IDs for cleanup on unmount
   const timeoutRefs = useRef<Set<NodeJS.Timeout>>(new Set());
@@ -3271,7 +3273,8 @@ function ResponseLeadsList({
                 return (
                   <tr
                     key={lead.connection_id}
-                    className="group border-b border-gray-100 last:border-0 hover:bg-gray-50/40"
+                    className="group border-b border-gray-100 last:border-0 hover:bg-gray-50/40 cursor-pointer"
+                    onClick={() => setSelectedConnectionId(lead.connection_id)}
                   >
                     {/* Family Column */}
                     <td className="px-4 py-3 align-top">
@@ -3301,6 +3304,7 @@ function ResponseLeadsList({
                                 e.preventDefault();
                                 handleAddEmail(lead, "family");
                               }}
+                              onClick={(e) => e.stopPropagation()}
                               className="flex items-center gap-1"
                             >
                               <input
@@ -3321,7 +3325,8 @@ function ResponseLeadsList({
                               </button>
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setEditingEmail(null);
                                   setEmailInput("");
                                   setEmailAddError(null);
@@ -3336,7 +3341,8 @@ function ResponseLeadsList({
                               {lead.family_completeness.percentage}% ·{" "}
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setEditingEmail({ id: lead.connection_id, type: "family" });
                                   setEmailInput("");
                                   setEmailAddError(null);
@@ -3354,7 +3360,7 @@ function ResponseLeadsList({
                               ) : (
                                 <button
                                   type="button"
-                                  onClick={() => handleNudgeFamily(lead.connection_id, lead.family_id)}
+                                  onClick={(e) => { e.stopPropagation(); handleNudgeFamily(lead.connection_id, lead.family_id); }}
                                   disabled={nudgingFamily === lead.connection_id}
                                   className="text-gray-600 hover:text-gray-900 underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
                                   title="Nudge family to complete profile"
@@ -3376,7 +3382,7 @@ function ResponseLeadsList({
                               ) : (
                                 <button
                                   type="button"
-                                  onClick={() => handleNudgeFamilyPublish(lead.connection_id, lead.family_id)}
+                                  onClick={(e) => { e.stopPropagation(); handleNudgeFamilyPublish(lead.connection_id, lead.family_id); }}
                                   disabled={nudgingFamilyPublish === lead.connection_id}
                                   className="text-gray-600 hover:text-gray-900 underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
                                   title="Nudge family to publish profile"
@@ -3405,6 +3411,7 @@ function ResponseLeadsList({
                           {lead.provider_slug ? (
                             <Link
                               href={`/admin/directory/${lead.provider_slug}`}
+                              onClick={(e) => e.stopPropagation()}
                               className="text-emerald-700 hover:text-emerald-800 font-medium text-[13px]"
                             >
                               {lead.provider_name}
@@ -3436,6 +3443,7 @@ function ResponseLeadsList({
                                 e.preventDefault();
                                 handleAddEmail(lead, "provider");
                               }}
+                              onClick={(e) => e.stopPropagation()}
                               className="flex items-center gap-1"
                             >
                               <input
@@ -3456,7 +3464,8 @@ function ResponseLeadsList({
                               </button>
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setEditingEmail(null);
                                   setEmailInput("");
                                   setEmailAddError(null);
@@ -3471,7 +3480,8 @@ function ResponseLeadsList({
                               {lead.provider_completeness.percentage}% ·{" "}
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setEditingEmail({ id: lead.connection_id, type: "provider" });
                                   setEmailInput("");
                                   setEmailAddError(null);
@@ -3489,7 +3499,7 @@ function ResponseLeadsList({
                               ) : (
                                 <button
                                   type="button"
-                                  onClick={() => handleNudgeProvider(lead.connection_id)}
+                                  onClick={(e) => { e.stopPropagation(); handleNudgeProvider(lead.connection_id); }}
                                   disabled={nudgingProvider === lead.connection_id}
                                   className="text-gray-600 hover:text-gray-900 underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
                                   title="Nudge provider to respond"
@@ -3635,7 +3645,301 @@ function ResponseLeadsList({
           </div>
         </div>
       )}
+
+      {/* Conversation drawer */}
+      {selectedConnectionId && (
+        <ConversationDrawer
+          connectionId={selectedConnectionId}
+          onClose={() => setSelectedConnectionId(null)}
+        />
+      )}
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ConversationDrawer — slide-out panel showing full lead conversation thread
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface ThreadMessage {
+  id: string;
+  from: "family" | "provider";
+  from_name: string;
+  text: string;
+  created_at: string;
+  is_auto_reply: boolean;
+}
+
+interface ConnectionDetail {
+  connection_id: string;
+  created_at: string;
+  type: string;
+  status: string;
+  family: {
+    id: string;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    city: string | null;
+    state: string | null;
+  };
+  provider: {
+    id: string;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    slug: string;
+    city: string | null;
+    state: string | null;
+  };
+  inquiry: {
+    message: string | null;
+    care_recipient: string | null;
+    care_type: string | null;
+    urgency: string | null;
+  };
+  thread: ThreadMessage[];
+}
+
+function ConversationDrawer({
+  connectionId,
+  onClose,
+}: {
+  connectionId: string;
+  onClose: () => void;
+}) {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<ConnectionDetail | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`/api/admin/analytics/response-leads/${connectionId}`);
+        if (!res.ok) throw new Error("Failed to load conversation");
+        const json = await res.json();
+        setData(json);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [connectionId]);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const careTypeLabels: Record<string, string> = {
+    home_care: "Home Care",
+    home_health: "Home Health Care",
+    assisted_living: "Assisted Living",
+    memory_care: "Memory Care",
+  };
+
+  const urgencyLabels: Record<string, string> = {
+    immediate: "ASAP",
+    within_1_month: "Within 1 month",
+    within_3_months: "Within 3 months",
+    exploring: "Just exploring",
+  };
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-40 bg-black/20"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Drawer */}
+      <div
+        className="fixed inset-y-0 right-0 z-50 w-full max-w-lg bg-white shadow-xl flex flex-col"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="drawer-title"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+          <h2 id="drawer-title" className="text-base font-semibold text-gray-900">
+            Conversation
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center h-48">
+              <div className="text-sm text-gray-400">Loading...</div>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-48">
+              <div className="text-sm text-red-500">{error}</div>
+            </div>
+          ) : data ? (
+            <div className="divide-y divide-gray-100">
+              {/* Parties */}
+              <div className="px-5 py-4 grid grid-cols-2 gap-4">
+                {/* Family */}
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-1.5">Family</div>
+                  <div className="text-sm font-medium text-gray-900">{data.family.name}</div>
+                  {data.family.email && (
+                    <div className="text-xs text-gray-500 truncate">{data.family.email}</div>
+                  )}
+                  {data.family.phone && (
+                    <div className="text-xs text-gray-500">{data.family.phone}</div>
+                  )}
+                  {(data.family.city || data.family.state) && (
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      {[data.family.city, data.family.state].filter(Boolean).join(", ")}
+                    </div>
+                  )}
+                </div>
+
+                {/* Provider */}
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-1.5">Provider</div>
+                  <div className="text-sm font-medium text-gray-900">{data.provider.name}</div>
+                  {data.provider.email && (
+                    <div className="text-xs text-gray-500 truncate">{data.provider.email}</div>
+                  )}
+                  {data.provider.phone && (
+                    <div className="text-xs text-gray-500">{data.provider.phone}</div>
+                  )}
+                  {(data.provider.city || data.provider.state) && (
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      {[data.provider.city, data.provider.state].filter(Boolean).join(", ")}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Inquiry details */}
+              {(data.inquiry.care_type || data.inquiry.urgency || data.inquiry.message) && (
+                <div className="px-5 py-4">
+                  <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-2">Inquiry Details</div>
+                  <div className="space-y-1.5 text-xs">
+                    {data.inquiry.care_type && (
+                      <div>
+                        <span className="text-gray-500">Care type:</span>{" "}
+                        <span className="text-gray-700">{careTypeLabels[data.inquiry.care_type] || data.inquiry.care_type}</span>
+                      </div>
+                    )}
+                    {data.inquiry.urgency && (
+                      <div>
+                        <span className="text-gray-500">Timeline:</span>{" "}
+                        <span className="text-gray-700">{urgencyLabels[data.inquiry.urgency] || data.inquiry.urgency}</span>
+                      </div>
+                    )}
+                    {data.inquiry.care_recipient && (
+                      <div>
+                        <span className="text-gray-500">Care for:</span>{" "}
+                        <span className="text-gray-700">{data.inquiry.care_recipient}</span>
+                      </div>
+                    )}
+                    {data.inquiry.message && (
+                      <div className="pt-1">
+                        <span className="text-gray-500">Message:</span>
+                        <p className="text-gray-700 mt-0.5 whitespace-pre-wrap">{data.inquiry.message}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Thread */}
+              <div className="px-5 py-4">
+                <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-3">
+                  Conversation ({data.thread.length} message{data.thread.length !== 1 ? "s" : ""})
+                </div>
+
+                {data.thread.length === 0 ? (
+                  <div className="text-sm text-gray-400 text-center py-6">
+                    No messages yet
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {data.thread.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`relative ${msg.from === "family" ? "pr-8" : "pl-8"}`}
+                      >
+                        <div
+                          className={`rounded-lg px-3 py-2 text-sm ${
+                            msg.from === "family"
+                              ? "bg-teal-50 text-teal-900"
+                              : "bg-gray-100 text-gray-900"
+                          }`}
+                        >
+                          {/* Sender label */}
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[11px] font-medium">
+                              {msg.from_name}
+                            </span>
+                            {msg.is_auto_reply && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
+                                Automated
+                              </span>
+                            )}
+                          </div>
+                          {/* Message text */}
+                          <p className="whitespace-pre-wrap text-[13px] leading-relaxed">
+                            {msg.text}
+                          </p>
+                          {/* Timestamp */}
+                          <div className="text-[10px] text-gray-400 mt-1.5">
+                            {formatDate(msg.created_at)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Meta */}
+              <div className="px-5 py-4">
+                <div className="text-[10px] text-gray-400">
+                  Lead created {formatDate(data.created_at)} · Status: {data.status}
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </>
   );
 }
 

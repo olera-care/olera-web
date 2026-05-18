@@ -223,3 +223,86 @@ ORDER  BY bp.type;
 SELECT id, display_name, claim_state, verification_state, account_id, source_provider_id
 FROM   business_profiles
 WHERE  source_provider_id = 'mKQD35X';
+
+
+-- ============================================================================
+-- STEP 4 — HIDE THE FABRICATED LISTINGS (run AFTER STEP 2/3)
+-- ============================================================================
+-- Why: STEP 2 severed the claims but the ~32 *fabricated* provider profiles
+-- the ring invented (source='user_created'/'self_service', no
+-- source_provider_id) are still is_active=true, so they still render as live
+-- directory pages competing with the REAL providers' real listings. This
+-- soft-hides only those fabricated rows.
+--
+-- NOT destructive: is_active is a single boolean; flip back to restore.
+-- NOT a listing delete: `olera-providers` is never referenced; the one real
+-- directory-linked row (77904ee7 / mKQD35X "HomeWell Care Services") is
+-- explicitly EXCLUDED and stays active + claimable.
+--
+-- Scope = the explicit 32 fabricated profile IDs from the audit, with a
+-- belt-and-suspenders `source_provider_id IS NULL` guard so a directory-
+-- linked listing can never be hidden even if an ID were mistyped.
+-- ============================================================================
+
+-- 4a. PREVIEW (read-only) — exactly what STEP 4 will hide
+SELECT id, display_name, source, claim_state, is_active, source_provider_id
+FROM   business_profiles
+WHERE  source_provider_id IS NULL
+  AND  id IN (
+    '04b35693-77c9-453b-97ab-5cb7177ad182','670affe9-df50-48ce-ba3f-9899bb4c2d6c',
+    '72b6f7f3-1eb8-480f-9948-a240a2fa8fb3','60796d10-9b31-4f54-85ca-0e8b02157b60',
+    '364adede-b39e-4c3b-9ee6-814c4f9d869e','c429cc51-d6af-4076-864d-2004312ef2ec',
+    '539bb5aa-910a-4708-a144-8b684711f7fb','b5d901f7-5eca-478c-8547-547a48ad22b0',
+    '4a2b87fb-bbb9-4a00-ac9d-eb9a21e9a96e','e393afd4-d1fb-4a7c-a4b2-35687ba7becc',
+    '4d631071-72ad-4537-b3da-3bb256cbdba4','05687c6d-cfee-41cb-8496-42dca563e1ae',
+    '59ac7537-1cf1-4ecb-b770-3a133f0a507e','9b6715b9-7f9e-4482-b69c-6bcb35b5b965',
+    '90213c05-d542-4ec8-b773-59e159efb583','4bcc2445-6241-4cf7-b56a-95dee68cd00a',
+    '6b5b5344-d41e-4cec-83c3-ecffee1e5624','8765fc44-5e16-4b26-a95e-ab6586832da3',
+    '3013f5df-9615-4f85-b356-f4a45e66eff4','5ff38c8b-5db5-4e62-b660-8c3dd3fbbfed',
+    'b4bde960-fc69-40e7-8c86-5e446a681d5d','215eb2c5-fd4d-4f78-aaa5-034eb1f7ae73',
+    '2a2ea9c5-0157-4567-8234-a8f800d213dd','cf12f4a0-db19-49ee-bcc2-b8650cf37436',
+    '7d6dcc26-e54c-41f7-b079-f7e5e2660035','27c85cc1-0aeb-4db5-8612-fbe19a6e0692',
+    '4208cf27-c7ea-4d1d-aabf-0fe79add79d2','59c84555-8c8b-49ac-bc2d-fa1088631608',
+    '59d4bd12-2bcb-4a1e-8ebc-6f11466abc4a','71a7705a-a886-4631-bc92-69a6bf6b1348',
+    'f57cf64a-68e8-4f16-9e69-05ac78a029ab','612f3e48-7b05-4f44-a8f8-89c823abca83'
+  )
+ORDER BY display_name;
+
+-- 4b. DRY RUN (ends in ROLLBACK — nothing saved)
+BEGIN;
+WITH hidden AS (
+  UPDATE business_profiles
+  SET    is_active = false, updated_at = now()
+  WHERE  source_provider_id IS NULL
+    AND  is_active = true
+    AND  id IN (
+      '04b35693-77c9-453b-97ab-5cb7177ad182','670affe9-df50-48ce-ba3f-9899bb4c2d6c',
+      '72b6f7f3-1eb8-480f-9948-a240a2fa8fb3','60796d10-9b31-4f54-85ca-0e8b02157b60',
+      '364adede-b39e-4c3b-9ee6-814c4f9d869e','c429cc51-d6af-4076-864d-2004312ef2ec',
+      '539bb5aa-910a-4708-a144-8b684711f7fb','b5d901f7-5eca-478c-8547-547a48ad22b0',
+      '4a2b87fb-bbb9-4a00-ac9d-eb9a21e9a96e','e393afd4-d1fb-4a7c-a4b2-35687ba7becc',
+      '4d631071-72ad-4537-b3da-3bb256cbdba4','05687c6d-cfee-41cb-8496-42dca563e1ae',
+      '59ac7537-1cf1-4ecb-b770-3a133f0a507e','9b6715b9-7f9e-4482-b69c-6bcb35b5b965',
+      '90213c05-d542-4ec8-b773-59e159efb583','4bcc2445-6241-4cf7-b56a-95dee68cd00a',
+      '6b5b5344-d41e-4cec-83c3-ecffee1e5624','8765fc44-5e16-4b26-a95e-ab6586832da3',
+      '3013f5df-9615-4f85-b356-f4a45e66eff4','5ff38c8b-5db5-4e62-b660-8c3dd3fbbfed',
+      'b4bde960-fc69-40e7-8c86-5e446a681d5d','215eb2c5-fd4d-4f78-aaa5-034eb1f7ae73',
+      '2a2ea9c5-0157-4567-8234-a8f800d213dd','cf12f4a0-db19-49ee-bcc2-b8650cf37436',
+      '7d6dcc26-e54c-41f7-b079-f7e5e2660035','27c85cc1-0aeb-4db5-8612-fbe19a6e0692',
+      '4208cf27-c7ea-4d1d-aabf-0fe79add79d2','59c84555-8c8b-49ac-bc2d-fa1088631608',
+      '59d4bd12-2bcb-4a1e-8ebc-6f11466abc4a','71a7705a-a886-4631-bc92-69a6bf6b1348',
+      'f57cf64a-68e8-4f16-9e69-05ac78a029ab','612f3e48-7b05-4f44-a8f8-89c823abca83'
+    )
+  RETURNING id
+)
+SELECT count(*) AS rows_hidden FROM hidden;   -- expect ~32
+ROLLBACK;
+
+-- 4c. APPLY (ends in COMMIT — same UPDATE; persists). Run only if 4b count
+--     looks right. Copy the BEGIN…UPDATE…RETURNING block from 4b, change the
+--     final ROLLBACK to COMMIT.
+
+-- 4d. POST-VERIFY — the real directory listing must still be active:
+SELECT id, display_name, is_active, claim_state, source_provider_id
+FROM   business_profiles
+WHERE  source_provider_id = 'mKQD35X';   -- is_active should still be true

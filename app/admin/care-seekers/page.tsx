@@ -237,8 +237,8 @@ export default function AdminCareSeekersPage() {
   const tabs: { label: string; value: FilterTab; count: number | null }[] = [
     { label: "All", value: "all", count: tabCounts?.total ?? null },
     { label: "Guest", value: "guest", count: tabCounts?.guest ?? null },
-    { label: "Claimed", value: "claimed", count: tabCounts?.claimed ?? null },
-    { label: "Public", value: "public", count: tabCounts?.public ?? null },
+    { label: "Registered", value: "claimed", count: tabCounts?.claimed ?? null },
+    { label: "Published", value: "public", count: tabCounts?.public ?? null },
   ];
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -267,11 +267,11 @@ export default function AdminCareSeekersPage() {
           <p className="text-2xl font-bold text-gray-900">{tabCounts ? tabCounts.total : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Public Profiles</p>
+          <p className="text-sm text-gray-500">Published Profiles</p>
           <p className="text-2xl font-bold text-primary-600">{tabCounts ? tabCounts.public : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Guests (unclaimed)</p>
+          <p className="text-sm text-gray-500">Guests (no account)</p>
           <p className="text-2xl font-bold text-amber-600">{tabCounts ? tabCounts.guest : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -490,7 +490,7 @@ export default function AdminCareSeekersPage() {
                         <div className="flex items-center gap-1.5">
                           {isPublic && (
                             <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
-                              Public
+                              Published
                             </span>
                           )}
                           {isGuest ? (
@@ -499,7 +499,7 @@ export default function AdminCareSeekersPage() {
                             </span>
                           ) : (
                             <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
-                              Claimed
+                              Registered
                             </span>
                           )}
                         </div>

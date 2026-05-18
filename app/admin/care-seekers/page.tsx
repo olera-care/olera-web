@@ -78,6 +78,7 @@ export default function AdminCareSeekersPage() {
   // Delete modal state
   const [pendingDelete, setPendingDelete] = useState<SeekerRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   function showToast(message: string, type: "success" | "error" = "success") {
     clearTimeout(toastRef.current);
@@ -207,6 +208,7 @@ export default function AdminCareSeekersPage() {
     if (!pendingDelete) return;
 
     setDeleting(true);
+    setDeleteError(null);
 
     // Optimistic removal
     const seeker = pendingDelete;
@@ -225,14 +227,14 @@ export default function AdminCareSeekersPage() {
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         ));
         setTotal((prev) => prev + 1);
-        showToast("Failed to delete care seeker", "error");
+        setDeleteError("Failed to delete care seeker");
       }
     } catch {
       setSeekers((prev) => [...prev, seeker].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       ));
       setTotal((prev) => prev + 1);
-      showToast("Network error", "error");
+      setDeleteError("Network error");
     } finally {
       setDeleting(false);
     }
@@ -524,6 +526,7 @@ export default function AdminCareSeekersPage() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
+                            setDeleteError(null);
                             setPendingDelete(seeker);
                           }}
                           className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
@@ -612,10 +615,16 @@ export default function AdminCareSeekersPage() {
             <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
               This will permanently delete this care seeker and all their connections. This cannot be undone.
             </p>
+            {deleteError && (
+              <p className="text-[12px] text-red-600 mb-3">{deleteError}</p>
+            )}
             <div className="flex justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setPendingDelete(null)}
+                onClick={() => {
+                  setPendingDelete(null);
+                  setDeleteError(null);
+                }}
                 disabled={deleting}
                 className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
               >

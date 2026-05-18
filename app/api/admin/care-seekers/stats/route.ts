@@ -17,12 +17,19 @@ export async function GET() {
     const db = getServiceClient();
 
     // Run all count queries in parallel
-    const [totalRes, guestRes, claimedRes, publicRes, thisWeekRes] = await Promise.all([
+    const [totalRes, membersRes, guestRes, publishedRes, unpublishedRes, thisWeekRes] = await Promise.all([
       // Total count
       db
         .from("business_profiles")
         .select("id", { count: "exact", head: true })
         .eq("type", "family"),
+
+      // Members count (has account_id)
+      db
+        .from("business_profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("type", "family")
+        .not("account_id", "is", null),
 
       // Guest count (no account_id)
       db
@@ -31,20 +38,22 @@ export async function GET() {
         .eq("type", "family")
         .is("account_id", null),
 
-      // Claimed count (has account_id)
-      db
-        .from("business_profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("type", "family")
-        .not("account_id", "is", null),
-
-      // Public count (active care post)
+      // Published count (active care post)
       db
         .from("business_profiles")
         .select("id", { count: "exact", head: true })
         .eq("type", "family")
         .eq("is_active", true)
         .contains("metadata", { care_post: { status: "active" } }),
+
+      // Unpublished count (no active care post - either no care_post, or status is draft/paused)
+      // This is: total - published
+      // We'll calculate it after
+      db
+        .from("business_profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("type", "family")
+        .or("metadata->care_post.is.null,metadata->care_post->status.neq.active"),
 
       // New this week
       db
@@ -56,16 +65,23 @@ export async function GET() {
 
     // Log any query errors for debugging
     if (totalRes.error) console.error("Stats total query error:", totalRes.error);
+    if (membersRes.error) console.error("Stats members query error:", membersRes.error);
     if (guestRes.error) console.error("Stats guest query error:", guestRes.error);
-    if (claimedRes.error) console.error("Stats claimed query error:", claimedRes.error);
-    if (publicRes.error) console.error("Stats public query error:", publicRes.error);
+    if (publishedRes.error) console.error("Stats published query error:", publishedRes.error);
+    if (unpublishedRes.error) console.error("Stats unpublished query error:", unpublishedRes.error);
     if (thisWeekRes.error) console.error("Stats thisWeek query error:", thisWeekRes.error);
 
+    // Calculate unpublished as total - published (more reliable than complex OR query)
+    const total = totalRes.count ?? 0;
+    const published = publishedRes.count ?? 0;
+    const unpublished = total - published;
+
     return NextResponse.json({
-      total: totalRes.count ?? 0,
+      total,
+      members: membersRes.count ?? 0,
       guest: guestRes.count ?? 0,
-      claimed: claimedRes.count ?? 0,
-      public: publicRes.count ?? 0,
+      published,
+      unpublished,
       thisWeek: thisWeekRes.count ?? 0,
     });
   } catch (err) {

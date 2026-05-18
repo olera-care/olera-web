@@ -11,7 +11,7 @@ const TIMELINE_LABELS: Record<string, string> = {
   exploring: "Exploring",
 };
 
-type FilterTab = "all" | "guest" | "claimed" | "public";
+type FilterTab = "all" | "members" | "guest" | "published" | "unpublished";
 
 interface SeekerRow {
   id: string;
@@ -31,9 +31,10 @@ interface SeekerRow {
 
 interface TabCounts {
   total: number;
+  members: number;
   guest: number;
-  claimed: number;
-  public: number;
+  published: number;
+  unpublished: number;
   thisWeek: number;
 }
 
@@ -102,8 +103,9 @@ export default function AdminCareSeekersPage() {
       params.set("per_page", String(PAGE_SIZE));
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (filter === "guest") params.set("guest_only", "true");
-      if (filter === "claimed") params.set("claimed_only", "true");
-      if (filter === "public") params.set("public_only", "true");
+      if (filter === "members") params.set("members_only", "true");
+      if (filter === "published") params.set("published_only", "true");
+      if (filter === "unpublished") params.set("unpublished_only", "true");
       if (cityFilter) params.set("city", cityFilter);
       if (stateFilter) params.set("state", stateFilter);
 
@@ -130,9 +132,10 @@ export default function AdminCareSeekersPage() {
           const statsData = await statsRes.json();
           setTabCounts({
             total: statsData.total ?? 0,
+            members: statsData.members ?? 0,
             guest: statsData.guest ?? 0,
-            claimed: statsData.claimed ?? 0,
-            public: statsData.public ?? 0,
+            published: statsData.published ?? 0,
+            unpublished: statsData.unpublished ?? 0,
             thisWeek: statsData.thisWeek ?? 0,
           });
         }
@@ -156,9 +159,10 @@ export default function AdminCareSeekersPage() {
         const statsData = await statsRes.json();
         setTabCounts({
           total: statsData.total ?? 0,
+          members: statsData.members ?? 0,
           guest: statsData.guest ?? 0,
-          claimed: statsData.claimed ?? 0,
-          public: statsData.public ?? 0,
+          published: statsData.published ?? 0,
+          unpublished: statsData.unpublished ?? 0,
           thisWeek: statsData.thisWeek ?? 0,
         });
       }
@@ -236,9 +240,10 @@ export default function AdminCareSeekersPage() {
 
   const tabs: { label: string; value: FilterTab; count: number | null }[] = [
     { label: "All", value: "all", count: tabCounts?.total ?? null },
-    { label: "Guest", value: "guest", count: tabCounts?.guest ?? null },
-    { label: "Registered", value: "claimed", count: tabCounts?.claimed ?? null },
-    { label: "Published", value: "public", count: tabCounts?.public ?? null },
+    { label: "Members", value: "members", count: tabCounts?.members ?? null },
+    { label: "Guests", value: "guest", count: tabCounts?.guest ?? null },
+    { label: "Published", value: "published", count: tabCounts?.published ?? null },
+    { label: "Unpublished", value: "unpublished", count: tabCounts?.unpublished ?? null },
   ];
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -267,12 +272,12 @@ export default function AdminCareSeekersPage() {
           <p className="text-2xl font-bold text-gray-900">{tabCounts ? tabCounts.total : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Published Profiles</p>
-          <p className="text-2xl font-bold text-primary-600">{tabCounts ? tabCounts.public : "—"}</p>
+          <p className="text-sm text-gray-500">Members</p>
+          <p className="text-2xl font-bold text-gray-900">{tabCounts ? tabCounts.members : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Guests (no account)</p>
-          <p className="text-2xl font-bold text-amber-600">{tabCounts ? tabCounts.guest : "—"}</p>
+          <p className="text-sm text-gray-500">Published</p>
+          <p className="text-2xl font-bold text-primary-600">{tabCounts ? tabCounts.published : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">New This Week</p>
@@ -453,7 +458,7 @@ export default function AdminCareSeekersPage() {
                 {seekers.map((seeker) => {
                   const meta = seeker.metadata || {};
                   const isGuest = !seeker.account_id;
-                  const isPublic = meta.care_post?.status === "active";
+                  const isPublished = meta.care_post?.status === "active";
                   return (
                     <tr
                       key={seeker.id}
@@ -487,22 +492,19 @@ export default function AdminCareSeekersPage() {
                         {meta.timeline ? TIMELINE_LABELS[meta.timeline] || meta.timeline : "—"}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          {isPublic && (
-                            <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
-                              Published
-                            </span>
-                          )}
-                          {isGuest ? (
-                            <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
-                              Guest
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
-                              Registered
-                            </span>
-                          )}
-                        </div>
+                        {isGuest ? (
+                          <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
+                            Guest
+                          </span>
+                        ) : isPublished ? (
+                          <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
+                            Published
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                            Unpublished
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-gray-400 text-xs">
                         {new Date(seeker.created_at).toLocaleDateString()}

@@ -17,7 +17,34 @@
  *   --dry-run   Preview changes without making them
  */
 
+const fs = require("fs");
+const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
+
+// Load .env.local if environment variables aren't set
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  const envPath = path.join(__dirname, "..", ".env.local");
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, "utf8");
+    for (const line of envContent.split("\n")) {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith("#")) {
+        const eqIndex = trimmed.indexOf("=");
+        if (eqIndex > 0) {
+          const key = trimmed.slice(0, eqIndex);
+          let value = trimmed.slice(eqIndex + 1);
+          // Remove quotes if present
+          if ((value.startsWith('"') && value.endsWith('"')) ||
+              (value.startsWith("'") && value.endsWith("'"))) {
+            value = value.slice(1, -1);
+          }
+          process.env[key] = value;
+        }
+      }
+    }
+    console.log("Loaded environment from .env.local\n");
+  }
+}
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;

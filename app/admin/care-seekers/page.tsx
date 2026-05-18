@@ -65,7 +65,10 @@ export default function AdminCareSeekersPage() {
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
 
   // Distinct cities for dropdown
-  const [cities, setCities] = useState<{ city: string; state: string }[]>([]);
+  const [cities, setCities] = useState<{ city: string; state: string; count: number }[]>([]);
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const [citySearch, setCitySearch] = useState("");
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -134,24 +137,11 @@ export default function AdminCareSeekersPage() {
           });
         }
 
-        // Fetch all cities for dropdown (we need a separate call for this)
-        const citiesRes = await fetch("/api/admin/care-seekers?per_page=100");
+        // Fetch distinct cities from dedicated endpoint
+        const citiesRes = await fetch("/api/admin/care-seekers/cities");
         if (citiesRes.ok) {
           const data = await citiesRes.json();
-          const all = data.seekers ?? [];
-          // Build distinct cities list
-          const citySet = new Map<string, { city: string; state: string }>();
-          for (const s of all) {
-            if (s.city) {
-              const key = `${s.city}|||${s.state || ""}`;
-              if (!citySet.has(key)) {
-                citySet.set(key, { city: s.city, state: s.state || "" });
-              }
-            }
-          }
-          setCities(
-            Array.from(citySet.values()).sort((a, b) => a.city.localeCompare(b.city))
-          );
+          setCities(data.cities ?? []);
         }
       } catch { /* ignore */ }
     }
@@ -178,6 +168,32 @@ export default function AdminCareSeekersPage() {
   useEffect(() => {
     fetchSeekers();
   }, [fetchSeekers]);
+
+  // Close city dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target as Node)) {
+        setCityDropdownOpen(false);
+        setCitySearch("");
+      }
+    }
+    if (cityDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [cityDropdownOpen]);
+
+  // Filtered cities based on search
+  const filteredCities = citySearch
+    ? cities.filter(c =>
+        c.city.toLowerCase().includes(citySearch.toLowerCase()) ||
+        c.state.toLowerCase().includes(citySearch.toLowerCase())
+      )
+    : cities;
+
+  const selectedCityLabel = cityFilter
+    ? `${cityFilter}${stateFilter ? `, ${stateFilter}` : ""}`
+    : "All cities";
 
   async function handleDelete(seeker: SeekerRow) {
     if (!confirm(`Delete "${seeker.display_name}"? This will also delete all their connections. This cannot be undone.`)) return;
@@ -295,27 +311,98 @@ export default function AdminCareSeekersPage() {
 
         {/* City dropdown */}
         {cities.length > 0 && (
-          <select
-            value={cityFilter ? `${cityFilter}|||${stateFilter}` : ""}
-            onChange={(e) => {
-              if (!e.target.value) {
-                setCityFilter("");
-                setStateFilter("");
-              } else {
-                const [c, s] = e.target.value.split("|||");
-                setCityFilter(c);
-                setStateFilter(s);
-              }
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-          >
-            <option value="">All cities</option>
-            {cities.map((c) => (
-              <option key={`${c.city}-${c.state}`} value={`${c.city}|||${c.state}`}>
-                {c.city}{c.state ? `, ${c.state}` : ""}
-              </option>
-            ))}
-          </select>
+          <div ref={cityDropdownRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
+              className={[
+                "flex items-center justify-between gap-2 min-w-[160px] px-3.5 py-2",
+                "bg-white border rounded-lg text-sm font-medium transition-all",
+                cityFilter
+                  ? "border-primary-400 text-gray-900"
+                  : "border-gray-300 text-gray-600 hover:border-gray-400",
+                cityDropdownOpen ? "ring-2 ring-primary-100 border-primary-400" : "",
+              ].join(" ")}
+            >
+              <span className="truncate">{selectedCityLabel}</span>
+              <svg
+                className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${cityDropdownOpen ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {cityDropdownOpen && (
+              <div className="absolute top-[calc(100%+4px)] left-0 w-64 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+                {/* Search input */}
+                <div className="p-2 border-b border-gray-100">
+                  <input
+                    type="text"
+                    value={citySearch}
+                    onChange={(e) => setCitySearch(e.target.value)}
+                    placeholder="Search cities..."
+                    autoFocus
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 placeholder:text-gray-400"
+                  />
+                </div>
+
+                {/* Options list */}
+                <div className="max-h-64 overflow-y-auto">
+                  {/* All cities option */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCityFilter("");
+                      setStateFilter("");
+                      setCityDropdownOpen(false);
+                      setCitySearch("");
+                    }}
+                    className={[
+                      "w-full px-3 py-2.5 text-left text-sm transition-colors",
+                      !cityFilter
+                        ? "bg-primary-50 text-primary-700 font-medium"
+                        : "text-gray-600 hover:bg-gray-50",
+                    ].join(" ")}
+                  >
+                    All cities
+                  </button>
+
+                  {filteredCities.length === 0 ? (
+                    <div className="px-3 py-3 text-sm text-gray-400 text-center">
+                      No cities found
+                    </div>
+                  ) : (
+                    filteredCities.map((c) => (
+                      <button
+                        key={`${c.city}-${c.state}`}
+                        type="button"
+                        onClick={() => {
+                          setCityFilter(c.city);
+                          setStateFilter(c.state);
+                          setCityDropdownOpen(false);
+                          setCitySearch("");
+                        }}
+                        className={[
+                          "w-full px-3 py-2.5 text-left text-sm transition-colors flex items-center justify-between",
+                          cityFilter === c.city && stateFilter === c.state
+                            ? "bg-primary-50 text-primary-700 font-medium"
+                            : "text-gray-900 hover:bg-gray-50",
+                        ].join(" ")}
+                      >
+                        <span>
+                          {c.city}{c.state ? `, ${c.state}` : ""}
+                        </span>
+                        <span className="text-xs text-gray-400">{c.count}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Clear filters */}

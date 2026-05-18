@@ -29,6 +29,16 @@ interface SeekerRow {
   created_at: string;
 }
 
+interface TabCounts {
+  total: number;
+  guest: number;
+  claimed: number;
+  public: number;
+  thisWeek: number;
+}
+
+const PAGE_SIZE = 25;
+
 export default function AdminCareSeekersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -46,7 +56,13 @@ export default function AdminCareSeekersPage() {
   const [cityFilter, setCityFilter] = useState(initialCity);
   const [stateFilter, setStateFilter] = useState(initialState);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const [stats, setStats] = useState({ total: 0, guests: 0, thisWeek: 0, publicCount: 0 });
+
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  // Tab counts from API
+  const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
 
   // Distinct cities for dropdown
   const [cities, setCities] = useState<{ city: string; state: string }[]>([]);
@@ -65,14 +81,22 @@ export default function AdminCareSeekersPage() {
   useEffect(() => {
     debounceRef.current = setTimeout(() => {
       setDebouncedSearch(search);
+      setPage(1); // Reset to first page on search
     }, 300);
     return () => clearTimeout(debounceRef.current);
   }, [search]);
 
+  // Reset page when filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [filter, cityFilter, stateFilter]);
+
   const fetchSeekers = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ per_page: "100" });
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("per_page", String(PAGE_SIZE));
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (filter === "guest") params.set("guest_only", "true");
       if (filter === "claimed") params.set("claimed_only", "true");
@@ -84,47 +108,37 @@ export default function AdminCareSeekersPage() {
       if (res.ok) {
         const data = await res.json();
         setSeekers(data.seekers ?? []);
-        // Only update total from all-tab fetches to keep stats stable
-        if (filter === "all" && !debouncedSearch && !cityFilter && !stateFilter) {
-          const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-          const thisWeek = (data.seekers ?? []).filter(
-            (s: SeekerRow) => new Date(s.created_at) >= weekAgo
-          ).length;
-          const guests = (data.seekers ?? []).filter(
-            (s: SeekerRow) => !s.account_id
-          ).length;
-          setStats((prev) => ({ ...prev, total: data.total ?? 0, guests, thisWeek }));
-        }
+        setTotal(data.total ?? 0);
       }
     } catch (err) {
       console.error("Failed to fetch care seekers:", err);
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, filter, cityFilter, stateFilter]);
+  }, [debouncedSearch, filter, cityFilter, stateFilter, page]);
 
-  // Load stats + distinct cities on mount
+  // Load tab counts + distinct cities on mount
   useEffect(() => {
-    async function loadStats() {
+    async function loadInitialData() {
       try {
-        // Fetch all for stats
-        const res = await fetch("/api/admin/care-seekers?per_page=100");
-        if (res.ok) {
-          const data = await res.json();
-          const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        // Fetch tab counts from dedicated endpoint
+        const statsRes = await fetch("/api/admin/care-seekers/stats");
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setTabCounts({
+            total: statsData.total ?? 0,
+            guest: statsData.guest ?? 0,
+            claimed: statsData.claimed ?? 0,
+            public: statsData.public ?? 0,
+            thisWeek: statsData.thisWeek ?? 0,
+          });
+        }
+
+        // Fetch all cities for dropdown (we need a separate call for this)
+        const citiesRes = await fetch("/api/admin/care-seekers?per_page=100");
+        if (citiesRes.ok) {
+          const data = await citiesRes.json();
           const all = data.seekers ?? [];
-          const thisWeek = all.filter(
-            (s: SeekerRow) => new Date(s.created_at) >= weekAgo
-          ).length;
-          const guests = all.filter(
-            (s: SeekerRow) => !s.account_id
-          ).length;
-          const publicCount = all.filter(
-            (s: SeekerRow) => s.metadata?.care_post?.status === "active"
-          ).length;
-
-          setStats({ total: data.total ?? 0, guests, thisWeek, publicCount });
-
           // Build distinct cities list
           const citySet = new Map<string, { city: string; state: string }>();
           for (const s of all) {
@@ -141,7 +155,24 @@ export default function AdminCareSeekersPage() {
         }
       } catch { /* ignore */ }
     }
-    loadStats();
+    loadInitialData();
+  }, []);
+
+  // Refresh tab counts after delete
+  const refreshTabCounts = useCallback(async () => {
+    try {
+      const statsRes = await fetch("/api/admin/care-seekers/stats");
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setTabCounts({
+          total: statsData.total ?? 0,
+          guest: statsData.guest ?? 0,
+          claimed: statsData.claimed ?? 0,
+          public: statsData.public ?? 0,
+          thisWeek: statsData.thisWeek ?? 0,
+        });
+      }
+    } catch { /* ignore */ }
   }, []);
 
   useEffect(() => {
@@ -153,23 +184,26 @@ export default function AdminCareSeekersPage() {
 
     // Optimistic removal
     setSeekers((prev) => prev.filter((s) => s.id !== seeker.id));
+    setTotal((prev) => prev - 1);
 
     try {
       const res = await fetch(`/api/admin/care-seekers/${seeker.id}`, { method: "DELETE" });
       if (res.ok) {
         showToast(`Deleted ${seeker.display_name}`);
-        setStats((prev) => ({ ...prev, total: prev.total - 1 }));
+        refreshTabCounts(); // Refresh all tab counts
       } else {
         // Revert
         setSeekers((prev) => [...prev, seeker].sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         ));
+        setTotal((prev) => prev + 1);
         showToast("Failed to delete care seeker", "error");
       }
     } catch {
       setSeekers((prev) => [...prev, seeker].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       ));
+      setTotal((prev) => prev + 1);
       showToast("Network error", "error");
     }
   }
@@ -184,12 +218,14 @@ export default function AdminCareSeekersPage() {
 
   const hasActiveFilters = cityFilter || stateFilter || filter !== "all";
 
-  const tabs: { label: string; value: FilterTab }[] = [
-    { label: "All", value: "all" },
-    { label: "Guest", value: "guest" },
-    { label: "Claimed", value: "claimed" },
-    { label: "Public", value: "public" },
+  const tabs: { label: string; value: FilterTab; count: number | null }[] = [
+    { label: "All", value: "all", count: tabCounts?.total ?? null },
+    { label: "Guest", value: "guest", count: tabCounts?.guest ?? null },
+    { label: "Claimed", value: "claimed", count: tabCounts?.claimed ?? null },
+    { label: "Public", value: "public", count: tabCounts?.public ?? null },
   ];
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div>
@@ -212,19 +248,19 @@ export default function AdminCareSeekersPage() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Total Seekers</p>
-          <p className="text-2xl font-bold text-gray-900">{loading && !stats.total ? "—" : stats.total}</p>
+          <p className="text-2xl font-bold text-gray-900">{tabCounts ? tabCounts.total : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Public Profiles</p>
-          <p className="text-2xl font-bold text-primary-600">{loading && !stats.total ? "—" : stats.publicCount}</p>
+          <p className="text-2xl font-bold text-primary-600">{tabCounts ? tabCounts.public : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Guests (unclaimed)</p>
-          <p className="text-2xl font-bold text-amber-600">{loading && !stats.total ? "—" : stats.guests}</p>
+          <p className="text-2xl font-bold text-amber-600">{tabCounts ? tabCounts.guest : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">New This Week</p>
-          <p className="text-2xl font-bold text-emerald-600">{loading && !stats.total ? "—" : stats.thisWeek}</p>
+          <p className="text-2xl font-bold text-emerald-600">{tabCounts ? tabCounts.thisWeek : "—"}</p>
         </div>
       </div>
 
@@ -243,6 +279,16 @@ export default function AdminCareSeekersPage() {
               ].join(" ")}
             >
               {tab.label}
+              {tab.count !== null && (
+                <span className={[
+                  "ml-1.5 px-1.5 py-0.5 rounded text-xs",
+                  filter === tab.value
+                    ? "bg-white/20 text-white"
+                    : "bg-gray-200 text-gray-500",
+                ].join(" ")}>
+                  {tab.count}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -393,6 +439,36 @@ export default function AdminCareSeekersPage() {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {!loading && seekers.length > 0 && (
+        <div className="flex items-center justify-between mt-6 px-2">
+          <p className="text-sm text-gray-500">
+            {total <= PAGE_SIZE
+              ? `${total} total`
+              : `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, total)} of ${total}`
+            }
+          </p>
+          {totalPages > 1 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

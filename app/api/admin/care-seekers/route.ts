@@ -53,8 +53,9 @@ export async function GET(request: NextRequest) {
         .eq("is_active", true)
         .contains("metadata", { care_post: { status: "active" } });
     } else if (unpublishedOnly) {
-      // Not published = either no care_post metadata or status is not "active"
-      query = query.or("metadata->care_post.is.null,metadata->care_post->status.neq.active");
+      // Not published = does NOT have active care post
+      // Using .not() with contains is the inverse of the published filter
+      query = query.not("metadata", "cs", JSON.stringify({ care_post: { status: "active" } }));
     }
 
     if (cityFilter === "__null__") {

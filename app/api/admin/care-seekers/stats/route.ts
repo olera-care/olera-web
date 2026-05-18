@@ -17,7 +17,7 @@ export async function GET() {
     const db = getServiceClient();
 
     // Run all count queries in parallel
-    const [totalRes, membersRes, guestRes, publishedRes, unpublishedRes, thisWeekRes] = await Promise.all([
+    const [totalRes, membersRes, guestRes, publishedRes, thisWeekRes] = await Promise.all([
       // Total count
       db
         .from("business_profiles")
@@ -46,15 +46,6 @@ export async function GET() {
         .eq("is_active", true)
         .contains("metadata", { care_post: { status: "active" } }),
 
-      // Unpublished count (no active care post - either no care_post, or status is draft/paused)
-      // This is: total - published
-      // We'll calculate it after
-      db
-        .from("business_profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("type", "family")
-        .or("metadata->care_post.is.null,metadata->care_post->status.neq.active"),
-
       // New this week
       db
         .from("business_profiles")
@@ -68,7 +59,6 @@ export async function GET() {
     if (membersRes.error) console.error("Stats members query error:", membersRes.error);
     if (guestRes.error) console.error("Stats guest query error:", guestRes.error);
     if (publishedRes.error) console.error("Stats published query error:", publishedRes.error);
-    if (unpublishedRes.error) console.error("Stats unpublished query error:", unpublishedRes.error);
     if (thisWeekRes.error) console.error("Stats thisWeek query error:", thisWeekRes.error);
 
     // Calculate unpublished as total - published (more reliable than complex OR query)

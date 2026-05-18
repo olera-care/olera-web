@@ -7,7 +7,7 @@
 
 ## Current Focus
 
-### 2026-05-17 (Sun) — @wehaveprepared.com fraud ring: domain block shipped (PR #844) + cleanup SQL prepared (TJ runs it)
+### 2026-05-17→18 (Sun–Mon) — @wehaveprepared.com fraud ring: CLOSED — DB remediated + domain block live in prod
 
 **Context:** Esther flagged in #ai-product-development that `@wehaveprepared.com` accounts exploited the pre-April-7 account-separation gap — created **family** accounts, then also **claimed provider listings** they didn't own (Visiting Angels, Griswold, Andwell, Home Helpers, HomeWell, Casa Care, Seniors Helping Seniors, Right at Home). Real providers hit a dead end claiming their own listings. TJ took the task; Esther's hard constraint = don't delete real listings.
 
@@ -23,7 +23,11 @@
 - Execution = **TJ runs the SQL himself** in the Supabase SQL editor; AI prepares only. The strict separation that closed the hole was **code, not a migration** (commits `d5f05f83`, `3eea1761`) — hence no DB constraint, hence these predating accounts need manual SQL.
 - Account separation enforcement has **no DB-level constraint** — purely route-handler code. Documented in memory `project_wehaveprepared_fraud.md`.
 
-**Resume next session here →** (1) **Blocked on TJ**: run STEP 0→1→2→3 in Supabase SQL editor + decide BrightStar (STEP 0c — recommend unclaim it, reversible). (2) When TJ says done → re-run `investigate-wehaveprepared.mjs` to confirm 0 dual-profiles remain, update `project_wehaveprepared_fraud.md`. (3) Merge PR #844 → staging → main per normal flow. (4) Optional, not in scope: ~31 fabricated fake provider profiles stay `is_active=true`/`unclaimed` after cleanup — could `is_active=false` them to stop polluting the directory; offered, awaiting TJ call.
+**2026-05-18 closeout (done):** TJ ran STEP 0–4 in Supabase. Verified: 24 fraud family profiles deleted, 33 provider claims severed/unclaimed, 32 fabricated listings hidden (`is_active=false`, STEP 4), real `mKQD35X` (HomeWell) intact + claimable, `olera-providers` untouched. `/pre-test` caught a critical bypass — original block only covered create-profile + claim-instant, but OTP sign-in is client-side so the actual claim paths (`claim-listing`, `create-listing`, `claim/finalize`) were unguarded; hardened to all 5 chokepoints before merge. PR #844 → staging, promoted to prod via PR #846 (`main` @ `aae16797`, includes #845 Careseeker Re-engagement as a conscious rider). Both `/pr-merge` Notion reports filed. Team note posted to #general. `project_wehaveprepared_fraud.md` marked CLOSED.
+
+**`/slack-notes` skill updated** (`.claude/commands/slack-notes.md`, this branch): two hard rules added from TJ feedback — (a) no PR links/numbers in Slack notes (changelog noise; PR refs belong in Notion), (b) no engineer metaphors / no tying pieces together with cause analogies — state the plain user-visible outcome only.
+
+**Resume next session here →** Fraud incident fully closed, nothing outstanding. This branch (`wehaveprepared-closeout-docs`) carries only doc updates (SCRATCHPAD + slack-notes skill) — merge to staging when convenient, low priority.
 ---
 
 ### 2026-05-16 (Fri) — Care Shifts staging arc: #824 review → #832 cleanup → #833 deletion → #838 mobile triage (all merged to staging)

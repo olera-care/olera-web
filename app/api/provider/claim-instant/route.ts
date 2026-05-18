@@ -5,6 +5,7 @@ import { sendSlackAlert, slackProviderClaimed } from "@/lib/slack";
 import { sendEmail } from "@/lib/email";
 import { claimNotificationEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
+import { isBlockedEmailDomain } from "@/lib/email-validation";
 
 /**
  * POST /api/provider/claim-instant
@@ -66,6 +67,16 @@ export async function POST(request: Request) {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+
+    // Hard block: abuse domains may not mint accounts or claim listings
+    // (see lib/email-validation.ts BLOCKED_DOMAINS).
+    if (isBlockedEmailDomain(normalizedEmail)) {
+      console.warn(`[claim-instant] blocked domain claim: ${normalizedEmail}`);
+      return NextResponse.json(
+        { error: "This email address can't be used to claim a listing." },
+        { status: 403 }
+      );
+    }
 
     // For new org creation
     if (isNewOrg) {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateUniqueSlug } from "@/lib/slug";
+import { isBlockedEmailDomain } from "@/lib/email-validation";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -54,6 +55,16 @@ export async function POST(request: Request) {
 
     if (authError || !user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    // Hard block: abuse domains may not claim listings (see
+    // lib/email-validation.ts BLOCKED_DOMAINS).
+    if (isBlockedEmailDomain(user.email ?? "")) {
+      console.warn(`[claim-listing] blocked domain claim: ${user.email}`);
+      return NextResponse.json(
+        { error: "This email address can't be used to claim a listing." },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();

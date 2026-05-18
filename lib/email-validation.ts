@@ -224,6 +224,35 @@ export function isDisposableEmail(email: string): boolean {
 }
 
 /**
+ * Hard-banned email domains. Unlike the disposable list (a UX nudge for the
+ * benefits intake), these are domains tied to abuse and must be rejected at
+ * every account-creation / claim entry point.
+ *
+ * `wehaveprepared.com` — fraud ring (2026-05): used to mass-create family
+ * accounts and then claim provider listings the operator did not own
+ * (Visiting Angels, Griswold, Andwell, Home Helpers, etc.). See
+ * scripts/cleanup-wehaveprepared-fraud.sql for the remediation of the
+ * accounts that got in before this block existed.
+ */
+const BLOCKED_DOMAINS = new Set(["wehaveprepared.com"]);
+
+/**
+ * Returns true if the email's domain is hard-banned (abuse). Use this to
+ * reject signups/claims outright, not just nudge. Subdomains of a banned
+ * domain are also blocked.
+ */
+export function isBlockedEmailDomain(email: string): boolean {
+  if (!email || typeof email !== "string") return false;
+  const domain = email.trim().toLowerCase().split("@")[1];
+  if (!domain) return false;
+  if (BLOCKED_DOMAINS.has(domain)) return true;
+  for (const blocked of BLOCKED_DOMAINS) {
+    if (domain.endsWith(`.${blocked}`)) return true;
+  }
+  return false;
+}
+
+/**
  * Strict validation for the SBF V3 benefits intake. Wraps `validateEmail`
  * (format + typo detection) and adds a disposable-domain check on top.
  *

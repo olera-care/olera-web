@@ -5,6 +5,7 @@ import type { Account, Profile, ProfileCategory, Membership } from "@/lib/types"
 import { sendLoopsEvent } from "@/lib/loops";
 import { generateUniqueSlug } from "@/lib/slug";
 import { validateDisplayName, sanitizeCareTypes } from "@/lib/validation";
+import { isBlockedEmailDomain } from "@/lib/email-validation";
 import { scoreClaimTrust, extractDomainFromWebsite } from "@/lib/claim-trust";
 
 /**
@@ -59,6 +60,16 @@ export async function POST(request: Request) {
 
     if (authError || !user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    // Hard block: abuse domains may not create any profile (see
+    // lib/email-validation.ts BLOCKED_DOMAINS).
+    if (isBlockedEmailDomain(user.email ?? "")) {
+      console.warn(`[create-profile] blocked domain signup: ${user.email}`);
+      return NextResponse.json(
+        { error: "This email address can't be used to create an account." },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();

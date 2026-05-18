@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { isBlockedEmailDomain } from "@/lib/email-validation";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -45,6 +46,15 @@ export async function POST(request: Request) {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+
+    // Reject abuse domains before any OTP is sent.
+    if (isBlockedEmailDomain(normalizedEmail)) {
+      return NextResponse.json({
+        available: false,
+        blocked: true,
+        error: "This email address can't be used to create an account.",
+      });
+    }
 
     const adminClient = getAdminClient();
     if (!adminClient) {

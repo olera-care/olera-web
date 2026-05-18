@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isBlockedEmailDomain } from "@/lib/email-validation";
 
 /**
  * POST /api/auth/check-email
@@ -19,6 +20,10 @@ export async function POST(request: Request) {
 
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    if (isBlockedEmailDomain(email)) {
+      return NextResponse.json({ exists: false, blocked: true });
     }
 
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

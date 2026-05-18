@@ -118,11 +118,11 @@ export default function AdminCareSeekerDetailPage() {
         <div className="flex items-center gap-3 mt-2">
           {isGuest ? (
             <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
-              Guest (unclaimed)
+              Guest
             </span>
           ) : (
             <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
-              Claimed account
+              Member
             </span>
           )}
           <span className="text-sm text-gray-500">
@@ -142,7 +142,7 @@ export default function AdminCareSeekerDetailPage() {
               label="Location"
               value={seeker.city && seeker.state ? `${seeker.city}, ${seeker.state}` : seeker.city || seeker.state}
             />
-            <ReadOnlyField label="Account Status" value={isGuest ? "Guest (no account)" : "Claimed"} />
+            <ReadOnlyField label="Account Status" value={isGuest ? "Guest" : "Member"} />
             <ReadOnlyField label="Source" value={seeker.source} />
           </div>
         </Section>

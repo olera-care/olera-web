@@ -7,6 +7,25 @@
 
 ## Current Focus
 
+### 2026-05-17 (Sun) — @wehaveprepared.com fraud ring: domain block shipped (PR #844) + cleanup SQL prepared (TJ runs it)
+
+**Context:** Esther flagged in #ai-product-development that `@wehaveprepared.com` accounts exploited the pre-April-7 account-separation gap — created **family** accounts, then also **claimed provider listings** they didn't own (Visiting Angels, Griswold, Andwell, Home Helpers, HomeWell, Casa Care, Seniors Helping Seniors, Right at Home). Real providers hit a dead end claiming their own listings. TJ took the task; Esther's hard constraint = don't delete real listings.
+
+**Investigation (read-only, `scripts/investigate-wehaveprepared.mjs`):** **28 accounts with profiles** on the domain — 23 dual-profile (Esther's count) **+5 single-profile** she'd missed. 24 family profiles, 33 provider profiles. Only **1** linked to a real directory listing (`olera-providers` `mKQD35X`, HomeWell Care Services). 1 anomaly: a `verified`/`self_service` BrightStar Care row on the fraud domain.
+
+**Shipped — PR #844 → staging (branch `elegant-spence`):**
+- `lib/email-validation.ts`: `BLOCKED_DOMAINS` + `isBlockedEmailDomain()` (subdomain-aware), enforced at 4 entry points — `check-email`, `check-email-type` (pre-OTP UX gate) and `create-profile`, `claim-instant` (hard 403). Typechecks clean (only 3 preexisting unrelated `@react-pdf` errors).
+- `scripts/cleanup-wehaveprepared-fraud.sql`: STEP 0 preview → STEP 1 dry-run (`ROLLBACK`) → STEP 2 apply (`COMMIT`) → STEP 3 verify. Deletes fraud family profiles, **unclaims** (not deletes) provider profiles, mirrors the admin unclaim API exactly, **never references `olera-providers`**. FK cascades verified safe (migration `001` + `033/035/041/062`).
+- `scripts/investigate-wehaveprepared.mjs`: read-only audit (in the PR for auditability).
+
+**Decisions made:**
+- Teardown = **unclaim only** (Esther's plan): reversible, directory untouched, no auth-user/account deletion. (Rejected: full teardown / row deletion.)
+- Execution = **TJ runs the SQL himself** in the Supabase SQL editor; AI prepares only. The strict separation that closed the hole was **code, not a migration** (commits `d5f05f83`, `3eea1761`) — hence no DB constraint, hence these predating accounts need manual SQL.
+- Account separation enforcement has **no DB-level constraint** — purely route-handler code. Documented in memory `project_wehaveprepared_fraud.md`.
+
+**Resume next session here →** (1) **Blocked on TJ**: run STEP 0→1→2→3 in Supabase SQL editor + decide BrightStar (STEP 0c — recommend unclaim it, reversible). (2) When TJ says done → re-run `investigate-wehaveprepared.mjs` to confirm 0 dual-profiles remain, update `project_wehaveprepared_fraud.md`. (3) Merge PR #844 → staging → main per normal flow. (4) Optional, not in scope: ~31 fabricated fake provider profiles stay `is_active=true`/`unclaimed` after cleanup — could `is_active=false` them to stop polluting the directory; offered, awaiting TJ call.
+---
+
 ### 2026-05-16 (Fri) — Care Shifts staging arc: #824 review → #832 cleanup → #833 deletion → #838 mobile triage (all merged to staging)
 
 **Context:** Chantel's combined care-shifts work (PR #824, ~15K lines, mostly hardcoded mock) was reviewed and merged to staging per the morning CareShifts Demo meeting (merge-first, integrate-later; keep siloed). Then a multi-PR reconciliation:
@@ -28,7 +47,7 @@
 **Resume next session here →** (1) Care-shifts is parked at triage — don't deepen unless TJ asks. (2) **Deferred, not lost:** full structural mobilize (card→full-screen profile, sticky Connect, bottom-sheet filters, 48px tap targets, `dvh`); remove now-unused `lucide-react` from package.json (#835 scope-bleed cruft, needs lockfile regen in a working npm env); pre-main-promotion safeguards PR (noindex/robots/password-gate before staging→main); close PR #674 (waitlist source) + #778 (superseded by #824), decide #675 (provider banner). (3) Esther owns inbox-integration assessment per the meeting; Chantel ~60% on care-shifts ops planning.
 ---
 
-### 2026-05-15→16 (Fri–Sat) — Weekly digest reliability + Provider Activation panel/redesign/drill + page-views counter fix (PR #834 merged, PR #840 open)
+### 2026-05-15→16 (Fri–Sat) — Weekly digest reliability + Provider Activation panel/redesign/drill + page-views counter fix → ALL PROMOTED TO PRODUCTION (PR #834/#840/#841/#842 merged 2026-05-16)
 
 Long session, three connected threads. All on shared file `app/api/admin/analytics/summary/route.ts` — sequenced deliberately to avoid stacking semantic rewrites.
 
@@ -63,7 +82,14 @@ Long session, three connected threads. All on shared file `app/api/admin/analyti
 
 **Decisions added:** summary vs detail are different intents — never share a window (summary fixed-30d health read; drill range-parameterized investigative). Reuse `DateRangePopover` not `/admin/activity` (latter's `?days=N` is a weaker control + wrong framing = forcing it). Drill is study/understand, not outbound (no contact/export affordances).
 
-**Resume next session here →** (1) QA PR #840 on staging end-to-end (`/admin/analytics` → expand "Provider Activation": sparklines render, "What they're editing" visible, feed calm/borderless, click each of 4 KPI tiles → drill modal opens, date picker widens past 30d, owner-stories shows the owner editors; Comms Funnel + page-views counter unregressed). (2) Promote #840 staging→main after bake. (3) **Monday 2026-05-18 13:00 UTC**: weekly-provider-digest auto-cron fires `?limit=2000` to full reachable pool — should run clean with #834's unsubscribe persistence + providerId stamp live (migration 084 in prod). Watch `/admin/automations` + complaint rate. (4) Open Q for TJ: two "Claimed" numbers (windowed-strip vs 30d panel) — intentional, both tooltipped; reconcile only if it bugs him. (5) Deferred: backward-attribution rebuild of the Comms Funnel.
+**Shipped to production 2026-05-16 (the rest of the arc):**
+- **PR #840 merged to staging** — rebased onto staging (only conflict was SCRATCHPAD, two independent log appends, kept both); admin-bypass merge. TJ QA'd: sparklines, drill modals, page-views counter all good.
+- **Production-exposure blindspot caught during the `staging→main` /pr-merge analysis** — staging carried the volatile Care Shifts mock arc (#824/#832/#833/#838, 6 routes) with **zero noindex/robots**; SCRATCHPAD's own deferred list flagged "noindex/robots/password-gate before staging→main" as required-but-never-built. Halted the promotion.
+- **PR #841 (new branch `care-shifts-noindex-safeguards`) — merged staging+main.** New `app/care-shifts/layout.tsx` (`metadata.robots = {index:false,follow:false}`, inherits to all 6 routes — 5 are client components, `students` sets no `robots`) + `/care-shifts` added to `app/robots.ts` Disallow. Defense in depth. TJ verified live on staging (`<meta robots noindex,nofollow>` + `Disallow: /care-shifts`).
+- **PR #842 — `staging → main` PRODUCTION PROMOTION done + verified.** main `ab8deb8f`. The +23 on main were benign historical promotion-merge commits, not hotfixes (clean topology). Post-merge verified on main: #841 safeguard live, migration 084 present, #840 routes present, Footer/Navbar/redirects watchlist clean. Three Notion PR-merge reports filed (#840, #841-context-in-#842, #842).
+- **Provider activation read + team message.** 30d prod numbers: 104 claimed / 85 answered / 10 profile edits / 4 owner stories. Ran `/product-led-growth` (Head-of-Growth candid read for TJ: this is an *acquisition* win not revenue yet; the 85→10 drop is a retention cliff; the weekly digest is the only proactive re-touch so it IS the retention product; we have **zero return/repeat instrumentation** — the real blind spot). Drafted team message in TJ's voice (rebuilt from his original after a first draft missed his register; tj-voice.md = no em dashes, no "not X" punches, no buzzwords, warm/inclusive/causal). **Posted to #ai-product-development** (C0A91BA205T, msg ts 1778972849.205399). Notion draft synced at page `3625903a-0ffe-81f4-9f7f-cdbd6ab2c7cb`.
+
+**Resume next session here →** (1) **Monday 2026-05-18 13:00 UTC**: weekly-provider-digest auto-cron fires `?limit=2000` to the full reachable pool, now LIVE IN PRODUCTION with #834's unsubscribe persistence + providerId stamp (migration 084 in prod). Watch `/admin/automations` + complaint rate + open/answer rate holding at ~10x volume — this is the scale test for growth-point-1. (2) **Highest-leverage growth gap: zero return/repeat-visit instrumentation.** We just made retention the focus and can't measure it. First task to spec. (3) Product decision to make: declare the weekly digest the provider retention loop (not a notification) — turns growth-point-2 from a wish into a build. (4) Open Q for TJ: two "Claimed" numbers (windowed-strip vs 30d panel) — intentional, both tooltipped; reconcile only if it bugs him. (5) Deferred: backward-attribution rebuild of the Comms Funnel; Care Shifts full structural mobilize + `lucide-react` removal + password-gate (the 3rd safeguard half) if ever wanted.
 
 ---
 

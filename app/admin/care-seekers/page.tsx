@@ -75,6 +75,10 @@ export default function AdminCareSeekersPage() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const toastRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  // Delete modal state
+  const [pendingDelete, setPendingDelete] = useState<SeekerRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   function showToast(message: string, type: "success" | "error" = "success") {
     clearTimeout(toastRef.current);
     setToast({ message, type });
@@ -199,10 +203,13 @@ export default function AdminCareSeekersPage() {
     ? `${cityFilter}${stateFilter ? `, ${stateFilter}` : ""}`
     : "All cities";
 
-  async function handleDelete(seeker: SeekerRow) {
-    if (!confirm(`Delete "${seeker.display_name}"? This will also delete all their connections. This cannot be undone.`)) return;
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+
+    setDeleting(true);
 
     // Optimistic removal
+    const seeker = pendingDelete;
     setSeekers((prev) => prev.filter((s) => s.id !== seeker.id));
     setTotal((prev) => prev - 1);
 
@@ -210,7 +217,8 @@ export default function AdminCareSeekersPage() {
       const res = await fetch(`/api/admin/care-seekers/${seeker.id}`, { method: "DELETE" });
       if (res.ok) {
         showToast(`Deleted ${seeker.display_name}`);
-        refreshTabCounts(); // Refresh all tab counts
+        refreshTabCounts();
+        setPendingDelete(null);
       } else {
         // Revert
         setSeekers((prev) => [...prev, seeker].sort(
@@ -225,6 +233,8 @@ export default function AdminCareSeekersPage() {
       ));
       setTotal((prev) => prev + 1);
       showToast("Network error", "error");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -451,7 +461,7 @@ export default function AdminCareSeekersPage() {
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Timeline</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Joined</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-500">Actions</th>
+                  <th className="px-2 py-3 w-8" aria-label="Delete" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -462,7 +472,7 @@ export default function AdminCareSeekersPage() {
                   return (
                     <tr
                       key={seeker.id}
-                      className="hover:bg-gray-50 cursor-pointer"
+                      className="group hover:bg-gray-50 cursor-pointer"
                       onClick={() => router.push(`/admin/care-seekers/${seeker.id}`)}
                     >
                       <td className="px-4 py-3">
@@ -509,15 +519,20 @@ export default function AdminCareSeekersPage() {
                       <td className="px-4 py-3 text-gray-400 text-xs">
                         {new Date(seeker.created_at).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-2 py-3 w-8 text-right">
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(seeker);
+                            setPendingDelete(seeker);
                           }}
-                          className="text-xs text-red-500 hover:text-red-700 font-medium"
+                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
+                          aria-label="Delete this care seeker"
+                          title="Delete"
                         >
-                          Delete
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </td>
                     </tr>
@@ -556,6 +571,66 @@ export default function AdminCareSeekersPage() {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {pendingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-seeker-title"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3
+              id="delete-seeker-title"
+              className="text-base font-semibold text-gray-900 mb-3"
+            >
+              Delete this care seeker?
+            </h3>
+            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Name</dt>
+                <dd className="text-gray-900">{pendingDelete.display_name}</dd>
+              </div>
+              {pendingDelete.email && (
+                <div className="flex gap-2">
+                  <dt className="w-20 shrink-0 text-gray-400">Email</dt>
+                  <dd className="text-gray-900">{pendingDelete.email}</dd>
+                </div>
+              )}
+              {pendingDelete.city && (
+                <div className="flex gap-2">
+                  <dt className="w-20 shrink-0 text-gray-400">Location</dt>
+                  <dd className="text-gray-900">
+                    {pendingDelete.city}{pendingDelete.state ? `, ${pendingDelete.state}` : ""}
+                  </dd>
+                </div>
+              )}
+            </dl>
+            <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
+              This will permanently delete this care seeker and all their connections. This cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setPendingDelete(null)}
+                disabled={deleting}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

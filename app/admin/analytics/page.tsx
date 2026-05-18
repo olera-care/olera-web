@@ -3739,8 +3739,18 @@ function ConversationDrawer({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "Unknown date";
     return d.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -3762,6 +3772,16 @@ function ConversationDrawer({
     within_1_month: "Within 1 month",
     within_3_months: "Within 3 months",
     exploring: "Just exploring",
+  };
+
+  const careRecipientLabels: Record<string, string> = {
+    parent: "Parent",
+    spouse: "Spouse",
+    myself: "Myself",
+    grandparent: "Grandparent",
+    sibling: "Sibling",
+    friend: "Friend",
+    other: "Other",
   };
 
   return (
@@ -3866,7 +3886,7 @@ function ConversationDrawer({
                     {data.inquiry.care_recipient && (
                       <div>
                         <span className="text-gray-500">Care for:</span>{" "}
-                        <span className="text-gray-700">{data.inquiry.care_recipient}</span>
+                        <span className="text-gray-700">{careRecipientLabels[data.inquiry.care_recipient] || data.inquiry.care_recipient}</span>
                       </div>
                     )}
                     {data.inquiry.message && (
@@ -3916,7 +3936,7 @@ function ConversationDrawer({
                           </div>
                           {/* Message text */}
                           <p className="whitespace-pre-wrap text-[13px] leading-relaxed">
-                            {msg.text}
+                            {msg.text || <span className="text-gray-400 italic">(no content)</span>}
                           </p>
                           {/* Timestamp */}
                           <div className="text-[10px] text-gray-400 mt-1.5">

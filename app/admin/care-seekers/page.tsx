@@ -11,7 +11,7 @@ const TIMELINE_LABELS: Record<string, string> = {
   exploring: "Exploring",
 };
 
-type FilterTab = "all" | "guest" | "claimed" | "public";
+type FilterTab = "all" | "members" | "guest" | "published" | "unpublished";
 
 interface SeekerRow {
   id: string;
@@ -28,6 +28,17 @@ interface SeekerRow {
   source: string;
   created_at: string;
 }
+
+interface TabCounts {
+  total: number;
+  members: number;
+  guest: number;
+  published: number;
+  unpublished: number;
+  thisWeek: number;
+}
+
+const PAGE_SIZE = 25;
 
 export default function AdminCareSeekersPage() {
   const router = useRouter();
@@ -46,14 +57,28 @@ export default function AdminCareSeekersPage() {
   const [cityFilter, setCityFilter] = useState(initialCity);
   const [stateFilter, setStateFilter] = useState(initialState);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const [stats, setStats] = useState({ total: 0, guests: 0, thisWeek: 0, publicCount: 0 });
+
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  // Tab counts from API
+  const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
 
   // Distinct cities for dropdown
-  const [cities, setCities] = useState<{ city: string; state: string }[]>([]);
+  const [cities, setCities] = useState<{ city: string; state: string; count: number }[]>([]);
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const [citySearch, setCitySearch] = useState("");
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const toastRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Delete modal state
+  const [pendingDelete, setPendingDelete] = useState<SeekerRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   function showToast(message: string, type: "success" | "error" = "success") {
     clearTimeout(toastRef.current);
@@ -65,18 +90,27 @@ export default function AdminCareSeekersPage() {
   useEffect(() => {
     debounceRef.current = setTimeout(() => {
       setDebouncedSearch(search);
+      setPage(1); // Reset to first page on search
     }, 300);
     return () => clearTimeout(debounceRef.current);
   }, [search]);
 
+  // Reset page when filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [filter, cityFilter, stateFilter]);
+
   const fetchSeekers = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ per_page: "100" });
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("per_page", String(PAGE_SIZE));
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (filter === "guest") params.set("guest_only", "true");
-      if (filter === "claimed") params.set("claimed_only", "true");
-      if (filter === "public") params.set("public_only", "true");
+      if (filter === "members") params.set("members_only", "true");
+      if (filter === "published") params.set("published_only", "true");
+      if (filter === "unpublished") params.set("unpublished_only", "true");
       if (cityFilter) params.set("city", cityFilter);
       if (stateFilter) params.set("state", stateFilter);
 
@@ -84,93 +118,125 @@ export default function AdminCareSeekersPage() {
       if (res.ok) {
         const data = await res.json();
         setSeekers(data.seekers ?? []);
-        // Only update total from all-tab fetches to keep stats stable
-        if (filter === "all" && !debouncedSearch && !cityFilter && !stateFilter) {
-          const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-          const thisWeek = (data.seekers ?? []).filter(
-            (s: SeekerRow) => new Date(s.created_at) >= weekAgo
-          ).length;
-          const guests = (data.seekers ?? []).filter(
-            (s: SeekerRow) => !s.account_id
-          ).length;
-          setStats((prev) => ({ ...prev, total: data.total ?? 0, guests, thisWeek }));
-        }
+        setTotal(data.total ?? 0);
       }
     } catch (err) {
       console.error("Failed to fetch care seekers:", err);
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, filter, cityFilter, stateFilter]);
+  }, [debouncedSearch, filter, cityFilter, stateFilter, page]);
 
-  // Load stats + distinct cities on mount
+  // Load tab counts + distinct cities on mount
   useEffect(() => {
-    async function loadStats() {
+    async function loadInitialData() {
       try {
-        // Fetch all for stats
-        const res = await fetch("/api/admin/care-seekers?per_page=100");
-        if (res.ok) {
-          const data = await res.json();
-          const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-          const all = data.seekers ?? [];
-          const thisWeek = all.filter(
-            (s: SeekerRow) => new Date(s.created_at) >= weekAgo
-          ).length;
-          const guests = all.filter(
-            (s: SeekerRow) => !s.account_id
-          ).length;
-          const publicCount = all.filter(
-            (s: SeekerRow) => s.metadata?.care_post?.status === "active"
-          ).length;
+        // Fetch tab counts from dedicated endpoint
+        const statsRes = await fetch("/api/admin/care-seekers/stats");
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setTabCounts({
+            total: statsData.total ?? 0,
+            members: statsData.members ?? 0,
+            guest: statsData.guest ?? 0,
+            published: statsData.published ?? 0,
+            unpublished: statsData.unpublished ?? 0,
+            thisWeek: statsData.thisWeek ?? 0,
+          });
+        }
 
-          setStats({ total: data.total ?? 0, guests, thisWeek, publicCount });
-
-          // Build distinct cities list
-          const citySet = new Map<string, { city: string; state: string }>();
-          for (const s of all) {
-            if (s.city) {
-              const key = `${s.city}|||${s.state || ""}`;
-              if (!citySet.has(key)) {
-                citySet.set(key, { city: s.city, state: s.state || "" });
-              }
-            }
-          }
-          setCities(
-            Array.from(citySet.values()).sort((a, b) => a.city.localeCompare(b.city))
-          );
+        // Fetch distinct cities from dedicated endpoint
+        const citiesRes = await fetch("/api/admin/care-seekers/cities");
+        if (citiesRes.ok) {
+          const data = await citiesRes.json();
+          setCities(data.cities ?? []);
         }
       } catch { /* ignore */ }
     }
-    loadStats();
+    loadInitialData();
+  }, []);
+
+  // Refresh tab counts after delete
+  const refreshTabCounts = useCallback(async () => {
+    try {
+      const statsRes = await fetch("/api/admin/care-seekers/stats");
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setTabCounts({
+          total: statsData.total ?? 0,
+          members: statsData.members ?? 0,
+          guest: statsData.guest ?? 0,
+          published: statsData.published ?? 0,
+          unpublished: statsData.unpublished ?? 0,
+          thisWeek: statsData.thisWeek ?? 0,
+        });
+      }
+    } catch { /* ignore */ }
   }, []);
 
   useEffect(() => {
     fetchSeekers();
   }, [fetchSeekers]);
 
-  async function handleDelete(seeker: SeekerRow) {
-    if (!confirm(`Delete "${seeker.display_name}"? This will also delete all their connections. This cannot be undone.`)) return;
+  // Close city dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target as Node)) {
+        setCityDropdownOpen(false);
+        setCitySearch("");
+      }
+    }
+    if (cityDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [cityDropdownOpen]);
+
+  // Filtered cities based on search
+  const filteredCities = citySearch
+    ? cities.filter(c =>
+        c.city.toLowerCase().includes(citySearch.toLowerCase()) ||
+        c.state.toLowerCase().includes(citySearch.toLowerCase())
+      )
+    : cities;
+
+  const selectedCityLabel = cityFilter
+    ? `${cityFilter}${stateFilter ? `, ${stateFilter}` : ""}`
+    : "All cities";
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+
+    setDeleting(true);
+    setDeleteError(null);
 
     // Optimistic removal
+    const seeker = pendingDelete;
     setSeekers((prev) => prev.filter((s) => s.id !== seeker.id));
+    setTotal((prev) => prev - 1);
 
     try {
       const res = await fetch(`/api/admin/care-seekers/${seeker.id}`, { method: "DELETE" });
       if (res.ok) {
         showToast(`Deleted ${seeker.display_name}`);
-        setStats((prev) => ({ ...prev, total: prev.total - 1 }));
+        refreshTabCounts();
+        setPendingDelete(null);
       } else {
         // Revert
         setSeekers((prev) => [...prev, seeker].sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         ));
-        showToast("Failed to delete care seeker", "error");
+        setTotal((prev) => prev + 1);
+        setDeleteError("Failed to delete care seeker");
       }
     } catch {
       setSeekers((prev) => [...prev, seeker].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       ));
-      showToast("Network error", "error");
+      setTotal((prev) => prev + 1);
+      setDeleteError("Network error");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -184,12 +250,15 @@ export default function AdminCareSeekersPage() {
 
   const hasActiveFilters = cityFilter || stateFilter || filter !== "all";
 
-  const tabs: { label: string; value: FilterTab }[] = [
-    { label: "All", value: "all" },
-    { label: "Guest", value: "guest" },
-    { label: "Claimed", value: "claimed" },
-    { label: "Public", value: "public" },
+  const tabs: { label: string; value: FilterTab; count: number | null }[] = [
+    { label: "All", value: "all", count: tabCounts?.total ?? null },
+    { label: "Members", value: "members", count: tabCounts?.members ?? null },
+    { label: "Guests", value: "guest", count: tabCounts?.guest ?? null },
+    { label: "Published", value: "published", count: tabCounts?.published ?? null },
+    { label: "Unpublished", value: "unpublished", count: tabCounts?.unpublished ?? null },
   ];
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div>
@@ -212,19 +281,19 @@ export default function AdminCareSeekersPage() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Total Seekers</p>
-          <p className="text-2xl font-bold text-gray-900">{loading && !stats.total ? "—" : stats.total}</p>
+          <p className="text-2xl font-bold text-gray-900">{tabCounts ? tabCounts.total : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Public Profiles</p>
-          <p className="text-2xl font-bold text-primary-600">{loading && !stats.total ? "—" : stats.publicCount}</p>
+          <p className="text-sm text-gray-500">Members</p>
+          <p className="text-2xl font-bold text-gray-900">{tabCounts ? tabCounts.members : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Guests (unclaimed)</p>
-          <p className="text-2xl font-bold text-amber-600">{loading && !stats.total ? "—" : stats.guests}</p>
+          <p className="text-sm text-gray-500">Published</p>
+          <p className="text-2xl font-bold text-primary-600">{tabCounts ? tabCounts.published : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">New This Week</p>
-          <p className="text-2xl font-bold text-emerald-600">{loading && !stats.total ? "—" : stats.thisWeek}</p>
+          <p className="text-2xl font-bold text-emerald-600">{tabCounts ? tabCounts.thisWeek : "—"}</p>
         </div>
       </div>
 
@@ -243,33 +312,114 @@ export default function AdminCareSeekersPage() {
               ].join(" ")}
             >
               {tab.label}
+              {tab.count !== null && (
+                <span className={[
+                  "ml-1.5 px-1.5 py-0.5 rounded text-xs",
+                  filter === tab.value
+                    ? "bg-white/20 text-white"
+                    : "bg-gray-200 text-gray-500",
+                ].join(" ")}>
+                  {tab.count}
+                </span>
+              )}
             </button>
           ))}
         </div>
 
         {/* City dropdown */}
         {cities.length > 0 && (
-          <select
-            value={cityFilter ? `${cityFilter}|||${stateFilter}` : ""}
-            onChange={(e) => {
-              if (!e.target.value) {
-                setCityFilter("");
-                setStateFilter("");
-              } else {
-                const [c, s] = e.target.value.split("|||");
-                setCityFilter(c);
-                setStateFilter(s);
-              }
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-          >
-            <option value="">All cities</option>
-            {cities.map((c) => (
-              <option key={`${c.city}-${c.state}`} value={`${c.city}|||${c.state}`}>
-                {c.city}{c.state ? `, ${c.state}` : ""}
-              </option>
-            ))}
-          </select>
+          <div ref={cityDropdownRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
+              className={[
+                "flex items-center justify-between gap-2 min-w-[160px] px-3.5 py-2",
+                "bg-white border rounded-lg text-sm font-medium transition-all",
+                cityFilter
+                  ? "border-primary-400 text-gray-900"
+                  : "border-gray-300 text-gray-600 hover:border-gray-400",
+                cityDropdownOpen ? "ring-2 ring-primary-100 border-primary-400" : "",
+              ].join(" ")}
+            >
+              <span className="truncate">{selectedCityLabel}</span>
+              <svg
+                className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${cityDropdownOpen ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {cityDropdownOpen && (
+              <div className="absolute top-[calc(100%+4px)] left-0 w-64 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+                {/* Search input */}
+                <div className="p-2 border-b border-gray-100">
+                  <input
+                    type="text"
+                    value={citySearch}
+                    onChange={(e) => setCitySearch(e.target.value)}
+                    placeholder="Search cities..."
+                    autoFocus
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 placeholder:text-gray-400"
+                  />
+                </div>
+
+                {/* Options list */}
+                <div className="max-h-64 overflow-y-auto">
+                  {/* All cities option */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCityFilter("");
+                      setStateFilter("");
+                      setCityDropdownOpen(false);
+                      setCitySearch("");
+                    }}
+                    className={[
+                      "w-full px-3 py-2.5 text-left text-sm transition-colors",
+                      !cityFilter
+                        ? "bg-primary-50 text-primary-700 font-medium"
+                        : "text-gray-600 hover:bg-gray-50",
+                    ].join(" ")}
+                  >
+                    All cities
+                  </button>
+
+                  {filteredCities.length === 0 ? (
+                    <div className="px-3 py-3 text-sm text-gray-400 text-center">
+                      No cities found
+                    </div>
+                  ) : (
+                    filteredCities.map((c) => (
+                      <button
+                        key={`${c.city}-${c.state}`}
+                        type="button"
+                        onClick={() => {
+                          setCityFilter(c.city);
+                          setStateFilter(c.state);
+                          setCityDropdownOpen(false);
+                          setCitySearch("");
+                        }}
+                        className={[
+                          "w-full px-3 py-2.5 text-left text-sm transition-colors flex items-center justify-between",
+                          cityFilter === c.city && stateFilter === c.state
+                            ? "bg-primary-50 text-primary-700 font-medium"
+                            : "text-gray-900 hover:bg-gray-50",
+                        ].join(" ")}
+                      >
+                        <span>
+                          {c.city}{c.state ? `, ${c.state}` : ""}
+                        </span>
+                        <span className="text-xs text-gray-400">{c.count}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Clear filters */}
@@ -313,18 +463,18 @@ export default function AdminCareSeekersPage() {
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Timeline</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Joined</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-500">Actions</th>
+                  <th className="px-2 py-3 w-8" aria-label="Delete" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {seekers.map((seeker) => {
                   const meta = seeker.metadata || {};
                   const isGuest = !seeker.account_id;
-                  const isPublic = meta.care_post?.status === "active";
+                  const isPublished = meta.care_post?.status === "active";
                   return (
                     <tr
                       key={seeker.id}
-                      className="hover:bg-gray-50 cursor-pointer"
+                      className="group hover:bg-gray-50 cursor-pointer"
                       onClick={() => router.push(`/admin/care-seekers/${seeker.id}`)}
                     >
                       <td className="px-4 py-3">
@@ -354,35 +504,38 @@ export default function AdminCareSeekersPage() {
                         {meta.timeline ? TIMELINE_LABELS[meta.timeline] || meta.timeline : "—"}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          {isPublic && (
-                            <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
-                              Public
-                            </span>
-                          )}
-                          {isGuest ? (
-                            <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
-                              Guest
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
-                              Claimed
-                            </span>
-                          )}
-                        </div>
+                        {isGuest ? (
+                          <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
+                            Guest
+                          </span>
+                        ) : isPublished ? (
+                          <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
+                            Published
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                            Unpublished
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-gray-400 text-xs">
                         {new Date(seeker.created_at).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-2 py-3 w-8 text-right">
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(seeker);
+                            setDeleteError(null);
+                            setPendingDelete(seeker);
                           }}
-                          className="text-xs text-red-500 hover:text-red-700 font-medium"
+                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
+                          aria-label="Delete this care seeker"
+                          title="Delete"
                         >
-                          Delete
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </td>
                     </tr>
@@ -393,6 +546,102 @@ export default function AdminCareSeekersPage() {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {!loading && seekers.length > 0 && (
+        <div className="flex items-center justify-between mt-6 px-2">
+          <p className="text-sm text-gray-500">
+            {total <= PAGE_SIZE
+              ? `${total} total`
+              : `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, total)} of ${total}`
+            }
+          </p>
+          {totalPages > 1 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {pendingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-seeker-title"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3
+              id="delete-seeker-title"
+              className="text-base font-semibold text-gray-900 mb-3"
+            >
+              Delete this care seeker?
+            </h3>
+            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Name</dt>
+                <dd className="text-gray-900">{pendingDelete.display_name}</dd>
+              </div>
+              {pendingDelete.email && (
+                <div className="flex gap-2">
+                  <dt className="w-20 shrink-0 text-gray-400">Email</dt>
+                  <dd className="text-gray-900">{pendingDelete.email}</dd>
+                </div>
+              )}
+              {pendingDelete.city && (
+                <div className="flex gap-2">
+                  <dt className="w-20 shrink-0 text-gray-400">Location</dt>
+                  <dd className="text-gray-900">
+                    {pendingDelete.city}{pendingDelete.state ? `, ${pendingDelete.state}` : ""}
+                  </dd>
+                </div>
+              )}
+            </dl>
+            <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
+              This will permanently delete this care seeker and all their connections. This cannot be undone.
+            </p>
+            {deleteError && (
+              <p className="text-[12px] text-red-600 mb-3">{deleteError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingDelete(null);
+                  setDeleteError(null);
+                }}
+                disabled={deleting}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

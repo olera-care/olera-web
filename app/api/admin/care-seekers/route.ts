@@ -19,6 +19,10 @@ export async function GET(request: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const perPage = Math.min(100, Math.max(1, parseInt(searchParams.get("per_page") || "50", 10)));
     const guestOnly = searchParams.get("guest_only") === "true";
+    const membersOnly = searchParams.get("members_only") === "true";
+    const publishedOnly = searchParams.get("published_only") === "true";
+    const unpublishedOnly = searchParams.get("unpublished_only") === "true";
+    // Legacy params for backwards compatibility
     const claimedOnly = searchParams.get("claimed_only") === "true";
     const publicOnly = searchParams.get("public_only") === "true";
     const cityFilter = searchParams.get("city")?.trim() || "";
@@ -36,16 +40,22 @@ export async function GET(request: NextRequest) {
       query = query.or(`display_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
     }
 
+    // Account status filters
     if (guestOnly) {
       query = query.is("account_id", null);
-    } else if (claimedOnly) {
+    } else if (membersOnly || claimedOnly) {
       query = query.not("account_id", "is", null);
     }
 
-    if (publicOnly) {
+    // Published status filters
+    if (publishedOnly || publicOnly) {
       query = query
         .eq("is_active", true)
         .contains("metadata", { care_post: { status: "active" } });
+    } else if (unpublishedOnly) {
+      // Not published = does NOT have active care post
+      // Using .not() with contains is the inverse of the published filter
+      query = query.not("metadata", "cs", JSON.stringify({ care_post: { status: "active" } }));
     }
 
     if (cityFilter === "__null__") {

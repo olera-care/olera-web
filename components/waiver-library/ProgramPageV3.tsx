@@ -802,11 +802,46 @@ function BookmarkButton({ program, state }: { program: WaiverProgram; state: Sta
   );
 }
 
+// Share + bookmark cluster. Self-contained so it can sit in the mobile
+// top bar (next to the back link) AND in the desktop title row without
+// the headline ever having to share horizontal space with it.
+function HeaderActions({
+  program,
+  state,
+  className = "",
+}: {
+  program: WaiverProgram;
+  state: StateData;
+  className?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className={`flex items-center gap-1 ${className}`}>
+      <button
+        onClick={() => {
+          if (typeof navigator !== "undefined" && navigator.share) {
+            navigator.share({ title: program.name, url: window.location.href });
+          } else if (typeof navigator !== "undefined") {
+            navigator.clipboard.writeText(window.location.href);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }
+        }}
+        className="group p-2 -m-1 rounded-lg hover:bg-gray-100 active:scale-90 transition-all"
+        aria-label="Share this program"
+        title={copied ? "Link copied!" : "Share"}
+      >
+        {copied ? <Check className="w-5 h-5 text-emerald-500" weight="bold" /> : <ShareNetwork className="w-5 h-5 text-gray-300 group-hover:text-gray-400 transition-colors" />}
+      </button>
+      <BookmarkButton program={program} state={state} />
+    </div>
+  );
+}
+
 export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3Props) {
   const programType = program.programType || "benefit";
   const isFederal = program.geographicScope?.type === "federal";
   const isResource = programType === "resource" || programType === "navigator";
-  const [copied, setCopied] = useState(false);
 
   const elig = program.structuredEligibility;
   const guide = program.applicationGuide;
@@ -841,16 +876,21 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
       <header className="relative pt-6 pb-10 md:pt-8 md:pb-14 overflow-hidden">
         <HeaderAccent />
         <div className="relative max-w-2xl mx-auto px-6 lg:px-8">
-          {/* Mobile: a single back affordance. The full title repeats verbatim
-              as the H1 right below, and the SEO BreadcrumbList is emitted
-              separately as JSON-LD in page.tsx — so the visual trail is free
-              to collapse here without any SEO cost. */}
-          <Link
-            href={`/benefits/${state.id}`}
-            className="sm:hidden inline-flex items-center gap-1 text-sm text-gray-500 mb-5 -ml-1.5 pl-1 pr-2 py-1.5 rounded-lg active:bg-gray-100 transition-colors"
-          >
-            <CaretLeft className="w-4 h-4 shrink-0" /> {state.name}
-          </Link>
+          {/* Mobile: a utility top bar — back affordance on the left, share/
+              bookmark on the right — so the headline below owns the full
+              width and never competes with the action buttons for space
+              (the Zapier/Notion pattern). The full title repeats verbatim
+              as the H1, and the SEO BreadcrumbList is separate JSON-LD in
+              page.tsx, so collapsing the visual trail here costs nothing. */}
+          <div className="sm:hidden flex items-center justify-between mb-5">
+            <Link
+              href={`/benefits/${state.id}`}
+              className="inline-flex items-center gap-1 text-sm text-gray-500 -ml-1.5 pl-1 pr-2 py-1.5 rounded-lg active:bg-gray-100 transition-colors"
+            >
+              <CaretLeft className="w-4 h-4 shrink-0" /> {state.name}
+            </Link>
+            <HeaderActions program={program} state={state} className="-mr-1" />
+          </div>
           <nav className="hidden sm:flex items-center gap-1.5 text-sm text-gray-400 mb-6">
             <Link href="/benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
             <span>›</span>
@@ -859,8 +899,8 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
             <span className="text-gray-600 truncate max-w-[55%]">{getDisplayName(program, state)}</span>
           </nav>
 
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
+          <div className="sm:flex sm:items-start sm:justify-between sm:gap-4">
+            <div className="min-w-0 sm:flex-1">
               <h1 className="text-[1.375rem] sm:text-display-sm md:text-display-md font-bold text-gray-900 font-serif leading-[1.2] sm:leading-tight [text-wrap:pretty] [hyphens:none]">
                 <span className="relative inline-block">
                   {getDisplayName(program, state)}
@@ -913,25 +953,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                 );
               })()}
             </div>
-            <div className="flex items-center gap-1 shrink-0 mt-2">
-              <button
-                onClick={() => {
-                  if (typeof navigator !== "undefined" && navigator.share) {
-                    navigator.share({ title: program.name, url: window.location.href });
-                  } else if (typeof navigator !== "undefined") {
-                    navigator.clipboard.writeText(window.location.href);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                  }
-                }}
-                className="group p-2 -m-1 rounded-lg hover:bg-gray-100 active:scale-90 transition-all"
-                aria-label="Share this program"
-                title={copied ? "Link copied!" : "Share"}
-              >
-                {copied ? <Check className="w-5 h-5 text-emerald-500" weight="bold" /> : <ShareNetwork className="w-5 h-5 text-gray-300 group-hover:text-gray-400 transition-colors" />}
-              </button>
-              <BookmarkButton program={program} state={state} />
-            </div>
+            <HeaderActions program={program} state={state} className="hidden sm:flex shrink-0 mt-2" />
           </div>
         </div>
       </header>

@@ -12,7 +12,7 @@ import type {
 import { ServiceAreasMap } from "@/components/waiver-library/ServiceAreasMapLoader";
 import { CityBadge } from "@/components/waiver-library/CityBadge";
 import { useSavedPrograms } from "@/hooks/use-saved-programs";
-import { Vault, Phone, Info, CaretDown, ArrowSquareOut, BookmarkSimple, CheckCircle, FileText, Clock, HourglassHigh, MapPin, ArrowsClockwise, Globe, ShareNetwork, Printer, Check, Stethoscope, House as HouseIcon, Wheelchair, Tooth, Eye, Car, FirstAid, Pill, HandCoins, Wrench, Users, Heart } from "@phosphor-icons/react";
+import { Vault, Phone, Info, CaretDown, CaretLeft, ArrowSquareOut, BookmarkSimple, CheckCircle, FileText, Clock, HourglassHigh, MapPin, ArrowsClockwise, Globe, ShareNetwork, Printer, Check, Stethoscope, House as HouseIcon, Wheelchair, Tooth, Eye, Car, FirstAid, Pill, HandCoins, Wrench, Users, Heart } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
@@ -716,7 +716,7 @@ function SectionNav({ sections, activeId }: { sections: NavSection[]; activeId: 
                 e.preventDefault();
                 document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap active:scale-95 transition-all ${
                 activeId === s.id
                   ? "bg-gray-900 text-white"
                   : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
@@ -793,7 +793,7 @@ function BookmarkButton({ program, state }: { program: WaiverProgram; state: Sta
   return (
     <button
       onClick={() => toggleSave({ programId: program.id, stateId: state.id, name: program.name, shortName: program.shortName, programType: program.programType, savingsRange: program.savingsRange || undefined })}
-      className="group p-2 -m-2 rounded-lg hover:bg-gray-100 transition-colors"
+      className="group p-2 -m-2 rounded-lg hover:bg-gray-100 active:scale-90 transition-all"
       aria-label={saved ? "Remove from saved programs" : "Save this program"}
       title={saved ? "Saved" : "Save program"}
     >
@@ -828,8 +828,10 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
   const sectionIds = navSections.map((s) => s.id);
   const activeSection = useSectionObserver(sectionIds);
 
+  const primaryPhone = program.phone || contacts.find((c) => c.phone)?.phone || null;
+
   return (
-    <div className="bg-vanilla-100 min-h-screen">
+    <div className="bg-vanilla-100 min-h-[100dvh]">
       {/* Structured data */}
       {program.faqs && program.faqs.length > 0 && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: program.faqs.map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) }) }} />
@@ -839,18 +841,28 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
       <header className="relative pt-6 pb-10 md:pt-8 md:pb-14 overflow-hidden">
         <HeaderAccent />
         <div className="relative max-w-2xl mx-auto px-6 lg:px-8">
-          <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-6">
+          {/* Mobile: a single back affordance. The full title repeats verbatim
+              as the H1 right below, and the SEO BreadcrumbList is emitted
+              separately as JSON-LD in page.tsx — so the visual trail is free
+              to collapse here without any SEO cost. */}
+          <Link
+            href={`/benefits/${state.id}`}
+            className="sm:hidden inline-flex items-center gap-1 text-sm text-gray-500 mb-5 -ml-1.5 pl-1 pr-2 py-1.5 rounded-lg active:bg-gray-100 transition-colors"
+          >
+            <CaretLeft className="w-4 h-4 shrink-0" /> {state.name}
+          </Link>
+          <nav className="hidden sm:flex items-center gap-1.5 text-sm text-gray-400 mb-6">
             <Link href="/benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
             <span>›</span>
             <Link href={`/benefits/${state.id}`} className="hover:text-gray-600 transition-colors">{state.name}</Link>
             <span>›</span>
-            <span className="text-gray-600">{getDisplayName(program, state)}</span>
+            <span className="text-gray-600 truncate max-w-[55%]">{getDisplayName(program, state)}</span>
           </nav>
 
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-display-sm md:text-display-md font-bold text-gray-900 font-serif leading-tight">
-                <span className="relative inline">
+              <h1 className="text-[1.625rem] sm:text-display-sm md:text-display-md font-bold text-gray-900 font-serif leading-[1.15] sm:leading-tight [text-wrap:balance] [hyphens:none]">
+                <span className="relative inline-block">
                   {getDisplayName(program, state)}
                   <HandDrawnUnderline />
                 </span>
@@ -912,7 +924,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                     setTimeout(() => setCopied(false), 2000);
                   }
                 }}
-                className="group p-2 -m-1 rounded-lg hover:bg-gray-100 transition-colors"
+                className="group p-2 -m-1 rounded-lg hover:bg-gray-100 active:scale-90 transition-all"
                 aria-label="Share this program"
                 title={copied ? "Link copied!" : "Share"}
               >
@@ -936,7 +948,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
           <>
             {/* ─── 2. Intro prose ─── */}
             {program.intro && (
-              <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-16">
+              <section id="overview" className="max-w-2xl mx-auto px-6 lg:px-8 mb-10 sm:mb-16 scroll-mt-20">
                 <div className="text-lg text-gray-600 leading-relaxed space-y-4">
                   {program.intro.split("\n\n").map((para, i) => (
                     <p key={i}>{para}</p>
@@ -947,7 +959,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
 
             {/* ─── 5. What's covered (icon grid + prose context) ─── */}
             {coverageItems.length > 0 && (
-              <section className="max-w-3xl mx-auto px-6 lg:px-8 mb-16">
+              <section className="max-w-3xl mx-auto px-6 lg:px-8 mb-10 sm:mb-16">
                 <SectionLabel>What&apos;s covered</SectionLabel>
                 <CoverageGrid items={coverageItems} />
                 {/* Content sections that aren't callouts — tier comparisons, prose expansions */}
@@ -961,11 +973,11 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
               </section>
             )}
 
-            <WavyDivider className="my-16 max-w-3xl mx-auto px-6" />
+            <WavyDivider className="my-10 sm:my-16 max-w-3xl mx-auto px-6" />
 
             {/* ─── 6. Eligibility details ─── */}
             {elig && (
-              <section id="eligibility" className="max-w-2xl mx-auto px-6 lg:px-8 mb-16 space-y-10 scroll-mt-20">
+              <section id="eligibility" className="max-w-2xl mx-auto px-6 lg:px-8 mb-10 sm:mb-16 space-y-10 scroll-mt-20">
                 <div>
                   <SectionLabel>Eligibility details</SectionLabel>
                   <SectionHeading>Do you qualify?</SectionHeading>
@@ -1020,8 +1032,8 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
 
             {/* ─── 7. How to apply — background shift for zone change ─── */}
             {guide && (
-              <section id="how-to-apply" className="scroll-mt-20 mb-16">
-                <div className="bg-vanilla-200/30 py-14">
+              <section id="how-to-apply" className="scroll-mt-20 mb-10 sm:mb-16">
+                <div className="bg-vanilla-200/30 py-10 sm:py-14">
                   <div className="max-w-2xl mx-auto px-6 lg:px-8 space-y-10">
                 <div>
                   <SectionLabel>Application process</SectionLabel>
@@ -1102,7 +1114,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
 
             {/* Service areas map — widest moment */}
             {program.serviceAreas && program.serviceAreas.length > 0 && (
-              <section className="max-w-5xl mx-auto px-6 lg:px-8 mb-16">
+              <section className="max-w-5xl mx-auto px-6 lg:px-8 mb-10 sm:mb-16">
                 <SectionLabel>Service areas</SectionLabel>
                 <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
                   <div className="grid grid-cols-1 lg:grid-cols-2">
@@ -1130,11 +1142,11 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
               </section>
             )}
 
-            <WavyDivider className="my-16 max-w-3xl mx-auto px-6" />
+            <WavyDivider className="my-10 sm:my-16 max-w-3xl mx-auto px-6" />
 
             {/* ─── 9. Contact block — warm, prominent ─── */}
             {(contacts.length > 0 || program.phone || program.sourceUrl) && (
-              <section id="contact" className="max-w-3xl mx-auto px-6 lg:px-8 mb-16 scroll-mt-20">
+              <section id="contact" className="max-w-3xl mx-auto px-6 lg:px-8 mb-10 sm:mb-16 scroll-mt-20">
                 <div className="rounded-2xl bg-vanilla-200/60 border border-vanilla-300/50 p-6 md:p-8 space-y-6">
                   {contacts.length > 0 ? (
                     <div>
@@ -1190,7 +1202,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                 .filter((r): r is { name: string; slug: string } => r.slug !== null);
               if (linked.length === 0) return null;
               return (
-                <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-16">
+                <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-10 sm:mb-16">
                   <SectionLabel>Related programs</SectionLabel>
                   <div className="flex flex-wrap gap-2">
                     {linked.map((r, i) => (
@@ -1205,7 +1217,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
 
             {/* ─── 11. Things to know (callouts) ─── */}
             {program.contentSections && program.contentSections.filter((s) => s.type === "callout").length > 0 && (
-              <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-16">
+              <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-10 sm:mb-16">
                 <SectionLabel>Things to know</SectionLabel>
                 <div className="text-sm text-gray-700 leading-relaxed space-y-3">
                   {program.contentSections.filter((s) => s.type === "callout").map((section, i) => (
@@ -1217,7 +1229,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
 
             {/* ─── 12. FAQs ─── */}
             {program.faqs && program.faqs.length > 0 && (
-              <section id="faq" className="max-w-2xl mx-auto px-6 lg:px-8 mb-16 scroll-mt-20">
+              <section id="faq" className="max-w-2xl mx-auto px-6 lg:px-8 mb-10 sm:mb-16 scroll-mt-20">
                 <FaqSection faqs={program.faqs} />
               </section>
             )}
@@ -1247,6 +1259,23 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
           </section>
         )}
       </main>
+
+      {/* Mobile floating call action — the one real thing a stressed caregiver
+          is here to do (call to apply) is otherwise buried in mid-page prose.
+          Labeled, not icon-only, for senior-user clarity. Safe-area padded so
+          it never sits under the iPhone home-indicator. Desktop has the
+          contact section inline and doesn't need this. */}
+      {primaryPhone && (
+        <a
+          href={`tel:${primaryPhone.replace(/[^\d+]/g, "")}`}
+          className="md:hidden fixed right-4 z-40 inline-flex items-center gap-2 rounded-full bg-primary-600 text-white pl-4 pr-5 py-3.5 text-sm font-semibold shadow-lg shadow-primary-900/20 active:scale-[0.97] transition-transform print:hidden"
+          style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+          aria-label={`Call to apply: ${primaryPhone}`}
+        >
+          <Phone className="w-5 h-5" weight="fill" aria-hidden="true" />
+          Call to apply
+        </a>
+      )}
     </div>
   );
 }

@@ -28,15 +28,15 @@ Before opening any code, `ls` the inspirations folder and pick exemplars that ma
 
 (More may have been added since this command was written — always `ls` fresh.)
 
-**Always also `ls` `~/Desktop/olera-web/docs/Mobile Optimized Pages/`** — TJ's curated set of mobile pages he wants Olera to feel like. This is the most direct signal of taste; if a captured example matches the archetype you're working on, **open the PDF with the Read tool (`pages: "1-8"`) before writing a single class.**
+**Always also `ls` `~/Desktop/olera-web/docs/Mobile Optimized Pages/`** — TJ's curated set of mobile pages he wants Olera to feel like. This is the most direct signal of taste. **`Read` any PDF in that folder whose archetype matches the page you're working on** (paginated PDF read, `pages: "1-8"`) *before* writing a single class. Don't paraphrase from memory; open the actual file.
 
-The anchor reference in that folder is **`~/Desktop/olera-web/docs/Mobile Optimized Pages/Zapier Mobile Blog.pdf`** (Zapier blog index, mobile). Concrete patterns to lift from it:
+Concrete patterns to look for and lift from any reference in that folder (the Zapier blog PDF currently in there exemplifies all five; future additions will reinforce or extend them):
 
-1. **Utility bar over headline.** A small top row owns site nav + actions (Zapier logo + "Categories ▾"). The article headline sits *below* that row, **never beside it**. Olera's equivalent: back-link left, share/bookmark right, in one slim row above the title.
-2. **Full-width bold headline.** Article H1 is ~28-30px bold sans, tight leading, edge-to-edge — wraps to ~3-4 lines, no narrow column, no action buttons competing for space. (Olera renders this at ~26px serif to honor the brand; the principle is the *room*, not the font.)
+1. **Utility bar over headline.** A small top row owns site nav + actions. The headline sits *below* that row, **never beside it**. Olera's equivalent: back-link left, share/bookmark right, in one slim row above the title.
+2. **Full-width bold headline.** H1 is ~28-30px bold, tight leading, edge-to-edge — wraps to ~3-4 lines, no narrow column, no action buttons competing for space. (Olera renders this at ~26px serif to honor the brand; the principle is the *room*, not the font.)
 3. **Lighter dek, also full-width.** ~17-18px body weight under the H1, same edge-to-edge measure as the headline. Carries the explanation the H1 can't.
-4. **Small byline row with dot separator.** Tiny avatar + "By Author · N min read" at ~13-14px gray. The smallest unit, last in the stack. (Olera's "Reviewed by Dr. Logan DuBose · Last verified <date>" follows the same shape.)
-5. **Category eyebrow as small underlined link.** Above the H1, ~14-15px, indigo underlined — a tap target for browse, not a breadcrumb. Optional; Olera tends to use a back-link instead.
+4. **Small byline / meta row with dot separator.** Tiny avatar + "By Author · N min read" at ~13-14px gray. The smallest unit, last in the stack. (Olera's "Reviewed by Dr. Logan DuBose · Last verified <date>" follows the same shape.)
+5. **Category eyebrow as small underlined link.** Above the H1, ~14-15px, underlined — a tap target for browse, not a breadcrumb. Optional; Olera tends to use a back-link instead.
 
 The recurring shape across this whole folder: **utility-bar-above / eyebrow / bold full-width headline / lighter full-width dek / byline.** The title and dek are never in the same row as action buttons.
 

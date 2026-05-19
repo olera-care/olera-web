@@ -20,6 +20,10 @@ Two failure modes to avoid:
 
 The target: one sentence naming the problem, one sentence on what shipped, one sentence with a forward-looking ask or deploy plan. Done.
 
+**Hard rules (TJ, learned the hard way):**
+- **No PR links or numbers in the note.** "Shipped via #844 → promoted to main in #846" means nothing to the team — it reads like a changelog. State that it's live in prod; drop the PR trail entirely. (PR refs belong in the Notion report, not Slack.)
+- **No internal/engineer metaphors, no tying pieces together with cause analogies.** Phrases like "same root shape", "same kind of bug as X", "ghost record", "strangler-fig" are jargon nobody outside the work cares about. Don't explain *why* two things are related. If a second piece of work is worth mentioning, state plainly what the user can now do: e.g. "Also fixed: deleting a provider in the admin panel now actually removes it from olera.care (before, it could still show up on the site)." Outcome the user sees — nothing about tables, root causes, or shared patterns.
+
 ## Steps
 
 1. **Gather minimum context**

@@ -7,7 +7,22 @@
 
 ## Current Focus
 
-### 2026-05-17 (Sun) — @wehaveprepared.com fraud ring: domain block shipped (PR #844) + cleanup SQL prepared (TJ runs it)
+### 2026-05-19 (Tue) — GSC: invalid `reviewCount:0` in provider JSON-LD — FIXED (branch `easy-wozniak`, PR pending)
+
+**Context:** Google Search Console email (WNC-10030322, to tj@olera.care 2026-03-11) flagged 1 critical Review-snippets structured-data issue site-wide: `Value in property "reviewCount" must be positive`.
+
+**Root cause:** `app/provider/[slug]/page.tsx` LocalBusiness JSON-LD. The `aggregateRating` block was gated only on `googleReviewsData.rating > 0`, but `reviewCount` was emitted whenever `review_count != null`. `lib/google-places.ts:96` defaults `review_count: data.userRatingCount ?? 0`, so any provider with a Google rating but **zero reviews** emitted `"reviewCount": 0` → Google rejects the entire review snippet for the page. Sole JSON-LD `aggregateRating` site (verified via full sweep — layout/article/breadcrumb schemas carry no ratings).
+
+**Fix (commit `23c59c53`):** Gate `aggregateRating` on `review_count > 0` (added `review_count != null && review_count > 0` to the spread guard) so the block is omitted entirely without a positive count rather than emitting an invalid one. Also corrected `worstRating: 0 → 1` — Google reviews are a 1–5 scale, the outer `rating > 0` guard already excludes sub-1, and the `Review` objects directly below already use `worstRating: 1` (now internally consistent).
+
+**Verification:** `/pre-test` — clean, no bugs. Traced the spread-of-`&&`-chain (object-spreading `false`/`null`/`undefined` is a no-op; same pattern used on adjacent lines 776/786). Confirmed no new structured-data invalidity: a curated-reviews provider with `review_count:0` now emits `review[]` without `aggregateRating`, which is valid per Google (snippet needs *either*). `tsc --noEmit`: 0 errors.
+
+**Decisions made:** Suppress over-emit — fewer-but-valid beats more-but-invalid for structured data (one bad `reviewCount` invalidates the whole snippet). Same honesty principle as the provider-highlights waterfall.
+
+**Resume next session here →** Open PR `easy-wozniak` → staging, QA, promote to main. After prod deploy, in GSC → Review snippets report click **Validate Fix** (Google re-crawl, ~days–weeks to clear). Nothing else outstanding.
+---
+
+### 2026-05-17→18 (Sun–Mon) — @wehaveprepared.com fraud ring: CLOSED — DB remediated + domain block live in prod
 
 **Context:** Esther flagged in #ai-product-development that `@wehaveprepared.com` accounts exploited the pre-April-7 account-separation gap — created **family** accounts, then also **claimed provider listings** they didn't own (Visiting Angels, Griswold, Andwell, Home Helpers, HomeWell, Casa Care, Seniors Helping Seniors, Right at Home). Real providers hit a dead end claiming their own listings. TJ took the task; Esther's hard constraint = don't delete real listings.
 
@@ -23,7 +38,11 @@
 - Execution = **TJ runs the SQL himself** in the Supabase SQL editor; AI prepares only. The strict separation that closed the hole was **code, not a migration** (commits `d5f05f83`, `3eea1761`) — hence no DB constraint, hence these predating accounts need manual SQL.
 - Account separation enforcement has **no DB-level constraint** — purely route-handler code. Documented in memory `project_wehaveprepared_fraud.md`.
 
-**Resume next session here →** (1) **Blocked on TJ**: run STEP 0→1→2→3 in Supabase SQL editor + decide BrightStar (STEP 0c — recommend unclaim it, reversible). (2) When TJ says done → re-run `investigate-wehaveprepared.mjs` to confirm 0 dual-profiles remain, update `project_wehaveprepared_fraud.md`. (3) Merge PR #844 → staging → main per normal flow. (4) Optional, not in scope: ~31 fabricated fake provider profiles stay `is_active=true`/`unclaimed` after cleanup — could `is_active=false` them to stop polluting the directory; offered, awaiting TJ call.
+**2026-05-18 closeout (done):** TJ ran STEP 0–4 in Supabase. Verified: 24 fraud family profiles deleted, 33 provider claims severed/unclaimed, 32 fabricated listings hidden (`is_active=false`, STEP 4), real `mKQD35X` (HomeWell) intact + claimable, `olera-providers` untouched. `/pre-test` caught a critical bypass — original block only covered create-profile + claim-instant, but OTP sign-in is client-side so the actual claim paths (`claim-listing`, `create-listing`, `claim/finalize`) were unguarded; hardened to all 5 chokepoints before merge. PR #844 → staging, promoted to prod via PR #846 (`main` @ `aae16797`, includes #845 Careseeker Re-engagement as a conscious rider). Both `/pr-merge` Notion reports filed. Team note posted to #general. `project_wehaveprepared_fraud.md` marked CLOSED.
+
+**`/slack-notes` skill updated** (`.claude/commands/slack-notes.md`, this branch): two hard rules added from TJ feedback — (a) no PR links/numbers in Slack notes (changelog noise; PR refs belong in Notion), (b) no engineer metaphors / no tying pieces together with cause analogies — state the plain user-visible outcome only.
+
+**Resume next session here →** Fraud incident fully closed, nothing outstanding. This branch (`wehaveprepared-closeout-docs`) carries only doc updates (SCRATCHPAD + slack-notes skill) — merge to staging when convenient, low priority.
 ---
 
 ### 2026-05-16 (Fri) — Care Shifts staging arc: #824 review → #832 cleanup → #833 deletion → #838 mobile triage (all merged to staging)

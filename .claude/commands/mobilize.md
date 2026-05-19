@@ -28,6 +28,18 @@ Before opening any code, `ls` the inspirations folder and pick exemplars that ma
 
 (More may have been added since this command was written — always `ls` fresh.)
 
+**Always also `ls` `~/Desktop/olera-web/docs/Mobile Optimized Pages/`** — TJ's curated set of mobile pages he wants Olera to feel like. This is the most direct signal of taste. **`Read` any PDF in that folder whose archetype matches the page you're working on** (paginated PDF read, `pages: "1-8"`) *before* writing a single class. Don't paraphrase from memory; open the actual file.
+
+Concrete patterns to look for and lift from any reference in that folder (the Zapier blog PDF currently in there exemplifies all five; future additions will reinforce or extend them):
+
+1. **Utility bar over headline.** A small top row owns site nav + actions. The headline sits *below* that row, **never beside it**. Olera's equivalent: back-link left, share/bookmark right, in one slim row above the title.
+2. **Full-width bold headline.** H1 is ~28-30px bold, tight leading, edge-to-edge — wraps to ~3-4 lines, no narrow column, no action buttons competing for space. (Olera renders this at ~26px serif to honor the brand; the principle is the *room*, not the font.)
+3. **Lighter dek, also full-width.** ~17-18px body weight under the H1, same edge-to-edge measure as the headline. Carries the explanation the H1 can't.
+4. **Small byline / meta row with dot separator.** Tiny avatar + "By Author · N min read" at ~13-14px gray. The smallest unit, last in the stack. (Olera's "Reviewed by Dr. Logan DuBose · Last verified <date>" follows the same shape.)
+5. **Category eyebrow as small underlined link.** Above the H1, ~14-15px, underlined — a tap target for browse, not a breadcrumb. Optional; Olera tends to use a back-link instead.
+
+The recurring shape across this whole folder: **utility-bar-above / eyebrow / bold full-width headline / lighter full-width dek / byline.** The title and dek are never in the same row as action buttons.
+
 Skim 2-3 screenshots that match the archetype of the page in question. **Let the spacing soak in. Notice how few elements appear per screen. Notice where the CTA sits. Notice how text scale jumps.** You're not copying the look — you're calibrating your taste before you critique.
 
 If the inspirations folder has no good match for the archetype, lean on your trained knowledge of Airbnb, Apple, Telegram, Linear, Luma, Claude, Browser Company, Revolut, Robinhood, Instagram. Name the specific reference when you cite a principle ("Airbnb's sticky-bottom price band" not "good mobile UX").
@@ -99,12 +111,13 @@ The page should feel like a native app touched the web.
 - **Horizontal scroll for content shelves.** Stacking 8 provider cards vertically = an endless wall. A `snap-x` shelf with 1.2 cards visible = a curated row (Airbnb experiences, Apple App Store editorial). ([[feedback_horizontal_scroll_pattern]])
 - **Swipe + back gesture.** Don't trap navigation in modals that swallow the iOS back swipe.
 - **No hover states.** `:hover` is a no-op on touch. Pair every hover with `:active` (touch press feedback) and `:focus-visible` (keyboard).
+- **Headlines never share a flex row with action buttons on mobile.** This is a hard rule, not a suggestion. A long H1 in `flex justify-between` with a `shrink-0` icon cluster will collapse toward its longest-word width on mobile and ladder one-word-per-line — and `flex-1 min-w-0` doesn't always rescue it (interactions with `inline-block` shrink-to-fit, `text-wrap: balance/pretty`, and intrinsic-size contributions defeat the naive model). The Zapier/Notion pattern: actions live in a **utility bar above** the title (back-link left, share/bookmark right). The headline wrapper is plain block on mobile (`sm:flex` only at desktop) so the H1 is a block-level child with no flex sibling — **unconditionally 100% width, regardless of any flex/inline-block subtlety**.
 
 ### Lens 4 — Typography & Density
 
 Mobile typography is **less restrained**, not more. Bigger headlines, tighter leading, more whitespace between sections. The temptation to "shrink everything for mobile" is wrong — shrink margins, not headlines.
 
-- Page title: `clamp(28px, 8vw, 44px)` or `text-4xl` — should command attention without needing pinch-zoom.
+- Page title: depends on archetype. **Short marketing headlines** (Apple/Wispr) stay big — `clamp(28px, 8vw, 44px)` or `text-4xl` — they're the focal point. **Long content/reference titles** (Notion docs, Zapier feature guides, Olera benefits programs — sentence-length, often 50+ characters) sit in the Linear/Notion/Zapier register: ~24–28px bold on mobile, **owning the full content width**. Bigger than that on a long bureaucratic title fragments awkwardly; smaller (≤20px) feels timid. The "don't shrink headlines for mobile" rule applies to *short* headlines — long titles get full-width room, not bigger font.
 - Section spacing: `py-12` minimum between major zones on mobile (less than desktop's `py-16`, but more than `py-6`).
 - Line length: prose at `max-w-prose` even on mobile reads better than full-bleed text.
 - One-screen rule: the hero + primary CTA should both be visible on a single iPhone 15 viewport (~852pt tall in portrait) without scrolling. If not, something else got prioritized over the action.
@@ -148,6 +161,7 @@ These are mistakes that have happened or could happen on Olera webpages specific
 | Carousel that requires arrow buttons | Arrow buttons are a desktop affordance | `overflow-x-auto snap-x snap-mandatory` for native swipe |
 | Animation on `width` / `height` / `top` | Janky on mobile GPUs | Migrate to `transform: translate/scale` + `opacity` |
 | Senior-user tap target < 48px | Misses + double-taps + frustration | Audit every interactive element |
+| H1 sharing `flex justify-between` with action buttons | Title collapses to longest-word width, ladders one-word-per-line; `flex-1 min-w-0` often doesn't rescue it; multiple speculative CSS tweaks fail in sequence | Restructure: actions move to a utility bar above; title wrapper `sm:flex` only (block on mobile); H1 is a block-level child with no flex sibling |
 
 ---
 
@@ -188,16 +202,22 @@ After implementing, give a short summary:
 
 ## Phase 7 — Hand off to Vercel verification
 
-Always end the implementation phase with this exact handoff:
+After the **first commit** on the branch, **open a PR** (`gh pr create --base staging --head <branch>`). Vercel posts a preview comment on the PR with a **branch-aliased URL** (e.g., `olera-web-git-<branch>-olera.vercel.app`) that **always tracks the latest commit**. That URL is your one source of truth for the rest of the session — every subsequent push auto-updates it.
 
-> "I won't test locally. Push this to staging, open the Vercel preview on your phone, and share screenshots back. I'm specifically watching for:
+**Do not let TJ verify against pinned deployment URLs** (the random-hash subdomains like `olera-xyzabc-olera-vercel-app`). Each push mints a new hash; reopening an old one shows old code forever. This session lost 4 verification rounds to that exact trap — the user reopening a pre-fix deployment, seeing the bug, and concluding the fix didn't work. The PR preview link is the only link to share.
+
+**Curl/WebFetch the deployment to verify which commit is live? Don't bother.** Vercel's WAF serves an HTTP 429 bot-challenge page (~33KB) to both `curl` and `WebFetch` on preview URLs — you get the challenge, not the real HTML. You can confirm the *committed source* via `git show` and the *deployed commit* via the PR's preview link in a browser; you cannot read the deployed DOM programmatically.
+
+End the implementation phase with this exact handoff:
+
+> "I won't test locally. The PR's Vercel preview link auto-updates on every push — use **only** that link (not a pinned deployment hash). I'm specifically watching for:
 > - [thing X — e.g., 'CTA doesn't sit under the home-indicator']
 > - [thing Y — e.g., 'hero image is full-bleed without horizontal scroll']
 > - [thing Z — e.g., 'FAQ items are tappable without missing']
 >
 > If anything's off, paste the screenshot back and I'll iterate."
 
-This is the verification loop. The local dev server is not the source of truth — the Vercel preview on TJ's real phone is.
+The local dev server is not the source of truth — the PR's auto-updating preview on TJ's real phone is.
 
 ---
 
@@ -222,6 +242,7 @@ When TJ shares back-from-Vercel screenshots:
 - **Don't skip the inspirations folder.** Ten seconds of `ls` and a glance at a Wispr Flow screen recalibrates your taste before every critique. Skipping it leads to generic recommendations.
 - **Don't write code in Phase 3.** The critique is the deliverable for Phase 3. Code comes after Phase 5 confirmation.
 - **Don't claim "tested" without Vercel screenshots.** If TJ hasn't shared screenshots back, you haven't verified — you've implemented. Be honest about that distinction. ([[feedback_tj_writing_style]] — terse + direct + honest beats hedged.)
+- **Don't ship a third speculative CSS one-liner.** If your first fix was `flex-1 min-w-0` and the screenshot still shows the bug, and your second fix tweaked `text-wrap` / `inline-block` / sizing and the screenshot *still* shows the bug — **stop tweaking and restructure**. Reasoning about flexbox + intrinsic sizing + `text-wrap: balance`/`pretty` interactions from source alone is unreliable; the model says "it should work" while reality says it doesn't. Remove the failure mode entirely (e.g., extract action buttons out of the title's flex row so the H1 is a block-level child with no flex sibling). Restructure > nth-tweak.
 
 ---
 
@@ -243,3 +264,5 @@ When TJ shares back-from-Vercel screenshots:
 | Animated `width` / `height` | Migrate to `transform` + `opacity` | Motion |
 | Mobile downloads desktop image | `<Image sizes>` with viewport-aware sources | Performance |
 | Layout shift on async content | Skeleton placeholders reserving space | Performance |
+| Long H1 ladders one-word-per-line on mobile | Title sharing flex row with action buttons — restructure: actions to utility bar above, title wrapper `sm:flex` only | Native |
+| `flex-1` "should" expand but doesn't | Don't keep tweaking — restructure so the element has no flex sibling at that breakpoint (`block` on mobile, `sm:flex`) | Native |

@@ -861,7 +861,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
 
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <h1 className="text-[1.625rem] sm:text-display-sm md:text-display-md font-bold text-gray-900 font-serif leading-[1.15] sm:leading-tight [text-wrap:balance] [hyphens:none]">
+              <h1 className="text-[1.375rem] sm:text-display-sm md:text-display-md font-bold text-gray-900 font-serif leading-[1.2] sm:leading-tight [text-wrap:pretty] [hyphens:none]">
                 <span className="relative inline-block">
                   {getDisplayName(program, state)}
                   <HandDrawnUnderline />

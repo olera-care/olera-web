@@ -28,7 +28,17 @@ Before opening any code, `ls` the inspirations folder and pick exemplars that ma
 
 (More may have been added since this command was written — always `ls` fresh.)
 
-**Always also `ls` `~/Desktop/olera-web/docs/Mobile Optimized Pages/`** — TJ's curated set of mobile pages he wants Olera to feel like (the canonical examples for full-width content/reference layouts: Zapier blog, more to come). This is the most direct signal of taste; if a captured example matches the archetype you're working on, skim it before writing a single class. The recurring pattern across these references is the utility-bar-above / full-width-headline shape: small action row at top → optional small eyebrow link → bold headline edge-to-edge → lighter dek edge-to-edge → small byline row. **The title and dek are never in the same row as action buttons.**
+**Always also `ls` `~/Desktop/olera-web/docs/Mobile Optimized Pages/`** — TJ's curated set of mobile pages he wants Olera to feel like. This is the most direct signal of taste; if a captured example matches the archetype you're working on, **open the PDF with the Read tool (`pages: "1-8"`) before writing a single class.**
+
+The anchor reference in that folder is **`~/Desktop/olera-web/docs/Mobile Optimized Pages/Zapier Mobile Blog.pdf`** (Zapier blog index, mobile). Concrete patterns to lift from it:
+
+1. **Utility bar over headline.** A small top row owns site nav + actions (Zapier logo + "Categories ▾"). The article headline sits *below* that row, **never beside it**. Olera's equivalent: back-link left, share/bookmark right, in one slim row above the title.
+2. **Full-width bold headline.** Article H1 is ~28-30px bold sans, tight leading, edge-to-edge — wraps to ~3-4 lines, no narrow column, no action buttons competing for space. (Olera renders this at ~26px serif to honor the brand; the principle is the *room*, not the font.)
+3. **Lighter dek, also full-width.** ~17-18px body weight under the H1, same edge-to-edge measure as the headline. Carries the explanation the H1 can't.
+4. **Small byline row with dot separator.** Tiny avatar + "By Author · N min read" at ~13-14px gray. The smallest unit, last in the stack. (Olera's "Reviewed by Dr. Logan DuBose · Last verified <date>" follows the same shape.)
+5. **Category eyebrow as small underlined link.** Above the H1, ~14-15px, indigo underlined — a tap target for browse, not a breadcrumb. Optional; Olera tends to use a back-link instead.
+
+The recurring shape across this whole folder: **utility-bar-above / eyebrow / bold full-width headline / lighter full-width dek / byline.** The title and dek are never in the same row as action buttons.
 
 Skim 2-3 screenshots that match the archetype of the page in question. **Let the spacing soak in. Notice how few elements appear per screen. Notice where the CTA sits. Notice how text scale jumps.** You're not copying the look — you're calibrating your taste before you critique.
 

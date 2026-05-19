@@ -757,13 +757,19 @@ export default async function ProviderPage({
     }),
     ...(profile.phone && { telephone: profile.phone }),
     ...(images.length > 0 && { image: images[0] }),
-    ...(googleReviewsData && googleReviewsData.rating > 0 && {
+    // Google requires AggregateRating.reviewCount to be a positive integer.
+    // Only emit the block when there's a real rating AND at least one review —
+    // otherwise the entire review snippet is rejected as invalid structured data.
+    ...(googleReviewsData &&
+      googleReviewsData.rating > 0 &&
+      googleReviewsData.review_count != null &&
+      googleReviewsData.review_count > 0 && {
       aggregateRating: {
         "@type": "AggregateRating",
         ratingValue: googleReviewsData.rating,
         bestRating: 5,
-        worstRating: 0,
-        ...(googleReviewsData.review_count != null && { reviewCount: googleReviewsData.review_count }),
+        worstRating: 1,
+        reviewCount: googleReviewsData.review_count,
       },
     }),
     // Suppress priceRange in schema for Tier 3 unless provider explicitly entered pricing

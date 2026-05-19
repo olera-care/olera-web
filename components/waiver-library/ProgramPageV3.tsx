@@ -718,8 +718,8 @@ function SectionNav({ sections, activeId }: { sections: NavSection[]; activeId: 
               }}
               className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap active:scale-95 transition-all ${
                 activeId === s.id
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                  ? "bg-gray-900 text-white border border-gray-900"
+                  : "bg-white/60 border border-gray-200/70 text-gray-600 hover:text-gray-800 hover:bg-white"
               }`}
             >
               {s.label}
@@ -860,7 +860,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
           </nav>
 
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="min-w-0 flex-1">
               <h1 className="text-[1.625rem] sm:text-display-sm md:text-display-md font-bold text-gray-900 font-serif leading-[1.15] sm:leading-tight [text-wrap:balance] [hyphens:none]">
                 <span className="relative inline-block">
                   {getDisplayName(program, state)}
@@ -868,7 +868,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                 </span>
               </h1>
               {program.tagline && program.tagline !== program.description && (
-                <p className="mt-4 text-lg text-gray-500 leading-relaxed max-w-xl">{program.tagline}</p>
+                <p className="mt-4 text-lg text-gray-600 leading-relaxed max-w-xl">{program.tagline}</p>
               )}
               {program.savingsRange ? (
                 <p className="mt-3 text-sm text-gray-500">
@@ -981,7 +981,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                 <div>
                   <SectionLabel>Eligibility details</SectionLabel>
                   <SectionHeading>Do you qualify?</SectionHeading>
-                  <p className="text-gray-500 mt-1">Full requirements for this program.</p>
+                  <p className="text-gray-600 mt-1">Full requirements for this program.</p>
                 </div>
 
                 {/* Income table — wider */}
@@ -1216,16 +1216,26 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
             })()}
 
             {/* ─── 11. Things to know (callouts) ─── */}
-            {program.contentSections && program.contentSections.filter((s) => s.type === "callout").length > 0 && (
-              <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-10 sm:mb-16">
-                <SectionLabel>Things to know</SectionLabel>
-                <div className="text-sm text-gray-700 leading-relaxed space-y-3">
-                  {program.contentSections.filter((s) => s.type === "callout").map((section, i) => (
-                    <p key={i}>{"text" in section ? String(section.text) : ""}</p>
-                  ))}
-                </div>
-              </section>
-            )}
+            {(() => {
+              // Only count callouts that actually carry text. Pipeline drafts
+              // sometimes emit an empty callout (no `text`), which previously
+              // rendered the "Things to know" heading over an empty <p>.
+              const calloutTexts = (program.contentSections || [])
+                .filter((s) => s.type === "callout" && "text" in s)
+                .map((s) => String((s as { text: unknown }).text).trim())
+                .filter((t) => t.length > 0);
+              if (calloutTexts.length === 0) return null;
+              return (
+                <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-10 sm:mb-16">
+                  <SectionLabel>Things to know</SectionLabel>
+                  <div className="text-sm text-gray-700 leading-relaxed space-y-3">
+                    {calloutTexts.map((t, i) => (
+                      <p key={i}>{t}</p>
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
 
             {/* ─── 12. FAQs ─── */}
             {program.faqs && program.faqs.length > 0 && (

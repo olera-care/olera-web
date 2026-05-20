@@ -77,31 +77,6 @@ function needsNudge(meta: FamilyMetadata, careTypes: string[], city: string | nu
   return daysSinceNudge >= cooldownDays;
 }
 
-function isInSequence(meta: FamilyMetadata, careTypes: string[], city: string | null, state: string | null): boolean {
-  // Skip if published
-  if (isPublished(meta)) return false;
-
-  const profileComplete = isProfileComplete(meta, careTypes, city, state);
-
-  // Check which sequence applies
-  const seq = profileComplete ? meta.publish_sequence : meta.completion_sequence;
-
-  // In sequence if has any nudge and in active phase
-  return !!(seq && seq.nudge_count > 0 && seq.phase === "active");
-}
-
-function isInMaintenance(meta: FamilyMetadata, careTypes: string[], city: string | null, state: string | null): boolean {
-  // Skip if published
-  if (isPublished(meta)) return false;
-
-  const profileComplete = isProfileComplete(meta, careTypes, city, state);
-
-  // Check which sequence applies
-  const seq = profileComplete ? meta.publish_sequence : meta.completion_sequence;
-
-  return seq?.phase === "maintenance";
-}
-
 /**
  * GET /api/admin/care-seekers
  *
@@ -119,18 +94,10 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search")?.trim() || "";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const perPage = Math.min(100, Math.max(1, parseInt(searchParams.get("per_page") || "50", 10)));
-    const guestOnly = searchParams.get("guest_only") === "true";
-    const membersOnly = searchParams.get("members_only") === "true";
     const publishedOnly = searchParams.get("published_only") === "true";
     const unpublishedOnly = searchParams.get("unpublished_only") === "true";
-    // New nudge-related filters
     const needsNudgeOnly = searchParams.get("needs_nudge") === "true";
-    const inSequenceOnly = searchParams.get("in_sequence") === "true";
-    const maintenanceOnly = searchParams.get("maintenance") === "true";
     const hasLeadsOnly = searchParams.get("has_leads") === "true";
-    // Legacy params for backwards compatibility
-    const claimedOnly = searchParams.get("claimed_only") === "true";
-    const publicOnly = searchParams.get("public_only") === "true";
     const cityFilter = searchParams.get("city")?.trim() || "";
     const stateFilter = searchParams.get("state")?.trim() || "";
 
@@ -146,21 +113,12 @@ export async function GET(request: NextRequest) {
       query = query.or(`display_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
     }
 
-    // Account status filters
-    if (guestOnly) {
-      query = query.is("account_id", null);
-    } else if (membersOnly || claimedOnly) {
-      query = query.not("account_id", "is", null);
-    }
-
     // Published status filters
-    if (publishedOnly || publicOnly) {
+    if (publishedOnly) {
       query = query
         .eq("is_active", true)
         .contains("metadata", { care_post: { status: "active" } });
     } else if (unpublishedOnly) {
-      // Not published = does NOT have active care post
-      // Using .not() with contains is the inverse of the published filter
       query = query.not("metadata", "cs", JSON.stringify({ care_post: { status: "active" } }));
     }
 
@@ -176,7 +134,7 @@ export async function GET(request: NextRequest) {
 
     // For nudge-related filters, we need to fetch ALL data and filter client-side
     // because these filters require metadata parsing that can't be done in SQL
-    const needsClientSideFilter = needsNudgeOnly || inSequenceOnly || maintenanceOnly || hasLeadsOnly;
+    const needsClientSideFilter = needsNudgeOnly || hasLeadsOnly;
 
     if (!needsClientSideFilter) {
       // Standard DB pagination for non-nudge filters
@@ -237,20 +195,6 @@ export async function GET(request: NextRequest) {
       seekers = seekers.filter((s) => {
         const meta = (s.metadata || {}) as FamilyMetadata;
         return needsNudge(meta, s.care_types || [], s.city, s.state, s.created_at);
-      });
-    }
-
-    if (inSequenceOnly) {
-      seekers = seekers.filter((s) => {
-        const meta = (s.metadata || {}) as FamilyMetadata;
-        return isInSequence(meta, s.care_types || [], s.city, s.state);
-      });
-    }
-
-    if (maintenanceOnly) {
-      seekers = seekers.filter((s) => {
-        const meta = (s.metadata || {}) as FamilyMetadata;
-        return isInMaintenance(meta, s.care_types || [], s.city, s.state);
       });
     }
 

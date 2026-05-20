@@ -47,20 +47,6 @@ function needsNudge(meta: FamilyMetadata, careTypes: string[], city: string | nu
   return daysSince(lastNudge) >= cooldownDays;
 }
 
-function isInSequence(meta: FamilyMetadata, careTypes: string[], city: string | null, state: string | null): boolean {
-  if (isPublished(meta)) return false;
-  const profileComplete = isProfileComplete(meta, careTypes, city, state);
-  const seq = profileComplete ? meta.publish_sequence : meta.completion_sequence;
-  return !!(seq && seq.nudge_count > 0 && seq.phase === "active");
-}
-
-function isInMaintenance(meta: FamilyMetadata, careTypes: string[], city: string | null, state: string | null): boolean {
-  if (isPublished(meta)) return false;
-  const profileComplete = isProfileComplete(meta, careTypes, city, state);
-  const seq = profileComplete ? meta.publish_sequence : meta.completion_sequence;
-  return seq?.phase === "maintenance";
-}
-
 /**
  * GET /api/admin/care-seekers/stats
  *
@@ -77,26 +63,12 @@ export async function GET() {
     const db = getServiceClient();
 
     // Run all count queries in parallel
-    const [totalRes, membersRes, guestRes, publishedRes, thisWeekRes, allSeekersRes, connectionsRes] = await Promise.all([
+    const [totalRes, publishedRes, thisWeekRes, allSeekersRes, connectionsRes] = await Promise.all([
       // Total count
       db
         .from("business_profiles")
         .select("id", { count: "exact", head: true })
         .eq("type", "family"),
-
-      // Members count (has account_id)
-      db
-        .from("business_profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("type", "family")
-        .not("account_id", "is", null),
-
-      // Guest count (no account_id)
-      db
-        .from("business_profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("type", "family")
-        .is("account_id", null),
 
       // Published count (active care post)
       db
@@ -129,8 +101,6 @@ export async function GET() {
 
     // Log any query errors for debugging
     if (totalRes.error) console.error("Stats total query error:", totalRes.error);
-    if (membersRes.error) console.error("Stats members query error:", membersRes.error);
-    if (guestRes.error) console.error("Stats guest query error:", guestRes.error);
     if (publishedRes.error) console.error("Stats published query error:", publishedRes.error);
     if (thisWeekRes.error) console.error("Stats thisWeek query error:", thisWeekRes.error);
     if (allSeekersRes.error) console.error("Stats allSeekers query error:", allSeekersRes.error);
@@ -141,24 +111,14 @@ export async function GET() {
     const published = publishedRes.count ?? 0;
     const unpublished = total - published;
 
-    // Calculate nudge-related counts
+    // Calculate needsNudge count
     let needsNudgeCount = 0;
-    let inSequenceCount = 0;
-    let maintenanceCount = 0;
-
     const allSeekers = allSeekersRes.data ?? [];
     for (const seeker of allSeekers) {
       const meta = (seeker.metadata || {}) as FamilyMetadata;
       const careTypes = (seeker.care_types || []) as string[];
-
       if (needsNudge(meta, careTypes, seeker.city, seeker.state, seeker.created_at)) {
         needsNudgeCount++;
-      }
-      if (isInSequence(meta, careTypes, seeker.city, seeker.state)) {
-        inSequenceCount++;
-      }
-      if (isInMaintenance(meta, careTypes, seeker.city, seeker.state)) {
-        maintenanceCount++;
       }
     }
 
@@ -168,21 +128,15 @@ export async function GET() {
     for (const conn of connections) {
       seekersWithLeads.add(conn.from_profile_id);
     }
-    // Filter to only family profile IDs
     const familyIds = new Set(allSeekers.map((s) => s.id));
     const hasLeadsCount = [...seekersWithLeads].filter((id) => familyIds.has(id)).length;
 
     return NextResponse.json({
       total,
-      members: membersRes.count ?? 0,
-      guest: guestRes.count ?? 0,
       published,
       unpublished,
       thisWeek: thisWeekRes.count ?? 0,
-      // New nudge-related counts
       needsNudge: needsNudgeCount,
-      inSequence: inSequenceCount,
-      maintenance: maintenanceCount,
       hasLeads: hasLeadsCount,
     });
   } catch (err) {

@@ -61,6 +61,54 @@ function getServiceDb() {
 }
 
 /**
+ * Email types that MUST always send, even to a previously-bounced address.
+ * These are auth / verification / account-critical flows the recipient
+ * actively triggered (and may have since fixed a typo'd or full mailbox).
+ * Suppressing them risks locking a real user out — far worse than the
+ * marginal reputation cost of one retry. Everything NOT in this set is
+ * subject to the bounce/complaint suppression check below.
+ */
+const SUPPRESSION_EXEMPT_TYPES = new Set<string>([
+  "verify_email",
+  "verification_otp",
+  "verification_code",
+  "verification_approved",
+  "verification_decision",
+  "verification_rejected",
+  "verification_pending_review",
+  "student_activation",
+  "student_account_created",
+]);
+
+/**
+ * Returns true if we've previously recorded a hard bounce or spam complaint
+ * for this exact recipient. Used to suppress non-critical sends so we stop
+ * re-mailing dead/hostile addresses — every repeat bounce/complaint counts
+ * against Resend's <4% bounce and <0.08% complaint thresholds, beyond which
+ * the account can be suspended without warning.
+ *
+ * Fails OPEN: any error returns false (send proceeds), so a transient DB
+ * issue can never silently block email.
+ */
+async function isSuppressedRecipient(email: string): Promise<boolean> {
+  try {
+    const db = getServiceDb();
+    if (!db) return false;
+    const { data } = await db
+      .from("email_log")
+      .select("id")
+      .eq("recipient", email)
+      .or("bounced_at.not.is.null,complained_at.not.is.null")
+      .limit(1)
+      .maybeSingle();
+    return !!data;
+  } catch (err) {
+    console.error("[email] Suppression check failed (sending anyway):", err);
+    return false;
+  }
+}
+
+/**
  * Pre-create an email_log row before sending. Returns the row ID
  * so callers can embed it in tracking links (e.g. ?eid={id}).
  * Returns null if logging fails — callers should still send the email.
@@ -211,6 +259,34 @@ export async function sendEmail(
   }
 
   const recipient = Array.isArray(to) ? to.join(", ") : to;
+
+  // Suppress non-critical sends to addresses we've already burned (prior hard
+  // bounce or spam complaint). Protects domain reputation against Resend's
+  // <4% bounce / <0.08% complaint suspension thresholds. Auth/verification mail
+  // (SUPPRESSION_EXEMPT_TYPES) bypasses this. Multi-recipient sends are skipped
+  // here since one bad address shouldn't drop mail to the others.
+  const soleRecipient = Array.isArray(to)
+    ? to.length === 1
+      ? to[0]
+      : null
+    : to;
+  if (
+    soleRecipient &&
+    emailType &&
+    !SUPPRESSION_EXEMPT_TYPES.has(emailType) &&
+    (await isSuppressedRecipient(soleRecipient))
+  ) {
+    console.log(
+      `[email] Suppressed ${emailType} to ${soleRecipient} — prior bounce/complaint on record`
+    );
+    if (existingLogId) {
+      updateEmailLog(existingLogId, {
+        status: "failed",
+        errorMessage: "Suppressed: prior bounce/complaint on record",
+      });
+    }
+    return { success: true, skipped: true, emailLogId: existingLogId ?? undefined };
+  }
 
   // If no pre-reserved log ID, create one now
   const logId =

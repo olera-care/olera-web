@@ -11,6 +11,8 @@ interface ProfileCompletionNudgeProps {
   onDismiss: () => void;
   /** Connection ID for localStorage key */
   connectionId: string;
+  /** Profile completion percentage (0-100) */
+  completionPercentage?: number;
 }
 
 export default function ProfileCompletionNudge({
@@ -18,6 +20,7 @@ export default function ProfileCompletionNudge({
   onComplete,
   onDismiss,
   connectionId,
+  completionPercentage,
 }: ProfileCompletionNudgeProps) {
   // Fire analytics event on render
   useEffect(() => {
@@ -89,7 +92,7 @@ export default function ProfileCompletionNudge({
             onClick={handleComplete}
             className="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-[13px] font-semibold rounded-full transition-colors"
           >
-            Complete Profile
+            Complete Profile{completionPercentage !== undefined && ` · ${Math.round(completionPercentage)}%`}
           </button>
           <button
             type="button"

@@ -582,6 +582,7 @@ export default function ConversationPanel({
               }
             }}
             connectionId={connection.id}
+            completionPercentage={completeness}
           />
         </div>
       )}

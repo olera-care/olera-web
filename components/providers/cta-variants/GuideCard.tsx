@@ -663,8 +663,8 @@ export default function GuideCard({
             onSkip={skipEnrichment}
             saving={enrichmentSubmitting}
             priceRange={priceRange}
-            successTitle="Checklist on its way"
-            successSubtitle="Downloaded · Also sent to your email"
+            successTitle={`Connected with ${providerName}`}
+            successSubtitle="Checklist sent to your email"
           />
           {/* Re-download link */}
           {pdfUrl && (

@@ -393,8 +393,8 @@ export default function GuideBottomSheet({
                 onSave={saveEnrichment}
                 onSkip={skipEnrichment}
                 saving={enrichmentSubmitting}
-                successTitle="Checklist on its way"
-                successSubtitle="Downloaded · Also sent to your email"
+                successTitle={`Connected with ${providerName}`}
+                successSubtitle="Checklist sent to your email"
               />
               {/* Re-download link */}
               {pdfUrl && (

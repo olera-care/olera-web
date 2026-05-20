@@ -342,6 +342,7 @@ export default function ConversationList({
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Controlled/uncontrolled pattern for familyTab
   const familyTab = familyTabProp ?? familyTabInternal;
@@ -394,6 +395,24 @@ export default function ConversationList({
       setReadIds((prev) => new Set([...prev, selectedId]));
     }
   }, [selectedId, activeProfileId]);
+
+  // Auto-scroll to selected conversation when loading completes
+  const lastScrolledId = useRef<string | null>(null);
+  useEffect(() => {
+    // Only auto-scroll once per selection when loading finishes
+    if (loading || !selectedId || lastScrolledId.current === selectedId) return;
+
+    // Small delay to ensure DOM is rendered
+    const timer = setTimeout(() => {
+      const itemEl = itemRefs.current.get(selectedId);
+      if (itemEl) {
+        itemEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        lastScrolledId.current = selectedId;
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [loading, selectedId]);
 
   // Track scroll for divider
   const handleScroll = useCallback(() => {
@@ -479,7 +498,14 @@ export default function ConversationList({
     const isReported = !!(conn.metadata as Record<string, unknown> | undefined)?.reported;
 
     return (
-      <div key={conn.id} className="pl-0 sm:pl-[28px] pr-0 sm:pr-3 py-0.5">
+      <div
+        key={conn.id}
+        ref={(el) => {
+          if (el) itemRefs.current.set(conn.id, el);
+          else itemRefs.current.delete(conn.id);
+        }}
+        className="pl-0 sm:pl-[28px] pr-0 sm:pr-3 py-0.5"
+      >
         <div
           className={`group relative rounded-xl transition-colors ${
             isMenuOpen ? "z-20" : ""

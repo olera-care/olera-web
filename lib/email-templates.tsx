@@ -948,27 +948,27 @@ export function completionNudge1Email(opts: {
   providerCount?: number;
   city?: string;
 }): string {
-  let headline = "Complete your profile to find care";
   let body = "";
 
   if (opts.missingCareTypes && opts.missingLocation) {
-    body = `Adding your location and care needs helps us match you with providers who can help.`;
+    body = `Adding your location and care needs helps providers understand exactly how they can help you.`;
   } else if (opts.missingCareTypes) {
-    body = `Let us know what type of care you're looking for — we'll show you providers that match.`;
+    body = `Let us know what type of care you're looking for — providers respond better when they know your specific needs.`;
   } else if (opts.missingLocation) {
-    const countText = opts.providerCount ? `the ${opts.providerCount}` : "";
-    body = `Add your city so we can show you${countText} providers near you.`;
+    body = `Add your city so nearby providers can reach out to you directly.`;
+  } else {
+    body = `A few more details will help providers understand your situation and respond with relevant information.`;
   }
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${headline}</h1>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Help providers understand your needs</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
       Hi ${opts.familyName}, ${body}
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      It only takes a minute, and you'll be one step closer to finding the right care.
+      It only takes a minute, and profiles with more details get better responses from providers.
     </p>
-    <div>${button("Complete your profile", opts.welcomeUrl)}</div>
+    <div>${button("Add more details", opts.welcomeUrl)}</div>
   `);
 }
 
@@ -982,16 +982,16 @@ export function completionNudge2Email(opts: {
 }): string {
   const locationText = opts.city || opts.state || "your area";
   const countLine = opts.providerCount
-    ? `There are ${opts.providerCount} care providers in ${locationText} waiting to hear from families like yours.`
-    : `Care providers in ${locationText} are ready to connect with families like yours.`;
+    ? `${opts.providerCount} care providers in ${locationText} are looking for families like yours.`
+    : `Care providers in ${locationText} are looking for families like yours.`;
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You're almost there</h1>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is almost complete</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${opts.familyName}, your profile is almost ready. ${countLine}
+      Hi ${opts.familyName}, you're close! ${countLine}
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Finish your profile now so we can connect you with providers who match what you're looking for.
+      Complete profiles stand out — providers are more likely to reach out when they can see your full situation.
     </p>
     <div>${button("Finish your profile", opts.welcomeUrl)}</div>
   `);
@@ -1009,14 +1009,14 @@ export function completionNudge3Email(opts: {
   const countText = opts.providerCount ? `${opts.providerCount} ` : "";
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Providers are waiting for families like yours</h1>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Providers respond faster to complete profiles</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${opts.familyName}, ${countText}providers in ${locationText} are actively looking for new clients. Other families are already connecting — don't miss out.
+      Hi ${opts.familyName}, ${countText}providers in ${locationText} are actively looking for new clients. Families with detailed profiles hear back 3x faster.
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Complete your profile to see who's available and start the conversation.
+      Take a minute to fill in the missing details — it makes a real difference.
     </p>
-    <div>${button("See available providers", opts.welcomeUrl)}</div>
+    <div>${button("Complete your profile", opts.welcomeUrl)}</div>
   `);
 }
 
@@ -1032,15 +1032,15 @@ export function completionNudge4Email(opts: {
   const providersHtml = opts.providers?.length ? providerCardsBlock(opts.providers) : "";
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Last chance: Top providers in ${locationText}</h1>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Top providers in ${locationText} are ready to help</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${opts.familyName}, we've been holding onto some great provider matches for you. Here are a few top-rated options:
+      Hi ${opts.familyName}, here are some highly-rated providers near you:
     </p>
     ${providersHtml}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Complete your profile to unlock your full matches and start connecting with providers.
+      A complete profile helps these providers understand your needs and reach out with relevant information.
     </p>
-    <div>${button("Complete profile now", opts.welcomeUrl)}</div>
+    <div>${button("Complete your profile", opts.welcomeUrl)}</div>
   `);
 }
 

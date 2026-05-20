@@ -522,7 +522,7 @@ export async function GET(request: NextRequest) {
             // Active sequence nudges (1-4)
             switch (nudgeNumber) {
               case 1:
-                subject = "Complete your profile to find care";
+                subject = "Help providers understand your needs";
                 html = completionNudge1Email({
                   familyName: firstName,
                   welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
@@ -533,7 +533,7 @@ export async function GET(request: NextRequest) {
                 });
                 break;
               case 2:
-                subject = "You're almost there";
+                subject = "Your profile is almost complete";
                 html = completionNudge2Email({
                   familyName: firstName,
                   welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
@@ -543,7 +543,7 @@ export async function GET(request: NextRequest) {
                 });
                 break;
               case 3:
-                subject = "Providers are waiting for families like yours";
+                subject = "Providers respond faster to complete profiles";
                 html = completionNudge3Email({
                   familyName: firstName,
                   welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
@@ -554,7 +554,7 @@ export async function GET(request: NextRequest) {
                 break;
               case 4:
               default:
-                subject = `Last chance: Top providers in ${family.city || family.state || "your area"}`;
+                subject = `Top providers in ${family.city || family.state || "your area"} are ready to help`;
                 html = completionNudge4Email({
                   familyName: firstName,
                   welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),

@@ -7,9 +7,10 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
+import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import type { CompareProvider } from "./CompareBottomSheet";
 
-type FooterState = "initial" | "email_capture" | "submitting" | "success" | "provider_email_block";
+type FooterState = "initial" | "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block";
 
 interface CompareOverlayProps {
   isOpen: boolean;
@@ -40,6 +41,8 @@ export default function CompareOverlay({
   const [error, setError] = useState<string | null>(null);
   const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [connectionIds, setConnectionIds] = useState<string[]>([]);
+  const [enrichmentSubmitting, setEnrichmentSubmitting] = useState(false);
   const saveClickFiredRef = useRef(false);
   const emailInputRef = useRef<HTMLInputElement>(null);
 
@@ -150,18 +153,18 @@ export default function CompareOverlay({
         return;
       }
 
-      setFooterState("success");
+      // Store connection IDs for enrichment
+      if (data.connectionIds?.length > 0) {
+        setConnectionIds(data.connectionIds);
+      }
 
-      // Redirect to inbox
-      setTimeout(() => {
-        const firstConnectionId = data.connectionIds?.[0];
-        router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
-      }, 1500);
+      // Go to enrichment instead of success
+      setFooterState("enrichment");
     } catch {
       setError("Something went wrong. Please try again.");
       setFooterState("initial");
     }
-  }, [userEmail, ctaPreviewMode, ctaVariant, currentProvider.slug, selectedProviders, router]);
+  }, [userEmail, ctaPreviewMode, ctaVariant, currentProvider.slug, selectedProviders]);
 
   // Track "Save" button click (once per overlay session)
   const handleSaveClick = useCallback(() => {
@@ -244,23 +247,68 @@ export default function CompareOverlay({
         });
       }
 
-      setFooterState("success");
+      // Store connection IDs for enrichment
+      if (data.connectionIds?.length > 0) {
+        setConnectionIds(data.connectionIds);
+      }
 
-      // Redirect to inbox after brief delay
-      setTimeout(() => {
-        const firstConnectionId = data.connectionIds?.[0];
-        router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
-      }, 1500);
+      // Go to enrichment instead of success
+      setFooterState("enrichment");
     } catch {
       setError("Something went wrong. Please try again.");
       setFooterState("email_capture");
     }
-  }, [email, selectedProviders, router]);
+  }, [email, selectedProviders]);
 
-  // Handle escape key to close (disabled during submitting/success)
+  // Handle enrichment save - update ALL connections with same intent data
+  const saveEnrichment = useCallback(async (data?: {
+    careRecipient?: string;
+    urgency?: string;
+    phone?: string;
+    contactPreference?: string;
+  }) => {
+    const firstConnectionId = connectionIds[0];
+
+    if (!connectionIds.length || (!data?.careRecipient && !data?.urgency && !data?.phone && !data?.contactPreference)) {
+      // No data to save, just redirect
+      router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
+      return;
+    }
+
+    setEnrichmentSubmitting(true);
+    try {
+      // Update all connections with the same intent data
+      await Promise.all(
+        connectionIds.map((connId) =>
+          fetch("/api/connections/update-intent", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              connectionId: connId,
+              careRecipient: data.careRecipient,
+              urgency: data.urgency,
+              phone: data.phone || undefined,
+              notifyChannel: data.contactPreference || undefined,
+            }),
+          })
+        )
+      );
+    } catch (err) {
+      console.error("[CompareOverlay] enrichment save error:", err);
+    }
+
+    router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
+  }, [connectionIds, router]);
+
+  const skipEnrichment = useCallback(() => {
+    const firstConnectionId = connectionIds[0];
+    router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
+  }, [connectionIds, router]);
+
+  // Handle escape key to close (disabled during submitting/enrichment/success)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape" && footerState !== "submitting" && footerState !== "success") {
+      if (e.key === "Escape" && footerState !== "submitting" && footerState !== "enrichment" && footerState !== "success") {
         onClose();
       }
     },
@@ -325,7 +373,7 @@ export default function CompareOverlay({
       {/* Backdrop - click to close */}
       <div
         className="absolute inset-0 bg-black/40"
-        onClick={footerState === "submitting" || footerState === "success" ? undefined : onClose}
+        onClick={footerState === "submitting" || footerState === "enrichment" || footerState === "success" ? undefined : onClose}
         aria-hidden="true"
       />
 
@@ -346,7 +394,7 @@ export default function CompareOverlay({
               </p>
             </div>
             {/* Close button */}
-            {footerState !== "success" && (
+            {footerState !== "enrichment" && footerState !== "success" && (
               <button
                 onClick={onClose}
                 disabled={footerState === "submitting"}
@@ -383,8 +431,18 @@ export default function CompareOverlay({
 
         {/* Sticky Footer */}
         <div className="shrink-0 px-6 py-4 border-t border-gray-200 bg-white">
-          {footerState === "success" ? (
-            /* Success state */
+          {footerState === "enrichment" ? (
+            /* Enrichment state */
+            <EnrichmentState
+              providerName={selectedCount > 1 ? `${selectedCount} providers` : currentProvider.name}
+              onSave={saveEnrichment}
+              onSkip={skipEnrichment}
+              saving={enrichmentSubmitting}
+              successTitle={`Saved ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+              successSubtitle="Message them when you're ready"
+            />
+          ) : footerState === "success" ? (
+            /* Success state (fallback) */
             <div className="py-3 text-center">
               <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-3">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>

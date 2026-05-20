@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
+import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 
 export interface CompareProvider {
   id: string;
@@ -32,7 +33,7 @@ interface CompareBottomSheetProps {
   ctaPreviewMode?: boolean;
 }
 
-type FooterState = "initial" | "email_capture" | "submitting" | "success" | "provider_email_block" | "family_required";
+type FooterState = "initial" | "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block" | "family_required";
 
 /**
  * Mobile comparison bottom sheet with vertical stacked cards.
@@ -66,6 +67,8 @@ export default function CompareBottomSheet({
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
+  const [connectionIds, setConnectionIds] = useState<string[]>([]);
+  const [enrichmentSubmitting, setEnrichmentSubmitting] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const saveClickFiredRef = useRef(false);
@@ -114,10 +117,10 @@ export default function CompareBottomSheet({
   const locationStr = [currentProvider.city, currentProvider.state].filter(Boolean).join(", ");
   const categoryLocationStr = [currentProvider.category, locationStr].filter(Boolean).join(" · ");
 
-  // Handle escape key (disabled during submitting/success)
+  // Handle escape key (disabled during submitting/enrichment/success)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape" && footerState !== "submitting" && footerState !== "success") {
+      if (e.key === "Escape" && footerState !== "submitting" && footerState !== "enrichment" && footerState !== "success") {
         onClose();
       }
     },
@@ -260,19 +263,18 @@ export default function CompareBottomSheet({
         return;
       }
 
-      // Show success state
-      setFooterState("success");
+      // Store connection IDs for enrichment
+      if (data.connectionIds?.length > 0) {
+        setConnectionIds(data.connectionIds);
+      }
 
-      // Redirect to inbox after brief delay
-      setTimeout(() => {
-        const firstConnectionId = data.connectionIds?.[0];
-        router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
-      }, 1500);
+      // Go to enrichment instead of success
+      setFooterState("enrichment");
     } catch {
       setError("Something went wrong. Please try again.");
       setFooterState("initial");
     }
-  }, [userEmail, ctaVariant, ctaPreviewMode, currentProvider.slug, selectedProviders, router]);
+  }, [userEmail, ctaVariant, ctaPreviewMode, currentProvider.slug, selectedProviders]);
 
   // Handle email submit
   const handleSubmit = async (e: React.FormEvent) => {
@@ -331,19 +333,63 @@ export default function CompareBottomSheet({
         });
       }
 
-      // Show success state
-      setFooterState("success");
+      // Store connection IDs for enrichment
+      if (data.connectionIds?.length > 0) {
+        setConnectionIds(data.connectionIds);
+      }
 
-      // Redirect to inbox after brief delay
-      setTimeout(() => {
-        const firstConnectionId = data.connectionIds?.[0];
-        router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
-      }, 1500);
+      // Go to enrichment instead of success
+      setFooterState("enrichment");
     } catch {
       setError("Something went wrong. Please try again.");
       setFooterState("email_capture");
     }
   };
+
+  // Handle enrichment save - update ALL connections with same intent data
+  const saveEnrichment = useCallback(async (data?: {
+    careRecipient?: string;
+    urgency?: string;
+    phone?: string;
+    contactPreference?: string;
+  }) => {
+    const firstConnectionId = connectionIds[0];
+
+    if (!connectionIds.length || (!data?.careRecipient && !data?.urgency && !data?.phone && !data?.contactPreference)) {
+      // No data to save, just redirect
+      router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
+      return;
+    }
+
+    setEnrichmentSubmitting(true);
+    try {
+      // Update all connections with the same intent data
+      await Promise.all(
+        connectionIds.map((connId) =>
+          fetch("/api/connections/update-intent", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              connectionId: connId,
+              careRecipient: data.careRecipient,
+              urgency: data.urgency,
+              phone: data.phone || undefined,
+              notifyChannel: data.contactPreference || undefined,
+            }),
+          })
+        )
+      );
+    } catch (err) {
+      console.error("[CompareBottomSheet] enrichment save error:", err);
+    }
+
+    router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
+  }, [connectionIds, router]);
+
+  const skipEnrichment = useCallback(() => {
+    const firstConnectionId = connectionIds[0];
+    router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
+  }, [connectionIds, router]);
 
   if (!isOpen || !mounted) return null;
 
@@ -352,7 +398,7 @@ export default function CompareBottomSheet({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40 animate-fade-in"
-        onClick={footerState === "submitting" || footerState === "success" ? undefined : onClose}
+        onClick={footerState === "submitting" || footerState === "enrichment" || footerState === "success" ? undefined : onClose}
       />
 
       {/* Bottom Sheet */}
@@ -371,7 +417,7 @@ export default function CompareBottomSheet({
         </div>
 
         {/* Close button */}
-        {footerState !== "success" && (
+        {footerState !== "enrichment" && footerState !== "success" && (
           <button
             onClick={onClose}
             disabled={footerState === "submitting"}
@@ -533,6 +579,17 @@ export default function CompareBottomSheet({
                 </button>
               </div>
             </form>
+          )}
+
+          {footerState === "enrichment" && (
+            <EnrichmentState
+              providerName={selectedCount > 1 ? `${selectedCount} providers` : currentProvider.name}
+              onSave={saveEnrichment}
+              onSkip={skipEnrichment}
+              saving={enrichmentSubmitting}
+              successTitle={`Saved ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+              successSubtitle="Message them when you're ready"
+            />
           )}
 
           {footerState === "success" && (

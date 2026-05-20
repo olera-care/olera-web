@@ -693,7 +693,7 @@ export default function ConversationList({
   if (loading) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5">
+        <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-3 sm:py-5">
           <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1">
@@ -718,7 +718,7 @@ export default function ConversationList({
   if (connections.length === 0) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5">
+        <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-3 sm:py-5">
           <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
@@ -757,7 +757,7 @@ export default function ConversationList({
         <div className="relative">
           {/* Default mode — title + search icon */}
           <div
-            className={`pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5 flex items-center justify-between transition-all duration-200 ease-out ${
+            className={`pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-3 sm:py-5 flex items-center justify-between transition-all duration-200 ease-out ${
               searchOpen
                 ? "opacity-0 -translate-y-1 pointer-events-none absolute inset-x-0 top-0"
                 : "opacity-100 translate-y-0"
@@ -798,7 +798,7 @@ export default function ConversationList({
 
           {/* Search mode */}
           <div
-            className={`pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-4 flex items-center gap-3 transition-all duration-200 ease-out ${
+            className={`pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-2.5 sm:py-4 flex items-center gap-3 transition-all duration-200 ease-out ${
               searchOpen
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-1 pointer-events-none absolute inset-x-0 top-0"

@@ -7,6 +7,36 @@
 
 ## Current Focus
 
+### 2026-05-19 (Tue) — `/mobilize` pass on Benefits Section program pages (PR #850 → staging, OPEN)
+
+**Context:** TJ ran `/mobilize` on the LIHEAP/Texas page (`/benefits/[state]/[program]`, rendered by `components/waiver-library/ProgramPageV3.tsx` — the shared template for **every benefit program page in every state**). Desktop fine; mobile had three concrete failures: the breadcrumb wrapped the full program title to 6 lines (then the H1 repeated it), the H1 fragmented one-word-per-line, and the page was a ~39-screen wall with no anchored action.
+
+**Shipped — PR #850 → staging (branch `heroic-wiles`):**
+- **Mobile breadcrumb → "‹ State" back link** (`sm:hidden`); desktop trail kept `hidden sm:flex` with the long crumb `truncate`. SEO BreadcrumbList JSON-LD is separate, zero SEO cost.
+- **Floating "Call to apply" pill** (mobile-only, safe-area padded, `print:hidden`, derived from `program.phone || contacts.find(c=>c.phone)?.phone`).
+- **Section-gap density** trimmed on mobile only (`mb-16` → `mb-10 sm:mb-16`, how-to-apply `py-14` → `py-10 sm:py-14`).
+- **Correctness wins:** empty `Things to know` callout no longer renders an orphan heading (gated on callout text actually existing — 15 callouts scanned, LIHEAP had a `text`-key-absent edge); contrast bump on tagline + "Full requirements" (`gray-500`→`gray-600`); section-nav pills given legible `bg-white/60 border` surfaces with active pill matching height; `min-h-screen` → `min-h-[100dvh]`; tap feedback on touched buttons; scroll-spy `id="overview"` fix so the sticky nav stops falsely highlighting "Eligibility" in the hero.
+- **THE saga:** title kept laddering one-word-per-line. Tried `min-w-0 flex-1` on the title column — still laddered. Tried `text-wrap:balance`→`pretty`, size 26→22px — still laddered. Realized the title was *structurally* trapped in a `flex justify-between` row with the share/bookmark buttons; CSS tweaks couldn't rescue it. **Restructured**: extracted `HeaderActions` (own `copied` state), put it in a new mobile top utility bar next to the back link, made the title wrapper `sm:flex` only (plain block on mobile so the H1 has no flex sibling). Then bumped H1 back to 26px (`text-[1.625rem]`) — the earlier "too big" call was a misdiagnosis; it felt too big *because it was also collapsed*. Desktop is byte-for-byte identical via `sm:`/`md:` scoping throughout. Commits: `2ccf1b9b` → `a5803b0d` → `3346bd6f` → `437d5666` (the restructure) → `32bbd7fe` → markdown-only.
+
+**Decisions made (with why):**
+- **Restructure > nth-tweak.** Two speculative CSS one-liners failed in sequence. Reasoning about flex + intrinsic sizing + `text-wrap` interactions from source alone is unreliable. Removed the failure mode (H1 not a flex sibling on mobile) instead of debugging it further.
+- **No redesign, only mobile adaptation.** TJ explicitly reined in a strategic decision-card / illustration / IA-resequencing proposal — that was scope creep. The mobilize pass is desktop-byte-for-byte preserved; every change scoped behind `sm:`/`md:`.
+- **FAB style = labeled pill, not icon-only.** Senior audience clarity; icon-only is ambiguous for 70+. TJ confirmed.
+- **Verification path = PR Vercel preview, not pinned deployment hashes.** This was the most painful lesson: TJ kept opening the original `bdoikbl98` deployment URL (which was pre-fix), seeing the laddered title, and concluding the fix didn't work — burned **4 verification rounds**. Opening PR #850 gave a single auto-updating branch alias (`olera-web-git-heroic-wiles-olera.vercel.app`) and ended the back-and-forth. Curl/WebFetch can't read the deployed DOM (Vercel WAF serves a 33KB 429 bot-challenge to both), so this is the only viable loop.
+
+**Lessons encoded into `.claude/commands/mobilize.md` (commits `01ed4611` / `06b21e0f` / `e30d211e`):**
+- Phase 0 now `ls`'s `~/Desktop/olera-web/docs/Mobile Optimized Pages/` (TJ's curated folder; Zapier blog is the first PDF in it, more to come) and instructs the future run to **`Read` the matching PDF before writing any class**. Five named patterns lifted from the folder: utility bar over headline / full-width bold headline / lighter full-width dek / small byline row with dot separator / category eyebrow. Attribution is to the folder generically (per TJ's "Actually" course-correction — don't pin Zapier as THE anchor).
+- Lens 3: hard rule — **headlines never share a flex row with action buttons on mobile**; restructure to utility-bar-above; title wrapper `sm:flex` only.
+- Lens 4: refines "don't shrink headlines" — applies to *short marketing headlines* only; long content/reference titles (Notion/Zapier register) sit at ~24-28px on mobile and earn weight from *full-width room*, not bigger font.
+- Phase 4 blindspot table + Quick reference: two new rows for the title-in-flex-row symptom.
+- Phase 7: rewritten — **open a PR after the first commit; use the auto-updating branch-aliased preview**. Don't let TJ verify on pinned deployment hashes. Curl/WebFetch are WAF-blocked; can't programmatically read the deployed DOM.
+- Anti-patterns: don't ship a third speculative CSS one-liner — restructure to remove the failure mode.
+
+**Resume next session here →** (1) **PR #850 is open, not merged** — TJ's call when to merge to staging. The Vercel preview auto-updates per push (current HEAD `e30d211e`). (2) Out-of-scope items I deliberately did NOT touch this session: the *global site footer's* mobile city-state grid ("Los Angeles, CA" wrapping to 3 lines) is the biggest length contributor to the page (~30%+ of 19,770px), but it's a separate component (not `ProgramPageV3`) — flagged as a future `/mobilize` target, **don't** roll it into this PR. The provider-page Door A/B work, decision-card hero, warm illustration, FAQ promotion, etc. — all explicitly out of scope per TJ ("we'll do that later"). (3) `useSavedPrograms` is context-backed (verified `hooks/use-saved-programs.tsx:41,44`), so the two `BookmarkButton` instances (mobile top bar + hidden desktop one) share state — confirmed in `/pre-test`. (4) If TJ wants to QA the typographic landing one more time, the H1 is at `text-[1.625rem]` / `leading-[1.15]` / `[text-wrap:pretty]` on mobile, scaling to `display-sm`/`display-md` at `sm:`/`md:`.
+
+
+---
+
 ### 2026-05-19 (Tue) — GSC: invalid `reviewCount:0` in provider JSON-LD — FIXED (branch `easy-wozniak`, PR pending)
 
 **Context:** Google Search Console email (WNC-10030322, to tj@olera.care 2026-03-11) flagged 1 critical Review-snippets structured-data issue site-wide: `Value in property "reviewCount" must be positive`.

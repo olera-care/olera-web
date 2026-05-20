@@ -21,6 +21,12 @@ interface EnrichmentStateProps {
   priceRange?: string | null;
   /** @deprecated No longer used in new UI but kept for backward compatibility */
   careTypes?: string[];
+  /** Custom success banner title. Defaults to "Sent to {providerName}" */
+  successTitle?: string;
+  /** Custom success banner subtitle. Defaults to "{priceRange} estimated" if priceRange exists */
+  successSubtitle?: string;
+  /** Hide the success banner entirely */
+  hideSuccessBanner?: boolean;
 }
 
 const TIMELINE_OPTIONS: { label: string; value: TimelineValue }[] = [
@@ -43,6 +49,9 @@ export default function EnrichmentState({
   saving,
   priceRange = null,
   careTypes: _careTypes,
+  successTitle,
+  successSubtitle,
+  hideSuccessBanner = false,
 }: EnrichmentStateProps) {
   void _careTypes; // Suppress unused variable warning
 
@@ -53,6 +62,10 @@ export default function EnrichmentState({
   const [showPhoneInput, setShowPhoneInput] = useState(false);
   const [phone, setPhone] = useState("");
   const phoneInputRef = useRef<HTMLInputElement>(null);
+
+  // Compute display values
+  const displayTitle = successTitle ?? `Sent to ${providerName}`;
+  const displaySubtitle = successSubtitle ?? (priceRange ? `${priceRange} estimated` : null);
 
   // Auto-focus phone input when it appears
   useEffect(() => {
@@ -122,42 +135,46 @@ export default function EnrichmentState({
   }, [step, recipient, timeline, contactPref, phone, onSave, onSkip]);
 
   return (
-    <div className="px-1">
-      {/* Success header with subtle pricing */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2.5 mb-1">
-          <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-emerald-600"
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
+    <div>
+      {/* Success banner */}
+      {!hideSuccessBanner && (
+        <div className="mb-6 bg-emerald-50/60 rounded-xl p-4 border border-emerald-100">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-emerald-600"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-[15px] font-semibold text-gray-900">
+                {displayTitle}
+              </p>
+              {displaySubtitle && (
+                <p className="text-[13px] text-gray-500 mt-0.5">
+                  {displaySubtitle}
+                </p>
+              )}
+            </div>
           </div>
-          <p className="text-[15px] font-semibold text-gray-900">
-            Sent to {providerName}
-          </p>
         </div>
-        {priceRange && (
-          <p className="text-[13px] text-gray-500 ml-[34px]">
-            {priceRange}
-          </p>
-        )}
-      </div>
+      )}
 
       {/* Step 1: Who needs care? */}
       {step === "recipient" && (
         <div className="animate-in fade-in duration-200">
-          <p className="text-[15px] font-medium text-gray-900 mb-3">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Who needs care?
-          </p>
+          </h3>
           <div className="space-y-2 mb-4">
             {RECIPIENT_OPTIONS.map((opt) => (
               <button
@@ -186,9 +203,9 @@ export default function EnrichmentState({
       {/* Step 2: How soon? */}
       {step === "timeline" && (
         <div className="animate-in fade-in duration-200">
-          <p className="text-[15px] font-medium text-gray-900 mb-3">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             How soon do you need care?
-          </p>
+          </h3>
           <div className="space-y-2 mb-4">
             {TIMELINE_OPTIONS.map((opt) => (
               <button
@@ -217,9 +234,9 @@ export default function EnrichmentState({
       {/* Step 3: Contact preference */}
       {step === "contact" && (
         <div className="animate-in fade-in duration-200">
-          <p className="text-[15px] font-medium text-gray-900 mb-3">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Best way to reach you?
-          </p>
+          </h3>
 
           {!showPhoneInput ? (
             // Show contact options

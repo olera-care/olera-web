@@ -11,7 +11,7 @@ const TIMELINE_LABELS: Record<string, string> = {
   exploring: "Exploring",
 };
 
-type FilterTab = "all" | "members" | "guest" | "published" | "unpublished" | "needs_nudge" | "in_sequence" | "maintenance" | "has_leads";
+type FilterTab = "all" | "published" | "unpublished" | "needs_nudge" | "has_leads";
 
 interface SeekerRow {
   id: string;
@@ -37,15 +37,10 @@ interface SeekerRow {
 
 interface TabCounts {
   total: number;
-  members: number;
-  guest: number;
   published: number;
   unpublished: number;
   thisWeek: number;
-  // New nudge-related counts
   needsNudge: number;
-  inSequence: number;
-  maintenance: number;
   hasLeads: number;
 }
 
@@ -137,13 +132,9 @@ export default function AdminCareSeekersPage() {
       params.set("page", String(page));
       params.set("per_page", String(PAGE_SIZE));
       if (debouncedSearch) params.set("search", debouncedSearch);
-      if (filter === "guest") params.set("guest_only", "true");
-      if (filter === "members") params.set("members_only", "true");
       if (filter === "published") params.set("published_only", "true");
       if (filter === "unpublished") params.set("unpublished_only", "true");
       if (filter === "needs_nudge") params.set("needs_nudge", "true");
-      if (filter === "in_sequence") params.set("in_sequence", "true");
-      if (filter === "maintenance") params.set("maintenance", "true");
       if (filter === "has_leads") params.set("has_leads", "true");
       if (cityFilter) params.set("city", cityFilter);
       if (stateFilter) params.set("state", stateFilter);
@@ -171,14 +162,10 @@ export default function AdminCareSeekersPage() {
           const statsData = await statsRes.json();
           setTabCounts({
             total: statsData.total ?? 0,
-            members: statsData.members ?? 0,
-            guest: statsData.guest ?? 0,
             published: statsData.published ?? 0,
             unpublished: statsData.unpublished ?? 0,
             thisWeek: statsData.thisWeek ?? 0,
             needsNudge: statsData.needsNudge ?? 0,
-            inSequence: statsData.inSequence ?? 0,
-            maintenance: statsData.maintenance ?? 0,
             hasLeads: statsData.hasLeads ?? 0,
           });
         }
@@ -202,14 +189,10 @@ export default function AdminCareSeekersPage() {
         const statsData = await statsRes.json();
         setTabCounts({
           total: statsData.total ?? 0,
-          members: statsData.members ?? 0,
-          guest: statsData.guest ?? 0,
           published: statsData.published ?? 0,
           unpublished: statsData.unpublished ?? 0,
           thisWeek: statsData.thisWeek ?? 0,
           needsNudge: statsData.needsNudge ?? 0,
-          inSequence: statsData.inSequence ?? 0,
-          maintenance: statsData.maintenance ?? 0,
           hasLeads: statsData.hasLeads ?? 0,
         });
       }
@@ -292,16 +275,12 @@ export default function AdminCareSeekersPage() {
 
   const hasActiveFilters = cityFilter || stateFilter || filter !== "all";
 
-  const tabs: { label: string; value: FilterTab; count: number | null; color?: string }[] = [
+  const tabs: { label: string; value: FilterTab; count: number | null }[] = [
     { label: "All", value: "all", count: tabCounts?.total ?? null },
-    { label: "Members", value: "members", count: tabCounts?.members ?? null },
-    { label: "Guests", value: "guest", count: tabCounts?.guest ?? null },
     { label: "Published", value: "published", count: tabCounts?.published ?? null },
     { label: "Unpublished", value: "unpublished", count: tabCounts?.unpublished ?? null },
-    { label: "Needs Nudge", value: "needs_nudge", count: tabCounts?.needsNudge ?? null, color: "amber" },
-    { label: "In Sequence", value: "in_sequence", count: tabCounts?.inSequence ?? null, color: "blue" },
-    { label: "Maintenance", value: "maintenance", count: tabCounts?.maintenance ?? null, color: "purple" },
-    { label: "Has Leads", value: "has_leads", count: tabCounts?.hasLeads ?? null, color: "green" },
+    { label: "Needs Nudge", value: "needs_nudge", count: tabCounts?.needsNudge ?? null },
+    { label: "Has Leads", value: "has_leads", count: tabCounts?.hasLeads ?? null },
   ];
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -330,8 +309,8 @@ export default function AdminCareSeekersPage() {
           <p className="text-2xl font-bold text-gray-900">{tabCounts ? tabCounts.total : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Members</p>
-          <p className="text-2xl font-bold text-gray-900">{tabCounts ? tabCounts.members : "—"}</p>
+          <p className="text-sm text-gray-500">Unpublished</p>
+          <p className="text-2xl font-bold text-amber-600">{tabCounts ? tabCounts.unpublished : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Published</p>
@@ -516,7 +495,6 @@ export default function AdminCareSeekersPage() {
               <tbody className="divide-y divide-gray-100">
                 {seekers.map((seeker) => {
                   const meta = seeker.metadata || {};
-                  const isGuest = !seeker.account_id;
                   const isPublishedStatus = meta.care_post?.status === "active";
                   const completeness = meta.profile_completeness ?? (seeker.profile_complete ? 100 : 0);
                   return (
@@ -594,11 +572,7 @@ export default function AdminCareSeekersPage() {
                       </td>
                       {/* Status */}
                       <td className="px-4 py-3">
-                        {isGuest ? (
-                          <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
-                            Guest
-                          </span>
-                        ) : isPublishedStatus ? (
+                        {isPublishedStatus ? (
                           <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
                             Published
                           </span>

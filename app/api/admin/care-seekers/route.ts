@@ -183,7 +183,6 @@ export async function GET(request: NextRequest) {
     const publishedOnly = searchParams.get("published_only") === "true";
     const unpublishedOnly = searchParams.get("unpublished_only") === "true";
     const needsNudgeOnly = searchParams.get("needs_nudge") === "true";
-    const hasLeadsOnly = searchParams.get("has_leads") === "true";
     const cityFilter = searchParams.get("city")?.trim() || "";
     const stateFilter = searchParams.get("state")?.trim() || "";
 
@@ -220,7 +219,7 @@ export async function GET(request: NextRequest) {
 
     // For nudge-related filters, we need to fetch ALL data and filter client-side
     // because these filters require metadata parsing that can't be done in SQL
-    const needsClientSideFilter = needsNudgeOnly || hasLeadsOnly;
+    const needsClientSideFilter = needsNudgeOnly;
 
     let data: SeekerQueryResult[] | null;
     let count: number | null;
@@ -283,16 +282,12 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Apply nudge-related filters (client-side since they require metadata parsing)
+    // Apply nudge filter (client-side since it requires metadata parsing)
     if (needsNudgeOnly) {
       seekers = seekers.filter((s) => {
         const meta = (s.metadata || {}) as FamilyMetadata;
         return needsNudge(meta, s.care_types || [], s.city, s.state, s.created_at);
       });
-    }
-
-    if (hasLeadsOnly) {
-      seekers = seekers.filter((s) => s.connection_count > 0);
     }
 
     // Calculate correct totals for client-side filtered results

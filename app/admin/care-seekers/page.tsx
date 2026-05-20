@@ -4,14 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { FamilyMetadata, NudgeSequence } from "@/lib/types";
 
-const TIMELINE_LABELS: Record<string, string> = {
-  immediate: "ASAP",
-  within_1_month: "Within 1 month",
-  within_3_months: "Within 3 months",
-  exploring: "Exploring",
-};
-
-type FilterTab = "all" | "published" | "unpublished" | "needs_nudge" | "has_leads";
+type FilterTab = "all" | "published" | "unpublished" | "needs_nudge";
 
 interface SeekerRow {
   id: string;
@@ -27,7 +20,6 @@ interface SeekerRow {
   claim_state: string;
   source: string;
   created_at: string;
-  // New fields from API
   connection_count: number;
   profile_complete: boolean;
   nudge_phase: "none" | "active" | "maintenance" | "done";
@@ -41,7 +33,6 @@ interface TabCounts {
   unpublished: number;
   thisWeek: number;
   needsNudge: number;
-  hasLeads: number;
 }
 
 // Helper to format relative time
@@ -59,7 +50,6 @@ function timeAgo(isoDate: string | undefined): string {
 function calculateCompleteness(seeker: SeekerRow): number {
   const meta = seeker.metadata || {};
 
-  // If explicitly set in metadata, use that value
   if (meta.profile_completeness !== undefined) {
     return meta.profile_completeness;
   }
@@ -77,7 +67,6 @@ function calculateCompleteness(seeker: SeekerRow): number {
 
   if (seeker.display_name?.trim()) score += weights.display_name;
   if (seeker.city?.trim()) score += weights.city;
-  // Fall back to care_types column if care_needs not in metadata (matches FamilyMatchCard)
   const careNeeds = meta.care_needs || seeker.care_types || [];
   if (careNeeds.length > 0) score += weights.care_needs;
   if (meta.timeline) score += weights.timeline;
@@ -102,7 +91,6 @@ export default function AdminCareSeekersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Initialize from URL params (deep-linking from Demand page)
   const initialFilter = (searchParams.get("filter") as FilterTab) || "all";
   const initialCity = searchParams.get("city") || "";
   const initialState = searchParams.get("state") || "";
@@ -116,24 +104,18 @@ export default function AdminCareSeekersPage() {
   const [stateFilter, setStateFilter] = useState(initialState);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Pagination
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-
-  // Tab counts from API
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
 
-  // Distinct cities for dropdown
   const [cities, setCities] = useState<{ city: string; state: string; count: number }[]>([]);
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const cityDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const toastRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Delete modal state
   const [pendingDelete, setPendingDelete] = useState<SeekerRow | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -144,16 +126,14 @@ export default function AdminCareSeekersPage() {
     toastRef.current = setTimeout(() => setToast(null), 3000);
   }
 
-  // Debounced search
   useEffect(() => {
     debounceRef.current = setTimeout(() => {
       setDebouncedSearch(search);
-      setPage(1); // Reset to first page on search
+      setPage(1);
     }, 300);
     return () => clearTimeout(debounceRef.current);
   }, [search]);
 
-  // Reset page when filter changes
   useEffect(() => {
     setPage(1);
   }, [filter, cityFilter, stateFilter]);
@@ -168,7 +148,6 @@ export default function AdminCareSeekersPage() {
       if (filter === "published") params.set("published_only", "true");
       if (filter === "unpublished") params.set("unpublished_only", "true");
       if (filter === "needs_nudge") params.set("needs_nudge", "true");
-      if (filter === "has_leads") params.set("has_leads", "true");
       if (cityFilter) params.set("city", cityFilter);
       if (stateFilter) params.set("state", stateFilter);
 
@@ -185,11 +164,9 @@ export default function AdminCareSeekersPage() {
     }
   }, [debouncedSearch, filter, cityFilter, stateFilter, page]);
 
-  // Load tab counts + distinct cities on mount
   useEffect(() => {
     async function loadInitialData() {
       try {
-        // Fetch tab counts from dedicated endpoint
         const statsRes = await fetch("/api/admin/care-seekers/stats");
         if (statsRes.ok) {
           const statsData = await statsRes.json();
@@ -199,11 +176,9 @@ export default function AdminCareSeekersPage() {
             unpublished: statsData.unpublished ?? 0,
             thisWeek: statsData.thisWeek ?? 0,
             needsNudge: statsData.needsNudge ?? 0,
-            hasLeads: statsData.hasLeads ?? 0,
           });
         }
 
-        // Fetch distinct cities from dedicated endpoint
         const citiesRes = await fetch("/api/admin/care-seekers/cities");
         if (citiesRes.ok) {
           const data = await citiesRes.json();
@@ -214,7 +189,6 @@ export default function AdminCareSeekersPage() {
     loadInitialData();
   }, []);
 
-  // Refresh tab counts after delete
   const refreshTabCounts = useCallback(async () => {
     try {
       const statsRes = await fetch("/api/admin/care-seekers/stats");
@@ -226,7 +200,6 @@ export default function AdminCareSeekersPage() {
           unpublished: statsData.unpublished ?? 0,
           thisWeek: statsData.thisWeek ?? 0,
           needsNudge: statsData.needsNudge ?? 0,
-          hasLeads: statsData.hasLeads ?? 0,
         });
       }
     } catch { /* ignore */ }
@@ -236,7 +209,6 @@ export default function AdminCareSeekersPage() {
     fetchSeekers();
   }, [fetchSeekers]);
 
-  // Close city dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target as Node)) {
@@ -250,7 +222,6 @@ export default function AdminCareSeekersPage() {
     }
   }, [cityDropdownOpen]);
 
-  // Filtered cities based on search
   const filteredCities = citySearch
     ? cities.filter(c =>
         c.city.toLowerCase().includes(citySearch.toLowerCase()) ||
@@ -268,7 +239,6 @@ export default function AdminCareSeekersPage() {
     setDeleting(true);
     setDeleteError(null);
 
-    // Optimistic removal
     const seeker = pendingDelete;
     setSeekers((prev) => prev.filter((s) => s.id !== seeker.id));
     setTotal((prev) => prev - 1);
@@ -280,7 +250,6 @@ export default function AdminCareSeekersPage() {
         refreshTabCounts();
         setPendingDelete(null);
       } else {
-        // Revert
         setSeekers((prev) => [...prev, seeker].sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         ));
@@ -302,7 +271,6 @@ export default function AdminCareSeekersPage() {
     setCityFilter("");
     setStateFilter("");
     setFilter("all");
-    // Clear URL params
     router.replace("/admin/care-seekers");
   }
 
@@ -313,7 +281,6 @@ export default function AdminCareSeekersPage() {
     { label: "Published", value: "published", count: tabCounts?.published ?? null },
     { label: "Unpublished", value: "unpublished", count: tabCounts?.unpublished ?? null },
     { label: "Needs Nudge", value: "needs_nudge", count: tabCounts?.needsNudge ?? null },
-    { label: "Has Leads", value: "has_leads", count: tabCounts?.hasLeads ?? null },
   ];
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -412,7 +379,6 @@ export default function AdminCareSeekersPage() {
 
             {cityDropdownOpen && (
               <div className="absolute top-[calc(100%+4px)] left-0 w-64 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
-                {/* Search input */}
                 <div className="p-2 border-b border-gray-100">
                   <input
                     type="text"
@@ -423,10 +389,7 @@ export default function AdminCareSeekersPage() {
                     className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 placeholder:text-gray-400"
                   />
                 </div>
-
-                {/* Options list */}
                 <div className="max-h-64 overflow-y-auto">
-                  {/* All cities option */}
                   <button
                     type="button"
                     onClick={() => {
@@ -444,7 +407,6 @@ export default function AdminCareSeekersPage() {
                   >
                     All cities
                   </button>
-
                   {filteredCities.length === 0 ? (
                     <div className="px-3 py-3 text-sm text-gray-400 text-center">
                       No cities found
@@ -467,9 +429,7 @@ export default function AdminCareSeekersPage() {
                             : "text-gray-900 hover:bg-gray-50",
                         ].join(" ")}
                       >
-                        <span>
-                          {c.city}{c.state ? `, ${c.state}` : ""}
-                        </span>
+                        <span>{c.city}{c.state ? `, ${c.state}` : ""}</span>
                         <span className="text-xs text-gray-400">{c.count}</span>
                       </button>
                     ))
@@ -480,7 +440,6 @@ export default function AdminCareSeekersPage() {
           </div>
         )}
 
-        {/* Clear filters */}
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
@@ -502,136 +461,114 @@ export default function AdminCareSeekersPage() {
         />
       </div>
 
-      {/* Table */}
+      {/* List */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400">Loading...</div>
         ) : seekers.length === 0 ? (
           <div className="p-8 text-center text-gray-400">No care seekers found</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Name</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Email</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">City</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Profile</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Leads</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Last Nudge</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Phase</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Joined</th>
-                  <th className="px-2 py-3 w-8" aria-label="Delete" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {seekers.map((seeker) => {
-                  const meta = seeker.metadata || {};
-                  const isPublishedStatus = meta.care_post?.status === "active";
-                  const completeness = calculateCompleteness(seeker);
-                  return (
-                    <tr
-                      key={seeker.id}
-                      className="group hover:bg-gray-50 cursor-pointer"
-                      onClick={() => router.push(`/admin/care-seekers/${seeker.id}`)}
-                    >
-                      <td className="px-4 py-3">
-                        <span className="font-medium text-gray-900">
-                          {seeker.display_name}
+          <div className="divide-y divide-gray-100">
+            {seekers.map((seeker) => {
+              const meta = seeker.metadata || {};
+              const isPublished = meta.care_post?.status === "active";
+              const completeness = calculateCompleteness(seeker);
+              const location = [seeker.city, seeker.state].filter(Boolean).join(", ");
+
+              return (
+                <div
+                  key={seeker.id}
+                  className="group flex items-center gap-6 px-5 py-4 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => router.push(`/admin/care-seekers/${seeker.id}`)}
+                >
+                  {/* Care Seeker Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">
+                      {seeker.display_name}
+                    </p>
+                    <p className="text-sm text-gray-500 truncate">
+                      {seeker.email || "No email"}
+                    </p>
+                    <p className="text-sm text-gray-400 mt-0.5">
+                      {completeness}% complete
+                    </p>
+                  </div>
+
+                  {/* Location */}
+                  <div className="w-32 shrink-0">
+                    {location ? (
+                      <p className="text-sm text-gray-600">{location}</p>
+                    ) : (
+                      <p className="text-sm text-gray-400 italic">No location</p>
+                    )}
+                  </div>
+
+                  {/* Nudge Status */}
+                  <div className="w-40 shrink-0">
+                    {seeker.current_sequence?.nudge_count ? (
+                      <>
+                        <p className="text-sm text-gray-700">
+                          {getSequenceDisplay(seeker)}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {timeAgo(seeker.current_sequence.last_nudge_at)}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-400">Not nudged</p>
+                    )}
+                    {/* Phase badge */}
+                    <div className="mt-1">
+                      {seeker.nudge_phase === "done" ? (
+                        <span className="inline-flex px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                          Done
                         </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 truncate max-w-[180px]">{seeker.email || "—"}</td>
-                      <td className="px-4 py-3 text-gray-600 text-xs">
-                        {seeker.city ? (
-                          <span>{seeker.city}{seeker.state ? `, ${seeker.state}` : ""}</span>
-                        ) : (
-                          <span className="text-gray-400 italic">Not set</span>
-                        )}
-                      </td>
-                      {/* Profile completeness */}
-                      <td className="px-4 py-3 text-xs">
-                        {completeness === 100 ? (
-                          <span className="text-emerald-600 font-medium">100%</span>
-                        ) : (
-                          <span className="text-gray-600">{completeness}%</span>
-                        )}
-                      </td>
-                      {/* Leads count */}
-                      <td className="px-4 py-3 text-xs">
-                        {seeker.connection_count > 0 ? (
-                          <span className="text-gray-900 font-medium">{seeker.connection_count}</span>
-                        ) : (
-                          <span className="text-gray-400">0</span>
-                        )}
-                      </td>
-                      {/* Last nudge */}
-                      <td className="px-4 py-3 text-gray-600 text-xs">
-                        {seeker.current_sequence?.nudge_count ? (
-                          <span>
-                            {getSequenceDisplay(seeker)} · {timeAgo(seeker.current_sequence.last_nudge_at)}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
-                      </td>
-                      {/* Phase */}
-                      <td className="px-4 py-3">
-                        {seeker.nudge_phase === "done" ? (
-                          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
-                            Done
-                          </span>
-                        ) : seeker.nudge_phase === "active" ? (
-                          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                            Active
-                          </span>
-                        ) : seeker.nudge_phase === "maintenance" ? (
-                          <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                            Maintenance
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
-                            None
-                          </span>
-                        )}
-                      </td>
-                      {/* Status */}
-                      <td className="px-4 py-3">
-                        {isPublishedStatus ? (
-                          <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
-                            Published
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-                            Unpublished
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">
-                        {new Date(seeker.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-2 py-3 w-8 text-right">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteError(null);
-                            setPendingDelete(seeker);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
-                          aria-label="Delete this care seeker"
-                          title="Delete"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      ) : seeker.nudge_phase === "active" ? (
+                        <span className="inline-flex px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                          Active
+                        </span>
+                      ) : seeker.nudge_phase === "maintenance" ? (
+                        <span className="inline-flex px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                          Maintenance
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {/* Status */}
+                  <div className="w-24 shrink-0 text-center">
+                    {isPublished ? (
+                      <span className="inline-flex px-2.5 py-1 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
+                        Published
+                      </span>
+                    ) : (
+                      <span className="inline-flex px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                        Unpublished
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Delete */}
+                  <div className="w-8 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteError(null);
+                        setPendingDelete(seeker);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500 p-1"
+                      aria-label="Delete this care seeker"
+                      title="Delete"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -675,10 +612,7 @@ export default function AdminCareSeekersPage() {
           aria-labelledby="delete-seeker-title"
         >
           <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
-            <h3
-              id="delete-seeker-title"
-              className="text-base font-semibold text-gray-900 mb-3"
-            >
+            <h3 id="delete-seeker-title" className="text-base font-semibold text-gray-900 mb-3">
               Delete this care seeker?
             </h3>
             <dl className="text-sm text-gray-700 space-y-1.5 mb-4">

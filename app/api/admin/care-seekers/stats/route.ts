@@ -110,7 +110,7 @@ export async function GET() {
     const db = getServiceClient();
 
     // Run count queries and paginated fetch in parallel
-    const [totalRes, publishedRes, thisWeekRes, allSeekers, connectionsRes] = await Promise.all([
+    const [totalRes, publishedRes, thisWeekRes, allSeekers] = await Promise.all([
       // Total count
       db
         .from("business_profiles")
@@ -134,19 +134,12 @@ export async function GET() {
 
       // All seekers for nudge-related counts (paginated fetch)
       fetchAllSeekers(db),
-
-      // All family connections for has_leads count
-      db
-        .from("connections")
-        .select("from_profile_id")
-        .eq("type", "inquiry"),
     ]);
 
     // Log any query errors for debugging
     if (totalRes.error) console.error("Stats total query error:", totalRes.error);
     if (publishedRes.error) console.error("Stats published query error:", publishedRes.error);
     if (thisWeekRes.error) console.error("Stats thisWeek query error:", thisWeekRes.error);
-    if (connectionsRes.error) console.error("Stats connections query error:", connectionsRes.error);
 
     // Calculate unpublished as total - published (more reliable than complex OR query)
     const total = totalRes.count ?? 0;
@@ -163,22 +156,12 @@ export async function GET() {
       }
     }
 
-    // Calculate has_leads count (seekers with at least one connection)
-    const connections = connectionsRes.data ?? [];
-    const seekersWithLeads = new Set<string>();
-    for (const conn of connections) {
-      seekersWithLeads.add(conn.from_profile_id);
-    }
-    const familyIds = new Set(allSeekers.map((s) => s.id));
-    const hasLeadsCount = [...seekersWithLeads].filter((id) => familyIds.has(id)).length;
-
     return NextResponse.json({
       total,
       published,
       unpublished,
       thisWeek: thisWeekRes.count ?? 0,
       needsNudge: needsNudgeCount,
-      hasLeads: hasLeadsCount,
     });
   } catch (err) {
     console.error("Admin care-seekers stats error:", err);

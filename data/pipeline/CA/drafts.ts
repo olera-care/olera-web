@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.848Z
+ * Last updated: 2026-05-20T14:23:07.393Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -14,7 +14,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "medi-cal-medicare-savings-programs",
       "name": "Medi-Cal Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "California pays your loved one's Medicare premiums and out-of-pocket costs if their income is under $1,762/month",
+      "tagline": "California pays your loved one's Medicare premiums and out-of-pocket costs if their income is under $1,796/month",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -27,14 +27,14 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one has Medicare and limited income, California's Medicare Savings Programs can eliminate their monthly Medicare costs entirely. The highest tier (QMB) covers all Medicare Part A and Part B premiums, deductibles, and copays for people earning under $1,305/month. Mid-tier programs (SLMB and QI) cover Part B premiums for those earning up to $1,762/month.\n\nUnlike federal programs, California allows up to $130,000 in assets for singles ($195,000 for couples), so your loved one's home and savings likely won't disqualify them. Because this works like automatic Medigap coverage, your loved one won't get surprise medical bills, providers cannot legally charge QMB recipients for Medicare cost-sharing.\n\nThe program is administered county-by-county through local social services agencies. QI funding comes from a limited federal block grant, so it may have waitlists or temporary closures when funds run out.",
-      "savingsRange": "$1,200 – $4,000/year",
+      "intro": "If your loved one has Medicare and limited income, California's Medicare Savings Programs can eliminate their monthly Medicare costs entirely. The highest tier (QMB) covers all Medicare Part A and Part B premiums, deductibles, and copays for people earning under $1,330/month. Mid-tier programs (SLMB and QI) cover Part B premiums for those earning up to $1,796/month.\n\nUnlike federal programs, California allows up to $130,000 in assets for singles ($195,000 for couples), so your loved one's home and savings likely won't disqualify them. Because this works like automatic Medigap coverage, your loved one won't get surprise medical bills, providers cannot legally charge QMB recipients for Medicare cost-sharing.\n\nThe program is administered county-by-county through local social services agencies. QI funding comes from a limited federal block grant, so it may have waitlists or temporary closures when funds run out.",
+      "savingsRange": "$2,434 – $4,000+/year",
       "savingsSource": "Medicare Part B premiums plus potential deductibles and copays",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Has Medicare Parts A and B",
-          "Income under $1,762/month (single)",
+          "Income under $1,796/month (single)",
           "California resident",
           "Assets under $130,000 (single)"
         ],
@@ -42,11 +42,11 @@ export const drafts: PipelineStateDrafts = {
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 1305
+            "monthlyLimit": 1330
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 1763
+            "monthlyLimit": 1804
           }
         ],
         "assetLimits": {
@@ -80,7 +80,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Get form MC 14A",
-            "description": "Download the Qualified Medicare Beneficiary application from your county social services website or pick up in person."
+            "description": "Download Form MC 14A from the DHCS website or your county's portal. If your loved one also needs help with in-home care or food costs, it is better to submit a full Medi-Cal application at BenefitsCal.org."
           },
           {
             "step": 2,
@@ -95,18 +95,13 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Follow up on processing",
-            "description": "QMB coverage starts the first day of the month if approved. SLMB and QI can be backdated up to 3 months."
+            "description": "The county should process the application within 45 days. QMB benefits typically begin the first of the month after approval. SLMB and QI coverage can be backdated up to 3 months prior to the application date."
           }
         ],
         "processingTime": "Varies by county, contact local office for current timelines",
         "waitlist": "QI program may have waitlists when federal block grant funds are exhausted",
         "tip": "Apply even if you're already on Medi-Cal, this program pays Medicare premiums that regular Medi-Cal may not cover.",
-        "urls": [
-          {
-            "label": "California DHCS Medicare Savings Programs",
-            "url": "https://www.dhcs.ca.gov/individuals/Pages/Medicare-Savings-Programs-in-California.aspx"
-          }
-        ]
+        "urls": []
       },
       "documentsNeeded": [
         "Medicare card showing Parts A and B enrollment",
@@ -155,7 +150,7 @@ export const drafts: PipelineStateDrafts = {
           "content": [
             {
               "tier": "QMB",
-              "incomeLimit": "$1,305 single / $1,763 couple",
+              "incomeLimit": "$1,330 single / $1,804 couple",
               "benefits": "Pays ALL Medicare costs: Part A & B premiums, deductibles, copays, coinsurance"
             },
             {
@@ -165,7 +160,7 @@ export const drafts: PipelineStateDrafts = {
             },
             {
               "tier": "QI",
-              "incomeLimit": "$1,762 single / $2,381 couple",
+              "incomeLimit": "$1,796 single / $2,381 couple",
               "benefits": "Pays Medicare Part B premium only, limited federal funding"
             }
           ]
@@ -194,7 +189,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How far back can benefits be applied?",
-          "answer": "QMB has no retroactive coverage, benefits start the first day of the month you're approved. SLMB and QI can be backdated up to 3 months if you were eligible during that period."
+          "answer": "The QMB program has no retroactive coverage; benefits start the month after you are approved. SLMB and QI currently provide up to 3 months of backdated coverage, but be aware that this will be limited to 2 months starting in 2027."
         },
         {
           "question": "What if a doctor tries to bill my loved one for Medicare copays?",
@@ -216,7 +211,7 @@ export const drafts: PipelineStateDrafts = {
       "icon": "Money",
       "phone": "2-1-1",
       "sourceUrl": "https://www.dhcs.ca.gov/individuals/Pages/Medicare-Savings-Programs-in-California.aspx",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -255,24 +250,15 @@ export const drafts: PipelineStateDrafts = {
         "ageRequirement": "60+",
         "incomeTable": null,
         "assetLimits": {
-          "individual": 2000,
-          "couple": 3000,
-          "countedAssets": [
-            "Bank accounts",
-            "Investments",
-            "Cash value life insurance",
-            "Second vehicles"
-          ],
-          "exemptAssets": [
-            "Primary home",
-            "One vehicle",
-            "Personal belongings",
-            "Pre-paid burial plans"
-          ],
+          "individual": null,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [],
           "homeEquityCap": null
         },
         "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment by a registered nurse determining whether your loved one needs daily help with activities like bathing, dressing, eating, or medication management)",
         "otherRequirements": [
+          "California no longer applies asset limits for most Medi-Cal programs; applicants must still meet Medi-Cal eligibility and MSSP functional care requirements",
           "Must live in a county with an MSSP provider",
           "Cannot be enrolled in another HCBS waiver program",
           "Cannot receive duplicative Medi-Cal services like Enhanced Care Management",
@@ -340,10 +326,10 @@ export const drafts: PipelineStateDrafts = {
           "hours": "Mon-Fri 8am-5pm PT"
         },
         {
-          "label": "Medi-Cal Customer Service",
-          "phone": "(800) 541-5555",
-          "description": "Verify Medi-Cal eligibility and coverage",
-          "hours": "Mon-Fri 8am-6pm, Sat 8am-5pm PT"
+          "label": "California Health & Human Services Ombudsman",
+          "phone": "1-888-452-8609",
+          "description": "Help with Medi-Cal coverage concerns and complaints",
+          "hours": "Mon-Fri 8am-5pm PT"
         }
       ],
       "applicationNotes": [
@@ -378,7 +364,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one's Medi-Cal eligibility changes while enrolled in MSSP?",
-          "answer": "Your loved one must maintain Medi-Cal eligibility to continue receiving MSSP services. If they lose Medi-Cal due to income or asset changes, MSSP services will end. Asset limits are tightening to $2,000 for individuals starting January 1, 2026, which may affect some current participants."
+          "answer": "Your loved one must maintain Medi-Cal eligibility to continue receiving MSSP services. If they lose Medi-Cal eligibility, MSSP services will end. California has eliminated asset limits for most Medi-Cal programs, so participants simply need to keep meeting Medi-Cal eligibility and functional care requirements to stay enrolled."
         },
         {
           "question": "Can I apply on behalf of my loved one who has dementia?",
@@ -404,7 +390,7 @@ export const drafts: PipelineStateDrafts = {
       "icon": "House",
       "phone": "(916) 419-7500",
       "sourceUrl": "https://www.dhcs.ca.gov/services/medi-cal/Pages/MSSPMedi-CalWaiver.aspx",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -584,9 +570,9 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with grocery costs, CalFresh provides monthly funds loaded onto an EBT card for food purchases. Benefits range from a minimum of $15/month up to $298/month for individuals, depending on income and expenses like medical costs and housing.\n\nBecause seniors get special eligibility rules, your loved one may qualify even if the full household wouldn't. Seniors can form their own separate household for CalFresh purposes, use net income after medical and housing deductions, and face no asset limits in most cases. The program also covers prepared meals at participating restaurants statewide through the Restaurant Meals Program.\n\nSSI recipients are automatically income-eligible but must still apply separately. Your loved one won't face work requirements, and all out-of-pocket medical expenses over $35 count as deductions to lower their countable income.",
-      "savingsRange": "$180 – $3,570/year in 2026",
-      "savingsSource": "Based on minimum $15/month to maximum $298/month individual benefits",
+      "intro": "If your loved one is 60+ and struggling with grocery costs, CalFresh provides monthly funds loaded onto an EBT card for food purchases. Benefits range from a minimum of $24/month up to $298/month for individuals, depending on income and expenses like medical costs and housing.\n\nBecause seniors get special eligibility rules, your loved one may qualify even if the full household wouldn't. Seniors can form their own separate household for CalFresh purposes, use net income after medical and housing deductions, and face no asset limits in most cases. The program also covers prepared meals at participating restaurants statewide through the Restaurant Meals Program.\n\nSSI/SSP recipients can receive CalFresh in addition to their cash benefits, but they are not automatically income-eligible, they must apply and meet the same income rules as everyone else. Your loved one won't face work requirements, and all out-of-pocket medical expenses over $35 count as deductions to lower their countable income.",
+      "savingsRange": "$288 – $3,576/year in 2026",
+      "savingsSource": "Based on minimum $24/month to maximum $298/month individual benefits",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -658,12 +644,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at GetCalFresh.org or call 1-877-847-3663, processing takes 30 days, or 3 days for urgent cases.",
+        "summary": "Submit your application through the official state portal at BenefitsCal.com (GetCalFresh.org is a free tool that helps you prepare and submit it). Processing takes 30 days, or 3 days for urgent cases.",
         "steps": [
           {
             "step": 1,
             "title": "Choose application method",
-            "description": "Apply online at GetCalFresh.org (fastest), call 1-877-847-3663, or visit your county social services office. You must apply through your county of residence."
+            "description": "Submit your application at BenefitsCal.com, the official state portal where all CalFresh applications are processed. GetCalFresh.org is a free tool that helps you prepare and submit your application. You can also call 1-877-847-3663 or visit your county social services office."
           },
           {
             "step": 2,
@@ -695,8 +681,8 @@ export const drafts: PipelineStateDrafts = {
             "url": "https://www.getcalfresh.org"
           },
           {
-            "label": "Official CalFresh Information",
-            "url": "https://www.cdss.ca.gov/calfresh"
+            "label": "BenefitsCal (official application portal)",
+            "url": "https://www.benefitscal.com"
           }
         ]
       },
@@ -731,7 +717,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "Seniors and disabled individuals can form separate households for CalFresh even if living with family, which often increases benefits",
         "All medical expenses over $35 per month count as deductions, keep receipts for prescriptions, insurance premiums, and medical transportation",
-        "SSI recipients are automatically income-eligible but must still complete the CalFresh application separately",
+        "SSI/SSP recipients can receive CalFresh alongside their cash benefits, but they are not automatically income-eligible, they must apply separately and meet the same income and asset rules as everyone else",
         "Expedited processing (3 days) is available for households with very low income and resources"
       ],
       "relatedPrograms": [
@@ -748,7 +734,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one's income is mostly Social Security, do they still qualify?",
-          "answer": "Social Security counts as income, but seniors get special deductions for medical expenses over $35/month and housing costs. After these deductions, many seniors on Social Security still qualify. SSI recipients are automatically income-eligible."
+          "answer": "Social Security counts as income, but seniors get special deductions for medical expenses over $35/month and housing costs. After these deductions, many seniors on Social Security still qualify. SSI/SSP recipients can receive CalFresh in addition to their cash benefits, though they still complete an application and are subject to the same income rules."
         },
         {
           "question": "Can I apply for CalFresh on behalf of my elderly loved one?",
@@ -756,7 +742,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Does my loved one's house count against the asset limit?",
-          "answer": "No, the primary home never counts as an asset for CalFresh, regardless of value. For seniors and disabled individuals, there's often no asset limit at all if their net income qualifies after deductions."
+          "answer": "For most seniors, no. CalFresh in California generally does not apply an asset test, unlike Medi-Cal (which brought back asset limits in 2026), it looks at income rather than savings for the vast majority of households. In the rare case a household is subject to an asset review, the 2026 limit is $4,500 when the household includes someone 60 or older, and the primary home, one vehicle, household goods, and retirement accounts are all excluded."
         },
         {
           "question": "Can my loved one use CalFresh benefits at restaurants?",
@@ -768,7 +754,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Should my loved one apply as part of our family household or separately?",
-          "answer": "Usually separately. Seniors can form their own CalFresh household even if living with family and sharing some meals, as long as the other household members' income is below 165% of the poverty level. This typically results in higher benefits."
+          "answer": "Often separately. A senior can be treated as their own CalFresh household when they purchase and prepare their meals separately from others in the home, this is based on their meal situation, not a voluntary choice. Qualifying as a separate household often results in higher benefits."
         },
         {
           "question": "How long do CalFresh benefits last once approved?",
@@ -786,7 +772,7 @@ export const drafts: PipelineStateDrafts = {
       "icon": "BowlFood",
       "phone": "(877) 847-3663",
       "sourceUrl": "https://www.cdss.ca.gov/calfresh",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -870,13 +856,13 @@ export const drafts: PipelineStateDrafts = {
           "Applicant must have Social Security number",
           "Anyone 18+ in household can apply (name doesn't need to be on utility bill)",
           "Income based on total monthly gross household income",
-          "Must demonstrate financial need"
+          "Applicants must demonstrate a need for energy assistance"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at caliheapapply.com or call 1-866-674-6327, processing takes several weeks.",
+        "summary": "Apply online at caliheapapply.com or call 1-866-675-6623. Application processing may take several weeks.",
         "steps": [
           {
             "step": 1,
@@ -886,7 +872,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Complete the application",
-            "description": "Apply online at caliheapapply.com or call 1-866-674-6327. You can also contact your local provider directly for in-person or mail applications."
+            "description": "Apply online at caliheapapply.com or call 1-866-675-6623. You can also contact your local provider directly for in-person or mail applications."
           },
           {
             "step": 3,
@@ -927,7 +913,7 @@ export const drafts: PipelineStateDrafts = {
       "contacts": [
         {
           "label": "LIHEAP Application Line",
-          "phone": "(866) 674-6327",
+          "phone": "(866) 675-6623",
           "description": "Apply by phone or get application help",
           "hours": "Business hours"
         },
@@ -953,35 +939,35 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can I apply if my loved one's name isn't on the utility bill?",
-          "answer": "Yes. Anyone 18+ living in the household can apply for LIHEAP, even if they're not the account holder. You'll need to complete an Account Holder Authorization and Consent Form if the energy accounts are in someone else's name."
+          "answer": "Yes. In many cases, any adult living in the household may apply for LIHEAP, even if they are not the utility account holder. If the utility account is in another person's name, an Account Holder Authorization and Consent Form may be required."
         },
         {
           "question": "What if my loved one is already receiving SNAP or SSI?",
-          "answer": "Your loved one may be automatically eligible for LIHEAP if they receive SNAP, SSI, TANF, or certain veterans assistance programs. You still need to apply, but the income verification process may be streamlined."
+          "answer": "Households receiving SNAP, SSI, TANF, or certain veterans benefits may have a simpler income verification process or may already meet some eligibility requirements. However, an application is still required and approval is not automatic."
         },
         {
           "question": "How much will LIHEAP actually pay toward my loved one's bill?",
-          "answer": "LIHEAP doesn't publish fixed payment amounts. Benefits are allocated based on a priority system that considers high energy burdens, elderly individuals, people with disabilities, and families with children under 5. Higher-need households receive larger payments."
+          "answer": "LIHEAP benefit amounts vary based on factors such as household income, household size, energy costs, funding availability, and energy burden. Households with greater need may receive higher assistance amounts."
         },
         {
           "question": "What happens if my loved one gets a shut-off notice while the application is being reviewed?",
-          "answer": "Your loved one must continue paying bills during the several-week review process, LIHEAP doesn't guarantee payment while applications are being processed. Contact the utility company immediately about payment plans or low-income rate programs like CARE."
+          "answer": "Applicants are encouraged to continue making utility payments when possible during the review process, since LIHEAP assistance is not guaranteed while applications are pending. Contact the utility company immediately to ask about payment plans, shut-off protection, or low-income programs such as CARE or FERA."
         },
         {
           "question": "Can my loved one apply for LIHEAP and weatherization assistance at the same time?",
-          "answer": "Yes, these are separate programs. LIHEAP helps with current bills while weatherization provides home improvements to reduce future energy costs. Contact the same local service provider for both programs."
+          "answer": "Yes. LIHEAP and weatherization assistance are separate programs that may both be available through the same local service provider."
         },
         {
           "question": "What if my loved one's income is slightly over the limit but they still can't afford their energy bills?",
-          "answer": "If your loved one doesn't qualify for LIHEAP, contact their utility company about CARE (20% discount) or FERA (18% discount) programs, which have different income limits. Also ask about medical baseline rates if medical equipment requires extra electricity."
+          "answer": "If your loved one does not qualify for LIHEAP, ask the utility company about programs such as CARE, FERA, or Medical Baseline, which may offer discounts or additional support for qualifying households."
         },
         {
           "question": "Does my loved one's house value affect LIHEAP eligibility?",
-          "answer": "No. LIHEAP doesn't have asset limits, eligibility is based only on monthly income, household size, and energy burden. Your loved one can own their home and still qualify."
+          "answer": "LIHEAP eligibility is generally based on household income, household size, and energy-related need rather than home ownership status or property value."
         },
         {
           "question": "How often can my loved one receive LIHEAP benefits?",
-          "answer": "The research doesn't specify renewal periods, but LIHEAP is typically an annual benefit. Contact your local service provider about reapplication requirements and timing for the following year."
+          "answer": "LIHEAP assistance is generally available once per program year, though availability and requirements may vary by local agency and funding levels."
         }
       ],
       "layoutIntent": {
@@ -993,9 +979,9 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(866) 674-6327",
+      "phone": "(866) 675-6623",
       "sourceUrl": "https://www.csd.ca.gov/pages/liheapprogram.aspx",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -1027,7 +1013,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles with high energy bills or lives in a drafty, hard-to-heat home, California's Weatherization Assistance Program provides free home improvements to reduce energy costs. The program installs insulation, seals air leaks, repairs or replaces heating systems and water heaters, and makes other efficiency upgrades at no cost to qualified households.\n\nBecause the program prioritizes households with adults 60 and older, your loved one may move up the waitlist faster than younger applicants. Average households save over $400 per year on energy bills after weatherization, with homes staying warmer in winter and cooler in summer. Services are available once every 5 years through local community providers across California.",
+      "intro": "If your loved one struggles with high energy bills or lives in a drafty, hard-to-heat home, California's Weatherization Assistance Program provides free home improvements to reduce energy costs. The program installs insulation, seals air leaks, repairs or replaces heating systems and water heaters, and makes other efficiency upgrades at no cost to qualified households.\n\nBecause the program prioritizes households with adults 60 and older, your loved one may move up the waitlist faster than younger applicants. Average households save over $400 per year on energy bills after weatherization, with homes staying warmer in winter and cooler in summer. Services are available once every 15 years through local community providers across California.",
       "savingsRange": "$400+/year",
       "savingsSource": "Average yearly savings from energy efficiency improvements",
       "savingsVerified": true,
@@ -1043,21 +1029,21 @@ export const drafts: PipelineStateDrafts = {
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
-          "Must meet federal poverty income guidelines for household size",
+          "Must meet California's income limit of 200% of the Federal Poverty Level (FPL); households where a member receives SSI or TANF are often automatically income-qualified",
           "Home must be at least 5 years old for some related programs",
           "Renters need written landlord permission for modifications",
           "Must live in participating provider's service area"
         ],
-        "povertyLevelReference": "Federal poverty guidelines"
+        "povertyLevelReference": "200% FPL"
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local weatherization provider to schedule an energy assessment, appointments available within 1-2 days for emergency situations.",
+        "summary": "Call the CSD statewide line to be referred to your local weatherization provider for an income-qualified home energy assessment. Weatherization is a long-term home-improvement program, not an emergency service.",
         "steps": [
           {
             "step": 1,
             "title": "Find your local provider",
-            "description": "Call the CSET Weatherization Hotline at 1-844-224-1316 for statewide service, or contact Spectrum Community Services for Alameda County, or 211 LA for Los Angeles area providers."
+            "description": "Call the California Department of Community Services and Development (CSD) statewide line at 1-866-675-6623 to be referred to your local weatherization provider. Local agencies serve specific areas, for example CSET covers Tulare County and Spectrum Community Services covers Alameda County."
           },
           {
             "step": 2,
@@ -1077,7 +1063,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified, varies by local provider capacity and funding availability",
         "waitlist": "Potential waitlists due to funding and demand, priority given to elderly, disabled, and vulnerable households",
-        "tip": "Emergency cases with utility disconnection notices may receive expedited service within 1-2 days in some areas.",
+        "tip": "If your loved one has an active utility shut-off notice, WAP cannot help in time, contact LIHEAP's Energy Crisis Intervention Program (ECIP), which can halt disconnections within 24–48 hours.",
         "urls": [
           {
             "label": "California Department of Community Services",
@@ -1089,42 +1075,42 @@ export const drafts: PipelineStateDrafts = {
         "Proof of all household income from last 4 weeks (pay stubs, Social Security benefits, pension statements)",
         "Most recent electric bill",
         "Most recent gas or propane bill",
-        "Social Security cards for all household members",
+        "Valid government-issued photo ID and proof of U.S. citizenship or lawful presence for the primary applicant only (e.g., U.S. passport, birth certificate, or Green Card), submitted on state Form CSD 600",
         "Proof of residence (utility bill in your name or rental receipt)",
-        "Bank statements if applicable for income verification",
+        "Income verification: official award or pension statements for retirement income (bank statements are not accepted for pensions); a bank statement showing direct deposit is accepted for Social Security; adults with zero income must complete state Form CSD 43B (Certification of Income and Expenses)",
         "Written landlord approval letter if renting (must authorize modifications)",
         "Completed Weatherization application form from local provider"
       ],
       "contacts": [
         {
-          "label": "CSET Weatherization Hotline",
-          "phone": "1-844-224-1316",
-          "description": "Statewide weatherization services",
-          "hours": "Call for current hours"
-        },
-        {
-          "label": "Spectrum Community Services",
-          "phone": null,
-          "description": "Alameda County weatherization provider",
-          "hours": "Contact for appointment"
-        },
-        {
-          "label": "211 LA",
-          "phone": "2-1-1",
-          "description": "Los Angeles area weatherization providers",
-          "hours": "24/7 information and referral"
+          "label": "CSD Weatherization Information Line",
+          "phone": "1-866-675-6623",
+          "description": "California Department of Community Services and Development, statewide referral to your local weatherization provider",
+          "hours": "Business hours"
         },
         {
           "label": "California 2-1-1",
           "phone": "2-1-1",
-          "description": "Statewide help finding local providers",
+          "description": "Statewide help finding local weatherization providers",
           "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "CSET (Tulare County)",
+          "phone": "1-844-224-1316",
+          "description": "Local weatherization provider for Tulare County only, not a statewide line",
+          "hours": "Call for current hours"
+        },
+        {
+          "label": "Spectrum Community Services (Alameda County)",
+          "phone": null,
+          "description": "Local weatherization provider for Alameda County",
+          "hours": "Contact for appointment"
         }
       ],
       "applicationNotes": [
-        "Emergency appointments available within 1-2 days for households facing utility disconnection",
+        "Weatherization is not an emergency service, households facing a utility shut-off should contact LIHEAP's Energy Crisis Intervention Program (ECIP), which can halt disconnections within 24–48 hours",
         "Elderly households (60+) receive priority placement on installation schedules",
-        "Services are provided once every 5 years, not an annual program",
+        "Services are provided once every 15 years, not an annual program",
         "Renters must obtain written landlord permission before any work can begin"
       ],
       "relatedPrograms": [
@@ -1140,7 +1126,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one received weatherization services before?",
-          "answer": "Your loved one can receive weatherization services once every 5 years. If they had work done within the last 5 years, they must wait until that period expires before applying again."
+          "answer": "Your loved one can receive weatherization services once every 15 years. Under California Department of Community Services and Development (CSD) rules, if a home was weatherized with these funds within the last 15 years, they must wait until that period passes before applying again."
         },
         {
           "question": "How long is the waitlist really?",
@@ -1148,11 +1134,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one has an emergency utility shutoff notice?",
-          "answer": "Some providers offer emergency appointments within 1-2 days for households facing utility disconnection. Call your local provider immediately and mention the disconnection notice."
+          "answer": "Weatherization is not an emergency program and cannot stop a shut-off in time. If your loved one has an active disconnection notice, contact LIHEAP's Energy Crisis Intervention Program (ECIP), which works to halt disconnections within 24–48 hours, while weatherization is scheduled separately as a longer-term home improvement."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
-          "answer": "You can help your loved one apply and provide documentation, but the application must be in their name since they are the utility account holder and resident. Bring their ID and have them present during the application process."
+          "answer": "You can help your loved one apply. While the utility account must list the resident's name, a caregiver who holds a legal Durable Power of Attorney (DPOA) can sign and manage the entire application on the senior's behalf, without the senior needing to be present. Otherwise, bring their ID and have them available during the application."
         },
         {
           "question": "What exactly gets installed or repaired?",
@@ -1176,9 +1162,9 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "1-844-224-1316",
+      "phone": "1-866-675-6623",
       "sourceUrl": "https://www.csd.ca.gov/Pages/Residential-Energy-Efficiency.aspx",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -1206,7 +1192,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is confused by Medicare options, prescription drug coverage, or rising medical costs, HICAP provides free one-on-one counseling to help them understand their choices. HICAP counselors explain Medicare Parts A, B, and D, help compare Medicare Advantage Plans and Medigap policies, and identify cost-saving programs your loved one might qualify for.\n\nThis is not a financial assistance program, HICAP counselors help your loved one navigate their options but don't pay medical bills or premiums directly. Because counselors are trained specifically on Medicare rules and cost-saving programs, your loved one gets expert guidance without sales pressure from insurance companies.\n\nHICAP serves nine California counties through regional agencies. Your loved one must be 65+ or younger than 65 with a Medicare disability to receive counseling.",
+      "intro": "If your loved one is confused by Medicare options, prescription drug coverage, or rising medical costs, HICAP provides free one-on-one counseling to help them understand their choices. HICAP counselors explain Medicare Parts A, B, and D, help compare Medicare Advantage Plans and Medigap policies, and identify cost-saving programs your loved one might qualify for.\n\nThis is not a financial assistance program, HICAP counselors help your loved one navigate their options but don't pay medical bills or premiums directly. Because counselors are trained specifically on Medicare rules and cost-saving programs, your loved one gets expert guidance without sales pressure from insurance companies.\n\nHICAP serves all 58 California counties through regional agencies. Your loved one is eligible if they are a Medicare beneficiary of any age or are soon to be eligible.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1287,8 +1273,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes. HICAP counselors review existing coverage to see if your loved one could save money by switching plans during Open Enrollment (October 15 – December 7). They also check if your loved one qualifies for cost-saving programs like Medicare Savings Programs or Low-Income Subsidy for prescription drugs."
         },
         {
-          "question": "What if my loved one lives outside the nine counties HICAP serves?",
-          "answer": "California has statewide HICAP services, but this specific funded program only covers Nevada, Placer, Sacramento, San Joaquin, Sierra, Sutter, Yolo, and Yuba counties. Call (800) 434-0222 and they can refer you to Medicare counseling resources in other counties."
+          "question": "What if my loved one lives in a different part of California?",
+          "answer": "HICAP is a statewide program that provides free counseling in all 58 California counties. While different regional agencies manage specific areas (for example, Legal Services of Northern California serves Nevada, Placer, Sacramento, San Joaquin, Sierra, Sutter, Yolo, and Yuba), the service is available to every resident. You can call the statewide helpline at (800) 434-0222 to be automatically routed to the local office serving your loved one's specific county."
         },
         {
           "question": "Can I get counseling on behalf of my loved one?",
@@ -1310,7 +1296,7 @@ export const drafts: PipelineStateDrafts = {
       "icon": "Compass",
       "phone": "(800) 434-0222",
       "sourceUrl": "https://www.aging.ca.gov/Providers_and_Partners/Health_Insurance_Counseling_and_Advocacy_Program/Program_Narrative_and_Fact_Sheets/",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -1354,12 +1340,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local Area Agency on Aging for a phone or in-person assessment, no statewide application form exists.",
+        "summary": "Contact your local Area Agency on Aging or Meals on Wheels provider to complete an intake screening or assessment by phone or in person. There is no single statewide application form, and steps may vary by county or provider. The Older Americans Act Home-Delivered Nutrition Program is commonly identified as program code 3890200.",
         "steps": [
           {
             "step": 1,
             "title": "Find your local Area Agency on Aging",
-            "description": "Visit aging.ca.gov/Programs_and_Services/Meal_Programs/ to locate your AAA contact information, each of the 33 agencies serves specific counties or regions."
+            "description": "Visit the California Department of Aging Meal Programs page (aging.ca.gov/Programs_and_Services/Meal_Programs/) to find your local Area Agency on Aging or Meals on Wheels provider. California's 33 AAAs serve specific counties and regions."
           },
           {
             "step": 2,
@@ -1397,6 +1383,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "California Aging & Adult Information Line",
+          "phone": "1-800-510-2020",
+          "description": "Connects callers to their local Area Agency on Aging and senior services",
+          "hours": "Mon-Fri 8am-5pm PT"
+        },
+        {
           "label": "CA Dept. of Aging",
           "phone": "(916) 419-7500",
           "description": "State office for program information and local AAA directory",
@@ -1429,15 +1421,15 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one lives outside the delivery zone?",
-          "answer": "Each of the 33 Area Agencies on Aging has specific geographic boundaries for meal delivery. If your loved one lives outside the zone, ask about to-go meal pickup options or congregate meal sites. The AAA can also refer you to neighboring agencies that might serve your area."
+          "answer": "Local providers and Area Agencies on Aging serve designated counties or service areas. If your loved one lives outside the zone, ask about to-go meal pickup options or congregate meal sites. The AAA can also refer you to neighboring agencies that might serve your area."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
-          "answer": "Yes, adult children commonly initiate Meals on Wheels applications for aging loved ones. You'll need your loved one's consent and detailed information about their health, mobility, living situation, and emergency contacts during the assessment process."
+          "answer": "Yes. A family member can usually help start the process. Your local provider will ask for details about your loved one's health, mobility, living situation, and emergency contacts, and consent requirements may vary by provider."
         },
         {
           "question": "How much do families typically contribute for meals?",
-          "answer": "Contributions are completely voluntary with no set amount, some families donate $3-5 per meal while others contribute nothing. No one is denied service for inability to pay. Some local programs may use sliding-scale fees based on income, but this varies by Area Agency."
+          "answer": "Contributions are voluntary, and no one is denied service for inability to pay. Older Americans Act meals are generally contribution-based rather than fee-based, though some non-OAA providers may charge fees. Ask your local provider how contributions work in your area."
         },
         {
           "question": "What if my loved one's health improves and they no longer need delivery?",
@@ -1458,8 +1450,8 @@ export const drafts: PipelineStateDrafts = {
       },
       "icon": "BowlFood",
       "phone": "2-1-1",
-      "sourceUrl": "https://aging.ca.gov/Providers_and_Partners/Home-Delivered_Nutrition/Program_Narrative_and_Fact_Sheets/",
-      "contentStatus": "pipeline-draft",
+      "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Meal_Programs/",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -1559,9 +1551,9 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": null,
       "contacts": [
         {
-          "label": "California Department of Aging",
-          "phone": "(800) 677-1116",
-          "description": "General information and referral to local MSSP providers",
+          "label": "California Aging & Adult Information Line",
+          "phone": "1-800-510-2020",
+          "description": "Automatically routes you to your local Area Agency on Aging for MSSP referrals",
           "hours": "Business hours"
         },
         {
@@ -1607,9 +1599,9 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "HandHeart",
-      "phone": "(800) 677-1116",
+      "phone": "1-800-510-2020",
       "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Multipurpose_Senior_Services_Program/",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -1661,9 +1653,9 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides paid work experience averaging 20 hours per week at minimum wage while building job skills. Because participants work in community service roles at nonprofits and government agencies, your loved one earns income while gaining experience that makes them more employable. The program targets low-income seniors earning no more than 125% of the federal poverty level.\n\nYour loved one will receive on-the-job training in computer or vocational skills plus professional job placement assistance to find permanent employment. Because SCSEP is designed as a bridge to regular employment, participants must remain unemployed throughout the program but receive dedicated support to transition to unsubsidized work. Hours vary by region, Orange County offers 16-29 hours per week depending on available funding.",
-      "savingsRange": "$2,900 – $7,600/year",
-      "savingsSource": "Estimated from 16-20 hours per week at California minimum wage ($18/hour in 2026)",
+      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP is more than a paycheck, it's a way to stay active and connected, earning a stable income while training in friendly local settings like libraries, schools, and senior centers. Because participants work in community service roles at nonprofits and government agencies, your loved one earns income while gaining experience that makes them more employable. The program targets low-income seniors earning no more than 125% of the federal poverty level.\n\nYour loved one will receive on-the-job training in computer or vocational skills plus professional job placement assistance to find permanent employment. Because SCSEP is designed as a bridge to regular employment, participants must remain unemployed throughout the program but receive dedicated support to transition to unsubsidized work. Hours vary by region, Orange County offers 16-29 hours per week depending on available funding.",
+      "savingsRange": "$2,700 – $7,200/year",
+      "savingsSource": "Estimated from 16-20 hours per week at California minimum wage ($16.90/hour in 2026)",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
@@ -1679,7 +1671,7 @@ export const drafts: PipelineStateDrafts = {
         "otherRequirements": [
           "Must be unemployed at enrollment and remain unemployed during participation",
           "Must reside in county served by local SCSEP provider",
-          "Priority given to veterans, those 65+, disabled individuals, those with limited English or low literacy, rural residents, homeless individuals, and formerly incarcerated"
+          "While everyone is encouraged to apply, the program makes a special effort to move veterans, neighbors over 65, and those with disabilities to the front of the line so those who need help most get it first"
         ],
         "povertyLevelReference": "125% FPL"
       },
@@ -1689,13 +1681,13 @@ export const drafts: PipelineStateDrafts = {
         "steps": [
           {
             "step": 1,
-            "title": "Find your local provider",
-            "description": "California has multiple SCSEP providers by region. Felton Institute serves Bay Area counties at (415) 982-7007 ext. 334. ACC Senior Services covers Sacramento County. SER California operates in 23 counties statewide."
+            "title": "Call the local experts first",
+            "description": "Dial 1-800-510-2020, California's Senior Information line. Tell them you are interested in \"Senior Employment\" and they will give you the phone number for the exact provider in your ZIP code."
           },
           {
             "step": 2,
-            "title": "Contact provider to discuss eligibility",
-            "description": "Call your local provider to verify you meet income limits (125% federal poverty level) and unemployment requirements. Ask about current availability and hours offered in your area."
+            "title": "Ask about the waitlist",
+            "description": "Since slots are limited by federal funding, ask your local provider how long their current wait is for a training spot so your family can plan ahead. They will also confirm you meet the income (125% of the federal poverty level) and unemployment requirements."
           },
           {
             "step": 3,
@@ -1712,10 +1704,6 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": "Priority enrollment system means veterans and those 65+ are served first, younger seniors may face longer waits",
         "tip": "Contact multiple providers if you live near county boundaries, some serve multiple counties and may have shorter wait times.",
         "urls": [
-          {
-            "label": "California Department of Aging SCSEP page",
-            "url": "https://aging.ca.gov/Programs_and_Services/Senior_Employment_and_Training/"
-          },
           {
             "label": "U.S. Department of Labor SCSEP information",
             "url": "https://www.dol.gov/agencies/eta/seniors"
@@ -1758,7 +1746,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Income limits are strict at 125% federal poverty level, verify current dollar thresholds annually as they change each year",
-        "You must remain unemployed throughout participation, which can create challenges when transitioning to regular employment",
+        "Because this is a training program, your loved one can't hold a side job while participating, but the program is built to support them every step of the way until they find a permanent, full-time role",
         "Hours per week vary significantly by region and funding availability, Orange County explicitly states 16-29 hours depending on funding",
         "Moving outside your provider's service area may disqualify you from the program"
       ],
@@ -1812,9 +1800,9 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Briefcase",
-      "phone": "(916) 419-7500",
+      "phone": "1-800-510-2020",
       "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Senior_Employment_and_Training/",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -1828,7 +1816,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is 60+ and facing legal problems like eviction threats, Medicare denials, elder abuse, or consumer fraud, California's Senior Legal Services provides free legal representation and advocacy. Staff attorneys travel to approximately 40 convenient community locations throughout the state on regular schedules, bringing legal help directly to seniors.\n\nServices include housing and eviction defense, Social Security and Medicare appeals, elder abuse cases, estate planning, nursing home patient rights, debt protection, and bankruptcy assistance. Income limits vary by service type, some use 125% of Federal Poverty Level ($1,630/month for one person), others use 200% ($2,608/month for one person), and health-related matters may have no income restrictions in certain counties.",
+      "intro": "If your loved one is age 60 or older and dealing with problems like eviction threats, Medicare or Social Security issues, elder abuse, scams, or other legal concerns, they may qualify for free legal help through California's Senior Legal Services programs.\n\nDepending on the local program, services may include legal advice, representation, advocacy, help with housing and benefits issues, nursing home rights, estate planning, debt problems, and more. Some programs also offer outreach services at community locations to make legal assistance more accessible for seniors.\n\nEligibility and income guidelines can vary by county and by the type of legal issue, so it's best to contact your local program to see what services are available.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1887,7 +1875,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Attend scheduled community visit",
-            "description": "Staff attorneys travel to approximately 40 convenient community locations on regular schedules. You'll meet with an attorney at a scheduled location rather than a central office."
+            "description": "Staff attorneys travel to community locations on regular schedules. You'll typically meet with an attorney at a scheduled location rather than a central office."
           }
         ],
         "processingTime": null,
@@ -1933,15 +1921,15 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "What if my loved one's income is slightly above the limit for their legal issue?",
-          "answer": "Income requirements vary significantly by service type and county. Health-related legal matters may have no income limits in Fresno, Madera, Kings, Merced, and Tulare counties. Some services use 125% FPL while others use 200% FPL. Always call your local provider to verify which threshold applies to your specific situation."
+          "answer": "Income guidelines can vary depending on the county, legal issue, and local provider. Some programs prioritize low-income seniors, while certain health-related or elder rights matters may have more flexible eligibility rules. Even if your loved one's income is slightly above a guideline, it's still worth calling to ask about available services or referrals."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one who can't travel?",
-          "answer": "Yes, and homebound seniors receive priority consideration. Staff attorneys travel to approximately 40 community locations on regular schedules, and they prioritize seniors with limited mobility or transportation barriers. Explain your loved one's mobility limitations when calling your local Area Agency on Aging."
+          "answer": "Yes. Many Senior Legal Services programs can speak with family members or caregivers and may offer phone appointments, outreach clinics, or accommodations for seniors with mobility or transportation challenges. Be sure to explain your loved one's situation when you call."
         },
         {
           "question": "How do I find the right contact since this isn't one central program?",
-          "answer": "California has 33 different Planning and Service Areas, each with its own Legal Services Provider. Start by calling the California Aging Information Line at 1-800-510-2020 to get connected to your county's specific Area Agency on Aging, which will then refer you to the correct local legal services provider."
+          "answer": "California's senior legal services are coordinated through local Area Agencies on Aging and regional legal providers. A good first step is calling the California Aging Information Line at 1-800-510-2020 to get connected with the appropriate local agency and legal services program for your county."
         }
       ],
       "layoutIntent": {
@@ -1955,7 +1943,7 @@ export const drafts: PipelineStateDrafts = {
       "icon": "Scales",
       "phone": "1-800-510-2020",
       "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Legal_Services/",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -1983,7 +1971,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one lives in a California nursing home, assisted living facility, or residential care home, they have access to free advocacy services when problems arise with care quality, safety, or their rights as a resident. The Long-Term Care Ombudsman Program provides independent advocates who investigate complaints, mediate conflicts with facility staff, and ensure your loved one's voice is heard in care decisions.\n\nThis is not a financial assistance program, ombudsman representatives are trained advocates who work directly with residents and facilities to resolve issues like inadequate care, billing disputes, unsafe conditions, or violations of resident rights. The program serves all 2,252 long-term care facilities in California through 35 local offices, with both professional staff and extensively trained volunteers (minimum 36 hours of training plus supervised internship).\n\nImportantly, ombudsman representatives advocate for what your loved one wants, not necessarily what family members prefer. If there's disagreement between you and your loved one about care decisions, the ombudsman will support your loved one's expressed wishes.",
+      "intro": "If your loved one lives in a California nursing home, assisted living facility, or residential care home, they have access to free advocacy services when problems arise with care quality, safety, or their rights as a resident. The Long-Term Care Ombudsman Program provides independent advocates who investigate complaints, mediate conflicts with facility staff, and ensure your loved one's voice is heard in care decisions.\n\nThis is not a financial assistance program, ombudsman representatives are trained advocates who work directly with residents and facilities to resolve issues like inadequate care, billing disputes, unsafe conditions, or violations of resident rights. The program serves more than 8,000 long-term care facilities in California through 35 local Ombudsman programs.\n\nImportantly, ombudsman representatives advocate for what your loved one wants, not necessarily what family members prefer. If there's disagreement between you and your loved one about care decisions, the ombudsman will support your loved one's expressed wishes.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2067,7 +2055,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What's the difference between calling the ombudsman versus reporting to Adult Protective Services?",
-          "answer": "Ombudsman representatives focus on advocacy, mediation, and resolving conflicts within the facility system. Adult Protective Services investigates suspected abuse or neglect as a law enforcement matter. For immediate safety concerns or suspected abuse, call Adult Protective Services first. For care quality issues, billing disputes, or rights violations, start with the ombudsman."
+          "answer": "In California, APS generally investigates abuse in private homes or community settings. If abuse or neglect happens inside a licensed facility, the Ombudsman and the state licensing agencies (Department of Public Health or Department of Social Services) are the primary investigators. For immediate life-threatening emergencies, always call 911 first. For care quality issues, rights violations, or non-emergency abuse concerns in a facility, start with the ombudsman."
         },
         {
           "question": "Will the facility retaliate against my loved one if I file a complaint with the ombudsman?",
@@ -2085,7 +2073,7 @@ export const drafts: PipelineStateDrafts = {
       "icon": "Scales",
       "phone": "1-800-231-4024",
       "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Long-Term_Care_Ombudsman/",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -2427,7 +2415,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "ihss-in-home-supportive-services",
       "name": "In-Home Supportive Services (IHSS)",
       "shortName": "IHSS",
-      "tagline": "If your loved one needs daily help at home but doesn't qualify for nursing home care, IHSS provides up to 283 hours/month of personal care and housework support.",
+      "tagline": "If your loved one needs daily help at home to stay safe, IHSS provides up to 283 hours per month of personal care and housework support.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2440,7 +2428,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is on Medi-Cal and needs daily help with bathing, meal preparation, or housework but wants to stay in their own home, IHSS provides in-home care services up to 283 hours per month. Because IHSS covers personal care, housecleaning, grocery shopping, and even accompaniment to medical appointments, your loved one can avoid nursing home placement while getting the support they need.\n\nYour loved one must be eligible for Medi-Cal first, either through SSI/SSP or by meeting income limits of $1,801/month for a single person (effective April 1, 2025). Because services are based on a county assessment of functional need, the hours authorized depend on your loved one's specific limitations with daily activities like dressing, grooming, or medication management.\n\nThe program requires a physician to complete a Health Care Certification form (SOC 873) confirming your loved one needs assistance, and a county social worker conducts a home assessment to determine service hours. Your loved one must live in their own home or chosen residence, nursing homes and licensed care facilities don't qualify.",
+      "intro": "If your loved one is on Medi-Cal and needs daily help with bathing, meal preparation, or housework but wants to stay in their own home, IHSS provides in-home care services up to 283 hours per month. Because IHSS covers personal care, housecleaning, grocery shopping, and even accompaniment to medical appointments, your loved one can avoid nursing home placement while getting the support they need.\n\nYour loved one must be eligible for Medi-Cal first, either through SSI/SSP or by meeting income limits of $1,836/month for a single person (effective April 1, 2026). Because services are based on a county assessment of functional need, the hours authorized depend on your loved one's specific limitations with daily activities like dressing, grooming, or medication management.\n\nThe program requires a physician to complete a Health Care Certification form (SOC 873) confirming your loved one needs assistance, and a county social worker conducts a home assessment to determine service hours. Your loved one must live in their own home or chosen residence, nursing homes and licensed care facilities don't qualify.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2456,16 +2444,16 @@ export const drafts: PipelineStateDrafts = {
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 1801
+            "monthlyLimit": 1836
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 2433
+            "monthlyLimit": 2490
           }
         ],
         "assetLimits": {
-          "individual": 2000,
-          "couple": 3000,
+          "individual": 130000,
+          "couple": 195000,
           "countedAssets": [
             "Bank accounts",
             "Investments",
@@ -2503,7 +2491,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Contact your county IHSS office",
-            "description": "Find your county office at cdss.ca.gov/in-home-supportive-services or call your county social services department to request an IHSS application and assessment."
+            "description": "Call your local County Social Services department to request an IHSS application. The day you call is your \"Protected Date of Eligibility,\" which determines when payments can eventually begin."
           },
           {
             "step": 4,
@@ -2516,15 +2504,10 @@ export const drafts: PipelineStateDrafts = {
             "description": "The county will notify your loved one of approved hours and services, or provide reasons for denial. Services can range from a few hours to 283 hours per month maximum."
           }
         ],
-        "processingTime": "Processing time varies by county and includes home interview, functional assessment, and approval notification",
+        "processingTime": "While processing times can vary by county, the average timeline from application to approval in 2026 is 30 to 45 days.",
         "waitlist": null,
         "tip": "Get the SOC 873 form completed by your loved one's doctor before contacting the county office, this speeds up the process significantly.",
-        "urls": [
-          {
-            "label": "California IHSS Program Information",
-            "url": "https://www.cdss.ca.gov/in-home-supportive-services"
-          }
-        ]
+        "urls": []
       },
       "documentsNeeded": [
         "Valid government-issued photo ID",
@@ -2570,11 +2553,11 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one get IHSS if they don't have Medi-Cal yet?",
-          "answer": "No, Medi-Cal eligibility is required before IHSS services begin. However, you can apply for both programs at the same time. SSI/SSP recipients automatically qualify for Medi-Cal, while others must meet income limits of $1,801/month for singles or $2,433/month for couples (2025 rates)."
+          "answer": "No, Medi-Cal eligibility is required before IHSS services begin. However, you can apply for both programs at the same time. SSI/SSP recipients automatically qualify, while others must meet income limits of $1,836/month for singles or $2,490/month for couples (effective April 1, 2026)."
         },
         {
-          "question": "What if my loved one's house is worth more than the $2,000 asset limit?",
-          "answer": "The primary residence is often exempt from Medi-Cal asset limits, which means your loved one can usually keep their home regardless of value. However, other assets like bank accounts and investments must stay below $2,000 for individuals or $3,000 for couples."
+          "question": "What if my loved one's house is worth more than the asset limit?",
+          "answer": "The primary residence is exempt from asset limits, meaning your loved one can keep their home regardless of value. For 2026, other countable assets (like secondary property or investments) must stay below $130,000 for individuals or $195,000 for couples."
         },
         {
           "question": "Can a family member be paid to provide IHSS services?",
@@ -2582,7 +2565,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How many hours will my loved one actually get?",
-          "answer": "Service hours range from a few hours to 283 hours per month maximum, based on a county assessment of functional limitations. The social worker uses a ranking system (1-6) to determine needs for tasks like bathing, meal preparation, housework, and medical appointment transportation."
+          "answer": "Authorized hours depend on a county assessment of functional limitations. The maximum is 283 hours per month. The average recipient in 2026 is authorized for approximately 127 hours per month."
         },
         {
           "question": "What happens if my loved one's condition gets worse after enrollment?",
@@ -2594,7 +2577,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How long does the county assessment take?",
-          "answer": "The home assessment typically takes 1-3 hours and includes questions about your loved one's ability to perform daily activities, medical conditions, and living situation. The social worker observes your loved one's functional limitations and reviews medical documentation during the visit."
+          "answer": "The home visit typically takes 1–3 hours. The social worker will observe your loved one's ability to perform daily tasks and review the required SOC 873 medical form."
         },
         {
           "question": "What if the county denies our application?",
@@ -2612,7 +2595,7 @@ export const drafts: PipelineStateDrafts = {
       "icon": "House",
       "phone": null,
       "sourceUrl": "https://www.cdss.ca.gov/in-home-supportive-services",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -2686,10 +2669,6 @@ export const drafts: PipelineStateDrafts = {
           {
             "label": "California CRC Directory",
             "url": "https://caregivercalifornia.org"
-          },
-          {
-            "label": "Official Program Page",
-            "url": "https://www.dhcs.ca.gov/services/MH/Pages/AdultsCaregiverResourceCenters.aspx"
           }
         ]
       },
@@ -2762,8 +2741,8 @@ export const drafts: PipelineStateDrafts = {
       },
       "icon": "HandHeart",
       "phone": "(800) 675-6694",
-      "sourceUrl": "https://www.dhcs.ca.gov/services/MH/Pages/AdultsCaregiverResourceCenters.aspx",
-      "contentStatus": "pipeline-draft",
+      "sourceUrl": "https://www.caregivercalifornia.org/",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -2823,7 +2802,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Contact your Medi-Cal Managed Care Plan",
-            "description": "Call the member services number on your Medi-Cal card to request CBAS eligibility determination. If you're exempt from managed care, contact the Los Angeles Medi-Cal Field Office."
+            "description": "Call the member services number on your Medi-Cal card to request a referral for CBAS services. If your loved one is in \"Fee-for-Service\" Medi-Cal (not in a health plan), contact your local Medi-Cal Field Office or your primary care doctor to initiate the process."
           },
           {
             "step": 2,
@@ -2849,12 +2828,7 @@ export const drafts: PipelineStateDrafts = {
         "processingTime": "Processing time not specified in program materials",
         "waitlist": null,
         "tip": "Having a dementia diagnosis alone doesn't guarantee eligibility, you must also demonstrate functional impairment through the assessment",
-        "urls": [
-          {
-            "label": "California Aging Department CBAS Information",
-            "url": "https://aging.ca.gov/Programs_and_Services/Community-Based-Adult-Services/"
-          }
-        ]
+        "urls": []
       },
       "documentsNeeded": [
         "Current Medi-Cal card and eligibility verification",
@@ -2875,22 +2849,22 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Medi-Cal Managed Care Plans",
-          "phone": "See your Medi-Cal card",
-          "description": "Primary route for CBAS applications - call member services number",
-          "hours": "Varies by plan"
+          "label": "Medi-Cal Health Care Options",
+          "phone": "(800) 430-4263",
+          "description": "Managed Care enrollment and help choosing a health plan (TTY: 800-430-7077)",
+          "hours": "Mon-Fri 8am-6pm PT"
         },
         {
-          "label": "Los Angeles Medi-Cal Field Office",
-          "phone": "Contact through your managed care plan",
-          "description": "For Medi-Cal beneficiaries exempt from managed care",
-          "hours": "Business hours"
-        },
-        {
-          "label": "California Department of Aging",
-          "phone": "(916) 419-7500",
-          "description": "General CBAS program information",
+          "label": "California Department of Aging (CDA)",
+          "phone": "(916) 419-7545",
+          "description": "Help locating certified CBAS centers in your county",
           "hours": "Mon-Fri 8am-5pm PT"
+        },
+        {
+          "label": "California 2-1-1",
+          "phone": "2-1-1",
+          "description": "Find local CBAS centers and other community-based support services",
+          "hours": "24 hours, 7 days a week"
         }
       ],
       "applicationNotes": [
@@ -2949,9 +2923,9 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Users",
-      "phone": "(916) 419-7500",
-      "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Community-Based-Adult-Services/",
-      "contentStatus": "pipeline-draft",
+      "phone": "(800) 430-4263",
+      "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Community-Based_Adult_Services/",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     }
   ],

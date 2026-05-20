@@ -397,21 +397,35 @@ export default function ConversationList({
   }, [selectedId, activeProfileId]);
 
   // Auto-scroll to selected conversation when loading completes
+  // Uses retry mechanism to handle race condition with tab switching
   const lastScrolledId = useRef<string | null>(null);
   useEffect(() => {
     // Only auto-scroll once per selection when loading finishes
     if (loading || !selectedId || lastScrolledId.current === selectedId) return;
 
-    // Small delay to ensure DOM is rendered
-    const timer = setTimeout(() => {
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    const attemptScroll = () => {
+      if (cancelled) return;
+
       const itemEl = itemRefs.current.get(selectedId);
       if (itemEl) {
         itemEl.scrollIntoView({ behavior: "smooth", block: "center" });
         lastScrolledId.current = selectedId;
+      } else if (attempts < maxAttempts) {
+        // Item not in DOM yet (might be filtered, tab switching, etc.) - retry
+        attempts++;
+        setTimeout(attemptScroll, 100);
       }
-    }, 100);
+      // After max attempts, give up silently (item might be archived/filtered)
+    };
 
-    return () => clearTimeout(timer);
+    // Initial delay to ensure first render completes
+    setTimeout(attemptScroll, 50);
+
+    return () => { cancelled = true; };
   }, [loading, selectedId]);
 
   // Track scroll for divider

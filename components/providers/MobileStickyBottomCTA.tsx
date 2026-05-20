@@ -253,16 +253,10 @@ export default function MobileStickyBottomCTA({
   const handleConnectionCreated = useCallback(
     (connectionId: string) => {
       setSheetOpen(false);
-      const params = new URLSearchParams({
-        name: providerName,
-        slug: providerSlug,
-      });
-      if (providerCategory) params.set("category", providerCategory);
-      if (providerCity) params.set("city", providerCity);
-      if (providerState) params.set("state", providerState);
-      router.push(`/connected/${connectionId}?${params.toString()}`);
+      // Go directly to inbox instead of the old "connected" suggestions page
+      router.push(`/portal/inbox?id=${connectionId}`);
     },
-    [providerName, providerSlug, providerCategory, providerCity, providerState, router]
+    [router]
   );
 
   // ── Connection state machine (pre-loads on mount, persists across sheet open/close) ──

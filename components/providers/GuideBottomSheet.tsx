@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
+import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 
 interface GuideBottomSheetProps {
   isOpen: boolean;
@@ -16,9 +17,13 @@ interface GuideBottomSheetProps {
   providerCity?: string | null;
   providerState?: string | null;
   providerImage?: string | null;
+  /** Start directly in enrichment mode (for logged-in users) */
+  startInEnrichment?: boolean;
+  /** Pre-set connectionId (for logged-in users who already created connection) */
+  initialConnectionId?: string | null;
 }
 
-type SheetState = "email_capture" | "submitting" | "success" | "provider_email_block" | "family_required";
+type SheetState = "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block" | "family_required";
 
 /**
  * Mobile bottom sheet for the guide CTA.
@@ -34,6 +39,8 @@ export default function GuideBottomSheet({
   providerCity,
   providerState,
   providerImage,
+  startInEnrichment = false,
+  initialConnectionId = null,
 }: GuideBottomSheetProps) {
   const { user, activeProfile, openAuth } = useAuth();
   const isLoggedIn = !!user && !!activeProfile;
@@ -58,10 +65,10 @@ export default function GuideBottomSheet({
   const sheetRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle escape key (disabled during submitting/success)
+  // Handle escape key (disabled during submitting/enrichment/success)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape" && sheetState !== "submitting" && sheetState !== "success") {
+      if (e.key === "Escape" && sheetState !== "submitting" && sheetState !== "enrichment" && sheetState !== "success") {
         onClose();
       }
     },
@@ -81,8 +88,17 @@ export default function GuideBottomSheet({
     const keyHandler = (e: KeyboardEvent) => handleKeyDownRef.current(e);
 
     if (isOpen) {
-      // Show family required state if logged in as provider/caregiver/student
-      setSheetState(isNonFamilyProfile ? "family_required" : "email_capture");
+      // Determine starting state
+      if (startInEnrichment && initialConnectionId) {
+        // Logged-in user who already created connection - go straight to enrichment
+        setSheetState("enrichment");
+        setConnectionId(initialConnectionId);
+      } else if (isNonFamilyProfile) {
+        // Show family required state if logged in as provider/caregiver/student
+        setSheetState("family_required");
+      } else {
+        setSheetState("email_capture");
+      }
       setEmail("");
       setError(null);
       setPdfUrl(null);
@@ -94,7 +110,7 @@ export default function GuideBottomSheet({
       document.body.style.overflow = "";
       document.removeEventListener("keydown", keyHandler);
     };
-  }, [isOpen, isNonFamilyProfile]);
+  }, [isOpen, isNonFamilyProfile, startInEnrichment, initialConnectionId]);
 
   // Close sheet when viewport switches to desktop
   useEffect(() => {
@@ -198,13 +214,51 @@ export default function GuideBottomSheet({
         document.body.removeChild(link);
       }
 
-      // Show success state (stay on page, no redirect)
-      setSheetState("success");
+      // Go to enrichment instead of success
+      setSheetState("enrichment");
     } catch {
       setError("Something went wrong. Please try again.");
       setSheetState("email_capture");
     }
   };
+
+  // Handle enrichment save
+  const [enrichmentSubmitting, setEnrichmentSubmitting] = useState(false);
+  const saveEnrichment = useCallback(async (data?: {
+    careRecipient?: string;
+    urgency?: string;
+    phone?: string;
+    contactPreference?: string;
+  }) => {
+    if (!connectionId || (!data?.careRecipient && !data?.urgency && !data?.phone && !data?.contactPreference)) {
+      // No data to save, just redirect
+      window.location.href = `/portal/inbox?id=${connectionId}`;
+      return;
+    }
+
+    setEnrichmentSubmitting(true);
+    try {
+      await fetch("/api/connections/update-intent", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId,
+          careRecipient: data.careRecipient,
+          urgency: data.urgency,
+          phone: data.phone || undefined,
+          notifyChannel: data.contactPreference || undefined,
+        }),
+      });
+    } catch (err) {
+      console.error("[GuideBottomSheet] enrichment save error:", err);
+    }
+
+    window.location.href = `/portal/inbox?id=${connectionId}`;
+  }, [connectionId]);
+
+  const skipEnrichment = useCallback(() => {
+    window.location.href = connectionId ? `/portal/inbox?id=${connectionId}` : `/portal/inbox`;
+  }, [connectionId]);
 
   // Handle "Open a thread" click
   const handleMessageProvider = useCallback(() => {
@@ -218,7 +272,7 @@ export default function GuideBottomSheet({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40 animate-fade-in"
-        onClick={sheetState === "submitting" || sheetState === "success" ? undefined : onClose}
+        onClick={sheetState === "submitting" || sheetState === "enrichment" || sheetState === "success" ? undefined : onClose}
       />
 
       {/* Bottom Sheet */}
@@ -236,7 +290,7 @@ export default function GuideBottomSheet({
         </div>
 
         {/* Close button */}
-        {sheetState !== "success" && (
+        {sheetState !== "success" && sheetState !== "enrichment" && (
           <button
             onClick={onClose}
             disabled={sheetState === "submitting"}
@@ -330,7 +384,31 @@ export default function GuideBottomSheet({
           )}
 
           {/* ─────────────────────────────────────────────────────────────────── */}
-          {/* Success State */}
+          {/* Enrichment State */}
+          {/* ─────────────────────────────────────────────────────────────────── */}
+          {sheetState === "enrichment" && (
+            <>
+              <EnrichmentState
+                providerName={providerName}
+                onSave={saveEnrichment}
+                onSkip={skipEnrichment}
+                saving={enrichmentSubmitting}
+                successTitle="Checklist on its way"
+                successSubtitle="Downloaded · Also sent to your email"
+              />
+              {/* Re-download link */}
+              {pdfUrl && (
+                <p className="text-center text-xs text-gray-400 mt-4 pt-4 border-t border-gray-100">
+                  <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                    Download checklist again
+                  </a>
+                </p>
+              )}
+            </>
+          )}
+
+          {/* ─────────────────────────────────────────────────────────────────── */}
+          {/* Success State (fallback - should not normally reach here now) */}
           {/* ─────────────────────────────────────────────────────────────────── */}
           {sheetState === "success" && (
             <>

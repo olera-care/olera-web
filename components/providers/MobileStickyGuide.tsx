@@ -50,6 +50,9 @@ export default function MobileStickyGuide({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isMessageSubmitting, setIsMessageSubmitting] = useState(false);
   const [showPricingTooltip, setShowPricingTooltip] = useState(false);
+  // For logged-in flow: store connectionId and open sheet in enrichment mode
+  const [enrichmentConnectionId, setEnrichmentConnectionId] = useState<string | null>(null);
+  const [startSheetInEnrichment, setStartSheetInEnrichment] = useState(false);
 
   // Get user email for logged-in flow
   const userEmail = user?.email || "";
@@ -81,7 +84,7 @@ export default function MobileStickyGuide({
   }, [ctaVariant, ctaPreviewMode, providerSlug]);
 
   // Handle "Message provider" click (logged-in flow)
-  // Creates connection via guide-save API, then redirects to inbox
+  // Creates connection via guide-save API, then shows enrichment
   // NOTE: We intentionally don't track cta_variant_clicked here because logged-in
   // users are already converted and this action shouldn't pollute the A/B test funnel.
   const handleMessageProvider = useCallback(async () => {
@@ -105,20 +108,24 @@ export default function MobileStickyGuide({
         }),
       });
 
-      let connId: string | null = null;
       if (res.ok) {
         const data = await res.json();
-        connId = data.connectionId || null;
+        const connId = data.connectionId || null;
+        // Open bottom sheet in enrichment mode
+        setEnrichmentConnectionId(connId);
+        setStartSheetInEnrichment(true);
+        setSheetOpen(true);
       } else {
         console.error("[MobileStickyGuide] guide-save failed:", res.status);
+        // On error, redirect to inbox
+        window.location.href = `/portal/inbox`;
       }
-
-      // Redirect to inbox with connectionId if available
-      window.location.href = connId ? `/portal/inbox?id=${connId}` : `/portal/inbox`;
     } catch (err) {
       console.error("[MobileStickyGuide] handleMessageProvider error:", err);
       // Still redirect on error - user expects to go to inbox
       window.location.href = `/portal/inbox`;
+    } finally {
+      setIsMessageSubmitting(false);
     }
   }, [userEmail, providerId, providerSlug, providerName]);
 
@@ -126,6 +133,9 @@ export default function MobileStickyGuide({
     setSheetOpen(false);
     // Reset click tracking so user can open again
     clickFiredRef.current = false;
+    // Reset enrichment state
+    setStartSheetInEnrichment(false);
+    setEnrichmentConnectionId(null);
   }, []);
 
   // Keyboard suppression
@@ -447,6 +457,8 @@ export default function MobileStickyGuide({
         providerCity={providerCity}
         providerState={providerState}
         providerImage={providerImage}
+        startInEnrichment={startSheetInEnrichment}
+        initialConnectionId={enrichmentConnectionId}
       />
     </>
   );

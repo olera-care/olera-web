@@ -7,8 +7,9 @@ import { getPricingConfig } from "@/lib/pricing-config";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
+import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 
-type CardState = "initial" | "email_capture" | "submitting" | "success" | "provider_email_block";
+type CardState = "initial" | "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block";
 
 interface GuideCardProps {
   providerId: string;
@@ -187,15 +188,54 @@ export default function GuideCard({
         document.body.removeChild(link);
       }
 
-      setCardState("success");
+      // Go to enrichment instead of success
+      setCardState("enrichment");
     } catch {
       setError("Something went wrong. Please try again.");
       setCardState("email_capture");
     }
   }, [email, isLoggedIn, userEmail, providerId, providerSlug, providerName]);
 
+  // Handle enrichment save
+  const [enrichmentSubmitting, setEnrichmentSubmitting] = useState(false);
+  const saveEnrichment = useCallback(async (data?: {
+    careRecipient?: string;
+    urgency?: string;
+    phone?: string;
+    contactPreference?: string;
+  }) => {
+    if (!connectionId || (!data?.careRecipient && !data?.urgency && !data?.phone && !data?.contactPreference)) {
+      // No data to save, just redirect
+      window.location.href = `/portal/inbox?id=${connectionId}`;
+      return;
+    }
+
+    setEnrichmentSubmitting(true);
+    try {
+      await fetch("/api/connections/update-intent", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId,
+          careRecipient: data.careRecipient,
+          urgency: data.urgency,
+          phone: data.phone || undefined,
+          notifyChannel: data.contactPreference || undefined,
+        }),
+      });
+    } catch (err) {
+      console.error("[GuideCard] enrichment save error:", err);
+    }
+
+    window.location.href = `/portal/inbox?id=${connectionId}`;
+  }, [connectionId]);
+
+  const skipEnrichment = useCallback(() => {
+    window.location.href = connectionId ? `/portal/inbox?id=${connectionId}` : `/portal/inbox`;
+  }, [connectionId]);
+
   // Handle logged-in "Message provider" click
-  // Creates connection via guide-save API, then redirects to inbox
+  // Creates connection via guide-save API, then shows enrichment
   // NOTE: We intentionally don't track cta_variant_clicked here because logged-in
   // users are already converted and this action shouldn't pollute the A/B test funnel.
   const handleMessageProvider = useCallback(async () => {
@@ -219,20 +259,24 @@ export default function GuideCard({
         }),
       });
 
-      let connId: string | null = null;
       if (res.ok) {
         const data = await res.json();
-        connId = data.connectionId || null;
+        if (data.connectionId) {
+          setConnectionId(data.connectionId);
+        }
+        // Show enrichment instead of redirecting directly
+        setCardState("enrichment");
       } else {
         console.error("[GuideCard] guide-save failed:", res.status);
+        // On error, redirect to inbox
+        window.location.href = `/portal/inbox`;
       }
-
-      // Redirect to inbox with connectionId if available
-      window.location.href = connId ? `/portal/inbox?id=${connId}` : `/portal/inbox`;
     } catch (err) {
       console.error("[GuideCard] handleMessageProvider error:", err);
       // Still redirect on error - user expects to go to inbox
       window.location.href = `/portal/inbox`;
+    } finally {
+      setIsMessageSubmitting(false);
     }
   }, [userEmail, providerId, providerSlug, providerName]);
 
@@ -607,7 +651,36 @@ export default function GuideCard({
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: Success State
+  // RENDER: Enrichment State
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (cardState === "enrichment") {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+        <div className="px-5 pt-5 pb-5">
+          <EnrichmentState
+            providerName={providerName}
+            onSave={saveEnrichment}
+            onSkip={skipEnrichment}
+            saving={enrichmentSubmitting}
+            priceRange={priceRange}
+            successTitle="Checklist on its way"
+            successSubtitle="Downloaded · Also sent to your email"
+          />
+          {/* Re-download link */}
+          {pdfUrl && (
+            <p className="text-center text-xs text-gray-400 mt-4 pt-4 border-t border-gray-100">
+              <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                Download checklist again
+              </a>
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RENDER: Success State (fallback - should not normally reach here now)
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">

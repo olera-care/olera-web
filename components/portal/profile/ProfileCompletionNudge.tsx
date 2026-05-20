@@ -76,14 +76,31 @@ export default function ProfileCompletionNudge({
 
   return (
     <div className="px-4 sm:px-6 py-3">
-      {/* Desktop: single row | Mobile: text row + buttons row */}
+      {/* Desktop: single row | Mobile: compact card layout */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4">
-        {/* Text */}
-        <p className="text-[14px] text-gray-600 flex-1">
-          <span className="font-medium text-gray-900">Help {firstName} respond faster</span>
-          <span className="hidden sm:inline"> — </span>
-          <span className="block sm:inline">complete your profile</span>
-        </p>
+        {/* Text + dismiss (mobile: inline, desktop: text only) */}
+        <div className="flex items-start justify-between gap-2 sm:flex-1">
+          <p className="text-[14px] text-gray-600 flex-1">
+            <span className="font-medium text-gray-900">Help {firstName} respond faster</span>
+            <span className="hidden sm:inline"> — </span>
+            <span className="block sm:inline">complete your profile</span>
+            {/* Mobile: show percentage inline with text */}
+            {completionPercentage !== undefined && (
+              <span className="sm:hidden text-gray-400"> · {Math.round(completionPercentage)}%</span>
+            )}
+          </p>
+          {/* Mobile dismiss - top right */}
+          <button
+            type="button"
+            onClick={handleDismiss}
+            className="sm:hidden w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0 -mt-0.5"
+            aria-label="Dismiss"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
         {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
@@ -92,12 +109,15 @@ export default function ProfileCompletionNudge({
             onClick={handleComplete}
             className="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-[13px] font-semibold rounded-full transition-colors"
           >
-            Complete Profile{completionPercentage !== undefined && ` · ${Math.round(completionPercentage)}%`}
+            {/* Mobile: shorter text, Desktop: full text with percentage */}
+            <span className="sm:hidden">Complete Profile</span>
+            <span className="hidden sm:inline">Complete Profile{completionPercentage !== undefined && ` · ${Math.round(completionPercentage)}%`}</span>
           </button>
+          {/* Desktop dismiss */}
           <button
             type="button"
             onClick={handleDismiss}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="hidden sm:flex w-8 h-8 items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             aria-label="Dismiss"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>

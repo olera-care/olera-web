@@ -53,6 +53,20 @@ export default function GuideCard({
   const emailInputRef = useRef<HTMLInputElement>(null);
   const clickFiredRef = useRef(false);
 
+  // Parallel loading: API runs in background while user fills enrichment
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiResult, setApiResult] = useState<{
+    connectionId: string;
+    pdfUrl: string;
+  } | null>(null);
+  // undefined = user hasn't submitted, null = user skipped, object = user submitted data
+  const [pendingEnrichment, setPendingEnrichment] = useState<{
+    careRecipient?: string;
+    urgency?: string;
+    phone?: string;
+    contactPreference?: string;
+  } | null | undefined>(undefined);
+
   // Check if user is logged in
   const isLoggedIn = !!user && !!activeProfile;
   const userEmail = user?.email || "";
@@ -113,9 +127,14 @@ export default function GuideCard({
     setEmail("");
     setError(null);
     clickFiredRef.current = false;
+    // Reset parallel loading state
+    setApiLoading(false);
+    setApiResult(null);
+    setPendingEnrichment(undefined);
+    setEnrichmentSubmitting(false);
   }, []);
 
-  // Handle email submission
+  // Handle email submission - show enrichment immediately, API runs in background
   const handleSubmit = useCallback(async () => {
     const emailToUse = isLoggedIn ? userEmail : email.trim();
 
@@ -130,8 +149,14 @@ export default function GuideCard({
     }
 
     setError(null);
-    setCardState("submitting");
+    // Show enrichment immediately - user fills this while PDF generates
+    setCardState("enrichment");
+    setApiLoading(true);
+    setApiResult(null);
+    setPendingEnrichment(undefined);
+    setEnrichmentSubmitting(false);
 
+    // Run API in background
     try {
       const res = await fetch("/api/connections/guide-save", {
         method: "POST",
@@ -153,12 +178,14 @@ export default function GuideCard({
       if (!res.ok && data.code === "PROVIDER_EMAIL") {
         setBlockedEmail(emailToUse);
         setCardState("provider_email_block");
+        setApiLoading(false);
         return;
       }
 
       if (!res.ok) {
         setError(data.error || "Something went wrong");
         setCardState("email_capture");
+        setApiLoading(false);
         return;
       }
 
@@ -171,68 +198,118 @@ export default function GuideCard({
         });
       }
 
-      // Store connectionId for redirect
-      if (data.connectionId) {
-        setConnectionId(data.connectionId);
-      }
-
-      // Store PDF URL and trigger download
-      if (data.pdfUrl) {
-        setPdfUrl(data.pdfUrl);
-        // Auto-download the PDF
-        const link = document.createElement("a");
-        link.href = data.pdfUrl;
-        link.download = "senior-care-checklist.pdf";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-
-      // Go to enrichment instead of success
-      setCardState("enrichment");
+      // Store API result
+      setApiResult({
+        connectionId: data.connectionId,
+        pdfUrl: data.pdfUrl,
+      });
+      setConnectionId(data.connectionId);
+      setPdfUrl(data.pdfUrl);
+      setApiLoading(false);
     } catch {
       setError("Something went wrong. Please try again.");
       setCardState("email_capture");
+      setApiLoading(false);
     }
   }, [email, isLoggedIn, userEmail, providerId, providerSlug, providerName]);
 
-  // Handle enrichment save
+  // Handle enrichment save - works with parallel loading
   const [enrichmentSubmitting, setEnrichmentSubmitting] = useState(false);
+
+  // Complete the flow: save enrichment, download PDF, redirect
+  const completeFlow = useCallback(async (
+    connId: string,
+    pdfUrlToUse: string | null,
+    enrichmentData?: {
+      careRecipient?: string;
+      urgency?: string;
+      phone?: string;
+      contactPreference?: string;
+    }
+  ) => {
+    // Save enrichment if we have data
+    if (enrichmentData?.careRecipient || enrichmentData?.urgency || enrichmentData?.phone || enrichmentData?.contactPreference) {
+      try {
+        await fetch("/api/connections/update-intent", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            connectionId: connId,
+            careRecipient: enrichmentData.careRecipient,
+            urgency: enrichmentData.urgency,
+            phone: enrichmentData.phone || undefined,
+            notifyChannel: enrichmentData.contactPreference || undefined,
+          }),
+        });
+      } catch (err) {
+        console.error("[GuideCard] enrichment save error:", err);
+      }
+    }
+
+    // Download PDF
+    if (pdfUrlToUse) {
+      const link = document.createElement("a");
+      link.href = pdfUrlToUse;
+      link.download = "senior-care-checklist.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Redirect to inbox
+    window.location.href = `/portal/inbox?id=${connId}`;
+  }, []);
+
   const saveEnrichment = useCallback(async (data?: {
     careRecipient?: string;
     urgency?: string;
     phone?: string;
     contactPreference?: string;
   }) => {
-    if (!connectionId || (!data?.careRecipient && !data?.urgency && !data?.phone && !data?.contactPreference)) {
-      // No data to save, just redirect
-      window.location.href = connectionId ? `/portal/inbox?id=${connectionId}` : `/portal/inbox`;
+    setEnrichmentSubmitting(true);
+
+    // If API is still loading, store enrichment and wait
+    if (apiLoading) {
+      setPendingEnrichment(data || null);
+      return; // Effect will handle completion when API finishes
+    }
+
+    // API is done - complete the flow now
+    const connId = apiResult?.connectionId || connectionId;
+    if (!connId) {
+      window.location.href = "/portal/inbox";
       return;
     }
 
-    setEnrichmentSubmitting(true);
-    try {
-      await fetch("/api/connections/update-intent", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          connectionId,
-          careRecipient: data.careRecipient,
-          urgency: data.urgency,
-          phone: data.phone || undefined,
-          notifyChannel: data.contactPreference || undefined,
-        }),
-      });
-    } catch (err) {
-      console.error("[GuideCard] enrichment save error:", err);
-    }
-
-    window.location.href = `/portal/inbox?id=${connectionId}`;
-  }, [connectionId]);
+    await completeFlow(connId, apiResult?.pdfUrl || pdfUrl, data);
+  }, [apiLoading, apiResult, connectionId, pdfUrl, completeFlow]);
 
   const skipEnrichment = useCallback(() => {
-    window.location.href = connectionId ? `/portal/inbox?id=${connectionId}` : `/portal/inbox`;
-  }, [connectionId]);
+    setEnrichmentSubmitting(true);
+
+    // If API is still loading, store null enrichment and wait
+    if (apiLoading) {
+      setPendingEnrichment(null);
+      return;
+    }
+
+    // API is done - complete the flow
+    const connId = apiResult?.connectionId || connectionId;
+    if (!connId) {
+      window.location.href = "/portal/inbox";
+      return;
+    }
+
+    completeFlow(connId, apiResult?.pdfUrl || pdfUrl, undefined);
+  }, [apiLoading, apiResult, connectionId, pdfUrl, completeFlow]);
+
+  // Effect: When API completes and user has submitted/skipped enrichment, complete the flow
+  useEffect(() => {
+    // pendingEnrichment !== undefined means user has made a choice (submit or skip)
+    if (!apiLoading && apiResult && pendingEnrichment !== undefined && enrichmentSubmitting) {
+      completeFlow(apiResult.connectionId, apiResult.pdfUrl, pendingEnrichment || undefined);
+    }
+  }, [apiLoading, apiResult, pendingEnrichment, enrichmentSubmitting, completeFlow]);
 
   // Handle logged-in "Message provider" click
   // Creates connection via guide-save API, then shows enrichment

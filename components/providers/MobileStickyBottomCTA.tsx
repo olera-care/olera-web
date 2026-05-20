@@ -419,42 +419,7 @@ export default function MobileStickyBottomCTA({
         return undefined;
 
       case "default":
-        return (
-          <div className="space-y-2.5">
-            {hook.userEmail ? (
-              /* Logged-in: one-click */
-              <>
-                <p className="text-[13px] text-gray-500 text-center">
-                  Signed in as {hook.userEmail}
-                </p>
-                <button
-                  onClick={() => hook.submitInquiryForm({ email: hook.userEmail })}
-                  disabled={hook.submitting}
-                  className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-[10px] text-base font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
-                >
-                  {hook.submitting && (
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  )}
-                  {hook.submitting ? "Checking..." : "Check cost & availability"}
-                </button>
-              </>
-            ) : (
-              /* Guest: email-only form in footer */
-              <MobileEmailForm
-                onSubmit={(email) => hook.submitInquiryForm({ email })}
-                submitting={hook.submitting}
-              />
-            )}
-            {hook.error && (
-              <p className="text-sm text-red-600 text-center" role="alert">
-                {hook.error}
-              </p>
-            )}
-            <p className="text-[12px] text-gray-500 text-center font-medium">
-              No spam. No sales calls.
-            </p>
-          </div>
-        );
+        return undefined;
 
       case "intent":
         return (
@@ -696,6 +661,45 @@ export default function MobileStickyBottomCTA({
           </div>
         )}
 
+        {/* ── Default: email form ── */}
+        {!hook.isNonFamilyProfile && hook.cardState === "default" && (
+          <div className="py-4 animate-step-in">
+            <div className="space-y-3">
+              {hook.userEmail ? (
+                /* Logged-in: one-click */
+                <>
+                  <p className="text-[13px] text-gray-500 text-center">
+                    Signed in as {hook.userEmail}
+                  </p>
+                  <button
+                    onClick={() => hook.submitInquiryForm({ email: hook.userEmail })}
+                    disabled={hook.submitting}
+                    className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-[10px] text-base font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                  >
+                    {hook.submitting && (
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    )}
+                    {hook.submitting ? "Checking..." : "Check cost & availability"}
+                  </button>
+                </>
+              ) : (
+                /* Guest: email-only form */
+                <MobileEmailForm
+                  onSubmit={(email) => hook.submitInquiryForm({ email })}
+                  submitting={hook.submitting}
+                />
+              )}
+              {hook.error && (
+                <p className="text-sm text-red-600 text-center" role="alert">
+                  {hook.error}
+                </p>
+              )}
+              <p className="text-[12px] text-gray-500 text-center font-medium">
+                No spam. No sales calls.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* ── Intent step 0: Who needs care? ── */}
         {!hook.isNonFamilyProfile && hook.cardState === "intent" && hook.intentStep === 0 && (

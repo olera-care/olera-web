@@ -696,28 +696,6 @@ export default function MobileStickyBottomCTA({
           </div>
         )}
 
-        {/* ── Default: payments ── */}
-        {!hook.isNonFamilyProfile && hook.cardState === "default" && (
-          <div className="animate-step-in">
-            {acceptedPayments.length > 0 && (
-              <div className="pt-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-gray-400 mb-2">
-                  Accepted payments
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {acceptedPayments.map((payment) => (
-                    <span
-                      key={payment}
-                      className="text-xs text-gray-600 bg-gray-100 px-2.5 py-1 rounded"
-                    >
-                      {payment}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* ── Intent step 0: Who needs care? ── */}
         {!hook.isNonFamilyProfile && hook.cardState === "intent" && hook.intentStep === 0 && (

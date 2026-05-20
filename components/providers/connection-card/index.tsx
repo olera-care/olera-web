@@ -1,7 +1,6 @@
 "use client";
 
 import { useConnectionCard } from "./use-connection-card";
-import CardBottomSection from "./CardBottomSection";
 import InquiryForm from "./InquiryForm";
 import EnrichmentState from "./EnrichmentState";
 import ConnectedState from "./ConnectedState";
@@ -13,7 +12,6 @@ export default function ConnectionCard(props: ConnectionCardProps) {
   const {
     providerName,
     phone,
-    acceptedPayments,
   } = props;
 
   const hook = useConnectionCard(props);
@@ -44,7 +42,6 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             Use a different email than your {hook.accountTypeLabel} account.
           </p>
         </div>
-        <CardBottomSection acceptedPayments={acceptedPayments} />
       </div>
     );
   }
@@ -144,9 +141,6 @@ export default function ConnectionCard(props: ConnectionCardProps) {
           </div>
         )}
       </div>
-
-      {/* Bottom section — persistent */}
-      <CardBottomSection acceptedPayments={acceptedPayments} />
     </div>
   );
 }

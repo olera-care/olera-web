@@ -723,12 +723,13 @@ export function useConnectionCard(props: ConnectionCardProps) {
     urgency?: string;
     phone?: string;
     notifyChannel?: string;
+    contactPreference?: string;
   }) => {
     // Need at least connectionId and some data to save
     const hasIntentData = data?.careRecipient || data?.urgency;
     const hasPhone = data?.phone && data.phone.trim();
-    const hasNotify = data?.notifyChannel;
-    if (!connectionId || (!hasIntentData && !hasPhone && !hasNotify)) {
+    const hasContact = data?.notifyChannel || data?.contactPreference;
+    if (!connectionId || (!hasIntentData && !hasPhone && !hasContact)) {
       navigatePostEnrichment();
       return;
     }
@@ -746,7 +747,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
             careRecipient: data.careRecipient,
             urgency: data.urgency,
             phone: data.phone || undefined,
-            notifyChannel: data.notifyChannel || undefined,
+            // Support both old notifyChannel and new contactPreference
+            notifyChannel: data.contactPreference || data.notifyChannel || undefined,
           }),
         });
 

@@ -31,10 +31,16 @@ const recipientMap: Record<string, string> = {
 };
 
 const timelineMap: Record<string, string> = {
+  // Old format (from legacy enrichment)
   asap: "immediate",
   within_month: "within_1_month",
   few_months: "within_3_months",
   researching: "exploring",
+  // New format (matches profile wizard) - pass through as-is
+  immediate: "immediate",
+  within_1_month: "within_1_month",
+  within_3_months: "within_3_months",
+  exploring: "exploring",
 };
 
 const careTypeMap: Record<string, string> = {
@@ -77,11 +83,16 @@ export async function syncIntentToProfile(
   }
 
   // Map notifyChannel → metadata.contact_preference
-  // Wizard stores lowercase ("text", "email", "call")
+  // Supports both old format (text, whatsapp, email) and new format (Call, Text, Email)
   const contactPrefMap: Record<string, string> = {
-    text: "text",
-    whatsapp: "text", // WhatsApp maps to text preference (phone-based)
-    email: "email",
+    // Old format (from legacy enrichment)
+    text: "Text",
+    whatsapp: "Text", // WhatsApp maps to text preference (phone-based)
+    email: "Email",
+    // New format (matches profile wizard)
+    Call: "Call",
+    Text: "Text",
+    Email: "Email",
   };
   if (intent.notifyChannel && contactPrefMap[intent.notifyChannel]) {
     currentMeta.contact_preference = contactPrefMap[intent.notifyChannel];

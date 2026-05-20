@@ -112,8 +112,8 @@ function getNudgeStatus(seeker: SeekerRow): {
   const nudgeCount = seq?.nudge_count || 0;
   const isMaintenancePhase = seq?.phase === "maintenance";
 
-  // Published = success (green)
-  if (isPublished) {
+  // Published AND complete = success (green)
+  if (isPublished && seeker.profile_complete) {
     return { label: "Published", sublabel: "Done", isSuccess: true };
   }
 
@@ -125,6 +125,24 @@ function getNudgeStatus(seeker: SeekerRow): {
   // Determine which sequence they're in
   const sequenceType = seeker.sequence_type; // "completion" or "publish"
   const sequenceLabel = sequenceType === "completion" ? "Profile" : "Publish";
+
+  // Published but incomplete - show both states
+  if (isPublished && !seeker.profile_complete) {
+    if (isMaintenancePhase) {
+      const lastNudge = seq?.last_nudge_at;
+      return {
+        label: "Published · incomplete",
+        sublabel: lastNudge ? `Monthly · ${timeAgo(lastNudge)}` : "Pending",
+        isSuccess: false
+      };
+    }
+    const lastNudge = seq?.last_nudge_at;
+    return {
+      label: "Published · incomplete",
+      sublabel: `${nudgeCount}/4${lastNudge ? ` · ${timeAgo(lastNudge)}` : ""}`,
+      isSuccess: false
+    };
+  }
 
   if (isMaintenancePhase) {
     const lastNudge = seq?.last_nudge_at;

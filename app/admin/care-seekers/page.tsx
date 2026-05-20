@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { FamilyMetadata } from "@/lib/types";
+import type { FamilyMetadata, NudgeSequence } from "@/lib/types";
 
 const TIMELINE_LABELS: Record<string, string> = {
   immediate: "ASAP",
@@ -11,7 +11,7 @@ const TIMELINE_LABELS: Record<string, string> = {
   exploring: "Exploring",
 };
 
-type FilterTab = "all" | "members" | "guest" | "published" | "unpublished";
+type FilterTab = "all" | "members" | "guest" | "published" | "unpublished" | "needs_nudge" | "in_sequence" | "maintenance" | "has_leads";
 
 interface SeekerRow {
   id: string;
@@ -27,6 +27,12 @@ interface SeekerRow {
   claim_state: string;
   source: string;
   created_at: string;
+  // New fields from API
+  connection_count: number;
+  profile_complete: boolean;
+  nudge_phase: "none" | "active" | "maintenance" | "done";
+  current_sequence: NudgeSequence | null;
+  sequence_type: "completion" | "publish";
 }
 
 interface TabCounts {
@@ -36,6 +42,30 @@ interface TabCounts {
   published: number;
   unpublished: number;
   thisWeek: number;
+  // New nudge-related counts
+  needsNudge: number;
+  inSequence: number;
+  maintenance: number;
+  hasLeads: number;
+}
+
+// Helper to format relative time
+function timeAgo(isoDate: string | undefined): string {
+  if (!isoDate) return "Never";
+  const days = Math.floor((Date.now() - new Date(isoDate).getTime()) / (1000 * 60 * 60 * 24));
+  if (days === 0) return "Today";
+  if (days === 1) return "1d ago";
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
+
+// Helper to get sequence display text
+function getSequenceDisplay(seeker: SeekerRow): string {
+  if (seeker.nudge_phase === "done") return "Published";
+  if (!seeker.current_sequence || seeker.current_sequence.nudge_count === 0) return "Not started";
+  const type = seeker.sequence_type === "completion" ? "Complete" : "Publish";
+  return `${type} #${seeker.current_sequence.nudge_count}`;
 }
 
 const PAGE_SIZE = 25;
@@ -111,6 +141,10 @@ export default function AdminCareSeekersPage() {
       if (filter === "members") params.set("members_only", "true");
       if (filter === "published") params.set("published_only", "true");
       if (filter === "unpublished") params.set("unpublished_only", "true");
+      if (filter === "needs_nudge") params.set("needs_nudge", "true");
+      if (filter === "in_sequence") params.set("in_sequence", "true");
+      if (filter === "maintenance") params.set("maintenance", "true");
+      if (filter === "has_leads") params.set("has_leads", "true");
       if (cityFilter) params.set("city", cityFilter);
       if (stateFilter) params.set("state", stateFilter);
 
@@ -142,6 +176,10 @@ export default function AdminCareSeekersPage() {
             published: statsData.published ?? 0,
             unpublished: statsData.unpublished ?? 0,
             thisWeek: statsData.thisWeek ?? 0,
+            needsNudge: statsData.needsNudge ?? 0,
+            inSequence: statsData.inSequence ?? 0,
+            maintenance: statsData.maintenance ?? 0,
+            hasLeads: statsData.hasLeads ?? 0,
           });
         }
 
@@ -169,6 +207,10 @@ export default function AdminCareSeekersPage() {
           published: statsData.published ?? 0,
           unpublished: statsData.unpublished ?? 0,
           thisWeek: statsData.thisWeek ?? 0,
+          needsNudge: statsData.needsNudge ?? 0,
+          inSequence: statsData.inSequence ?? 0,
+          maintenance: statsData.maintenance ?? 0,
+          hasLeads: statsData.hasLeads ?? 0,
         });
       }
     } catch { /* ignore */ }
@@ -250,12 +292,16 @@ export default function AdminCareSeekersPage() {
 
   const hasActiveFilters = cityFilter || stateFilter || filter !== "all";
 
-  const tabs: { label: string; value: FilterTab; count: number | null }[] = [
+  const tabs: { label: string; value: FilterTab; count: number | null; color?: string }[] = [
     { label: "All", value: "all", count: tabCounts?.total ?? null },
     { label: "Members", value: "members", count: tabCounts?.members ?? null },
     { label: "Guests", value: "guest", count: tabCounts?.guest ?? null },
     { label: "Published", value: "published", count: tabCounts?.published ?? null },
     { label: "Unpublished", value: "unpublished", count: tabCounts?.unpublished ?? null },
+    { label: "Needs Nudge", value: "needs_nudge", count: tabCounts?.needsNudge ?? null, color: "amber" },
+    { label: "In Sequence", value: "in_sequence", count: tabCounts?.inSequence ?? null, color: "blue" },
+    { label: "Maintenance", value: "maintenance", count: tabCounts?.maintenance ?? null, color: "purple" },
+    { label: "Has Leads", value: "has_leads", count: tabCounts?.hasLeads ?? null, color: "green" },
   ];
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -457,10 +503,11 @@ export default function AdminCareSeekersPage() {
                 <tr>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Name</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Email</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Phone</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">City</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Care Type</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Timeline</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500">Profile</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500">Leads</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500">Last Nudge</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500">Phase</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Joined</th>
                   <th className="px-2 py-3 w-8" aria-label="Delete" />
@@ -470,7 +517,8 @@ export default function AdminCareSeekersPage() {
                 {seekers.map((seeker) => {
                   const meta = seeker.metadata || {};
                   const isGuest = !seeker.account_id;
-                  const isPublished = meta.care_post?.status === "active";
+                  const isPublishedStatus = meta.care_post?.status === "active";
+                  const completeness = meta.profile_completeness ?? (seeker.profile_complete ? 100 : 0);
                   return (
                     <tr
                       key={seeker.id}
@@ -483,7 +531,6 @@ export default function AdminCareSeekersPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-600 truncate max-w-[180px]">{seeker.email || "—"}</td>
-                      <td className="px-4 py-3 text-gray-600">{seeker.phone || "—"}</td>
                       <td className="px-4 py-3 text-gray-600 text-xs">
                         {seeker.city ? (
                           <span>{seeker.city}{seeker.state ? `, ${seeker.state}` : ""}</span>
@@ -491,24 +538,67 @@ export default function AdminCareSeekersPage() {
                           <span className="text-gray-400 italic">Not set</span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
-                        {seeker.care_types.length > 0 ? (
-                          <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
-                            {seeker.care_types[0]}
+                      {/* Profile completeness */}
+                      <td className="px-4 py-3 text-xs">
+                        {seeker.profile_complete ? (
+                          <span className="text-emerald-600 font-medium">✓ Complete</span>
+                        ) : (
+                          <span className="text-amber-600 font-medium">⚠️ {completeness}%</span>
+                        )}
+                      </td>
+                      {/* Leads count */}
+                      <td className="px-4 py-3 text-xs">
+                        {seeker.connection_count > 0 ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/admin/provider-response-rates?family_id=${seeker.id}`);
+                            }}
+                            className="text-primary-600 hover:text-primary-700 font-medium"
+                          >
+                            {seeker.connection_count} →
+                          </button>
+                        ) : (
+                          <span className="text-gray-400">0</span>
+                        )}
+                      </td>
+                      {/* Last nudge */}
+                      <td className="px-4 py-3 text-gray-600 text-xs">
+                        {seeker.current_sequence?.nudge_count ? (
+                          <span>
+                            {getSequenceDisplay(seeker)} · {timeAgo(seeker.current_sequence.last_nudge_at)}
                           </span>
                         ) : (
                           <span className="text-gray-400">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 text-xs">
-                        {meta.timeline ? TIMELINE_LABELS[meta.timeline] || meta.timeline : "—"}
+                      {/* Phase */}
+                      <td className="px-4 py-3">
+                        {seeker.nudge_phase === "done" ? (
+                          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                            Done
+                          </span>
+                        ) : seeker.nudge_phase === "active" ? (
+                          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                            Active
+                          </span>
+                        ) : seeker.nudge_phase === "maintenance" ? (
+                          <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                            Maintenance
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                            None
+                          </span>
+                        )}
                       </td>
+                      {/* Status */}
                       <td className="px-4 py-3">
                         {isGuest ? (
                           <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
                             Guest
                           </span>
-                        ) : isPublished ? (
+                        ) : isPublishedStatus ? (
                           <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
                             Published
                           </span>

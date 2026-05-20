@@ -499,8 +499,12 @@ export default function AdminCareSeekersPage() {
                     <p className="text-sm text-gray-500 truncate">
                       {seeker.email || "No email"}
                     </p>
-                    <p className="text-sm text-gray-400 mt-0.5">
-                      {completeness}% complete
+                    <p className="text-sm mt-0.5">
+                      <span className="text-gray-400">{completeness}%</span>
+                      <span className="text-gray-300 mx-1.5">·</span>
+                      <span className={isPublished ? "text-primary-600" : "text-gray-400"}>
+                        {isPublished ? "Published" : "Unpublished"}
+                      </span>
                     </p>
                   </div>
 
@@ -514,7 +518,7 @@ export default function AdminCareSeekersPage() {
                   </div>
 
                   {/* Nudge Status */}
-                  <div className="w-40 shrink-0">
+                  <div className="w-36 shrink-0">
                     {seeker.current_sequence?.nudge_count ? (
                       <>
                         <p className="text-sm text-gray-700">
@@ -525,36 +529,7 @@ export default function AdminCareSeekersPage() {
                         </p>
                       </>
                     ) : (
-                      <p className="text-sm text-gray-400">Not nudged</p>
-                    )}
-                    {/* Phase badge */}
-                    <div className="mt-1">
-                      {seeker.nudge_phase === "done" ? (
-                        <span className="inline-flex px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
-                          Done
-                        </span>
-                      ) : seeker.nudge_phase === "active" ? (
-                        <span className="inline-flex px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                          Active
-                        </span>
-                      ) : seeker.nudge_phase === "maintenance" ? (
-                        <span className="inline-flex px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                          Maintenance
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  {/* Status */}
-                  <div className="w-24 shrink-0 text-center">
-                    {isPublished ? (
-                      <span className="inline-flex px-2.5 py-1 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
-                        Published
-                      </span>
-                    ) : (
-                      <span className="inline-flex px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-                        Unpublished
-                      </span>
+                      <p className="text-sm text-gray-400">—</p>
                     )}
                   </div>
 

@@ -232,7 +232,7 @@ export default function GuideBottomSheet({
   }) => {
     if (!connectionId || (!data?.careRecipient && !data?.urgency && !data?.phone && !data?.contactPreference)) {
       // No data to save, just redirect
-      window.location.href = `/portal/inbox?id=${connectionId}`;
+      window.location.href = connectionId ? `/portal/inbox?id=${connectionId}` : `/portal/inbox`;
       return;
     }
 

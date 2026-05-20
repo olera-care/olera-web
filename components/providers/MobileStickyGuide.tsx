@@ -111,10 +111,15 @@ export default function MobileStickyGuide({
       if (res.ok) {
         const data = await res.json();
         const connId = data.connectionId || null;
-        // Open bottom sheet in enrichment mode
-        setEnrichmentConnectionId(connId);
-        setStartSheetInEnrichment(true);
-        setSheetOpen(true);
+        if (connId) {
+          // Open bottom sheet in enrichment mode
+          setEnrichmentConnectionId(connId);
+          setStartSheetInEnrichment(true);
+          setSheetOpen(true);
+        } else {
+          // No connectionId returned - redirect to inbox
+          window.location.href = `/portal/inbox`;
+        }
       } else {
         console.error("[MobileStickyGuide] guide-save failed:", res.status);
         // On error, redirect to inbox

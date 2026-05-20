@@ -32,6 +32,7 @@ function getCooldownForNudge(nudgeCount: number, cooldowns: number[]): number {
 
 function needsNudge(meta: FamilyMetadata, careTypes: string[], city: string | null, state: string | null, createdAt: string): boolean {
   if (isPublished(meta)) return false;
+  if (meta.nudges_unsubscribed === true) return false;
   const profileComplete = isProfileComplete(meta, careTypes, city, state);
   const seq = profileComplete
     ? (meta.publish_sequence ?? { nudge_count: 0, phase: "active" as const })
@@ -45,6 +46,52 @@ function needsNudge(meta: FamilyMetadata, careTypes: string[], city: string | nu
 
   const lastNudge = seq.last_nudge_at ?? createdAt;
   return daysSince(lastNudge) >= cooldownDays;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DB = ReturnType<typeof getServiceClient>;
+
+interface SeekerData {
+  id: string;
+  city: string | null;
+  state: string | null;
+  care_types: string[] | null;
+  metadata: FamilyMetadata | null;
+  created_at: string;
+}
+
+/**
+ * Fetch all family profiles in batches (handles >1000 rows).
+ */
+async function fetchAllSeekers(db: DB): Promise<SeekerData[]> {
+  const PAGE_SIZE = 1000;
+  const allSeekers: SeekerData[] = [];
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await db
+      .from("business_profiles")
+      .select("id, city, state, care_types, metadata, created_at")
+      .eq("type", "family")
+      .range(offset, offset + PAGE_SIZE - 1)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Stats fetchAllSeekers error:", error);
+      break;
+    }
+
+    if (data && data.length > 0) {
+      allSeekers.push(...(data as SeekerData[]));
+      offset += PAGE_SIZE;
+      hasMore = data.length === PAGE_SIZE;
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allSeekers;
 }
 
 /**
@@ -62,8 +109,8 @@ export async function GET() {
 
     const db = getServiceClient();
 
-    // Run all count queries in parallel
-    const [totalRes, publishedRes, thisWeekRes, allSeekersRes, connectionsRes] = await Promise.all([
+    // Run count queries and paginated fetch in parallel
+    const [totalRes, publishedRes, thisWeekRes, allSeekers, connectionsRes] = await Promise.all([
       // Total count
       db
         .from("business_profiles")
@@ -85,12 +132,8 @@ export async function GET() {
         .eq("type", "family")
         .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
 
-      // All seekers for nudge-related counts (need metadata parsing)
-      db
-        .from("business_profiles")
-        .select("id, city, state, care_types, metadata, created_at")
-        .eq("type", "family")
-        .limit(2000),
+      // All seekers for nudge-related counts (paginated fetch)
+      fetchAllSeekers(db),
 
       // All family connections for has_leads count
       db
@@ -103,7 +146,6 @@ export async function GET() {
     if (totalRes.error) console.error("Stats total query error:", totalRes.error);
     if (publishedRes.error) console.error("Stats published query error:", publishedRes.error);
     if (thisWeekRes.error) console.error("Stats thisWeek query error:", thisWeekRes.error);
-    if (allSeekersRes.error) console.error("Stats allSeekers query error:", allSeekersRes.error);
     if (connectionsRes.error) console.error("Stats connections query error:", connectionsRes.error);
 
     // Calculate unpublished as total - published (more reliable than complex OR query)
@@ -111,9 +153,8 @@ export async function GET() {
     const published = publishedRes.count ?? 0;
     const unpublished = total - published;
 
-    // Calculate needsNudge count
+    // Calculate needsNudge count (allSeekers is now from paginated fetch)
     let needsNudgeCount = 0;
-    const allSeekers = allSeekersRes.data ?? [];
     for (const seeker of allSeekers) {
       const meta = (seeker.metadata || {}) as FamilyMetadata;
       const careTypes = (seeker.care_types || []) as string[];

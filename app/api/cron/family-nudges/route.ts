@@ -85,6 +85,53 @@ interface ProviderRec {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = ReturnType<typeof getServiceClient>;
 
+interface FamilyRow {
+  id: string;
+  display_name: string;
+  email: string | null;
+  city: string | null;
+  state: string | null;
+  care_types: string[] | null;
+  metadata: FamilyMetadata | null;
+  created_at: string;
+  account_id: string | null;
+}
+
+/**
+ * Fetch all eligible family profiles in batches (handles >1000 rows).
+ */
+async function fetchAllFamilies(db: DB, oneDayAgo: string): Promise<FamilyRow[]> {
+  const PAGE_SIZE = 500;
+  const allFamilies: FamilyRow[] = [];
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await db
+      .from("business_profiles")
+      .select("id, display_name, email, city, state, care_types, metadata, created_at, account_id")
+      .eq("type", "family")
+      .lte("created_at", oneDayAgo)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) {
+      console.error("[cron/family-nudges] fetchAllFamilies error:", error);
+      break;
+    }
+
+    if (data && data.length > 0) {
+      allFamilies.push(...(data as FamilyRow[]));
+      offset += PAGE_SIZE;
+      hasMore = data.length === PAGE_SIZE;
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allFamilies;
+}
+
 // ── Provider query helpers (with caching) ──
 
 const providerCountCache = new Map<string, number>();
@@ -311,15 +358,10 @@ export async function GET(request: NextRequest) {
       skipped: 0,
     };
 
-    // ── Step 1: Fetch family profiles (24h+ old) ──
-    const { data: families } = await db
-      .from("business_profiles")
-      .select("id, display_name, email, city, state, care_types, metadata, created_at, account_id")
-      .eq("type", "family")
-      .lte("created_at", oneDayAgo)
-      .limit(500);
+    // ── Step 1: Fetch family profiles (24h+ old) using paginated fetch ──
+    const families = await fetchAllFamilies(db, oneDayAgo);
 
-    if (!families?.length) {
+    if (!families.length) {
       return NextResponse.json({ status: "ok", message: "No eligible families", ...counts });
     }
 
@@ -392,6 +434,12 @@ export async function GET(request: NextRequest) {
 
       // ── STOP CONDITION: Profile is published — SUCCESS! ──
       if (isPublished) {
+        continue;
+      }
+
+      // ── STOP CONDITION: User has unsubscribed from nudges ──
+      if (meta.nudges_unsubscribed === true) {
+        counts.skipped++;
         continue;
       }
 

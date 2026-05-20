@@ -398,6 +398,8 @@ export interface FamilyMetadata {
   completion_sequence?: NudgeSequence;
   // Phase 2: Publish Profile nudges
   publish_sequence?: NudgeSequence;
+  // Global opt-out for all nudge sequences (set via /account/settings)
+  nudges_unsubscribed?: boolean;
 
   // ── Legacy nudge flags (backward compatibility) ──
   // These are superseded by the sequence system but kept for migration

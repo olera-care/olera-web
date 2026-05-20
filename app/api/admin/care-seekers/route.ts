@@ -2,6 +2,91 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import type { FamilyMetadata, NudgeSequence } from "@/lib/types";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DB = ReturnType<typeof getServiceClient>;
+
+interface SeekerQueryResult {
+  id: string;
+  slug: string;
+  display_name: string;
+  email: string | null;
+  phone: string | null;
+  city: string | null;
+  state: string | null;
+  care_types: string[] | null;
+  metadata: FamilyMetadata | null;
+  account_id: string | null;
+  claim_state: string;
+  source: string;
+  created_at: string;
+}
+
+/**
+ * Fetch all matching family profiles in batches (handles >1000 rows).
+ * Used when client-side filtering requires full dataset.
+ */
+async function fetchAllSeekersWithFilters(
+  db: DB,
+  search: string,
+  publishedOnly: boolean,
+  unpublishedOnly: boolean,
+  cityFilter: string,
+  stateFilter: string,
+): Promise<SeekerQueryResult[]> {
+  const PAGE_SIZE = 1000;
+  const allSeekers: SeekerQueryResult[] = [];
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    let query = db
+      .from("business_profiles")
+      .select("id, slug, display_name, email, phone, city, state, care_types, metadata, account_id, claim_state, source, created_at")
+      .eq("type", "family")
+      .order("created_at", { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (search) {
+      query = query.or(`display_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
+    }
+
+    if (publishedOnly) {
+      query = query
+        .eq("is_active", true)
+        .contains("metadata", { care_post: { status: "active" } });
+    } else if (unpublishedOnly) {
+      query = query.not("metadata", "cs", JSON.stringify({ care_post: { status: "active" } }));
+    }
+
+    if (cityFilter === "__null__") {
+      query = query.is("city", null);
+    } else if (cityFilter) {
+      query = query.eq("city", cityFilter);
+    }
+
+    if (stateFilter) {
+      query = query.eq("state", stateFilter);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("fetchAllSeekersWithFilters error:", error);
+      break;
+    }
+
+    if (data && data.length > 0) {
+      allSeekers.push(...(data as SeekerQueryResult[]));
+      offset += PAGE_SIZE;
+      hasMore = data.length === PAGE_SIZE;
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allSeekers;
+}
+
 // ── Nudge eligibility helpers ──
 // Cooldowns must match the cron job configuration exactly
 
@@ -54,8 +139,9 @@ function getCooldownForNudge(nudgeCount: number, cooldowns: number[]): number {
 }
 
 function needsNudge(meta: FamilyMetadata, careTypes: string[], city: string | null, state: string | null, createdAt: string): boolean {
-  // Skip if published
+  // Skip if published or unsubscribed
   if (isPublished(meta)) return false;
+  if (meta.nudges_unsubscribed === true) return false;
 
   const profileComplete = isProfileComplete(meta, careTypes, city, state);
 
@@ -136,17 +222,24 @@ export async function GET(request: NextRequest) {
     // because these filters require metadata parsing that can't be done in SQL
     const needsClientSideFilter = needsNudgeOnly || hasLeadsOnly;
 
+    let data: SeekerQueryResult[] | null;
+    let count: number | null;
+    let error: Error | null = null;
+
     if (!needsClientSideFilter) {
       // Standard DB pagination for non-nudge filters
       const from = (page - 1) * perPage;
       const to = from + perPage - 1;
       query = query.range(from, to);
+      const result = await query;
+      data = result.data as SeekerQueryResult[] | null;
+      count = result.count;
+      error = result.error;
     } else {
-      // Fetch all (up to 2000) for client-side filtering
-      query = query.limit(2000);
+      // Fetch ALL data using paginated helper for client-side filtering
+      data = await fetchAllSeekersWithFilters(db, search, publishedOnly, unpublishedOnly, cityFilter, stateFilter);
+      count = data.length;
     }
-
-    const { data, count, error } = await query;
 
     if (error) {
       console.error("Admin care-seekers list error:", error);

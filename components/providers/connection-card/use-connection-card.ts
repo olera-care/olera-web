@@ -706,13 +706,15 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
   // ── Navigate after enrichment (save or skip) ──
   const navigatePostEnrichment = useCallback(() => {
-    enrichmentLock.current = false;
-
     if (onConnectionCreated && connectionId) {
+      // Keep lock during callback navigation — prevents flash
       onConnectionCreated(connectionId);
     } else if (postEnrichmentRedirect.current) {
+      // Keep lock during router navigation — prevents "connected" state flash
       router.push(postEnrichmentRedirect.current);
     } else {
+      // Only unlock when explicitly showing connected state (no redirect case)
+      enrichmentLock.current = false;
       setCardState("connected");
     }
   }, [connectionId, onConnectionCreated, router]);

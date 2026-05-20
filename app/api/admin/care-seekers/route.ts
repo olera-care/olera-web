@@ -128,10 +128,12 @@ function isPublished(meta: FamilyMetadata): boolean {
 }
 
 function getActiveSequence(meta: FamilyMetadata, profileComplete: boolean): NudgeSequence | null {
-  // If profile is published, no sequence is active
-  if (isPublished(meta)) return null;
+  const published = isPublished(meta);
 
-  // If profile incomplete, use completion sequence
+  // If profile is published AND complete, no sequence is active (success!)
+  if (published && profileComplete) return null;
+
+  // If profile incomplete (published or not), use completion sequence
   if (!profileComplete) {
     return meta.completion_sequence ?? null;
   }
@@ -141,7 +143,8 @@ function getActiveSequence(meta: FamilyMetadata, profileComplete: boolean): Nudg
 }
 
 function getNudgePhase(meta: FamilyMetadata, profileComplete: boolean): "none" | "active" | "maintenance" | "done" {
-  if (isPublished(meta)) return "done";
+  // Only "done" if published AND complete
+  if (isPublished(meta) && profileComplete) return "done";
 
   const seq = getActiveSequence(meta, profileComplete);
   if (!seq) return "none";
@@ -158,9 +161,11 @@ function getCooldownForNudge(nudgeCount: number, cooldowns: number[]): number {
 
 function needsNudge(seeker: SeekerQueryResult, email: string | null): boolean {
   const meta = (seeker.metadata || {}) as FamilyMetadata;
+  const profileComplete = isProfileComplete(seeker, email);
 
-  // Skip if published or unsubscribed
-  if (isPublished(meta)) return false;
+  // Skip if published AND complete (success!)
+  // Published but incomplete profiles still need completion nudges
+  if (isPublished(meta) && profileComplete) return false;
   if (meta.nudges_unsubscribed === true) return false;
 
   // Skip if was published 30+ days ago then unpublished (respect their decision)
@@ -172,21 +177,26 @@ function needsNudge(seeker: SeekerQueryResult, email: string | null): boolean {
     }
   }
 
-  const profileComplete = isProfileComplete(seeker, email);
+  const published = isPublished(meta);
 
-  // Check which sequence applies
-  const seq = profileComplete
-    ? (meta.publish_sequence ?? { nudge_count: 0, phase: "active" as const })
-    : (meta.completion_sequence ?? { nudge_count: 0, phase: "active" as const });
+  // Check which sequence applies:
+  // - Published profiles: only completion sequence (no re-publish nudges)
+  // - Unpublished + complete: publish sequence
+  // - Unpublished + incomplete: completion sequence
+  const seq = (published || !profileComplete)
+    ? (meta.completion_sequence ?? { nudge_count: 0, phase: "active" as const })
+    : (meta.publish_sequence ?? { nudge_count: 0, phase: "active" as const });
 
   // Check maintenance cap (4 active + 6 maintenance = 10 max)
-  const activeCount = profileComplete ? PUBLISH_ACTIVE_COUNT : COMPLETION_ACTIVE_COUNT;
+  // Use completion settings for published profiles (they're in completion sequence)
+  const inCompletionSequence = published || !profileComplete;
+  const activeCount = inCompletionSequence ? COMPLETION_ACTIVE_COUNT : PUBLISH_ACTIVE_COUNT;
   if (seq.phase === "maintenance" && seq.nudge_count >= activeCount + MAX_MAINTENANCE_NUDGES) {
     return false; // Already hit the cap
   }
 
   // Use the correct cooldown based on phase and nudge count
-  const cooldowns = profileComplete ? PUBLISH_COOLDOWNS : COMPLETION_COOLDOWNS;
+  const cooldowns = inCompletionSequence ? COMPLETION_COOLDOWNS : PUBLISH_COOLDOWNS;
   const cooldownDays = seq.phase === "maintenance"
     ? MAINTENANCE_COOLDOWN
     : getCooldownForNudge(seq.nudge_count, cooldowns);

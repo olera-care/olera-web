@@ -452,8 +452,9 @@ export async function GET(request: NextRequest) {
       const firstName = family.display_name?.split(/\s+/)[0] || "there";
       const careTypes = (family.care_types as string[]) || [];
 
-      // ── STOP CONDITION: Profile is published — SUCCESS! ──
-      if (isPublished) {
+      // ── STOP CONDITION: Profile is published AND complete — SUCCESS! ──
+      // If published but incomplete, we still want to nudge them to improve their profile
+      if (isPublished && profileComplete) {
         continue;
       }
 

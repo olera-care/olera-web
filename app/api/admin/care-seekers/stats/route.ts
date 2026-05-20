@@ -37,7 +37,12 @@ function getCooldownForNudge(nudgeCount: number, cooldowns: number[]): number {
 
 function needsNudge(seeker: SeekerData): boolean {
   const meta = (seeker.metadata || {}) as FamilyMetadata;
-  if (isPublished(meta)) return false;
+  const profileComplete = isProfileComplete(seeker, seeker.email);
+  const published = isPublished(meta);
+
+  // Skip if published AND complete (success!)
+  // Published but incomplete profiles still need completion nudges
+  if (published && profileComplete) return false;
   if (meta.nudges_unsubscribed === true) return false;
 
   // Skip if was published 30+ days ago then unpublished (respect their decision)
@@ -49,19 +54,23 @@ function needsNudge(seeker: SeekerData): boolean {
     }
   }
 
-  const profileComplete = isProfileComplete(seeker, seeker.email);
-  const seq = profileComplete
-    ? (meta.publish_sequence ?? { nudge_count: 0, phase: "active" as const })
-    : (meta.completion_sequence ?? { nudge_count: 0, phase: "active" as const });
+  // Check which sequence applies:
+  // - Published profiles: only completion sequence (no re-publish nudges)
+  // - Unpublished + complete: publish sequence
+  // - Unpublished + incomplete: completion sequence
+  const inCompletionSequence = published || !profileComplete;
+  const seq = inCompletionSequence
+    ? (meta.completion_sequence ?? { nudge_count: 0, phase: "active" as const })
+    : (meta.publish_sequence ?? { nudge_count: 0, phase: "active" as const });
 
   // Check maintenance cap (4 active + 6 maintenance = 10 max)
-  const activeCount = profileComplete ? PUBLISH_ACTIVE_COUNT : COMPLETION_ACTIVE_COUNT;
+  const activeCount = inCompletionSequence ? COMPLETION_ACTIVE_COUNT : PUBLISH_ACTIVE_COUNT;
   if (seq.phase === "maintenance" && seq.nudge_count >= activeCount + MAX_MAINTENANCE_NUDGES) {
     return false; // Already hit the cap
   }
 
   // Use the correct cooldown based on phase and nudge count
-  const cooldowns = profileComplete ? PUBLISH_COOLDOWNS : COMPLETION_COOLDOWNS;
+  const cooldowns = inCompletionSequence ? COMPLETION_COOLDOWNS : PUBLISH_COOLDOWNS;
   const cooldownDays = seq.phase === "maintenance"
     ? MAINTENANCE_COOLDOWN
     : getCooldownForNudge(seq.nudge_count, cooldowns);

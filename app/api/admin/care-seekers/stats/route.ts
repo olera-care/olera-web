@@ -9,6 +9,10 @@ const COMPLETION_COOLDOWNS = [3, 5, 7, 7]; // days between nudges in active phas
 const PUBLISH_COOLDOWNS = [1, 4, 5, 5];    // days between nudges in active phase
 const MAINTENANCE_COOLDOWN = 30;           // days between maintenance nudges
 const PROFILE_COMPLETE_THRESHOLD = 80;     // must match cron job
+const COMPLETION_ACTIVE_COUNT = 4;         // nudges before maintenance phase
+const PUBLISH_ACTIVE_COUNT = 4;            // nudges before maintenance phase
+const MAX_MAINTENANCE_NUDGES = 6;          // cap monthly nudges (10 total max)
+const REPUBLISH_GRACE_PERIOD_DAYS = 30;    // don't nudge if was published 30+ days ago
 
 function daysSince(isoDate: string | undefined): number {
   if (!isoDate) return Infinity;
@@ -35,10 +39,26 @@ function needsNudge(seeker: SeekerData): boolean {
   const meta = (seeker.metadata || {}) as FamilyMetadata;
   if (isPublished(meta)) return false;
   if (meta.nudges_unsubscribed === true) return false;
+
+  // Skip if was published 30+ days ago then unpublished (respect their decision)
+  const carePost = meta.care_post;
+  const wasEverPublished = !!carePost?.published_at;
+  if (wasEverPublished && carePost?.published_at) {
+    if (daysSince(carePost.published_at) >= REPUBLISH_GRACE_PERIOD_DAYS) {
+      return false;
+    }
+  }
+
   const profileComplete = isProfileComplete(seeker, seeker.email);
   const seq = profileComplete
     ? (meta.publish_sequence ?? { nudge_count: 0, phase: "active" as const })
     : (meta.completion_sequence ?? { nudge_count: 0, phase: "active" as const });
+
+  // Check maintenance cap (4 active + 6 maintenance = 10 max)
+  const activeCount = profileComplete ? PUBLISH_ACTIVE_COUNT : COMPLETION_ACTIVE_COUNT;
+  if (seq.phase === "maintenance" && seq.nudge_count >= activeCount + MAX_MAINTENANCE_NUDGES) {
+    return false; // Already hit the cap
+  }
 
   // Use the correct cooldown based on phase and nudge count
   const cooldowns = profileComplete ? PUBLISH_COOLDOWNS : COMPLETION_COOLDOWNS;

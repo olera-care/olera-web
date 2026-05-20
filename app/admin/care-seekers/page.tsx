@@ -13,8 +13,10 @@ interface SeekerRow {
   display_name: string;
   email: string | null;
   phone: string | null;
+  image_url: string | null;
   city: string | null;
   state: string | null;
+  description: string | null;
   care_types: string[];
   metadata: FamilyMetadata;
   account_id: string | null;
@@ -57,35 +59,44 @@ function formatJoinedDate(isoDate: string): string {
   return `${month} ${day}, ${year}`;
 }
 
-// Calculate profile completeness based on filled fields (matches FamilyMatchCard logic)
+// Calculate profile completeness (matches server-side calculateFamilyCompleteness)
 function calculateCompleteness(seeker: SeekerRow): number {
   const meta = seeker.metadata || {};
 
+  // Use cached value if available
   if (meta.profile_completeness !== undefined) {
     return meta.profile_completeness;
   }
 
-  let score = 0;
-  const weights = {
-    display_name: 15,
-    city: 10,
-    care_needs: 20,
-    timeline: 15,
-    payment_methods: 15,
-    who_needs_care: 10,
-    about_situation: 15,
-  };
+  // Same weights as lib/admin/profile-completeness.ts
+  const checks: Array<{ weight: number; check: () => boolean }> = [
+    // Basic Info
+    { weight: 15, check: () => !!seeker.image_url },
+    { weight: 5, check: () => !!seeker.display_name },
+    { weight: 5, check: () => !!seeker.city },
+    // Contact
+    { weight: 10, check: () => !!seeker.email },
+    { weight: 10, check: () => !!seeker.phone },
+    { weight: 5, check: () => !!meta.contact_preference },
+    // Care Recipient
+    { weight: 5, check: () => !!meta.relationship_to_recipient },
+    { weight: 5, check: () => !!meta.age },
+    { weight: 5, check: () => !!seeker.description },
+    // Care Needs
+    { weight: 5, check: () => (seeker.care_types?.length ?? 0) > 0 },
+    { weight: 4, check: () => (meta.care_needs?.length ?? 0) > 0 },
+    { weight: 3, check: () => !!meta.timeline },
+    { weight: 3, check: () => !!meta.schedule_preference },
+    // Payment
+    { weight: 20, check: () => (meta.payment_methods?.length ?? 0) > 0 },
+  ];
 
-  if (seeker.display_name?.trim()) score += weights.display_name;
-  if (seeker.city?.trim()) score += weights.city;
-  const careNeeds = meta.care_needs || seeker.care_types || [];
-  if (careNeeds.length > 0) score += weights.care_needs;
-  if (meta.timeline) score += weights.timeline;
-  if (meta.payment_methods && meta.payment_methods.length > 0) score += weights.payment_methods;
-  if (meta.who_needs_care || meta.relationship_to_recipient) score += weights.who_needs_care;
-  if (meta.about_situation?.trim()) score += weights.about_situation;
+  let earned = 0;
+  for (const { weight, check } of checks) {
+    if (check()) earned += weight;
+  }
 
-  return Math.min(100, score);
+  return Math.min(earned, 100);
 }
 
 // Helper to get nudge status display

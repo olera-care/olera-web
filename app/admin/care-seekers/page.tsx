@@ -55,6 +55,39 @@ function timeAgo(isoDate: string | undefined): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
+// Calculate profile completeness based on filled fields (matches FamilyMatchCard logic)
+function calculateCompleteness(seeker: SeekerRow): number {
+  const meta = seeker.metadata || {};
+
+  // If explicitly set in metadata, use that value
+  if (meta.profile_completeness !== undefined) {
+    return meta.profile_completeness;
+  }
+
+  let score = 0;
+  const weights = {
+    display_name: 15,
+    city: 10,
+    care_needs: 20,
+    timeline: 15,
+    payment_methods: 15,
+    who_needs_care: 10,
+    about_situation: 15,
+  };
+
+  if (seeker.display_name?.trim()) score += weights.display_name;
+  if (seeker.city?.trim()) score += weights.city;
+  // Fall back to care_types column if care_needs not in metadata (matches FamilyMatchCard)
+  const careNeeds = meta.care_needs || seeker.care_types || [];
+  if (careNeeds.length > 0) score += weights.care_needs;
+  if (meta.timeline) score += weights.timeline;
+  if (meta.payment_methods && meta.payment_methods.length > 0) score += weights.payment_methods;
+  if (meta.who_needs_care || meta.relationship_to_recipient) score += weights.who_needs_care;
+  if (meta.about_situation?.trim()) score += weights.about_situation;
+
+  return Math.min(100, score);
+}
+
 // Helper to get sequence display text
 function getSequenceDisplay(seeker: SeekerRow): string {
   if (seeker.nudge_phase === "done") return "Published";
@@ -496,7 +529,7 @@ export default function AdminCareSeekersPage() {
                 {seekers.map((seeker) => {
                   const meta = seeker.metadata || {};
                   const isPublishedStatus = meta.care_post?.status === "active";
-                  const completeness = meta.profile_completeness ?? (seeker.profile_complete ? 100 : 0);
+                  const completeness = calculateCompleteness(seeker);
                   return (
                     <tr
                       key={seeker.id}
@@ -518,24 +551,16 @@ export default function AdminCareSeekersPage() {
                       </td>
                       {/* Profile completeness */}
                       <td className="px-4 py-3 text-xs">
-                        {seeker.profile_complete ? (
-                          <span className="text-emerald-600 font-medium">✓ Complete</span>
+                        {completeness === 100 ? (
+                          <span className="text-emerald-600 font-medium">100%</span>
                         ) : (
-                          <span className="text-amber-600 font-medium">⚠️ {completeness}%</span>
+                          <span className="text-gray-600">{completeness}%</span>
                         )}
                       </td>
                       {/* Leads count */}
                       <td className="px-4 py-3 text-xs">
                         {seeker.connection_count > 0 ? (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`/admin/provider-response-rates?family_id=${seeker.id}`);
-                            }}
-                            className="text-primary-600 hover:text-primary-700 font-medium"
-                          >
-                            {seeker.connection_count} →
-                          </button>
+                          <span className="text-gray-900 font-medium">{seeker.connection_count}</span>
                         ) : (
                           <span className="text-gray-400">0</span>
                         )}

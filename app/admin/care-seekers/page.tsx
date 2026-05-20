@@ -46,6 +46,16 @@ function timeAgo(isoDate: string | undefined): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
+// Format date as "Feb 02, 2026"
+function formatJoinedDate(isoDate: string): string {
+  const date = new Date(isoDate);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = months[date.getMonth()];
+  const day = String(date.getDate()).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${month} ${day}, ${year}`;
+}
+
 // Calculate profile completeness based on filled fields (matches FamilyMatchCard logic)
 function calculateCompleteness(seeker: SeekerRow): number {
   const meta = seeker.metadata || {};
@@ -546,6 +556,13 @@ export default function AdminCareSeekersPage() {
                         Unpublished
                       </span>
                     )}
+                  </div>
+
+                  {/* Joined */}
+                  <div className="w-28 shrink-0 text-right">
+                    <p className="text-sm text-gray-400">
+                      {formatJoinedDate(seeker.created_at)}
+                    </p>
                   </div>
 
                   {/* Delete */}

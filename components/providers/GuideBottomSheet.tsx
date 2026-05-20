@@ -84,27 +84,36 @@ export default function GuideBottomSheet({
   const handleKeyDownRef = useRef(handleKeyDown);
   handleKeyDownRef.current = handleKeyDown;
 
+  // Track if sheet was already open to prevent reset on auth state changes
+  const wasOpenRef = useRef(false);
+
   useEffect(() => {
     const keyHandler = (e: KeyboardEvent) => handleKeyDownRef.current(e);
 
     if (isOpen) {
-      // Determine starting state
-      if (startInEnrichment && initialConnectionId) {
-        // Logged-in user who already created connection - go straight to enrichment
-        setSheetState("enrichment");
-        setConnectionId(initialConnectionId);
-      } else if (isNonFamilyProfile) {
-        // Show family required state if logged in as provider/caregiver/student
-        setSheetState("family_required");
-      } else {
-        setSheetState("email_capture");
+      // Only reset state when sheet OPENS (not when auth state changes mid-flow)
+      if (!wasOpenRef.current) {
+        // Determine starting state
+        if (startInEnrichment && initialConnectionId) {
+          // Logged-in user who already created connection - go straight to enrichment
+          setSheetState("enrichment");
+          setConnectionId(initialConnectionId);
+        } else if (isNonFamilyProfile) {
+          // Show family required state if logged in as provider/caregiver/student
+          setSheetState("family_required");
+        } else {
+          setSheetState("email_capture");
+        }
+        setEmail("");
+        setError(null);
+        setPdfUrl(null);
+        setBlockedEmail(null);
       }
-      setEmail("");
-      setError(null);
-      setPdfUrl(null);
-      setBlockedEmail(null);
+      wasOpenRef.current = true;
       document.body.style.overflow = "hidden";
       document.addEventListener("keydown", keyHandler);
+    } else {
+      wasOpenRef.current = false;
     }
     return () => {
       document.body.style.overflow = "";

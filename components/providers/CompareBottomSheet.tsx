@@ -132,31 +132,40 @@ export default function CompareBottomSheet({
     setMounted(true);
   }, []);
 
-  // Reset state when sheet opens/closes
+  // Reset state when sheet opens (not when auth state changes mid-flow)
   // Store handleKeyDown in a ref to avoid re-running this effect when footerState changes
   const handleKeyDownRef = useRef(handleKeyDown);
   handleKeyDownRef.current = handleKeyDown;
+
+  // Track if sheet was already open to prevent reset on auth state changes
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
     const keyHandler = (e: KeyboardEvent) => handleKeyDownRef.current(e);
 
     if (isOpen) {
-      // Show family required state if logged in as provider/caregiver/student
-      setFooterState(isNonFamilyProfile ? "family_required" : "initial");
-      setSelectedProviderIds(new Set(allProviders.map((p) => p.id)));
-      setShowSimilar(true);
-      setEmail("");
-      setError(null);
-      setBlockedEmail(null);
-      saveClickFiredRef.current = false;
+      // Only reset state when sheet OPENS (not when auth state changes mid-flow)
+      if (!wasOpenRef.current) {
+        // Show family required state if logged in as provider/caregiver/student
+        setFooterState(isNonFamilyProfile ? "family_required" : "initial");
+        setSelectedProviderIds(new Set(allProviders.map((p) => p.id)));
+        setShowSimilar(true);
+        setEmail("");
+        setError(null);
+        setBlockedEmail(null);
+        saveClickFiredRef.current = false;
+      }
+      wasOpenRef.current = true;
       document.body.style.overflow = "hidden";
       document.addEventListener("keydown", keyHandler);
+    } else {
+      wasOpenRef.current = false;
     }
     return () => {
       document.body.style.overflow = "";
       document.removeEventListener("keydown", keyHandler);
     };
-  }, [isOpen, isNonFamilyProfile]); // Re-run when isOpen or profile type changes
+  }, [isOpen, isNonFamilyProfile, allProviders]); // allProviders added since it's used inside
 
   // Close sheet when viewport switches to desktop (above md breakpoint)
   // This prevents scroll lock from persisting when sheet is hidden via CSS

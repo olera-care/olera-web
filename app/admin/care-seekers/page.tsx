@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { FamilyMetadata, NudgeSequence } from "@/lib/types";
+import DateRangePopover, { type DateRangeValue, resolveRange } from "@/components/admin/DateRangePopover";
 
 type FilterTab = "all" | "published" | "unpublished" | "needs_nudge";
 
@@ -112,6 +113,11 @@ export default function AdminCareSeekersPage() {
   const [filter, setFilter] = useState<FilterTab>(initialFilter);
   const [cityFilter, setCityFilter] = useState(initialCity);
   const [stateFilter, setStateFilter] = useState(initialState);
+  const [dateRange, setDateRange] = useState<DateRangeValue>({
+    preset: "all",
+    customFrom: "",
+    customTo: "",
+  });
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const [page, setPage] = useState(1);
@@ -146,7 +152,7 @@ export default function AdminCareSeekersPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [filter, cityFilter, stateFilter]);
+  }, [filter, cityFilter, stateFilter, dateRange]);
 
   const fetchSeekers = useCallback(async () => {
     setLoading(true);
@@ -161,6 +167,11 @@ export default function AdminCareSeekersPage() {
       if (cityFilter) params.set("city", cityFilter);
       if (stateFilter) params.set("state", stateFilter);
 
+      // Date range filter
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) params.set("from_date", resolved.from);
+      if (resolved.to) params.set("to_date", resolved.to);
+
       const res = await fetch(`/api/admin/care-seekers?${params}`);
       if (res.ok) {
         const data = await res.json();
@@ -172,36 +183,16 @@ export default function AdminCareSeekersPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, filter, cityFilter, stateFilter, page]);
+  }, [debouncedSearch, filter, cityFilter, stateFilter, dateRange, page]);
 
-  useEffect(() => {
-    async function loadInitialData() {
-      try {
-        const statsRes = await fetch("/api/admin/care-seekers/stats");
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          setTabCounts({
-            total: statsData.total ?? 0,
-            published: statsData.published ?? 0,
-            unpublished: statsData.unpublished ?? 0,
-            thisWeek: statsData.thisWeek ?? 0,
-            needsNudge: statsData.needsNudge ?? 0,
-          });
-        }
-
-        const citiesRes = await fetch("/api/admin/care-seekers/cities");
-        if (citiesRes.ok) {
-          const data = await citiesRes.json();
-          setCities(data.cities ?? []);
-        }
-      } catch { /* ignore */ }
-    }
-    loadInitialData();
-  }, []);
-
-  const refreshTabCounts = useCallback(async () => {
+  const fetchTabCounts = useCallback(async () => {
     try {
-      const statsRes = await fetch("/api/admin/care-seekers/stats");
+      const params = new URLSearchParams();
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) params.set("from_date", resolved.from);
+      if (resolved.to) params.set("to_date", resolved.to);
+
+      const statsRes = await fetch(`/api/admin/care-seekers/stats?${params}`);
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setTabCounts({
@@ -213,6 +204,23 @@ export default function AdminCareSeekersPage() {
         });
       }
     } catch { /* ignore */ }
+  }, [dateRange]);
+
+  useEffect(() => {
+    fetchTabCounts();
+  }, [fetchTabCounts]);
+
+  useEffect(() => {
+    async function loadCities() {
+      try {
+        const citiesRes = await fetch("/api/admin/care-seekers/cities");
+        if (citiesRes.ok) {
+          const data = await citiesRes.json();
+          setCities(data.cities ?? []);
+        }
+      } catch { /* ignore */ }
+    }
+    loadCities();
   }, []);
 
   useEffect(() => {
@@ -257,7 +265,7 @@ export default function AdminCareSeekersPage() {
       const res = await fetch(`/api/admin/care-seekers/${seeker.id}`, { method: "DELETE" });
       if (res.ok) {
         showToast(`Deleted ${seeker.display_name}`);
-        refreshTabCounts();
+        fetchTabCounts();
         setPendingDelete(null);
       } else {
         setSeekers((prev) => [...prev, seeker].sort(
@@ -281,10 +289,11 @@ export default function AdminCareSeekersPage() {
     setCityFilter("");
     setStateFilter("");
     setFilter("all");
+    setDateRange({ preset: "all", customFrom: "", customTo: "" });
     router.replace("/admin/care-seekers");
   }
 
-  const hasActiveFilters = cityFilter || stateFilter || filter !== "all";
+  const hasActiveFilters = cityFilter || stateFilter || filter !== "all" || dateRange.preset !== "all";
 
   const tabs: { label: string; value: FilterTab; count: number | null }[] = [
     { label: "All", value: "all", count: tabCounts?.total ?? null },
@@ -450,6 +459,9 @@ export default function AdminCareSeekersPage() {
           </div>
         )}
 
+        {/* Date range filter */}
+        <DateRangePopover value={dateRange} onChange={setDateRange} />
+
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
@@ -473,6 +485,15 @@ export default function AdminCareSeekersPage() {
 
       {/* List */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <div className="w-64">Care Seeker</div>
+          <div className="w-32">Location</div>
+          <div className="w-28">Last Nudge</div>
+          <div className="w-28 text-right">Joined</div>
+          <div className="w-8"></div>
+        </div>
+
         {loading ? (
           <div className="p-8 text-center text-gray-400">Loading...</div>
         ) : seekers.length === 0 ? (
@@ -488,11 +509,11 @@ export default function AdminCareSeekersPage() {
               return (
                 <div
                   key={seeker.id}
-                  className="group flex items-center gap-6 px-5 py-4 hover:bg-gray-50 cursor-pointer"
+                  className="group flex items-center gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer"
                   onClick={() => router.push(`/admin/care-seekers/${seeker.id}`)}
                 >
                   {/* Care Seeker Info */}
-                  <div className="flex-1 min-w-0">
+                  <div className="w-64 min-w-0">
                     <p className="font-medium text-gray-900 truncate">
                       {seeker.display_name}
                     </p>
@@ -509,7 +530,7 @@ export default function AdminCareSeekersPage() {
                   </div>
 
                   {/* Location */}
-                  <div className="w-32 shrink-0">
+                  <div className="w-32">
                     {location ? (
                       <p className="text-sm text-gray-600">{location}</p>
                     ) : (
@@ -517,8 +538,8 @@ export default function AdminCareSeekersPage() {
                     )}
                   </div>
 
-                  {/* Nudge Status */}
-                  <div className="w-36 shrink-0">
+                  {/* Last Nudge */}
+                  <div className="w-28">
                     {seeker.current_sequence?.nudge_count ? (
                       <>
                         <p className="text-sm text-gray-700">
@@ -534,14 +555,14 @@ export default function AdminCareSeekersPage() {
                   </div>
 
                   {/* Joined */}
-                  <div className="w-28 shrink-0 text-right">
+                  <div className="w-28 text-right">
                     <p className="text-sm text-gray-400">
                       {formatJoinedDate(seeker.created_at)}
                     </p>
                   </div>
 
                   {/* Delete */}
-                  <div className="w-8 shrink-0">
+                  <div className="w-8">
                     <button
                       type="button"
                       onClick={(e) => {

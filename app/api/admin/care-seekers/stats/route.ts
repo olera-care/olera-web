@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import type { FamilyMetadata } from "@/lib/types";
 
@@ -63,19 +63,28 @@ interface SeekerData {
 /**
  * Fetch all family profiles in batches (handles >1000 rows).
  */
-async function fetchAllSeekers(db: DB): Promise<SeekerData[]> {
+async function fetchAllSeekers(db: DB, fromDate: string, toDate: string): Promise<SeekerData[]> {
   const PAGE_SIZE = 1000;
   const allSeekers: SeekerData[] = [];
   let offset = 0;
   let hasMore = true;
 
   while (hasMore) {
-    const { data, error } = await db
+    let query = db
       .from("business_profiles")
       .select("id, city, state, care_types, metadata, created_at")
       .eq("type", "family")
       .range(offset, offset + PAGE_SIZE - 1)
       .order("created_at", { ascending: false });
+
+    if (fromDate) {
+      query = query.gte("created_at", fromDate);
+    }
+    if (toDate) {
+      query = query.lte("created_at", toDate);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Stats fetchAllSeekers error:", error);
@@ -98,8 +107,9 @@ async function fetchAllSeekers(db: DB): Promise<SeekerData[]> {
  * GET /api/admin/care-seekers/stats
  *
  * Returns counts for care seeker filter tabs.
+ * Supports optional date range filtering via from_date and to_date query params.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -107,33 +117,49 @@ export async function GET() {
     const adminUser = await getAdminUser(user.id);
     if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
+    const { searchParams } = new URL(request.url);
+    const fromDate = searchParams.get("from_date")?.trim() || "";
+    const toDate = searchParams.get("to_date")?.trim() || "";
+
     const db = getServiceClient();
+
+    // Build base queries with optional date filtering
+    let totalQuery = db
+      .from("business_profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("type", "family");
+
+    let publishedQuery = db
+      .from("business_profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("type", "family")
+      .eq("is_active", true)
+      .contains("metadata", { care_post: { status: "active" } });
+
+    let thisWeekQuery = db
+      .from("business_profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("type", "family")
+      .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+
+    // Apply date filters if provided
+    if (fromDate) {
+      totalQuery = totalQuery.gte("created_at", fromDate);
+      publishedQuery = publishedQuery.gte("created_at", fromDate);
+      thisWeekQuery = thisWeekQuery.gte("created_at", fromDate);
+    }
+    if (toDate) {
+      totalQuery = totalQuery.lte("created_at", toDate);
+      publishedQuery = publishedQuery.lte("created_at", toDate);
+      thisWeekQuery = thisWeekQuery.lte("created_at", toDate);
+    }
 
     // Run count queries and paginated fetch in parallel
     const [totalRes, publishedRes, thisWeekRes, allSeekers] = await Promise.all([
-      // Total count
-      db
-        .from("business_profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("type", "family"),
-
-      // Published count (active care post)
-      db
-        .from("business_profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("type", "family")
-        .eq("is_active", true)
-        .contains("metadata", { care_post: { status: "active" } }),
-
-      // New this week
-      db
-        .from("business_profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("type", "family")
-        .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
-
-      // All seekers for nudge-related counts (paginated fetch)
-      fetchAllSeekers(db),
+      totalQuery,
+      publishedQuery,
+      thisWeekQuery,
+      fetchAllSeekers(db, fromDate, toDate),
     ]);
 
     // Log any query errors for debugging

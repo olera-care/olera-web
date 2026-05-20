@@ -32,6 +32,8 @@ async function fetchAllSeekersWithFilters(
   unpublishedOnly: boolean,
   cityFilter: string,
   stateFilter: string,
+  fromDate: string,
+  toDate: string,
 ): Promise<SeekerQueryResult[]> {
   const PAGE_SIZE = 1000;
   const allSeekers: SeekerQueryResult[] = [];
@@ -66,6 +68,13 @@ async function fetchAllSeekersWithFilters(
 
     if (stateFilter) {
       query = query.eq("state", stateFilter);
+    }
+
+    if (fromDate) {
+      query = query.gte("created_at", fromDate);
+    }
+    if (toDate) {
+      query = query.lte("created_at", toDate);
     }
 
     const { data, error } = await query;
@@ -185,6 +194,8 @@ export async function GET(request: NextRequest) {
     const needsNudgeOnly = searchParams.get("needs_nudge") === "true";
     const cityFilter = searchParams.get("city")?.trim() || "";
     const stateFilter = searchParams.get("state")?.trim() || "";
+    const fromDate = searchParams.get("from_date")?.trim() || "";
+    const toDate = searchParams.get("to_date")?.trim() || "";
 
     const db = getServiceClient();
 
@@ -217,6 +228,14 @@ export async function GET(request: NextRequest) {
       query = query.eq("state", stateFilter);
     }
 
+    // Date range filters
+    if (fromDate) {
+      query = query.gte("created_at", fromDate);
+    }
+    if (toDate) {
+      query = query.lte("created_at", toDate);
+    }
+
     // For nudge-related filters, we need to fetch ALL data and filter client-side
     // because these filters require metadata parsing that can't be done in SQL
     const needsClientSideFilter = needsNudgeOnly;
@@ -236,7 +255,7 @@ export async function GET(request: NextRequest) {
       error = result.error;
     } else {
       // Fetch ALL data using paginated helper for client-side filtering
-      data = await fetchAllSeekersWithFilters(db, search, publishedOnly, unpublishedOnly, cityFilter, stateFilter);
+      data = await fetchAllSeekersWithFilters(db, search, publishedOnly, unpublishedOnly, cityFilter, stateFilter, fromDate, toDate);
       count = data.length;
     }
 

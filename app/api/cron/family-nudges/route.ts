@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import {
   // Legacy templates (kept for post-connection followup)
@@ -24,24 +25,31 @@ import type { NudgeSequence, NudgeSequencePhase, FamilyMetadata } from "@/lib/ty
  *
  * Runs daily at 3 PM UTC. Sequence-based re-engagement system:
  *
- * PHASE 1: Profile Completion (4 active nudges + monthly maintenance)
+ * PROFILE COMPLETENESS: Uses ≥80% threshold (same as lead-family-nudge)
+ * to determine if a profile is "complete". This is calculated using
+ * calculateFamilyCompleteness() which weighs fields like photo, contact
+ * info, care types, payment methods, etc.
+ *
+ * PHASE 1: Profile Completion (4 active nudges + 6 monthly max)
  * - Nudge #1: Day 3 after signup — What's missing, why it matters
  * - Nudge #2: Day 8 (+5 days) — Progress encouragement, provider count
  * - Nudge #3: Day 15 (+7 days) — Social proof, urgency
  * - Nudge #4: Day 22 (+7 days) — Final push with specific providers
- * - Maintenance: Every 30 days — New providers added
+ * - Maintenance: Every 30 days, max 6 times — New providers added
  *
- * PHASE 2: Profile Publishing (4 active nudges + monthly maintenance)
+ * PHASE 2: Profile Publishing (4 active nudges + 6 monthly max)
  * - Nudge #1: Day 1 after complete — Benefits of publishing
  * - Nudge #2: Day 5 (+4 days) — Provider count, top rated
  * - Nudge #3: Day 10 (+5 days) — Social proof, success stories
  * - Nudge #4: Day 15 (+5 days) — Soft touch, no pressure
- * - Maintenance: Every 30 days — Updated stats
+ * - Maintenance: Every 30 days, max 6 times — Updated stats
  *
  * STOP CONDITIONS:
- * - Profile becomes complete → stop completion, start publish
+ * - Profile becomes ≥80% complete → stop completion, start publish
  * - Profile gets published → stop ALL sequences (SUCCESS!)
  * - User unsubscribes → stop ALL sequences forever
+ * - Was published 30+ days ago then unpublished → don't re-nudge to publish
+ * - Max 10 nudges per sequence (4 active + 6 maintenance) → give up gracefully
  *
  * Backward compatible with legacy boolean flags — new code writes sequence
  * metadata, old flags are read-only for migration.
@@ -55,6 +63,9 @@ const PUBLISH_ACTIVE_COUNT = 4;
 const COMPLETION_COOLDOWNS = [3, 5, 7, 7]; // days between nudges in active phase
 const PUBLISH_COOLDOWNS = [1, 4, 5, 5];    // days between nudges in active phase (first is after profile complete)
 const MAINTENANCE_COOLDOWN = 30;           // days between maintenance nudges
+const MAX_MAINTENANCE_NUDGES = 6;          // cap monthly nudges at 6 (stop after ~8 months total)
+const PROFILE_COMPLETE_THRESHOLD = 80;     // must be ≥80% to be considered "complete" (matches lead-family-nudge)
+const REPUBLISH_GRACE_PERIOD_DAYS = 30;    // don't nudge to re-publish if was published 30+ days ago
 
 // ── Care type mapping: family profile → olera-providers ──
 
@@ -89,8 +100,11 @@ interface FamilyRow {
   id: string;
   display_name: string;
   email: string | null;
+  phone: string | null;
+  image_url: string | null;
   city: string | null;
   state: string | null;
+  description: string | null;
   care_types: string[] | null;
   metadata: FamilyMetadata | null;
   created_at: string;
@@ -109,7 +123,7 @@ async function fetchAllFamilies(db: DB, oneDayAgo: string): Promise<FamilyRow[]>
   while (hasMore) {
     const { data, error } = await db
       .from("business_profiles")
-      .select("id, display_name, email, city, state, care_types, metadata, created_at, account_id")
+      .select("id, display_name, email, phone, image_url, city, state, description, care_types, metadata, created_at, account_id")
       .eq("type", "family")
       .lte("created_at", oneDayAgo)
       .order("created_at", { ascending: false })
@@ -422,11 +436,17 @@ export async function GET(request: NextRequest) {
       const email = family.email || (family.account_id ? accountEmailMap[family.account_id] : null);
       if (!email) { counts.skipped++; continue; }
 
+      // Calculate profile completeness using the same function as lead-family-nudge
+      const completeness = calculateFamilyCompleteness(family, email);
+      const profileComplete = completeness.percentage >= PROFILE_COMPLETE_THRESHOLD;
+
+      // These are still needed for email template content
       const hasCareTypes = family.care_types && (family.care_types as string[]).length > 0;
       const hasLocation = !!(family.city && family.state);
-      const profileComplete = hasCareTypes && hasLocation;
+
       const carePost = meta.care_post;
       const isPublished = carePost?.status === "active";
+      const wasEverPublished = !!carePost?.published_at;
       const connData = connectionMap.get(family.id);
       const hasConnections = connData?.hasConnections || false;
       const firstName = family.display_name?.split(/\s+/)[0] || "there";
@@ -441,6 +461,16 @@ export async function GET(request: NextRequest) {
       if (meta.nudges_unsubscribed === true) {
         counts.skipped++;
         continue;
+      }
+
+      // ── STOP CONDITION: Was published 30+ days ago then unpublished ──
+      // Respect their decision — they know how to publish if they want to
+      if (wasEverPublished && carePost?.published_at) {
+        const daysSinceFirstPublished = daysSince(carePost.published_at);
+        if (daysSinceFirstPublished >= REPUBLISH_GRACE_PERIOD_DAYS) {
+          counts.skipped++;
+          continue;
+        }
       }
 
       // ── PHASE 1: Profile Completion (if profile incomplete) ──
@@ -464,6 +494,13 @@ export async function GET(request: NextRequest) {
 
           const nudgeNumber = seq.nudge_count + 1;
           const isMaintenanceNudge = seq.phase === "maintenance";
+
+          // ── STOP CONDITION: Max maintenance nudges reached (cap at 6 monthly = 10 total) ──
+          if (isMaintenanceNudge && nudgeNumber > COMPLETION_ACTIVE_COUNT + MAX_MAINTENANCE_NUDGES) {
+            counts.skipped++;
+            continue; // Give up gracefully — they're not engaging
+          }
+
           let subject: string;
           let html: string;
           let emailType: string;
@@ -581,6 +618,13 @@ export async function GET(request: NextRequest) {
 
           const nudgeNumber = seq.nudge_count + 1;
           const isMaintenanceNudge = seq.phase === "maintenance";
+
+          // ── STOP CONDITION: Max maintenance nudges reached (cap at 6 monthly = 10 total) ──
+          if (isMaintenanceNudge && nudgeNumber > PUBLISH_ACTIVE_COUNT + MAX_MAINTENANCE_NUDGES) {
+            counts.skipped++;
+            continue; // Give up gracefully — they're not engaging
+          }
+
           let subject: string;
           let html: string;
           let emailType: string;

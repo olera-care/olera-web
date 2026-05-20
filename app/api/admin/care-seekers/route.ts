@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import type { FamilyMetadata, NudgeSequence } from "@/lib/types";
+
+// Profile completeness threshold (must match cron job)
+const PROFILE_COMPLETE_THRESHOLD = 80;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = ReturnType<typeof getServiceClient>;
@@ -11,8 +15,10 @@ interface SeekerQueryResult {
   display_name: string;
   email: string | null;
   phone: string | null;
+  image_url: string | null;
   city: string | null;
   state: string | null;
+  description: string | null;
   care_types: string[] | null;
   metadata: FamilyMetadata | null;
   account_id: string | null;
@@ -43,7 +49,7 @@ async function fetchAllSeekersWithFilters(
   while (hasMore) {
     let query = db
       .from("business_profiles")
-      .select("id, slug, display_name, email, phone, city, state, care_types, metadata, account_id, claim_state, source, created_at")
+      .select("id, slug, display_name, email, phone, image_url, city, state, description, care_types, metadata, account_id, claim_state, source, created_at")
       .eq("type", "family")
       .order("created_at", { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
@@ -108,10 +114,9 @@ function daysSince(isoDate: string | undefined): number {
   return Math.floor((Date.now() - new Date(isoDate).getTime()) / (1000 * 60 * 60 * 24));
 }
 
-function isProfileComplete(meta: FamilyMetadata, careTypes: string[], city: string | null, state: string | null): boolean {
-  const hasCareTypes = careTypes && careTypes.length > 0;
-  const hasLocation = !!(city && state);
-  return hasCareTypes && hasLocation;
+function isProfileComplete(seeker: SeekerQueryResult, email: string | null): boolean {
+  const completeness = calculateFamilyCompleteness(seeker, email);
+  return completeness.percentage >= PROFILE_COMPLETE_THRESHOLD;
 }
 
 function isPublished(meta: FamilyMetadata): boolean {
@@ -147,12 +152,14 @@ function getCooldownForNudge(nudgeCount: number, cooldowns: number[]): number {
   return MAINTENANCE_COOLDOWN;
 }
 
-function needsNudge(meta: FamilyMetadata, careTypes: string[], city: string | null, state: string | null, createdAt: string): boolean {
+function needsNudge(seeker: SeekerQueryResult, email: string | null): boolean {
+  const meta = (seeker.metadata || {}) as FamilyMetadata;
+
   // Skip if published or unsubscribed
   if (isPublished(meta)) return false;
   if (meta.nudges_unsubscribed === true) return false;
 
-  const profileComplete = isProfileComplete(meta, careTypes, city, state);
+  const profileComplete = isProfileComplete(seeker, email);
 
   // Check which sequence applies
   const seq = profileComplete
@@ -166,7 +173,7 @@ function needsNudge(meta: FamilyMetadata, careTypes: string[], city: string | nu
     : getCooldownForNudge(seq.nudge_count, cooldowns);
 
   // Check if cooldown has passed
-  const lastNudge = seq.last_nudge_at ?? createdAt;
+  const lastNudge = seq.last_nudge_at ?? seeker.created_at;
   const daysSinceNudge = daysSince(lastNudge);
 
   return daysSinceNudge >= cooldownDays;
@@ -284,8 +291,7 @@ export async function GET(request: NextRequest) {
     // Transform data with computed fields
     let seekers = (data ?? []).map((seeker) => {
       const meta = (seeker.metadata || {}) as FamilyMetadata;
-      const careTypes = (seeker.care_types || []) as string[];
-      const profileComplete = isProfileComplete(meta, careTypes, seeker.city, seeker.state);
+      const profileComplete = isProfileComplete(seeker, seeker.email);
       const phase = getNudgePhase(meta, profileComplete);
 
       // Get current sequence for display
@@ -303,10 +309,7 @@ export async function GET(request: NextRequest) {
 
     // Apply nudge filter (client-side since it requires metadata parsing)
     if (needsNudgeOnly) {
-      seekers = seekers.filter((s) => {
-        const meta = (s.metadata || {}) as FamilyMetadata;
-        return needsNudge(meta, s.care_types || [], s.city, s.state, s.created_at);
-      });
+      seekers = seekers.filter((s) => needsNudge(s, s.email));
     }
 
     // Calculate correct totals for client-side filtered results

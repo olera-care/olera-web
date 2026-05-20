@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import type { FamilyMetadata } from "@/lib/types";
 
 // ── Nudge eligibility helpers (must match cron job configuration) ──
@@ -7,16 +8,16 @@ import type { FamilyMetadata } from "@/lib/types";
 const COMPLETION_COOLDOWNS = [3, 5, 7, 7]; // days between nudges in active phase
 const PUBLISH_COOLDOWNS = [1, 4, 5, 5];    // days between nudges in active phase
 const MAINTENANCE_COOLDOWN = 30;           // days between maintenance nudges
+const PROFILE_COMPLETE_THRESHOLD = 80;     // must match cron job
 
 function daysSince(isoDate: string | undefined): number {
   if (!isoDate) return Infinity;
   return Math.floor((Date.now() - new Date(isoDate).getTime()) / (1000 * 60 * 60 * 24));
 }
 
-function isProfileComplete(meta: FamilyMetadata, careTypes: string[], city: string | null, state: string | null): boolean {
-  const hasCareTypes = careTypes && careTypes.length > 0;
-  const hasLocation = !!(city && state);
-  return hasCareTypes && hasLocation;
+function isProfileComplete(seeker: SeekerData, email: string | null): boolean {
+  const completeness = calculateFamilyCompleteness(seeker, email);
+  return completeness.percentage >= PROFILE_COMPLETE_THRESHOLD;
 }
 
 function isPublished(meta: FamilyMetadata): boolean {
@@ -30,10 +31,11 @@ function getCooldownForNudge(nudgeCount: number, cooldowns: number[]): number {
   return MAINTENANCE_COOLDOWN;
 }
 
-function needsNudge(meta: FamilyMetadata, careTypes: string[], city: string | null, state: string | null, createdAt: string): boolean {
+function needsNudge(seeker: SeekerData): boolean {
+  const meta = (seeker.metadata || {}) as FamilyMetadata;
   if (isPublished(meta)) return false;
   if (meta.nudges_unsubscribed === true) return false;
-  const profileComplete = isProfileComplete(meta, careTypes, city, state);
+  const profileComplete = isProfileComplete(seeker, seeker.email);
   const seq = profileComplete
     ? (meta.publish_sequence ?? { nudge_count: 0, phase: "active" as const })
     : (meta.completion_sequence ?? { nudge_count: 0, phase: "active" as const });
@@ -44,7 +46,7 @@ function needsNudge(meta: FamilyMetadata, careTypes: string[], city: string | nu
     ? MAINTENANCE_COOLDOWN
     : getCooldownForNudge(seq.nudge_count, cooldowns);
 
-  const lastNudge = seq.last_nudge_at ?? createdAt;
+  const lastNudge = seq.last_nudge_at ?? seeker.created_at;
   return daysSince(lastNudge) >= cooldownDays;
 }
 
@@ -53,8 +55,12 @@ type DB = ReturnType<typeof getServiceClient>;
 
 interface SeekerData {
   id: string;
+  email: string | null;
+  phone: string | null;
+  image_url: string | null;
   city: string | null;
   state: string | null;
+  description: string | null;
   care_types: string[] | null;
   metadata: FamilyMetadata | null;
   created_at: string;
@@ -72,7 +78,7 @@ async function fetchAllSeekers(db: DB, fromDate: string, toDate: string): Promis
   while (hasMore) {
     let query = db
       .from("business_profiles")
-      .select("id, city, state, care_types, metadata, created_at")
+      .select("id, email, phone, image_url, city, state, description, care_types, metadata, created_at")
       .eq("type", "family")
       .range(offset, offset + PAGE_SIZE - 1)
       .order("created_at", { ascending: false });
@@ -175,9 +181,7 @@ export async function GET(request: NextRequest) {
     // Calculate needsNudge count (allSeekers is now from paginated fetch)
     let needsNudgeCount = 0;
     for (const seeker of allSeekers) {
-      const meta = (seeker.metadata || {}) as FamilyMetadata;
-      const careTypes = (seeker.care_types || []) as string[];
-      if (needsNudge(meta, careTypes, seeker.city, seeker.state, seeker.created_at)) {
+      if (needsNudge(seeker)) {
         needsNudgeCount++;
       }
     }

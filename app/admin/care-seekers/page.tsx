@@ -88,12 +88,49 @@ function calculateCompleteness(seeker: SeekerRow): number {
   return Math.min(100, score);
 }
 
-// Helper to get sequence display text
-function getSequenceDisplay(seeker: SeekerRow): string {
-  if (seeker.nudge_phase === "done") return "Published";
-  if (!seeker.current_sequence || seeker.current_sequence.nudge_count === 0) return "Not started";
-  const type = seeker.sequence_type === "completion" ? "Complete" : "Publish";
-  return `${type} #${seeker.current_sequence.nudge_count}`;
+// Helper to get nudge status display
+function getNudgeStatus(seeker: SeekerRow): {
+  label: string;
+  sublabel: string;
+  isSuccess: boolean;
+} {
+  const meta = seeker.metadata || {};
+  const isPublished = meta.care_post?.status === "active";
+  const isUnsubscribed = meta.nudges_unsubscribed === true;
+  const seq = seeker.current_sequence;
+  const nudgeCount = seq?.nudge_count || 0;
+  const isMaintenancePhase = seq?.phase === "maintenance";
+
+  // Published = success (green)
+  if (isPublished) {
+    return { label: "Published", sublabel: "Done", isSuccess: true };
+  }
+
+  // Opted out
+  if (isUnsubscribed) {
+    return { label: "Opted out", sublabel: "No emails", isSuccess: false };
+  }
+
+  // Determine which sequence they're in
+  const sequenceType = seeker.sequence_type; // "completion" or "publish"
+  const sequenceLabel = sequenceType === "completion" ? "Profile" : "Publish";
+
+  if (isMaintenancePhase) {
+    const lastNudge = seq?.last_nudge_at;
+    return {
+      label: `${sequenceLabel}: monthly`,
+      sublabel: lastNudge ? timeAgo(lastNudge) : "Pending",
+      isSuccess: false
+    };
+  }
+
+  // Active sequence (0-4 nudges)
+  const lastNudge = seq?.last_nudge_at;
+  return {
+    label: `${sequenceLabel}: ${nudgeCount}/4`,
+    sublabel: nudgeCount === 0 ? "Pending" : (lastNudge ? timeAgo(lastNudge) : "—"),
+    isSuccess: false
+  };
 }
 
 const PAGE_SIZE = 25;
@@ -486,10 +523,10 @@ export default function AdminCareSeekersPage() {
       {/* List */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
-          <div className="w-64">Care Seeker</div>
-          <div className="w-32">Location</div>
-          <div className="w-28">Last Nudge</div>
+        <div className="flex items-center gap-6 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <div className="flex-[2] min-w-0">Care Seeker</div>
+          <div className="flex-1">Location</div>
+          <div className="flex-1">Nudge Status</div>
           <div className="w-28 text-right">Joined</div>
           <div className="w-8"></div>
         </div>
@@ -509,11 +546,11 @@ export default function AdminCareSeekersPage() {
               return (
                 <div
                   key={seeker.id}
-                  className="group flex items-center gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer"
+                  className="group flex items-center gap-6 px-5 py-4 hover:bg-gray-50 cursor-pointer"
                   onClick={() => router.push(`/admin/care-seekers/${seeker.id}`)}
                 >
                   {/* Care Seeker Info */}
-                  <div className="w-64 min-w-0">
+                  <div className="flex-[2] min-w-0">
                     <p className="font-medium text-gray-900 truncate">
                       {seeker.display_name}
                     </p>
@@ -530,7 +567,7 @@ export default function AdminCareSeekersPage() {
                   </div>
 
                   {/* Location */}
-                  <div className="w-32">
+                  <div className="flex-1">
                     {location ? (
                       <p className="text-sm text-gray-600">{location}</p>
                     ) : (
@@ -538,20 +575,19 @@ export default function AdminCareSeekersPage() {
                     )}
                   </div>
 
-                  {/* Last Nudge */}
-                  <div className="w-28">
-                    {seeker.current_sequence?.nudge_count ? (
-                      <>
-                        <p className="text-sm text-gray-700">
-                          {getSequenceDisplay(seeker)}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {timeAgo(seeker.current_sequence.last_nudge_at)}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="text-sm text-gray-400">—</p>
-                    )}
+                  {/* Nudge Status */}
+                  <div className="flex-1">
+                    {(() => {
+                      const status = getNudgeStatus(seeker);
+                      return (
+                        <>
+                          <p className={`text-sm ${status.isSuccess ? "text-emerald-600 font-medium" : "text-gray-600"}`}>
+                            {status.label}
+                          </p>
+                          <p className="text-xs text-gray-400">{status.sublabel}</p>
+                        </>
+                      );
+                    })()}
                   </div>
 
                   {/* Joined */}

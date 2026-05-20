@@ -84,10 +84,6 @@ export default function ProfileCompletionNudge({
             <span className="font-medium text-gray-900">Help {firstName} respond faster</span>
             <span className="hidden sm:inline"> — </span>
             <span className="block sm:inline">complete your profile</span>
-            {/* Mobile: show percentage inline with text */}
-            {completionPercentage !== undefined && (
-              <span className="sm:hidden text-gray-400"> · {Math.round(completionPercentage)}%</span>
-            )}
           </p>
           {/* Mobile dismiss - top right */}
           <button
@@ -109,9 +105,7 @@ export default function ProfileCompletionNudge({
             onClick={handleComplete}
             className="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-[13px] font-semibold rounded-full transition-colors"
           >
-            {/* Mobile: shorter text, Desktop: full text with percentage */}
-            <span className="sm:hidden">Complete Profile</span>
-            <span className="hidden sm:inline">Complete Profile{completionPercentage !== undefined && ` · ${Math.round(completionPercentage)}%`}</span>
+            Complete Profile{completionPercentage !== undefined && ` · ${Math.round(completionPercentage)}%`}
           </button>
           {/* Desktop dismiss */}
           <button

@@ -687,13 +687,23 @@ export default function QuickProfileWizard({
                 ))}
               </div>
 
-              <button
-                type="button"
-                onClick={nextStep}
-                className="w-full mt-6 py-2 text-[14px] text-gray-400 hover:text-gray-600 font-medium transition-colors"
-              >
-                Skip
-              </button>
+              {careTypes.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="w-full mt-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors"
+                >
+                  Continue
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="w-full mt-6 py-2 text-[14px] text-gray-400 hover:text-gray-600 font-medium transition-colors"
+                >
+                  Skip
+                </button>
+              )}
             </div>
           )}
 
@@ -717,13 +727,23 @@ export default function QuickProfileWizard({
                 ))}
               </div>
 
-              <button
-                type="button"
-                onClick={nextStep}
-                className="w-full mt-6 py-2 text-[14px] text-gray-400 hover:text-gray-600 font-medium transition-colors"
-              >
-                Skip
-              </button>
+              {careNeeds.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="w-full mt-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors"
+                >
+                  Continue
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="w-full mt-6 py-2 text-[14px] text-gray-400 hover:text-gray-600 font-medium transition-colors"
+                >
+                  Skip
+                </button>
+              )}
             </div>
           )}
 
@@ -747,13 +767,23 @@ export default function QuickProfileWizard({
                 ))}
               </div>
 
-              <button
-                type="button"
-                onClick={nextStep}
-                className="w-full mt-6 py-2 text-[14px] text-gray-400 hover:text-gray-600 font-medium transition-colors"
-              >
-                Skip
-              </button>
+              {payments.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="w-full mt-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors"
+                >
+                  Continue
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="w-full mt-6 py-2 text-[14px] text-gray-400 hover:text-gray-600 font-medium transition-colors"
+                >
+                  Skip
+                </button>
+              )}
             </div>
           )}
 

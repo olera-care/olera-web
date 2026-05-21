@@ -10,7 +10,7 @@ import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import type { CompareProvider } from "@/components/providers/CompareBottomSheet";
 
-type CardState = "initial" | "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block";
+type CardState = "initial" | "email_capture" | "submitting" | "enrichment" | "enrichment_error" | "success" | "provider_email_block";
 
 interface CompareCardProps {
   providerId: string;
@@ -169,6 +169,13 @@ export default function CompareCard({
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailToUse)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
     if (selectedCount === 0) {
       setError("Please select at least one provider");
       return;
@@ -177,58 +184,51 @@ export default function CompareCard({
     setError(null);
     setCardState("submitting");
 
-    const supabase = createClient();
-
     try {
-      // Check if email belongs to a provider account
-      const { data: existingProfile } = await supabase
-        .from("business_profiles")
-        .select("id, type")
-        .eq("email", emailToUse.toLowerCase())
-        .single();
+      // Use the batch endpoint (same as CompareBottomSheet) - handles session properly
+      const response = await fetch("/api/connections/compare-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: emailToUse,
+          providers: selectedProviders.map((p) => ({
+            id: p.id,
+            slug: p.slug,
+            name: p.name,
+          })),
+          sessionId: getOrCreateSessionId(),
+          ctaVariant: ctaVariant || "compare",
+        }),
+      });
 
-      if (existingProfile?.type === "organization") {
+      const data = await response.json();
+
+      // Handle provider email block
+      if (!response.ok && data.code === "PROVIDER_EMAIL") {
         setBlockedEmail(emailToUse);
         setCardState("provider_email_block");
         return;
       }
 
-      // Create connections for all selected providers
-      const createdIds: string[] = [];
-
-      for (const provider of selectedProviders) {
-        const res = await fetch("/api/connections/request", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            providerId: provider.id,
-            providerName: provider.name,
-            providerSlug: provider.slug,
-            email: emailToUse,
-            intentData: {
-              careRecipient: null,
-              careType: null,
-              urgency: null,
-            },
-            session_id: getOrCreateSessionId(),
-            cta_variant: ctaVariant || "compare",
-          }),
-        });
-
-        const data = await res.json();
-
-        if (res.ok && data.connectionId) {
-          createdIds.push(data.connectionId);
-        }
-      }
-
-      if (createdIds.length === 0) {
-        setError("Something went wrong. Please try again.");
+      if (!response.ok) {
+        setError(data.error || "Something went wrong. Please try again.");
         setCardState("email_capture");
         return;
       }
 
-      setConnectionIds(createdIds);
+      // Establish session from tokens (critical for guest enrichment to work)
+      if (data.accessToken && data.refreshToken) {
+        const supabase = createClient();
+        await supabase.auth.setSession({
+          access_token: data.accessToken,
+          refresh_token: data.refreshToken,
+        });
+      }
+
+      // Store connection IDs for enrichment
+      if (data.connectionIds?.length > 0) {
+        setConnectionIds(data.connectionIds);
+      }
 
       // Dispatch event for inbox refresh
       window.dispatchEvent(new CustomEvent("olera:connection-created"));
@@ -242,7 +242,7 @@ export default function CompareCard({
     }
   }, [email, selectedCount, selectedProviders, ctaVariant]);
 
-  // Handle enrichment save
+  // Handle enrichment save with retry logic for session establishment race condition
   const saveEnrichment = useCallback(async (data?: {
     careRecipient?: string;
     urgency?: string;
@@ -268,32 +268,65 @@ export default function CompareCard({
     }
 
     setEnrichmentSubmitting(true);
+    setError(null);
+
+    // Helper to update a single connection with retry on 401
+    const updateConnection = async (connId: string, retry = false): Promise<boolean> => {
+      const res = await fetch("/api/connections/update-intent", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId: connId,
+          careRecipient: data?.careRecipient,
+          urgency: data?.urgency,
+          phone: data?.phone || undefined,
+          notifyChannel: data?.contactPreference || undefined,
+          careType: data?.careType || undefined,
+          careNeed: data?.careNeed || undefined,
+          paymentMethod: data?.paymentMethod || undefined,
+          name: data?.name || undefined,
+          city: data?.city || undefined,
+          state: data?.state || undefined,
+        }),
+      });
+
+      // Retry once on 401 (session may still be establishing)
+      if (res.status === 401 && !retry) {
+        await new Promise(r => setTimeout(r, 1500));
+        return updateConnection(connId, true);
+      }
+
+      return res.ok;
+    };
 
     try {
-      // Update all connections with enrichment data
-      for (const connId of connectionIds) {
-        await fetch("/api/connections/update-intent", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            connectionId: connId,
-            careRecipient: data.careRecipient,
-            urgency: data.urgency,
-            phone: data.phone || undefined,
-            notifyChannel: data.contactPreference || undefined,
-            careType: data.careType || undefined,
-            careNeed: data.careNeed || undefined,
-            paymentMethod: data.paymentMethod || undefined,
-            name: data.name || undefined,
-            city: data.city || undefined,
-            state: data.state || undefined,
-          }),
-        });
+      // Update all connections in parallel
+      const results = await Promise.all(
+        connectionIds.map(connId => updateConnection(connId))
+      );
+
+      const successCount = results.filter(Boolean).length;
+
+      if (successCount === 0) {
+        // All failed - show error state
+        console.error("[CompareCard] All enrichment updates failed");
+        setError("Failed to save your details. Please try again.");
+        setCardState("enrichment_error");
+        setEnrichmentSubmitting(false);
+        return;
       }
+
+      if (successCount < connectionIds.length) {
+        // Partial success - log but continue to success
+        console.warn(`[CompareCard] Enrichment partial success: ${successCount}/${connectionIds.length}`);
+      }
+
+      setCardState("success");
     } catch (err) {
       console.error("[CompareCard] enrichment error:", err);
+      setError("Failed to save your details. Please try again.");
+      setCardState("enrichment_error");
     } finally {
-      setCardState("success");
       setEnrichmentSubmitting(false);
     }
   }, [connectionIds]);
@@ -367,15 +400,16 @@ export default function CompareCard({
   // RENDER: Enrichment state
   // ─────────────────────────────────────────────────────────────────────────────
   if (cardState === "enrichment") {
+    const savedCount = connectionIds.length;
     return (
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
         <div className="px-5 pt-5 pb-5">
           <EnrichmentState
-            providerName={selectedCount > 1 ? `${selectedCount} providers` : currentProvider.name}
+            providerName={savedCount > 1 ? `${savedCount} providers` : currentProvider.name}
             onSave={saveEnrichment}
             onSkip={skipEnrichment}
             saving={enrichmentSubmitting}
-            successTitle={`Saved ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+            successTitle={`Saved ${savedCount} provider${savedCount !== 1 ? "s" : ""}`}
             successSubtitle="We'll send you a summary to compare"
             providerCity={currentProvider.city}
             providerState={currentProvider.state}
@@ -386,9 +420,50 @@ export default function CompareCard({
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // RENDER: Enrichment error state (retry option)
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (cardState === "enrichment_error") {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+        <div className="px-5 pt-5 pb-5 text-center">
+          <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Couldn&apos;t save your details
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Your providers were saved, but we couldn&apos;t save your profile details. You can add them later in your inbox.
+          </p>
+          <div className="space-y-2">
+            <a
+              href={connectionIds.length === 1 ? `/portal/inbox?id=${connectionIds[0]}` : "/portal/inbox"}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+            >
+              Go to inbox
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
+            <button
+              onClick={() => setCardState("enrichment")}
+              className="w-full py-3 px-4 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-300 transition-colors"
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // RENDER: Success state
   // ─────────────────────────────────────────────────────────────────────────────
   if (cardState === "success") {
+    const savedCount = connectionIds.length;
     return (
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
         <div className="px-5 pt-5 pb-5">
@@ -401,7 +476,7 @@ export default function CompareCard({
             </div>
             <div>
               <h3 className="text-[15px] font-bold text-gray-900">
-                Saved {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                Saved {savedCount} provider{savedCount !== 1 ? "s" : ""}
               </h3>
               <p className="text-[13px] text-gray-500">
                 We&apos;ll send you a summary to compare
@@ -411,7 +486,7 @@ export default function CompareCard({
 
           {/* Go to inbox button */}
           <a
-            href={connectionIds.length === 1 ? `/portal/inbox?id=${connectionIds[0]}` : "/portal/inbox"}
+            href={savedCount === 1 ? `/portal/inbox?id=${connectionIds[0]}` : "/portal/inbox"}
             className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-[15px] font-semibold transition-colors"
           >
             Go to inbox

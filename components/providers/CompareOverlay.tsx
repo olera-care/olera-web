@@ -402,7 +402,7 @@ export default function CompareOverlay({
       >
         {/* Enrichment state - clean full-panel view */}
         {footerState === "enrichment" ? (
-          <div className="flex-1 flex flex-col justify-center px-6 py-8">
+          <div className="flex-1 flex flex-col px-6 py-8">
             <EnrichmentState
               providerName={selectedCount > 1 ? `${selectedCount} providers` : currentProvider.name}
               onSave={saveEnrichment}

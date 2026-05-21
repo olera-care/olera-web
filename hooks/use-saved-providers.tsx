@@ -522,9 +522,27 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
             }),
           })
             .then((res) => {
-              if (!res.ok) setSaveError("Couldn't save. Please try again.");
+              if (!res.ok) {
+                // Rollback optimistic update on failure
+                setDbSaveIds((prev) => {
+                  const next = new Set(prev);
+                  next.delete(provider.providerId);
+                  return next;
+                });
+                setDbSaves((prev) => prev.filter((s) => s.providerId !== provider.providerId));
+                setSaveError("Couldn't save. Please try again.");
+              }
             })
-            .catch(() => setSaveError("Couldn't save. Please try again."));
+            .catch(() => {
+              // Rollback optimistic update on network error
+              setDbSaveIds((prev) => {
+                const next = new Set(prev);
+                next.delete(provider.providerId);
+                return next;
+              });
+              setDbSaves((prev) => prev.filter((s) => s.providerId !== provider.providerId));
+              setSaveError("Couldn't save. Please try again.");
+            });
         } else {
           // Anonymous save — no limit, just save and maybe show nudge
           const newCount = addAnonSave({

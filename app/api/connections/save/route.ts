@@ -32,7 +32,17 @@ async function resolveProviderId(
     return providerId;
   }
 
-  // Look up by source_provider_id
+  // Look up by slug first (most common case after our save key fix)
+  const { data: bySlug } = await db
+    .from("business_profiles")
+    .select("id")
+    .eq("slug", providerId)
+    .limit(1)
+    .single();
+
+  if (bySlug) return bySlug.id;
+
+  // Fall back to source_provider_id lookup (for iOS provider IDs)
   const { data: existing } = await db
     .from("business_profiles")
     .select("id")

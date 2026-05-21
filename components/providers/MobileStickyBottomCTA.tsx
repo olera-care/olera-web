@@ -303,6 +303,26 @@ export default function MobileStickyBottomCTA({
     setDirectSubmitting(true);
     setDirectError(null);
 
+    // Fire analytics event for A/B testing attribution
+    if (ctaVariant && !ctaPreviewMode) {
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          related_provider_id: providerSlug,
+          event_type: "cta_variant_clicked",
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            variant: ctaVariant,
+            surface: "mobile",
+            action: "direct_request",
+            logged_in: true,
+          },
+        }),
+      }).catch(() => {});
+    }
+
     try {
       const res = await fetch("/api/connections/request", {
         method: "POST",

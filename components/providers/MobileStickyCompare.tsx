@@ -222,7 +222,7 @@ export default function MobileStickyCompare({
           >
             <div className="px-5 pt-3 pb-4">
               {/* Pricing row */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 mb-3">
                 <p className="text-[16px] font-semibold text-gray-900">
                   {priceDisplay}
                 </p>
@@ -253,7 +253,7 @@ export default function MobileStickyCompare({
               </div>
 
               {/* Family account required text */}
-              <p className="text-[13px] text-gray-500 font-medium mt-1 mb-3">
+              <p className="text-[13px] text-gray-500 font-medium mb-3">
                 Family account required
               </p>
 

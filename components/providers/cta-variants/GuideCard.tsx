@@ -327,12 +327,18 @@ export default function GuideCard({
   if (isNonFamilyProfile) {
     return (
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
-        <div className="px-5 py-6 text-center">
-          <div className="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
+        <div className="px-5 pt-5 pb-5">
+          {/* Price section - consistent with regular view */}
+          <div className="mb-4 pb-4 border-b border-gray-100">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+              Est. {unitLabel} · {locationStr}
+            </p>
+            <p className="text-xl font-semibold text-gray-900">
+              {priceRange || "Contact for pricing"}
+            </p>
           </div>
+
+          {/* Family account required message */}
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Family account required
           </h3>

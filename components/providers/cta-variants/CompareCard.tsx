@@ -423,8 +423,9 @@ export default function CompareCard({
       setCardState("success");
       setEnrichmentSubmitting(false);
     } else {
-      // No pending data and no connections - shouldn't happen, but go to success
-      setCardState("success");
+      // No pending data and no connections - this is an error state
+      // Don't show "Saved 0 providers" - show error instead
+      setSaveError("Something went wrong. Please try again.");
       setEnrichmentSubmitting(false);
     }
   }, [connectionIds, pendingSaveData, refreshAccountData]);
@@ -493,12 +494,16 @@ export default function CompareCard({
         setSaveError("Something went wrong. Please try again.");
         setEnrichmentSubmitting(false);
       }
-    } else {
-      // Already saved or no data, just go to success
+    } else if (connectionIds.length > 0) {
+      // Already saved, just go to success
       setCardState("success");
       setEnrichmentSubmitting(false);
+    } else {
+      // No pending data AND no connections - this is an error state
+      setSaveError("Something went wrong. Please try again.");
+      setEnrichmentSubmitting(false);
     }
-  }, [pendingSaveData]);
+  }, [pendingSaveData, connectionIds]);
 
   // ─────────────────────────────────────────────────────────────────────────────
   // RENDER: Non-family profile (provider/caregiver/student)

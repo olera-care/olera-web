@@ -103,6 +103,15 @@ export default function CompareCard({
   const [connectionIds, setConnectionIds] = useState<string[]>([]);
   const [enrichmentSubmitting, setEnrichmentSubmitting] = useState(false);
 
+  // Optimistic enrichment: store pending save data while showing enrichment immediately
+  const [pendingSaveData, setPendingSaveData] = useState<{
+    email: string;
+    providers: { id: string; slug: string; name: string }[];
+    sessionId: string;
+    ctaVariant: string;
+  } | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   // Build current provider object
   const currentProvider: CompareProvider = useMemo(() => ({
     id: providerId,
@@ -208,8 +217,8 @@ export default function CompareCard({
     setCardState("email_capture");
   }, [selectedCount]);
 
-  // Handle email form submission
-  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
+  // Handle email form submission - OPTIMISTIC: show enrichment immediately
+  const handleSubmit = useCallback((e?: React.FormEvent) => {
     e?.preventDefault();
     const emailToUse = email.trim();
 
@@ -231,68 +240,27 @@ export default function CompareCard({
     }
 
     setError(null);
-    setCardState("submitting");
+    setSaveError(null);
 
-    try {
-      // Use the batch endpoint (same as CompareBottomSheet) - handles session properly
-      const response = await fetch("/api/connections/compare-save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: emailToUse,
-          providers: selectedProviders.map((p) => ({
-            id: p.id,
-            slug: p.slug,
-            name: p.name,
-          })),
-          sessionId: getOrCreateSessionId(),
-          ctaVariant: ctaVariant || "compare",
-        }),
-      });
-
-      const data = await response.json();
-
-      // Handle provider email block
-      if (!response.ok && data.code === "PROVIDER_EMAIL") {
-        setBlockedEmail(emailToUse);
-        setCardState("provider_email_block");
-        return;
-      }
-
-      if (!response.ok) {
-        setError(data.error || "Something went wrong. Please try again.");
-        setCardState("selection");
-        return;
-      }
-
-      // Establish session from tokens (critical for guest enrichment to work)
-      if (data.accessToken && data.refreshToken) {
-        const supabase = createClient();
-        await supabase.auth.setSession({
-          access_token: data.accessToken,
-          refresh_token: data.refreshToken,
-        });
-      }
-
-      // Store connection IDs for enrichment
-      if (data.connectionIds?.length > 0) {
-        setConnectionIds(data.connectionIds);
-      }
-
-      // Dispatch event for inbox refresh
-      window.dispatchEvent(new CustomEvent("olera:connection-created"));
-
-      // Go to enrichment
-      setCardState("enrichment");
-    } catch (err) {
-      console.error("[CompareCard] error:", err);
-      setError("Something went wrong. Please try again.");
-      setCardState("selection");
-    }
+    // OPTIMISTIC: Immediately show enrichment while save happens when user completes
+    // This eliminates the loading spinner and fixes the race condition with session establishment
+    const saveData = {
+      email: emailToUse,
+      providers: selectedProviders.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+      })),
+      sessionId: getOrCreateSessionId(),
+      ctaVariant: ctaVariant || "compare",
+    };
+    setPendingSaveData(saveData);
+    setCardState("enrichment"); // Show enrichment immediately - no waiting!
   }, [email, selectedCount, selectedProviders, ctaVariant]);
 
-  // Handle enrichment save with retry logic for session establishment race condition
-  const saveEnrichment = useCallback(async (data?: {
+  // Handle enrichment save - performs the actual save API call + enrichment update
+  // This is called when user completes enrichment questions (or skips)
+  const saveEnrichment = useCallback(async (enrichmentData?: {
     careRecipient?: string;
     urgency?: string;
     phone?: string;
@@ -304,93 +272,222 @@ export default function CompareCard({
     city?: string;
     state?: string;
   }) => {
-    const hasData = data?.careRecipient || data?.urgency ||
-      data?.phone || data?.contactPreference ||
-      data?.careType || data?.careNeed ||
-      data?.paymentMethod || data?.name ||
-      data?.city || data?.state;
-
-    if (connectionIds.length === 0 || !hasData) {
-      setCardState("success");
-      setEnrichmentSubmitting(false);
-      return;
-    }
-
     setEnrichmentSubmitting(true);
-    setError(null);
+    setSaveError(null);
 
-    // Helper to update a single connection with retry on 401
-    const updateConnection = async (connId: string, retry = false): Promise<boolean> => {
-      const res = await fetch("/api/connections/update-intent", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          connectionId: connId,
-          careRecipient: data?.careRecipient,
-          urgency: data?.urgency,
-          phone: data?.phone || undefined,
-          notifyChannel: data?.contactPreference || undefined,
-          careType: data?.careType || undefined,
-          careNeed: data?.careNeed || undefined,
-          paymentMethod: data?.paymentMethod || undefined,
-          name: data?.name || undefined,
-          city: data?.city || undefined,
-          state: data?.state || undefined,
-        }),
-      });
-
-      // Retry once on 401 (session may still be establishing)
-      if (res.status === 401 && !retry) {
-        await new Promise(r => setTimeout(r, 1500));
-        return updateConnection(connId, true);
-      }
-
-      return res.ok;
-    };
-
-    try {
-      // Update all connections in parallel
-      const results = await Promise.all(
-        connectionIds.map(connId => updateConnection(connId))
-      );
-
-      const successCount = results.filter(Boolean).length;
-
-      if (successCount === 0) {
-        // All failed - show error state
-        console.error("[CompareCard] All enrichment updates failed");
-        setError("Failed to save your details. Please try again.");
-        setCardState("enrichment_error");
-        setEnrichmentSubmitting(false);
-        return;
-      }
-
-      if (successCount < connectionIds.length) {
-        // Partial success - log but continue to success
-        console.warn(`[CompareCard] Enrichment partial success: ${successCount}/${connectionIds.length}`);
-      }
-
-      // Refresh auth context so inbox has updated profile data (non-blocking on error)
+    // If we have pending save data, we need to create the connections first
+    if (pendingSaveData) {
       try {
-        await refreshAccountData?.();
-      } catch {
-        // Refresh failure shouldn't block success - data was already saved
+        const response = await fetch("/api/connections/compare-save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(pendingSaveData),
+        });
+
+        const data = await response.json();
+
+        // Handle provider email block
+        if (!response.ok && data.code === "PROVIDER_EMAIL") {
+          setBlockedEmail(pendingSaveData.email);
+          setPendingSaveData(null);
+          setCardState("provider_email_block");
+          setEnrichmentSubmitting(false);
+          return;
+        }
+
+        if (!response.ok) {
+          setSaveError(data.error || "Something went wrong. Please try again.");
+          setEnrichmentSubmitting(false);
+          return;
+        }
+
+        // Set session if tokens returned
+        if (data.accessToken && data.refreshToken) {
+          const supabase = createClient();
+          await supabase.auth.setSession({
+            access_token: data.accessToken,
+            refresh_token: data.refreshToken,
+          });
+        }
+
+        // Store connection IDs
+        if (data.connectionIds?.length > 0) {
+          setConnectionIds(data.connectionIds);
+
+          // Now update connections with enrichment data if we have any
+          const hasEnrichmentData = enrichmentData?.careRecipient || enrichmentData?.urgency ||
+            enrichmentData?.phone || enrichmentData?.contactPreference ||
+            enrichmentData?.careType || enrichmentData?.careNeed ||
+            enrichmentData?.paymentMethod || enrichmentData?.name ||
+            enrichmentData?.city || enrichmentData?.state;
+
+          if (hasEnrichmentData) {
+            try {
+              await Promise.all(
+                data.connectionIds.map((connId: string) =>
+                  fetch("/api/connections/update-intent", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      connectionId: connId,
+                      careRecipient: enrichmentData.careRecipient,
+                      urgency: enrichmentData.urgency,
+                      phone: enrichmentData.phone || undefined,
+                      notifyChannel: enrichmentData.contactPreference || undefined,
+                      careType: enrichmentData.careType || undefined,
+                      careNeed: enrichmentData.careNeed || undefined,
+                      paymentMethod: enrichmentData.paymentMethod || undefined,
+                      name: enrichmentData.name || undefined,
+                      city: enrichmentData.city || undefined,
+                      state: enrichmentData.state || undefined,
+                    }),
+                  })
+                )
+              );
+            } catch (err) {
+              console.error("[CompareCard] enrichment update error:", err);
+              // Don't fail the whole flow for enrichment errors
+            }
+          }
+        }
+
+        // Dispatch event for inbox refresh
+        window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
+        // Clear pending data
+        setPendingSaveData(null);
+
+        // Refresh auth context (non-blocking)
+        try {
+          await refreshAccountData?.();
+        } catch {
+          // Ignore refresh errors
+        }
+
+        // Show success
+        setCardState("success");
+        setEnrichmentSubmitting(false);
+      } catch (err) {
+        console.error("[CompareCard] save error:", err);
+        setSaveError("Something went wrong. Please try again.");
+        setEnrichmentSubmitting(false);
       }
+    } else if (connectionIds.length > 0) {
+      // Already saved, just update enrichment
+      const hasEnrichmentData = enrichmentData?.careRecipient || enrichmentData?.urgency ||
+        enrichmentData?.phone || enrichmentData?.contactPreference ||
+        enrichmentData?.careType || enrichmentData?.careNeed ||
+        enrichmentData?.paymentMethod || enrichmentData?.name ||
+        enrichmentData?.city || enrichmentData?.state;
+
+      if (hasEnrichmentData) {
+        try {
+          await Promise.all(
+            connectionIds.map((connId) =>
+              fetch("/api/connections/update-intent", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  connectionId: connId,
+                  careRecipient: enrichmentData.careRecipient,
+                  urgency: enrichmentData.urgency,
+                  phone: enrichmentData.phone || undefined,
+                  notifyChannel: enrichmentData.contactPreference || undefined,
+                  careType: enrichmentData.careType || undefined,
+                  careNeed: enrichmentData.careNeed || undefined,
+                  paymentMethod: enrichmentData.paymentMethod || undefined,
+                  name: enrichmentData.name || undefined,
+                  city: enrichmentData.city || undefined,
+                  state: enrichmentData.state || undefined,
+                }),
+              })
+            )
+          );
+          // Refresh auth context (non-blocking)
+          try {
+            await refreshAccountData?.();
+          } catch {
+            // Ignore refresh errors
+          }
+        } catch (err) {
+          console.error("[CompareCard] enrichment save error:", err);
+        }
+      }
+
       setCardState("success");
-    } catch (err) {
-      console.error("[CompareCard] enrichment error:", err);
-      setError("Failed to save your details. Please try again.");
-      setCardState("enrichment_error");
-    } finally {
+      setEnrichmentSubmitting(false);
+    } else {
+      // No pending data and no connections - shouldn't happen, but go to success
+      setCardState("success");
       setEnrichmentSubmitting(false);
     }
-  }, [connectionIds, refreshAccountData]);
+  }, [connectionIds, pendingSaveData, refreshAccountData]);
 
-  // Handle enrichment skip
-  const skipEnrichment = useCallback(() => {
-    setCardState("success");
-    setEnrichmentSubmitting(false);
-  }, []);
+  // Skip enrichment - still needs to perform the save if pending
+  const skipEnrichment = useCallback(async () => {
+    if (pendingSaveData) {
+      // Need to perform the save even when skipping enrichment
+      setEnrichmentSubmitting(true);
+      setSaveError(null);
+
+      try {
+        const response = await fetch("/api/connections/compare-save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(pendingSaveData),
+        });
+
+        const data = await response.json();
+
+        // Handle provider email block
+        if (!response.ok && data.code === "PROVIDER_EMAIL") {
+          setBlockedEmail(pendingSaveData.email);
+          setPendingSaveData(null);
+          setCardState("provider_email_block");
+          setEnrichmentSubmitting(false);
+          return;
+        }
+
+        if (!response.ok) {
+          setSaveError(data.error || "Something went wrong. Please try again.");
+          setEnrichmentSubmitting(false);
+          return;
+        }
+
+        // Set session if tokens returned
+        if (data.accessToken && data.refreshToken) {
+          const supabase = createClient();
+          await supabase.auth.setSession({
+            access_token: data.accessToken,
+            refresh_token: data.refreshToken,
+          });
+        }
+
+        // Store connection IDs
+        if (data.connectionIds?.length > 0) {
+          setConnectionIds(data.connectionIds);
+        }
+
+        // Dispatch event for inbox refresh
+        window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
+        // Clear pending data
+        setPendingSaveData(null);
+
+        // Show success
+        setCardState("success");
+        setEnrichmentSubmitting(false);
+      } catch (err) {
+        console.error("[CompareCard] skip save error:", err);
+        setSaveError("Something went wrong. Please try again.");
+        setEnrichmentSubmitting(false);
+      }
+    } else {
+      // Already saved or no data, just go to success
+      setCardState("success");
+      setEnrichmentSubmitting(false);
+    }
+  }, [pendingSaveData]);
 
   // ─────────────────────────────────────────────────────────────────────────────
   // RENDER: Non-family profile (provider/caregiver/student)
@@ -458,20 +555,55 @@ export default function CompareCard({
   // RENDER: Enrichment state
   // ─────────────────────────────────────────────────────────────────────────────
   if (cardState === "enrichment") {
-    const savedCount = connectionIds.length;
+    // Use selectedCount when save is pending, connectionIds.length after save
+    const providerCountDisplay = pendingSaveData ? selectedCount : (connectionIds.length || selectedCount);
     return (
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 pt-5 pb-5">
-          <EnrichmentState
-            providerName={savedCount > 1 ? `${savedCount} providers` : currentProvider.name}
-            onSave={saveEnrichment}
-            onSkip={skipEnrichment}
-            saving={enrichmentSubmitting}
-            successTitle={`Saved ${savedCount} provider${savedCount !== 1 ? "s" : ""}`}
-            successSubtitle="We'll send you a summary to compare"
-            providerCity={currentProvider.city}
-            providerState={currentProvider.state}
-          />
+          {saveError ? (
+            /* Error state - save failed during enrichment */
+            <div className="text-center py-4">
+              <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Couldn&apos;t save providers
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">{saveError}</p>
+              <button
+                onClick={() => {
+                  setSaveError(null);
+                  saveEnrichment();
+                }}
+                className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+              >
+                Try again
+              </button>
+              <button
+                onClick={() => {
+                  setSaveError(null);
+                  setPendingSaveData(null);
+                  setCardState("email_capture");
+                }}
+                className="w-full py-3 px-4 mt-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-300 transition-colors"
+              >
+                Go back
+              </button>
+            </div>
+          ) : (
+            <EnrichmentState
+              providerName={providerCountDisplay > 1 ? `${providerCountDisplay} providers` : currentProvider.name}
+              onSave={saveEnrichment}
+              onSkip={skipEnrichment}
+              saving={enrichmentSubmitting}
+              successTitle={`Saved ${providerCountDisplay} provider${providerCountDisplay !== 1 ? "s" : ""}`}
+              successSubtitle="We'll send you a summary to compare"
+              providerCity={currentProvider.city}
+              providerState={currentProvider.state}
+            />
+          )}
         </div>
       </div>
     );

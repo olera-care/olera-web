@@ -91,6 +91,14 @@ export default function CompareBottomSheet({
   const emailInputRef = useRef<HTMLInputElement>(null);
   const saveClickFiredRef = useRef(false);
 
+  // Optimistic enrichment: store pending save data while showing enrichment immediately
+  const [pendingSaveData, setPendingSaveData] = useState<{
+    email: string;
+    providers: { id: string; slug: string; name: string }[];
+    sessionId: string;
+  } | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   // Show all providers immediately (pre-populated comparison)
   const [showSimilar, setShowSimilar] = useState(true);
 
@@ -171,6 +179,9 @@ export default function CompareBottomSheet({
         setEmail("");
         setError(null);
         setBlockedEmail(null);
+        setPendingSaveData(null);
+        setSaveError(null);
+        setConnectionIds([]);
         saveClickFiredRef.current = false;
       }
       wasOpenRef.current = true;
@@ -302,10 +313,11 @@ export default function CompareBottomSheet({
     }
   }, [userEmail, ctaVariant, ctaPreviewMode, currentProvider.slug, selectedProviders, router]);
 
-  // Handle email submit
+  // Handle email submit - OPTIMISTIC: show enrichment immediately, save in background
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSaveError(null);
 
     if (!email.trim()) {
       setError("Please enter your email.");
@@ -318,62 +330,24 @@ export default function CompareBottomSheet({
       return;
     }
 
-    setFooterState("submitting");
-
-    try {
-      const response = await fetch("/api/connections/compare-save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          providers: selectedProviders.map((p) => ({
-            id: p.id,
-            slug: p.slug,
-            name: p.name,
-          })),
-          sessionId: getOrCreateSessionId(),
-        }),
-      });
-
-      const data = await response.json();
-
-      // Handle provider email block
-      if (!response.ok && data.code === "PROVIDER_EMAIL") {
-        setBlockedEmail(email.trim());
-        setFooterState("provider_email_block");
-        return;
-      }
-
-      if (!response.ok) {
-        setError(data.error || "Something went wrong. Please try again.");
-        setFooterState("email_capture");
-        return;
-      }
-
-      // Set session if tokens returned
-      if (data.accessToken && data.refreshToken) {
-        const supabase = createClient();
-        await supabase.auth.setSession({
-          access_token: data.accessToken,
-          refresh_token: data.refreshToken,
-        });
-      }
-
-      // Store connection IDs for enrichment
-      if (data.connectionIds?.length > 0) {
-        setConnectionIds(data.connectionIds);
-      }
-
-      // Go to enrichment instead of success
-      setFooterState("enrichment");
-    } catch {
-      setError("Something went wrong. Please try again.");
-      setFooterState("email_capture");
-    }
+    // OPTIMISTIC: Immediately show enrichment while save happens in background
+    // This eliminates the race condition with session establishment
+    const saveData = {
+      email: email.trim(),
+      providers: selectedProviders.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+      })),
+      sessionId: getOrCreateSessionId(),
+    };
+    setPendingSaveData(saveData);
+    setFooterState("enrichment"); // Show enrichment immediately - no waiting!
   };
 
-  // Handle enrichment save - update ALL connections with same intent data
-  const saveEnrichment = useCallback(async (data?: {
+  // Handle enrichment save - performs the actual save API call + enrichment update
+  // This is called when user completes enrichment questions (or skips)
+  const saveEnrichment = useCallback(async (enrichmentData?: {
     careRecipient?: string;
     urgency?: string;
     phone?: string;
@@ -385,60 +359,222 @@ export default function CompareBottomSheet({
     city?: string;
     state?: string;
   }) => {
-    // Check if we have any data to save
-    const hasData = data?.careRecipient || data?.urgency ||
-      data?.phone || data?.contactPreference ||
-      data?.careType || data?.careNeed ||
-      data?.paymentMethod || data?.name ||
-      data?.city || data?.state;
+    setEnrichmentSubmitting(true);
+    setSaveError(null);
 
-    if (!connectionIds.length || !hasData) {
-      // No data to save, show success state
+    // If we have pending save data, we need to create the connections first
+    if (pendingSaveData) {
+      try {
+        const response = await fetch("/api/connections/compare-save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(pendingSaveData),
+        });
+
+        const data = await response.json();
+
+        // Handle provider email block
+        if (!response.ok && data.code === "PROVIDER_EMAIL") {
+          setBlockedEmail(pendingSaveData.email);
+          setPendingSaveData(null);
+          setFooterState("provider_email_block");
+          setEnrichmentSubmitting(false);
+          return;
+        }
+
+        if (!response.ok) {
+          setSaveError(data.error || "Something went wrong. Please try again.");
+          setEnrichmentSubmitting(false);
+          return;
+        }
+
+        // Set session if tokens returned
+        if (data.accessToken && data.refreshToken) {
+          const supabase = createClient();
+          await supabase.auth.setSession({
+            access_token: data.accessToken,
+            refresh_token: data.refreshToken,
+          });
+        }
+
+        // Store connection IDs
+        if (data.connectionIds?.length > 0) {
+          setConnectionIds(data.connectionIds);
+
+          // Now update connections with enrichment data if we have any
+          const hasEnrichmentData = enrichmentData?.careRecipient || enrichmentData?.urgency ||
+            enrichmentData?.phone || enrichmentData?.contactPreference ||
+            enrichmentData?.careType || enrichmentData?.careNeed ||
+            enrichmentData?.paymentMethod || enrichmentData?.name ||
+            enrichmentData?.city || enrichmentData?.state;
+
+          if (hasEnrichmentData) {
+            try {
+              await Promise.all(
+                data.connectionIds.map((connId: string) =>
+                  fetch("/api/connections/update-intent", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      connectionId: connId,
+                      careRecipient: enrichmentData.careRecipient,
+                      urgency: enrichmentData.urgency,
+                      phone: enrichmentData.phone || undefined,
+                      notifyChannel: enrichmentData.contactPreference || undefined,
+                      careType: enrichmentData.careType || undefined,
+                      careNeed: enrichmentData.careNeed || undefined,
+                      paymentMethod: enrichmentData.paymentMethod || undefined,
+                      name: enrichmentData.name || undefined,
+                      city: enrichmentData.city || undefined,
+                      state: enrichmentData.state || undefined,
+                    }),
+                  })
+                )
+              );
+            } catch (err) {
+              console.error("[CompareBottomSheet] enrichment update error:", err);
+              // Don't fail the whole flow for enrichment errors
+            }
+          }
+        }
+
+        // Dispatch event for inbox refresh
+        window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
+        // Clear pending data
+        setPendingSaveData(null);
+
+        // Refresh auth context (non-blocking)
+        try {
+          await refreshAccountData?.();
+        } catch {
+          // Ignore refresh errors
+        }
+
+        // Show success
+        setFooterState("success");
+        setEnrichmentSubmitting(false);
+      } catch (err) {
+        console.error("[CompareBottomSheet] save error:", err);
+        setSaveError("Something went wrong. Please try again.");
+        setEnrichmentSubmitting(false);
+      }
+    } else if (connectionIds.length > 0) {
+      // Already saved, just update enrichment
+      const hasEnrichmentData = enrichmentData?.careRecipient || enrichmentData?.urgency ||
+        enrichmentData?.phone || enrichmentData?.contactPreference ||
+        enrichmentData?.careType || enrichmentData?.careNeed ||
+        enrichmentData?.paymentMethod || enrichmentData?.name ||
+        enrichmentData?.city || enrichmentData?.state;
+
+      if (hasEnrichmentData) {
+        try {
+          await Promise.all(
+            connectionIds.map((connId) =>
+              fetch("/api/connections/update-intent", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  connectionId: connId,
+                  careRecipient: enrichmentData.careRecipient,
+                  urgency: enrichmentData.urgency,
+                  phone: enrichmentData.phone || undefined,
+                  notifyChannel: enrichmentData.contactPreference || undefined,
+                  careType: enrichmentData.careType || undefined,
+                  careNeed: enrichmentData.careNeed || undefined,
+                  paymentMethod: enrichmentData.paymentMethod || undefined,
+                  name: enrichmentData.name || undefined,
+                  city: enrichmentData.city || undefined,
+                  state: enrichmentData.state || undefined,
+                }),
+              })
+            )
+          );
+          // Refresh auth context (non-blocking)
+          try {
+            await refreshAccountData?.();
+          } catch {
+            // Ignore refresh errors
+          }
+        } catch (err) {
+          console.error("[CompareBottomSheet] enrichment save error:", err);
+        }
+      }
+
       setFooterState("success");
       setEnrichmentSubmitting(false);
-      return;
+    } else {
+      // No pending data and no connections - shouldn't happen, but go to success
+      setFooterState("success");
+      setEnrichmentSubmitting(false);
     }
+  }, [connectionIds, pendingSaveData, refreshAccountData]);
 
-    setEnrichmentSubmitting(true);
-    try {
-      // Update all connections with the same intent data
-      await Promise.all(
-        connectionIds.map((connId) =>
-          fetch("/api/connections/update-intent", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              connectionId: connId,
-              careRecipient: data.careRecipient,
-              urgency: data.urgency,
-              phone: data.phone || undefined,
-              notifyChannel: data.contactPreference || undefined,
-              careType: data.careType || undefined,
-              careNeed: data.careNeed || undefined,
-              paymentMethod: data.paymentMethod || undefined,
-              name: data.name || undefined,
-              city: data.city || undefined,
-              state: data.state || undefined,
-            }),
-          })
-        )
-      );
-      // Refresh auth context so inbox has updated profile data
-      await refreshAccountData?.();
-    } catch (err) {
-      console.error("[CompareBottomSheet] enrichment save error:", err);
+  // Skip enrichment - still needs to perform the save if pending
+  const skipEnrichment = useCallback(async () => {
+    if (pendingSaveData) {
+      // Need to perform the save even when skipping enrichment
+      setEnrichmentSubmitting(true);
+      setSaveError(null);
+
+      try {
+        const response = await fetch("/api/connections/compare-save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(pendingSaveData),
+        });
+
+        const data = await response.json();
+
+        // Handle provider email block
+        if (!response.ok && data.code === "PROVIDER_EMAIL") {
+          setBlockedEmail(pendingSaveData.email);
+          setPendingSaveData(null);
+          setFooterState("provider_email_block");
+          setEnrichmentSubmitting(false);
+          return;
+        }
+
+        if (!response.ok) {
+          setSaveError(data.error || "Something went wrong. Please try again.");
+          setEnrichmentSubmitting(false);
+          return;
+        }
+
+        // Set session if tokens returned
+        if (data.accessToken && data.refreshToken) {
+          const supabase = createClient();
+          await supabase.auth.setSession({
+            access_token: data.accessToken,
+            refresh_token: data.refreshToken,
+          });
+        }
+
+        // Store connection IDs
+        if (data.connectionIds?.length > 0) {
+          setConnectionIds(data.connectionIds);
+        }
+
+        // Dispatch event for inbox refresh
+        window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
+        // Clear pending data
+        setPendingSaveData(null);
+
+        // Show success
+        setFooterState("success");
+        setEnrichmentSubmitting(false);
+      } catch (err) {
+        console.error("[CompareBottomSheet] skip save error:", err);
+        setSaveError("Something went wrong. Please try again.");
+        setEnrichmentSubmitting(false);
+      }
+    } else {
+      // Already saved or no data, just go to success
+      setFooterState("success");
+      setEnrichmentSubmitting(false);
     }
-
-    // Stay on page - show success state
-    setFooterState("success");
-    setEnrichmentSubmitting(false);
-  }, [connectionIds, refreshAccountData]);
-
-  const skipEnrichment = useCallback(() => {
-    // Stay on page - show success state
-    setFooterState("success");
-    setEnrichmentSubmitting(false);
-  }, []);
+  }, [pendingSaveData]);
 
   if (!isOpen || !mounted) return null;
 
@@ -524,16 +660,50 @@ export default function CompareBottomSheet({
         {/* Enrichment state - clean full-sheet view */}
         {footerState === "enrichment" ? (
           <div className="flex-1 flex flex-col justify-center px-5 py-6">
-            <EnrichmentState
-              providerName={selectedCount > 1 ? `${selectedCount} providers` : currentProvider.name}
-              onSave={saveEnrichment}
-              onSkip={skipEnrichment}
-              saving={enrichmentSubmitting}
-              successTitle={`Saved ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-              successSubtitle="We'll send you a summary to compare"
-              providerCity={currentProvider.city}
-              providerState={currentProvider.state}
-            />
+            {saveError ? (
+              /* Error state - save failed during enrichment */
+              <div className="text-center py-4">
+                <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Couldn&apos;t save providers
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">{saveError}</p>
+                <button
+                  onClick={() => {
+                    setSaveError(null);
+                    saveEnrichment();
+                  }}
+                  className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+                >
+                  Try again
+                </button>
+                <button
+                  onClick={() => {
+                    setSaveError(null);
+                    setPendingSaveData(null);
+                    setFooterState("email_capture");
+                  }}
+                  className="w-full py-3 px-4 mt-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-300 transition-colors"
+                >
+                  Go back
+                </button>
+              </div>
+            ) : (
+              <EnrichmentState
+                providerName={selectedCount > 1 ? `${selectedCount} providers` : currentProvider.name}
+                onSave={saveEnrichment}
+                onSkip={skipEnrichment}
+                saving={enrichmentSubmitting}
+                successTitle={`Saved ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                successSubtitle="We'll send you a summary to compare"
+                providerCity={currentProvider.city}
+                providerState={currentProvider.state}
+              />
+            )}
           </div>
         ) : (
           <>

@@ -382,41 +382,55 @@ export default function CompareOverlay({
         className="absolute inset-y-0 right-0 w-[90vw] max-w-2xl bg-white shadow-2xl flex flex-col animate-panel-in-right"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="shrink-0 px-6 pt-5 pb-4 border-b border-gray-100">
-          <div className="flex items-start justify-between">
-            <div className="flex-1 pr-4">
-              <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                Compare {allProviders.length} provider{allProviders.length !== 1 ? "s" : ""}
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                {categoryLocationStr}
-              </p>
-            </div>
-            {/* Close button */}
-            {footerState !== "enrichment" && footerState !== "success" && (
-              <button
-                onClick={onClose}
-                disabled={footerState === "submitting"}
-                className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50"
-                aria-label="Close"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
+        {/* Enrichment state - clean full-panel view */}
+        {footerState === "enrichment" ? (
+          <div className="flex-1 flex flex-col justify-center px-6 py-8">
+            <EnrichmentState
+              providerName={selectedCount > 1 ? `${selectedCount} providers` : currentProvider.name}
+              onSave={saveEnrichment}
+              onSkip={skipEnrichment}
+              saving={enrichmentSubmitting}
+              successTitle={`Saved ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+              successSubtitle="We'll send you a summary to compare"
+            />
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Header */}
+            <div className="shrink-0 px-6 pt-5 pb-4 border-b border-gray-100">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 pr-4">
+                  <h2 className="text-xl font-bold text-gray-900 leading-tight">
+                    Compare {allProviders.length} provider{allProviders.length !== 1 ? "s" : ""}
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {categoryLocationStr}
+                  </p>
+                </div>
+                {/* Close button */}
+                {footerState !== "success" && (
+                  <button
+                    onClick={onClose}
+                    disabled={footerState === "submitting"}
+                    className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50"
+                    aria-label="Close"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
 
-        {/* Scrollable Content - Provider Cards */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="px-6 py-5 space-y-3">
-            {displayProviders.map((provider) => {
-              const isCurrentProvider = provider.id === currentProvider.id;
-              return (
-                <CompareCard
-                  key={provider.id}
+            {/* Scrollable Content - Provider Cards */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="px-6 py-5 space-y-3">
+                {displayProviders.map((provider) => {
+                  const isCurrentProvider = provider.id === currentProvider.id;
+                  return (
+                    <CompareCard
+                      key={provider.id}
                   provider={provider}
                   isCurrentProvider={isCurrentProvider}
                   isSelected={selectedProviderIds.has(provider.id)}
@@ -431,17 +445,7 @@ export default function CompareOverlay({
 
         {/* Sticky Footer */}
         <div className="shrink-0 px-6 py-4 border-t border-gray-200 bg-white">
-          {footerState === "enrichment" ? (
-            /* Enrichment state */
-            <EnrichmentState
-              providerName={selectedCount > 1 ? `${selectedCount} providers` : currentProvider.name}
-              onSave={saveEnrichment}
-              onSkip={skipEnrichment}
-              saving={enrichmentSubmitting}
-              successTitle={`Saved ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-              successSubtitle="Message them when you're ready"
-            />
-          ) : footerState === "success" ? (
+          {footerState === "success" ? (
             /* Success state (fallback) */
             <div className="py-3 text-center">
               <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -583,6 +587,8 @@ export default function CompareOverlay({
             </form>
           )}
         </div>
+          </>
+        )}
       </div>
     </div>
   );

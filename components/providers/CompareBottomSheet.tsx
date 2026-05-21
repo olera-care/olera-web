@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
+import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
 
 export interface CompareProvider {
   id: string;
@@ -421,6 +422,59 @@ export default function CompareBottomSheet({
   }, []);
 
   if (!isOpen || !mounted) return null;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Logged-in family users: Skip comparison flow, show LoggedInFamilyCTA
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (isLoggedIn && !isNonFamilyProfile) {
+    const loggedInContent = (
+      <div className="fixed inset-0 z-[60] md:hidden">
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/40 animate-fade-in"
+          onClick={onClose}
+        />
+        {/* Bottom Sheet */}
+        <div
+          className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl animate-sheet-up flex flex-col"
+          style={{
+            maxHeight: "85dvh",
+            paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          }}
+        >
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-2 shrink-0">
+            <div className="w-10 h-1 rounded-full bg-gray-300" />
+          </div>
+          {/* Header */}
+          <div className="px-5 pb-4 border-b border-gray-100">
+            <h2 className="text-lg font-bold text-gray-900">
+              Connect with {currentProvider.name}
+            </h2>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {[currentProvider.city, currentProvider.state].filter(Boolean).join(", ")}
+            </p>
+          </div>
+          {/* CTA Content */}
+          <div className="flex-1 overflow-y-auto px-5 py-5">
+            <LoggedInFamilyCTA
+              providerId={currentProvider.id}
+              providerName={currentProvider.name}
+              providerSlug={currentProvider.slug}
+              providerCategory={currentProvider.category}
+              providerCity={currentProvider.city}
+              providerState={currentProvider.state}
+              providerImage={currentProvider.image}
+              careTypes={currentProvider.category ? [currentProvider.category] : []}
+              priceRange={currentProvider.priceRange}
+              ctaVariant={ctaVariant || "compare"}
+            />
+          </div>
+        </div>
+      </div>
+    );
+    return createPortal(loggedInContent, document.body);
+  }
 
   const sheetContent = (
     <div className="fixed inset-0 z-[60] md:hidden">

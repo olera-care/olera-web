@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
+import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
 import type { CompareProvider } from "./CompareBottomSheet";
 
 type FooterState = "initial" | "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block" | "family_required";
@@ -406,6 +407,66 @@ export default function CompareOverlay({
   }, [footerState]);
 
   if (!isOpen || !mounted) return null;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Logged-in family users: Skip comparison flow, show LoggedInFamilyCTA
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (isLoggedIn && !isNonFamilyProfile) {
+    const loggedInContent = (
+      <div className="fixed inset-0 z-[200] hidden md:block">
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/40"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+        {/* Compact right panel */}
+        <div
+          className="absolute inset-y-0 right-0 w-[90vw] max-w-md bg-white shadow-2xl flex flex-col animate-panel-in-right"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="shrink-0 px-6 pt-5 pb-4 border-b border-gray-100">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 pr-4">
+                <h2 className="text-xl font-bold text-gray-900 leading-tight">
+                  Connect with {currentProvider.name}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {[currentProvider.city, currentProvider.state].filter(Boolean).join(", ")}
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"
+                aria-label="Close"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          {/* CTA Content */}
+          <div className="flex-1 px-6 py-6">
+            <LoggedInFamilyCTA
+              providerId={currentProvider.id}
+              providerName={currentProvider.name}
+              providerSlug={currentProvider.slug}
+              providerCategory={currentProvider.category}
+              providerCity={currentProvider.city}
+              providerState={currentProvider.state}
+              providerImage={currentProvider.image}
+              careTypes={currentProvider.category ? [currentProvider.category] : []}
+              priceRange={currentProvider.priceRange}
+              ctaVariant={ctaVariant || "compare"}
+            />
+          </div>
+        </div>
+      </div>
+    );
+    return createPortal(loggedInContent, document.body);
+  }
 
   const overlayContent = (
     <div className="fixed inset-0 z-[200] hidden md:block">

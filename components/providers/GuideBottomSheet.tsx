@@ -133,12 +133,17 @@ export default function GuideBottomSheet({
   // Track if sheet was already open to prevent reset on auth state changes
   const wasOpenRef = useRef(false);
 
+  // Track mid-flow states that should NEVER be interrupted by auth state changes
+  // This is more reliable than wasOpenRef because it explicitly protects specific states
+  const isMidFlow = sheetState === "submitting" || sheetState === "enrichment" || sheetState === "success";
+
   useEffect(() => {
     const keyHandler = (e: KeyboardEvent) => handleKeyDownRef.current(e);
 
     if (isOpen) {
       // Only reset state when sheet OPENS (not when auth state changes mid-flow)
-      if (!wasOpenRef.current) {
+      // CRITICAL: Never reset if user is mid-flow (submitting, enrichment, or success)
+      if (!wasOpenRef.current && !isMidFlow) {
         // Determine starting state
         if (startInEnrichment && initialConnectionId) {
           // Logged-in user who already created connection - go straight to enrichment
@@ -167,13 +172,17 @@ export default function GuideBottomSheet({
       document.body.style.overflow = "hidden";
       document.addEventListener("keydown", keyHandler);
     } else {
-      wasOpenRef.current = false;
+      // Only reset wasOpenRef if we're NOT mid-flow
+      // This prevents issues if sheet closes briefly during auth transitions
+      if (!isMidFlow) {
+        wasOpenRef.current = false;
+      }
     }
     return () => {
       document.body.style.overflow = "";
       document.removeEventListener("keydown", keyHandler);
     };
-  }, [isOpen, isLoggedIn, isNonFamilyProfile, startInEnrichment, initialConnectionId]);
+  }, [isOpen, isLoggedIn, isNonFamilyProfile, startInEnrichment, initialConnectionId, isMidFlow]);
 
   // Close sheet when viewport switches to desktop
   useEffect(() => {

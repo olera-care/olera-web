@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useSavedProviders } from "@/hooks/use-saved-providers";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
 
@@ -51,8 +53,23 @@ export default function CompareBottomSheet({
 }: CompareBottomSheetProps) {
   const router = useRouter();
   const { user, activeProfile, openAuth } = useAuth();
+  const { isSaved, toggleSave } = useSavedProviders();
   const isLoggedIn = !!user && !!activeProfile;
   const userEmail = user?.email || "";
+
+  // Save provider helper (saves primary provider)
+  const providerIsSaved = isSaved(currentProvider.slug);
+  const providerLocation = [currentProvider.city, currentProvider.state].filter(Boolean).join(", ");
+  const handleSaveProvider = useCallback(() => {
+    toggleSave({
+      providerId: currentProvider.slug,
+      slug: currentProvider.slug,
+      name: currentProvider.name,
+      location: providerLocation,
+      careTypes: currentProvider.services || [],
+      image: currentProvider.image || null,
+    });
+  }, [toggleSave, currentProvider, providerLocation]);
 
   // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
   const isNonFamilyProfile = activeProfile &&
@@ -752,28 +769,47 @@ export default function CompareBottomSheet({
                 </div>
                 <div>
                   <h3 className="text-[15px] font-bold text-gray-900">
-                    Saved {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                    Saved {connectionIds.length} provider{connectionIds.length !== 1 ? "s" : ""}
                   </h3>
                   <p className="text-[13px] text-gray-500">
                     We&apos;ll send you a summary to compare
                   </p>
                 </div>
               </div>
-              <a
-                href={connectionIds.length === 1 ? `/portal/inbox?id=${connectionIds[0]}` : "/portal/inbox"}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-[15px] font-semibold transition-colors"
-              >
-                Go to inbox
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </a>
-              <button
-                onClick={onClose}
-                className="w-full mt-2 py-2.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                Stay on this page
-              </button>
+              {/* Action buttons: Save + Go to inbox */}
+              <div className="flex items-center gap-2">
+                {/* Save button */}
+                <button
+                  type="button"
+                  onClick={handleSaveProvider}
+                  className={`shrink-0 w-14 h-14 flex items-center justify-center rounded-xl border-2 transition-all ${
+                    providerIsSaved
+                      ? "border-primary-500 bg-primary-50 text-primary-600"
+                      : "border-gray-200 bg-white text-gray-400 hover:border-gray-300 hover:text-gray-500"
+                  }`}
+                  aria-label={providerIsSaved ? "Saved" : "Save for later"}
+                >
+                  {providerIsSaved ? (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  )}
+                </button>
+                {/* Go to inbox button */}
+                <Link
+                  href={connectionIds.length === 1 ? `/portal/inbox?id=${connectionIds[0]}` : "/portal/inbox"}
+                  className="flex-1 py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                  Go to inbox
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </Link>
+              </div>
             </div>
           )}
             </div>

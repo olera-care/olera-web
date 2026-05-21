@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useSavedProviders } from "@/hooks/use-saved-providers";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
 
@@ -50,8 +52,23 @@ export default function GuideBottomSheet({
   initialConnectionId = null,
 }: GuideBottomSheetProps) {
   const { user, activeProfile, openAuth } = useAuth();
+  const { isSaved, toggleSave } = useSavedProviders();
   const isLoggedIn = !!user && !!activeProfile;
   const userEmail = user?.email || "";
+
+  // Save provider helper
+  const providerIsSaved = isSaved(providerSlug);
+  const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
+  const handleSaveProvider = useCallback(() => {
+    toggleSave({
+      providerId: providerSlug,
+      slug: providerSlug,
+      name: providerName,
+      location: locationStr,
+      careTypes: careTypes || [],
+      image: providerImage || null,
+    });
+  }, [toggleSave, providerSlug, providerName, locationStr, careTypes, providerImage]);
 
   // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
   const isNonFamilyProfile = activeProfile &&
@@ -551,84 +568,66 @@ export default function GuideBottomSheet({
           )}
 
           {/* ─────────────────────────────────────────────────────────────────── */}
-          {/* Success State (fallback - should not normally reach here now) */}
+          {/* Success State */}
           {/* ─────────────────────────────────────────────────────────────────── */}
           {sheetState === "success" && (
             <>
               {/* Success header */}
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center shrink-0">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Checklist on its way.</h2>
-                  <p className="text-sm text-gray-500">Downloaded · Also sent to your email.</p>
+                  <h2 className="text-[15px] font-bold text-gray-900">Checklist on its way</h2>
+                  <p className="text-[13px] text-gray-500">Downloaded · Sent to your email</p>
                 </div>
               </div>
 
-              {/* Provider card */}
-              <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-3">
-                  Want to ask {providerName.split(" ")[0]} a question?
-                </p>
-
-                <div className="flex items-center gap-3">
-                  {providerImage ? (
-                    <Image
-                      src={providerImage}
-                      alt={providerName}
-                      width={56}
-                      height={56}
-                      className="w-14 h-14 rounded-lg object-cover bg-gray-100"
-                    />
+              {/* Action buttons: Save + Go to inbox */}
+              <div className="flex items-center gap-2">
+                {/* Save button */}
+                <button
+                  type="button"
+                  onClick={handleSaveProvider}
+                  className={`shrink-0 w-14 h-14 flex items-center justify-center rounded-xl border-2 transition-all ${
+                    providerIsSaved
+                      ? "border-primary-500 bg-primary-50 text-primary-600"
+                      : "border-gray-200 bg-white text-gray-400 hover:border-gray-300 hover:text-gray-500"
+                  }`}
+                  aria-label={providerIsSaved ? "Saved" : "Save for later"}
+                >
+                  {providerIsSaved ? (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
                   ) : (
-                    <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
-                      <span className="text-lg font-semibold text-amber-700">
-                        {providerName.charAt(0)}
-                      </span>
-                    </div>
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[15px] font-bold text-gray-900 truncate">{providerName}</p>
-                    <p className="text-[13px] text-gray-500">
-                      {[providerCity, providerState].filter(Boolean).join(", ")}
-                    </p>
-                  </div>
-                </div>
+                </button>
+                {/* Go to inbox button */}
+                <Link
+                  href={connectionId ? `/portal/inbox?id=${connectionId}` : "/portal/inbox"}
+                  className="flex-1 py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                  Go to inbox
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </Link>
               </div>
 
-              {/* CTA button */}
-              <button
-                onClick={handleMessageProvider}
-                className="w-full px-5 py-3.5 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
-              >
-                Open a thread
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
-
-              {/* Re-download + Close links */}
-              <div className="flex items-center justify-center gap-4 mt-4">
-                {pdfUrl && (
-                  <a
-                    href={pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-primary-600 hover:underline"
-                  >
+              {/* Re-download link */}
+              {pdfUrl && (
+                <p className="text-center text-xs text-gray-400 mt-4">
+                  <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
                     Download checklist again
                   </a>
-                )}
-                <button
-                  onClick={onClose}
-                  className="text-xs text-gray-500 hover:text-gray-700"
-                >
-                  Close
-                </button>
-              </div>
+                </p>
+              )}
             </>
           )}
 

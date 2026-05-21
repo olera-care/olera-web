@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { getPricingConfig } from "@/lib/pricing-config";
 import { createClient } from "@/lib/supabase/client";
@@ -746,7 +747,7 @@ export default function GuideCard({
           </button>
 
           {/* Go to inbox button */}
-          <a
+          <Link
             href={inboxHref}
             className="flex-1 py-3 px-4 rounded-xl text-[15px] font-semibold bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 flex items-center justify-center gap-2"
           >
@@ -754,7 +755,7 @@ export default function GuideCard({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
-          </a>
+          </Link>
         </div>
 
         {/* Re-download link */}

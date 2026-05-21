@@ -10,7 +10,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import type { CompareProvider } from "./CompareBottomSheet";
 
-type FooterState = "initial" | "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block";
+type FooterState = "initial" | "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block" | "family_required";
 
 interface CompareOverlayProps {
   isOpen: boolean;
@@ -36,6 +36,16 @@ export default function CompareOverlay({
 }: CompareOverlayProps) {
   const router = useRouter();
   const { user, activeProfile, openAuth } = useAuth();
+
+  // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
+  const isNonFamilyProfile = activeProfile &&
+    (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
+  const accountTypeLabel = activeProfile?.type === "organization"
+    ? "provider"
+    : (activeProfile?.type === "caregiver" || activeProfile?.type === "student")
+    ? "caregiver"
+    : "current";
+
   const [footerState, setFooterState] = useState<FooterState>("initial");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -308,7 +318,7 @@ export default function CompareOverlay({
   // Handle escape key to close (disabled during submitting/enrichment/success)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape" && footerState !== "submitting" && footerState !== "enrichment" && footerState !== "success") {
+      if (e.key === "Escape" && footerState !== "submitting" && footerState !== "enrichment") {
         onClose();
       }
     },
@@ -324,25 +334,34 @@ export default function CompareOverlay({
   const handleKeyDownRef = useRef(handleKeyDown);
   handleKeyDownRef.current = handleKeyDown;
 
+  // Track if overlay was already open to prevent reset on auth state changes
+  const wasOpenRef = useRef(false);
+
   useEffect(() => {
     const keyHandler = (e: KeyboardEvent) => handleKeyDownRef.current(e);
 
     if (isOpen) {
-      // Reset state when opening
-      setFooterState("initial");
-      setEmail("");
-      setError(null);
-      saveClickFiredRef.current = false;
+      // Only reset state when overlay OPENS (not when auth state changes mid-flow)
+      if (!wasOpenRef.current) {
+        // Show family required state if logged in as provider/caregiver/student
+        setFooterState(isNonFamilyProfile ? "family_required" : "initial");
+        setEmail("");
+        setError(null);
+        setBlockedEmail(null);
+        saveClickFiredRef.current = false;
+      }
+      wasOpenRef.current = true;
       document.body.style.overflow = "hidden";
       document.addEventListener("keydown", keyHandler);
     } else {
+      wasOpenRef.current = false;
       document.body.style.overflow = "";
     }
     return () => {
       document.body.style.overflow = "";
       document.removeEventListener("keydown", keyHandler);
     };
-  }, [isOpen]);
+  }, [isOpen, isNonFamilyProfile]);
 
   // Close overlay when viewport switches to mobile (below md breakpoint)
   useEffect(() => {
@@ -373,7 +392,7 @@ export default function CompareOverlay({
       {/* Backdrop - click to close */}
       <div
         className="absolute inset-0 bg-black/40"
-        onClick={footerState === "submitting" || footerState === "enrichment" || footerState === "success" ? undefined : onClose}
+        onClick={footerState === "submitting" || footerState === "enrichment" ? undefined : onClose}
         aria-hidden="true"
       />
 
@@ -488,6 +507,31 @@ export default function CompareOverlay({
                   : "Save now, message when ready"}
               </p>
             </>
+          ) : footerState === "family_required" ? (
+            /* Family required state (logged in as provider/caregiver/student) */
+            <div className="py-3 text-center">
+              <div className="w-12 h-12 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Family account required</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Care comparison requests can only be sent from a family account.
+              </p>
+              <button
+                onClick={() => {
+                  onClose();
+                  openAuth({ defaultMode: "sign-up", intent: "family" });
+                }}
+                className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+              >
+                Create Family Account
+              </button>
+              <p className="text-xs text-gray-400 mt-3">
+                Use a different email than your {accountTypeLabel} account.
+              </p>
+            </div>
           ) : footerState === "provider_email_block" ? (
             /* Provider email block state */
             <div className="py-3 text-center">

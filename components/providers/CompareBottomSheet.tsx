@@ -117,10 +117,10 @@ export default function CompareBottomSheet({
   const locationStr = [currentProvider.city, currentProvider.state].filter(Boolean).join(", ");
   const categoryLocationStr = [currentProvider.category, locationStr].filter(Boolean).join(" · ");
 
-  // Handle escape key (disabled during submitting/enrichment/success)
+  // Handle escape key (disabled during submitting/enrichment)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape" && footerState !== "submitting" && footerState !== "enrichment" && footerState !== "success") {
+      if (e.key === "Escape" && footerState !== "submitting" && footerState !== "enrichment") {
         onClose();
       }
     },
@@ -407,7 +407,7 @@ export default function CompareBottomSheet({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40 animate-fade-in"
-        onClick={footerState === "submitting" || footerState === "enrichment" || footerState === "success" ? undefined : onClose}
+        onClick={footerState === "submitting" || footerState === "enrichment" ? undefined : onClose}
       />
 
       {/* Bottom Sheet */}

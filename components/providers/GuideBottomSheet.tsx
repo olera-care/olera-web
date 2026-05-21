@@ -51,7 +51,7 @@ export default function GuideBottomSheet({
   startInEnrichment = false,
   initialConnectionId = null,
 }: GuideBottomSheetProps) {
-  const { user, activeProfile, openAuth } = useAuth();
+  const { user, activeProfile, openAuth, refreshAccountData } = useAuth();
   const { isSaved, toggleSave } = useSavedProviders();
   const isLoggedIn = !!user && !!activeProfile;
   const userEmail = user?.email || "";
@@ -334,6 +334,8 @@ export default function GuideBottomSheet({
             state: enrichmentData.state || undefined,
           }),
         });
+        // Refresh auth context so inbox has updated profile data
+        await refreshAccountData?.();
       } catch (err) {
         console.error("[GuideBottomSheet] enrichment save error:", err);
       }
@@ -352,7 +354,7 @@ export default function GuideBottomSheet({
     // Stay on page - show success state
     setSheetState("success");
     setEnrichmentSubmitting(false);
-  }, []);
+  }, [refreshAccountData]);
 
   const saveEnrichment = useCallback(async (data?: {
     careRecipient?: string;
@@ -441,8 +443,8 @@ export default function GuideBottomSheet({
           <div className="w-10 h-1 rounded-full bg-gray-300" />
         </div>
 
-        {/* Close button - hidden during enrichment */}
-        {sheetState !== "enrichment" && (
+        {/* Close button - hidden during enrichment and success (users can tap outside to close) */}
+        {sheetState !== "enrichment" && sheetState !== "success" && (
           <button
             onClick={onClose}
             disabled={sheetState === "submitting"}
@@ -580,8 +582,8 @@ export default function GuideBottomSheet({
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-[15px] font-bold text-gray-900">Checklist on its way</h2>
-                  <p className="text-[13px] text-gray-500">Downloaded · Sent to your email</p>
+                  <h2 className="text-[15px] font-bold text-gray-900">Connected with {providerName}</h2>
+                  <p className="text-[13px] text-gray-500">Checklist downloaded · Sent to email</p>
                 </div>
               </div>
 

@@ -804,6 +804,8 @@ export default function MobileStickyBottomCTA({
         onBack={hook.isNonFamilyProfile ? undefined : sheetOnBack}
         footer={hook.isNonFamilyProfile ? undefined : sheetFooter}
         size="lg"
+        hideHeader={hook.cardState === "connected"}
+        hideCloseButton={hook.cardState === "connected"}
       >
         {/* ── Non-family profile block ── */}
         {hook.isNonFamilyProfile && (
@@ -957,7 +959,10 @@ export default function MobileStickyBottomCTA({
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900">
-                  Connected &middot; {dateStr}
+                  Connected with {providerName}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {dateStr}
                 </p>
               </div>
             </div>

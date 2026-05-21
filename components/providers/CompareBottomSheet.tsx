@@ -52,7 +52,7 @@ export default function CompareBottomSheet({
   ctaPreviewMode = false,
 }: CompareBottomSheetProps) {
   const router = useRouter();
-  const { user, activeProfile, openAuth } = useAuth();
+  const { user, activeProfile, openAuth, refreshAccountData } = useAuth();
   const { isSaved, toggleSave } = useSavedProviders();
   const isLoggedIn = !!user && !!activeProfile;
   const userEmail = user?.email || "";
@@ -423,6 +423,8 @@ export default function CompareBottomSheet({
           })
         )
       );
+      // Refresh auth context so inbox has updated profile data
+      await refreshAccountData?.();
     } catch (err) {
       console.error("[CompareBottomSheet] enrichment save error:", err);
     }
@@ -430,7 +432,7 @@ export default function CompareBottomSheet({
     // Stay on page - show success state
     setFooterState("success");
     setEnrichmentSubmitting(false);
-  }, [connectionIds]);
+  }, [connectionIds, refreshAccountData]);
 
   const skipEnrichment = useCallback(() => {
     // Stay on page - show success state
@@ -442,8 +444,11 @@ export default function CompareBottomSheet({
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Logged-in family users: Skip comparison flow, show LoggedInFamilyCTA
+  // BUT: If we're mid-flow (enrichment/success), stay in that flow - don't switch!
+  // This prevents the flash when session is established after email submission.
   // ─────────────────────────────────────────────────────────────────────────────
-  if (isLoggedIn && !isNonFamilyProfile) {
+  const isMidFlow = footerState === "email_capture" || footerState === "submitting" || footerState === "enrichment" || footerState === "success" || footerState === "provider_email_block";
+  if (isLoggedIn && !isNonFamilyProfile && !isMidFlow) {
     const loggedInContent = (
       <div className="fixed inset-0 z-[60] md:hidden">
         {/* Backdrop */}
@@ -532,17 +537,19 @@ export default function CompareBottomSheet({
           </div>
         ) : (
           <>
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              disabled={footerState === "submitting"}
-              className="absolute top-3 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors z-10 disabled:opacity-50"
-              aria-label="Close"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            {/* Close button - hidden in success state (users can tap outside to close) */}
+            {footerState !== "success" && (
+              <button
+                onClick={onClose}
+                disabled={footerState === "submitting"}
+                className="absolute top-3 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors z-10 disabled:opacity-50"
+                aria-label="Close"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
 
             {/* Header */}
             <div className="px-5 pb-4 shrink-0 border-b border-gray-100">
@@ -769,10 +776,14 @@ export default function CompareBottomSheet({
                 </div>
                 <div>
                   <h3 className="text-[15px] font-bold text-gray-900">
-                    Saved {connectionIds.length} provider{connectionIds.length !== 1 ? "s" : ""}
+                    {connectionIds.length === 1
+                      ? `Connected with ${currentProvider.name}`
+                      : `Saved ${connectionIds.length} providers`}
                   </h3>
                   <p className="text-[13px] text-gray-500">
-                    We&apos;ll send you a summary to compare
+                    {connectionIds.length === 1
+                      ? "Summary sent to your email"
+                      : "We'll send you a summary to compare"}
                   </p>
                 </div>
               </div>
@@ -899,23 +910,24 @@ function CompareCard({ provider, isCurrentProvider, isSelected, onToggle, showTo
             <p className="text-[13px] text-gray-500 mt-0.5">{locationStr}</p>
           )}
 
-          {/* Rating - simple text */}
-          {hasRating ? (
-            <p className="text-[13px] text-gray-600 mt-1 flex items-center gap-1">
-              <svg className="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              <span className="font-semibold">{provider.rating?.toFixed(1)}</span>
-              <span className="text-gray-400">· {provider.reviewCount}</span>
-            </p>
-          ) : (
-            <p className="text-[13px] text-gray-400 italic mt-1">No reviews yet</p>
-          )}
-
-          {/* Price - simple text */}
-          <p className="text-[13px] font-semibold text-gray-900 mt-0.5">
-            {provider.priceRange || "Contact for pricing"}
-          </p>
+          {/* Rating + Price - horizontal on same line */}
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            {hasRating ? (
+              <span className="text-[13px] text-gray-600 flex items-center gap-1">
+                <svg className="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="font-semibold">{provider.rating?.toFixed(1)}</span>
+                <span className="text-gray-400">· {provider.reviewCount}</span>
+              </span>
+            ) : (
+              <span className="text-[13px] text-gray-400 italic">No reviews yet</span>
+            )}
+            <span className="text-gray-300">·</span>
+            <span className="text-[13px] font-semibold text-gray-900">
+              {provider.priceRange || "Contact for pricing"}
+            </span>
+          </div>
         </div>
       </div>
     </div>

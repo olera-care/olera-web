@@ -12,8 +12,9 @@ import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import type { CompareProvider } from "@/components/providers/CompareBottomSheet";
 
-// Phase 1: initial → Phase 2: selection (providers + email together) → submitting → enrichment → success
-type CardState = "initial" | "selection" | "submitting" | "enrichment" | "enrichment_error" | "success" | "provider_email_block";
+// Phase 1: initial → Phase 2: selection (providers only) → Phase 3: email_capture → submitting → enrichment → success
+// Matches mobile flow: button click reveals email input (reduces bounce rate)
+type CardState = "initial" | "selection" | "email_capture" | "submitting" | "enrichment" | "enrichment_error" | "success" | "provider_email_block";
 
 interface CompareCardProps {
   providerId: string;
@@ -65,7 +66,7 @@ export default function CompareCard({
   ctaVariant,
   ctaPreviewMode = false,
 }: CompareCardProps) {
-  const { user, activeProfile, openAuth } = useAuth();
+  const { user, activeProfile, openAuth, refreshAccountData } = useAuth();
   const { isSaved, toggleSave } = useSavedProviders();
   const emailInputRef = useRef<HTMLInputElement>(null);
 
@@ -150,9 +151,9 @@ export default function CompareCard({
   const priceUnit = pricingConfig?.unit ?? "month";
   const unitLabel = priceUnit === "hour" ? "Hourly" : "Monthly";
 
-  // Focus email input when entering selection state
+  // Focus email input when entering email_capture state
   useEffect(() => {
-    if (cardState === "selection" && emailInputRef.current) {
+    if (cardState === "email_capture" && emailInputRef.current) {
       // Small delay to let the UI render
       setTimeout(() => emailInputRef.current?.focus(), 100);
     }
@@ -185,10 +186,24 @@ export default function CompareCard({
     setCardState("selection");
   }, [ctaVariant, ctaPreviewMode, providerSlug, allProviders.length]);
 
-  // Back button handler (selection → initial)
+  // Back button handler
   const handleBack = useCallback(() => {
-    setCardState("initial");
-  }, []);
+    if (cardState === "email_capture") {
+      setCardState("selection");
+    } else {
+      setCardState("initial");
+    }
+  }, [cardState]);
+
+  // Selection → email capture (click "Save X providers" button)
+  const handleSaveClick = useCallback(() => {
+    if (selectedCount === 0) {
+      setError("Please select at least one provider");
+      return;
+    }
+    setError(null);
+    setCardState("email_capture");
+  }, [selectedCount]);
 
   // Handle email form submission
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
@@ -352,6 +367,12 @@ export default function CompareCard({
         console.warn(`[CompareCard] Enrichment partial success: ${successCount}/${connectionIds.length}`);
       }
 
+      // Refresh auth context so inbox has updated profile data (non-blocking on error)
+      try {
+        await refreshAccountData?.();
+      } catch {
+        // Refresh failure shouldn't block success - data was already saved
+      }
       setCardState("success");
     } catch (err) {
       console.error("[CompareCard] enrichment error:", err);
@@ -360,7 +381,7 @@ export default function CompareCard({
     } finally {
       setEnrichmentSubmitting(false);
     }
-  }, [connectionIds]);
+  }, [connectionIds, refreshAccountData]);
 
   // Handle enrichment skip
   const skipEnrichment = useCallback(() => {
@@ -373,7 +394,7 @@ export default function CompareCard({
   // ─────────────────────────────────────────────────────────────────────────────
   if (isNonFamilyProfile) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 pt-5 pb-5">
           <div className="mb-4 pb-4 border-b border-gray-100">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
@@ -405,10 +426,13 @@ export default function CompareCard({
 
   // ─────────────────────────────────────────────────────────────────────────────
   // RENDER: Logged-in family user — show LoggedInFamilyCTA directly
+  // BUT: If we're mid-flow (enrichment/success), stay in that flow - don't switch!
+  // This prevents the flash when session is established after email submission.
   // ─────────────────────────────────────────────────────────────────────────────
-  if (isLoggedInFamily) {
+  const isMidFlow = cardState === "email_capture" || cardState === "submitting" || cardState === "enrichment" || cardState === "enrichment_error" || cardState === "success" || cardState === "provider_email_block";
+  if (isLoggedInFamily && !isMidFlow) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 pt-5 pb-5">
           <LoggedInFamilyCTA
             providerId={providerId}
@@ -433,7 +457,7 @@ export default function CompareCard({
   if (cardState === "enrichment") {
     const savedCount = connectionIds.length;
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 pt-5 pb-5">
           <EnrichmentState
             providerName={savedCount > 1 ? `${savedCount} providers` : currentProvider.name}
@@ -455,7 +479,7 @@ export default function CompareCard({
   // ─────────────────────────────────────────────────────────────────────────────
   if (cardState === "enrichment_error") {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 pt-5 pb-5 text-center">
           <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
             <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -497,7 +521,7 @@ export default function CompareCard({
     const savedCount = connectionIds.length;
     const inboxHref = savedCount === 1 ? `/portal/inbox?id=${connectionIds[0]}` : "/portal/inbox";
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 pt-5 pb-5">
           {/* Success banner */}
           <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 rounded-xl mb-4 border border-emerald-100">
@@ -600,7 +624,7 @@ export default function CompareCard({
   // ─────────────────────────────────────────────────────────────────────────────
   if (cardState === "provider_email_block") {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 pt-5 pb-5 text-center">
           <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3">
             <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -641,7 +665,7 @@ export default function CompareCard({
   // ─────────────────────────────────────────────────────────────────────────────
   if (cardState === "initial") {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 pt-5 pb-5">
           {/* Price section */}
           <div className="mb-4 pb-4 border-b border-gray-100">
@@ -716,10 +740,154 @@ export default function CompareCard({
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: Phase 2 - Selection (provider cards + email input together)
+  // RENDER: Phase 2 - Selection (provider cards only, no email yet)
+  // Matches mobile pattern: button click reveals email input
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (cardState === "selection") {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <div className="px-5 pt-5 pb-5">
+          {/* Back button */}
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-1 text-[13px] font-medium text-gray-500 hover:text-gray-700 mb-3 -ml-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+
+          {/* Header */}
+          <h3 className="text-lg font-bold text-gray-900 leading-snug mb-3">
+            Compare {allProviders.length} provider{allProviders.length !== 1 ? "s" : ""}
+          </h3>
+
+          {/* Provider cards - clean design matching mobile */}
+          <div className="space-y-3 mb-4">
+            {allProviders.map((provider) => {
+              const isCurrentProvider = provider.id === currentProvider.id;
+              const isSelected = selectedProviderIds.has(provider.id);
+              const providerLocationStr = [provider.city, provider.state].filter(Boolean).join(", ");
+              const hasRating = provider.rating != null && provider.reviewCount != null && provider.reviewCount > 0;
+
+              return (
+                <div
+                  key={provider.id}
+                  onClick={() => toggleProvider(provider.id)}
+                  className={`relative rounded-xl border-2 p-4 transition-all cursor-pointer ${
+                    isSelected
+                      ? "border-gray-200 bg-white"
+                      : "border-gray-100 bg-gray-50/50 opacity-60 hover:opacity-80"
+                  }`}
+                >
+                  {/* "THIS PAGE" badge */}
+                  {isCurrentProvider && (
+                    <span className="absolute -top-2.5 left-3 px-2 py-0.5 bg-primary-600 text-white text-[10px] font-semibold uppercase tracking-wider rounded">
+                      This page
+                    </span>
+                  )}
+
+                  {/* Selection toggle - circular checkbox */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleProvider(provider.id);
+                    }}
+                    className={`absolute top-3 right-3 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                      isSelected
+                        ? "border-primary-500 bg-primary-500 text-white"
+                        : "border-gray-300 bg-white text-transparent hover:border-gray-400"
+                    }`}
+                    aria-label={isSelected ? "Remove from comparison" : "Add to comparison"}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </button>
+
+                  {/* Provider info */}
+                  <div className="flex items-start gap-3 pr-8">
+                    {provider.image ? (
+                      <Image
+                        src={provider.image}
+                        alt={provider.name}
+                        width={56}
+                        height={56}
+                        className="w-14 h-14 rounded-lg object-cover bg-gray-100 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center shrink-0">
+                        <span className="text-lg font-semibold text-amber-700">
+                          {provider.name.charAt(0)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-[15px] font-bold text-gray-900 leading-tight line-clamp-1">
+                        {provider.name}
+                      </h4>
+                      {providerLocationStr && (
+                        <p className="text-[13px] text-gray-500 mt-0.5">{providerLocationStr}</p>
+                      )}
+                      {/* Rating + Price row - horizontal */}
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        {hasRating ? (
+                          <span className="text-[13px] text-gray-600 flex items-center gap-1">
+                            <svg className="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            <span className="font-semibold">{provider.rating?.toFixed(1)}</span>
+                            <span className="text-gray-400">· {provider.reviewCount}</span>
+                          </span>
+                        ) : (
+                          <span className="text-[13px] text-gray-400 italic">No reviews yet</span>
+                        )}
+                        <span className="text-gray-300">·</span>
+                        <span className="text-[13px] font-semibold text-gray-900">
+                          {provider.priceRange || "Contact for pricing"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Error message */}
+          {error && (
+            <p className="text-sm text-red-600 mb-3">{error}</p>
+          )}
+
+          {/* Save button (no email yet) */}
+          <button
+            type="button"
+            onClick={handleSaveClick}
+            disabled={selectedCount === 0}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
+          >
+            {selectedCount === 0
+              ? "Select at least one"
+              : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+          </button>
+          <p className="text-[12px] text-gray-500 text-center mt-2">
+            Save now, message when ready
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RENDER: Phase 3 - Email capture (after clicking save button)
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
       <div className="px-5 pt-5 pb-5">
         {/* Back button - disabled during submission */}
         <button
@@ -734,102 +902,14 @@ export default function CompareCard({
         </button>
 
         {/* Header */}
-        <h3 className="text-lg font-bold text-gray-900 leading-snug mb-3">
-          Select providers to compare
+        <h3 className="text-lg font-bold text-gray-900 mb-1">
+          Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
         </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          We&apos;ll send you a summary to compare.
+        </p>
 
-        {/* Provider cards - stacked with richer info */}
-        <div className="space-y-2 mb-4">
-          {allProviders.map((provider) => {
-            const isCurrentProvider = provider.id === currentProvider.id;
-            const isSelected = selectedProviderIds.has(provider.id);
-            const providerLocationStr = [provider.city, provider.state].filter(Boolean).join(", ");
-            const hasRating = provider.rating != null && provider.reviewCount != null && provider.reviewCount > 0;
-
-            return (
-              <div
-                key={provider.id}
-                onClick={cardState === "submitting" ? undefined : () => toggleProvider(provider.id)}
-                className={`relative rounded-xl border-2 p-3 transition-all ${
-                  cardState === "submitting"
-                    ? "cursor-not-allowed opacity-60"
-                    : isSelected
-                      ? "cursor-pointer"
-                      : "cursor-pointer opacity-60 hover:opacity-80"
-                } ${
-                  isSelected
-                    ? "border-primary-200 bg-primary-25/30"
-                    : "border-gray-100 bg-gray-50/50"
-                }`}
-              >
-                {/* "THIS PAGE" badge */}
-                {isCurrentProvider && (
-                  <span className="absolute -top-2 left-3 px-1.5 py-0.5 bg-primary-600 text-white text-[9px] font-semibold uppercase tracking-wider rounded">
-                    This page
-                  </span>
-                )}
-
-                {/* Selection toggle */}
-                <div
-                  className={`absolute top-3 right-3 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                    isSelected
-                      ? "border-primary-500 bg-primary-500 text-white"
-                      : "border-gray-300 bg-white text-transparent"
-                  }`}
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-
-                {/* Provider info - richer like mobile */}
-                <div className="flex items-start gap-3 pr-8">
-                  {provider.image ? (
-                    <Image
-                      src={provider.image}
-                      alt={provider.name}
-                      width={48}
-                      height={48}
-                      className="w-12 h-12 rounded-lg object-cover bg-gray-100 shrink-0"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center shrink-0">
-                      <span className="text-base font-semibold text-amber-700">
-                        {provider.name.charAt(0)}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-[14px] font-bold text-gray-900 leading-tight truncate">
-                      {provider.name}
-                    </h4>
-                    {providerLocationStr && (
-                      <p className="text-[12px] text-gray-500 mt-0.5">{providerLocationStr}</p>
-                    )}
-                    {/* Rating + Price row */}
-                    <div className="flex items-center gap-2 mt-1">
-                      {hasRating && (
-                        <span className="flex items-center gap-0.5 text-[11px] font-medium text-gray-600">
-                          <svg className="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                          {provider.rating?.toFixed(1)} ({provider.reviewCount})
-                        </span>
-                      )}
-                      {provider.priceRange && (
-                        <span className="text-[11px] font-semibold text-gray-700">
-                          {provider.priceRange}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Email input + Submit button (shown together in Phase 2) */}
+        {/* Email input + Submit button */}
         <form onSubmit={handleSubmit}>
           {error && (
             <p className="text-sm text-red-600 mb-2">{error}</p>
@@ -841,12 +921,12 @@ export default function CompareCard({
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
             disabled={cardState === "submitting"}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 mb-3 disabled:opacity-50 disabled:bg-gray-50"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 mb-3 disabled:opacity-50 disabled:bg-gray-50"
           />
           <button
             type="submit"
-            disabled={cardState === "submitting" || selectedCount === 0}
-            className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-[15px] font-semibold transition-colors"
+            disabled={cardState === "submitting"}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-70 text-white rounded-xl text-[15px] font-semibold transition-colors"
           >
             {cardState === "submitting" ? (
               <>
@@ -858,18 +938,13 @@ export default function CompareCard({
               </>
             ) : (
               <>
-                {selectedCount === 0
-                  ? "Select at least one"
-                  : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
               </>
             )}
           </button>
-          <p className="text-[12px] text-gray-500 text-center mt-2">
-            We&apos;ll send you a summary to compare
-          </p>
         </form>
       </div>
     </div>

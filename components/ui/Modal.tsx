@@ -21,6 +21,8 @@ interface ModalProps {
   hideHeader?: boolean;
   /** Close button style. "default" has gray background, "minimal" is just the X icon. */
   closeButtonStyle?: "default" | "minimal";
+  /** Hide the close button entirely. Users can still tap backdrop to close. */
+  hideCloseButton?: boolean;
 }
 
 const sizeClasses: Record<string, string> = {
@@ -52,6 +54,7 @@ export default function Modal({
   footer,
   hideHeader = false,
   closeButtonStyle = "default",
+  hideCloseButton = false,
 }: ModalProps) {
   const isFullscreen = size === "fullscreen";
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -209,22 +212,24 @@ export default function Modal({
 
         {/* Header — pinned top */}
         {hideHeader ? (
-          /* Minimal close button for fullscreen/custom layouts */
-          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
-            <button
-              onClick={handleClose}
-              className={
-                closeButtonStyle === "minimal"
-                  ? "w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
-                  : "w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"
-              }
-              aria-label="Close"
-            >
-              <svg className={closeButtonStyle === "minimal" ? "w-6 h-6" : "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={closeButtonStyle === "minimal" ? 1.5 : 2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+          /* Minimal close button for fullscreen/custom layouts (unless hideCloseButton is true) */
+          !hideCloseButton && (
+            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+              <button
+                onClick={handleClose}
+                className={
+                  closeButtonStyle === "minimal"
+                    ? "w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+                    : "w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"
+                }
+                aria-label="Close"
+              >
+                <svg className={closeButtonStyle === "minimal" ? "w-6 h-6" : "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={closeButtonStyle === "minimal" ? 1.5 : 2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )
         ) : (
           <div className="flex items-center gap-3 px-5 sm:px-7 pt-4 sm:pt-6 pb-0 shrink-0">
             {/* Back button */}
@@ -251,20 +256,22 @@ export default function Modal({
               <div className="flex-1" />
             )}
 
-            {/* Close button */}
-            <button
-              onClick={handleClose}
-              className={
-                closeButtonStyle === "minimal"
-                  ? "w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors shrink-0"
-                  : "w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors shrink-0"
-              }
-              aria-label="Close"
-            >
-              <svg className={closeButtonStyle === "minimal" ? "w-6 h-6" : "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={closeButtonStyle === "minimal" ? 1.5 : 2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            {/* Close button (hidden when hideCloseButton is true) */}
+            {!hideCloseButton && (
+              <button
+                onClick={handleClose}
+                className={
+                  closeButtonStyle === "minimal"
+                    ? "w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+                    : "w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors shrink-0"
+                }
+                aria-label="Close"
+              >
+                <svg className={closeButtonStyle === "minimal" ? "w-6 h-6" : "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={closeButtonStyle === "minimal" ? 1.5 : 2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
         )}
 

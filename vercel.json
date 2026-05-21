@@ -70,7 +70,7 @@
     },
     {
       "path": "/api/cron/lead-family-nudge",
-      "schedule": "0 15 * * 2,5"
+      "schedule": "0 16 * * 2,5"
     }
   ]
 }

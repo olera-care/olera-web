@@ -6,7 +6,7 @@ import type { PipelineStateOverview } from "@/data/pipeline-drafts";
 import { useState, useRef } from "react";
 import { useSavedPrograms, type SaveProgramData } from "@/hooks/use-saved-programs";
 import { getCategory, type Category } from "@/lib/waiver-category";
-import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork, Calculator, ArrowRight, CaretRight } from "@phosphor-icons/react";
+import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork, Calculator, ArrowRight, CaretRight, CaretLeft } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
@@ -150,7 +150,7 @@ function SaveButton({ program, stateId }: { program: WaiverProgram; stateId: str
           savingsRange: program.savingsRange || undefined,
         });
       }}
-      className="p-1.5 -m-1 rounded-lg hover:bg-gray-100 transition-colors"
+      className="p-1.5 -m-1 rounded-lg hover:bg-gray-100 active:scale-90 transition-all"
       aria-label={saved ? "Saved" : "Save program"}
     >
       <BookmarkSimple
@@ -224,7 +224,9 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
             placeholder="e.g. 72"
             value={age}
             onChange={(e) => { setAge(e.target.value); setSubmitted(false); }}
-            className="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 bg-white focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors"
+            /* text-base (16px) floor — iOS Safari zooms on focus when input
+               font-size < 16px, which then breaks the page layout. */
+            className="w-full px-4 py-2.5 text-base rounded-lg border border-gray-200 bg-white focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors"
           />
         </div>
 
@@ -234,7 +236,9 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
           <select
             value={medicaid}
             onChange={(e) => { setMedicaid(e.target.value as typeof medicaid); setSubmitted(false); }}
-            className="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 bg-white focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors"
+            /* text-base (16px) floor for the same iOS-zoom reason as the
+               input above. */
+            className="w-full px-4 py-2.5 text-base rounded-lg border border-gray-200 bg-white focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors"
           >
             <option value="">Select...</option>
             <option value="yes">Yes</option>
@@ -248,7 +252,7 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
           <button
             onClick={() => setSubmitted(true)}
             disabled={!hasInput}
-            className={`px-6 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
+            className={`px-6 py-2.5 text-sm font-semibold rounded-lg active:scale-95 transition-all ${
               hasInput
                 ? "bg-gray-900 text-white hover:bg-gray-800"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -376,13 +380,24 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
   // (archetype toggle is inline in the button onClick)
 
   return (
-    <div className="bg-vanilla-100 min-h-screen">
+    <div className="bg-vanilla-100 min-h-[100dvh]">
 
       {/* ─── Header ─── */}
       <header className="relative pt-8 pb-10 md:pt-12 md:pb-14 overflow-hidden">
         <HeaderBlobs />
         <div className="relative max-w-3xl mx-auto px-6 lg:px-8">
-          <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-8">
+          {/* Mobile: a back affordance with a real tap target (the desktop
+              breadcrumb is 12px gray-400 — fine visual chrome on desktop but
+              hostile to thumb / senior-user tap). State name repeats in the
+              H1 right below, so the back link is the only crumb that matters
+              on mobile. SEO breadcrumb data is JSON-LD elsewhere. */}
+          <Link
+            href="/benefits"
+            className="sm:hidden inline-flex items-center gap-1 text-sm text-gray-500 mb-6 -ml-1.5 pl-1 pr-2 py-1.5 rounded-lg active:bg-gray-100 transition-colors"
+          >
+            <CaretLeft className="w-4 h-4 shrink-0" /> Benefits Hub
+          </Link>
+          <nav className="hidden sm:flex items-center gap-1.5 text-xs text-gray-400 mb-8">
             <Link href="/benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
             <span>&#8250;</span>
             <span className="text-gray-600">{state.name}</span>
@@ -429,7 +444,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
         {/* ─── Archetype Entry — "What's your situation?" ─── */}
         <section className="max-w-4xl mx-auto px-6 lg:px-8 -mt-2 mb-10">
           <p className="text-base text-gray-500 mb-4">What brought you here?</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 items-stretch">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 items-stretch">
             {ARCHETYPES.map((arch) => {
               const isActive = activeArchetype === arch.id;
               return (
@@ -445,7 +460,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                       }, 50);
                     }
                   }}
-                  className={`text-left p-4 rounded-2xl border transition-all duration-200 group flex flex-col ${
+                  className={`text-left p-4 rounded-2xl border transition-all duration-200 group flex flex-col active:scale-[0.98] ${
                     isActive
                       ? "bg-white border-primary-300 shadow-md ring-1 ring-primary-200"
                       : "bg-white/60 border-gray-200 hover:border-gray-300 hover:bg-white hover:shadow-sm"
@@ -570,7 +585,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
           )}
         </section>
 
-        <WavyDivider className="my-12 max-w-3xl mx-auto px-6" />
+        <WavyDivider className="my-8 sm:my-12 max-w-3xl mx-auto px-6" />
 
         {/* ─── Where to start (hidden when archetype active — response panel already shows relevant programs) ─── */}
         {!activeArchetype && overview.startHere && overview.startHere.length > 0 && (
@@ -626,7 +641,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
 
         {/* ─── Quick facts ─── */}
         {!activeArchetype && overview.quickFacts && overview.quickFacts.length > 0 && (
-          <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-14">
+          <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-10 sm:mt-14">
             <SectionLabel>Good to know</SectionLabel>
             <div className="space-y-2.5">
               {overview.quickFacts.map((fact, i) => (
@@ -640,12 +655,12 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
         )}
 
         {/* ─── Inline benefits check ─── */}
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-14">
+        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-10 sm:mt-14">
           <InlineBenefitsCheck programs={programs} stateId={state.id} stateName={state.name} />
         </section>
 
         {/* ─── Dark stat band ─── */}
-        <section className="mt-16 mb-16 bg-gray-900 py-10 md:py-12">
+        <section className="mt-12 mb-12 sm:mt-16 sm:mb-16 bg-gray-900 py-10 md:py-12">
           <div className="max-w-4xl mx-auto px-6 lg:px-8">
             <div className="flex flex-wrap items-baseline gap-x-10 gap-y-4">
               <div>
@@ -679,10 +694,10 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
           </div>
         </section>
 
-        <WavyDivider className="my-14 max-w-3xl mx-auto px-6" />
+        <WavyDivider className="my-10 sm:my-14 max-w-3xl mx-auto px-6" />
 
         {/* ─── Provider bridge — minimal, Perena-style ─── */}
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-14">
+        <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-10 sm:mb-14">
           <p className="text-base text-gray-500 mb-4">
             These programs pay for care services.{" "}
             <Link
@@ -712,7 +727,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
 
         {/* ─── Families are asking — clean, no card wrappers ─── */}
         {familyQuestions.length > 0 && (
-          <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-14">
+          <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-10 sm:mb-14">
             <SectionLabel>Families are asking</SectionLabel>
             <div className="space-y-6">
               {familyQuestions.slice(0, 3).map((q, i) => {
@@ -768,9 +783,9 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                 <button
                   key={cat.id}
                   onClick={() => setCategoryFilter(cat.id)}
-                  className={`text-sm font-medium px-4 py-2 rounded-full transition-colors ${
+                  className={`text-sm font-medium px-4 py-2 rounded-full active:scale-95 transition-all ${
                     isActive
-                      ? "bg-gray-900 text-white"
+                      ? "bg-gray-900 text-white border border-gray-900"
                       : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:text-gray-900"
                   }`}
                 >
@@ -834,7 +849,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
           </div>
         </section>
 
-        <WavyDivider className="my-16 max-w-3xl mx-auto px-6" />
+        <WavyDivider className="my-10 sm:my-16 max-w-3xl mx-auto px-6" />
 
         {/* ─── Footer elements ─── */}
         <section className="max-w-2xl mx-auto px-6 lg:px-8 space-y-8">
@@ -849,7 +864,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                   navigator.clipboard.writeText(window.location.href);
                 }
               }}
-              className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors flex items-center gap-1.5"
+              className="text-sm font-medium text-primary-600 hover:text-primary-500 active:opacity-70 transition-all flex items-center gap-1.5"
             >
               <ShareNetwork className="w-3.5 h-3.5" />
               Share with a family member

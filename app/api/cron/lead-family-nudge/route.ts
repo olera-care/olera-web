@@ -9,7 +9,7 @@ import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 /**
  * GET /api/cron/lead-family-nudge
  *
- * Runs twice weekly (Tuesday/Friday 3 PM UTC). Nudges families who have active
+ * Runs twice weekly (Tuesday/Friday 4 PM UTC). Nudges families who have active
  * leads but need to complete or publish their profile:
  *
  * Criteria:

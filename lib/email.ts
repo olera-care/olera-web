@@ -1,8 +1,45 @@
 import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 import { shouldSendNotification, isControllableNotification, getPrefKeyForEmailType } from "./notification-prefs";
+import { isUndeliverable } from "./email-verification";
 
 const FROM_ADDRESS = "Olera <noreply@olera.care>";
+
+/**
+ * Provider-directed notification/outreach email types. These go to provider
+ * addresses sourced from the directory (often unverified/scraped), which bounce
+ * far above Resend's 4% threshold and would otherwise degrade olera.care's
+ * reputation — the same domain our families, students, and auth mail depend on.
+ *
+ * When PROVIDER_NOTIFY_FROM is set, these send from that isolated domain instead
+ * of the default olera.care address, ring-fencing provider-acquisition
+ * reputation away from the crown jewel. Until the env var is set, behavior is
+ * unchanged. An explicit `from` passed by the caller always wins.
+ */
+const PROVIDER_NOTIFICATION_TYPES = new Set<string>([
+  "question_received",
+  "provider_nudge",
+  "profile_incomplete_nudge",
+  "provider_incomplete_profile",
+  "claim_notification",
+  "provider_recommendation",
+  "provider_reach_out",
+  "new_review",
+  "weekly_analytics_digest",
+  "new_candidate_alert",
+]);
+
+/**
+ * Resolve the From address. Precedence: explicit caller value > provider-
+ * notification override (PROVIDER_NOTIFY_FROM, when set) > default olera.care.
+ */
+function resolveFromAddress(explicitFrom: string | undefined, emailType: string): string {
+  if (explicitFrom) return explicitFrom;
+  if (PROVIDER_NOTIFICATION_TYPES.has(emailType) && process.env.PROVIDER_NOTIFY_FROM) {
+    return process.env.PROVIDER_NOTIFY_FROM;
+  }
+  return FROM_ADDRESS;
+}
 
 /**
  * Append email tracking query params to a URL path or full URL.
@@ -58,6 +95,54 @@ function getServiceDb() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) return null;
   return createClient(url, serviceKey);
+}
+
+/**
+ * Email types that MUST always send, even to a previously-bounced address.
+ * These are auth / verification / account-critical flows the recipient
+ * actively triggered (and may have since fixed a typo'd or full mailbox).
+ * Suppressing them risks locking a real user out — far worse than the
+ * marginal reputation cost of one retry. Everything NOT in this set is
+ * subject to the bounce/complaint suppression check below.
+ */
+const SUPPRESSION_EXEMPT_TYPES = new Set<string>([
+  "verify_email",
+  "verification_otp",
+  "verification_code",
+  "verification_approved",
+  "verification_decision",
+  "verification_rejected",
+  "verification_pending_review",
+  "student_activation",
+  "student_account_created",
+]);
+
+/**
+ * Returns true if we've previously recorded a hard bounce or spam complaint
+ * for this exact recipient. Used to suppress non-critical sends so we stop
+ * re-mailing dead/hostile addresses — every repeat bounce/complaint counts
+ * against Resend's <4% bounce and <0.08% complaint thresholds, beyond which
+ * the account can be suspended without warning.
+ *
+ * Fails OPEN: any error returns false (send proceeds), so a transient DB
+ * issue can never silently block email.
+ */
+async function isSuppressedRecipient(email: string): Promise<boolean> {
+  try {
+    const db = getServiceDb();
+    if (!db) return false;
+    const { data } = await db
+      .from("email_log")
+      .select("id")
+      .eq("recipient", email)
+      .or("bounced_at.not.is.null,complained_at.not.is.null")
+      .limit(1)
+      .maybeSingle();
+    return !!data;
+  } catch (err) {
+    console.error("[email] Suppression check failed (sending anyway):", err);
+    return false;
+  }
 }
 
 /**
@@ -152,7 +237,9 @@ export async function reserveEmailLogId(options: {
 
   return preLogEmail({
     recipient,
-    sender: FROM_ADDRESS,
+    // Log the address the send will actually use, so analytics-by-sender stays
+    // accurate when provider notifications are routed off olera.care.
+    sender: resolveFromAddress(undefined, options.emailType ?? "unknown"),
     subject: options.subject,
     emailType: options.emailType ?? "unknown",
     recipientType: options.recipientType,
@@ -182,7 +269,7 @@ export async function sendEmail(
     to,
     subject,
     html,
-    from = FROM_ADDRESS,
+    from: explicitFrom,
     emailType = "unknown",
     recipientType,
     providerId,
@@ -190,6 +277,10 @@ export async function sendEmail(
     emailLogId: existingLogId,
     recipientProfileId,
   } = options;
+
+  // Resolve sender: explicit caller value wins; otherwise provider-directed
+  // notifications route to the isolated PROVIDER_NOTIFY_FROM domain when set.
+  const from = resolveFromAddress(explicitFrom, emailType);
 
   // Check notification preferences for controllable (activity-based) notifications
   // Marketing and transactional emails bypass this check and always send
@@ -211,6 +302,38 @@ export async function sendEmail(
   }
 
   const recipient = Array.isArray(to) ? to.join(", ") : to;
+
+  // Suppress non-critical sends to addresses we know we shouldn't hit, for two
+  // reasons: a prior hard bounce / spam complaint (reactive — reads email_log),
+  // or a cached verification verdict of 'invalid' (proactive — reads
+  // email_verifications, populated by scripts/verify-emails.js). Both protect
+  // domain reputation against Resend's <4% bounce / <0.08% complaint suspension
+  // thresholds. Auth/verification mail (SUPPRESSION_EXEMPT_TYPES) bypasses this.
+  // Multi-recipient sends are skipped here since one bad address shouldn't drop
+  // mail to the others. Both checks fail open.
+  const soleRecipient = Array.isArray(to)
+    ? to.length === 1
+      ? to[0]
+      : null
+    : to;
+  if (soleRecipient && emailType && !SUPPRESSION_EXEMPT_TYPES.has(emailType)) {
+    let suppressReason: string | null = null;
+    if (await isSuppressedRecipient(soleRecipient)) {
+      suppressReason = "prior bounce/complaint on record";
+    } else if (await isUndeliverable(soleRecipient)) {
+      suppressReason = "verified undeliverable";
+    }
+    if (suppressReason) {
+      console.log(`[email] Suppressed ${emailType} to ${soleRecipient} — ${suppressReason}`);
+      if (existingLogId) {
+        updateEmailLog(existingLogId, {
+          status: "failed",
+          errorMessage: `Suppressed: ${suppressReason}`,
+        });
+      }
+      return { success: true, skipped: true, emailLogId: existingLogId ?? undefined };
+    }
+  }
 
   // If no pre-reserved log ID, create one now
   const logId =
@@ -234,8 +357,16 @@ export async function sendEmail(
       contentType: a.type,
     }));
   }
-  if (options.replyTo) {
-    sendPayload.replyTo = options.replyTo;
+  // Reply-To: explicit caller value wins. Otherwise, if this send was routed to
+  // the provider-notification domain, point replies at PROVIDER_NOTIFY_REPLY_TO
+  // (when set) so they don't land on an unmonitored mailbox on the new domain.
+  const replyTo =
+    options.replyTo ??
+    (from === process.env.PROVIDER_NOTIFY_FROM
+      ? process.env.PROVIDER_NOTIFY_REPLY_TO
+      : undefined);
+  if (replyTo) {
+    sendPayload.replyTo = replyTo;
   }
   const { data, error } = await resend.emails.send(sendPayload);
 

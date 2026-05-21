@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 import { shouldSendNotification, isControllableNotification, getPrefKeyForEmailType } from "./notification-prefs";
+import { isUndeliverable } from "./email-verification";
 
 const FROM_ADDRESS = "Olera <noreply@olera.care>";
 
@@ -302,32 +303,36 @@ export async function sendEmail(
 
   const recipient = Array.isArray(to) ? to.join(", ") : to;
 
-  // Suppress non-critical sends to addresses we've already burned (prior hard
-  // bounce or spam complaint). Protects domain reputation against Resend's
-  // <4% bounce / <0.08% complaint suspension thresholds. Auth/verification mail
-  // (SUPPRESSION_EXEMPT_TYPES) bypasses this. Multi-recipient sends are skipped
-  // here since one bad address shouldn't drop mail to the others.
+  // Suppress non-critical sends to addresses we know we shouldn't hit, for two
+  // reasons: a prior hard bounce / spam complaint (reactive — reads email_log),
+  // or a cached verification verdict of 'invalid' (proactive — reads
+  // email_verifications, populated by scripts/verify-emails.js). Both protect
+  // domain reputation against Resend's <4% bounce / <0.08% complaint suspension
+  // thresholds. Auth/verification mail (SUPPRESSION_EXEMPT_TYPES) bypasses this.
+  // Multi-recipient sends are skipped here since one bad address shouldn't drop
+  // mail to the others. Both checks fail open.
   const soleRecipient = Array.isArray(to)
     ? to.length === 1
       ? to[0]
       : null
     : to;
-  if (
-    soleRecipient &&
-    emailType &&
-    !SUPPRESSION_EXEMPT_TYPES.has(emailType) &&
-    (await isSuppressedRecipient(soleRecipient))
-  ) {
-    console.log(
-      `[email] Suppressed ${emailType} to ${soleRecipient} — prior bounce/complaint on record`
-    );
-    if (existingLogId) {
-      updateEmailLog(existingLogId, {
-        status: "failed",
-        errorMessage: "Suppressed: prior bounce/complaint on record",
-      });
+  if (soleRecipient && emailType && !SUPPRESSION_EXEMPT_TYPES.has(emailType)) {
+    let suppressReason: string | null = null;
+    if (await isSuppressedRecipient(soleRecipient)) {
+      suppressReason = "prior bounce/complaint on record";
+    } else if (await isUndeliverable(soleRecipient)) {
+      suppressReason = "verified undeliverable";
     }
-    return { success: true, skipped: true, emailLogId: existingLogId ?? undefined };
+    if (suppressReason) {
+      console.log(`[email] Suppressed ${emailType} to ${soleRecipient} — ${suppressReason}`);
+      if (existingLogId) {
+        updateEmailLog(existingLogId, {
+          status: "failed",
+          errorMessage: `Suppressed: ${suppressReason}`,
+        });
+      }
+      return { success: true, skipped: true, emailLogId: existingLogId ?? undefined };
+    }
   }
 
   // If no pre-reserved log ID, create one now

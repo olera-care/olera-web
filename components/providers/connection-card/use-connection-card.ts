@@ -749,13 +749,23 @@ export function useConnectionCard(props: ConnectionCardProps) {
     phone?: string;
     notifyChannel?: string;
     contactPreference?: string;
+    // Extended enrichment fields
+    careType?: string;
+    careNeed?: string;
+    paymentMethod?: string;
+    name?: string;
+    city?: string;
+    state?: string;
   }) => {
     // Need at least connectionId and some data to save
-    const hasIntentData = data?.careRecipient || data?.urgency;
+    const hasIntentData = data?.careRecipient || data?.urgency || data?.careType || data?.careNeed || data?.paymentMethod;
     const hasPhone = data?.phone && data.phone.trim();
     const hasContact = data?.notifyChannel || data?.contactPreference;
-    if (!connectionId || (!hasIntentData && !hasPhone && !hasContact)) {
-      navigatePostEnrichment();
+    const hasDetails = data?.name || data?.city || data?.state;
+    if (!connectionId || (!hasIntentData && !hasPhone && !hasContact && !hasDetails)) {
+      // Stay on page instead of redirecting
+      enrichmentLock.current = false;
+      setCardState("connected");
       return;
     }
 
@@ -774,6 +784,13 @@ export function useConnectionCard(props: ConnectionCardProps) {
             phone: data.phone || undefined,
             // Support both old notifyChannel and new contactPreference
             notifyChannel: data.contactPreference || data.notifyChannel || undefined,
+            // Extended enrichment fields
+            careType: data.careType || undefined,
+            careNeed: data.careNeed || undefined,
+            paymentMethod: data.paymentMethod || undefined,
+            name: data.name || undefined,
+            city: data.city || undefined,
+            state: data.state || undefined,
           }),
         });
 
@@ -800,12 +817,16 @@ export function useConnectionCard(props: ConnectionCardProps) {
       setSubmitting(false);
     }
 
-    navigatePostEnrichment();
-  }, [connectionId, navigatePostEnrichment, refreshAccountData]);
+    // Stay on page — show connected state instead of redirecting to inbox
+    enrichmentLock.current = false;
+    setCardState("connected");
+  }, [connectionId, refreshAccountData]);
 
   const skipEnrichment = useCallback(() => {
-    navigatePostEnrichment();
-  }, [navigatePostEnrichment]);
+    // Stay on page — show connected state instead of redirecting to inbox
+    enrichmentLock.current = false;
+    setCardState("connected");
+  }, []);
 
   // Total steps: 2 for logged-in, 3 for guest (includes email capture)
   const totalSteps = user ? 2 : 3;

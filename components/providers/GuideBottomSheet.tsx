@@ -86,6 +86,12 @@ export default function GuideBottomSheet({
     urgency?: string;
     phone?: string;
     contactPreference?: string;
+    careType?: string;
+    careNeed?: string;
+    paymentMethod?: string;
+    name?: string;
+    city?: string;
+    state?: string;
   } | null | undefined>(undefined);
 
   // Handle escape key (disabled during submitting/enrichment)
@@ -268,7 +274,7 @@ export default function GuideBottomSheet({
   // Handle enrichment save - works with parallel loading
   const [enrichmentSubmitting, setEnrichmentSubmitting] = useState(false);
 
-  // Complete the flow: save enrichment, download PDF, redirect
+  // Complete the flow: save enrichment, download PDF, show success
   const completeFlow = useCallback(async (
     connId: string,
     pdfUrlToUse: string | null,
@@ -277,10 +283,22 @@ export default function GuideBottomSheet({
       urgency?: string;
       phone?: string;
       contactPreference?: string;
+      careType?: string;
+      careNeed?: string;
+      paymentMethod?: string;
+      name?: string;
+      city?: string;
+      state?: string;
     }
   ) => {
-    // Save enrichment if we have data
-    if (enrichmentData?.careRecipient || enrichmentData?.urgency || enrichmentData?.phone || enrichmentData?.contactPreference) {
+    // Save enrichment if we have any data
+    const hasData = enrichmentData?.careRecipient || enrichmentData?.urgency ||
+      enrichmentData?.phone || enrichmentData?.contactPreference ||
+      enrichmentData?.careType || enrichmentData?.careNeed ||
+      enrichmentData?.paymentMethod || enrichmentData?.name ||
+      enrichmentData?.city || enrichmentData?.state;
+
+    if (hasData) {
       try {
         await fetch("/api/connections/update-intent", {
           method: "PATCH",
@@ -291,6 +309,12 @@ export default function GuideBottomSheet({
             urgency: enrichmentData.urgency,
             phone: enrichmentData.phone || undefined,
             notifyChannel: enrichmentData.contactPreference || undefined,
+            careType: enrichmentData.careType || undefined,
+            careNeed: enrichmentData.careNeed || undefined,
+            paymentMethod: enrichmentData.paymentMethod || undefined,
+            name: enrichmentData.name || undefined,
+            city: enrichmentData.city || undefined,
+            state: enrichmentData.state || undefined,
           }),
         });
       } catch (err) {
@@ -308,8 +332,9 @@ export default function GuideBottomSheet({
       document.body.removeChild(link);
     }
 
-    // Redirect to inbox
-    window.location.href = `/portal/inbox?id=${connId}`;
+    // Stay on page - show success state
+    setSheetState("success");
+    setEnrichmentSubmitting(false);
   }, []);
 
   const saveEnrichment = useCallback(async (data?: {
@@ -317,6 +342,12 @@ export default function GuideBottomSheet({
     urgency?: string;
     phone?: string;
     contactPreference?: string;
+    careType?: string;
+    careNeed?: string;
+    paymentMethod?: string;
+    name?: string;
+    city?: string;
+    state?: string;
   }) => {
     setEnrichmentSubmitting(true);
 
@@ -505,6 +536,8 @@ export default function GuideBottomSheet({
                 saving={enrichmentSubmitting}
                 successTitle={`Connected with ${providerName}`}
                 successSubtitle="Checklist sent to your email"
+                providerCity={providerCity}
+                providerState={providerState}
               />
               {/* Re-download link */}
               {pdfUrl && (

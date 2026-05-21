@@ -97,6 +97,8 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             saving={hook.submitting}
             careTypes={props.careTypes}
             priceRange={props.priceRange}
+            providerCity={props.city}
+            providerState={props.state}
           />
         )}
 

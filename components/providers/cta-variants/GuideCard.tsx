@@ -65,6 +65,12 @@ export default function GuideCard({
     urgency?: string;
     phone?: string;
     contactPreference?: string;
+    careType?: string;
+    careNeed?: string;
+    paymentMethod?: string;
+    name?: string;
+    city?: string;
+    state?: string;
   } | null | undefined>(undefined);
 
   // Check if user is logged in
@@ -213,7 +219,7 @@ export default function GuideCard({
   // Handle enrichment save - works with parallel loading
   const [enrichmentSubmitting, setEnrichmentSubmitting] = useState(false);
 
-  // Complete the flow: save enrichment, download PDF, redirect
+  // Complete the flow: save enrichment, download PDF, show success
   const completeFlow = useCallback(async (
     connId: string,
     pdfUrlToUse: string | null,
@@ -222,10 +228,22 @@ export default function GuideCard({
       urgency?: string;
       phone?: string;
       contactPreference?: string;
+      careType?: string;
+      careNeed?: string;
+      paymentMethod?: string;
+      name?: string;
+      city?: string;
+      state?: string;
     }
   ) => {
-    // Save enrichment if we have data
-    if (enrichmentData?.careRecipient || enrichmentData?.urgency || enrichmentData?.phone || enrichmentData?.contactPreference) {
+    // Save enrichment if we have any data
+    const hasData = enrichmentData?.careRecipient || enrichmentData?.urgency ||
+      enrichmentData?.phone || enrichmentData?.contactPreference ||
+      enrichmentData?.careType || enrichmentData?.careNeed ||
+      enrichmentData?.paymentMethod || enrichmentData?.name ||
+      enrichmentData?.city || enrichmentData?.state;
+
+    if (hasData) {
       try {
         await fetch("/api/connections/update-intent", {
           method: "PATCH",
@@ -236,6 +254,12 @@ export default function GuideCard({
             urgency: enrichmentData.urgency,
             phone: enrichmentData.phone || undefined,
             notifyChannel: enrichmentData.contactPreference || undefined,
+            careType: enrichmentData.careType || undefined,
+            careNeed: enrichmentData.careNeed || undefined,
+            paymentMethod: enrichmentData.paymentMethod || undefined,
+            name: enrichmentData.name || undefined,
+            city: enrichmentData.city || undefined,
+            state: enrichmentData.state || undefined,
           }),
         });
       } catch (err) {
@@ -253,8 +277,9 @@ export default function GuideCard({
       document.body.removeChild(link);
     }
 
-    // Redirect to inbox
-    window.location.href = `/portal/inbox?id=${connId}`;
+    // Stay on page - show success state
+    setCardState("success");
+    setEnrichmentSubmitting(false);
   }, []);
 
   const saveEnrichment = useCallback(async (data?: {
@@ -262,6 +287,12 @@ export default function GuideCard({
     urgency?: string;
     phone?: string;
     contactPreference?: string;
+    careType?: string;
+    careNeed?: string;
+    paymentMethod?: string;
+    name?: string;
+    city?: string;
+    state?: string;
   }) => {
     setEnrichmentSubmitting(true);
 
@@ -595,6 +626,8 @@ export default function GuideCard({
             priceRange={priceRange}
             successTitle={`Connected with ${providerName}`}
             successSubtitle="Checklist sent to your email"
+            providerCity={providerCity}
+            providerState={providerState}
           />
           {/* Re-download link */}
           {pdfUrl && (

@@ -275,12 +275,24 @@ export default function CompareOverlay({
     urgency?: string;
     phone?: string;
     contactPreference?: string;
+    careType?: string;
+    careNeed?: string;
+    paymentMethod?: string;
+    name?: string;
+    city?: string;
+    state?: string;
   }) => {
-    const firstConnectionId = connectionIds[0];
+    // Check if we have any data to save
+    const hasData = data?.careRecipient || data?.urgency ||
+      data?.phone || data?.contactPreference ||
+      data?.careType || data?.careNeed ||
+      data?.paymentMethod || data?.name ||
+      data?.city || data?.state;
 
-    if (!connectionIds.length || (!data?.careRecipient && !data?.urgency && !data?.phone && !data?.contactPreference)) {
-      // No data to save, just redirect
-      router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
+    if (!connectionIds.length || !hasData) {
+      // No data to save, show success state
+      setFooterState("success");
+      setEnrichmentSubmitting(false);
       return;
     }
 
@@ -298,6 +310,12 @@ export default function CompareOverlay({
               urgency: data.urgency,
               phone: data.phone || undefined,
               notifyChannel: data.contactPreference || undefined,
+              careType: data.careType || undefined,
+              careNeed: data.careNeed || undefined,
+              paymentMethod: data.paymentMethod || undefined,
+              name: data.name || undefined,
+              city: data.city || undefined,
+              state: data.state || undefined,
             }),
           })
         )
@@ -306,13 +324,16 @@ export default function CompareOverlay({
       console.error("[CompareOverlay] enrichment save error:", err);
     }
 
-    router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
-  }, [connectionIds, router]);
+    // Stay on page - show success state
+    setFooterState("success");
+    setEnrichmentSubmitting(false);
+  }, [connectionIds]);
 
   const skipEnrichment = useCallback(() => {
-    const firstConnectionId = connectionIds[0];
-    router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
-  }, [connectionIds, router]);
+    // Stay on page - show success state
+    setFooterState("success");
+    setEnrichmentSubmitting(false);
+  }, []);
 
   // Handle escape key to close (disabled during submitting/enrichment/success)
   const handleKeyDown = useCallback(
@@ -410,6 +431,8 @@ export default function CompareOverlay({
               saving={enrichmentSubmitting}
               successTitle={`Saved ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
               successSubtitle="We'll send you a summary to compare"
+              providerCity={currentProvider.city}
+              providerState={currentProvider.state}
             />
           </div>
         ) : (

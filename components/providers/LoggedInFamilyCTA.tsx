@@ -55,7 +55,8 @@ export default function LoggedInFamilyCTA({
   const [error, setError] = useState<string | null>(null);
 
   const userEmail = user?.email || "";
-  const providerIsSaved = isSaved(providerId);
+  // Use providerSlug for save check to match header SaveButton (which also uses slug)
+  const providerIsSaved = isSaved(providerSlug);
 
   // Resolve pricing from care types
   const pricing = getPricingForProviderSync(careTypes);
@@ -65,15 +66,16 @@ export default function LoggedInFamilyCTA({
 
   // Handle save toggle
   const handleSave = useCallback(() => {
+    // Use providerSlug as providerId to match header SaveButton (which also uses slug)
     toggleSave({
-      providerId,
+      providerId: providerSlug,
       slug: providerSlug,
       name: providerName,
       location: locationStr,
       careTypes: careTypes,
       image: providerImage || null,
     });
-  }, [toggleSave, providerId, providerSlug, providerName, locationStr, careTypes, providerImage]);
+  }, [toggleSave, providerSlug, providerName, locationStr, careTypes, providerImage]);
 
   // Handle request details click - create connection and go to inbox
   const handleRequestDetails = useCallback(async () => {

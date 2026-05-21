@@ -62,19 +62,21 @@ export default function MobileStickyGuide({
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   // ── Logged-in family user: direct action from sticky bar ──
-  const providerIsSaved = isSaved(providerId);
+  // Use providerSlug for save check to match header SaveButton (which also uses slug)
+  const providerIsSaved = isSaved(providerSlug);
   const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
 
   const handleDirectSave = useCallback(() => {
+    // Use providerSlug as providerId to match header SaveButton (which also uses slug)
     toggleSave({
-      providerId,
+      providerId: providerSlug,
       slug: providerSlug,
       name: providerName,
       location: locationStr,
       careTypes: careTypes,
       image: providerImage || null,
     });
-  }, [toggleSave, providerId, providerSlug, providerName, locationStr, careTypes, providerImage]);
+  }, [toggleSave, providerSlug, providerName, locationStr, careTypes, providerImage]);
 
   const handleDirectRequest = useCallback(async () => {
     if (!userEmail || directSubmitting) return;

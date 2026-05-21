@@ -131,7 +131,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
   // ── UI state ──
   const [phoneRevealed, setPhoneRevealed] = useState(false);
-  const saved = savedProviders.isSaved(providerId);
+  // Use providerSlug for save check to match header SaveButton (which also uses slug)
+  const saved = savedProviders.isSaved(providerSlug);
   const [error, setError] = useState("");
   const [pendingRequestDate, setPendingRequestDate] = useState<string | null>(
     null

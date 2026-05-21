@@ -283,19 +283,21 @@ export default function MobileStickyBottomCTA({
   const { isSaved, toggleSave } = useSavedProviders();
   const [directSubmitting, setDirectSubmitting] = useState(false);
   const [directError, setDirectError] = useState<string | null>(null);
-  const providerIsSaved = isSaved(providerId);
+  // Use providerSlug for save check to match header SaveButton (which also uses slug)
+  const providerIsSaved = isSaved(providerSlug);
   const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
 
   const handleDirectSave = useCallback(() => {
+    // Use providerSlug as providerId to match header SaveButton (which also uses slug)
     toggleSave({
-      providerId,
+      providerId: providerSlug,
       slug: providerSlug,
       name: providerName,
       location: locationStr,
       careTypes: careTypes,
       image: providerImage || null,
     });
-  }, [toggleSave, providerId, providerSlug, providerName, locationStr, careTypes, providerImage]);
+  }, [toggleSave, providerSlug, providerName, locationStr, careTypes, providerImage]);
 
   const handleDirectRequest = useCallback(async () => {
     if (!hook.userEmail || directSubmitting) return;

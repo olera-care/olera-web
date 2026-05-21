@@ -461,6 +461,9 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
           );
           const entryProviderId = matchedEntry?.providerId || provider.providerId;
 
+          // Store entry for potential rollback
+          const entryToRestore = matchedEntry;
+
           // Optimistic local update
           setDbSaveIds((prev) => {
             const next = new Set(prev);
@@ -478,9 +481,23 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
             body: JSON.stringify({ providerId: provider.slug || provider.providerId }),
           })
             .then((res) => {
-              if (!res.ok) setSaveError("Couldn't unsave. Please try again.");
+              if (!res.ok) {
+                // Rollback: restore the entry
+                if (entryToRestore) {
+                  setDbSaveIds((prev) => new Set(prev).add(entryProviderId));
+                  setDbSaves((prev) => [entryToRestore, ...prev]);
+                }
+                setSaveError("Couldn't unsave. Please try again.");
+              }
             })
-            .catch(() => setSaveError("Couldn't unsave. Please try again."));
+            .catch(() => {
+              // Rollback: restore the entry on network error
+              if (entryToRestore) {
+                setDbSaveIds((prev) => new Set(prev).add(entryProviderId));
+                setDbSaves((prev) => [entryToRestore, ...prev]);
+              }
+              setSaveError("Couldn't unsave. Please try again.");
+            });
         } else {
           // Anonymous unsave
           removeAnonSave(provider.providerId);

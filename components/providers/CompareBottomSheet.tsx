@@ -214,7 +214,7 @@ export default function CompareBottomSheet({
     setFooterState("email_capture");
   }, [ctaVariant, ctaPreviewMode, currentProvider.slug]);
 
-  // Handle logged-in user submit (skip email capture)
+  // Handle logged-in family user submit (skip email capture AND enrichment, go directly to inbox)
   const handleLoggedInSubmit = useCallback(async () => {
     if (!userEmail) return;
 
@@ -272,18 +272,17 @@ export default function CompareBottomSheet({
         return;
       }
 
-      // Store connection IDs for enrichment
-      if (data.connectionIds?.length > 0) {
-        setConnectionIds(data.connectionIds);
-      }
+      // Dispatch event for inbox refresh
+      window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-      // Go to enrichment instead of success
-      setFooterState("enrichment");
+      // Logged-in family users skip enrichment, go directly to inbox
+      const firstConnectionId = data.connectionIds?.[0];
+      router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
     } catch {
       setError("Something went wrong. Please try again.");
       setFooterState("initial");
     }
-  }, [userEmail, ctaVariant, ctaPreviewMode, currentProvider.slug, selectedProviders]);
+  }, [userEmail, ctaVariant, ctaPreviewMode, currentProvider.slug, selectedProviders, router]);
 
   // Handle email submit
   const handleSubmit = async (e: React.FormEvent) => {

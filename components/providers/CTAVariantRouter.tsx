@@ -152,6 +152,7 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
           providerCity={providerCity}
           providerState={providerState}
           providerImage={providerImage}
+          careTypes={careTypes}
           priceRange={priceRange}
           ctaVariant={variant}
           ctaPreviewMode={isPreview}
@@ -278,6 +279,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerCity={providerCity}
           providerState={providerState}
           providerImage={providerImage}
+          careTypes={careTypes}
           priceRange={priceRange}
           pricingTier={pricingTier}
           pricingDisclaimer={pricingDisclaimer}
@@ -302,6 +304,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerCategory={providerCategory}
           providerCity={providerCity}
           providerState={providerState}
+          providerImage={providerImage}
           ctaVariant={variant}
           ctaSurface="mobile"
           ctaPreviewMode={isPreview}

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
+import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
 
 interface GuideBottomSheetProps {
   isOpen: boolean;
@@ -17,13 +18,16 @@ interface GuideBottomSheetProps {
   providerCity?: string | null;
   providerState?: string | null;
   providerImage?: string | null;
+  careTypes?: string[];
+  priceRange?: string | null;
+  ctaVariant?: string | null;
   /** Start directly in enrichment mode (for logged-in users) */
   startInEnrichment?: boolean;
   /** Pre-set connectionId (for logged-in users who already created connection) */
   initialConnectionId?: string | null;
 }
 
-type SheetState = "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block" | "family_required";
+type SheetState = "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block" | "family_required" | "logged_in_family";
 
 /**
  * Mobile bottom sheet for the guide CTA.
@@ -39,6 +43,9 @@ export default function GuideBottomSheet({
   providerCity,
   providerState,
   providerImage,
+  careTypes = [],
+  priceRange,
+  ctaVariant,
   startInEnrichment = false,
   initialConnectionId = null,
 }: GuideBottomSheetProps) {
@@ -117,6 +124,9 @@ export default function GuideBottomSheet({
         } else if (isNonFamilyProfile) {
           // Show family required state if logged in as provider/caregiver/student
           setSheetState("family_required");
+        } else if (isLoggedIn) {
+          // Logged-in family user: show streamlined CTA (skips enrichment)
+          setSheetState("logged_in_family");
         } else {
           setSheetState("email_capture");
         }
@@ -140,7 +150,7 @@ export default function GuideBottomSheet({
       document.body.style.overflow = "";
       document.removeEventListener("keydown", keyHandler);
     };
-  }, [isOpen, isNonFamilyProfile, startInEnrichment, initialConnectionId]);
+  }, [isOpen, isLoggedIn, isNonFamilyProfile, startInEnrichment, initialConnectionId]);
 
   // Close sheet when viewport switches to desktop
   useEffect(() => {
@@ -462,6 +472,25 @@ export default function GuideBottomSheet({
                 </p>
               </form>
             </>
+          )}
+
+          {/* ─────────────────────────────────────────────────────────────────── */}
+          {/* Logged-in Family User State (streamlined CTA) */}
+          {/* Uses LoggedInFamilyCTA for consistent [♡] [Request details] layout */}
+          {/* Skips enrichment, goes directly to inbox */}
+          {/* ─────────────────────────────────────────────────────────────────── */}
+          {sheetState === "logged_in_family" && (
+            <LoggedInFamilyCTA
+              providerId={providerId}
+              providerName={providerName}
+              providerSlug={providerSlug}
+              providerCity={providerCity}
+              providerState={providerState}
+              providerImage={providerImage}
+              careTypes={careTypes}
+              priceRange={priceRange}
+              ctaVariant={ctaVariant || "guide"}
+            />
           )}
 
           {/* ─────────────────────────────────────────────────────────────────── */}

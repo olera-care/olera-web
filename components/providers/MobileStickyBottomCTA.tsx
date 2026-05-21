@@ -10,6 +10,7 @@ import PhoneButton from "@/components/providers/connection-card/PhoneButton";
 import Pill from "@/components/providers/connection-card/Pill";
 import StepIndicator from "@/components/providers/connection-card/StepIndicator";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
+import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
 import {
   RECIPIENT_OPTIONS,
   URGENCY_OPTIONS,
@@ -216,6 +217,7 @@ interface MobileStickyBottomCTAProps {
   providerCategory?: string | null;
   providerCity?: string | null;
   providerState?: string | null;
+  providerImage?: string | null;
   // CTA variant for A/B testing
   ctaVariant?: string | null;
   ctaSurface?: "desktop" | "mobile";
@@ -241,6 +243,7 @@ export default function MobileStickyBottomCTA({
   providerCategory,
   providerCity,
   providerState,
+  providerImage,
   ctaVariant,
   ctaSurface = "mobile",
   ctaPreviewMode = false,
@@ -655,34 +658,32 @@ export default function MobileStickyBottomCTA({
           </div>
         )}
 
-        {/* ── Default: email form ── */}
-        {!hook.isNonFamilyProfile && hook.cardState === "default" && (
+        {/* ── Default: Logged-in family user uses LoggedInFamilyCTA (skips enrichment) ── */}
+        {!hook.isNonFamilyProfile && hook.cardState === "default" && hook.userEmail && (
+          <div className="py-4 animate-step-in">
+            <LoggedInFamilyCTA
+              providerId={providerId}
+              providerName={providerName}
+              providerSlug={providerSlug}
+              providerCategory={providerCategory}
+              providerCity={providerCity}
+              providerState={providerState}
+              providerImage={providerImage}
+              careTypes={careTypes}
+              priceRange={priceRange}
+              ctaVariant={ctaVariant || "legacy"}
+            />
+          </div>
+        )}
+
+        {/* ── Default: Guest email form ── */}
+        {!hook.isNonFamilyProfile && hook.cardState === "default" && !hook.userEmail && (
           <div className="py-4 animate-step-in">
             <div className="space-y-3">
-              {hook.userEmail ? (
-                /* Logged-in: one-click */
-                <>
-                  <p className="text-[13px] text-gray-500 text-center">
-                    Signed in as {hook.userEmail}
-                  </p>
-                  <button
-                    onClick={() => hook.submitInquiryForm({ email: hook.userEmail })}
-                    disabled={hook.submitting}
-                    className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-[10px] text-base font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
-                  >
-                    {hook.submitting && (
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    )}
-                    {hook.submitting ? "Checking..." : "Check cost & availability"}
-                  </button>
-                </>
-              ) : (
-                /* Guest: email-only form */
-                <MobileEmailForm
-                  onSubmit={(email) => hook.submitInquiryForm({ email })}
-                  submitting={hook.submitting}
-                />
-              )}
+              <MobileEmailForm
+                onSubmit={(email) => hook.submitInquiryForm({ email })}
+                submitting={hook.submitting}
+              />
               {hook.error && (
                 <p className="text-sm text-red-600 text-center" role="alert">
                   {hook.error}

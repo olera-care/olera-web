@@ -6,8 +6,8 @@ import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { getPricingConfig } from "@/lib/pricing-config";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useSavedProviders } from "@/hooks/use-saved-providers";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
+import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
 
 type CardState = "initial" | "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block";
 
@@ -19,6 +19,7 @@ interface GuideCardProps {
   providerCity?: string | null;
   providerState?: string | null;
   providerImage?: string | null;
+  careTypes?: string[];
   priceRange?: string | null;
   ctaVariant?: string | null;
   ctaPreviewMode?: boolean;
@@ -37,18 +38,17 @@ export default function GuideCard({
   providerCity,
   providerState,
   providerImage,
+  careTypes = [],
   priceRange,
   ctaVariant,
   ctaPreviewMode = false,
 }: GuideCardProps) {
   const { user, activeProfile, openAuth } = useAuth();
-  const { isSaved, toggleSave } = useSavedProviders();
   const [cardState, setCardState] = useState<CardState>("initial");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
-  const [isMessageSubmitting, setIsMessageSubmitting] = useState(false);
   const [connectionId, setConnectionId] = useState<string | null>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const clickFiredRef = useRef(false);
@@ -70,9 +70,6 @@ export default function GuideCard({
   // Check if user is logged in
   const isLoggedIn = !!user && !!activeProfile;
   const userEmail = user?.email || "";
-
-  // Check if provider is already saved
-  const providerIsSaved = isSaved(providerId);
 
   // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
   const isNonFamilyProfile = activeProfile &&
@@ -311,52 +308,6 @@ export default function GuideCard({
     }
   }, [apiLoading, apiResult, pendingEnrichment, enrichmentSubmitting, completeFlow]);
 
-  // Handle logged-in "Message provider" click
-  // Creates connection via guide-save API, then shows enrichment
-  // NOTE: We intentionally don't track cta_variant_clicked here because logged-in
-  // users are already converted and this action shouldn't pollute the A/B test funnel.
-  const handleMessageProvider = useCallback(async () => {
-    if (!userEmail) return;
-
-    setIsMessageSubmitting(true);
-
-    try {
-      // Create connection via guide-save API (handles Slack notifications, lead tracking)
-      const res = await fetch("/api/connections/guide-save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: userEmail,
-          provider: {
-            id: providerId,
-            slug: providerSlug,
-            name: providerName,
-          },
-          sessionId: getOrCreateSessionId(),
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.connectionId) {
-          setConnectionId(data.connectionId);
-        }
-        // Show enrichment instead of redirecting directly
-        setCardState("enrichment");
-      } else {
-        console.error("[GuideCard] guide-save failed:", res.status);
-        // On error, redirect to inbox
-        window.location.href = `/portal/inbox`;
-      }
-    } catch (err) {
-      console.error("[GuideCard] handleMessageProvider error:", err);
-      // Still redirect on error - user expects to go to inbox
-      window.location.href = `/portal/inbox`;
-    } finally {
-      setIsMessageSubmitting(false);
-    }
-  }, [userEmail, providerId, providerSlug, providerName]);
-
   // Reset from provider email block
   const resetFromProviderEmailBlock = useCallback(() => {
     setBlockedEmail(null);
@@ -443,111 +394,26 @@ export default function GuideCard({
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: Initial State - Logged-in Family User (lead with messaging)
+  // RENDER: Initial State - Logged-in Family User (streamlined CTA)
+  // Uses LoggedInFamilyCTA for consistent [♡] [Request details] layout
+  // Skips enrichment, goes directly to inbox
   // ─────────────────────────────────────────────────────────────────────────────
   if (cardState === "initial" && isLoggedIn) {
     return (
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
         <div className="px-5 pt-5 pb-5">
-          {/* Pricing header */}
-          <div className="mb-4 pb-4 border-b border-gray-100">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-              Est. {unitLabel} · {locationStr}
-            </p>
-            <p className="text-xl font-semibold text-gray-900">
-              {priceRange || "Contact for pricing"}
-            </p>
-          </div>
-
-          {/* Messaging-focused content */}
-          <div className="mb-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-1">
-              Interested in {providerName.split(" ")[0]}?
-            </h3>
-            <p className="text-sm text-gray-500">
-              Start a conversation to learn more about pricing, availability, and tours.
-            </p>
-          </div>
-
-          {/* Pre-filled email (read-only) */}
-          <div className="mb-4">
-            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200">
-              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <span className="text-sm text-gray-600 truncate">{userEmail}</span>
-            </div>
-          </div>
-
-          {/* Primary CTA: Message provider */}
-          <button
-            onClick={handleMessageProvider}
-            disabled={isMessageSubmitting}
-            className="w-full px-5 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
-          >
-            {isMessageSubmitting ? (
-              <>
-                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                <span>Connecting...</span>
-              </>
-            ) : (
-              <>
-                Message this provider
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </>
-            )}
-          </button>
-
-          {/* Secondary: Save for later */}
-          <button
-            onClick={() => {
-              toggleSave({
-                providerId,
-                slug: providerSlug,
-                name: providerName,
-                location: [providerCity, providerState].filter(Boolean).join(", "),
-                careTypes: providerCategory ? [providerCategory] : [],
-                image: providerImage || null,
-              });
-            }}
-            disabled={isMessageSubmitting}
-            className="w-full mt-2 px-5 py-3 border border-gray-200 hover:bg-gray-50 disabled:opacity-50 text-gray-700 rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
-          >
-            {providerIsSaved ? (
-              <>
-                <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-                Saved
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-                Save for later
-              </>
-            )}
-          </button>
-
-          {/* Checklist as footer helper */}
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <button
-              onClick={handleGetGuideClick}
-              className="w-full flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Get our free checklist
-              <span className="text-gray-400">· 1-page PDF</span>
-            </button>
-          </div>
+          <LoggedInFamilyCTA
+            providerId={providerId}
+            providerName={providerName}
+            providerSlug={providerSlug}
+            providerCategory={providerCategory}
+            providerCity={providerCity}
+            providerState={providerState}
+            providerImage={providerImage}
+            careTypes={careTypes.length > 0 ? careTypes : (providerCategory ? [providerCategory] : [])}
+            priceRange={priceRange}
+            ctaVariant={ctaVariant || "guide"}
+          />
         </div>
       </div>
     );

@@ -105,7 +105,7 @@ export default function CompareOverlay({
     });
   };
 
-  // Submit for logged-in users (skip email capture)
+  // Submit for logged-in family users (skip email capture AND enrichment, go directly to inbox)
   const handleLoggedInSubmit = useCallback(async () => {
     if (!userEmail) return;
 
@@ -163,18 +163,17 @@ export default function CompareOverlay({
         return;
       }
 
-      // Store connection IDs for enrichment
-      if (data.connectionIds?.length > 0) {
-        setConnectionIds(data.connectionIds);
-      }
+      // Dispatch event for inbox refresh
+      window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-      // Go to enrichment instead of success
-      setFooterState("enrichment");
+      // Logged-in family users skip enrichment, go directly to inbox
+      const firstConnectionId = data.connectionIds?.[0];
+      router.push(firstConnectionId ? `/portal/inbox?id=${firstConnectionId}` : "/portal/inbox");
     } catch {
       setError("Something went wrong. Please try again.");
       setFooterState("initial");
     }
-  }, [userEmail, ctaPreviewMode, ctaVariant, currentProvider.slug, selectedProviders]);
+  }, [userEmail, ctaPreviewMode, ctaVariant, currentProvider.slug, selectedProviders, router]);
 
   // Track "Save" button click (once per overlay session)
   const handleSaveClick = useCallback(() => {

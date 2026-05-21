@@ -4,6 +4,7 @@ import { useConnectionCard } from "./use-connection-card";
 import InquiryForm from "./InquiryForm";
 import EnrichmentState from "./EnrichmentState";
 import ConnectedState from "./ConnectedState";
+import LoggedInFamilyCTA from "../LoggedInFamilyCTA";
 import type { ConnectionCardProps } from "./types";
 
 export type { ConnectionCardProps } from "./types";
@@ -59,21 +60,20 @@ export default function ConnectionCard(props: ConnectionCardProps) {
 
         {hook.cardState === "default" && (
           hook.userEmail ? (
-            /* Logged-in: one-click CTA — pricing context + one button */
-            <InquiryForm
-              key={hook.userEmail}
+            /* Logged-in family: streamlined CTA — skips enrichment, goes to inbox */
+            <LoggedInFamilyCTA
+              providerId={props.providerId}
               providerName={providerName}
-              onSubmit={hook.submitInquiryForm}
-              submitting={hook.submitting}
-              error={hook.error}
-              initialEmail={hook.userEmail}
+              providerSlug={props.providerSlug}
+              providerCategory={props.careTypes?.[0] || null}
+              providerCity={props.city}
+              providerState={props.state}
               careTypes={props.careTypes}
               priceRange={props.priceRange}
-              city={props.city}
-              state={props.state}
+              ctaVariant={props.ctaVariant}
             />
           ) : (
-            /* Guest: email-only form */
+            /* Guest: email-only form → enrichment → inbox */
             <InquiryForm
               key="guest"
               providerName={providerName}

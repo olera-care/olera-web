@@ -124,7 +124,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const connectionAuthTriggered = useRef(false);
 
   // ── State machine ──
-  const [cardState, setCardState] = useState<CardState>("default");
+  // Start in "loading" to prevent flash while checking auth + existing connections
+  const [cardState, setCardState] = useState<CardState>("loading");
   const [intentStep, setIntentStep] = useState<IntentStep>(0);
   const [intentData, setIntentData] = useState<IntentData>(INITIAL_INTENT);
 
@@ -193,22 +194,43 @@ export function useConnectionCard(props: ConnectionCardProps) {
     router.prefetch("/portal/inbox");
   }, [router]);
 
-  // ── Resolve initial state — show form immediately for everyone ──
+  // Track previous user to detect login transitions
+  const prevUserRef = useRef<typeof user>(undefined);
+
+  // ── Resolve initial state and handle auth transitions ──
+  // Prevents flash by showing "loading" until we know the right state
   useEffect(() => {
     if (authLoading) return;
-    // Don't reset to form if user is answering enrichment questions
+    // Don't reset if user is answering enrichment questions
     if (enrichmentLock.current) return;
-    // Both guests and signed-in users see the form ("default" state).
-    // Signed-in users get pre-filled fields; the DB check below
-    // may upgrade to "connected" if they already have an active connection.
-    setCardState("default");
-  }, [authLoading]);
+
+    const wasGuest = prevUserRef.current === null;
+    const isNowLoggedIn = !!user;
+    prevUserRef.current = user;
+
+    if (!user) {
+      // Guest: show form immediately
+      setCardState("default");
+    } else if (wasGuest && isNowLoggedIn) {
+      // User just logged in: show loading while we check for existing connections
+      setCardState("loading");
+    }
+    // If already logged in (page load), stay in "loading" until checkExisting runs
+  }, [authLoading, user]);
 
   // ── Check for existing connection + fetch previous intent (logged-in users) ──
   useEffect(() => {
-    if (!user || !profiles.length || !isSupabaseConfigured()) return;
     // Don't override enrichment state — the user is answering post-submission questions
     if (enrichmentLock.current) return;
+
+    // Wait for user and profiles to be ready
+    if (!user || !profiles.length) return;
+
+    // If Supabase not configured (dev/testing), show default state
+    if (!isSupabaseConfigured()) {
+      setCardState("default");
+      return;
+    }
 
     const checkExisting = async () => {
       const supabase = createClient();

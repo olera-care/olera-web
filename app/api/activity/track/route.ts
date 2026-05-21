@@ -28,6 +28,8 @@ const PROVIDER_EVENT_TYPES = [
 const FAMILY_EVENT_TYPES = [
   "connection_sent",
   "profile_enriched",
+  "profile_published",
+  "go_live_skipped",
   "email_click",
   "question_asked",
   "matches_activated",

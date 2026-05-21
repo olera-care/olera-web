@@ -432,37 +432,72 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
 
   const isSaved = useCallback(
     (providerId: string) => {
-      return dbSaveIds.has(providerId) || anonSaves.some((s) => s.providerId === providerId);
+      // Check primary key (providerId) first
+      if (dbSaveIds.has(providerId)) return true;
+      if (anonSaves.some((s) => s.providerId === providerId)) return true;
+      // Fallback: check by slug for backward compatibility
+      // (old saves keyed by UUID can still be found when checking by slug)
+      if (dbSaves.some((s) => s.slug === providerId)) return true;
+      if (anonSaves.some((s) => s.slug === providerId)) return true;
+      return false;
     },
-    [dbSaveIds, anonSaves]
+    [dbSaveIds, dbSaves, anonSaves]
   );
 
   const toggleSave = useCallback(
     async (provider: SaveProviderData) => {
+      // Check if currently saved (by providerId or slug for backward compatibility)
       const currentlySaved = dbSaveIds.has(provider.providerId) ||
-        anonSaves.some((s) => s.providerId === provider.providerId);
+        anonSaves.some((s) => s.providerId === provider.providerId) ||
+        dbSaves.some((s) => s.slug === provider.providerId) ||
+        anonSaves.some((s) => s.slug === provider.providerId);
 
       if (currentlySaved) {
         // ── Unsave ──
         if (user && activeProfile && isSupabaseConfigured()) {
+          // Find the actual entry to get its providerId (may differ from lookup key)
+          const matchedEntry = dbSaves.find(
+            (s) => s.providerId === provider.providerId || s.slug === provider.providerId
+          );
+          const entryProviderId = matchedEntry?.providerId || provider.providerId;
+
+          // Store entry for potential rollback
+          const entryToRestore = matchedEntry;
+
           // Optimistic local update
           setDbSaveIds((prev) => {
             const next = new Set(prev);
-            next.delete(provider.providerId);
+            next.delete(entryProviderId);
             return next;
           });
-          setDbSaves((prev) => prev.filter((s) => s.providerId !== provider.providerId));
+          setDbSaves((prev) => prev.filter(
+            (s) => s.providerId !== entryProviderId && s.slug !== provider.providerId
+          ));
 
-          // Delete via API
+          // Delete via API (use slug for consistent resolution)
           fetch("/api/connections/save", {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ providerId: provider.providerId }),
+            body: JSON.stringify({ providerId: provider.slug || provider.providerId }),
           })
             .then((res) => {
-              if (!res.ok) setSaveError("Couldn't unsave. Please try again.");
+              if (!res.ok) {
+                // Rollback: restore the entry
+                if (entryToRestore) {
+                  setDbSaveIds((prev) => new Set(prev).add(entryProviderId));
+                  setDbSaves((prev) => [entryToRestore, ...prev]);
+                }
+                setSaveError("Couldn't unsave. Please try again.");
+              }
             })
-            .catch(() => setSaveError("Couldn't unsave. Please try again."));
+            .catch(() => {
+              // Rollback: restore the entry on network error
+              if (entryToRestore) {
+                setDbSaveIds((prev) => new Set(prev).add(entryProviderId));
+                setDbSaves((prev) => [entryToRestore, ...prev]);
+              }
+              setSaveError("Couldn't unsave. Please try again.");
+            });
         } else {
           // Anonymous unsave
           removeAnonSave(provider.providerId);
@@ -504,9 +539,27 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
             }),
           })
             .then((res) => {
-              if (!res.ok) setSaveError("Couldn't save. Please try again.");
+              if (!res.ok) {
+                // Rollback optimistic update on failure
+                setDbSaveIds((prev) => {
+                  const next = new Set(prev);
+                  next.delete(provider.providerId);
+                  return next;
+                });
+                setDbSaves((prev) => prev.filter((s) => s.providerId !== provider.providerId));
+                setSaveError("Couldn't save. Please try again.");
+              }
             })
-            .catch(() => setSaveError("Couldn't save. Please try again."));
+            .catch(() => {
+              // Rollback optimistic update on network error
+              setDbSaveIds((prev) => {
+                const next = new Set(prev);
+                next.delete(provider.providerId);
+                return next;
+              });
+              setDbSaves((prev) => prev.filter((s) => s.providerId !== provider.providerId));
+              setSaveError("Couldn't save. Please try again.");
+            });
         } else {
           // Anonymous save — no limit, just save and maybe show nudge
           const newCount = addAnonSave({
@@ -557,7 +610,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
         }
       }
     },
-    [user, activeProfile, dbSaveIds, anonSaves]
+    [user, activeProfile, dbSaveIds, dbSaves, anonSaves]
   );
 
   const savedCount = dbSaveIds.size + anonSaves.length;

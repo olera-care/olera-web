@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useSavedProviders } from "@/hooks/use-saved-providers";
 import GuideBottomSheet from "./GuideBottomSheet";
 
 interface MobileStickyGuideProps {
@@ -13,6 +15,7 @@ interface MobileStickyGuideProps {
   providerCity?: string | null;
   providerState?: string | null;
   providerImage?: string | null;
+  careTypes?: string[];
   priceRange?: string | null;
   /** Pricing tier (3 = Medicare/Medicaid) */
   pricingTier?: number | null;
@@ -34,27 +37,115 @@ export default function MobileStickyGuide({
   providerCity,
   providerState,
   providerImage,
+  careTypes = [],
   priceRange,
   pricingTier,
   pricingDisclaimer,
   ctaVariant,
   ctaPreviewMode = false,
 }: MobileStickyGuideProps) {
+  const router = useRouter();
   const { user, activeProfile, openAuth } = useAuth();
-  const isLoggedIn = !!user && !!activeProfile;
+  const { isSaved, toggleSave } = useSavedProviders();
 
   // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
   const isNonFamilyProfile = activeProfile &&
     (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
-
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [isMessageSubmitting, setIsMessageSubmitting] = useState(false);
-  const [showPricingTooltip, setShowPricingTooltip] = useState(false);
-
-  // Get user email for logged-in flow
+  const isLoggedInFamily = !!user && !!activeProfile && !isNonFamilyProfile;
   const userEmail = user?.email || "";
 
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [showPricingTooltip, setShowPricingTooltip] = useState(false);
+  const [directSubmitting, setDirectSubmitting] = useState(false);
+  const [directError, setDirectError] = useState<string | null>(null);
+
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  // ── Logged-in family user: direct action from sticky bar ──
+  // Use providerSlug for save check to match header SaveButton (which also uses slug)
+  const providerIsSaved = isSaved(providerSlug);
+  const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
+
+  const handleDirectSave = useCallback(() => {
+    // Use providerSlug as providerId to match header SaveButton (which also uses slug)
+    toggleSave({
+      providerId: providerSlug,
+      slug: providerSlug,
+      name: providerName,
+      location: locationStr,
+      careTypes: careTypes,
+      image: providerImage || null,
+    });
+  }, [toggleSave, providerSlug, providerName, locationStr, careTypes, providerImage]);
+
+  const handleDirectRequest = useCallback(async () => {
+    if (!userEmail || directSubmitting) return;
+
+    setDirectSubmitting(true);
+    setDirectError(null);
+
+    // Fire analytics event for A/B testing attribution
+    if (ctaVariant && !ctaPreviewMode) {
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          related_provider_id: providerSlug,
+          event_type: "cta_variant_clicked",
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            variant: ctaVariant,
+            surface: "mobile",
+            action: "direct_request",
+            logged_in: true,
+          },
+        }),
+      }).catch(() => {});
+    }
+
+    try {
+      const res = await fetch("/api/connections/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId,
+          providerName,
+          providerSlug,
+          intentData: {
+            careRecipient: null,
+            careType: null,
+            urgency: null,
+          },
+          session_id: getOrCreateSessionId(),
+          cta_variant: ctaVariant || "guide",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("[MobileStickyGuide] direct request failed:", data.error);
+        setDirectError(data.error || "Something went wrong. Please try again.");
+        setDirectSubmitting(false);
+        return;
+      }
+
+      // Dispatch event for inbox refresh
+      window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
+      // Go directly to inbox
+      if (data.connectionId) {
+        router.push(`/portal/inbox?id=${data.connectionId}`);
+      } else {
+        router.push("/portal/inbox");
+      }
+    } catch (err) {
+      console.error("[MobileStickyGuide] direct request error:", err);
+      setDirectError("Something went wrong. Please try again.");
+      setDirectSubmitting(false);
+    }
+  }, [userEmail, directSubmitting, providerId, providerName, providerSlug, ctaVariant, router]);
 
   // Fire analytics when "Get the checklist" is clicked (guest flow)
   const clickFiredRef = useRef(false);
@@ -79,48 +170,6 @@ export default function MobileStickyGuide({
     }
     setSheetOpen(true);
   }, [ctaVariant, ctaPreviewMode, providerSlug]);
-
-  // Handle "Message provider" click (logged-in flow)
-  // Creates connection via guide-save API, then redirects to inbox
-  // NOTE: We intentionally don't track cta_variant_clicked here because logged-in
-  // users are already converted and this action shouldn't pollute the A/B test funnel.
-  const handleMessageProvider = useCallback(async () => {
-    if (!userEmail) return;
-
-    setIsMessageSubmitting(true);
-
-    try {
-      // Create connection via guide-save API (handles Slack notifications, lead tracking)
-      const res = await fetch("/api/connections/guide-save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: userEmail,
-          provider: {
-            id: providerId,
-            slug: providerSlug,
-            name: providerName,
-          },
-          sessionId: getOrCreateSessionId(),
-        }),
-      });
-
-      let connId: string | null = null;
-      if (res.ok) {
-        const data = await res.json();
-        connId = data.connectionId || null;
-      } else {
-        console.error("[MobileStickyGuide] guide-save failed:", res.status);
-      }
-
-      // Redirect to inbox with connectionId if available
-      window.location.href = connId ? `/portal/inbox?id=${connId}` : `/portal/inbox`;
-    } catch (err) {
-      console.error("[MobileStickyGuide] handleMessageProvider error:", err);
-      // Still redirect on error - user expects to go to inbox
-      window.location.href = `/portal/inbox`;
-    }
-  }, [userEmail, providerId, providerSlug, providerName]);
 
   const handleCloseSheet = useCallback(() => {
     setSheetOpen(false);
@@ -219,60 +268,10 @@ export default function MobileStickyGuide({
         <div
           className="md:hidden"
           aria-hidden="true"
-          style={{ height: "calc(130px + env(safe-area-inset-bottom, 0px))" }}
-        />
-
-        {/* Sticky bottom bar - Family account required (always visible) */}
-        <div
-          className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
-            !keyboardOpen
-              ? "translate-y-0"
-              : "translate-y-full"
-          }`}
-        >
-          <div
-            className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
-            style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-          >
-            <div className="px-5 pt-3 pb-4">
-              {/* Info */}
-              <div className="flex items-center gap-1.5">
-                <p className="text-[16px] font-semibold text-gray-900">
-                  Family account required
-                </p>
-              </div>
-              <p className="text-[13px] text-gray-500 mt-1 mb-3">
-                To contact care providers
-              </p>
-
-              {/* Full-width CTA button */}
-              <button
-                onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
-                className="w-full py-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[16px] font-semibold transition-colors"
-              >
-                Create Family Account
-              </button>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: Logged-in family user - messaging-focused sticky bar
-  // ─────────────────────────────────────────────────────────────────────────────
-  if (isLoggedIn) {
-    return (
-      <>
-        {/* Document-flow spacer */}
-        <div
-          className="md:hidden"
-          aria-hidden="true"
           style={{ height: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
         />
 
-        {/* Sticky bottom bar - Messaging focused (always visible) */}
+        {/* Sticky bottom bar - Family account required (always visible) */}
         <div
           className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
             !keyboardOpen
@@ -316,38 +315,45 @@ export default function MobileStickyGuide({
                 )}
               </div>
 
+              {/* Family account required text */}
+              <p className="text-[13px] text-gray-500 font-medium mb-3">
+                Family account required
+              </p>
+
               {/* Full-width CTA button */}
               <button
-                onClick={handleMessageProvider}
-                disabled={isMessageSubmitting}
-                className="w-full py-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-gray-400 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
+                onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
+                className="w-full py-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[16px] font-semibold transition-colors"
               >
-                {isMessageSubmitting ? (
-                  <>
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>Connecting...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Message provider</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </>
-                )}
+                Create Family Account
               </button>
             </div>
           </div>
         </div>
+
+        {/* ── Pricing tooltip portal ── */}
+        {showPricingTooltip &&
+          pricingDisclaimer &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <div
+              className="fixed left-4 right-4 z-[100] md:hidden"
+              style={{ bottom: "calc(140px + env(safe-area-inset-bottom, 0px))" }}
+            >
+              <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
+                <p>{pricingDisclaimer}</p>
+              </div>
+            </div>,
+            document.body
+          )}
       </>
     );
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: Guest user - checklist-focused sticky bar
+  // RENDER: Default sticky bar
+  // - Logged-in family: direct action [♡] + [Request details]
+  // - Guest: "Get free checklist" opens bottom sheet
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <>
@@ -355,7 +361,7 @@ export default function MobileStickyGuide({
       <div
         className="md:hidden"
         aria-hidden="true"
-        style={{ height: "calc(130px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ height: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
       />
 
       {/* Sticky bottom bar (always visible) */}
@@ -372,7 +378,7 @@ export default function MobileStickyGuide({
         >
           <div className="px-5 pt-3 pb-4">
             {/* Pricing info - single line */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 mb-3">
               <p className="text-[16px] font-semibold text-gray-900">
                 {priceDisplay}
               </p>
@@ -402,21 +408,72 @@ export default function MobileStickyGuide({
               )}
             </div>
 
-            {/* Checklist value prop */}
-            <p className="text-[13px] text-gray-500 mt-1 mb-3">
-              Free checklist included
-            </p>
+            {/* ── Logged-in family: direct action (no sheet needed) ── */}
+            {isLoggedInFamily ? (
+              <div>
+                {/* Error message */}
+                {directError && (
+                  <p className="text-sm text-red-600 text-center mb-2">{directError}</p>
+                )}
+                <div className="flex items-center gap-2">
+                  {/* Save button */}
+                  <button
+                  type="button"
+                  onClick={handleDirectSave}
+                  disabled={directSubmitting}
+                  className={`shrink-0 w-14 h-14 flex items-center justify-center rounded-xl border-2 transition-all ${
+                    providerIsSaved
+                      ? "border-primary-500 bg-primary-50 text-primary-600"
+                      : "border-gray-200 bg-white text-gray-400 hover:border-gray-300 hover:text-gray-500"
+                  } disabled:opacity-50`}
+                  aria-label={providerIsSaved ? "Saved" : "Save for later"}
+                >
+                  {providerIsSaved ? (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  )}
+                </button>
 
-            {/* Full-width CTA button */}
-            <button
-              onClick={handleGuideClick}
-              className="w-full py-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
-            >
-              <span>Get free checklist</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </button>
+                {/* Primary CTA - direct to inbox */}
+                <button
+                  type="button"
+                  onClick={handleDirectRequest}
+                  disabled={directSubmitting}
+                  className="flex-1 py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  {directSubmitting ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Connecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Request details</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </>
+                  )}
+                </button>
+                </div>
+              </div>
+            ) : (
+              /* ── Guest: opens sheet for checklist + email capture ── */
+              <button
+                onClick={handleGuideClick}
+                className="w-full py-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
+              >
+                <span>Get free checklist</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -437,7 +494,7 @@ export default function MobileStickyGuide({
           document.body
         )}
 
-      {/* Guide bottom sheet */}
+      {/* Guide bottom sheet - handles logged-in vs guest distinction */}
       <GuideBottomSheet
         isOpen={sheetOpen}
         onClose={handleCloseSheet}
@@ -447,6 +504,9 @@ export default function MobileStickyGuide({
         providerCity={providerCity}
         providerState={providerState}
         providerImage={providerImage}
+        careTypes={careTypes}
+        priceRange={priceRange}
+        ctaVariant={ctaVariant}
       />
     </>
   );

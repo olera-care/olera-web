@@ -75,7 +75,7 @@
 
 ---
 
-### 2026-05-19 (Tue) — GSC: invalid `reviewCount:0` in provider JSON-LD — FIXED (branch `easy-wozniak`, PR pending)
+### 2026-05-19 (Tue) — GSC: invalid `reviewCount:0` in provider JSON-LD — SHIPPED TO PROD
 
 **Context:** Google Search Console email (WNC-10030322, to tj@olera.care 2026-03-11) flagged 1 critical Review-snippets structured-data issue site-wide: `Value in property "reviewCount" must be positive`.
 
@@ -87,7 +87,20 @@
 
 **Decisions made:** Suppress over-emit — fewer-but-valid beats more-but-invalid for structured data (one bad `reviewCount` invalidates the whole snippet). Same honesty principle as the provider-highlights waterfall.
 
-**Resume next session here →** Open PR `easy-wozniak` → staging, QA, promote to main. After prod deploy, in GSC → Review snippets report click **Validate Fix** (Google re-crawl, ~days–weeks to clear). Nothing else outstanding.
+**Shipped:** PR #848 → staging (`df4d3232`), promoted to prod via PR #849 → main (`63dd013d`). TJ clicked **Validate Fix** in GSC same day (validation started 5/19, 421 affected items). Reminder task on Olera Action Items board for 2026-05-24 to check validation status. Both /pr-merge Notion reports filed.
+---
+
+### 2026-05-19 (Tue) — De-indexing: description-rewrite theory tested against real GSC data — LARGELY DISPROVEN
+
+**Context:** TJ questioned the assumption that templated provider descriptions cause the GSC "Crawled — currently not indexed" bucket (66K and growing). Asked for evidence before spending on a 27K description backfill.
+
+**What was done:** (1) Measured backfill completeness vs prod DB — 75,076 active providers, only 21,165 rewritten (5/11 run), ~27K still templated (36%). Found the **structural leak**: `scripts/enrich-city.js:293` + `scripts/pipeline-batch.js:1291` still mint Gen-2 templated descriptions for every new pipeline provider, so a one-time backfill never converges. (2) TJ exported the GSC drilldown to `docs/https___olera.care_-Coverage-Drilldown-2026-05-19/` (Chart/Metadata/Table.csv, 999-URL sample). Analyzed: 585 `/provider/*` (58%), 308 `/review/*` (31%). Cross-referenced 583 rejected provider slugs against DB.
+
+**Finding (theory disproven):** Of rejected provider pages — only 51% still templated, **33% unique-prose all along yet still rejected, 77% have real Google reviews**, median desc 203 chars. Weak positive signal only (templated over-represented ~1.4x vs 36% baseline). Bucket grew monotonically 19K (Feb)→66K (May), steepest late-Apr/early-May = tracks **city-pipeline page growth, not content quality**. It's a large-thin-directory scale/duplication problem, not a per-page description bug. Caveat: every export URL was crawled BEFORE both 5/11 fixes (sample crawled 5/3–7) — measures the problem, not the cure.
+
+**Decisions made:** Killed "rewrite 27K to fix de-indexing" as the plan. Revised: (1) let `/review/` noindex propagate (highest-confidence, monitor only — verified live on main since 5/11, server-rendered); (2) be selective about what gets indexed (noindex/consolidate thin stubs); (3) throttle the pipeline; (4) finish backfill eventually as UX cleanup not de-indexing fix; (5) re-measure ~mid-June with fresh export post-recrawl. Notion task `3655903a-0ffe-8163-ad78-c8d4a39df9d1`; memory `project_deindexing_p5_diagnostic` corrected.
+
+**Resume next session here →** Mid-June: pull a fresh GSC "Crawled — currently not indexed" export, check `/review/` URLs leaving the bucket + compare index rates of the 21K-rewritten cohort vs the still-templated cohort (the real A/B test, valid only after recrawl). Decide on selective-indexing + pipeline throttle then.
 ---
 
 ### 2026-05-17→18 (Sun–Mon) — @wehaveprepared.com fraud ring: CLOSED — DB remediated + domain block live in prod

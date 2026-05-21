@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useSavedProviders } from "@/hooks/use-saved-providers";
 import CompareBottomSheet, { type CompareProvider } from "./CompareBottomSheet";
 
 interface MobileStickyCompareProps {
@@ -55,15 +57,109 @@ export default function MobileStickyCompare({
   ctaVariant,
   ctaPreviewMode = false,
 }: MobileStickyCompareProps) {
-  const { activeProfile, openAuth } = useAuth();
+  const router = useRouter();
+  const { user, activeProfile, openAuth } = useAuth();
+  const { isSaved, toggleSave } = useSavedProviders();
 
   // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
   const isNonFamilyProfile = activeProfile &&
     (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
+  const isLoggedInFamily = !!user && !!activeProfile && !isNonFamilyProfile;
+  const userEmail = user?.email || "";
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [showPricingTooltip, setShowPricingTooltip] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [directSubmitting, setDirectSubmitting] = useState(false);
+  const [directError, setDirectError] = useState<string | null>(null);
+
+  // Track if sheet was opened as guest - keeps sheet mounted through auth state changes
+  // This prevents the sheet from unmounting when user becomes logged in mid-flow
+  const [sheetStartedAsGuest, setSheetStartedAsGuest] = useState(false);
+
+  // ── Logged-in family user: direct action from sticky bar ──
+  const providerIsSaved = isSaved(providerSlug);
+  const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
+
+  const handleDirectSave = useCallback(() => {
+    toggleSave({
+      providerId: providerSlug,
+      slug: providerSlug,
+      name: providerName,
+      location: locationStr,
+      careTypes: services || [],
+      image: providerImage || null,
+    });
+  }, [toggleSave, providerSlug, providerName, locationStr, services, providerImage]);
+
+  const handleDirectRequest = useCallback(async () => {
+    if (!userEmail || directSubmitting) return;
+
+    setDirectSubmitting(true);
+    setDirectError(null);
+
+    // Fire analytics event for A/B testing attribution
+    if (ctaVariant && !ctaPreviewMode) {
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          related_provider_id: providerSlug,
+          event_type: "cta_variant_clicked",
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            variant: ctaVariant,
+            surface: "mobile",
+            action: "direct_request",
+            logged_in: true,
+          },
+        }),
+      }).catch(() => {});
+    }
+
+    try {
+      const res = await fetch("/api/connections/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId,
+          providerName,
+          providerSlug,
+          intentData: {
+            careRecipient: null,
+            careType: null,
+            urgency: null,
+          },
+          session_id: getOrCreateSessionId(),
+          cta_variant: ctaVariant || "compare",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("[MobileStickyCompare] request failed:", data.error);
+        setDirectError(data.error || "Something went wrong. Please try again.");
+        setDirectSubmitting(false);
+        return;
+      }
+
+      // Dispatch event for inbox refresh
+      window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
+      // Go directly to inbox with this connection
+      if (data.connectionId) {
+        router.push(`/portal/inbox?id=${data.connectionId}`);
+      } else {
+        router.push("/portal/inbox");
+      }
+    } catch (err) {
+      console.error("[MobileStickyCompare] error:", err);
+      setDirectError("Something went wrong. Please try again.");
+      setDirectSubmitting(false);
+    }
+  }, [userEmail, directSubmitting, providerId, providerName, providerSlug, ctaVariant, ctaPreviewMode, router]);
 
   // Build current provider object for comparison
   const currentProvider: CompareProvider = {
@@ -105,12 +201,15 @@ export default function MobileStickyCompare({
         }),
       }).catch(() => {});
     }
+    // Track that this sheet was opened as a guest - keeps it mounted through auth changes
+    setSheetStartedAsGuest(true);
     setSheetOpen(true);
   }, [ctaVariant, ctaPreviewMode, providerSlug]);
 
   const handleCloseSheet = useCallback(() => {
     setSheetOpen(false);
-    // Reset click tracking so user can open again
+    // Reset tracking states so user can start fresh flow
+    setSheetStartedAsGuest(false);
     clickFiredRef.current = false;
   }, []);
 
@@ -221,14 +320,40 @@ export default function MobileStickyCompare({
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
           >
             <div className="px-5 pt-3 pb-4">
-              {/* Info */}
-              <div className="flex items-center gap-1.5">
+              {/* Pricing row */}
+              <div className="flex items-center gap-1.5 mb-3">
                 <p className="text-[16px] font-semibold text-gray-900">
-                  Family account required
+                  {priceDisplay}
                 </p>
+                {pricingDisclaimer && (
+                  <button
+                    ref={tooltipButtonRef}
+                    type="button"
+                    onClick={() => setShowPricingTooltip((prev) => !prev)}
+                    className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+                    aria-label="Pricing info"
+                    aria-expanded={showPricingTooltip}
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </button>
+                )}
               </div>
-              <p className="text-[13px] text-gray-500 mt-1 mb-3">
-                To contact care providers
+
+              {/* Family account required text */}
+              <p className="text-[13px] text-gray-500 font-medium mb-3">
+                Family account required
               </p>
 
               {/* Full-width CTA button */}
@@ -241,12 +366,163 @@ export default function MobileStickyCompare({
             </div>
           </div>
         </div>
+
+        {/* Pricing tooltip portal for non-family */}
+        {showPricingTooltip &&
+          pricingDisclaimer &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <div
+              className="fixed left-4 right-4 z-[100] md:hidden"
+              style={{ bottom: "calc(160px + env(safe-area-inset-bottom, 0px))" }}
+            >
+              <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
+                <p>{pricingDisclaimer}</p>
+              </div>
+            </div>,
+            document.body
+          )}
       </>
     );
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: Regular user (guest or logged-in family)
+  // RENDER: Logged-in family user — direct action (no sheet needed)
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (isLoggedInFamily) {
+    return (
+      <>
+        {/* Document-flow spacer */}
+        <div
+          className="md:hidden"
+          aria-hidden="true"
+          style={{ height: "calc(130px + env(safe-area-inset-bottom, 0px))" }}
+        />
+
+        {/* Sticky bottom bar - direct action */}
+        <div
+          className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
+            !keyboardOpen
+              ? "translate-y-0"
+              : "translate-y-full"
+          }`}
+        >
+          <div
+            className="bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+            style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+          >
+            <div className="px-5 pt-3 pb-4">
+              {/* Pricing info - single line */}
+              <div className="flex items-center gap-1.5 mb-3">
+                <p className="text-[16px] font-semibold text-gray-900">
+                  {priceDisplay}
+                </p>
+                {pricingDisclaimer && (
+                  <button
+                    ref={tooltipButtonRef}
+                    type="button"
+                    onClick={() => setShowPricingTooltip((prev) => !prev)}
+                    className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+                    aria-label="Pricing info"
+                    aria-expanded={showPricingTooltip}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              {/* Error message */}
+              {directError && (
+                <p className="text-sm text-red-600 text-center mb-2">{directError}</p>
+              )}
+
+              {/* [♡ Save] [Request details →] */}
+              <div className="flex items-center gap-2">
+                {/* Save button */}
+                <button
+                  type="button"
+                  onClick={handleDirectSave}
+                  disabled={directSubmitting}
+                  className={`shrink-0 w-14 h-14 flex items-center justify-center rounded-xl border-2 transition-all ${
+                    providerIsSaved
+                      ? "border-primary-500 bg-primary-50 text-primary-600"
+                      : "border-gray-200 bg-white text-gray-400 hover:border-gray-300 hover:text-gray-500"
+                  } disabled:opacity-50`}
+                  aria-label={providerIsSaved ? "Saved" : "Save for later"}
+                >
+                  {providerIsSaved ? (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  )}
+                </button>
+
+                {/* Primary CTA - direct to inbox */}
+                <button
+                  type="button"
+                  onClick={handleDirectRequest}
+                  disabled={directSubmitting}
+                  className="flex-1 py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  {directSubmitting ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Connecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Request details</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing tooltip portal */}
+        {showPricingTooltip &&
+          pricingDisclaimer &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <div
+              className="fixed left-4 right-4 z-[100] md:hidden"
+              style={{ bottom: "calc(160px + env(safe-area-inset-bottom, 0px))" }}
+            >
+              <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
+                <p>{pricingDisclaimer}</p>
+              </div>
+            </div>,
+            document.body
+          )}
+
+        {/* Keep CompareBottomSheet mounted if user started flow as guest
+            This allows success state to show after auth state changes */}
+        {sheetStartedAsGuest && (
+          <CompareBottomSheet
+            isOpen={sheetOpen}
+            onClose={handleCloseSheet}
+            currentProvider={currentProvider}
+            similarProviders={similarProviders}
+            ctaVariant={ctaVariant}
+            ctaPreviewMode={ctaPreviewMode}
+          />
+        )}
+      </>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RENDER: Guest user — opens sheet for comparison
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <>

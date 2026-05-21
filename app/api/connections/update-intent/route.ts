@@ -27,7 +27,24 @@ export async function PATCH(request: Request) {
     } = await supabase.auth.getUser();
 
     const body = await request.json();
-    const { connectionId, careType, careRecipient, urgency, message, additionalNotes, claimToken, firstName, phone, notifyChannel } = body as {
+    const {
+      connectionId,
+      careType,
+      careRecipient,
+      urgency,
+      message,
+      additionalNotes,
+      claimToken,
+      firstName,
+      phone,
+      notifyChannel,
+      // Extended enrichment fields
+      careNeed,
+      paymentMethod,
+      name,
+      city,
+      state,
+    } = body as {
       connectionId?: string;
       careType?: string;
       careRecipient?: string;
@@ -38,6 +55,12 @@ export async function PATCH(request: Request) {
       firstName?: string;
       phone?: string;
       notifyChannel?: string;
+      // Extended enrichment fields
+      careNeed?: string;
+      paymentMethod?: string;
+      name?: string;
+      city?: string;
+      state?: string;
     };
 
     if (!connectionId) {
@@ -175,6 +198,39 @@ export async function PATCH(request: Request) {
         // Non-blocking — profile update is best-effort
       }
     }
+    // Extended enrichment fields
+    if (careNeed) {
+      existingMessage.care_need = careNeed;
+    }
+    if (paymentMethod) {
+      existingMessage.payment_method = paymentMethod;
+    }
+    if (name) {
+      existingMessage.seeker_name = name;
+      existingMessage.seeker_first_name = name.split(" ")[0]; // First name for display
+      // Update the sender's profile display_name if it's still the placeholder
+      try {
+        const { data: senderProfile } = await admin
+          .from("business_profiles")
+          .select("display_name")
+          .eq("id", profileId)
+          .single();
+        if (senderProfile && (!senderProfile.display_name || senderProfile.display_name === "Care Seeker")) {
+          await admin
+            .from("business_profiles")
+            .update({ display_name: name })
+            .eq("id", profileId);
+        }
+      } catch {
+        // Non-blocking — profile update is best-effort
+      }
+    }
+    if (city) {
+      existingMessage.seeker_city = city;
+    }
+    if (state) {
+      existingMessage.seeker_state = state;
+    }
 
     // Regenerate auto_intro with updated intent data
     const newAutoIntro = buildIntroMessage(
@@ -234,6 +290,12 @@ export async function PATCH(request: Request) {
         additionalNotes: existingMessage.additional_notes as string | null,
         phone: existingMessage.seeker_phone as string | null,
         notifyChannel: existingMessage.notify_channel as string | null,
+        // Extended enrichment fields
+        careNeed: existingMessage.care_need as string | null,
+        paymentMethod: existingMessage.payment_method as string | null,
+        seekerName: existingMessage.seeker_name as string | null,
+        seekerCity: existingMessage.seeker_city as string | null,
+        seekerState: existingMessage.seeker_state as string | null,
       };
       console.log("[update-intent] syncing to profile:", profileId, syncData);
       await syncIntentToProfile(admin, profileId, syncData);
@@ -246,6 +308,12 @@ export async function PATCH(request: Request) {
         phone && "phone",
         careRecipient && "relationship",
         urgency && "timeline",
+        careType && "care_type",
+        careNeed && "care_need",
+        paymentMethod && "payment_method",
+        name && "name",
+        city && "city",
+        state && "state",
       ].filter(Boolean);
 
       if (enrichedFields.length > 0) {

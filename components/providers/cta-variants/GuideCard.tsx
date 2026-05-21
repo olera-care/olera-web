@@ -2,13 +2,16 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { getPricingConfig } from "@/lib/pricing-config";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
+import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
+import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
 
-type CardState = "initial" | "email_capture" | "submitting" | "success" | "provider_email_block";
+type CardState = "initial" | "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block";
 
 interface GuideCardProps {
   providerId: string;
@@ -18,6 +21,7 @@ interface GuideCardProps {
   providerCity?: string | null;
   providerState?: string | null;
   providerImage?: string | null;
+  careTypes?: string[];
   priceRange?: string | null;
   ctaVariant?: string | null;
   ctaPreviewMode?: boolean;
@@ -36,28 +40,60 @@ export default function GuideCard({
   providerCity,
   providerState,
   providerImage,
+  careTypes = [],
   priceRange,
   ctaVariant,
   ctaPreviewMode = false,
 }: GuideCardProps) {
   const { user, activeProfile, openAuth } = useAuth();
   const { isSaved, toggleSave } = useSavedProviders();
+
+  // Save provider helper
+  const providerIsSaved = isSaved(providerSlug);
+  const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
+  const handleSaveProvider = useCallback(() => {
+    toggleSave({
+      providerId: providerSlug,
+      slug: providerSlug,
+      name: providerName,
+      location: locationStr,
+      careTypes: careTypes,
+      image: providerImage || null,
+    });
+  }, [toggleSave, providerSlug, providerName, locationStr, careTypes, providerImage]);
+
   const [cardState, setCardState] = useState<CardState>("initial");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
-  const [isMessageSubmitting, setIsMessageSubmitting] = useState(false);
   const [connectionId, setConnectionId] = useState<string | null>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const clickFiredRef = useRef(false);
 
+  // Parallel loading: API runs in background while user fills enrichment
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiResult, setApiResult] = useState<{
+    connectionId: string;
+    pdfUrl: string;
+  } | null>(null);
+  // undefined = user hasn't submitted, null = user skipped, object = user submitted data
+  const [pendingEnrichment, setPendingEnrichment] = useState<{
+    careRecipient?: string;
+    urgency?: string;
+    phone?: string;
+    contactPreference?: string;
+    careType?: string;
+    careNeed?: string;
+    paymentMethod?: string;
+    name?: string;
+    city?: string;
+    state?: string;
+  } | null | undefined>(undefined);
+
   // Check if user is logged in
   const isLoggedIn = !!user && !!activeProfile;
   const userEmail = user?.email || "";
-
-  // Check if provider is already saved
-  const providerIsSaved = isSaved(providerId);
 
   // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
   const isNonFamilyProfile = activeProfile &&
@@ -73,8 +109,8 @@ export default function GuideCard({
   const priceUnit = pricingConfig?.unit ?? "month";
   const unitLabel = priceUnit === "hour" ? "Hourly" : "Monthly";
 
-  // Location string
-  const locationStr = providerCity || "Local";
+  // Short location for initial state display
+  const shortLocation = providerCity || "Local";
 
   // Focus email input when entering email capture state
   useEffect(() => {
@@ -112,9 +148,14 @@ export default function GuideCard({
     setEmail("");
     setError(null);
     clickFiredRef.current = false;
+    // Reset parallel loading state
+    setApiLoading(false);
+    setApiResult(null);
+    setPendingEnrichment(undefined);
+    setEnrichmentSubmitting(false);
   }, []);
 
-  // Handle email submission
+  // Handle email submission - show enrichment immediately, API runs in background
   const handleSubmit = useCallback(async () => {
     const emailToUse = isLoggedIn ? userEmail : email.trim();
 
@@ -129,8 +170,14 @@ export default function GuideCard({
     }
 
     setError(null);
-    setCardState("submitting");
+    // Show enrichment immediately - user fills this while PDF generates
+    setCardState("enrichment");
+    setApiLoading(true);
+    setApiResult(null);
+    setPendingEnrichment(undefined);
+    setEnrichmentSubmitting(false);
 
+    // Run API in background
     try {
       const res = await fetch("/api/connections/guide-save", {
         method: "POST",
@@ -152,12 +199,14 @@ export default function GuideCard({
       if (!res.ok && data.code === "PROVIDER_EMAIL") {
         setBlockedEmail(emailToUse);
         setCardState("provider_email_block");
+        setApiLoading(false);
         return;
       }
 
       if (!res.ok) {
         setError(data.error || "Something went wrong");
         setCardState("email_capture");
+        setApiLoading(false);
         return;
       }
 
@@ -170,71 +219,143 @@ export default function GuideCard({
         });
       }
 
-      // Store connectionId for redirect
-      if (data.connectionId) {
-        setConnectionId(data.connectionId);
-      }
-
-      // Store PDF URL and trigger download
-      if (data.pdfUrl) {
-        setPdfUrl(data.pdfUrl);
-        // Auto-download the PDF
-        const link = document.createElement("a");
-        link.href = data.pdfUrl;
-        link.download = "senior-care-checklist.pdf";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-
-      setCardState("success");
+      // Store API result
+      setApiResult({
+        connectionId: data.connectionId,
+        pdfUrl: data.pdfUrl,
+      });
+      setConnectionId(data.connectionId);
+      setPdfUrl(data.pdfUrl);
+      setApiLoading(false);
     } catch {
       setError("Something went wrong. Please try again.");
       setCardState("email_capture");
+      setApiLoading(false);
     }
   }, [email, isLoggedIn, userEmail, providerId, providerSlug, providerName]);
 
-  // Handle logged-in "Message provider" click
-  // Creates connection via guide-save API, then redirects to inbox
-  // NOTE: We intentionally don't track cta_variant_clicked here because logged-in
-  // users are already converted and this action shouldn't pollute the A/B test funnel.
-  const handleMessageProvider = useCallback(async () => {
-    if (!userEmail) return;
+  // Handle enrichment save - works with parallel loading
+  const [enrichmentSubmitting, setEnrichmentSubmitting] = useState(false);
 
-    setIsMessageSubmitting(true);
-
-    try {
-      // Create connection via guide-save API (handles Slack notifications, lead tracking)
-      const res = await fetch("/api/connections/guide-save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: userEmail,
-          provider: {
-            id: providerId,
-            slug: providerSlug,
-            name: providerName,
-          },
-          sessionId: getOrCreateSessionId(),
-        }),
-      });
-
-      let connId: string | null = null;
-      if (res.ok) {
-        const data = await res.json();
-        connId = data.connectionId || null;
-      } else {
-        console.error("[GuideCard] guide-save failed:", res.status);
-      }
-
-      // Redirect to inbox with connectionId if available
-      window.location.href = connId ? `/portal/inbox?id=${connId}` : `/portal/inbox`;
-    } catch (err) {
-      console.error("[GuideCard] handleMessageProvider error:", err);
-      // Still redirect on error - user expects to go to inbox
-      window.location.href = `/portal/inbox`;
+  // Complete the flow: save enrichment, download PDF, show success
+  const completeFlow = useCallback(async (
+    connId: string,
+    pdfUrlToUse: string | null,
+    enrichmentData?: {
+      careRecipient?: string;
+      urgency?: string;
+      phone?: string;
+      contactPreference?: string;
+      careType?: string;
+      careNeed?: string;
+      paymentMethod?: string;
+      name?: string;
+      city?: string;
+      state?: string;
     }
-  }, [userEmail, providerId, providerSlug, providerName]);
+  ) => {
+    // Save enrichment if we have any data
+    const hasData = enrichmentData?.careRecipient || enrichmentData?.urgency ||
+      enrichmentData?.phone || enrichmentData?.contactPreference ||
+      enrichmentData?.careType || enrichmentData?.careNeed ||
+      enrichmentData?.paymentMethod || enrichmentData?.name ||
+      enrichmentData?.city || enrichmentData?.state;
+
+    if (hasData) {
+      try {
+        await fetch("/api/connections/update-intent", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            connectionId: connId,
+            careRecipient: enrichmentData.careRecipient,
+            urgency: enrichmentData.urgency,
+            phone: enrichmentData.phone || undefined,
+            notifyChannel: enrichmentData.contactPreference || undefined,
+            careType: enrichmentData.careType || undefined,
+            careNeed: enrichmentData.careNeed || undefined,
+            paymentMethod: enrichmentData.paymentMethod || undefined,
+            name: enrichmentData.name || undefined,
+            city: enrichmentData.city || undefined,
+            state: enrichmentData.state || undefined,
+          }),
+        });
+      } catch (err) {
+        console.error("[GuideCard] enrichment save error:", err);
+      }
+    }
+
+    // Download PDF
+    if (pdfUrlToUse) {
+      const link = document.createElement("a");
+      link.href = pdfUrlToUse;
+      link.download = "senior-care-checklist.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Stay on page - show success state
+    setCardState("success");
+    setEnrichmentSubmitting(false);
+  }, []);
+
+  const saveEnrichment = useCallback(async (data?: {
+    careRecipient?: string;
+    urgency?: string;
+    phone?: string;
+    contactPreference?: string;
+    careType?: string;
+    careNeed?: string;
+    paymentMethod?: string;
+    name?: string;
+    city?: string;
+    state?: string;
+  }) => {
+    setEnrichmentSubmitting(true);
+
+    // If API is still loading, store enrichment and wait
+    if (apiLoading) {
+      setPendingEnrichment(data || null);
+      return; // Effect will handle completion when API finishes
+    }
+
+    // API is done - complete the flow now
+    const connId = apiResult?.connectionId || connectionId;
+    if (!connId) {
+      window.location.href = "/portal/inbox";
+      return;
+    }
+
+    await completeFlow(connId, apiResult?.pdfUrl || pdfUrl, data);
+  }, [apiLoading, apiResult, connectionId, pdfUrl, completeFlow]);
+
+  const skipEnrichment = useCallback(() => {
+    setEnrichmentSubmitting(true);
+
+    // If API is still loading, store null enrichment and wait
+    if (apiLoading) {
+      setPendingEnrichment(null);
+      return;
+    }
+
+    // API is done - complete the flow
+    const connId = apiResult?.connectionId || connectionId;
+    if (!connId) {
+      window.location.href = "/portal/inbox";
+      return;
+    }
+
+    completeFlow(connId, apiResult?.pdfUrl || pdfUrl, undefined);
+  }, [apiLoading, apiResult, connectionId, pdfUrl, completeFlow]);
+
+  // Effect: When API completes and user has submitted/skipped enrichment, complete the flow
+  useEffect(() => {
+    // pendingEnrichment !== undefined means user has made a choice (submit or skip)
+    if (!apiLoading && apiResult && pendingEnrichment !== undefined && enrichmentSubmitting) {
+      completeFlow(apiResult.connectionId, apiResult.pdfUrl, pendingEnrichment || undefined);
+    }
+  }, [apiLoading, apiResult, pendingEnrichment, enrichmentSubmitting, completeFlow]);
 
   // Reset from provider email block
   const resetFromProviderEmailBlock = useCallback(() => {
@@ -255,12 +376,18 @@ export default function GuideCard({
   if (isNonFamilyProfile) {
     return (
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
-        <div className="px-5 py-6 text-center">
-          <div className="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
+        <div className="px-5 pt-5 pb-5">
+          {/* Price section - consistent with regular view */}
+          <div className="mb-4 pb-4 border-b border-gray-100">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+              Est. {unitLabel} · {shortLocation}
+            </p>
+            <p className="text-xl font-semibold text-gray-900">
+              {priceRange || "Contact for pricing"}
+            </p>
           </div>
+
+          {/* Family account required message */}
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Family account required
           </h3>
@@ -322,111 +449,26 @@ export default function GuideCard({
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: Initial State - Logged-in Family User (lead with messaging)
+  // RENDER: Initial State - Logged-in Family User (streamlined CTA)
+  // Uses LoggedInFamilyCTA for consistent [♡] [Request details] layout
+  // Skips enrichment, goes directly to inbox
   // ─────────────────────────────────────────────────────────────────────────────
   if (cardState === "initial" && isLoggedIn) {
     return (
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
         <div className="px-5 pt-5 pb-5">
-          {/* Pricing header */}
-          <div className="mb-4 pb-4 border-b border-gray-100">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-              Est. {unitLabel} · {locationStr}
-            </p>
-            <p className="text-xl font-semibold text-gray-900">
-              {priceRange || "Contact for pricing"}
-            </p>
-          </div>
-
-          {/* Messaging-focused content */}
-          <div className="mb-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-1">
-              Interested in {providerName.split(" ")[0]}?
-            </h3>
-            <p className="text-sm text-gray-500">
-              Start a conversation to learn more about pricing, availability, and tours.
-            </p>
-          </div>
-
-          {/* Pre-filled email (read-only) */}
-          <div className="mb-4">
-            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200">
-              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <span className="text-sm text-gray-600 truncate">{userEmail}</span>
-            </div>
-          </div>
-
-          {/* Primary CTA: Message provider */}
-          <button
-            onClick={handleMessageProvider}
-            disabled={isMessageSubmitting}
-            className="w-full px-5 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
-          >
-            {isMessageSubmitting ? (
-              <>
-                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                <span>Connecting...</span>
-              </>
-            ) : (
-              <>
-                Message this provider
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </>
-            )}
-          </button>
-
-          {/* Secondary: Save for later */}
-          <button
-            onClick={() => {
-              toggleSave({
-                providerId,
-                slug: providerSlug,
-                name: providerName,
-                location: [providerCity, providerState].filter(Boolean).join(", "),
-                careTypes: providerCategory ? [providerCategory] : [],
-                image: providerImage || null,
-              });
-            }}
-            disabled={isMessageSubmitting}
-            className="w-full mt-2 px-5 py-3 border border-gray-200 hover:bg-gray-50 disabled:opacity-50 text-gray-700 rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
-          >
-            {providerIsSaved ? (
-              <>
-                <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-                Saved
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-                Save for later
-              </>
-            )}
-          </button>
-
-          {/* Checklist as footer helper */}
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <button
-              onClick={handleGetGuideClick}
-              className="w-full flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Get our free checklist
-              <span className="text-gray-400">· 1-page PDF</span>
-            </button>
-          </div>
+          <LoggedInFamilyCTA
+            providerId={providerId}
+            providerName={providerName}
+            providerSlug={providerSlug}
+            providerCategory={providerCategory}
+            providerCity={providerCity}
+            providerState={providerState}
+            providerImage={providerImage}
+            careTypes={careTypes.length > 0 ? careTypes : (providerCategory ? [providerCategory] : [])}
+            priceRange={priceRange}
+            ctaVariant={ctaVariant || "guide"}
+          />
         </div>
       </div>
     );
@@ -442,7 +484,7 @@ export default function GuideCard({
           {/* Pricing header */}
           <div className="mb-4 pb-4 border-b border-gray-100">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-              Est. {unitLabel} · {locationStr}
+              Est. {unitLabel} · {shortLocation}
             </p>
             <p className="text-xl font-semibold text-gray-900">
               {priceRange || "Contact for pricing"}
@@ -588,19 +630,31 @@ export default function GuideCard({
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: Submitting State
+  // RENDER: Enrichment State
   // ─────────────────────────────────────────────────────────────────────────────
-  if (cardState === "submitting") {
+  if (cardState === "enrichment") {
     return (
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
-        <div className="px-5 py-8">
-          <div className="flex flex-col items-center justify-center">
-            <svg className="w-8 h-8 animate-spin text-gray-400 mb-3" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            <p className="text-sm text-gray-500">Preparing your checklist...</p>
-          </div>
+        <div className="px-5 pt-5 pb-5">
+          <EnrichmentState
+            providerName={providerName}
+            onSave={saveEnrichment}
+            onSkip={skipEnrichment}
+            saving={enrichmentSubmitting}
+            priceRange={priceRange}
+            successTitle={`Connected with ${providerName}`}
+            successSubtitle="Checklist sent to your email"
+            providerCity={providerCity}
+            providerState={providerState}
+          />
+          {/* Re-download link */}
+          {pdfUrl && (
+            <p className="text-center text-xs text-gray-400 mt-4 pt-4 border-t border-gray-100">
+              <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                Download checklist again
+              </a>
+            </p>
+          )}
         </div>
       </div>
     );
@@ -609,63 +663,100 @@ export default function GuideCard({
   // ─────────────────────────────────────────────────────────────────────────────
   // RENDER: Success State
   // ─────────────────────────────────────────────────────────────────────────────
+  const inboxHref = connectionId ? `/portal/inbox?id=${connectionId}` : "/portal/inbox";
+  const careLabel = careTypes.length > 0 ? careTypes[0] : providerCategory;
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
       <div className="px-5 pt-5 pb-5">
-        {/* Success header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+        {/* Success banner */}
+        <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 rounded-xl mb-4 border border-emerald-100">
+          <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Checklist on its way.</h3>
-            <p className="text-sm text-gray-500">Downloaded · Also sent to your email.</p>
+            <p className="text-[14px] font-semibold text-gray-900">
+              Connected with {providerName}
+            </p>
+            <p className="text-[12px] text-gray-500">
+              Checklist sent to your email
+            </p>
           </div>
         </div>
 
-        {/* Provider card */}
-        <div className="bg-gray-50 rounded-xl p-4 mb-4">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">
-            Want to ask {providerName.split(" ")[0]} a question?
-          </p>
-
-          <div className="flex items-center gap-3">
-            {providerImage ? (
-              <Image
-                src={providerImage}
-                alt={providerName}
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded-lg object-cover bg-gray-100"
-              />
-            ) : (
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
-                <span className="text-base font-semibold text-amber-700">
-                  {providerName.charAt(0)}
-                </span>
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 truncate">{providerName}</p>
-              <p className="text-xs text-gray-500">
-                {[providerCity, providerState].filter(Boolean).join(", ")}
+        {/* Pricing context */}
+        {priceRange ? (
+          <div className="mb-4">
+            {(careLabel || locationStr) && (
+              <p className="text-[13px] text-gray-500 font-medium mb-1">
+                {careLabel}{locationStr ? ` in ${locationStr}` : ""}
               </p>
-            </div>
+            )}
+            <p className="text-[24px] font-bold text-gray-900 tracking-tight leading-none">
+              {priceRange}
+            </p>
+            <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
+              Area estimate — not this provider&apos;s actual price
+            </p>
           </div>
-        </div>
+        ) : (
+          <div className="mb-4">
+            {(careLabel || locationStr) && (
+              <p className="text-[13px] text-gray-500 font-medium mb-1">
+                {careLabel}{locationStr ? ` in ${locationStr}` : ""}
+              </p>
+            )}
+            <p className="text-[18px] font-bold text-gray-900 leading-snug">
+              Contact for pricing
+            </p>
+          </div>
+        )}
 
-        {/* CTA button - connection already exists from email submission */}
-        <button
-          onClick={handleOpenThread}
-          className="w-full px-5 py-3.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
-        >
-          Open a thread
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-          </svg>
-        </button>
+        {/* Divider */}
+        <div className="border-t border-gray-100 mb-4" />
+
+        {/* CTA section header */}
+        <p className="text-[15px] font-semibold text-gray-900 mb-3">
+          Continue the conversation
+        </p>
+
+        {/* Side-by-side buttons: [♡] [Go to inbox] */}
+        <div className="flex items-center gap-2">
+          {/* Save button */}
+          <button
+            type="button"
+            onClick={handleSaveProvider}
+            className={`shrink-0 w-12 h-12 flex items-center justify-center rounded-xl border-2 transition-all ${
+              providerIsSaved
+                ? "border-primary-500 bg-primary-50 text-primary-600"
+                : "border-gray-200 bg-white text-gray-400 hover:border-gray-300 hover:text-gray-500"
+            }`}
+            aria-label={providerIsSaved ? "Saved" : "Save for later"}
+          >
+            {providerIsSaved ? (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            )}
+          </button>
+
+          {/* Go to inbox button */}
+          <Link
+            href={inboxHref}
+            className="flex-1 py-3 px-4 rounded-xl text-[15px] font-semibold bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            Go to inbox
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </Link>
+        </div>
 
         {/* Re-download link */}
         {pdfUrl && (
@@ -675,6 +766,14 @@ export default function GuideCard({
             </a>
           </p>
         )}
+
+        {/* Trust signal */}
+        <p className="text-[13px] text-gray-600 text-center font-medium mt-3 flex items-center justify-center gap-1.5">
+          <svg className="w-3.5 h-3.5 text-primary-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+          </svg>
+          No spam. No sales calls.
+        </p>
       </div>
     </div>
   );

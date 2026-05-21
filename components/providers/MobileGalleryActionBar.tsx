@@ -16,7 +16,8 @@ interface MobileGalleryActionBarProps {
 export default function MobileGalleryActionBar({ provider }: MobileGalleryActionBarProps) {
   const { activeProfile, openAuth } = useAuth();
   const { isSaved, toggleSave } = useSavedProviders();
-  const saved = isSaved(provider.providerId);
+  // Use slug for save check to match header SaveButton and CTA components
+  const saved = isSaved(provider.slug);
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const heartButtonRef = useRef<HTMLButtonElement>(null);
@@ -64,13 +65,14 @@ export default function MobileGalleryActionBar({ provider }: MobileGalleryAction
               setShowTooltip(true);
               return;
             }
-            toggleSave(provider);
+            // Use slug as providerId to match header SaveButton and CTA components
+            toggleSave({ ...provider, providerId: provider.slug });
           }}
           className={btnClass}
           aria-label={saved ? "Unsave" : "Save"}
         >
           <svg
-            className={`w-5 h-5 ${saved ? "text-red-500" : "text-gray-700"}`}
+            className={`w-5 h-5 ${saved ? "text-primary-600" : "text-gray-700"}`}
             fill={saved ? "currentColor" : "none"}
             stroke="currentColor"
             strokeWidth={1.5}

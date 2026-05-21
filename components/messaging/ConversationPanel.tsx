@@ -8,7 +8,7 @@ import type { ConnectionWithProfile } from "./ConversationList";
 import { formatRedactedName } from "@/lib/utils/pii-redaction";
 import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import ProfileCompletionNudge from "@/components/portal/profile/ProfileCompletionNudge";
-import ProfileEditWizard from "@/components/portal/profile/ProfileEditWizard";
+import QuickProfileWizard from "@/components/portal/profile/QuickProfileWizard";
 
 interface ConversationPanelProps {
   connection: ConnectionWithProfile | null;
@@ -945,16 +945,17 @@ export default function ConversationPanel({
         </div>
       )}
 
-      {/* Profile Edit Wizard modal */}
+      {/* Quick Profile Wizard — tappable, mobile-optimized */}
       {showWizard && familyProfile && (
-        <ProfileEditWizard
+        <QuickProfileWizard
           profile={familyProfile as BusinessProfile}
-          userEmail={userEmail}
           onClose={() => setShowWizard(false)}
           onSaved={() => {
             // After profile is saved, nudge auto-hides because completeness will be >= 60%
             setShowWizard(false);
           }}
+          providerCity={otherProfile?.city || undefined}
+          providerState={otherProfile?.state || undefined}
         />
       )}
     </div>

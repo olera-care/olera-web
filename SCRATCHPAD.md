@@ -7,7 +7,26 @@
 
 ## Current Focus
 
-### 2026-05-20 (Wed) — Publish Cess's California benefits QA corrections (PR #854 → staging, OPEN)
+### 2026-05-21 (Thu) — TX benefits QA published; CA + TX promoted to PRODUCTION (decoupled)
+
+**Context:** Continuation of the CA publish (entry below). Cess re-reviewed Texas under the same per-program audit paradigm. Shipped TX, merged both states to staging, and promoted only the benefits content to production.
+
+**Shipped:**
+- **Texas — PR #857 → staging (MERGED):** 11 programs Cess re-reviewed, applied to `data/pipeline/TX/drafts.json` (`contentStatus: approved`), regenerated TX `drafts.ts`. TX was **partially remediated in a prior pass**, so I built a precise stale-value map and applied only the remaining deltas (SNAP $4,500 asset + $1,305/$1,766 income + Lone Star Card + candy/soda rule; Medicare Savings $202.90 + $9,950/$14,910 + de-conflated title; STAR+PLUS $2,982 + $752,000; CCAD 2026 figures; PACE ext. 2300; Weatherization 15-yr; Meals homebound + 1-800-458-9858; Ombudsman any-age). Same mechanism as CA — live pages render from pipeline drafts; `texasPrograms` (Chantel's) scaffolds use different ids so no shadow. Old `/texas/benefits` parallel route is retired (301 → `/benefits/texas`). `cba-waiver` excluded (Cess tagged "[DELETE - OLD STAR+PLUS]").
+- **Staging merges — PR #854 (CA) + #857 (TX), admin bypass:** clean, 0 file overlap with staging's care-seeker/cron work.
+- **Production — PR #858 → main (MERGED):** **decoupled** promotion. Fresh branch off `main` carrying ONLY the 4 CA/TX pipeline data files. main HEAD `f2fdb3da`; content verified live (CA 14 + TX 11 approved).
+- **Slack:** notified Ces (Cecille Chavez, `U063P1X0WUE`) in `#provider-listings-management` that CA+TX are live; TJ doing state pages next week.
+
+**Decisions made (with why):**
+- **Decouple, don't full-promote.** A staging→main promotion would bundle a care-seeker re-engagement + cron nudge/email workstream (sends real production emails) that isn't mine and isn't vetted. Cut a fresh branch off `main` with just the data files instead.
+- **Divergence was topological, not content.** staging showed "27 commits behind main," but those are historical `Merge PR from staging` promotion commits; staging was content-ahead on all 15 differing files. rev-list counts mislead — file-overlap/freshness is the real signal.
+- **TX delta-only apply.** Prior partial remediation meant blind re-application would clobber correct content; assertion-guarded script + stale-map caught what was already done.
+
+**Resume next session here →** (1) **Notion Status → Approved** for the 25 rows (14 CA + 11 TX) — now genuinely production-live; offered, TJ's call. (2) **CA stragglers:** SSP + Property Tax Postponement (Cess finished after the CA cut) not yet shipped. (3) **`tx-cba-waiver`** stale page — recommend deleting the draft. (4) **Care-seeker/cron work** still on staging awaiting its owners' production promotion. (5) **TJ doing benefits state pages next week.** Mechanism: memory `project_benefits_publish_mechanism`.
+
+---
+
+### 2026-05-20 (Wed) — Publish Cess's California benefits QA corrections (PR #854 → MERGED to staging + production)
 
 **Context:** Workflow = Cess QAs each CA Senior Benefits Finder program in the Notion Benefits QA queue (writes findings in the page body under Numbers/Phone/Links/Copy/Structure/FAQ), then TJ gets them live. Ran `/benefits-pipeline` publish mode. CA scope: 13 fully-reviewed programs + MSSP Waiver (its phone fix) = **14 programs**. SSP, Property Tax Postponement, and a duplicate CBAS row left out (not yet reviewed / Notion cleanup).
 

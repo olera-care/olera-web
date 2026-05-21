@@ -691,7 +691,7 @@ export default function QuickProfileWizard({
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="w-full mt-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors"
+                  className="w-full mt-6 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
                 >
                   Continue
                 </button>
@@ -731,7 +731,7 @@ export default function QuickProfileWizard({
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="w-full mt-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors"
+                  className="w-full mt-6 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
                 >
                   Continue
                 </button>
@@ -771,7 +771,7 @@ export default function QuickProfileWizard({
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="w-full mt-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors"
+                  className="w-full mt-6 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
                 >
                   Continue
                 </button>

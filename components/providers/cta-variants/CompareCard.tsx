@@ -6,6 +6,7 @@ import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { getPricingConfig } from "@/lib/pricing-config";
 import { useAuth } from "@/components/auth/AuthProvider";
 import CompareOverlay from "@/components/providers/CompareOverlay";
+import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
 import type { CompareProvider } from "@/components/providers/CompareBottomSheet";
 
 interface CompareCardProps {
@@ -50,12 +51,18 @@ export default function CompareCard({
   ctaVariant,
   ctaPreviewMode = false,
 }: CompareCardProps) {
-  const { activeProfile, openAuth } = useAuth();
+  const { user, activeProfile, openAuth } = useAuth();
   const [overlayOpen, setOverlayOpen] = useState(false);
+
+  // Check if user is logged in as a family member
+  const isLoggedIn = !!user && !!activeProfile;
 
   // Non-family profile guard (provider, caregiver, student accounts cannot use family CTAs)
   const isNonFamilyProfile = activeProfile &&
     (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
+
+  // Logged-in family user (not provider/caregiver/student)
+  const isLoggedInFamily = isLoggedIn && !isNonFamilyProfile;
   const accountTypeLabel = activeProfile?.type === "organization"
     ? "provider"
     : (activeProfile?.type === "caregiver" || activeProfile?.type === "student")
@@ -159,6 +166,33 @@ export default function CompareCard({
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RENDER: Logged-in family user — show LoggedInFamilyCTA directly (no overlay)
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (isLoggedInFamily) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+        <div className="px-5 pt-5 pb-5">
+          <LoggedInFamilyCTA
+            providerId={providerId}
+            providerName={providerName}
+            providerSlug={providerSlug}
+            providerCategory={providerCategory}
+            providerCity={providerCity}
+            providerState={providerState}
+            providerImage={providerImage}
+            careTypes={services}
+            priceRange={priceRange}
+            ctaVariant={ctaVariant || "compare"}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RENDER: Guest user — show compare button that opens overlay
+  // ─────────────────────────────────────────────────────────────────────────────
   return (
     <>
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">

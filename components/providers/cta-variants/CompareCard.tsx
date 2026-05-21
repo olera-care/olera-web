@@ -186,10 +186,13 @@ export default function CompareCard({
     setCardState("selection");
   }, [ctaVariant, ctaPreviewMode, providerSlug, allProviders.length]);
 
-  // Back button handler
+  // Back button handler - go back to initial from selection/email_capture
   const handleBack = useCallback(() => {
     if (cardState === "email_capture") {
+      // If email input is showing, hide it first (go back to selection-only view)
       setCardState("selection");
+      setEmail("");
+      setError(null);
     } else {
       setCardState("initial");
     }
@@ -740,128 +743,175 @@ export default function CompareCard({
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: Phase 2 - Selection (provider cards only, no email yet)
-  // Matches mobile pattern: button click reveals email input
+  // RENDER: Phase 2 - Selection + Email capture (combined view like mobile)
+  // Provider cards always visible, email input appears inline when needed
   // ─────────────────────────────────────────────────────────────────────────────
-  if (cardState === "selection") {
-    return (
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div className="px-5 pt-5 pb-5">
-          {/* Back button */}
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-1 text-[13px] font-medium text-gray-500 hover:text-gray-700 mb-3 -ml-1"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            Back
-          </button>
+  const showEmailInput = cardState === "email_capture" || cardState === "submitting";
+  const isSubmitting = cardState === "submitting";
 
-          {/* Header */}
-          <h3 className="text-lg font-bold text-gray-900 leading-snug mb-3">
-            Compare {allProviders.length} provider{allProviders.length !== 1 ? "s" : ""}
-          </h3>
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="px-5 pt-5 pb-5">
+        {/* Back button */}
+        <button
+          onClick={handleBack}
+          disabled={isSubmitting}
+          className="flex items-center gap-1 text-[13px] font-medium text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed mb-3 -ml-1"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
+        </button>
 
-          {/* Provider cards - clean design matching mobile */}
-          <div className="space-y-3 mb-4">
-            {allProviders.map((provider) => {
-              const isCurrentProvider = provider.id === currentProvider.id;
-              const isSelected = selectedProviderIds.has(provider.id);
-              const providerLocationStr = [provider.city, provider.state].filter(Boolean).join(", ");
-              const hasRating = provider.rating != null && provider.reviewCount != null && provider.reviewCount > 0;
+        {/* Header */}
+        <h3 className="text-lg font-bold text-gray-900 leading-snug mb-3">
+          Compare {allProviders.length} provider{allProviders.length !== 1 ? "s" : ""}
+        </h3>
 
-              return (
-                <div
-                  key={provider.id}
-                  onClick={() => toggleProvider(provider.id)}
-                  className={`relative rounded-xl border-2 p-4 transition-all cursor-pointer ${
+        {/* Provider cards - always visible */}
+        <div className="space-y-3 mb-4">
+          {allProviders.map((provider) => {
+            const isCurrentProvider = provider.id === currentProvider.id;
+            const isSelected = selectedProviderIds.has(provider.id);
+            const providerLocationStr = [provider.city, provider.state].filter(Boolean).join(", ");
+            const hasRating = provider.rating != null && provider.reviewCount != null && provider.reviewCount > 0;
+
+            return (
+              <div
+                key={provider.id}
+                onClick={isSubmitting ? undefined : () => toggleProvider(provider.id)}
+                className={`relative rounded-xl border-2 p-4 transition-all ${
+                  isSubmitting
+                    ? "cursor-not-allowed opacity-60"
+                    : isSelected
+                      ? "cursor-pointer border-gray-200 bg-white"
+                      : "cursor-pointer border-gray-100 bg-gray-50/50 opacity-60 hover:opacity-80"
+                }`}
+              >
+                {/* "THIS PAGE" badge */}
+                {isCurrentProvider && (
+                  <span className="absolute -top-2.5 left-3 px-2 py-0.5 bg-primary-600 text-white text-[10px] font-semibold uppercase tracking-wider rounded">
+                    This page
+                  </span>
+                )}
+
+                {/* Selection toggle - circular checkbox */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isSubmitting) toggleProvider(provider.id);
+                  }}
+                  disabled={isSubmitting}
+                  className={`absolute top-3 right-3 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all disabled:cursor-not-allowed ${
                     isSelected
-                      ? "border-gray-200 bg-white"
-                      : "border-gray-100 bg-gray-50/50 opacity-60 hover:opacity-80"
+                      ? "border-primary-500 bg-primary-500 text-white"
+                      : "border-gray-300 bg-white text-transparent hover:border-gray-400"
                   }`}
+                  aria-label={isSelected ? "Remove from comparison" : "Add to comparison"}
                 >
-                  {/* "THIS PAGE" badge */}
-                  {isCurrentProvider && (
-                    <span className="absolute -top-2.5 left-3 px-2 py-0.5 bg-primary-600 text-white text-[10px] font-semibold uppercase tracking-wider rounded">
-                      This page
-                    </span>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </button>
+
+                {/* Provider info */}
+                <div className="flex items-start gap-3 pr-8">
+                  {provider.image ? (
+                    <Image
+                      src={provider.image}
+                      alt={provider.name}
+                      width={56}
+                      height={56}
+                      className="w-14 h-14 rounded-lg object-cover bg-gray-100 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center shrink-0">
+                      <span className="text-lg font-semibold text-amber-700">
+                        {provider.name.charAt(0)}
+                      </span>
+                    </div>
                   )}
-
-                  {/* Selection toggle - circular checkbox */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleProvider(provider.id);
-                    }}
-                    className={`absolute top-3 right-3 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                      isSelected
-                        ? "border-primary-500 bg-primary-500 text-white"
-                        : "border-gray-300 bg-white text-transparent hover:border-gray-400"
-                    }`}
-                    aria-label={isSelected ? "Remove from comparison" : "Add to comparison"}
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </button>
-
-                  {/* Provider info */}
-                  <div className="flex items-start gap-3 pr-8">
-                    {provider.image ? (
-                      <Image
-                        src={provider.image}
-                        alt={provider.name}
-                        width={56}
-                        height={56}
-                        className="w-14 h-14 rounded-lg object-cover bg-gray-100 shrink-0"
-                      />
-                    ) : (
-                      <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center shrink-0">
-                        <span className="text-lg font-semibold text-amber-700">
-                          {provider.name.charAt(0)}
-                        </span>
-                      </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-[15px] font-bold text-gray-900 leading-tight line-clamp-1">
+                      {provider.name}
+                    </h4>
+                    {providerLocationStr && (
+                      <p className="text-[13px] text-gray-500 mt-0.5">{providerLocationStr}</p>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-[15px] font-bold text-gray-900 leading-tight line-clamp-1">
-                        {provider.name}
-                      </h4>
-                      {providerLocationStr && (
-                        <p className="text-[13px] text-gray-500 mt-0.5">{providerLocationStr}</p>
-                      )}
-                      {/* Rating + Price row - horizontal */}
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        {hasRating ? (
-                          <span className="text-[13px] text-gray-600 flex items-center gap-1">
-                            <svg className="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <span className="font-semibold">{provider.rating?.toFixed(1)}</span>
-                            <span className="text-gray-400">· {provider.reviewCount}</span>
-                          </span>
-                        ) : (
-                          <span className="text-[13px] text-gray-400 italic">No reviews yet</span>
-                        )}
-                        <span className="text-gray-300">·</span>
-                        <span className="text-[13px] font-semibold text-gray-900">
-                          {provider.priceRange || "Contact for pricing"}
+                    {/* Rating + Price row - horizontal */}
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {hasRating ? (
+                        <span className="text-[13px] text-gray-600 flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                          <span className="font-semibold">{provider.rating?.toFixed(1)}</span>
+                          <span className="text-gray-400">· {provider.reviewCount}</span>
                         </span>
-                      </div>
+                      ) : (
+                        <span className="text-[13px] text-gray-400 italic">No reviews yet</span>
+                      )}
+                      <span className="text-gray-300">·</span>
+                      <span className="text-[13px] font-semibold text-gray-900">
+                        {provider.priceRange || "Contact for pricing"}
+                      </span>
                     </div>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Email input - revealed after clicking save button */}
+        {showEmailInput && (
+          <div className="mb-3 animate-fade-in">
+            <input
+              ref={emailInputRef}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              disabled={isSubmitting}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 disabled:opacity-50 disabled:bg-gray-50"
+            />
           </div>
+        )}
 
-          {/* Error message */}
-          {error && (
-            <p className="text-sm text-red-600 mb-3">{error}</p>
-          )}
+        {/* Error message */}
+        {error && (
+          <p className="text-sm text-red-600 mb-3">{error}</p>
+        )}
 
-          {/* Save button (no email yet) */}
+        {/* Save button - changes behavior based on state */}
+        {showEmailInput ? (
+          <form onSubmit={handleSubmit}>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-70 text-white rounded-xl text-[15px] font-semibold transition-colors"
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
           <button
             type="button"
             onClick={handleSaveClick}
@@ -875,77 +925,11 @@ export default function CompareCard({
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
             </svg>
           </button>
-          <p className="text-[12px] text-gray-500 text-center mt-2">
-            Save now, message when ready
-          </p>
-        </div>
-      </div>
-    );
-  }
+        )}
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: Phase 3 - Email capture (after clicking save button)
-  // ─────────────────────────────────────────────────────────────────────────────
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-      <div className="px-5 pt-5 pb-5">
-        {/* Back button - disabled during submission */}
-        <button
-          onClick={handleBack}
-          disabled={cardState === "submitting"}
-          className="flex items-center gap-1 text-[13px] font-medium text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed mb-3 -ml-1"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-          Back
-        </button>
-
-        {/* Header */}
-        <h3 className="text-lg font-bold text-gray-900 mb-1">
-          Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
-        </h3>
-        <p className="text-sm text-gray-500 mb-4">
-          We&apos;ll send you a summary to compare.
+        <p className="text-[12px] text-gray-500 text-center mt-2">
+          {showEmailInput ? "We'll send you a summary to compare" : "Save now, message when ready"}
         </p>
-
-        {/* Email input + Submit button */}
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <p className="text-sm text-red-600 mb-2">{error}</p>
-          )}
-          <input
-            ref={emailInputRef}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
-            disabled={cardState === "submitting"}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 mb-3 disabled:opacity-50 disabled:bg-gray-50"
-          />
-          <button
-            type="submit"
-            disabled={cardState === "submitting"}
-            className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-70 text-white rounded-xl text-[15px] font-semibold transition-colors"
-          >
-            {cardState === "submitting" ? (
-              <>
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Saving...
-              </>
-            ) : (
-              <>
-                Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-              </>
-            )}
-          </button>
-        </form>
       </div>
     </div>
   );

@@ -5,6 +5,42 @@ import { shouldSendNotification, isControllableNotification, getPrefKeyForEmailT
 const FROM_ADDRESS = "Olera <noreply@olera.care>";
 
 /**
+ * Provider-directed notification/outreach email types. These go to provider
+ * addresses sourced from the directory (often unverified/scraped), which bounce
+ * far above Resend's 4% threshold and would otherwise degrade olera.care's
+ * reputation — the same domain our families, students, and auth mail depend on.
+ *
+ * When PROVIDER_NOTIFY_FROM is set, these send from that isolated domain instead
+ * of the default olera.care address, ring-fencing provider-acquisition
+ * reputation away from the crown jewel. Until the env var is set, behavior is
+ * unchanged. An explicit `from` passed by the caller always wins.
+ */
+const PROVIDER_NOTIFICATION_TYPES = new Set<string>([
+  "question_received",
+  "provider_nudge",
+  "profile_incomplete_nudge",
+  "provider_incomplete_profile",
+  "claim_notification",
+  "provider_recommendation",
+  "provider_reach_out",
+  "new_review",
+  "weekly_analytics_digest",
+  "new_candidate_alert",
+]);
+
+/**
+ * Resolve the From address. Precedence: explicit caller value > provider-
+ * notification override (PROVIDER_NOTIFY_FROM, when set) > default olera.care.
+ */
+function resolveFromAddress(explicitFrom: string | undefined, emailType: string): string {
+  if (explicitFrom) return explicitFrom;
+  if (PROVIDER_NOTIFICATION_TYPES.has(emailType) && process.env.PROVIDER_NOTIFY_FROM) {
+    return process.env.PROVIDER_NOTIFY_FROM;
+  }
+  return FROM_ADDRESS;
+}
+
+/**
  * Append email tracking query params to a URL path or full URL.
  * Used to tag links embedded in provider emails so clicks can be tracked.
  *
@@ -200,7 +236,9 @@ export async function reserveEmailLogId(options: {
 
   return preLogEmail({
     recipient,
-    sender: FROM_ADDRESS,
+    // Log the address the send will actually use, so analytics-by-sender stays
+    // accurate when provider notifications are routed off olera.care.
+    sender: resolveFromAddress(undefined, options.emailType ?? "unknown"),
     subject: options.subject,
     emailType: options.emailType ?? "unknown",
     recipientType: options.recipientType,
@@ -230,7 +268,7 @@ export async function sendEmail(
     to,
     subject,
     html,
-    from = FROM_ADDRESS,
+    from: explicitFrom,
     emailType = "unknown",
     recipientType,
     providerId,
@@ -238,6 +276,10 @@ export async function sendEmail(
     emailLogId: existingLogId,
     recipientProfileId,
   } = options;
+
+  // Resolve sender: explicit caller value wins; otherwise provider-directed
+  // notifications route to the isolated PROVIDER_NOTIFY_FROM domain when set.
+  const from = resolveFromAddress(explicitFrom, emailType);
 
   // Check notification preferences for controllable (activity-based) notifications
   // Marketing and transactional emails bypass this check and always send
@@ -310,8 +352,16 @@ export async function sendEmail(
       contentType: a.type,
     }));
   }
-  if (options.replyTo) {
-    sendPayload.replyTo = options.replyTo;
+  // Reply-To: explicit caller value wins. Otherwise, if this send was routed to
+  // the provider-notification domain, point replies at PROVIDER_NOTIFY_REPLY_TO
+  // (when set) so they don't land on an unmonitored mailbox on the new domain.
+  const replyTo =
+    options.replyTo ??
+    (from === process.env.PROVIDER_NOTIFY_FROM
+      ? process.env.PROVIDER_NOTIFY_REPLY_TO
+      : undefined);
+  if (replyTo) {
+    sendPayload.replyTo = replyTo;
   }
   const { data, error } = await resend.emails.send(sendPayload);
 

@@ -706,12 +706,17 @@ export default function MobileStickyBottomCTA({
               </div>
             ) : hook.isNonFamilyProfile ? (
               /* ── Non-family profile: prompt to create family account ── */
-              <button
-                onClick={() => hook.openAuth({ defaultMode: "sign-up", intent: "family" })}
-                className="w-full py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors"
-              >
-                Create Family Account
-              </button>
+              <div>
+                <p className="text-[13px] text-gray-500 font-medium mb-3">
+                  Family account required
+                </p>
+                <button
+                  onClick={() => hook.openAuth({ defaultMode: "sign-up", intent: "family" })}
+                  className="w-full py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors"
+                >
+                  Create Family Account
+                </button>
+              </div>
             ) : (
               /* ── Guest: opens sheet for email capture ── */
               <button

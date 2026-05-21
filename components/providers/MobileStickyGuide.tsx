@@ -246,7 +246,7 @@ export default function MobileStickyGuide({
         <div
           className="md:hidden"
           aria-hidden="true"
-          style={{ height: "calc(130px + env(safe-area-inset-bottom, 0px))" }}
+          style={{ height: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
         />
 
         {/* Sticky bottom bar - Family account required (always visible) */}
@@ -262,14 +262,40 @@ export default function MobileStickyGuide({
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
           >
             <div className="px-5 pt-3 pb-4">
-              {/* Info */}
-              <div className="flex items-center gap-1.5">
+              {/* Pricing info - single line */}
+              <div className="flex items-center gap-1.5 mb-3">
                 <p className="text-[16px] font-semibold text-gray-900">
-                  Family account required
+                  {priceDisplay}
                 </p>
+                {pricingDisclaimer && (
+                  <button
+                    ref={tooltipButtonRef}
+                    type="button"
+                    onClick={() => setShowPricingTooltip((prev) => !prev)}
+                    className="p-1 -m-1 flex items-center justify-center text-gray-400 hover:text-gray-500 active:text-gray-600 transition-colors"
+                    aria-label="Pricing info"
+                    aria-expanded={showPricingTooltip}
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </button>
+                )}
               </div>
-              <p className="text-[13px] text-gray-500 mt-1 mb-3">
-                To contact care providers
+
+              {/* Family account required text */}
+              <p className="text-[13px] text-gray-500 font-medium mb-3">
+                Family account required
               </p>
 
               {/* Full-width CTA button */}
@@ -282,6 +308,22 @@ export default function MobileStickyGuide({
             </div>
           </div>
         </div>
+
+        {/* ── Pricing tooltip portal ── */}
+        {showPricingTooltip &&
+          pricingDisclaimer &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <div
+              className="fixed left-4 right-4 z-[100] md:hidden"
+              style={{ bottom: "calc(140px + env(safe-area-inset-bottom, 0px))" }}
+            >
+              <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
+                <p>{pricingDisclaimer}</p>
+              </div>
+            </div>,
+            document.body
+          )}
       </>
     );
   }

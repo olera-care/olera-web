@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
@@ -195,10 +196,34 @@ export default function QuickProfileWizard({
   const { refreshAccountData } = useAuth();
   const meta = (profile.metadata || {}) as FamilyMetadata;
 
-  // Step state
-  const [step, setStep] = useState<Step>(1);
+  // Calculate first incomplete step based on existing profile data
+  const getFirstIncompleteStep = (): Step => {
+    // Step 1: Care Types - complete if has at least one
+    if (!profile.care_types || profile.care_types.length === 0) return 1;
+    // Step 2: Care Needs - complete if has at least one
+    if (!meta.care_needs || meta.care_needs.length === 0) return 2;
+    // Step 3: Payment - complete if has at least one
+    if (!meta.payment_methods || meta.payment_methods.length === 0) return 3;
+    // Step 4: Schedule - complete if set
+    if (!meta.schedule_preference) return 4;
+    // Step 5: Details - complete if has name AND location
+    if (!profile.display_name || !profile.city) return 5;
+    // All complete - go to last step for review
+    return 5;
+  };
+
+  // Step state - start at first incomplete step
+  const [step, setStep] = useState<Step>(getFirstIncompleteStep);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Go Live prompt state (shown after successful save)
+  const [showGoLivePrompt, setShowGoLivePrompt] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+
+  // Check if profile is already live
+  const isAlreadyLive = meta.care_post?.status === "active";
 
   // Step 1: Care Types (multi-select)
   const [careTypes, setCareTypes] = useState<string[]>(profile.care_types || []);
@@ -380,8 +405,20 @@ export default function QuickProfileWizard({
       }).catch(() => {});
 
       await refreshAccountData();
-      onSaved();
-      onClose();
+
+      // Check if we should show Go Live prompt
+      // Requirements: has city AND has care_types (current values, not stale props) AND not already live
+      const hasCity = !!city;
+      const hasCareTypes = careTypes.length > 0;
+      const shouldShowGoLive = hasCity && hasCareTypes && !isAlreadyLive;
+
+      if (shouldShowGoLive) {
+        // Show Go Live prompt - don't call onSaved yet or wizard will unmount
+        setShowGoLivePrompt(true);
+      } else {
+        // No Go Live needed - close wizard and dismiss nudge
+        onSaved();
+      }
     } catch (err) {
       console.error("[QuickProfileWizard] Save error:", err);
       setSaveError("Something went wrong. Please try again.");
@@ -401,8 +438,63 @@ export default function QuickProfileWizard({
     age,
     refreshAccountData,
     onSaved,
-    onClose,
+    isAlreadyLive,
   ]);
+
+  // Handle Go Live
+  const handleGoLive = useCallback(async () => {
+    setPublishing(true);
+    setPublishError(null);
+
+    try {
+      const res = await fetch("/api/care-post/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "publish" }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to publish");
+      }
+
+      // Log go_live event
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "family",
+          profile_id: profile.id,
+          event_type: "profile_published",
+          metadata: { source: "quick_wizard" },
+        }),
+      }).catch(() => {});
+
+      await refreshAccountData();
+      onSaved(); // Dismiss nudge and close wizard
+    } catch (err) {
+      console.error("[QuickProfileWizard] Publish error:", err);
+      setPublishError("Couldn't publish. Please try again.");
+    } finally {
+      setPublishing(false);
+    }
+  }, [profile.id, refreshAccountData, onSaved]);
+
+  // Handle Maybe Later
+  const handleMaybeLater = useCallback(() => {
+    // Log skip event for re-engagement tracking
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor_type: "family",
+        profile_id: profile.id,
+        event_type: "go_live_skipped",
+        metadata: { source: "quick_wizard" },
+      }),
+    }).catch(() => {});
+
+    onSaved(); // Dismiss nudge and close wizard
+  }, [profile.id, onSaved]);
 
   // Advance to next step
   const nextStep = () => {
@@ -418,6 +510,103 @@ export default function QuickProfileWizard({
     }
   };
 
+  // Get the city to display in Go Live prompt
+  const displayCity = city || profile.city || providerCity || "";
+
+  // ── Go Live Prompt ──
+  if (showGoLivePrompt) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-fade-in"
+          onClick={handleMaybeLater}
+        />
+
+        {/* Sheet/Modal */}
+        <div
+          className={[
+            "relative bg-white w-full flex flex-col",
+            "max-h-[92dvh] animate-sheet-up rounded-t-2xl",
+            "sm:max-w-[480px] sm:max-h-[85dvh] sm:animate-modal-pop sm:rounded-2xl",
+          ].join(" ")}
+          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        >
+          {/* Drag handle — mobile only */}
+          <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0">
+            <div className="w-10 h-1 rounded-full bg-gray-300" />
+          </div>
+
+          {/* Close button */}
+          <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-10">
+            <button
+              type="button"
+              onClick={handleMaybeLater}
+              className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 text-center animate-step-in">
+            {/* Illustration */}
+            <div className="w-56 h-40 mb-6 relative">
+              <Image
+                src="/go-live-illustration.png"
+                alt="Providers can find you"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+
+            {/* Title */}
+            <h2 className="text-[28px] md:text-[32px] font-bold text-gray-900 tracking-tight leading-tight mb-3">
+              Let providers find you
+            </h2>
+
+            {/* Subtitle */}
+            <p className="text-[16px] text-gray-600 leading-relaxed max-w-sm mb-8">
+              {displayCity
+                ? `Providers in ${displayCity} will be able to see your care needs and reach out.`
+                : "Providers will be able to see your care needs and reach out."}
+            </p>
+
+            {/* Error message */}
+            {publishError && (
+              <p className="text-sm text-red-600 mb-4">{publishError}</p>
+            )}
+
+            {/* Go Live button */}
+            <button
+              type="button"
+              onClick={handleGoLive}
+              disabled={publishing}
+              className="w-full max-w-xs py-4 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {publishing ? "Publishing..." : "Go Live"}
+            </button>
+
+            {/* Maybe later */}
+            <button
+              type="button"
+              onClick={handleMaybeLater}
+              disabled={publishing}
+              className="mt-4 py-2 text-[15px] text-gray-400 hover:text-gray-600 font-medium transition-colors disabled:opacity-50"
+            >
+              Maybe later
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Wizard Steps ──
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       {/* Backdrop */}

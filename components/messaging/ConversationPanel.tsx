@@ -946,13 +946,20 @@ export default function ConversationPanel({
       )}
 
       {/* Quick Profile Wizard — tappable, mobile-optimized */}
-      {showWizard && familyProfile && (
+      {showWizard && familyProfile && connection && (
         <QuickProfileWizard
           profile={familyProfile as BusinessProfile}
           onClose={() => setShowWizard(false)}
           onSaved={() => {
-            // After profile is saved, nudge auto-hides because completeness will be >= 60%
             setShowWizard(false);
+            // Auto-dismiss nudge after completing wizard (even if < 60%)
+            // They made an effort, don't nag them immediately
+            setNudgeDismissed(true);
+            try {
+              localStorage.setItem(`nudge_dismissed_${connection.id}`, "true");
+            } catch {
+              // localStorage unavailable
+            }
           }}
           providerCity={otherProfile?.city || undefined}
           providerState={otherProfile?.state || undefined}

@@ -343,6 +343,18 @@ export interface CaregiverMetadata {
   notification_prefs?: NotificationPrefs;
 }
 
+// ============================================================
+// Nudge Sequence Types (for care seeker re-engagement)
+// ============================================================
+
+export type NudgeSequencePhase = "active" | "maintenance";
+
+export interface NudgeSequence {
+  nudge_count: number;        // 0-4 in active, 5+ in maintenance
+  last_nudge_at?: string;     // ISO timestamp
+  phase: NudgeSequencePhase;
+}
+
 export interface FamilyMetadata {
   age?: number;
   care_needs?: string[];
@@ -380,6 +392,22 @@ export interface FamilyMetadata {
     completed_at?: string;
     matchCount?: number;
   };
+
+  // ── Nudge Sequence Tracking (new re-engagement system) ──
+  // Phase 1: Profile Completion nudges
+  completion_sequence?: NudgeSequence;
+  // Phase 2: Publish Profile nudges
+  publish_sequence?: NudgeSequence;
+  // Global opt-out for all nudge sequences (set via /account/settings)
+  nudges_unsubscribed?: boolean;
+
+  // ── Legacy nudge flags (backward compatibility) ──
+  // These are superseded by the sequence system but kept for migration
+  go_live_reminder_sent?: boolean;
+  profile_incomplete_reminder_sent?: boolean;
+  provider_recommendation_sent?: boolean;
+  dormant_reengagement_sent?: boolean;
+  post_connection_followup_sent?: boolean;
 }
 
 // ============================================================

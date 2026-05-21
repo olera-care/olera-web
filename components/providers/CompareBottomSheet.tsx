@@ -741,6 +741,41 @@ export default function CompareBottomSheet({
               </p>
             </div>
           )}
+
+          {footerState === "success" && (
+            <div className="py-3">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-[15px] font-bold text-gray-900">
+                    Saved {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                  </h3>
+                  <p className="text-[13px] text-gray-500">
+                    We&apos;ll send you a summary to compare
+                  </p>
+                </div>
+              </div>
+              <a
+                href={connectionIds.length === 1 ? `/portal/inbox?id=${connectionIds[0]}` : "/portal/inbox"}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-[15px] font-semibold transition-colors"
+              >
+                Go to inbox
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </a>
+              <button
+                onClick={onClose}
+                className="w-full mt-2 py-2.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Stay on this page
+              </button>
+            </div>
+          )}
             </div>
           </>
         )}

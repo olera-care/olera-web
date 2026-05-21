@@ -108,6 +108,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             providerSlug={props.providerSlug}
             providerCity={props.city}
             providerState={props.state}
+            providerImage={props.providerImage}
             careTypes={props.careTypes}
             priceRange={props.priceRange}
             phone={phone}

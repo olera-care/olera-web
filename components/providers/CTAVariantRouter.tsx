@@ -172,6 +172,7 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
           careTypes={careTypes ?? []}
           city={city}
           state={state}
+          providerImage={providerImage}
           responseTime={responseTime}
           providerCategory={providerCategory}
           providerCity={providerCity}

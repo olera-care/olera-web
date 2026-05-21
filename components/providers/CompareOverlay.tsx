@@ -408,18 +408,16 @@ export default function CompareOverlay({
                   </p>
                 </div>
                 {/* Close button */}
-                {footerState !== "success" && (
-                  <button
-                    onClick={onClose}
-                    disabled={footerState === "submitting"}
-                    className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50"
-                    aria-label="Close"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
+                <button
+                  onClick={onClose}
+                  disabled={footerState === "submitting"}
+                  className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  aria-label="Close"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -445,18 +443,7 @@ export default function CompareOverlay({
 
         {/* Sticky Footer */}
         <div className="shrink-0 px-6 py-4 border-t border-gray-200 bg-white">
-          {footerState === "success" ? (
-            /* Success state (fallback) */
-            <div className="py-3 text-center">
-              <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-gray-900">Saved.</h3>
-              <p className="text-sm text-gray-500 mt-1">Taking you to your saved comparison...</p>
-            </div>
-          ) : footerState === "submitting" ? (
+          {footerState === "submitting" ? (
             /* Submitting state */
             <div className="py-2">
               <button

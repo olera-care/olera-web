@@ -166,12 +166,18 @@ export default function CompareBottomSheet({
   // Track if sheet was already open to prevent reset on auth state changes
   const wasOpenRef = useRef(false);
 
+  // Track mid-flow states that should NEVER be interrupted by auth/prop changes
+  // This is more reliable than wasOpenRef alone because it explicitly protects specific states
+  const isInMidFlow = footerState === "email_capture" || footerState === "submitting" ||
+    footerState === "enrichment" || footerState === "success" || footerState === "provider_email_block";
+
   useEffect(() => {
     const keyHandler = (e: KeyboardEvent) => handleKeyDownRef.current(e);
 
     if (isOpen) {
       // Only reset state when sheet OPENS (not when auth state changes mid-flow)
-      if (!wasOpenRef.current) {
+      // CRITICAL: Never reset if user is mid-flow (email capture through success)
+      if (!wasOpenRef.current && !isInMidFlow) {
         // Show family required state if logged in as provider/caregiver/student
         setFooterState(isNonFamilyProfile ? "family_required" : "initial");
         setSelectedProviderIds(new Set(allProviders.map((p) => p.id)));
@@ -188,13 +194,17 @@ export default function CompareBottomSheet({
       document.body.style.overflow = "hidden";
       document.addEventListener("keydown", keyHandler);
     } else {
-      wasOpenRef.current = false;
+      // Only reset wasOpenRef if we're NOT mid-flow
+      // This prevents issues if sheet closes briefly during auth transitions
+      if (!isInMidFlow) {
+        wasOpenRef.current = false;
+      }
     }
     return () => {
       document.body.style.overflow = "";
       document.removeEventListener("keydown", keyHandler);
     };
-  }, [isOpen, isNonFamilyProfile, allProviders]); // allProviders added since it's used inside
+  }, [isOpen, isNonFamilyProfile, allProviders, isInMidFlow]); // Added isInMidFlow dependency
 
   // Close sheet when viewport switches to desktop (above md breakpoint)
   // This prevents scroll lock from persisting when sheet is hidden via CSS

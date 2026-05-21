@@ -609,8 +609,8 @@ export default function CompareBottomSheet({
   // BUT: If we're mid-flow (enrichment/success), stay in that flow - don't switch!
   // This prevents the flash when session is established after email submission.
   // ─────────────────────────────────────────────────────────────────────────────
-  const isMidFlow = footerState === "email_capture" || footerState === "submitting" || footerState === "enrichment" || footerState === "success" || footerState === "provider_email_block";
-  if (isLoggedIn && !isNonFamilyProfile && !isMidFlow) {
+  // Note: reuses isInMidFlow defined above (line 171) - same condition
+  if (isLoggedIn && !isNonFamilyProfile && !isInMidFlow) {
     const loggedInContent = (
       <div className="fixed inset-0 z-[60] md:hidden">
         {/* Backdrop */}

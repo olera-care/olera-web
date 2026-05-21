@@ -73,6 +73,10 @@ export default function MobileStickyCompare({
   const [directSubmitting, setDirectSubmitting] = useState(false);
   const [directError, setDirectError] = useState<string | null>(null);
 
+  // Track if sheet was opened as guest - keeps sheet mounted through auth state changes
+  // This prevents the sheet from unmounting when user becomes logged in mid-flow
+  const [sheetStartedAsGuest, setSheetStartedAsGuest] = useState(false);
+
   // ── Logged-in family user: direct action from sticky bar ──
   const providerIsSaved = isSaved(providerSlug);
   const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
@@ -197,12 +201,15 @@ export default function MobileStickyCompare({
         }),
       }).catch(() => {});
     }
+    // Track that this sheet was opened as a guest - keeps it mounted through auth changes
+    setSheetStartedAsGuest(true);
     setSheetOpen(true);
   }, [ctaVariant, ctaPreviewMode, providerSlug]);
 
   const handleCloseSheet = useCallback(() => {
     setSheetOpen(false);
-    // Reset click tracking so user can open again
+    // Reset tracking states so user can start fresh flow
+    setSheetStartedAsGuest(false);
     clickFiredRef.current = false;
   }, []);
 
@@ -497,6 +504,19 @@ export default function MobileStickyCompare({
             </div>,
             document.body
           )}
+
+        {/* Keep CompareBottomSheet mounted if user started flow as guest
+            This allows success state to show after auth state changes */}
+        {sheetStartedAsGuest && (
+          <CompareBottomSheet
+            isOpen={sheetOpen}
+            onClose={handleCloseSheet}
+            currentProvider={currentProvider}
+            similarProviders={similarProviders}
+            ctaVariant={ctaVariant}
+            ctaPreviewMode={ctaPreviewMode}
+          />
+        )}
       </>
     );
   }

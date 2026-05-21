@@ -1,10 +1,10 @@
 "use client";
 
 import { useConnectionCard } from "./use-connection-card";
-import CardBottomSection from "./CardBottomSection";
 import InquiryForm from "./InquiryForm";
 import EnrichmentState from "./EnrichmentState";
 import ConnectedState from "./ConnectedState";
+import LoggedInFamilyCTA from "../LoggedInFamilyCTA";
 import type { ConnectionCardProps } from "./types";
 
 export type { ConnectionCardProps } from "./types";
@@ -13,7 +13,6 @@ export default function ConnectionCard(props: ConnectionCardProps) {
   const {
     providerName,
     phone,
-    acceptedPayments,
   } = props;
 
   const hook = useConnectionCard(props);
@@ -44,7 +43,6 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             Use a different email than your {hook.accountTypeLabel} account.
           </p>
         </div>
-        <CardBottomSection acceptedPayments={acceptedPayments} />
       </div>
     );
   }
@@ -62,21 +60,20 @@ export default function ConnectionCard(props: ConnectionCardProps) {
 
         {hook.cardState === "default" && (
           hook.userEmail ? (
-            /* Logged-in: one-click CTA — pricing context + one button */
-            <InquiryForm
-              key={hook.userEmail}
+            /* Logged-in family: streamlined CTA — skips enrichment, goes to inbox */
+            <LoggedInFamilyCTA
+              providerId={props.providerId}
               providerName={providerName}
-              onSubmit={hook.submitInquiryForm}
-              submitting={hook.submitting}
-              error={hook.error}
-              initialEmail={hook.userEmail}
+              providerSlug={props.providerSlug}
+              providerCategory={props.careTypes?.[0] || null}
+              providerCity={props.city}
+              providerState={props.state}
               careTypes={props.careTypes}
               priceRange={props.priceRange}
-              city={props.city}
-              state={props.state}
+              ctaVariant={props.ctaVariant}
             />
           ) : (
-            /* Guest: email-only form */
+            /* Guest: email-only form → enrichment → inbox */
             <InquiryForm
               key="guest"
               providerName={providerName}
@@ -100,11 +97,20 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             saving={hook.submitting}
             careTypes={props.careTypes}
             priceRange={props.priceRange}
+            providerCity={props.city}
+            providerState={props.state}
           />
         )}
 
         {hook.cardState === "connected" && (
           <ConnectedState
+            providerName={providerName}
+            providerSlug={props.providerSlug}
+            providerCity={props.city}
+            providerState={props.state}
+            providerImage={props.providerImage}
+            careTypes={props.careTypes}
+            priceRange={props.priceRange}
             phone={phone}
             requestDate={hook.pendingRequestDate}
             connectionId={hook.connectionId}
@@ -144,9 +150,6 @@ export default function ConnectionCard(props: ConnectionCardProps) {
           </div>
         )}
       </div>
-
-      {/* Bottom section — persistent */}
-      <CardBottomSection acceptedPayments={acceptedPayments} />
     </div>
   );
 }

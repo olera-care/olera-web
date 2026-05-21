@@ -8,7 +8,7 @@ import type { ConnectionWithProfile } from "./ConversationList";
 import { formatRedactedName } from "@/lib/utils/pii-redaction";
 import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import ProfileCompletionNudge from "@/components/portal/profile/ProfileCompletionNudge";
-import ProfileEditWizard from "@/components/portal/profile/ProfileEditWizard";
+import QuickProfileWizard from "@/components/portal/profile/QuickProfileWizard";
 
 interface ConversationPanelProps {
   connection: ConnectionWithProfile | null;
@@ -582,6 +582,7 @@ export default function ConversationPanel({
               }
             }}
             connectionId={connection.id}
+            completionPercentage={completeness}
           />
         </div>
       )}
@@ -944,16 +945,24 @@ export default function ConversationPanel({
         </div>
       )}
 
-      {/* Profile Edit Wizard modal */}
-      {showWizard && familyProfile && (
-        <ProfileEditWizard
+      {/* Quick Profile Wizard — tappable, mobile-optimized */}
+      {showWizard && familyProfile && connection && (
+        <QuickProfileWizard
           profile={familyProfile as BusinessProfile}
-          userEmail={userEmail}
           onClose={() => setShowWizard(false)}
           onSaved={() => {
-            // After profile is saved, nudge auto-hides because completeness will be >= 60%
             setShowWizard(false);
+            // Auto-dismiss nudge after completing wizard (even if < 60%)
+            // They made an effort, don't nag them immediately
+            setNudgeDismissed(true);
+            try {
+              localStorage.setItem(`nudge_dismissed_${connection.id}`, "true");
+            } catch {
+              // localStorage unavailable
+            }
           }}
+          providerCity={otherProfile?.city || undefined}
+          providerState={otherProfile?.state || undefined}
         />
       )}
     </div>

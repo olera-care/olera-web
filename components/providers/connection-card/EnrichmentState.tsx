@@ -1,313 +1,589 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import Pill from "./Pill";
-import { URGENCY_OPTIONS, RECIPIENT_OPTIONS } from "./constants";
-import type { CareRecipient, UrgencyValue } from "./types";
-import {
-  getPricingForProviderSync,
-  formatPricingRange,
-  getFundingOptions,
-} from "@/lib/pricing-ranges";
+import { createPortal } from "react-dom";
+import { useCitySearch } from "@/hooks/use-city-search";
+import { RECIPIENT_OPTIONS } from "./constants";
+import type { CareRecipient } from "./types";
 
-type NotifyChannel = "text" | "whatsapp" | "email";
-type EnrichmentStep = "notify" | "recipient" | "urgency";
+type EnrichmentStep = "recipient" | "timeline" | "careType" | "careNeed" | "payment" | "details";
+type TimelineValue = "immediate" | "within_1_month" | "within_3_months" | "exploring";
+type ContactPref = "Call" | "Text" | "Email";
 
 interface EnrichmentStateProps {
   providerName: string;
   onSave: (data: {
-    phone: string;
-    notifyChannel: NotifyChannel;
     careRecipient?: CareRecipient;
-    urgency?: UrgencyValue;
+    urgency?: string;
+    contactPreference?: ContactPref;
+    phone?: string;
+    careType?: string;
+    careNeed?: string;
+    paymentMethod?: string;
+    name?: string;
+    city?: string;
+    state?: string;
   }) => void;
   onSkip: () => void;
   saving?: boolean;
-  careTypes?: string[];
   priceRange?: string | null;
+  /** @deprecated No longer used in new UI but kept for backward compatibility */
+  careTypes?: string[];
+  /** Custom success banner title. Defaults to "Sent to {providerName}" */
+  successTitle?: string;
+  /** Custom success banner subtitle. Defaults to "{priceRange} estimated" if priceRange exists */
+  successSubtitle?: string;
+  /** Hide the success banner entirely */
+  hideSuccessBanner?: boolean;
+  /** Provider's city for location pre-fill */
+  providerCity?: string | null;
+  /** Provider's state for location pre-fill */
+  providerState?: string | null;
 }
 
-const NOTIFY_OPTIONS: { label: string; value: NotifyChannel }[] = [
-  { label: "Text me", value: "text" },
-  { label: "WhatsApp me", value: "whatsapp" },
-  { label: "Email is fine", value: "email" },
+const TIMELINE_OPTIONS: { label: string; value: TimelineValue }[] = [
+  { label: "As soon as possible", value: "immediate" },
+  { label: "Within a month", value: "within_1_month" },
+  { label: "In a few months", value: "within_3_months" },
+  { label: "Just researching", value: "exploring" },
 ];
+
+const CARE_TYPE_OPTIONS: { label: string; value: string }[] = [
+  { label: "Home Care", value: "home_care" },
+  { label: "Home Health Care", value: "home_health" },
+  { label: "Assisted Living", value: "assisted_living" },
+  { label: "Memory Care", value: "memory_care" },
+  { label: "Nursing Home", value: "nursing_home" },
+  { label: "Independent Living", value: "independent_living" },
+];
+
+const CARE_NEED_OPTIONS: { label: string; value: string }[] = [
+  { label: "Personal care", value: "personal_care" },
+  { label: "Household tasks", value: "household_tasks" },
+  { label: "Health management", value: "health_management" },
+  { label: "Companionship", value: "companionship" },
+  { label: "Memory care", value: "memory_care" },
+  { label: "Mobility help", value: "mobility_help" },
+];
+
+const PAYMENT_OPTIONS: { label: string; value: string }[] = [
+  { label: "Medicare", value: "medicare" },
+  { label: "Medicaid", value: "medicaid" },
+  { label: "Private insurance", value: "private_insurance" },
+  { label: "Private pay", value: "private_pay" },
+  { label: "Veterans benefits", value: "veterans_benefits" },
+  { label: "Long-term care insurance", value: "long_term_care_insurance" },
+];
+
+// Location Dropdown with Portal - updates position on scroll/resize
+function LocationDropdown({
+  inputRef,
+  dropdownRef,
+  results,
+  onSelect,
+  show,
+}: {
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  dropdownRef: React.RefObject<HTMLDivElement | null>;
+  results: { city: string; state: string }[];
+  onSelect: (city: string, state: string) => void;
+  show: boolean;
+}) {
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Update position when shown and on scroll/resize
+  useEffect(() => {
+    if (!show || !inputRef.current) return;
+
+    const updatePosition = () => {
+      if (!inputRef.current) return;
+      const rect = inputRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width,
+      });
+    };
+
+    // Initial position
+    updatePosition();
+
+    // Update on scroll (capture phase to catch all scrollable containers)
+    const handleScroll = () => updatePosition();
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [show, inputRef]);
+
+  if (!mounted || !show || results.length === 0) return null;
+
+  return createPortal(
+    <div
+      ref={dropdownRef}
+      className="fixed z-[100] bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto"
+      style={{
+        top: position.top,
+        left: position.left,
+        width: position.width,
+      }}
+    >
+      {results.map((result) => (
+        <button
+          key={`${result.city}-${result.state}`}
+          type="button"
+          onClick={() => onSelect(result.city, result.state)}
+          className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+        >
+          <span className="font-medium text-gray-900">{result.city}</span>
+          <span className="text-gray-500">, {result.state}</span>
+        </button>
+      ))}
+    </div>,
+    document.body
+  );
+}
 
 export default function EnrichmentState({
   providerName,
   onSave,
   onSkip,
   saving,
-  careTypes = [],
   priceRange = null,
+  careTypes: _careTypes,
+  successTitle,
+  successSubtitle,
+  hideSuccessBanner = false,
+  providerCity,
+  providerState,
 }: EnrichmentStateProps) {
-  const [step, setStep] = useState<EnrichmentStep>("notify");
-  const [notifyChannel, setNotifyChannel] = useState<NotifyChannel | null>(null);
-  const [phone, setPhone] = useState("");
+  void _careTypes; // Suppress unused variable warning
+
+  const [step, setStep] = useState<EnrichmentStep>("recipient");
+
+  // Step 1: Recipient
   const [recipient, setRecipient] = useState<CareRecipient | null>(null);
-  const [urgency, setUrgency] = useState<UrgencyValue | null>(null);
-  const [showFunding, setShowFunding] = useState(false);
-  const phoneInputRef = useRef<HTMLInputElement>(null);
+  // Step 2: Timeline
+  const [timeline, setTimeline] = useState<TimelineValue | null>(null);
+  // Step 3: Care Type
+  const [careType, setCareType] = useState<string | null>(null);
+  // Step 4: Care Need
+  const [careNeed, setCareNeed] = useState<string | null>(null);
+  // Step 5: Payment
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  // Step 6: Details
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [city, setCity] = useState(providerCity || "");
+  const [state, setState] = useState(providerState || "");
+  const [locationInput, setLocationInput] = useState(
+    providerCity && providerState ? `${providerCity}, ${providerState}` : ""
+  );
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const cityInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { results: cityResults, preload: preloadCities } = useCitySearch(locationInput);
 
-  const needsPhone = notifyChannel === "text" || notifyChannel === "whatsapp";
+  // Compute display values
+  const displayTitle = successTitle ?? `Sent to ${providerName}`;
+  const displaySubtitle = successSubtitle ?? (priceRange ? `${priceRange} estimated` : null);
 
-  // Auto-focus phone input when a phone-requiring channel is selected
+  // Preload cities on mount
   useEffect(() => {
-    if (needsPhone && step === "notify") {
-      setTimeout(() => phoneInputRef.current?.focus(), 100);
-    }
-  }, [needsPhone, step]);
+    preloadCities();
+  }, [preloadCities]);
 
-  // Resolve pricing from care types
-  const pricing = getPricingForProviderSync(careTypes);
-  const displayRange = priceRange || (pricing.range ? formatPricingRange(pricing.range) : null);
-  const fundingOptions = getFundingOptions();
+  // Close dropdown on click outside
+  useEffect(() => {
+    if (!showCityDropdown) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const clickedInput = cityInputRef.current?.contains(target);
+      const clickedDropdown = dropdownRef.current?.contains(target);
+      if (!clickedInput && !clickedDropdown) {
+        setShowCityDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showCityDropdown]);
 
-  // Step 1: notify channel is complete when channel selected + phone if needed
-  const notifyComplete = notifyChannel === "email" || (needsPhone && phone.trim());
+  // Gather all collected data
+  const getAllData = useCallback(() => ({
+    careRecipient: recipient || undefined,
+    urgency: timeline || undefined,
+    careType: careType || undefined,
+    careNeed: careNeed || undefined,
+    paymentMethod: paymentMethod || undefined,
+    name: name.trim() || undefined,
+    phone: phone.trim() || undefined,
+    city: city || undefined,
+    state: state || undefined,
+  }), [recipient, timeline, careType, careNeed, paymentMethod, name, phone, city, state]);
 
-  // Advance from notify → recipient
-  const advanceFromNotify = useCallback(() => {
-    if (notifyComplete) setStep("recipient");
-  }, [notifyComplete]);
-
-  // Recipient tap → instant advance to urgency
+  // Step 1: Select recipient → auto-advance
   const selectRecipient = useCallback((val: CareRecipient) => {
     setRecipient(val);
-    setStep("urgency");
+    setTimeout(() => setStep("timeline"), 150);
   }, []);
 
-  // Urgency tap → save everything instantly
-  const selectUrgency = useCallback((val: UrgencyValue) => {
-    setUrgency(val);
-    onSave({
-      phone: (notifyChannel === "text" || notifyChannel === "whatsapp") ? phone.trim() : "",
-      notifyChannel: notifyChannel || "email",
-      careRecipient: recipient || undefined,
-      urgency: val,
-    });
-  }, [notifyChannel, phone, recipient, onSave]);
+  // Step 2: Select timeline → auto-advance
+  const selectTimeline = useCallback((val: TimelineValue) => {
+    setTimeline(val);
+    setTimeout(() => setStep("careType"), 150);
+  }, []);
+
+  // Step 3: Select care type → auto-advance
+  const selectCareType = useCallback((val: string) => {
+    setCareType(val);
+    setTimeout(() => setStep("careNeed"), 150);
+  }, []);
+
+  // Step 4: Select care need → auto-advance
+  const selectCareNeed = useCallback((val: string) => {
+    setCareNeed(val);
+    setTimeout(() => setStep("payment"), 150);
+  }, []);
+
+  // Step 5: Select payment → auto-advance
+  const selectPayment = useCallback((val: string) => {
+    setPaymentMethod(val);
+    setTimeout(() => setStep("details"), 150);
+  }, []);
+
+  // Step 6: Details form submission → save all data
+  const handleDetailsSubmit = useCallback(() => {
+    onSave(getAllData());
+  }, [onSave, getAllData]);
+
+  // Handle city selection
+  const handleCitySelect = useCallback((cityName: string, stateCode: string) => {
+    setCity(cityName);
+    setState(stateCode);
+    setLocationInput(`${cityName}, ${stateCode}`);
+    setShowCityDropdown(false);
+  }, []);
 
   // Skip from any step — save whatever we have
   const handleSkip = useCallback(() => {
-    if (step === "notify" && !notifyChannel) {
-      // Nothing collected yet — true skip
+    if (step === "recipient" && !recipient) {
       onSkip();
     } else {
-      // Save partial data
-      onSave({
-        phone: needsPhone ? phone.trim() : "",
-        notifyChannel: notifyChannel || "email",
-        careRecipient: recipient || undefined,
-        urgency: urgency || undefined,
-      });
+      onSave(getAllData());
     }
-  }, [step, notifyChannel, needsPhone, phone, recipient, urgency, onSave, onSkip]);
+  }, [step, recipient, onSave, onSkip, getAllData]);
+
+  // Progress indicator (steps 1-6)
+  const stepNumber = {
+    recipient: 1,
+    timeline: 2,
+    careType: 3,
+    careNeed: 4,
+    payment: 5,
+    details: 6,
+  }[step];
+  const totalSteps = 6;
 
   return (
     <div>
-      {/* Success header */}
-      <div className="flex items-center gap-2.5 mb-4">
-        <div className="w-7 h-7 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-emerald-600"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        </div>
-        <p className="text-[14px] font-semibold text-gray-900">
-          Sent to {providerName}
-        </p>
-      </div>
-
-      {/* ── Pricing section (only on step 1) ── */}
-      {step === "notify" && (
-        <>
-          {displayRange && !pricing.isHospice && (
-            <div className="bg-gray-50 rounded-xl px-3.5 py-3 mb-3">
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                Typical range
+      {/* Success banner */}
+      {!hideSuccessBanner && (
+        <div className="mb-6 bg-emerald-50/60 rounded-xl p-4 border border-emerald-100">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-emerald-600"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-[15px] font-semibold text-gray-900">
+                {displayTitle}
               </p>
-              <p className="text-[18px] font-bold text-gray-900">
-                {displayRange}
-              </p>
-              {pricing.range?.description && (
-                <p className="text-[12px] text-gray-500 mt-1 leading-relaxed">
-                  {pricing.range.description}
+              {displaySubtitle && (
+                <p className="text-[13px] text-gray-500 mt-0.5">
+                  {displaySubtitle}
                 </p>
               )}
-              <p className="text-[11px] text-gray-400 mt-1.5">
-                Actual costs vary based on care level and services needed.
-              </p>
             </div>
-          )}
-
-          {pricing.isHospice && (
-            <div className="bg-gray-50 rounded-xl px-3.5 py-3 mb-3">
-              <p className="text-[13px] text-gray-600">
-                Hospice care is typically covered by Medicare, Medicaid, or private insurance at no cost to the family.
-              </p>
-            </div>
-          )}
-
-          {/* Funding options */}
-          {displayRange && !pricing.isHospice && (
-            <div className="mb-4">
-              <button
-                type="button"
-                onClick={() => setShowFunding(!showFunding)}
-                className="text-[13px] text-gray-500 font-medium hover:text-gray-700 transition-colors"
-              >
-                Ways to pay {showFunding ? "↑" : "→"}
-              </button>
-              {showFunding && (
-                <div className="mt-2 space-y-1.5">
-                  {fundingOptions.map((opt) => (
-                    <div key={opt.label} className="flex items-start gap-2">
-                      <span className="text-gray-400 mt-0.5 shrink-0">·</span>
-                      <div>
-                        <span className="text-[12px] font-medium text-gray-700">{opt.label}</span>
-                        {opt.monthlySavings && (
-                          <span className="text-[11px] text-gray-400 ml-1">
-                            (saves ${opt.monthlySavings.low.toLocaleString()}–${opt.monthlySavings.high.toLocaleString()}/mo)
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  <a
-                    href="/benefits/finder"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[12px] text-gray-500 font-medium hover:text-gray-700 hover:underline mt-1 inline-block"
-                  >
-                    Check your eligibility →
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="border-t border-gray-200 my-4" />
-        </>
-      )}
-
-      {/* ── Step 1: Notification channel ── */}
-      {step === "notify" && (
-        <>
-          <p className="text-[13px] font-medium text-gray-700 mb-2">
-            How should we let you know when they respond?
-          </p>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {NOTIFY_OPTIONS.map((opt) => (
-              <Pill
-                key={opt.value}
-                label={opt.label}
-                selected={notifyChannel === opt.value}
-                onClick={() => setNotifyChannel(opt.value)}
-                small
-              />
-            ))}
           </div>
-
-          {needsPhone && (
-            <input
-              ref={phoneInputRef}
-              type="tel"
-              inputMode="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Phone number"
-              autoComplete="tel"
-              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all duration-150 mb-3"
-            />
-          )}
-
-          <button
-            onClick={notifyComplete ? advanceFromNotify : onSkip}
-            disabled={saving}
-            className={`w-full h-11 rounded-xl text-[14px] font-semibold border-none cursor-pointer transition-all duration-150 ${
-              notifyComplete
-                ? "bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98]"
-                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-            } disabled:opacity-50`}
-          >
-            {notifyComplete ? "Next" : "Skip for now"}
-          </button>
-
-          {notifyComplete && (
-            <button
-              onClick={handleSkip}
-              className="w-full mt-2.5 text-[13px] text-gray-400 hover:text-gray-600 font-normal cursor-pointer bg-transparent border-none transition-colors"
-            >
-              Skip
-            </button>
-          )}
-        </>
+        </div>
       )}
 
-      {/* ── Step 2: Who needs care? ── */}
+      {/* Progress dots */}
+      <div className="flex items-center justify-center gap-1.5 mb-4">
+        {Array.from({ length: totalSteps }, (_, i) => (
+          <div
+            key={i}
+            className={`rounded-full transition-all duration-300 ${
+              i < stepNumber
+                ? "bg-gray-900 w-6 h-1.5"
+                : i === stepNumber - 1
+                ? "bg-gray-900 w-6 h-1.5"
+                : "bg-gray-200 w-1.5 h-1.5"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Step 1: Who needs care? */}
       {step === "recipient" && (
-        <>
-          <p className="text-[13px] font-medium text-gray-700 mb-3">
+        <div className="animate-in fade-in duration-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Who needs care?
-          </p>
-          <div className="flex flex-wrap gap-2 mb-4">
+          </h3>
+          <div className="space-y-2 mb-4">
             {RECIPIENT_OPTIONS.map((opt) => (
-              <Pill
+              <button
                 key={opt.value}
-                label={opt.label}
-                selected={recipient === opt.value}
                 onClick={() => selectRecipient(opt.value as CareRecipient)}
-                small
-              />
+                className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border ${
+                  recipient === opt.value
+                    ? "bg-gray-900 text-white border-gray-900"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                }`}
+              >
+                {opt.label}
+              </button>
             ))}
           </div>
-
           <button
             onClick={handleSkip}
-            className="w-full mt-1 text-[13px] text-gray-400 hover:text-gray-600 font-normal cursor-pointer bg-transparent border-none transition-colors"
+            disabled={saving}
+            className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors disabled:opacity-50"
           >
             Skip
           </button>
-        </>
+        </div>
       )}
 
-      {/* ── Step 3: How soon? ── */}
-      {step === "urgency" && (
-        <>
-          <p className="text-[13px] font-medium text-gray-700 mb-3">
+      {/* Step 2: How soon? */}
+      {step === "timeline" && (
+        <div className="animate-in fade-in duration-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             How soon do you need care?
-          </p>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {URGENCY_OPTIONS.map((opt) => (
-              <Pill
+          </h3>
+          <div className="space-y-2 mb-4">
+            {TIMELINE_OPTIONS.map((opt) => (
+              <button
                 key={opt.value}
-                label={opt.label}
-                selected={urgency === opt.value}
-                onClick={() => selectUrgency(opt.value as UrgencyValue)}
-                small
-              />
+                onClick={() => selectTimeline(opt.value)}
+                className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border ${
+                  timeline === opt.value
+                    ? "bg-gray-900 text-white border-gray-900"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                }`}
+              >
+                {opt.label}
+              </button>
             ))}
           </div>
-
           <button
             onClick={handleSkip}
             disabled={saving}
-            className="w-full mt-1 text-[13px] text-gray-400 hover:text-gray-600 font-normal cursor-pointer bg-transparent border-none transition-colors disabled:opacity-50"
+            className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Skip"}
+            Skip
           </button>
-        </>
+        </div>
       )}
+
+      {/* Step 3: What type of care? */}
+      {step === "careType" && (
+        <div className="animate-in fade-in duration-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            What type of care are you looking for?
+          </h3>
+          <div className="space-y-2 mb-4">
+            {CARE_TYPE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => selectCareType(opt.value)}
+                className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border ${
+                  careType === opt.value
+                    ? "bg-gray-900 text-white border-gray-900"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={handleSkip}
+            disabled={saving}
+            className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors disabled:opacity-50"
+          >
+            Skip
+          </button>
+        </div>
+      )}
+
+      {/* Step 4: What help is needed most? */}
+      {step === "careNeed" && (
+        <div className="animate-in fade-in duration-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            What help is needed most?
+          </h3>
+          <div className="space-y-2 mb-4">
+            {CARE_NEED_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => selectCareNeed(opt.value)}
+                className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border ${
+                  careNeed === opt.value
+                    ? "bg-gray-900 text-white border-gray-900"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={handleSkip}
+            disabled={saving}
+            className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors disabled:opacity-50"
+          >
+            Skip
+          </button>
+        </div>
+      )}
+
+      {/* Step 5: How will you pay? */}
+      {step === "payment" && (
+        <div className="animate-in fade-in duration-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            How will you pay for care?
+          </h3>
+          <div className="space-y-2 mb-4">
+            {PAYMENT_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => selectPayment(opt.value)}
+                className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border ${
+                  paymentMethod === opt.value
+                    ? "bg-gray-900 text-white border-gray-900"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={handleSkip}
+            disabled={saving}
+            className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors disabled:opacity-50"
+          >
+            Skip
+          </button>
+        </div>
+      )}
+
+      {/* Step 6: Quick details */}
+      {step === "details" && (
+        <div className="animate-in fade-in duration-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            A few quick details
+          </h3>
+          <p className="text-sm text-gray-500 mb-5">Help providers understand your needs</p>
+
+          <div className="space-y-4">
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Your name
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your name"
+                className="w-full px-4 py-3 rounded-xl bg-gray-100 border-0 focus:bg-white focus:ring-2 focus:ring-gray-900/10 outline-none transition-all text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Phone number
+              </label>
+              <input
+                type="tel"
+                inputMode="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="(555) 123-4567"
+                autoComplete="tel"
+                className="w-full px-4 py-3 rounded-xl bg-gray-100 border-0 focus:bg-white focus:ring-2 focus:ring-gray-900/10 outline-none transition-all text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+
+            {/* Location */}
+            <div className="relative">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Location
+              </label>
+              <input
+                ref={cityInputRef}
+                type="text"
+                value={locationInput}
+                onChange={(e) => {
+                  setLocationInput(e.target.value);
+                  setShowCityDropdown(true);
+                }}
+                onFocus={() => setShowCityDropdown(true)}
+                placeholder="Search for your city..."
+                className="w-full px-4 py-3 rounded-xl bg-gray-100 border-0 focus:bg-white focus:ring-2 focus:ring-gray-900/10 outline-none transition-all text-gray-900 placeholder:text-gray-400"
+              />
+              <LocationDropdown
+                inputRef={cityInputRef}
+                dropdownRef={dropdownRef}
+                results={cityResults}
+                onSelect={handleCitySelect}
+                show={showCityDropdown}
+              />
+            </div>
+          </div>
+
+          {/* Done button */}
+          <button
+            onClick={handleDetailsSubmit}
+            disabled={saving}
+            className="w-full mt-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {saving ? "Saving..." : "Done"}
+          </button>
+
+          {/* Skip option */}
+          <button
+            onClick={handleSkip}
+            disabled={saving}
+            className="w-full py-2 mt-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors disabled:opacity-50"
+          >
+            Skip
+          </button>
+        </div>
+      )}
+
     </div>
   );
 }

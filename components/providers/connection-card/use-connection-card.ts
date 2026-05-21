@@ -124,13 +124,15 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const connectionAuthTriggered = useRef(false);
 
   // ── State machine ──
-  const [cardState, setCardState] = useState<CardState>("default");
+  // Start in "loading" to prevent flash while checking auth + existing connections
+  const [cardState, setCardState] = useState<CardState>("loading");
   const [intentStep, setIntentStep] = useState<IntentStep>(0);
   const [intentData, setIntentData] = useState<IntentData>(INITIAL_INTENT);
 
   // ── UI state ──
   const [phoneRevealed, setPhoneRevealed] = useState(false);
-  const saved = savedProviders.isSaved(providerId);
+  // Use providerSlug for save check to match header SaveButton (which also uses slug)
+  const saved = savedProviders.isSaved(providerSlug);
   const [error, setError] = useState("");
   const [pendingRequestDate, setPendingRequestDate] = useState<string | null>(
     null
@@ -193,22 +195,43 @@ export function useConnectionCard(props: ConnectionCardProps) {
     router.prefetch("/portal/inbox");
   }, [router]);
 
-  // ── Resolve initial state — show form immediately for everyone ──
+  // Track previous user to detect login transitions
+  const prevUserRef = useRef<typeof user>(undefined);
+
+  // ── Resolve initial state and handle auth transitions ──
+  // Prevents flash by showing "loading" until we know the right state
   useEffect(() => {
     if (authLoading) return;
-    // Don't reset to form if user is answering enrichment questions
+    // Don't reset if user is answering enrichment questions
     if (enrichmentLock.current) return;
-    // Both guests and signed-in users see the form ("default" state).
-    // Signed-in users get pre-filled fields; the DB check below
-    // may upgrade to "connected" if they already have an active connection.
-    setCardState("default");
-  }, [authLoading]);
+
+    const wasGuest = prevUserRef.current === null;
+    const isNowLoggedIn = !!user;
+    prevUserRef.current = user;
+
+    if (!user) {
+      // Guest: show form immediately
+      setCardState("default");
+    } else if (wasGuest && isNowLoggedIn) {
+      // User just logged in: show loading while we check for existing connections
+      setCardState("loading");
+    }
+    // If already logged in (page load), stay in "loading" until checkExisting runs
+  }, [authLoading, user]);
 
   // ── Check for existing connection + fetch previous intent (logged-in users) ──
   useEffect(() => {
-    if (!user || !profiles.length || !isSupabaseConfigured()) return;
     // Don't override enrichment state — the user is answering post-submission questions
     if (enrichmentLock.current) return;
+
+    // Wait for user and profiles to be ready
+    if (!user || !profiles.length) return;
+
+    // If Supabase not configured (dev/testing), show default state
+    if (!isSupabaseConfigured()) {
+      setCardState("default");
+      return;
+    }
 
     const checkExisting = async () => {
       const supabase = createClient();
@@ -706,13 +729,15 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
   // ── Navigate after enrichment (save or skip) ──
   const navigatePostEnrichment = useCallback(() => {
-    enrichmentLock.current = false;
-
     if (onConnectionCreated && connectionId) {
+      // Keep lock during callback navigation — prevents flash
       onConnectionCreated(connectionId);
     } else if (postEnrichmentRedirect.current) {
+      // Keep lock during router navigation — prevents "connected" state flash
       router.push(postEnrichmentRedirect.current);
     } else {
+      // Only unlock when explicitly showing connected state (no redirect case)
+      enrichmentLock.current = false;
       setCardState("connected");
     }
   }, [connectionId, onConnectionCreated, router]);
@@ -723,13 +748,24 @@ export function useConnectionCard(props: ConnectionCardProps) {
     urgency?: string;
     phone?: string;
     notifyChannel?: string;
+    contactPreference?: string;
+    // Extended enrichment fields
+    careType?: string;
+    careNeed?: string;
+    paymentMethod?: string;
+    name?: string;
+    city?: string;
+    state?: string;
   }) => {
     // Need at least connectionId and some data to save
-    const hasIntentData = data?.careRecipient || data?.urgency;
+    const hasIntentData = data?.careRecipient || data?.urgency || data?.careType || data?.careNeed || data?.paymentMethod;
     const hasPhone = data?.phone && data.phone.trim();
-    const hasNotify = data?.notifyChannel;
-    if (!connectionId || (!hasIntentData && !hasPhone && !hasNotify)) {
-      navigatePostEnrichment();
+    const hasContact = data?.notifyChannel || data?.contactPreference;
+    const hasDetails = data?.name || data?.city || data?.state;
+    if (!connectionId || (!hasIntentData && !hasPhone && !hasContact && !hasDetails)) {
+      // Stay on page instead of redirecting
+      enrichmentLock.current = false;
+      setCardState("connected");
       return;
     }
 
@@ -746,7 +782,15 @@ export function useConnectionCard(props: ConnectionCardProps) {
             careRecipient: data.careRecipient,
             urgency: data.urgency,
             phone: data.phone || undefined,
-            notifyChannel: data.notifyChannel || undefined,
+            // Support both old notifyChannel and new contactPreference
+            notifyChannel: data.contactPreference || data.notifyChannel || undefined,
+            // Extended enrichment fields
+            careType: data.careType || undefined,
+            careNeed: data.careNeed || undefined,
+            paymentMethod: data.paymentMethod || undefined,
+            name: data.name || undefined,
+            city: data.city || undefined,
+            state: data.state || undefined,
           }),
         });
 
@@ -773,12 +817,16 @@ export function useConnectionCard(props: ConnectionCardProps) {
       setSubmitting(false);
     }
 
-    navigatePostEnrichment();
-  }, [connectionId, navigatePostEnrichment, refreshAccountData]);
+    // Stay on page — show connected state instead of redirecting to inbox
+    enrichmentLock.current = false;
+    setCardState("connected");
+  }, [connectionId, refreshAccountData]);
 
   const skipEnrichment = useCallback(() => {
-    navigatePostEnrichment();
-  }, [navigatePostEnrichment]);
+    // Stay on page — show connected state instead of redirecting to inbox
+    enrichmentLock.current = false;
+    setCardState("connected");
+  }, []);
 
   // Total steps: 2 for logged-in, 3 for guest (includes email capture)
   const totalSteps = user ? 2 : 3;

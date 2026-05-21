@@ -342,6 +342,7 @@ export default function ConversationList({
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Controlled/uncontrolled pattern for familyTab
   const familyTab = familyTabProp ?? familyTabInternal;
@@ -394,6 +395,38 @@ export default function ConversationList({
       setReadIds((prev) => new Set([...prev, selectedId]));
     }
   }, [selectedId, activeProfileId]);
+
+  // Auto-scroll to selected conversation when loading completes
+  // Uses retry mechanism to handle race condition with tab switching
+  const lastScrolledId = useRef<string | null>(null);
+  useEffect(() => {
+    // Only auto-scroll once per selection when loading finishes
+    if (loading || !selectedId || lastScrolledId.current === selectedId) return;
+
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    const attemptScroll = () => {
+      if (cancelled) return;
+
+      const itemEl = itemRefs.current.get(selectedId);
+      if (itemEl) {
+        itemEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        lastScrolledId.current = selectedId;
+      } else if (attempts < maxAttempts) {
+        // Item not in DOM yet (might be filtered, tab switching, etc.) - retry
+        attempts++;
+        setTimeout(attemptScroll, 100);
+      }
+      // After max attempts, give up silently (item might be archived/filtered)
+    };
+
+    // Initial delay to ensure first render completes
+    setTimeout(attemptScroll, 50);
+
+    return () => { cancelled = true; };
+  }, [loading, selectedId]);
 
   // Track scroll for divider
   const handleScroll = useCallback(() => {
@@ -479,7 +512,14 @@ export default function ConversationList({
     const isReported = !!(conn.metadata as Record<string, unknown> | undefined)?.reported;
 
     return (
-      <div key={conn.id} className="pl-0 sm:pl-[28px] pr-0 sm:pr-3 py-0.5">
+      <div
+        key={conn.id}
+        ref={(el) => {
+          if (el) itemRefs.current.set(conn.id, el);
+          else itemRefs.current.delete(conn.id);
+        }}
+        className="pl-0 sm:pl-[28px] pr-0 sm:pr-3 py-0.5"
+      >
         <div
           className={`group relative rounded-xl transition-colors ${
             isMenuOpen ? "z-20" : ""
@@ -653,7 +693,7 @@ export default function ConversationList({
   if (loading) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5">
+        <div className="pl-5 sm:pl-[44px] pr-5 py-3 sm:py-5">
           <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1">
@@ -678,7 +718,7 @@ export default function ConversationList({
   if (connections.length === 0) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5">
+        <div className="pl-5 sm:pl-[44px] pr-5 py-3 sm:py-5">
           <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
@@ -717,7 +757,7 @@ export default function ConversationList({
         <div className="relative">
           {/* Default mode — title + search icon */}
           <div
-            className={`pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5 flex items-center justify-between transition-all duration-200 ease-out ${
+            className={`pl-5 sm:pl-[44px] pr-5 py-3 sm:py-5 flex items-center justify-between transition-all duration-200 ease-out ${
               searchOpen
                 ? "opacity-0 -translate-y-1 pointer-events-none absolute inset-x-0 top-0"
                 : "opacity-100 translate-y-0"
@@ -758,7 +798,7 @@ export default function ConversationList({
 
           {/* Search mode */}
           <div
-            className={`pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-4 flex items-center gap-3 transition-all duration-200 ease-out ${
+            className={`pl-5 sm:pl-[44px] pr-5 py-2.5 sm:py-4 flex items-center gap-3 transition-all duration-200 ease-out ${
               searchOpen
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-1 pointer-events-none absolute inset-x-0 top-0"
@@ -802,7 +842,7 @@ export default function ConversationList({
             searchOpen ? "max-h-0 opacity-0 overflow-hidden" : "max-h-12 opacity-100"
           }`}
         >
-          <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 pb-3 flex items-center gap-2">
+          <div className="pl-5 sm:pl-[44px] pr-5 pb-3 flex items-center gap-2">
             {/* Role filter dropdown — Airbnb-style, only shown for dual-account users */}
             {showRoleFilters && onRoleFilterChange && (
               <RoleFilterDropdown
@@ -815,7 +855,7 @@ export default function ConversationList({
 
         {/* Messages / Requests tabs — only shown in family mode */}
         {isInFamilyMode && (
-          <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 border-b border-gray-100">
+          <div className="pl-5 sm:pl-[44px] pr-5 border-b border-gray-100">
             <div className="flex gap-6">
               <button
                 onClick={() => setFamilyTab("messages")}
@@ -952,7 +992,7 @@ export default function ConversationList({
                   return !p;
                 });
               }}
-              className="w-full flex items-center justify-between pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
+              className="w-full flex items-center justify-between pl-5 sm:pl-[44px] pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
             >
               <span className="text-sm font-semibold text-gray-500">
                 Archived ({pastConnections.length || archivedCount})

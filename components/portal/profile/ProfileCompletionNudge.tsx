@@ -3,21 +3,23 @@
 import { useEffect } from "react";
 
 interface ProfileCompletionNudgeProps {
-  /** Provider name for personalized copy */
-  providerName: string;
+  /** @deprecated No longer used - kept for backward compatibility */
+  providerName?: string;
   /** Opens the ProfileEditWizard */
   onComplete: () => void;
   /** Dismisses the nudge */
   onDismiss: () => void;
   /** Connection ID for localStorage key */
   connectionId: string;
+  /** Profile completion percentage (0-100) */
+  completionPercentage?: number;
 }
 
 export default function ProfileCompletionNudge({
-  providerName,
   onComplete,
   onDismiss,
   connectionId,
+  completionPercentage,
 }: ProfileCompletionNudgeProps) {
   // Fire analytics event on render
   useEffect(() => {
@@ -68,18 +70,13 @@ export default function ProfileCompletionNudge({
     onDismiss();
   };
 
-  // Extract first name for more personal copy
-  const firstName = providerName.split(" ")[0] || providerName;
-
   return (
     <div className="px-4 sm:px-6 py-3">
-      {/* Desktop: single row | Mobile: text row + buttons row */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4">
+      {/* Single row on all sizes — compact layout */}
+      <div className="flex items-center gap-3">
         {/* Text */}
         <p className="text-[14px] text-gray-600 flex-1">
-          <span className="font-medium text-gray-900">Help {firstName} respond faster</span>
-          <span className="hidden sm:inline"> — </span>
-          <span className="block sm:inline">complete your profile</span>
+          Help us understand your care needs
         </p>
 
         {/* Actions */}
@@ -89,15 +86,16 @@ export default function ProfileCompletionNudge({
             onClick={handleComplete}
             className="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-[13px] font-semibold rounded-full transition-colors"
           >
-            Complete Profile
+            Complete{completionPercentage !== undefined && ` · ${Math.round(completionPercentage)}%`}
           </button>
+          {/* Dismiss */}
           <button
             type="button"
             onClick={handleDismiss}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             aria-label="Dismiss"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>

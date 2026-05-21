@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Modal from "@/components/ui/Modal";
 import { useConnectionCard } from "@/components/providers/connection-card/use-connection-card";
+import { useSavedProviders } from "@/hooks/use-saved-providers";
 import PhoneButton from "@/components/providers/connection-card/PhoneButton";
 import Pill from "@/components/providers/connection-card/Pill";
 import StepIndicator from "@/components/providers/connection-card/StepIndicator";
@@ -216,6 +217,7 @@ interface MobileStickyBottomCTAProps {
   providerCategory?: string | null;
   providerCity?: string | null;
   providerState?: string | null;
+  providerImage?: string | null;
   // CTA variant for A/B testing
   ctaVariant?: string | null;
   ctaSurface?: "desktop" | "mobile";
@@ -241,6 +243,7 @@ export default function MobileStickyBottomCTA({
   providerCategory,
   providerCity,
   providerState,
+  providerImage,
   ctaVariant,
   ctaSurface = "mobile",
   ctaPreviewMode = false,
@@ -253,16 +256,10 @@ export default function MobileStickyBottomCTA({
   const handleConnectionCreated = useCallback(
     (connectionId: string) => {
       setSheetOpen(false);
-      const params = new URLSearchParams({
-        name: providerName,
-        slug: providerSlug,
-      });
-      if (providerCategory) params.set("category", providerCategory);
-      if (providerCity) params.set("city", providerCity);
-      if (providerState) params.set("state", providerState);
-      router.push(`/connected/${connectionId}?${params.toString()}`);
+      // Go directly to inbox instead of the old "connected" suggestions page
+      router.push(`/portal/inbox?id=${connectionId}`);
     },
-    [providerName, providerSlug, providerCategory, providerCity, providerState, router]
+    [router]
   );
 
   // ── Connection state machine (pre-loads on mount, persists across sheet open/close) ──
@@ -281,6 +278,95 @@ export default function MobileStickyBottomCTA({
     ctaSurface,
     ctaPreviewMode,
   });
+
+  // ── Logged-in family user: direct action from sticky bar (no sheet) ──
+  const { isSaved, toggleSave } = useSavedProviders();
+  const [directSubmitting, setDirectSubmitting] = useState(false);
+  const [directError, setDirectError] = useState<string | null>(null);
+  // Use providerSlug for save check to match header SaveButton (which also uses slug)
+  const providerIsSaved = isSaved(providerSlug);
+  const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
+
+  const handleDirectSave = useCallback(() => {
+    // Use providerSlug as providerId to match header SaveButton (which also uses slug)
+    toggleSave({
+      providerId: providerSlug,
+      slug: providerSlug,
+      name: providerName,
+      location: locationStr,
+      careTypes: careTypes,
+      image: providerImage || null,
+    });
+  }, [toggleSave, providerSlug, providerName, locationStr, careTypes, providerImage]);
+
+  const handleDirectRequest = useCallback(async () => {
+    if (!hook.userEmail || directSubmitting) return;
+
+    setDirectSubmitting(true);
+    setDirectError(null);
+
+    // Fire analytics event for A/B testing attribution
+    if (ctaVariant && !ctaPreviewMode) {
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "anonymous",
+          related_provider_id: providerSlug,
+          event_type: "cta_variant_clicked",
+          session_id: getOrCreateSessionId(),
+          metadata: {
+            variant: ctaVariant,
+            surface: "mobile",
+            action: "direct_request",
+            logged_in: true,
+          },
+        }),
+      }).catch(() => {});
+    }
+
+    try {
+      const res = await fetch("/api/connections/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId,
+          providerName,
+          providerSlug,
+          intentData: {
+            careRecipient: null,
+            careType: null,
+            urgency: null,
+          },
+          session_id: getOrCreateSessionId(),
+          cta_variant: ctaVariant || "legacy",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("[MobileStickyBottomCTA] direct request failed:", data.error);
+        setDirectError(data.error || "Something went wrong. Please try again.");
+        setDirectSubmitting(false);
+        return;
+      }
+
+      // Dispatch event for inbox refresh
+      window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
+      // Go directly to inbox
+      if (data.connectionId) {
+        router.push(`/portal/inbox?id=${data.connectionId}`);
+      } else {
+        router.push("/portal/inbox");
+      }
+    } catch (err) {
+      console.error("[MobileStickyBottomCTA] direct request error:", err);
+      setDirectError("Something went wrong. Please try again.");
+      setDirectSubmitting(false);
+    }
+  }, [hook.userEmail, directSubmitting, providerId, providerName, providerSlug, ctaVariant, router]);
 
   // Suppress when an input is focused — keyboard is open and the sticky
   // bar would collide with native chrome. Re-uses the same focusin/focusout
@@ -419,42 +505,7 @@ export default function MobileStickyBottomCTA({
         return undefined;
 
       case "default":
-        return (
-          <div className="space-y-2.5">
-            {hook.userEmail ? (
-              /* Logged-in: one-click */
-              <>
-                <p className="text-[13px] text-gray-500 text-center">
-                  Signed in as {hook.userEmail}
-                </p>
-                <button
-                  onClick={() => hook.submitInquiryForm({ email: hook.userEmail })}
-                  disabled={hook.submitting}
-                  className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-[10px] text-base font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
-                >
-                  {hook.submitting && (
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  )}
-                  {hook.submitting ? "Checking..." : "Check cost & availability"}
-                </button>
-              </>
-            ) : (
-              /* Guest: email-only form in footer */
-              <MobileEmailForm
-                onSubmit={(email) => hook.submitInquiryForm({ email })}
-                submitting={hook.submitting}
-              />
-            )}
-            {hook.error && (
-              <p className="text-sm text-red-600 text-center" role="alert">
-                {hook.error}
-              </p>
-            )}
-            <p className="text-[12px] text-gray-500 text-center font-medium">
-              No spam. No sales calls.
-            </p>
-          </div>
-        );
+        return undefined;
 
       case "intent":
         return (
@@ -490,13 +541,38 @@ export default function MobileStickyBottomCTA({
           ? `/portal/inbox?id=${hook.connectionId}`
           : "/portal/inbox";
         return (
-          <div className="space-y-2.5">
-            <PhoneButton phone={phone} revealed onReveal={() => {}} />
+          <div className="flex items-center gap-2">
+            {/* Save button */}
+            <button
+              type="button"
+              onClick={handleDirectSave}
+              className={`shrink-0 w-14 h-14 flex items-center justify-center rounded-xl border-2 transition-all ${
+                providerIsSaved
+                  ? "border-primary-500 bg-primary-50 text-primary-600"
+                  : "border-gray-200 bg-white text-gray-400 hover:border-gray-300 hover:text-gray-500"
+              }`}
+              aria-label={providerIsSaved ? "Saved" : "Save for later"}
+            >
+              {providerIsSaved ? (
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              )}
+            </button>
+
+            {/* Go to inbox button */}
             <Link
               href={inboxHref}
-              className="block w-full py-3 bg-primary-600 hover:bg-primary-500 rounded-[10px] text-sm font-semibold text-white text-center transition-colors"
+              className="flex-1 py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2"
             >
-              Message
+              Go to inbox
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
             </Link>
           </div>
         );
@@ -621,16 +697,85 @@ export default function MobileStickyBottomCTA({
               )}
             </div>
 
-            {/* Full-width CTA button */}
-            <button
-              onClick={() => {
-                fireSheetOpenEvent();
-                setSheetOpen(true);
-              }}
-              className="w-full py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors"
-            >
-              Check cost & availability
-            </button>
+            {/* ── Logged-in family user: direct action (no sheet needed) ── */}
+            {hook.userEmail && !hook.isNonFamilyProfile ? (
+              <div>
+                {/* Error message */}
+                {directError && (
+                  <p className="text-sm text-red-600 text-center mb-2">{directError}</p>
+                )}
+                <div className="flex items-center gap-2">
+                  {/* Save button */}
+                  <button
+                  type="button"
+                  onClick={handleDirectSave}
+                  disabled={directSubmitting}
+                  className={`shrink-0 w-14 h-14 flex items-center justify-center rounded-xl border-2 transition-all ${
+                    providerIsSaved
+                      ? "border-primary-500 bg-primary-50 text-primary-600"
+                      : "border-gray-200 bg-white text-gray-400 hover:border-gray-300 hover:text-gray-500"
+                  } disabled:opacity-50`}
+                  aria-label={providerIsSaved ? "Saved" : "Save for later"}
+                >
+                  {providerIsSaved ? (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  )}
+                </button>
+
+                {/* Primary CTA - direct to inbox */}
+                <button
+                  type="button"
+                  onClick={handleDirectRequest}
+                  disabled={directSubmitting}
+                  className="flex-1 py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  {directSubmitting ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Connecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Request details</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </>
+                  )}
+                </button>
+                </div>
+              </div>
+            ) : hook.isNonFamilyProfile ? (
+              /* ── Non-family profile: prompt to create family account ── */
+              <div>
+                <p className="text-[13px] text-gray-500 font-medium mb-3">
+                  Family account required
+                </p>
+                <button
+                  onClick={() => hook.openAuth({ defaultMode: "sign-up", intent: "family" })}
+                  className="w-full py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors"
+                >
+                  Create Family Account
+                </button>
+              </div>
+            ) : (
+              /* ── Guest: opens sheet for email capture ── */
+              <button
+                onClick={() => {
+                  fireSheetOpenEvent();
+                  setSheetOpen(true);
+                }}
+                className="w-full py-4 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[16px] font-semibold transition-colors"
+              >
+                Check cost & availability
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -659,6 +804,8 @@ export default function MobileStickyBottomCTA({
         onBack={hook.isNonFamilyProfile ? undefined : sheetOnBack}
         footer={hook.isNonFamilyProfile ? undefined : sheetFooter}
         size="lg"
+        hideHeader={hook.cardState === "connected"}
+        hideCloseButton={hook.cardState === "connected"}
       >
         {/* ── Non-family profile block ── */}
         {hook.isNonFamilyProfile && (
@@ -696,26 +843,23 @@ export default function MobileStickyBottomCTA({
           </div>
         )}
 
-        {/* ── Default: payments ── */}
-        {!hook.isNonFamilyProfile && hook.cardState === "default" && (
-          <div className="animate-step-in">
-            {acceptedPayments.length > 0 && (
-              <div className="pt-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-gray-400 mb-2">
-                  Accepted payments
+        {/* ── Default: Guest email form (logged-in users use direct sticky bar action) ── */}
+        {!hook.isNonFamilyProfile && hook.cardState === "default" && !hook.userEmail && (
+          <div className="py-4 animate-step-in">
+            <div className="space-y-3">
+              <MobileEmailForm
+                onSubmit={(email) => hook.submitInquiryForm({ email })}
+                submitting={hook.submitting}
+              />
+              {hook.error && (
+                <p className="text-sm text-red-600 text-center" role="alert">
+                  {hook.error}
                 </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {acceptedPayments.map((payment) => (
-                    <span
-                      key={payment}
-                      className="text-xs text-gray-600 bg-gray-100 px-2.5 py-1 rounded"
-                    >
-                      {payment}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
+              <p className="text-[12px] text-gray-500 text-center font-medium">
+                No spam. No sales calls.
+              </p>
+            </div>
           </div>
         )}
 
@@ -788,6 +932,8 @@ export default function MobileStickyBottomCTA({
               saving={hook.submitting}
               careTypes={careTypes}
               priceRange={priceRange}
+              providerCity={providerCity}
+              providerState={providerState}
             />
           </div>
         )}
@@ -813,7 +959,10 @@ export default function MobileStickyBottomCTA({
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900">
-                  Connected &middot; {dateStr}
+                  Connected with {providerName}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {dateStr}
                 </p>
               </div>
             </div>

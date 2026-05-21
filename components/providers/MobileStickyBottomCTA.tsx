@@ -282,6 +282,7 @@ export default function MobileStickyBottomCTA({
   // ── Logged-in family user: direct action from sticky bar (no sheet) ──
   const { isSaved, toggleSave } = useSavedProviders();
   const [directSubmitting, setDirectSubmitting] = useState(false);
+  const [directError, setDirectError] = useState<string | null>(null);
   const providerIsSaved = isSaved(providerId);
   const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
 
@@ -300,6 +301,7 @@ export default function MobileStickyBottomCTA({
     if (!hook.userEmail || directSubmitting) return;
 
     setDirectSubmitting(true);
+    setDirectError(null);
 
     try {
       const res = await fetch("/api/connections/request", {
@@ -323,6 +325,7 @@ export default function MobileStickyBottomCTA({
 
       if (!res.ok) {
         console.error("[MobileStickyBottomCTA] direct request failed:", data.error);
+        setDirectError(data.error || "Something went wrong. Please try again.");
         setDirectSubmitting(false);
         return;
       }
@@ -338,6 +341,7 @@ export default function MobileStickyBottomCTA({
       }
     } catch (err) {
       console.error("[MobileStickyBottomCTA] direct request error:", err);
+      setDirectError("Something went wrong. Please try again.");
       setDirectSubmitting(false);
     }
   }, [hook.userEmail, directSubmitting, providerId, providerName, providerSlug, ctaVariant, router]);
@@ -648,9 +652,14 @@ export default function MobileStickyBottomCTA({
 
             {/* ── Logged-in family user: direct action (no sheet needed) ── */}
             {hook.userEmail && !hook.isNonFamilyProfile ? (
-              <div className="flex items-center gap-2">
-                {/* Save button */}
-                <button
+              <div>
+                {/* Error message */}
+                {directError && (
+                  <p className="text-sm text-red-600 text-center mb-2">{directError}</p>
+                )}
+                <div className="flex items-center gap-2">
+                  {/* Save button */}
+                  <button
                   type="button"
                   onClick={handleDirectSave}
                   disabled={directSubmitting}
@@ -693,6 +702,7 @@ export default function MobileStickyBottomCTA({
                     </>
                   )}
                 </button>
+                </div>
               </div>
             ) : hook.isNonFamilyProfile ? (
               /* ── Non-family profile: prompt to create family account ── */
@@ -780,7 +790,7 @@ export default function MobileStickyBottomCTA({
         )}
 
         {/* ── Default: Guest email form (logged-in users use direct sticky bar action) ── */}
-        {!hook.isNonFamilyProfile && hook.cardState === "default" && (
+        {!hook.isNonFamilyProfile && hook.cardState === "default" && !hook.userEmail && (
           <div className="py-4 animate-step-in">
             <div className="space-y-3">
               <MobileEmailForm

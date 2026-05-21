@@ -57,6 +57,7 @@ export default function MobileStickyGuide({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [showPricingTooltip, setShowPricingTooltip] = useState(false);
   const [directSubmitting, setDirectSubmitting] = useState(false);
+  const [directError, setDirectError] = useState<string | null>(null);
 
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
@@ -79,6 +80,7 @@ export default function MobileStickyGuide({
     if (!userEmail || directSubmitting) return;
 
     setDirectSubmitting(true);
+    setDirectError(null);
 
     try {
       const res = await fetch("/api/connections/request", {
@@ -102,6 +104,7 @@ export default function MobileStickyGuide({
 
       if (!res.ok) {
         console.error("[MobileStickyGuide] direct request failed:", data.error);
+        setDirectError(data.error || "Something went wrong. Please try again.");
         setDirectSubmitting(false);
         return;
       }
@@ -117,6 +120,7 @@ export default function MobileStickyGuide({
       }
     } catch (err) {
       console.error("[MobileStickyGuide] direct request error:", err);
+      setDirectError("Something went wrong. Please try again.");
       setDirectSubmitting(false);
     }
   }, [userEmail, directSubmitting, providerId, providerName, providerSlug, ctaVariant, router]);
@@ -342,9 +346,14 @@ export default function MobileStickyGuide({
 
             {/* ── Logged-in family: direct action (no sheet needed) ── */}
             {isLoggedInFamily ? (
-              <div className="flex items-center gap-2">
-                {/* Save button */}
-                <button
+              <div>
+                {/* Error message */}
+                {directError && (
+                  <p className="text-sm text-red-600 text-center mb-2">{directError}</p>
+                )}
+                <div className="flex items-center gap-2">
+                  {/* Save button */}
+                  <button
                   type="button"
                   onClick={handleDirectSave}
                   disabled={directSubmitting}
@@ -387,6 +396,7 @@ export default function MobileStickyGuide({
                     </>
                   )}
                 </button>
+                </div>
               </div>
             ) : (
               /* ── Guest: opens sheet for checklist + email capture ── */

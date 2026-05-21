@@ -630,7 +630,7 @@ export default function Navbar() {
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
         }}
       >
-        <div className={(isInboxPage || isMinimalNav) ? "px-[44px]" : "max-w-7xl mx-auto px-5 sm:px-6 lg:px-8"}>
+        <div className={(isInboxPage || isMinimalNav) ? "px-5 sm:px-[44px]" : "max-w-7xl mx-auto px-5 sm:px-6 lg:px-8"}>
           {/*
            * 3-column layout: Left | Center Nav | Right
            *
@@ -983,7 +983,7 @@ export default function Navbar() {
       {isMobileMenuOpen && mounted && createPortal(
         <div className="fixed inset-0 z-[60] lg:hidden bg-white flex flex-col animate-fade-in">
           {/* Header — matches navbar height and padding */}
-          <div className={`flex items-center justify-between h-16 shrink-0 ${(isInboxPage || isMinimalNav) ? "px-[44px]" : "px-5"}`}>
+          <div className={`flex items-center justify-between h-16 shrink-0 ${(isInboxPage || isMinimalNav) ? "px-5 sm:px-[44px]" : "px-5"}`}>
             <Link
               href={logoHref}
               className="flex items-center space-x-2"

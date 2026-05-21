@@ -388,6 +388,14 @@ export default function CompareBottomSheet({
           return;
         }
 
+        // Defensive check: API succeeded but no connections created
+        // This shouldn't happen, but if it does, show error rather than "Saved 0 providers"
+        if (!data.connectionIds?.length) {
+          setSaveError("No connections were created. Please try again.");
+          setEnrichmentSubmitting(false);
+          return;
+        }
+
         // Set session if tokens returned
         if (data.accessToken && data.refreshToken) {
           const supabase = createClient();
@@ -398,43 +406,41 @@ export default function CompareBottomSheet({
         }
 
         // Store connection IDs
-        if (data.connectionIds?.length > 0) {
-          setConnectionIds(data.connectionIds);
+        setConnectionIds(data.connectionIds);
 
-          // Now update connections with enrichment data if we have any
-          const hasEnrichmentData = enrichmentData?.careRecipient || enrichmentData?.urgency ||
-            enrichmentData?.phone || enrichmentData?.contactPreference ||
-            enrichmentData?.careType || enrichmentData?.careNeed ||
-            enrichmentData?.paymentMethod || enrichmentData?.name ||
-            enrichmentData?.city || enrichmentData?.state;
+        // Now update connections with enrichment data if we have any
+        const hasEnrichmentData = enrichmentData?.careRecipient || enrichmentData?.urgency ||
+          enrichmentData?.phone || enrichmentData?.contactPreference ||
+          enrichmentData?.careType || enrichmentData?.careNeed ||
+          enrichmentData?.paymentMethod || enrichmentData?.name ||
+          enrichmentData?.city || enrichmentData?.state;
 
-          if (hasEnrichmentData) {
-            try {
-              await Promise.all(
-                data.connectionIds.map((connId: string) =>
-                  fetch("/api/connections/update-intent", {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      connectionId: connId,
-                      careRecipient: enrichmentData.careRecipient,
-                      urgency: enrichmentData.urgency,
-                      phone: enrichmentData.phone || undefined,
-                      notifyChannel: enrichmentData.contactPreference || undefined,
-                      careType: enrichmentData.careType || undefined,
-                      careNeed: enrichmentData.careNeed || undefined,
-                      paymentMethod: enrichmentData.paymentMethod || undefined,
-                      name: enrichmentData.name || undefined,
-                      city: enrichmentData.city || undefined,
-                      state: enrichmentData.state || undefined,
-                    }),
-                  })
-                )
-              );
-            } catch (err) {
-              console.error("[CompareBottomSheet] enrichment update error:", err);
-              // Don't fail the whole flow for enrichment errors
-            }
+        if (hasEnrichmentData) {
+          try {
+            await Promise.all(
+              data.connectionIds.map((connId: string) =>
+                fetch("/api/connections/update-intent", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    connectionId: connId,
+                    careRecipient: enrichmentData.careRecipient,
+                    urgency: enrichmentData.urgency,
+                    phone: enrichmentData.phone || undefined,
+                    notifyChannel: enrichmentData.contactPreference || undefined,
+                    careType: enrichmentData.careType || undefined,
+                    careNeed: enrichmentData.careNeed || undefined,
+                    paymentMethod: enrichmentData.paymentMethod || undefined,
+                    name: enrichmentData.name || undefined,
+                    city: enrichmentData.city || undefined,
+                    state: enrichmentData.state || undefined,
+                  }),
+                })
+              )
+            );
+          } catch (err) {
+            console.error("[CompareBottomSheet] enrichment update error:", err);
+            // Don't fail the whole flow for enrichment errors
           }
         }
 
@@ -541,6 +547,13 @@ export default function CompareBottomSheet({
           return;
         }
 
+        // Defensive check: API succeeded but no connections created
+        if (!data.connectionIds?.length) {
+          setSaveError("No connections were created. Please try again.");
+          setEnrichmentSubmitting(false);
+          return;
+        }
+
         // Set session if tokens returned
         if (data.accessToken && data.refreshToken) {
           const supabase = createClient();
@@ -551,9 +564,7 @@ export default function CompareBottomSheet({
         }
 
         // Store connection IDs
-        if (data.connectionIds?.length > 0) {
-          setConnectionIds(data.connectionIds);
-        }
+        setConnectionIds(data.connectionIds);
 
         // Dispatch event for inbox refresh
         window.dispatchEvent(new CustomEvent("olera:connection-created"));

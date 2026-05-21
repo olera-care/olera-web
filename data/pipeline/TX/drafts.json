@@ -7,7 +7,7 @@
   "programs": [
     {
       "id": "medicaid-buy-in-qmb-slmb-qi",
-      "name": "Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI) & Medicaid Buy-In for Children (MBIC)",
       "shortName": "Medicaid Buy-In Programs",
       "tagline": "Estimated 2026 savings: $2,434–$5,000+/year. Based on the 2026 Medicare Part B premium of $202.90/month plus potential cost-sharing savings for QMB; MBIC comprehensive coverage value varies by child's needs.",
       "programType": "benefit",
@@ -24,14 +24,14 @@
       },
       "intro": "If you have a disabled child whose family earns too much for regular Medicaid, or an elderly loved one struggling with Medicare premiums and co-pays, these Texas programs can provide critical health coverage. MBIC (Medicaid Buy-In for Children) offers full Medicaid benefits for disabled children in families earning up to $8,250 monthly for a family of four. You'll pay a sliding-scale premium based on your income and existing insurance, but your child gets comprehensive coverage including doctor visits, hospital care, therapies, and prescriptions.\n\nFor elderly loved ones on Medicare, three related programs help with costs. QMB (Qualified Medicare Beneficiary) pays all Medicare premiums and cost-sharing for individuals with monthly income under $1,350. SLMB (Specified Low-Income Medicare Beneficiary) covers Medicare Part B premiums ($202.90/month in 2026) for those earning up to $1,616 monthly. QI (Qualifying Individual) also covers Part B premiums for those earning up to $1,816 but operates on a first-come, first-served basis.\n\nAll programs require Texas residency and have specific asset limits of $9,950 for individuals or $14,910 for couples (Medicare Savings Programs only — MBIC has no asset test), though your home and one car are typically excluded. Because these programs have strict disability requirements and precise income thresholds, gather documentation carefully before applying at YourTexasBenefits.com.",
       "savingsRange": "$2,434 – $5,000+/year in 2026",
-      "savingsSource": "Medicare Part B premium ($174.70/month) plus potential cost-sharing savings for QMB; MBIC comprehensive coverage value varies by child's needs",
+      "savingsSource": "Medicare Part B premium ($202.90/month) plus potential cost-sharing savings for QMB; MBIC comprehensive coverage value varies by child's needs",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Disabled children 0-18 with family income up to 300% FPL",
           "Elderly Medicare beneficiaries 65+",
-          "Income limits: $1,275-$1,718/month individual",
-          "Assets under $9,660 individual/$14,470 couple",
+          "Medicare Savings income limits (individual): QMB under $1,350, SLMB up to $1,616, QI up to $1,816/month",
+          "Assets under $9,950 individual/$14,910 couple (Medicare Savings Programs; MBIC has no asset test)",
           "Texas residents with citizenship/legal status"
         ],
         "ageRequirement": "0-18 for MBIC, 65+ for QMB/SLMB/QI",
@@ -197,20 +197,20 @@
             "tiers": [
               {
                 "name": "QMB (Qualified Medicare Beneficiary)",
-                "incomeLimit": "Up to $1,275/month individual, $1,724/month couple",
+                "incomeLimit": "Up to $1,350/month (individual)",
                 "benefits": "Pays Medicare Part A and B premiums, deductibles, co-insurance, and co-payments",
                 "note": "Most comprehensive coverage"
               },
               {
                 "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
-                "incomeLimit": "Up to $1,526/month individual, $2,055/month couple",
-                "benefits": "Pays Medicare Part B premium only ($174.70/month in 2026)",
+                "incomeLimit": "Up to $1,616/month (individual)",
+                "benefits": "Pays Medicare Part B premium only ($202.90/month in 2026)",
                 "note": "You pay co-pays and deductibles"
               },
               {
                 "name": "QI (Qualifying Individual)",
-                "incomeLimit": "Up to $1,718/month individual, $2,309/month couple",
-                "benefits": "Pays Medicare Part B premium only ($174.70/month in 2026)",
+                "incomeLimit": "Up to $1,816/month (individual)",
+                "benefits": "Pays Medicare Part B premium only ($202.90/month in 2026)",
                 "note": "Limited funding - may have waitlist"
               }
             ]
@@ -290,7 +290,7 @@
       "structuredEligibility": {
         "summary": [
           "Age 65+ or disabled 21+",
-          "Income below $2,901/month",
+          "Income below $2,982/month",
           "Assets under $2,000",
           "Needs nursing home level of care",
           "Texas resident"
@@ -402,7 +402,7 @@
         }
       ],
       "applicationNotes": [
-        "Each spouse applies individually with the same $2,901 income limit, no household scaling",
+        "Each spouse applies individually with the same $2,982 income limit, no household scaling",
         "You can remain on other program interest lists while enrolled in STAR+PLUS",
         "MCO selection matters, extras like Weight Watchers subscriptions vary by plan and county",
         "Nursing home residents can transition to community services through STAR+PLUS"
@@ -425,8 +425,8 @@
           "stats": [
             {
               "label": "Monthly Income Limit",
-              "value": "$2,901",
-              "note": "per person, 2025"
+              "value": "$2,982",
+              "note": "per person, 2026"
             },
             {
               "label": "Asset Limit",
@@ -435,7 +435,7 @@
             },
             {
               "label": "Home Equity Cap",
-              "value": "$730,000",
+              "value": "$752,000",
               "note": "exempt if primary residence"
             }
           ]
@@ -650,7 +650,7 @@
         },
         {
           "question": "How much does PACE cost if my loved one has Medicare but not Medicaid?",
-          "answer": "PACE accepts private pay participants, but specific costs aren't published. The program is designed to be cost-neutral to nursing home care, so expect substantial monthly fees. Contact the provider directly at (915) 562-3444 ext. 1442 for pricing."
+          "answer": "PACE accepts private pay participants, but specific costs aren't published. The program is designed to be cost-neutral to nursing home care, so expect substantial monthly fees. Contact the provider directly at (915) 562-3444 ext. 2300 for pricing."
         },
         {
           "question": "What happens if my loved one's health improves and they no longer need nursing home level care?",
@@ -688,7 +688,7 @@
       "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Up to $298/month on an EBT card to help your loved one buy groceries if they're 60+ with limited income",
+      "tagline": "Up to $298/month on an EBT card (Lone Star Card) to help your loved one buy groceries if they're 60+ with limited income",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -701,15 +701,15 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling to afford groceries on Social Security or a fixed income, SNAP provides monthly funds loaded onto an EBT card for food purchases. In Texas, seniors can receive up to $298/month for a single person ($516 for couples), with the average senior getting around $188/month.\n\nBecause your loved one is 60+, they only need to pass the net income test (after deducting medical expenses over $35/month and high shelter costs), making qualification easier than for younger adults. Income limit: $1,255/month for one person or $1,703/month for two people after deductions. Social Security, pensions, and disability benefits count as income, but your loved one can still qualify if they have significant medical or housing expenses.\n\nTexas requires an asset test ($2,000 limit for individuals), but this exempts their primary home, most vehicles, household goods, and some retirement savings. The EBT card works like a debit card at grocery stores but cannot be used for alcohol, tobacco, or hot prepared foods.",
+      "intro": "If your loved one is 60+ and struggling to afford groceries on Social Security or a fixed income, SNAP provides monthly funds loaded onto an EBT card (Lone Star Card) for food purchases. In Texas, seniors can receive up to $298/month for a single person ($516 for couples), with the average senior getting around $188/month.\n\nBecause your loved one is 60+, they only need to pass the net income test (after deducting medical expenses over $35/month and high shelter costs), making qualification easier than for younger adults. Income limit: $1,305/month for one person or $1,766/month for two people after deductions. Social Security, pensions, and disability benefits count as income, but your loved one can still qualify if they have significant medical or housing expenses.\n\nTexas requires an asset test ($4,500 limit for households with a member aged 60+ or with a disability), but this exempts their primary home, most vehicles, household goods, and some retirement savings. The Lone Star Card (EBT) works like a debit card at grocery stores but cannot be used for alcohol, tobacco, or hot prepared foods.",
       "savingsRange": "$2,256 – $3,576/year",
       "savingsSource": "Average senior benefit of $188/month to maximum benefit of $298/month",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
-          "Net income below $1,255/month (single)",
-          "Assets under $2,000",
+          "Net income below $1,305/month (single)",
+          "Assets under $4,500 (households with a member 60+ or disabled)",
           "Texas resident",
           "U.S. citizen or qualified immigrant"
         ],
@@ -717,16 +717,16 @@
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 1255
+            "monthlyLimit": 1305
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 1703
+            "monthlyLimit": 1766
           }
         ],
         "assetLimits": {
-          "individual": 2000,
-          "couple": 2000,
+          "individual": 4500,
+          "couple": 4500,
           "countedAssets": [
             "Bank accounts",
             "Cash",
@@ -788,6 +788,14 @@
           {
             "label": "Apply Online",
             "url": "https://www.yourtexasbenefits.com"
+          },
+          {
+            "label": "Get help applying (Feeding Texas)",
+            "url": "https://www.feedingtexas.org/"
+          },
+          {
+            "label": "Other senior programs (Texas HHS Aging)",
+            "url": "https://www.hhs.texas.gov/services/aging"
           }
         ]
       },
@@ -800,9 +808,7 @@
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water)",
         "Medical expense receipts over $35/month (prescriptions, Medicare premiums, medical bills)",
-        "Proof of citizenship or qualified immigrant status",
-        "Vehicle titles and registration",
-        "Life insurance policies with cash values"
+        "Proof of citizenship or qualified immigrant status"
       ],
       "contacts": [
         {
@@ -833,12 +839,12 @@
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my loved one keep their house if it's worth more than $2,000?",
-          "answer": "Yes, the primary home where your loved one lives is completely exempt from SNAP asset limits, regardless of value. Texas only counts liquid assets like bank accounts, stocks, and accessible retirement savings toward the $2,000 limit."
+          "question": "Can my loved one keep their house if it's worth more than $4,500?",
+          "answer": "Yes. The primary home where your loved one lives is completely exempt from SNAP asset limits, regardless of its value. For households with a member aged 60 or older, the countable asset limit is $4,500 (not $2,000). Texas primarily counts liquid assets like bank accounts and stocks toward this limit."
         },
         {
           "question": "Does Social Security income disqualify my loved one from SNAP?",
-          "answer": "Not necessarily. Social Security counts as income, but seniors get to deduct medical expenses over $35/month and high shelter costs first. If your loved one has significant medical bills or housing costs, their net income may fall below the $1,255/month limit even with Social Security."
+          "answer": "Not necessarily. Social Security counts as income, but seniors get to deduct medical expenses over $35/month and high shelter costs first. If your loved one has significant medical bills or housing costs, their net income may fall below the $1,305/month limit even with Social Security."
         },
         {
           "question": "Can I apply for SNAP on behalf of my elderly loved one?",
@@ -846,14 +852,14 @@
         },
         {
           "question": "What happens if my loved one's income changes after approval?",
-          "answer": "Report income changes to HHSC within 10 days by calling (877) 541-7905 or logging into YourTexasBenefits.com. Benefits are recertified every 12 months for seniors, and HHSC will adjust the benefit amount based on new income information."
+          "answer": "Report income changes to HHSC within 10 days by calling (877) 541-7905 or logging into YourTexasBenefits.com. Benefits are recertified every 36 months for seniors, and HHSC will adjust the benefit amount based on new income information."
         },
         {
           "question": "Can my loved one use SNAP benefits to buy groceries online?",
-          "answer": "Yes, Texas participates in SNAP online purchasing. Your loved one can use their EBT card to buy eligible groceries for delivery or pickup from participating retailers like Amazon, Walmart, and H-E-B through their websites or apps."
+          "answer": "Yes, Texas participates in SNAP online purchasing. Your loved one can use their EBT card to buy eligible groceries for delivery or pickup from participating retailers like Amazon, Walmart, and H-E-B through their websites or apps. Important for 2026: as of April 1, 2026, Texas law prohibits using SNAP benefits to buy candy or sweetened drinks (like soda), whether shopping online or in-person."
         },
         {
-          "question": "What if my loved one owns a car worth more than $2,000?",
+          "question": "What if my loved one owns a car worth more than $4,500?",
           "answer": "One vehicle per household is exempt regardless of value if used for transportation. Additional vehicles may count toward the asset limit, but Texas has exceptions for work vehicles, vehicles needed for medical transportation, and vehicles being used to produce income."
         }
       ],
@@ -867,7 +873,7 @@
       },
       "phone": "2-1-1",
       "sourceUrl": "https://www.yourtexasbenefits.com",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-10"
     },
     {
@@ -1112,7 +1118,7 @@
         "functionalRequirement": null,
         "otherRequirements": [
           "Home must pass energy audit to confirm need for weatherization",
-          "Property must not have been weatherized in the last 10 years in some regions",
+          "Property must not have been weatherized in the last 15 years in some regions",
           "Renters need landlord permission",
           "Some regions have property value limits (e.g., $478,195 or less excluding land in Austin)",
           "Mobile homes are excluded in some regions but allowed in others"
@@ -1469,8 +1475,8 @@
       "contacts": [
         {
           "label": "Meals on Wheels America Finder",
-          "phone": null,
-          "description": "Online tool to find your local provider",
+          "phone": "1-800-458-9858",
+          "description": "National helpline and online tool to find your local provider",
           "hours": "Available 24/7 at mealsonwheelsamerica.org"
         },
         {
@@ -1493,7 +1499,7 @@
         }
       ],
       "applicationNotes": [
-        "Car ownership or ability to leave home easily may disqualify your loved one from the program",
+        "To qualify, your loved one must be homebound and unable to safely shop for groceries or cook their own meals",
         "Short-term service is available for recovery periods but typically limited to 6 weeks",
         "Some programs offer trial meals for a fee if you want to skip the full assessment process",
         "Priority is often given to those with the greatest need, including dementia or severe disabilities"
@@ -1541,7 +1547,7 @@
       },
       "phone": "2-1-1",
       "sourceUrl": "https://www.mealsonwheelsamerica.org/find-meals-and-services/",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-10"
     },
     {
@@ -1773,7 +1779,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs help with daily tasks like bathing, meal preparation, or getting to appointments, Texas's community caregiver programs can connect you to local services and support. These programs work through your local Aging and Disability Resource Center (ADRC) to help older adults stay in their homes longer.\n\nThe main program, Community Care for Aged/Disabled (CCAD), provides non-medical support services for people who need help with everyday activities but don't qualify for full Medicaid. Income limits are $2,829/month for a single person and $5,658 for couples (2024 figures). Asset limits are $5,000 for individuals and $6,000 for couples.\n\nBecause services are coordinated through local ADRCs, your loved one gets one point of contact instead of calling multiple agencies. Wait times and available services vary by region depending on local capacity.",
+      "intro": "If your loved one needs help with daily tasks like bathing, meal preparation, or getting to appointments, Texas's community caregiver programs can connect you to local services and support. These programs work through your local Aging and Disability Resource Center (ADRC) to help older adults stay in their homes longer.\n\nThe main program, Community Care for Aged/Disabled (CCAD), provides non-medical support services for people who need help with everyday activities but don't qualify for full Medicaid. For the 2026 fiscal year, the gross income limits are $2,982/month for a single person and $5,964/month for couples. Asset limits are $5,000 for individuals and $6,000 for couples.\n\nBecause services are coordinated through local ADRCs, your loved one gets one point of contact instead of calling multiple agencies. Wait times and available services vary by region depending on local capacity.",
       "savingsRange": "",
       "savingsSource": "Free service coordination and connection to local resources",
       "savingsVerified": false,
@@ -1781,7 +1787,7 @@
         "summary": [
           "Texas resident",
           "Age 18+ with disability or daily care needs",
-          "Income under $2,829/month (single) or $5,658 (couple)",
+          "Income under $2,982/month (single) or $5,964 (couple)",
           "Assets under $5,000 (single) or $6,000 (couple)"
         ],
         "ageRequirement": "18+",
@@ -1797,14 +1803,16 @@
           "exemptAssets": [
             "Primary home",
             "One vehicle",
-            "Burial funds"
+            "Burial funds",
+            "Personal belongings"
           ],
           "homeEquityCap": null
         },
         "functionalRequirement": "Need help with daily activities like bathing, dressing, meal preparation, or household tasks",
         "otherRequirements": [
           "Texas residency required",
-          "Cannot be receiving Medicaid for the same services"
+          "Cannot be receiving Medicaid for the same services",
+          "Must be 18 or older (those under 60 must have a verified disability)"
         ],
         "povertyLevelReference": null
       },
@@ -1836,7 +1844,20 @@
         "processingTime": null,
         "waitlist": "Varies by region and service type",
         "tip": "Call early in the day (before 10am) when ADRC staff have more time for detailed conversations about your loved one's specific needs.",
-        "urls": []
+        "urls": [
+          {
+            "label": "Texas HHS Support for Caregivers",
+            "url": "https://www.hhs.texas.gov/services/health/support-caregivers"
+          },
+          {
+            "label": "Find an ADRC (search tool)",
+            "url": "https://www.hhs.texas.gov/services/aging/long-term-care/aging-disability-resource-centers/find-adrc"
+          },
+          {
+            "label": "Your Texas Benefits (apply)",
+            "url": "https://www.yourtexasbenefits.com/"
+          }
+        ]
       },
       "documentsNeeded": [
         "Valid government-issued photo ID for your loved one",
@@ -1862,7 +1883,7 @@
       ],
       "applicationNotes": [
         "Program names can be confusing, when you call, ask specifically about 'Community Care for Aged and Disabled' or 'CCAD' services",
-        "Some regions have immediate openings while others maintain waitlists, ask about current availability in your area",
+        "Some Texas counties have immediate openings, while others maintain a \"priority-based\" waitlist. When you call, ask: \"What is the current wait time for services in my specific ZIP code?\"",
         "Income and asset limits are adjusted annually, so 2025 limits may be slightly higher than current figures"
       ],
       "relatedPrograms": [
@@ -1879,7 +1900,7 @@
         },
         {
           "question": "What if my loved one's income is slightly over the limit?",
-          "answer": "Income limits are $2,829/month for single people and $5,658 for couples in 2024. If your loved one is over these amounts, they may still qualify for other programs like STAR+PLUS or private-pay services coordinated through the ADRC. Don't assume they're ineligible without calling."
+          "answer": "For 2026, the gross income limits are $2,982/month for single people and $5,964 for couples. If your loved one is over these amounts, they may still qualify for other programs like STAR+PLUS or private-pay services coordinated through the ADRC. Don't assume they're ineligible without calling."
         },
         {
           "question": "How long is the waitlist really?",
@@ -1907,8 +1928,8 @@
         "visualTone": "warm"
       },
       "phone": "1-855-937-2372",
-      "sourceUrl": null,
-      "contentStatus": "pipeline-draft",
+      "sourceUrl": "https://www.hhs.texas.gov/services/health/support-caregivers",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-10"
     },
     {
@@ -2083,7 +2104,7 @@
           }
         ]
       },
-      "intro": "If your loved one lives in a Texas nursing home or assisted living facility and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman Program provides free advocacy to resolve complaints and protect their rights. Ombudsmen investigate issues like medication errors, dignity violations, financial exploitation, or discharge disputes, and they work independently from the facilities.\n\nThe service is completely free with no income limits or paperwork required. Family members of residents age 60+ can also receive assistance navigating facility issues. Because ombudsmen are trained advocates who know facility regulations, they can often resolve problems that families struggle with alone.\n\nEvery complaint is kept confidential, and ombudsmen can represent your loved one in hearings, pursue remedies with facility management, and ensure access to medical records and inspection reports.",
+      "intro": "If your loved one lives in a Texas nursing home or assisted living facility and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman Program provides free advocacy to resolve complaints and protect their rights. Ombudsmen investigate issues like medication errors, dignity violations, financial exploitation, or discharge disputes, and they work independently from the facilities.\n\nThe service is completely free with no income limits or paperwork required. Residents of any age (not just those 60+) and their family members can receive assistance navigating facility issues. Because ombudsmen are trained advocates who know facility regulations, they can often resolve problems that families struggle with alone.\n\nEvery complaint is kept confidential, and ombudsmen can represent your loved one in hearings, pursue remedies with facility management, and ensure access to medical records and inspection reports.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2183,7 +2204,7 @@
       },
       "phone": "(800) 252-2412",
       "sourceUrl": "https://ltco.texas.gov",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-10"
     }
   ],

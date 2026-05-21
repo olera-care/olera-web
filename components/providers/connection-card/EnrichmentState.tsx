@@ -75,7 +75,7 @@ const PAYMENT_OPTIONS: { label: string; value: string }[] = [
   { label: "Long-term care insurance", value: "long_term_care_insurance" },
 ];
 
-// Location Dropdown with Portal
+// Location Dropdown with Portal - updates position on scroll/resize
 function LocationDropdown({
   inputRef,
   dropdownRef,
@@ -96,15 +96,32 @@ function LocationDropdown({
     setMounted(true);
   }, []);
 
+  // Update position when shown and on scroll/resize
   useEffect(() => {
-    if (show && inputRef.current) {
+    if (!show || !inputRef.current) return;
+
+    const updatePosition = () => {
+      if (!inputRef.current) return;
       const rect = inputRef.current.getBoundingClientRect();
       setPosition({
         top: rect.bottom + 8,
         left: rect.left,
         width: rect.width,
       });
-    }
+    };
+
+    // Initial position
+    updatePosition();
+
+    // Update on scroll (capture phase to catch all scrollable containers)
+    const handleScroll = () => updatePosition();
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleScroll);
+    };
   }, [show, inputRef]);
 
   if (!mounted || !show || results.length === 0) return null;

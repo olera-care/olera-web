@@ -104,6 +104,12 @@ export default function ConnectionCard(props: ConnectionCardProps) {
 
         {hook.cardState === "connected" && (
           <ConnectedState
+            providerName={providerName}
+            providerSlug={props.providerSlug}
+            providerCity={props.city}
+            providerState={props.state}
+            careTypes={props.careTypes}
+            priceRange={props.priceRange}
             phone={phone}
             requestDate={hook.pendingRequestDate}
             connectionId={hook.connectionId}

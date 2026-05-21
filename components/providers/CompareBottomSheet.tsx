@@ -792,19 +792,17 @@ export default function CompareBottomSheet({
           </div>
         ) : (
           <>
-            {/* Close button - hidden in success state (users can tap outside to close) */}
-            {footerState !== "success" && (
-              <button
-                onClick={onClose}
-                disabled={footerState === "submitting"}
-                className="absolute top-3 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors z-10 disabled:opacity-50"
-                aria-label="Close"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              disabled={footerState === "submitting"}
+              className="absolute top-3 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors z-10 disabled:opacity-50"
+              aria-label="Close"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
 
             {/* Header */}
             <div className="px-5 pb-4 shrink-0 border-b border-gray-100">

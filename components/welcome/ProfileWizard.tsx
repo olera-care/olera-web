@@ -421,6 +421,7 @@ export default function ProfileWizard({
   // ── Navigation ──
 
   // Advance to next question (for Continue button on typing/location questions)
+  // NOTE: After save, the list shrinks by 1, so no index increment needed.
   const goToNext = useCallback(async () => {
     if (!currentQuestion) {
       setShowCompleteModal(true);
@@ -436,25 +437,31 @@ export default function ProfileWizard({
     // Don't advance if save failed
     if (!success) return;
 
-    // Check if there are more questions
-    if (currentIndex < totalQuestions - 1) {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentIndex((prev) => prev + 1);
-        setIsTransitioning(false);
-      }, 150);
-    } else {
-      // All done
+    // After save, this question becomes "filled" and list shrinks.
+    // If this was the only question, show complete.
+    if (totalQuestions <= 1) {
       setShowCompleteModal(true);
+      return;
     }
-  }, [currentQuestion, currentIndex, totalQuestions]);
+
+    // Visual transition (no index increment — list shrinks naturally)
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 150);
+  }, [currentQuestion, totalQuestions]);
 
   // For tap questions: select, save immediately with value, then auto-advance
+  // NOTE: After save, the unfilledQuestions list shrinks by 1, so we do NOT
+  // increment currentIndex — index 0 automatically points to the next question.
   const handleTapSelect = useCallback(async (value: string) => {
     if (!currentQuestion) return;
 
     // Clear any previous error
     setSaveError(null);
+
+    // Capture previous value for rollback on failure
+    const previousValue = currentQuestion.getValue();
 
     // Update state for visual feedback
     currentQuestion.setValue(value);
@@ -462,24 +469,29 @@ export default function ProfileWizard({
     // Save IMMEDIATELY with the passed value (avoids stale closure issue)
     const success = await currentQuestion.save(value);
 
-    // Don't advance if save failed
-    if (!success) return;
+    // Rollback and don't advance if save failed
+    if (!success) {
+      currentQuestion.setValue(previousValue);
+      return;
+    }
 
-    // Check if this was the last question
-    if (currentIndex >= totalQuestions - 1) {
+    // After save, the list will shrink (this question becomes "filled").
+    // If this was the ONLY unfilled question, list is now empty → show complete.
+    // Otherwise, index 0 now points to what was index 1 — no increment needed.
+    if (totalQuestions <= 1) {
       setShowCompleteModal(true);
       return;
     }
 
-    // Visual transition then advance
+    // Visual transition (list shrinks during this time, next question appears at same index)
     setIsTransitioning(true);
     setTimeout(() => {
-      setCurrentIndex((prev) => prev + 1);
       setIsTransitioning(false);
     }, 150);
-  }, [currentQuestion, currentIndex, totalQuestions]);
+  }, [currentQuestion, totalQuestions]);
 
   // For tap-single questions: select one, save immediately, then auto-advance
+  // NOTE: Same logic as handleTapSelect — list shrinks, no index increment needed.
   const handleTapSingleSelect = useCallback(async (value: string) => {
     if (!currentQuestion) return;
 
@@ -488,28 +500,33 @@ export default function ProfileWizard({
 
     const arrayValue = [value];
 
+    // Capture previous value for rollback on failure
+    const previousValue = currentQuestion.getValue();
+
     // Update state for visual feedback
     currentQuestion.setValue(arrayValue);
 
     // Save IMMEDIATELY with the passed value
     const success = await currentQuestion.save(arrayValue);
 
-    // Don't advance if save failed
-    if (!success) return;
+    // Rollback and don't advance if save failed
+    if (!success) {
+      currentQuestion.setValue(previousValue);
+      return;
+    }
 
-    // Check if this was the last question
-    if (currentIndex >= totalQuestions - 1) {
+    // After save, the list shrinks. If this was the only question, show complete.
+    if (totalQuestions <= 1) {
       setShowCompleteModal(true);
       return;
     }
 
-    // Visual transition then advance
+    // Visual transition (no index increment — list shrinks naturally)
     setIsTransitioning(true);
     setTimeout(() => {
-      setCurrentIndex((prev) => prev + 1);
       setIsTransitioning(false);
     }, 150);
-  }, [currentQuestion, currentIndex, totalQuestions]);
+  }, [currentQuestion, totalQuestions]);
 
   // Handle location selection
   const handleCitySelect = useCallback((cityName: string, stateCode: string) => {
@@ -520,11 +537,13 @@ export default function ProfileWizard({
   }, []);
 
   // Skip current question
+  // NOTE: Unlike save handlers, skip DOES increment the index because
+  // the skipped question stays in the unfilled list (nothing was saved).
   const handleSkip = useCallback(() => {
     if (currentIndex < totalQuestions - 1) {
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentIndex(currentIndex + 1);
+        setCurrentIndex((prev) => prev + 1);
         setIsTransitioning(false);
       }, 150);
     } else {
@@ -549,12 +568,17 @@ export default function ProfileWizard({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50">
+      <div className="relative w-full sm:max-w-md sm:mx-4 bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] sm:max-h-none animate-slideUp sm:animate-fadeIn">
+        {/* Mobile drag handle */}
+        <div className="sm:hidden flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        </div>
+
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors z-10"
+          className="absolute top-4 sm:top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors z-10"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -562,7 +586,7 @@ export default function ProfileWizard({
         </button>
 
         {/* Progress dots */}
-        <div className="flex items-center justify-center gap-1.5 pt-6 pb-2">
+        <div className="flex items-center justify-center gap-1.5 pt-3 sm:pt-6 pb-2">
           {Array.from({ length: totalQuestions }, (_, i) => (
             <div
               key={i}
@@ -578,7 +602,7 @@ export default function ProfileWizard({
         </div>
 
         {/* Question content */}
-        <div className={`px-6 pb-6 pt-4 transition-opacity duration-150 ${isTransitioning ? "opacity-0" : "opacity-100"}`}>
+        <div className={`px-6 pb-6 sm:pb-6 pt-4 transition-opacity duration-150 ${isTransitioning ? "opacity-0" : "opacity-100"}`} style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
           <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
             {currentQuestion.title}
           </h2>

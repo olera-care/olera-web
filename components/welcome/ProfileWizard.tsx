@@ -31,8 +31,8 @@ interface Question {
   getValue: () => string | string[];
   /** Set value (for tap questions, auto-advances) */
   setValue: (value: string | string[]) => void;
-  /** Save this field to the database */
-  save: () => Promise<void>;
+  /** Save this field to the database. Pass value directly for tap questions to avoid stale closures. */
+  save: (value?: string | string[]) => Promise<void>;
 }
 
 // ── Options ──
@@ -263,7 +263,7 @@ export default function ProfileWizard({
       isFilled: () => Boolean(relationship),
       getValue: () => relationship,
       setValue: (v) => setRelationship(v as string),
-      save: () => saveField("", relationship, "relationship_to_recipient"),
+      save: (v) => saveField("", v ?? relationship, "relationship_to_recipient"),
     });
 
     // 2. How soon? (tap) - 3 pts
@@ -275,7 +275,7 @@ export default function ProfileWizard({
       isFilled: () => Boolean(timeline),
       getValue: () => timeline,
       setValue: (v) => setTimeline(v as string),
-      save: () => saveField("", timeline, "timeline"),
+      save: (v) => saveField("", v ?? timeline, "timeline"),
     });
 
     // 3. What type of care? (tap-single) - 5 pts
@@ -287,7 +287,7 @@ export default function ProfileWizard({
       isFilled: () => careTypes.length > 0,
       getValue: () => careTypes,
       setValue: (v) => setCareTypes(Array.isArray(v) ? v : [v]),
-      save: () => saveField("care_types", careTypes),
+      save: (v) => saveField("care_types", v ?? careTypes),
     });
 
     // 4. What help is needed? (tap-single) - 4 pts
@@ -299,7 +299,7 @@ export default function ProfileWizard({
       isFilled: () => careNeeds.length > 0,
       getValue: () => careNeeds,
       setValue: (v) => setCareNeeds(Array.isArray(v) ? v : [v]),
-      save: () => saveField("", careNeeds, "care_needs"),
+      save: (v) => saveField("", v ?? careNeeds, "care_needs"),
     });
 
     // 5. How will you pay? (tap-single) - 20 pts
@@ -311,7 +311,7 @@ export default function ProfileWizard({
       isFilled: () => payments.length > 0,
       getValue: () => payments,
       setValue: (v) => setPayments(Array.isArray(v) ? v : [v]),
-      save: () => saveField("", payments, "payment_methods"),
+      save: (v) => saveField("", v ?? payments, "payment_methods"),
     });
 
     // 6. How should we contact you? (tap) - 5 pts
@@ -323,7 +323,7 @@ export default function ProfileWizard({
       isFilled: () => Boolean(contactPref),
       getValue: () => contactPref,
       setValue: (v) => setContactPref(v as string),
-      save: () => saveField("", contactPref, "contact_preference"),
+      save: (v) => saveField("", v ?? contactPref, "contact_preference"),
     });
 
     // 7. When do you need care? (tap) - 3 pts
@@ -335,7 +335,7 @@ export default function ProfileWizard({
       isFilled: () => Boolean(schedule),
       getValue: () => schedule,
       setValue: (v) => setSchedule(v as string),
-      save: () => saveField("", schedule, "schedule_preference"),
+      save: (v) => saveField("", v ?? schedule, "schedule_preference"),
     });
 
     // 8. Their age? (short type) - 5 pts
@@ -347,7 +347,10 @@ export default function ProfileWizard({
       isFilled: () => Boolean(age),
       getValue: () => age,
       setValue: (v) => setAge(v as string),
-      save: () => saveField("", age ? Number(age) : null, "age"),
+      save: (v) => {
+        const val = (v as string) ?? age;
+        return saveField("", val ? Number(val) : null, "age");
+      },
     });
 
     // 9. Your name (type) - 5 pts
@@ -359,7 +362,7 @@ export default function ProfileWizard({
       isFilled: () => Boolean(displayName),
       getValue: () => displayName,
       setValue: (v) => setDisplayName(v as string),
-      save: () => saveField("display_name", displayName),
+      save: (v) => saveField("display_name", v ?? displayName),
     });
 
     // 10. Phone (type) - 10 pts
@@ -371,7 +374,7 @@ export default function ProfileWizard({
       isFilled: () => Boolean(phone),
       getValue: () => phone,
       setValue: (v) => setPhone(v as string),
-      save: () => saveField("phone", phone),
+      save: (v) => saveField("phone", v ?? phone),
     });
 
     // 11. Location (select) - 5 pts
@@ -384,6 +387,8 @@ export default function ProfileWizard({
       getValue: () => locationInput,
       setValue: (v) => setLocationInput(v as string),
       save: async () => {
+        // Location uses city/state from component state (set via handleCitySelect)
+        // No stale closure issue here because user clicks Continue after selecting
         await saveField("city", city);
         await saveField("state", state);
       },
@@ -405,20 +410,22 @@ export default function ProfileWizard({
   const totalQuestions = unfilledQuestions.length;
 
   // ── Navigation ──
+
+  // Advance to next question (for Continue button on typing/location questions)
   const goToNext = useCallback(async () => {
     if (!currentQuestion) {
       setShowCompleteModal(true);
       return;
     }
 
-    // Save current question
+    // Save current question (no value passed - uses current state)
     await currentQuestion.save();
 
     // Check if there are more questions
     if (currentIndex < totalQuestions - 1) {
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentIndex(currentIndex + 1);
+        setCurrentIndex((prev) => prev + 1);
         setIsTransitioning(false);
       }, 150);
     } else {
@@ -427,20 +434,55 @@ export default function ProfileWizard({
     }
   }, [currentQuestion, currentIndex, totalQuestions]);
 
-  // For tap questions: select and auto-advance
-  const handleTapSelect = useCallback((value: string) => {
+  // For tap questions: select, save immediately with value, then auto-advance
+  const handleTapSelect = useCallback(async (value: string) => {
     if (!currentQuestion) return;
-    currentQuestion.setValue(value);
-    // Auto-advance after brief delay
-    setTimeout(() => goToNext(), 150);
-  }, [currentQuestion, goToNext]);
 
-  // For tap-single questions: select one from multi-select and auto-advance
-  const handleTapSingleSelect = useCallback((value: string) => {
+    // Update state for visual feedback
+    currentQuestion.setValue(value);
+
+    // Save IMMEDIATELY with the passed value (avoids stale closure issue)
+    await currentQuestion.save(value);
+
+    // Check if this was the last question
+    if (currentIndex >= totalQuestions - 1) {
+      setShowCompleteModal(true);
+      return;
+    }
+
+    // Visual transition then advance
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentIndex((prev) => prev + 1);
+      setIsTransitioning(false);
+    }, 150);
+  }, [currentQuestion, currentIndex, totalQuestions]);
+
+  // For tap-single questions: select one, save immediately, then auto-advance
+  const handleTapSingleSelect = useCallback(async (value: string) => {
     if (!currentQuestion) return;
-    currentQuestion.setValue([value]);
-    setTimeout(() => goToNext(), 150);
-  }, [currentQuestion, goToNext]);
+
+    const arrayValue = [value];
+
+    // Update state for visual feedback
+    currentQuestion.setValue(arrayValue);
+
+    // Save IMMEDIATELY with the passed value
+    await currentQuestion.save(arrayValue);
+
+    // Check if this was the last question
+    if (currentIndex >= totalQuestions - 1) {
+      setShowCompleteModal(true);
+      return;
+    }
+
+    // Visual transition then advance
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentIndex((prev) => prev + 1);
+      setIsTransitioning(false);
+    }, 150);
+  }, [currentQuestion, currentIndex, totalQuestions]);
 
   // Handle location selection
   const handleCitySelect = useCallback((cityName: string, stateCode: string) => {

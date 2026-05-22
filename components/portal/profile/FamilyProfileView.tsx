@@ -106,9 +106,10 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
   const hasCareTypes = Boolean(profile?.care_types && profile.care_types.length > 0);
   const canGoLive = hasLocation && hasCareTypes;
 
-  // Check if profile is live
+  // Check if profile is live or paused
   const carePost = meta.care_post as { status?: string; published_at?: string } | undefined;
   const isLive = carePost?.status === "active";
+  const isPaused = carePost?.status === "paused";
 
   const handleQuickGoLive = useCallback(async () => {
     if (!canGoLive) return;
@@ -306,6 +307,31 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
               >
                 View inbox
               </Link>
+            </div>
+          ) : isPaused ? (
+            // Paused status - can reactivate
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                  Paused
+                </span>
+                <span className="text-sm text-gray-500">Not visible to providers</span>
+              </div>
+              <button
+                onClick={async () => {
+                  setActivatingProfile(true);
+                  try {
+                    await handlePublish();
+                  } finally {
+                    setActivatingProfile(false);
+                  }
+                }}
+                disabled={activatingProfile}
+                className="text-sm font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50"
+              >
+                {activatingProfile ? "Reactivating..." : "Reactivate"}
+              </button>
             </div>
           ) : canGoLive ? (
             // Can go live - show button

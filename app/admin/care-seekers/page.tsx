@@ -24,7 +24,8 @@ interface SeekerRow {
   source: string;
   created_at: string;
   connection_count: number;
-  profile_complete: boolean;
+  profile_complete: boolean;   // ≥60% (ready to publish)
+  fully_complete: boolean;     // 100% (no more nudges needed)
   nudge_phase: "none" | "active" | "maintenance" | "done";
   current_sequence: NudgeSequence | null;
   sequence_type: "completion" | "publish";
@@ -207,8 +208,8 @@ function getNudgeStatus(seeker: SeekerRow): {
   const nudgeCount = seq?.nudge_count || 0;
   const isMaintenancePhase = seq?.phase === "maintenance";
 
-  // Published AND complete = success (green)
-  if (isPublished && seeker.profile_complete) {
+  // Published AND fully complete (100%) = success (green)
+  if (isPublished && seeker.fully_complete) {
     return { label: "Published", sublabel: "Done", isSuccess: true };
   }
 
@@ -221,8 +222,8 @@ function getNudgeStatus(seeker: SeekerRow): {
   const sequenceType = seeker.sequence_type; // "completion" or "publish"
   const sequenceLabel = sequenceType === "completion" ? "Profile" : "Publish";
 
-  // Published but incomplete - show both states
-  if (isPublished && !seeker.profile_complete) {
+  // Published but not fully complete (< 100%) - show both states
+  if (isPublished && !seeker.fully_complete) {
     if (isMaintenancePhase) {
       const lastNudge = seq?.last_nudge_at;
       return {
@@ -846,8 +847,8 @@ export default function AdminCareSeekersPage() {
               <div className="text-sm text-gray-400">Loading enrichment data...</div>
             ) : enrichment ? (
               <>
-                {/* 6-Step Funnel */}
-                <div className="grid grid-cols-7 gap-2 mb-4">
+                {/* 6-Step Funnel (Started + 5 visible steps, step 3 is pre-filled) */}
+                <div className="grid grid-cols-6 gap-3 mb-4">
                   {/* Started */}
                   <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
                     <div className="text-xl font-semibold tabular-nums text-gray-900">
@@ -939,56 +940,63 @@ export default function AdminCareSeekersPage() {
                   )}
                 </div>
 
-                {/* By Variant breakdown */}
-                {enrichment.byVariant && (
-                  <div className="mb-4">
-                    <button
-                      type="button"
-                      onClick={() => setEnrichmentByVariantExpanded(!enrichmentByVariantExpanded)}
-                      className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700"
-                    >
-                      <svg
-                        className={`w-2.5 h-2.5 transition-transform ${enrichmentByVariantExpanded ? "rotate-90" : ""}`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
+                {/* By Variant breakdown - only show if there's data */}
+                {enrichment.byVariant && (() => {
+                  const variantsWithData = Object.entries(enrichment.byVariant)
+                    .filter(([, data]) => data.started > 0);
+
+                  // Don't show section if no variants have any data
+                  if (variantsWithData.length === 0) return null;
+
+                  return (
+                    <div className="mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setEnrichmentByVariantExpanded(!enrichmentByVariantExpanded)}
+                        className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700"
                       >
-                        <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
-                      </svg>
-                      By CTA variant
-                    </button>
-                    {enrichmentByVariantExpanded && (
-                      <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
-                        <table className="w-full text-sm">
-                          <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
-                            <tr>
-                              <th className="px-3 py-2 text-left font-medium">Variant</th>
-                              <th className="px-3 py-2 text-right font-medium">Started</th>
-                              <th className="px-3 py-2 text-right font-medium">Completed</th>
-                              <th className="px-3 py-2 text-right font-medium">Rate</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {Object.entries(enrichment.byVariant)
-                              .filter(([, data]) => data.started > 0)
-                              .sort((a, b) => b[1].started - a[1].started)
-                              .map(([variant, data]) => (
-                                <tr key={variant} className="text-gray-700">
-                                  <td className="px-3 py-2 capitalize font-medium">
-                                    {variant === "unknown" ? "No variant" : variant}
-                                  </td>
-                                  <td className="px-3 py-2 text-right tabular-nums">{data.started}</td>
-                                  <td className="px-3 py-2 text-right tabular-nums">{data.completed}</td>
-                                  <td className="px-3 py-2 text-right tabular-nums font-medium text-emerald-600">
-                                    {data.rates.completionRate}%
-                                  </td>
-                                </tr>
-                              ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                )}
+                        <svg
+                          className={`w-2.5 h-2.5 transition-transform ${enrichmentByVariantExpanded ? "rotate-90" : ""}`}
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+                        </svg>
+                        By CTA variant
+                      </button>
+                      {enrichmentByVariantExpanded && (
+                        <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
+                              <tr>
+                                <th className="px-3 py-2 text-left font-medium">Variant</th>
+                                <th className="px-3 py-2 text-right font-medium">Started</th>
+                                <th className="px-3 py-2 text-right font-medium">Completed</th>
+                                <th className="px-3 py-2 text-right font-medium">Rate</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                              {variantsWithData
+                                .sort((a, b) => b[1].started - a[1].started)
+                                .map(([variant, data]) => (
+                                  <tr key={variant} className="text-gray-700">
+                                    <td className="px-3 py-2 capitalize font-medium">
+                                      {variant === "unknown" ? "No variant" : variant}
+                                    </td>
+                                    <td className="px-3 py-2 text-right tabular-nums">{data.started}</td>
+                                    <td className="px-3 py-2 text-right tabular-nums">{data.completed}</td>
+                                    <td className="px-3 py-2 text-right tabular-nums font-medium text-emerald-600">
+                                      {data.rates.completionRate}%
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Weekly trend */}
                 {enrichment.trend.length > 0 && (

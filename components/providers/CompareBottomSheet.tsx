@@ -725,6 +725,7 @@ export default function CompareBottomSheet({
                 onSave={saveEnrichment}
                 onSkip={skipEnrichment}
                 saving={enrichmentSubmitting}
+                providerCategory={currentProvider.category}
                 successTitle={`Requested ${selectedCount} detail${selectedCount !== 1 ? "s" : ""}`}
                 successSubtitle="We'll send you details to compare"
                 providerCity={currentProvider.city}

@@ -935,6 +935,7 @@ export default function MobileStickyBottomCTA({
               priceRange={priceRange}
               providerCity={providerCity}
               providerState={providerState}
+              providerCategory={providerCategory}
               ctaVariant={ctaVariant}
               ctaSurface="mobile"
             />

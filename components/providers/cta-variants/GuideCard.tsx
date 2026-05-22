@@ -642,6 +642,7 @@ export default function GuideCard({
             onSave={saveEnrichment}
             onSkip={skipEnrichment}
             saving={enrichmentSubmitting}
+            providerCategory={providerCategory}
             priceRange={priceRange}
             successTitle={`Connected with ${providerName}`}
             successSubtitle="Checklist sent to your email"

@@ -23,6 +23,8 @@ interface GuideBottomSheetProps {
   careTypes?: string[];
   priceRange?: string | null;
   ctaVariant?: string | null;
+  /** Provider category for pre-filling care type (e.g. "Home Care", "Assisted Living") */
+  providerCategory?: string | null;
   /** Start directly in enrichment mode (for logged-in users) */
   startInEnrichment?: boolean;
   /** Pre-set connectionId (for logged-in users who already created connection) */
@@ -48,6 +50,7 @@ export default function GuideBottomSheet({
   careTypes = [],
   priceRange,
   ctaVariant,
+  providerCategory,
   startInEnrichment = false,
   initialConnectionId = null,
 }: GuideBottomSheetProps) {
@@ -567,6 +570,7 @@ export default function GuideBottomSheet({
                 successSubtitle="Checklist sent to your email"
                 providerCity={providerCity}
                 providerState={providerState}
+                providerCategory={providerCategory}
                 ctaVariant="guide"
                 ctaSurface="mobile"
               />

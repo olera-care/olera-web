@@ -615,6 +615,7 @@ export default function CompareCard({
               onSave={saveEnrichment}
               onSkip={skipEnrichment}
               saving={enrichmentSubmitting}
+              providerCategory={currentProvider.category}
               successTitle={`Requested ${providerCountDisplay} detail${providerCountDisplay !== 1 ? "s" : ""}`}
               successSubtitle="We'll send you details to compare"
               providerCity={currentProvider.city}

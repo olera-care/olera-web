@@ -97,6 +97,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             onSkip={hook.skipEnrichment}
             saving={hook.submitting}
             careTypes={props.careTypes}
+            providerCategory={props.careTypes?.[0] || null}
             priceRange={props.priceRange}
             providerCity={props.city}
             providerState={props.state}

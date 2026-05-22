@@ -21,6 +21,8 @@ interface MobileStickyGuideProps {
   pricingTier?: number | null;
   /** Pricing disclaimer text for tooltip */
   pricingDisclaimer?: string | null;
+  /** Provider category for pre-filling care type (e.g. "Home Care", "Assisted Living") */
+  providerCategory?: string | null;
   ctaVariant?: string | null;
   ctaPreviewMode?: boolean;
 }
@@ -41,6 +43,7 @@ export default function MobileStickyGuide({
   priceRange,
   pricingTier,
   pricingDisclaimer,
+  providerCategory,
   ctaVariant,
   ctaPreviewMode = false,
 }: MobileStickyGuideProps) {
@@ -506,6 +509,7 @@ export default function MobileStickyGuide({
         providerImage={providerImage}
         careTypes={careTypes}
         priceRange={priceRange}
+        providerCategory={providerCategory}
         ctaVariant={ctaVariant}
       />
     </>

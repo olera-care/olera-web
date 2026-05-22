@@ -48,6 +48,8 @@ interface EnrichmentStateProps {
   priceRange?: string | null;
   /** @deprecated No longer used in new UI but kept for backward compatibility */
   careTypes?: string[];
+  /** Provider's category (e.g., "Home Care") - used to pre-fill care type and skip that step */
+  providerCategory?: string | null;
   /** Custom success banner title. Defaults to "Sent to {providerName}" */
   successTitle?: string;
   /** Custom success banner subtitle. Defaults to "{priceRange} estimated" if priceRange exists */
@@ -175,6 +177,40 @@ function LocationDropdown({
   );
 }
 
+// Map provider category to care type values
+// Handles both database format (e.g., "home_care_agency") from profile.category
+// and display format (e.g., "Home Care") from careTypes array
+const CATEGORY_TO_CARE_TYPE: Record<string, string> = {
+  // Database format (from profile.category via CTAVariantRouter)
+  "home_care_agency": "home_care",
+  "home_health_agency": "home_health",
+  "hospice_agency": "home_health",
+  "assisted_living": "assisted_living",
+  "memory_care": "memory_care",
+  "nursing_home": "nursing_home",
+  "independent_living": "independent_living",
+  "adult_day_care": "home_care",
+  "inpatient_hospice": "home_health",
+  "rehab_facility": "home_health",
+  "wellness_center": "home_care",
+  "private_caregiver": "home_care",
+  // Display format (from careTypes[0] in some components)
+  "Home Care": "home_care",
+  "Home Care (Non-medical)": "home_care",
+  "Home Health Care": "home_health",
+  "Home Health": "home_health",
+  "Assisted Living": "assisted_living",
+  "Memory Care": "memory_care",
+  "Nursing Home": "nursing_home",
+  "Independent Living": "independent_living",
+  "Hospice": "home_health",
+  "Inpatient Hospice": "home_health",
+  "Adult Day Care": "home_care",
+  "Rehabilitation": "home_health",
+  "Wellness Center": "home_care",
+  "Private Caregiver": "home_care",
+};
+
 export default function EnrichmentState({
   providerName,
   providerId,
@@ -183,6 +219,7 @@ export default function EnrichmentState({
   saving,
   priceRange = null,
   careTypes: _careTypes,
+  providerCategory,
   successTitle,
   successSubtitle,
   hideSuccessBanner = false,
@@ -192,6 +229,9 @@ export default function EnrichmentState({
   ctaSurface,
 }: EnrichmentStateProps) {
   void _careTypes; // Suppress unused variable warning
+
+  // Pre-fill care type from provider category
+  const prefilledCareType = providerCategory ? CATEGORY_TO_CARE_TYPE[providerCategory] || null : null;
 
   const [step, setStep] = useState<EnrichmentStep>("recipient");
   const hasTrackedStart = useRef(false);
@@ -214,8 +254,8 @@ export default function EnrichmentState({
   const [recipient, setRecipient] = useState<CareRecipient | null>(null);
   // Step 2: Timeline
   const [timeline, setTimeline] = useState<TimelineValue | null>(null);
-  // Step 3: Care Type
-  const [careType, setCareType] = useState<string | null>(null);
+  // Step 3: Care Type (pre-filled from provider category if available)
+  const [careType, setCareType] = useState<string | null>(prefilledCareType);
   // Step 4: Care Need
   const [careNeed, setCareNeed] = useState<string | null>(null);
   // Step 5: Payment
@@ -277,14 +317,20 @@ export default function EnrichmentState({
     setTimeout(() => setStep("timeline"), 150);
   }, [trackingParams]);
 
-  // Step 2: Select timeline → auto-advance
+  // Step 2: Select timeline → auto-advance (skip careType if pre-filled)
   const selectTimeline = useCallback((val: TimelineValue) => {
     setTimeline(val);
     trackEnrichmentStepCompleted(2, trackingParams);
-    setTimeout(() => setStep("careType"), 150);
-  }, [trackingParams]);
+    // If care type is pre-filled from provider category, skip step 3 and go to step 4
+    if (prefilledCareType) {
+      trackEnrichmentStepCompleted(3, trackingParams); // Mark step 3 as completed (pre-filled)
+      setTimeout(() => setStep("careNeed"), 150);
+    } else {
+      setTimeout(() => setStep("careType"), 150);
+    }
+  }, [trackingParams, prefilledCareType]);
 
-  // Step 3: Select care type → auto-advance
+  // Step 3: Select care type → auto-advance (only shown if not pre-filled)
   const selectCareType = useCallback((val: string) => {
     setCareType(val);
     trackEnrichmentStepCompleted(3, trackingParams);
@@ -343,16 +389,18 @@ export default function EnrichmentState({
     }
   }, [step, recipient, timeline, careType, careNeed, paymentMethod, onSave, onSkip, getAllData, trackingParams]);
 
-  // Progress indicator (steps 1-6)
-  const stepNumber = {
-    recipient: 1,
-    timeline: 2,
-    careType: 3,
-    careNeed: 4,
-    payment: 5,
-    details: 6,
-  }[step];
-  const totalSteps = 6;
+  // Progress indicator (5 steps if careType pre-filled, 6 otherwise)
+  const totalSteps = prefilledCareType ? 5 : 6;
+  // Adjust step numbers when careType is skipped
+  const getStepNumber = (): number => {
+    if (prefilledCareType) {
+      const map: Record<string, number> = { recipient: 1, timeline: 2, careNeed: 3, payment: 4, details: 5 };
+      return map[step] ?? 1;
+    }
+    const map: Record<string, number> = { recipient: 1, timeline: 2, careType: 3, careNeed: 4, payment: 5, details: 6 };
+    return map[step] ?? 1;
+  };
+  const stepNumber = getStepNumber();
 
   return (
     <div>

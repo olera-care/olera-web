@@ -1233,12 +1233,13 @@ async function handleLogReply(
     channel,
     notes: body.notes ?? null,
   });
-  // v8.8: an email reply supersedes BOTH pending email and call tasks.
-  // If they've replied, we don't need to keep emailing or calling — admin
-  // can still call manually, but the system shouldn't auto-prompt it.
-  await supersedePendingOutreachEmails(db, row.id, userId);
-  await supersedePendingFollowupCalls(db, row.id, userId, "reply_received");
-  // A reply jumps the row to engaged (cadence freezes).
+  // v9.2: logging a reply does NOT stop the cadence. The sequence continues
+  // until the admin explicitly selects a close-out status (not_interested,
+  // became_client, committed, etc.) or advances the row to meetings. This
+  // allows admins to log replies for tracking while the automated outreach
+  // continues in the background.
+  //
+  // A reply transitions the row to engaged status.
   // v8.10.6: no_response_closed (archived) rows also re-enter engaged
   // when a reply lands — admin's "Log reply" CTA from the Archive tab
   // pulls the stakeholder back into active Replies. reopen_at is
@@ -1585,7 +1586,7 @@ function legacyDispositionToOutcome(disposition: string | undefined): string | n
  * existing actions. The mini-modal is shared between "they replied
  * via email" and "got a callback" paths.
  *
- *   keep_emailing      → log_email_replied (engaged + supersede emails)
+ *   keep_emailing      → log_email_replied (engaged, cadence continues)
  *   wants_meeting      → flag_wants_meeting (note_added meeting_in_flight)
  *   already_booked     → mark_meeting_scheduled (with optional meeting_at)
  *   committed          → mark_partner with the supplied evidence
@@ -1599,12 +1600,21 @@ async function handleClassifyReply(
     meeting_at?: string;
     evidence?: DistributionEvidence;
     evidence_notes?: string;
+    // v9.2: when true, explicitly stop the cadence. Used by `redirected`
+    // flow where the admin is switching to a different contact.
+    stop_cadence?: boolean;
   },
   userId: string,
 ) {
   switch (body.classification) {
     case "keep_emailing":
       await handleLogReply(db, row, { notes: body.notes }, userId, "email_replied", "email");
+      // v9.2: if stop_cadence is explicitly requested (e.g., redirected flow),
+      // stop the email/call cadence even though we're logging a reply.
+      if (body.stop_cadence) {
+        await supersedePendingOutreachEmails(db, row.id, userId);
+        await supersedePendingFollowupCalls(db, row.id, userId, "redirected");
+      }
       return;
     case "wants_meeting":
       await handleFlagWantsMeeting(db, row, { notes: body.notes }, userId);
@@ -2786,30 +2796,83 @@ async function handleMakeClient(db: DB, row: OutreachRow, userId: string) {
   if (row.kind !== "provider") {
     throw new Error("make_client only valid for kind='provider' rows");
   }
-  if (!row.provider_business_profile_id) {
-    throw new Error("Provider row missing provider_business_profile_id");
-  }
 
   const nowIso = new Date().toISOString();
+  let businessProfileId = row.provider_business_profile_id;
 
-  const { data: bp } = await db
-    .from("business_profiles")
-    .select("metadata")
-    .eq("id", row.provider_business_profile_id)
-    .maybeSingle();
-  if (!bp) throw new Error("Business profile not found");
+  // For olera-providers based rows, we need to create a business_profiles
+  // row first since they don't have one yet.
+  if (!businessProfileId) {
+    const oleraProviderId = (row.research_data as { olera_provider_id?: string })?.olera_provider_id;
+    if (!oleraProviderId) {
+      throw new Error("Provider row missing both provider_business_profile_id and olera_provider_id");
+    }
 
-  const existingMeta = (bp.metadata as Record<string, unknown> | null) ?? {};
-  const newMeta = {
-    ...existingMeta,
-    interview_terms_accepted_at: nowIso,
-  };
+    // Fetch provider data from olera-providers
+    const { data: oleraProvider } = await db
+      .from("olera-providers")
+      .select("provider_id, provider_name, city, state, email, phone, website, slug, address, zipcode")
+      .eq("provider_id", oleraProviderId)
+      .maybeSingle();
 
-  const { error: bpErr } = await db
-    .from("business_profiles")
-    .update({ metadata: newMeta, updated_at: nowIso })
-    .eq("id", row.provider_business_profile_id);
-  if (bpErr) throw new Error(bpErr.message);
+    if (!oleraProvider) {
+      throw new Error(`olera-providers entry not found: ${oleraProviderId}`);
+    }
+
+    // Create a business_profiles row for this provider
+    const { data: newBp, error: createErr } = await db
+      .from("business_profiles")
+      .insert({
+        type: "organization",
+        display_name: oleraProvider.provider_name || row.organization_name,
+        city: oleraProvider.city,
+        state: oleraProvider.state,
+        email: oleraProvider.email,
+        phone: oleraProvider.phone,
+        website: oleraProvider.website,
+        slug: oleraProvider.slug,
+        address: oleraProvider.address,
+        zip: oleraProvider.zipcode?.toString() || null,
+        metadata: { interview_terms_accepted_at: nowIso },
+        source_provider_id: oleraProviderId,
+        created_at: nowIso,
+        updated_at: nowIso,
+      })
+      .select("id")
+      .single();
+
+    if (createErr || !newBp) {
+      throw new Error(`Failed to create business_profiles: ${createErr?.message ?? "unknown error"}`);
+    }
+
+    businessProfileId = newBp.id;
+
+    // Update student_outreach to link to the new business_profiles row
+    await db
+      .from("student_outreach")
+      .update({ provider_business_profile_id: businessProfileId })
+      .eq("id", row.id);
+  } else {
+    // Existing business_profiles row - update its metadata
+    const { data: bp } = await db
+      .from("business_profiles")
+      .select("metadata")
+      .eq("id", businessProfileId)
+      .maybeSingle();
+    if (!bp) throw new Error("Business profile not found");
+
+    const existingMeta = (bp.metadata as Record<string, unknown> | null) ?? {};
+    const newMeta = {
+      ...existingMeta,
+      interview_terms_accepted_at: nowIso,
+    };
+
+    const { error: bpErr } = await db
+      .from("business_profiles")
+      .update({ metadata: newMeta, updated_at: nowIso })
+      .eq("id", businessProfileId);
+    if (bpErr) throw new Error(bpErr.message);
+  }
 
   await insertTouchpoint(db, row.id, "stage_change", userId, {
     notes: "Marked as Client (provider conversion)",

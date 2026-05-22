@@ -34,6 +34,7 @@
  */
 
 import { useMemo, useState } from "react";
+import Input from "@/components/ui/Input";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
@@ -323,7 +324,7 @@ function TimelineRow({
                   onLogCall();
                 }}
                 title="Log the outcome of this specific call."
-                className="ml-3 rounded-md bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
+                className="ml-3 rounded-md bg-primary-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-primary-700"
               >
                 Log
               </button>
@@ -366,7 +367,7 @@ function EngagementChips({
 }
 
 const TONE_CLASSES: Record<string, string> = {
-  emerald: "bg-emerald-50 text-emerald-700",
+  emerald: "bg-primary-50 text-primary-700",
   blue: "bg-blue-50 text-blue-700",
   red: "bg-red-50 text-red-700",
 };
@@ -427,7 +428,7 @@ function AddCustomEventFooter({
       <div className="border-t border-gray-100 px-4 py-2">
         <button
           onClick={() => setOpen(true)}
-          className="text-xs font-medium text-emerald-700 hover:underline"
+          className="text-xs font-medium text-primary-700 hover:underline"
         >
           + Add custom event
         </button>
@@ -437,13 +438,13 @@ function AddCustomEventFooter({
 
   return (
     <div className="space-y-2 border-t border-gray-100 px-4 py-3">
-      <input
+      <Input
         type="text"
         autoFocus
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="e.g. Send proposal PDF · Call back when free"
-        className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+        size="sm"
       />
       <div className="flex flex-wrap items-center gap-2">
         <input
@@ -455,7 +456,7 @@ function AddCustomEventFooter({
         <button
           onClick={submit}
           disabled={saving || !title.trim()}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
         >
           {saving ? "Adding…" : "Add"}
         </button>

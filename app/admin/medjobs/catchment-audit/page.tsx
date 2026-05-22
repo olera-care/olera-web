@@ -12,6 +12,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Select from "@/components/ui/Select";
 
 interface AuditRow {
   slug: string;
@@ -106,16 +107,17 @@ export default function CatchmentAuditPage() {
               />
               Show empty-catchment universities
             </label>
-            <select
+            <Select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortKey)}
-              className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs"
-            >
-              <option value="in_catchment">Sort: providers in catchment</option>
-              <option value="in_states">Sort: providers in states</option>
-              <option value="active">Sort: activated first</option>
-              <option value="name">Sort: name</option>
-            </select>
+              onChange={(val) => setSortBy(val as SortKey)}
+              size="sm"
+              options={[
+                { value: "in_catchment", label: "Sort: providers in catchment" },
+                { value: "in_states", label: "Sort: providers in states" },
+                { value: "active", label: "Sort: activated first" },
+                { value: "name", label: "Sort: name" },
+              ]}
+            />
           </div>
         </div>
       )}
@@ -176,7 +178,7 @@ function RowItem({ row }: { row: AuditRow }) {
             empty
               ? "text-amber-700"
               : dense
-                ? "font-semibold text-emerald-700"
+                ? "font-semibold text-primary-700"
                 : "text-gray-700"
           }`}
         >
@@ -193,7 +195,7 @@ function RowItem({ row }: { row: AuditRow }) {
         </td>
         <td className="px-3 py-2">
           {row.is_active_site ? (
-            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+            <span className="rounded-full bg-primary-50 px-2 py-0.5 text-[11px] font-medium text-primary-700">
               Activated
             </span>
           ) : (
@@ -210,7 +212,7 @@ function RowItem({ row }: { row: AuditRow }) {
               Catchment cities with zero providers ({row.empty_cities.length}):
             </p>
             {row.empty_cities.length === 0 ? (
-              <p className="text-emerald-700">
+              <p className="text-primary-700">
                 ✓ Every catchment city has at least one provider.
               </p>
             ) : (
@@ -221,7 +223,7 @@ function RowItem({ row }: { row: AuditRow }) {
             <p className="mt-2">
               <Link
                 href={`/admin/medjobs/sites`}
-                className="font-medium text-emerald-700 hover:underline"
+                className="font-medium text-primary-700 hover:underline"
               >
                 Open Sites →
               </Link>{" "}
@@ -246,7 +248,7 @@ function Pill({
 }) {
   const toneCls =
     tone === "emerald"
-      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      ? "bg-primary-50 text-primary-700 border-primary-200"
       : tone === "amber"
         ? "bg-amber-50 text-amber-800 border-amber-200"
         : "bg-gray-50 text-gray-700 border-gray-200";

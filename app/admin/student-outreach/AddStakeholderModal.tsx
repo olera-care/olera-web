@@ -31,6 +31,7 @@ import {
   singleProgram,
   supportsMultipleContacts,
 } from "@/lib/student-outreach/presets";
+import StyledSelect from "@/components/ui/Select";
 
 interface Props {
   campuses: Campus[];
@@ -188,16 +189,16 @@ export function AddStakeholderModal({
       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
         Step 1 — Pick a campus
       </p>
-      <select
+      <StyledSelect
         value={campusSlug}
-        onChange={(e) => setCampusSlug(e.target.value)}
-        className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-      >
-        <option value="">— select a campus —</option>
-        {campuses.map((c) => (
-          <option key={c.id} value={c.slug}>{c.name}</option>
-        ))}
-      </select>
+        onChange={(val) => setCampusSlug(val)}
+        placeholder="— select a campus —"
+        size="sm"
+        options={[
+          { value: "", label: "— select a campus —" },
+          ...campuses.map((c) => ({ value: c.slug, label: c.name })),
+        ]}
+      />
     </div>
   );
 
@@ -600,19 +601,17 @@ function Select({
   options: Array<{ value: string; label: string }>;
 }) {
   return (
-    <label className="block">
-      <span className="mb-1 block text-xs font-medium text-gray-600">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-      >
-        <option value="">— select —</option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-    </label>
+    <StyledSelect
+      label={label}
+      value={value}
+      onChange={onChange}
+      placeholder="— select —"
+      size="sm"
+      options={[
+        { value: "", label: "— select —" },
+        ...options,
+      ]}
+    />
   );
 }
 

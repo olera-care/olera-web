@@ -23,6 +23,7 @@ import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { DangerZone } from "@/components/admin/medjobs/DangerZone";
 import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
+import StyledSelect from "@/components/ui/Select";
 import {
   KIND_LABELS,
   STATUS_LABELS,
@@ -1880,19 +1881,17 @@ function Select({
   options: Array<{ value: string; label: string }>;
 }) {
   return (
-    <label className="block">
-      <span className="mb-1 block text-xs font-medium text-gray-600">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-      >
-        <option value="">— select —</option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-    </label>
+    <StyledSelect
+      label={label}
+      value={value}
+      onChange={onChange}
+      placeholder="— select —"
+      size="sm"
+      options={[
+        { value: "", label: "— select —" },
+        ...options,
+      ]}
+    />
   );
 }
 

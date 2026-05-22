@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { getProvidersInCatchment } from "@/lib/medjobs/catchment";
+import { getProviderProspectsInCatchment } from "@/lib/medjobs/catchment";
 import { getClientStatus } from "@/lib/medjobs/clients";
 
 /**
@@ -61,17 +61,24 @@ export async function GET(request: NextRequest) {
     // Existing student_outreach rows with kind='provider' — these
     // providers have already been materialized for some campus and
     // shouldn't appear as virtual prospects again.
+    // Check both provider_business_profile_id (legacy) and
+    // research_data->olera_provider_id (new olera-providers based).
     const { data: existing } = await db
       .from("student_outreach")
-      .select("provider_business_profile_id, campus_id")
+      .select("provider_business_profile_id, campus_id, research_data")
       .eq("kind", "provider");
     const existingPairs = new Set<string>();
     for (const r of (existing ?? []) as Array<{
       provider_business_profile_id: string | null;
       campus_id: string;
+      research_data: { olera_provider_id?: string } | null;
     }>) {
+      // Support both legacy (provider_business_profile_id) and new (olera_provider_id)
       if (r.provider_business_profile_id) {
         existingPairs.add(`${r.provider_business_profile_id}|${r.campus_id}`);
+      }
+      if (r.research_data?.olera_provider_id) {
+        existingPairs.add(`${r.research_data.olera_provider_id}|${r.campus_id}`);
       }
     }
 
@@ -91,7 +98,7 @@ export async function GET(request: NextRequest) {
     const rows: Row[] = [];
 
     for (const c of campuses) {
-      const providers = await getProvidersInCatchment(c.slug);
+      const providers = await getProviderProspectsInCatchment(c.slug);
       for (const p of providers) {
         const status = getClientStatus(p.metadata);
         if (status.isClient) continue; // already a client

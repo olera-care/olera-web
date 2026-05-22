@@ -77,7 +77,7 @@ function fireCTAClickEvent(
   action: "form_opened" | "form_submitted",
   isPreview: boolean,
 ) {
-  // Don't fire if no variant (happens before hook resolves or on legacy pages)
+  // Don't fire if variant not yet resolved (CTAVariantRouter passes fallback, so this is rare)
   if (!variant) return;
   // Don't fire in preview mode (contaminates A/B data)
   if (isPreview) return;

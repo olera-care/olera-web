@@ -167,8 +167,8 @@ export function StakeholderCard({
   // E2: when a row was just moved by a Log action, briefly tint the
   // card emerald so admin SEES where the work landed. Transitions
   // fade as the recentlyMoved flag clears.
-  const movedBg = recentlyMoved ? "bg-emerald-50" : "bg-white";
-  const cardClass = `cursor-pointer rounded-lg border ${borderClass} ${movedBg} px-4 py-3 transition-colors duration-500 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500`;
+  const movedBg = recentlyMoved ? "bg-primary-50" : "bg-white";
+  const cardClass = `cursor-pointer rounded-lg border ${borderClass} ${movedBg} px-4 py-3 transition-colors duration-500 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500`;
   // Subtitle label: kind label (Provider / Advisor / etc.) — fallback
   // to the legacy stakeholder_type lookup if kind is missing on older
   // rows that haven't been hydrated yet.
@@ -342,8 +342,8 @@ const STAGE_TONE_CLASSES: Record<
   (typeof STAGE_DISPLAY)[Stage]["tone"],
   string
 > = {
-  green: "bg-green-100 text-green-800",
-  emerald: "bg-emerald-100 text-emerald-800",
+  green: "bg-primary-100 text-primary-800",
+  emerald: "bg-primary-100 text-primary-800",
   amber: "bg-amber-100 text-amber-800",
   purple: "bg-purple-100 text-purple-800",
   red: "bg-red-100 text-red-800",
@@ -373,7 +373,7 @@ export function ExpandableNote({ text, limit = 100 }: { text: string; limit?: nu
               e.stopPropagation();
               setExpanded((s) => !s);
             }}
-            className="not-italic text-emerald-700 underline hover:no-underline"
+            className="not-italic text-primary-700 underline hover:no-underline"
           >
             {expanded ? "See less" : "See more"}
           </button>
@@ -398,7 +398,7 @@ export function PrimaryAction({
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       title={title}
-      className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+      className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
     >
       {children}
     </button>
@@ -507,7 +507,7 @@ export function MenuItem({
   const colorClass = danger
     ? "text-red-700 hover:bg-red-50"
     : celebration
-    ? "text-emerald-700 hover:bg-emerald-50"
+    ? "text-primary-700 hover:bg-primary-50"
     : "text-gray-700 hover:bg-gray-50";
   return (
     <button
@@ -689,7 +689,7 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         href={`tel:${row.primary_contact_phone}`}
         onClick={(e) => e.stopPropagation()}
         title="Tap to dial (mobile) — opens the default phone app."
-        className="shrink-0 text-xs text-emerald-700 underline hover:no-underline"
+        className="shrink-0 text-xs text-primary-700 underline hover:no-underline"
       >
         📞 {row.primary_contact_phone}
       </a>

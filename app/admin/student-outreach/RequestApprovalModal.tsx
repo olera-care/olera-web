@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ApprovalType } from "@/lib/student-outreach/types";
+import Select from "@/components/ui/Select";
 
 interface Props {
   onCancel: () => void;
@@ -65,21 +66,18 @@ export function RequestApprovalModal({ onCancel, onSubmit }: Props) {
         </header>
 
         <div className="px-6 py-4 space-y-3">
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-gray-600">Approval type</span>
-            <select
+          <div>
+            <Select
+              label="Approval type"
               value={approvalType}
-              onChange={(e) => setApprovalType(e.target.value as ApprovalType)}
-              className="w-full rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-            >
-              {TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
+              onChange={(val) => setApprovalType(val as ApprovalType)}
+              size="sm"
+              options={TYPES.map((t) => ({ value: t.value, label: t.label }))}
+            />
             <p className="mt-1 text-[11px] text-gray-500">
               {TYPES.find((t) => t.value === approvalType)?.hint}
             </p>
-          </label>
+          </div>
 
           <label className="block">
             <span className="mb-1 block text-xs font-medium text-gray-600">What approval is for *</span>

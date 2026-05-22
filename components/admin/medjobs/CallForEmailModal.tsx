@@ -43,6 +43,8 @@ import { useState } from "react";
 import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
+import Select from "@/components/ui/Select";
+import Input from "@/components/ui/Input";
 
 type ActionFn = (
   actionName: string,
@@ -222,7 +224,7 @@ export function CallForEmailModal({
       {phone && (
         <>
           {" · "}
-          <a href={`tel:${phone}`} className="text-emerald-700 hover:underline">
+          <a href={`tel:${phone}`} className="text-primary-700 hover:underline">
             📞 {phone}
           </a>
         </>
@@ -270,9 +272,9 @@ export function CallForEmailModal({
       </div>
 
       {outcome === "connected" && (
-        <div className="space-y-3 rounded-md border border-emerald-200 bg-emerald-50/30 px-3 py-3">
+        <div className="space-y-3 rounded-md border border-primary-200 bg-primary-50/30 px-3 py-3">
           <div>
-            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary-700">
               What happened on the call?
             </p>
             <div className="space-y-1.5">
@@ -290,71 +292,68 @@ export function CallForEmailModal({
           </div>
 
           <div>
-            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary-700">
               New contact (optional)
             </p>
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
-                <input
+                <Input
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="First name"
-                  className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                  size="sm"
                 />
-                <input
+                <Input
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   placeholder="Last name"
-                  className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                  size="sm"
                 />
               </div>
-              <select
+              <Select
                 value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
-              >
-                <option value="">(no role)</option>
-                {PROVIDER_CONTACT_ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setRole(val)}
+                placeholder="(no role)"
+                size="sm"
+                options={[
+                  { value: "", label: "(no role)" },
+                  ...PROVIDER_CONTACT_ROLES.map((r) => ({ value: r, label: r })),
+                ]}
+              />
               {role === OTHER && (
-                <input
+                <Input
                   type="text"
                   value={roleOther}
                   onChange={(e) => setRoleOther(e.target.value)}
                   placeholder="Custom role"
-                  className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                  size="sm"
                 />
               )}
-              <input
+              <Input
                 type="email"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="Email (if obtained)"
-                className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                size="sm"
               />
-              <input
+              <Input
                 type="tel"
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value)}
                 placeholder="Direct phone / extension (optional)"
-                className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                size="sm"
               />
             </div>
           </div>
         </div>
       )}
 
-      <label className="block pt-1">
-        <span className="mb-1 block text-xs font-medium text-gray-600">
-          Notes (optional)
-        </span>
-        <textarea
+      <div className="pt-1">
+        <Input
+          as="textarea"
+          label="Notes (optional)"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder={
@@ -365,9 +364,9 @@ export function CallForEmailModal({
                 : "Context for this call attempt."
           }
           rows={3}
-          className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
+          size="sm"
         />
-      </label>
+      </div>
     </LogModalShell>
   );
 }
@@ -394,18 +393,18 @@ function StatusCard({
       type="button"
       className={`flex w-full items-start gap-3 rounded-lg border-2 ${compact ? "p-2.5" : "p-3"} text-left transition-colors ${
         active
-          ? "border-emerald-500 bg-emerald-50"
-          : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/30"
+          ? "border-primary-500 bg-primary-50"
+          : "border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"
       }`}
     >
       <span
         className={`mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 ${
-          active ? "border-emerald-600 bg-emerald-600" : "border-gray-300 bg-white"
+          active ? "border-primary-600 bg-primary-600" : "border-gray-300 bg-white"
         }`}
         aria-hidden
       >
         {active && (
-          <span className="block h-full w-full rounded-full border-2 border-white bg-emerald-600" />
+          <span className="block h-full w-full rounded-full border-2 border-white bg-primary-600" />
         )}
       </span>
       <span className="min-w-0 flex-1">

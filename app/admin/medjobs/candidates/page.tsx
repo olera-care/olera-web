@@ -60,7 +60,7 @@ export default function CandidatesPage() {
         Live candidates with active Step Board work. Past actions live in{" "}
         <a
           href="/admin/medjobs/logs?source=candidate"
-          className="font-medium text-emerald-700 underline hover:no-underline"
+          className="font-medium text-primary-700 underline hover:no-underline"
         >
           Logs
         </a>
@@ -78,7 +78,7 @@ export default function CandidatesPage() {
           No candidates with pending steps right now. View past activity in{" "}
           <a
             href="/admin/medjobs/logs?source=candidate"
-            className="font-medium text-emerald-700 underline hover:no-underline"
+            className="font-medium text-primary-700 underline hover:no-underline"
           >
             Logs
           </a>

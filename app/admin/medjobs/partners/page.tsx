@@ -91,7 +91,7 @@ export default function PartnersPage() {
         Partners with active Step Board work. Quiet partners and past activity live in{" "}
         <a
           href="/admin/medjobs/logs?source=stakeholder"
-          className="font-medium text-emerald-700 underline hover:no-underline"
+          className="font-medium text-primary-700 underline hover:no-underline"
         >
           Logs
         </a>
@@ -116,7 +116,7 @@ export default function PartnersPage() {
           No partners with pending steps right now. Quiet partners and past activity live in{" "}
           <a
             href="/admin/medjobs/logs?source=stakeholder"
-            className="font-medium text-emerald-700 underline hover:no-underline"
+            className="font-medium text-primary-700 underline hover:no-underline"
           >
             Logs
           </a>

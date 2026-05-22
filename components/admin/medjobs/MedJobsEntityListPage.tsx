@@ -21,6 +21,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Input from "@/components/ui/Input";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
@@ -270,12 +271,12 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
       <p className="-mt-6 mb-4 text-sm text-gray-500">{subtitle}</p>
 
       <div className="mb-4">
-        <input
+        <Input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by organization name…"
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+          size="sm"
         />
       </div>
 
@@ -401,6 +402,8 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
               });
             } else if (classification === "redirected" && redirect) {
               // P4: add the new contact + stop the original cadence.
+              // stop_cadence: true ensures cadence stops for the original
+              // recipient even though we're using keep_emailing.
               const derivedName =
                 [redirect.first_name, redirect.last_name]
                   .filter(Boolean)
@@ -415,6 +418,7 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
               await callAction(classifierRow.row.id, "classify_reply", {
                 classification: "keep_emailing",
                 notes: payload.notes,
+                stop_cadence: true,
               });
             } else {
               await callAction(classifierRow.row.id, "classify_reply", {

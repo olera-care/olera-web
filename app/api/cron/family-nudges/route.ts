@@ -571,7 +571,19 @@ export async function GET(request: NextRequest) {
           }
 
           if (!dryRun) {
-            const logId = await reserveEmailLogId({ to: email, subject, emailType, recipientType: "family" });
+            const logId = await reserveEmailLogId({
+              to: email,
+              subject,
+              emailType,
+              recipientType: "family",
+              metadata: {
+                family_profile_id: family.id,
+                profile_snapshot: {
+                  completeness: completeness.percentage,
+                  is_published: isPublished,
+                },
+              },
+            });
             await sendEmail({
               to: email,
               subject,
@@ -690,7 +702,19 @@ export async function GET(request: NextRequest) {
           }
 
           if (!dryRun) {
-            const logId = await reserveEmailLogId({ to: email, subject, emailType, recipientType: "family" });
+            const logId = await reserveEmailLogId({
+              to: email,
+              subject,
+              emailType,
+              recipientType: "family",
+              metadata: {
+                family_profile_id: family.id,
+                profile_snapshot: {
+                  completeness: completeness.percentage,
+                  is_published: isPublished,
+                },
+              },
+            });
             await sendEmail({
               to: email,
               subject,

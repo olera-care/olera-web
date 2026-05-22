@@ -14,6 +14,7 @@ import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
 import CompactProviderCard from "@/components/providers/CompactProviderCard";
 import SaveButton from "@/components/providers/SaveButton";
+import ShareButton from "@/components/providers/ShareButton";
 import CareServicesList from "@/components/providers/CareServicesList";
 import QASectionWithVariant from "@/components/providers/QASectionWithVariant";
 import SectionNav from "@/components/providers/SectionNav";
@@ -35,6 +36,9 @@ import ReviewsSection from "@/components/providers/ReviewsSection";
 import CMSQualitySection from "@/components/providers/CMSQualitySection";
 import AiTrustSignalsSection from "@/components/providers/AiTrustSignalsSection";
 import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
+import FloorPlanCarousel from "@/components/providers/FloorPlanCarousel";
+import DiningCarousel from "@/components/providers/DiningCarousel";
+import MorningStarContent, { MorningStarAbout } from "@/components/providers/custom/MorningStarContent";
 import { LeadCaptureSheetWrapper } from "@/components/providers/lead-capture";
 import BenefitsDiscoveryModule from "@/components/providers/BenefitsDiscoveryModule";
 import type { BenefitsProgram } from "@/components/providers/BenefitsDiscoveryModule";
@@ -335,7 +339,7 @@ export default async function ProviderPage({
   })();
 
   const rating = meta?.rating;
-  const images =
+  let images =
     meta?.images && meta.images.length > 0
       ? meta.images
       : profile.image_url
@@ -570,21 +574,43 @@ export default async function ProviderPage({
   const hasBenefitsData = !!(benefitsData && benefitsData.programs.length > 0);
 
   // ============================================================
+  // Custom provider content — slug-based overrides
+  // ============================================================
+  const isMorningStar = profile.slug === "morningstar-assisted-living-memory-care-at-west-san-jose";
+  if (isMorningStar) {
+    images = [
+      "/providers/morningstar-west-san-jose/google-1.webp",
+      "/providers/morningstar-west-san-jose/bistro.png",
+      "/providers/morningstar-west-san-jose/theatre.png",
+      "/providers/morningstar-west-san-jose/art-studio.png",
+      "/providers/morningstar-west-san-jose/fitness.png",
+    ];
+  }
+
+  // ============================================================
   // Section navigation items — only show tabs for visible sections
   // ============================================================
-  const sectionItems: SectionItem[] = [];
-  sectionItems.push({ id: "highlights", label: "Highlights" });
   const hasGoogleReviews = (googleReviewsData?.reviews?.length ?? 0) > 0;
-  if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  sectionItems.push({ id: "qa", label: "Q&A" });
-  if (hasBenefitsData) sectionItems.push({ id: "benefits", label: "Benefits" });
-  sectionItems.push({ id: "services", label: "Services" });
-  if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
-  if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
-  sectionItems.push({ id: "about", label: "About" });
-  if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
-  if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
+  const sectionItems: SectionItem[] = isMorningStar
+    ? [
+        { id: "reviews", label: "Reviews" },
+        { id: "faq", label: "FAQs" },
+        { id: "pricing", label: "Pricing" },
+        { id: "care", label: "Care" },
+        { id: "staffing", label: "Staffing" },
+        { id: "safety", label: "Safety" },
+        { id: "memory-care", label: "Memory Care" },
+        { id: "neighborhood", label: "Neighborhood" },
+      ]
+    : [
+        { id: "reviews", label: "Reviews" },
+        { id: "faq", label: "FAQs" },
+        { id: "pricing", label: "Pricing" },
+        { id: "floor-plans", label: "Floor Plans" },
+        { id: "dining", label: "Dining" },
+        { id: "amenities", label: "Amenities" },
+        { id: "neighborhood", label: "Neighborhood" },
+      ];
 
   // ============================================================
   // Render
@@ -739,9 +765,6 @@ export default async function ProviderPage({
         />
       )}
 
-      {/* Section Navigation (appears on scroll) - desktop only */}
-      <SectionNav sections={sectionItems} />
-
       {/* Mobile Provider Top Nav - always sticky on mobile */}
       <MobileProviderTopNav />
 
@@ -809,7 +832,7 @@ export default async function ProviderPage({
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left w-full md:w-auto">
                   {profile.display_name}
                 </h1>
-                <div className="hidden md:block">
+                <div className="hidden md:flex items-center gap-2">
                   <SaveButton
                     provider={{
                       providerId: profile.slug,
@@ -822,6 +845,7 @@ export default async function ProviderPage({
                     }}
                     variant="pill"
                   />
+                  <ShareButton name={profile.display_name} />
                 </div>
               </div>
 
@@ -983,6 +1007,8 @@ export default async function ProviderPage({
                       <span>on Google</span>
                     </span>
                   )}
+                  <span className="text-gray-300">·</span>
+                  <span className="text-xs text-teal-700 bg-teal-50 rounded-full px-2.5 py-1 font-medium">Updated May 2026</span>
                 </div>
 
                 {!isStudentContext && (pricingConfig?.tier === 3 && !hasPriceRange ? (
@@ -1015,14 +1041,24 @@ export default async function ProviderPage({
               {/* Hidden on mobile for cleaner hero, shown on desktop */}
               {highlights.length > 0 && (
                 <div id="highlights" className="scroll-mt-20 hidden md:block">
-                  {/* Desktop: flex-wrap chips */}
+                  {/* Desktop: pills */}
                   <div className="flex flex-wrap gap-2 mt-4">
-                    {highlights.map((h) => (
-                      <div key={h.label} className="bg-white border border-gray-200 rounded-lg py-2.5 px-3 flex items-center gap-2">
-                        <HighlightIcon icon={h.icon} className="w-4 h-4 text-primary-500 flex-shrink-0" />
-                        <span className="text-sm text-gray-600">{h.label}</span>
-                      </div>
-                    ))}
+                    <div className="bg-green-50 border border-green-200 rounded-full py-1.5 px-3 flex items-center gap-1.5">
+                      <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /></svg>
+                      <span className="text-sm text-green-700 font-medium">Accepting residents</span>
+                    </div>
+                    {isMorningStar ? (
+                      <>{/* Only accepting pill for MorningStar */}</>
+                    ) : (
+                      <>
+                        <div className="bg-white border border-gray-200 rounded-full py-1.5 px-3">
+                          <span className="text-sm text-gray-600">Pet-friendly</span>
+                        </div>
+                        <div className="bg-white border border-gray-200 rounded-full py-1.5 px-3">
+                          <span className="text-sm text-gray-600">Signature Freedom Dining</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -1041,6 +1077,8 @@ export default async function ProviderPage({
                 claimAccountId={claimAccountId}
               />
               </div>
+
+              {/* About moved to content zone, before Reviews */}
 
               {/* Managed by — only show when staff data exists, hidden on mobile */}
               {hasStaff && (
@@ -1081,6 +1119,9 @@ export default async function ProviderPage({
           {/* ========== Left Column ========== */}
           <div className="lg:col-span-2">
 
+            {/* Section Navigation — inline nav with bottom border */}
+            <SectionNav sections={sectionItems} />
+
             {/* ══════════════════════════════════════════
                 Content Sections (1.0 order)
                ══════════════════════════════════════════ */}
@@ -1101,8 +1142,6 @@ export default async function ProviderPage({
                   coverageBuckets: demand?.coverage_buckets,
                   profile: oppProfile,
                 });
-                // Surface what the provider entered in their "Hire more
-                // caregivers" block: demand shape, PRN openness, and requirements.
                 const shapeLabel = demand?.demand_shape
                   ? DEMAND_SHAPE_OPTIONS.find((o) => o.value === demand.demand_shape)?.label ?? null
                   : null;
@@ -1173,6 +1212,72 @@ export default async function ProviderPage({
                 );
               })()}
 
+              {/* ── MorningStar custom layout ── */}
+              {isMorningStar ? (
+                <>
+                  <MorningStarAbout />
+
+                  <div id="reviews" className="scroll-mt-20 border-t border-gray-200">
+                    <ReviewsSection
+                      providerId={profile.slug}
+                      providerSlug={profile.slug}
+                      providerName={profile.display_name}
+                      mockReviews={reviewsToShow}
+                      isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                      googleReviewsData={googleReviewsData}
+                      placeId={providerPlaceId}
+                      hideBorder
+                    />
+                  </div>
+
+                  <div id="faq" className="py-8 scroll-mt-20 border-t border-gray-200">
+                    <QASectionWithVariant
+                      providerId={profile.slug}
+                      providerName={profile.display_name}
+                      providerImage={images[0]}
+                      providerSlug={profile.slug}
+                      providerLocation={profile.city && profile.state ? `${profile.city}, ${profile.state}` : ""}
+                      providerCareTypes={profile.care_types || []}
+                      providerRating={rating}
+                      providerPriceRange={priceRange ?? undefined}
+                      providerCity={profile.city ?? undefined}
+                      providerState={profile.state ?? undefined}
+                      questions={answeredQuestions.map((q) => ({
+                        id: q.id,
+                        question: q.question,
+                        answer: q.answer,
+                        asker_name: q.asker_name,
+                        created_at: q.created_at,
+                      }))}
+                      suggestedQuestions={getSuggestedQuestions(profile.category)}
+                      hasBenefitsData={hasBenefitsData && !!benefitsData}
+                      similarProvidersForMulti={similarProvidersForMulti}
+                      alternativeProviders={outreachCandidates}
+                      providerCategory={outreachCategoryString}
+                    />
+                  </div>
+
+                  <MorningStarContent />
+
+                  <div className="py-8 border-t border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">Disclaimer</h2>
+                    <p className="text-sm text-gray-500 leading-relaxed">
+                      We strive to keep this page accurate and current, but some details may not be up to date. To confirm whether {profile.display_name} is the right fit for you or your loved one, please verify all information directly with the provider by submitting a connect request or contacting them.
+                    </p>
+                    <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
+                      <p className="text-sm text-gray-500">Are you the owner of this business?</p>
+                      <a
+                        href={`/provider/onboarding?org=${profile.slug}`}
+                        className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                      >
+                        Manage this page <span aria-hidden="true">→</span>
+                      </a>
+                    </div>
+                  </div>
+                </>
+              ) : (
+              <>
+
               {/* ── What families are saying (above services when reviews exist) ── */}
               {(googleReviewsData?.reviews?.length ?? 0) > 0 && (
                 <div id="reviews" className="scroll-mt-20">
@@ -1189,6 +1294,42 @@ export default async function ProviderPage({
                   />
                 </div>
               )}
+
+              {/* ── About ── */}
+              <div className="py-8 border-t border-gray-200">
+                <div className="flex items-center gap-3 mb-3">
+                  <h2 className="text-2xl font-bold text-gray-900 font-display">About {profile.display_name}</h2>
+                  <div className="flex items-center gap-2">
+                    <a href="https://www.facebook.com/EmeraldOaksRetirement" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-teal-50 hover:bg-teal-100 flex items-center justify-center transition-colors" aria-label="Facebook">
+                      <svg className="w-3.5 h-3.5 text-teal-600" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
+                    </a>
+                    <a href="https://www.instagram.com/emeraldoaksretirement" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-teal-50 hover:bg-teal-100 flex items-center justify-center transition-colors" aria-label="Instagram">
+                      <svg className="w-3.5 h-3.5 text-teal-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" /></svg>
+                    </a>
+                    <a href="https://rlcommunities.com/communities/texas/emerald-oaks-retirement/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-teal-50 hover:bg-teal-100 flex items-center justify-center transition-colors" aria-label="Website">
+                      <svg className="w-3.5 h-3.5 text-teal-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5a17.92 17.92 0 01-8.716-2.247m0 0A9 9 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
+                    </a>
+                  </div>
+                </div>
+                <ExpandableText
+                  text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
+                  maxLength={400}
+                />
+              </div>
+
+              {/* ── Reviews ── */}
+              <div id="reviews" className="scroll-mt-20 border-t border-gray-200">
+                <ReviewsSection
+                  providerId={profile.slug}
+                  providerSlug={profile.slug}
+                  providerName={profile.display_name}
+                  mockReviews={reviewsToShow}
+                  isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                  googleReviewsData={googleReviewsData}
+                  placeId={providerPlaceId}
+                  hideBorder
+                />
+              </div>
 
               {/* ── Customer Questions & Answers (family-facing; hidden in student context) ── */}
               {!isStudentContext && (
@@ -1219,10 +1360,6 @@ export default async function ProviderPage({
                   providerCategory={outreachCategoryString}
                 />
 
-                {/* Outreach arm of the 5-way intake A/B. Slot itself renders
-                    null for the ~80% not in the outreach arm, so no wrapping div
-                    here — it would leave a phantom mt-6 gap. The module owns
-                    its own top margin. See IntakeVariantSlots.tsx. */}
                 {canFetchOutreachCandidates && outreachCandidates.length > 0 && (
                   <AgentOutreachSlot
                     sourceProviderId={profile.slug}
@@ -1235,6 +1372,424 @@ export default async function ProviderPage({
                 )}
               </div>
               )}
+
+              {/* ── Pricing ── */}
+              <div id="pricing" className="scroll-mt-20 py-8 border-t border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-2">Pricing</h2>
+                <p className="text-sm text-gray-500 mb-5">Total monthly costs depend on room type, select services, and the level of care needed.</p>
+
+                <div className="space-y-3">
+                  {[
+                    { type: "Studio", price: "$4,020" },
+                    { type: "1 Bedroom", price: "$3,880" },
+                    { type: "2 Bedrooms", price: "$5,800" },
+                  ].map((row) => (
+                    <div key={row.type} className="flex items-center justify-between bg-blue-50 rounded-xl py-4 px-5">
+                      <span className="text-base font-semibold text-gray-900">{row.type}</span>
+                      <span className="text-base text-gray-700 text-right">Starting at <span className="font-bold text-gray-900">{row.price}</span><span className="font-normal text-gray-500">/mo</span></span>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-xs text-gray-400 mt-4 leading-relaxed">*Prices quoted are monthly rental charges and are provided by the community. Actual prices may differ due to one-time fees, timing, and care services required. For the best price estimate, please contact Emerald Oaks directly.</p>
+              </div>
+
+              {/* ── Floor Plans ── */}
+              <div id="floor-plans" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Floor Plans</h2>
+                <p className="text-base text-gray-600 mb-4">Apartment homes include full kitchens, spacious closets, and walk-in showers with safety features. Some homes have patios, and others have balconies.</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-2.5 mb-6">
+                  {[
+                    "Full Kitchen",
+                    "Respite or Short Term Stays Offered",
+                    "Garden View",
+                    "Cable or Satellite TV",
+                    "Wheelchair Accessible Showers",
+                    "Wi-Fi/High-Speed Internet",
+                    "Handicap Accessible",
+                    "Air Conditioned",
+                    "Ground Floor Units",
+                  ].map((item) => (
+                    <div key={item} className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
+                      <span className="text-sm text-gray-700">{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <FloorPlanCarousel plans={[
+                  { name: "Studio", sqft: "566 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/studio-2.jpg" },
+                  { name: "1 Bedroom (A)", sqft: "694 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/1-bed-a.jpg" },
+                  { name: "1 Bedroom (AC)", sqft: "650 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/1-bed-ac.jpg" },
+                  { name: "1 Bedroom (B)", sqft: "759 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/1-bed-b.jpg" },
+                  { name: "1 Bedroom (BC)", sqft: "706 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/1-bed-bc.jpg" },
+                  { name: "1 Bedroom (C)", sqft: "588 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/1-bed-c.jpg" },
+                  { name: "2 Bedroom (A)", sqft: "1,114 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/2-bed-a.jpg" },
+                  { name: "2 Bedroom (B)", sqft: "1,138 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/2-bed-b.jpg" },
+                  { name: "2 Bedroom (C)", sqft: "1,013 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/2-bed-c.jpg" },
+                  { name: "3 Bedroom (A)", sqft: "1,206 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/3-bed-a.jpg" },
+                ]} />
+              </div>
+
+              {/* ── Dining ── */}
+              <div id="dining" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Dining</h2>
+                <p className="text-base text-gray-600 mb-5">Signature Freedom Dining offers chef-prepared meals served resort-style throughout the day, with flexible hours and multiple dining settings, all included in monthly rent.</p>
+                <DiningCarousel images={[
+                  { src: "/providers/emerald-oaks/dining/steak.webp", alt: "Chef-prepared steak" },
+                  { src: "/providers/emerald-oaks/dining/chef.webp", alt: "Chef-prepared meals" },
+                  { src: "/providers/emerald-oaks/dining/salad.webp", alt: "Fresh chicken berry salad" },
+                  { src: "/providers/emerald-oaks/dining/steak-shrimp.webp", alt: "Steak and shrimp" },
+                  { src: "/providers/emerald-oaks/dining/salmon.webp", alt: "Salmon entrée" },
+                  { src: "/providers/emerald-oaks/dining/salad-bar.webp", alt: "Salad bar" },
+                  { src: "/providers/emerald-oaks/dining/creme-brulee.webp", alt: "Crème brûlée" },
+                  { src: "/providers/emerald-oaks/dining/shortcake.webp", alt: "Strawberry shortcake" },
+                ]} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-2 mt-6">
+                  {[
+                    "Flexible Dining Hours",
+                    "Sunday Brunch",
+                    "24-Hour Chef's Pantry",
+                    "Tableside Service",
+                    "Meal Delivery for Daily Meals",
+                    "Casual Buffet",
+                    "Professional Chefs",
+                    "Fresh, Healthy Ingredients",
+                    "Share meals with friends and family anytime, with affordable meal rates",
+                  ].map((item) => (
+                    <div key={item} className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
+                      <span className="text-sm text-gray-700">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── Amenities ── */}
+              <div id="amenities" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Amenities</h2>
+                <div className="divide-y divide-gray-200">
+
+                  {/* Staying Active — image left, text right */}
+                  <div className="py-8 first:pt-0">
+                    <div className="flex flex-col md:flex-row md:items-stretch gap-6">
+                      <div className="md:w-2/5 flex-shrink-0">
+                        <div className="relative h-full min-h-[280px] rounded-xl overflow-hidden">
+                          <Image src="/providers/emerald-oaks/amenities/fitness-v2.webp" alt="Fitness Center at Emerald Oaks" fill className="object-cover object-[40%_center]" sizes="(max-width: 768px) 100vw, 40vw" />
+                        </div>
+                      </div>
+                      <div className="md:w-3/5">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                          Staying Active
+                        </h3>
+                        <p className="text-base text-gray-600 mb-4">Emerald Oaks keeps residents moving on their own terms. The fitness center offers Ageless Grace brain-fitness classes and guided sensory training alongside standard equipment, while raised garden beds and walking paths give people a reason to be outside year-round.</p>
+                        <div className="space-y-2">
+                          {[
+                            "Fitness Center: guided classes and open gym",
+                            "Raised Garden Beds: individual plots available",
+                            "Ageless Grace Brain Fitness Program",
+                            "Walking Paths",
+                            "Health & Wellness Programs",
+                          ].map((item) => (
+                            <div key={item} className="flex items-center gap-2.5">
+                              <div className="w-5 h-5 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
+                              <span className="text-sm text-gray-700">{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Socializing — text left, image right */}
+                  <div className="py-8">
+                    <div className="flex flex-col md:flex-row md:items-stretch gap-6">
+                      <div className="md:w-3/5">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
+                          Socializing
+                        </h3>
+                        <p className="text-base text-gray-600 mb-4">Common spaces are designed for unplanned encounters. Main Street shops sit at the heart of the community, with the library, billiards room, and lounge areas branching off so residents tend to run into each other throughout the day.</p>
+                        <div className="space-y-2">
+                          {[
+                            "Main Street Shops: central gathering hub",
+                            "Library: large-print section, daily newspapers",
+                            "Billiards & Game Room",
+                            "Arts & Crafts Room",
+                            "Lounge & Conversation Areas",
+                            "Computer Center",
+                            "Daily Social Activities: cards, bingo, outings",
+                          ].map((item) => (
+                            <div key={item} className="flex items-center gap-2.5">
+                              <div className="w-5 h-5 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
+                              <span className="text-sm text-gray-700">{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="md:w-2/5 flex-shrink-0">
+                        <div className="relative h-full min-h-[280px] rounded-xl overflow-hidden">
+                          <Image src="/providers/emerald-oaks/amenities/socializing.webp" alt="Residents socializing at Emerald Oaks" fill className="object-cover" sizes="(max-width: 768px) 100vw, 40vw" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Daily Errands Without Leaving — horizontal icon tiles */}
+                  <div className="py-8">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+                      Daily Errands Without Leaving
+                    </h3>
+                    <p className="text-base text-gray-600 mb-5 max-w-2xl">Most things residents need on a regular basis are already inside the building.</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                      {[
+                        { label: "Bank", sub: "On-site branch", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" /></svg> },
+                        { label: "Pharmacy", sub: "H-E-B delivery", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" /></svg> },
+                        { label: "Salon", sub: "Tue & Thu walk-ins", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg> },
+                        { label: "Gift Shop", sub: "Cards & gifts", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg> },
+                        { label: "Groceries", sub: "Shopping service", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg> },
+                      ].map((tile) => (
+                        <div key={tile.label} className="flex flex-col items-center text-center p-4 bg-blue-50/60 rounded-xl border border-blue-100">
+                          <div className="text-teal-600 mb-2">{tile.icon}</div>
+                          <p className="text-sm font-semibold text-gray-900">{tile.label}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{tile.sub}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Getting Around */}
+                  <div className="py-8">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
+                      Getting Around
+                    </h3>
+                    <p className="text-base text-gray-600 mb-5 max-w-2xl">Residents who no longer drive, or prefer not to, still get out regularly. Complimentary scheduled transportation runs to medical appointments, shopping, and errands throughout the week, with group bus outings to malls and restaurants on a rotating calendar.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-2.5">
+                      {[
+                        "Complimentary Scheduled Transportation: medical, shopping, errands",
+                        "Bus Outings: malls, restaurants, rotating calendar",
+                        "Valet Parking",
+                        "Uncovered Resident Parking",
+                      ].map((item) => (
+                        <div key={item} className="flex items-center gap-2.5">
+                          <div className="w-5 h-5 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
+                          <span className="text-sm text-gray-700">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Your Apartment — image left, text right */}
+                  <div className="py-8">
+                    <div className="flex flex-col md:flex-row md:items-stretch gap-6">
+                      <div className="md:w-2/5 flex-shrink-0">
+                        <div className="relative h-full min-h-[280px] rounded-xl overflow-hidden">
+                          <Image src="/providers/emerald-oaks/amenities/apartment-v2.webp" alt="Apartment kitchen at Emerald Oaks" fill className="object-cover" sizes="(max-width: 768px) 100vw, 40vw" />
+                        </div>
+                      </div>
+                      <div className="md:w-3/5">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                          Your Apartment
+                        </h3>
+                        <p className="text-base text-gray-600 mb-4">Every unit is a full apartment, not a room. Residents get a real kitchen with custom cabinets, an in-unit washer and dryer, and walk-in closets, plus all utilities, cable, and Wi-Fi included in the monthly rent.</p>
+                        <div className="space-y-2">
+                          {[
+                            "Full Kitchen: custom cabinets, full-size appliances",
+                            "In-Unit Washer & Dryer",
+                            "Individual Climate Control",
+                            "All Utilities Included: electric, water, gas",
+                            "Cable TV & Wi-Fi Included",
+                            "Spacious Walk-in Closets",
+                            "Walk-in Showers with Safety Features",
+                            "Studio, 1, 2 & 3 Bedroom Layouts",
+                          ].map((item) => (
+                            <div key={item} className="flex items-center gap-2.5">
+                              <div className="w-5 h-5 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
+                              <span className="text-sm text-gray-700">{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Peace of Mind — kept with Live-in Managers callout */}
+                  <div className="py-8">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                      Peace of Mind
+                    </h3>
+                    <p className="text-base text-gray-600 mb-5 max-w-2xl">Emerald Oaks has 24/7 concierge coverage and emergency alert systems throughout every apartment. Weekly housekeeping and on-call maintenance mean residents never have to worry about upkeep.</p>
+                    {/* Featured: Live-in Managers */}
+                    <div className="flex items-start gap-4 mb-5 bg-blue-50/60 rounded-xl p-4">
+                      <div className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                      </div>
+                      <div>
+                        <p className="text-base font-semibold text-gray-900">Live-in Managers</p>
+                        <p className="text-sm text-gray-600 mt-0.5">Management lives on-site at Emerald Oaks: not just on call, but physically present. This is uncommon in senior living and means faster response times and a stronger sense of community accountability.</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-2.5">
+                      {[
+                        "24/7 Concierge: always staffed, day and night",
+                        "Emergency Alert System: pull cords in every bathroom and bedroom",
+                        "Weekly Housekeeping",
+                        "On-Call Maintenance Staff",
+                        "Guest Suite: for visiting family, book in advance",
+                      ].map((item) => (
+                        <div key={item} className="flex items-center gap-2.5">
+                          <div className="w-5 h-5 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
+                          <span className="text-sm text-gray-700">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Bringing Your Pet */}
+                  <div className="py-8 last:pb-0">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-teal-600" viewBox="0 0 24 24" fill="currentColor"><path d="M8.35 3c1.18 0 2.13.95 2.13 2.13 0 1.18-.95 2.13-2.13 2.13C7.17 7.26 6.22 6.31 6.22 5.13 6.22 3.95 7.17 3 8.35 3zm7.3 0c1.18 0 2.13.95 2.13 2.13 0 1.18-.95 2.13-2.13 2.13-1.18 0-2.13-.95-2.13-2.13C13.52 3.95 14.47 3 15.65 3zM4.57 8.3c1.18 0 2.13.95 2.13 2.13 0 1.18-.95 2.13-2.13 2.13C3.39 12.56 2.44 11.61 2.44 10.43 2.44 9.25 3.39 8.3 4.57 8.3zm14.86 0c1.18 0 2.13.95 2.13 2.13 0 1.18-.95 2.13-2.13 2.13-1.18 0-2.13-.95-2.13-2.13 0-1.18.95-2.13 2.13-2.13zM12 13.96c2.28 0 4.35 1.13 5.6 2.86.42.58.17 1.4-.5 1.68-1.6.68-3.33 1.06-5.1 1.06s-3.5-.38-5.1-1.06c-.67-.28-.92-1.1-.5-1.68 1.25-1.73 3.32-2.86 5.6-2.86z" /></svg>
+                      Bringing Your Pet
+                    </h3>
+                    <p className="text-base text-gray-600 mb-5 max-w-2xl">Emerald Oaks is a pet-friendly community. Dogs and cats are welcome, and many residents consider their pet a non-negotiable part of the move. The community&apos;s landscaped grounds give dogs daily outdoor time without leaving the property.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-2.5">
+                      {[
+                        "Dogs Welcome",
+                        "Cats Welcome",
+                        "Landscaped Grounds for Dog Walking",
+                      ].map((item) => (
+                        <div key={item} className="flex items-center gap-2.5">
+                          <div className="w-5 h-5 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
+                          <span className="text-sm text-gray-700">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* ── Neighborhood ── */}
+              <div id="neighborhood" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Neighborhood</h2>
+                {profile.address ? (
+                  <p className="text-base text-gray-700 mb-6">{profile.address}{profile.city ? `, ${profile.city}` : ""}{profile.state ? `, ${profile.state}` : ""}</p>
+                ) : profile.city && profile.state ? (
+                  <p className="text-base text-gray-700 mb-6">{profile.city}, {profile.state}</p>
+                ) : (
+                  <p className="text-base text-gray-500 mb-6">Contact {profile.display_name} for location details.</p>
+                )}
+
+                {/* Getting Around — Walk / Transit / Bike Scores */}
+                <div className="mb-8 rounded-xl border border-blue-100 bg-blue-50/60 p-5">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Getting around</h3>
+                  <p className="text-sm text-gray-500 mb-4">Suburban, car-recommended: most errands require a vehicle</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Walk Score */}
+                    <div className="flex items-center gap-3 bg-white rounded-lg p-3 border border-blue-100">
+                      <div className="w-12 h-12 rounded-full bg-teal-600 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 15.75l1.5 4.5m3-4.5l-1.5 4.5" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Walk Score<sup>&reg;</sup></p>
+                        <p className="text-lg leading-tight"><span className="font-bold text-teal-700">31</span> <span className="text-gray-400">/ 100</span></p>
+                        <p className="text-xs text-gray-600">Car-Dependent</p>
+                      </div>
+                    </div>
+                    {/* Transit Score */}
+                    <div className="flex items-center gap-3 bg-white rounded-lg p-3 border border-blue-100">
+                      <div className="w-12 h-12 rounded-full bg-teal-600 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75h-.75a3 3 0 01-3-3V7.5a3 3 0 013-3h9a3 3 0 013 3v8.25a3 3 0 01-3 3h-.75M8.25 18.75l-1.5 2.25m9-2.25l1.5 2.25M12 15h.008M9 11.25h6" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Transit Score<sup>&reg;</sup></p>
+                        <p className="text-lg leading-tight"><span className="font-bold text-teal-700">15</span> <span className="text-gray-400">/ 100</span></p>
+                        <p className="text-xs text-gray-600">Minimal Transit</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
+                  {/* Medical Facilities */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2 bg-blue-50 rounded-lg px-4 py-2.5">
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" /></svg> Medical Facilities
+                    </h3>
+                    <div className="space-y-5">
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                        <div>
+                          <p className="text-base font-medium text-gray-900">Methodist Stone Oak Hospital</p>
+                          <p className="text-sm text-gray-500">Located 3.4 miles away, providing comprehensive medical care and emergency services.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                        <div>
+                          <p className="text-base font-medium text-gray-900">Laurel Ridge Treatment Center</p>
+                          <p className="text-sm text-gray-500">Located just 2.4 miles away.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Shopping & Dining */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2 bg-blue-50 rounded-lg px-4 py-2.5">
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg> Shopping &amp; Dining
+                    </h3>
+                    <div className="space-y-5">
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                        <div>
+                          <p className="text-base font-medium text-gray-900">The Village at Stone Oak</p>
+                          <p className="text-sm text-gray-500">A major retail hub with a variety of shopping, boutiques, and restaurants located just a short 10-minute drive away.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                        <div>
+                          <p className="text-base font-medium text-gray-900">HEB Grocery &amp; CVS Pharmacy</p>
+                          <p className="text-sm text-gray-500">Multiple locations are situated within 3–5 miles for daily necessities and prescriptions.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Parks & Recreation */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2 bg-blue-50 rounded-lg px-4 py-2.5">
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m-7-9H4m16 0h1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg> Parks &amp; Recreation
+                    </h3>
+                    <div className="space-y-5">
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                        <div>
+                          <p className="text-base font-medium text-gray-900">Hardberger Park</p>
+                          <p className="text-sm text-gray-500">A sprawling natural area featuring walking trails, a dog park, and shaded picnic spots, located roughly 10 miles away.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                        <div>
+                          <p className="text-base font-medium text-gray-900">San Antonio River Walk</p>
+                          <p className="text-sm text-gray-500">Located about 20 miles south, the famous downtown River Walk provides access to world-class dining, cultural events, and the historic Alamo.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* ── Benefits Discovery ── */}
               {/* Wrapped in BenefitsArmGate so the section disappears for the
@@ -1265,12 +1820,6 @@ export default async function ProviderPage({
                   </div>
                 </BenefitsArmGate>
               )}
-
-              {/* ── Care Services ── */}
-              <div id="services" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
-                <CareServicesList services={careServices} initialCount={6} />
-              </div>
 
               {/* ── Staff Screening — hidden when no real data ── */}
               {hasStaffScreening && (
@@ -1318,54 +1867,6 @@ export default async function ProviderPage({
               {aiTrustSignals && aiTrustSignals.summary_score > 0 && (
                 <div className="py-8 border-t border-gray-200">
                   <AiTrustSignalsSection signals={aiTrustSignals} />
-                </div>
-              )}
-
-              {/* ── About ── */}
-              <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
-                <ExpandableText
-                  text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
-                  maxLength={300}
-                />
-              </div>
-
-              {/* ── Detailed Pricing ── */}
-              {pricingDetails.length > 0 && (
-                <div id="pricing" className="py-8 scroll-mt-20 border-t border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Prices at {profile.display_name}</h2>
-                  <div className="space-y-2">
-                    {pricingDetails.map((item) => (
-                      <div
-                        key={item.service}
-                        className="flex items-center justify-between py-3.5 px-4 bg-gray-50 rounded-lg"
-                      >
-                        <span className="text-base font-medium text-gray-900">{item.service}</span>
-                        <span className="text-base font-semibold text-gray-900">
-                          {item.rate} <span className="font-normal text-gray-500">/{item.rateType.replace("per ", "")}</span>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <ScrollToConnectionCard entryPoint="custom_quote" className="w-full md:w-auto mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
-                    Get a custom quote
-                  </ScrollToConnectionCard>
-                  {pricingConfig && (
-                    <p className="text-xs text-gray-400 mt-4 leading-relaxed">
-                      {pricingConfig.disclaimer({
-                        providerName: profile.display_name,
-                        city: profile.city ?? undefined,
-                        state: profile.state ?? undefined,
-                      })}
-                      {pricingConfig.coverageNote && (
-                        <> {pricingConfig.coverageNote({
-                          providerName: profile.display_name,
-                          city: profile.city ?? undefined,
-                          state: profile.state ?? undefined,
-                        })}</>
-                      )}
-                    </p>
-                  )}
                 </div>
               )}
 
@@ -1460,6 +1961,9 @@ export default async function ProviderPage({
                 </div>
               </div>
 
+              </>
+              )}
+
             </div>
           </div>
 
@@ -1516,9 +2020,9 @@ export default async function ProviderPage({
           </div>
         </div>
 
-        {/* ===== Compare Providers (hidden in student context) ===== */}
+        {/* ===== Nearby Communities / Compare Providers (hidden in student context) ===== */}
         {!isStudentContext && similarProviders.providers.length > 0 && (
-          <div className="border-t border-gray-200 pt-8 mt-4">
+          <div id="nearby" className="border-t border-gray-200 pt-8 mt-4 scroll-mt-20">
             <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
               {similarProviders.isLocal
                 ? <>Compare {profile.display_name}{locationStr ? ` of ${locationStr}` : ""} to the best local options</>

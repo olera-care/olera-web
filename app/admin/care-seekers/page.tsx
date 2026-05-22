@@ -461,7 +461,13 @@ export default function AdminCareSeekersPage() {
     loadCities();
   }, []);
 
-  // Fetch engagement data when section is expanded (refresh after 5 minutes)
+  // Clear engagement cache when date range changes
+  useEffect(() => {
+    setEngagement(null);
+    engagementFetchedAt.current = 0;
+  }, [dateRange]);
+
+  // Fetch engagement data when section is expanded (refresh after 5 minutes or date change)
   useEffect(() => {
     if (!engagementExpanded) return;
 
@@ -473,7 +479,12 @@ export default function AdminCareSeekersPage() {
     async function loadEngagement() {
       setEngagementLoading(true);
       try {
-        const res = await fetch("/api/admin/care-seekers/engagement");
+        const params = new URLSearchParams();
+        const resolved = resolveRange(dateRange);
+        if (resolved.from) params.set("from_date", resolved.from);
+        if (resolved.to) params.set("to_date", resolved.to);
+
+        const res = await fetch(`/api/admin/care-seekers/engagement?${params}`);
         if (res.ok) {
           const data = await res.json();
           setEngagement(data);
@@ -483,9 +494,15 @@ export default function AdminCareSeekersPage() {
       setEngagementLoading(false);
     }
     loadEngagement();
-  }, [engagementExpanded, engagement]);
+  }, [engagementExpanded, engagement, dateRange]);
 
-  // Fetch enrichment funnel data when section is expanded (refresh after 5 minutes)
+  // Clear enrichment cache when date range changes
+  useEffect(() => {
+    setEnrichment(null);
+    enrichmentFetchedAt.current = 0;
+  }, [dateRange]);
+
+  // Fetch enrichment funnel data when section is expanded (refresh after 5 minutes or date change)
   useEffect(() => {
     if (!enrichmentExpanded) return;
 
@@ -497,7 +514,12 @@ export default function AdminCareSeekersPage() {
     async function loadEnrichment() {
       setEnrichmentLoading(true);
       try {
-        const res = await fetch("/api/admin/analytics/enrichment-funnel");
+        const params = new URLSearchParams();
+        const resolved = resolveRange(dateRange);
+        if (resolved.from) params.set("from_date", resolved.from);
+        if (resolved.to) params.set("to_date", resolved.to);
+
+        const res = await fetch(`/api/admin/analytics/enrichment-funnel?${params}`);
         if (res.ok) {
           const data = await res.json();
           setEnrichment(data);
@@ -507,7 +529,7 @@ export default function AdminCareSeekersPage() {
       setEnrichmentLoading(false);
     }
     loadEnrichment();
-  }, [enrichmentExpanded, enrichment]);
+  }, [enrichmentExpanded, enrichment, dateRange]);
 
   useEffect(() => {
     fetchSeekers();
@@ -602,9 +624,12 @@ export default function AdminCareSeekersPage() {
       )}
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Care Seekers</h1>
-        <p className="text-sm text-gray-500 mt-1">Families and individuals looking for care</p>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Care Seekers</h1>
+          <p className="text-sm text-gray-500 mt-1">Families and individuals looking for care</p>
+        </div>
+        <DateRangePopover value={dateRange} onChange={setDateRange} />
       </div>
 
       {/* Stats */}
@@ -1127,9 +1152,6 @@ export default function AdminCareSeekersPage() {
             )}
           </div>
         )}
-
-        {/* Date range filter */}
-        <DateRangePopover value={dateRange} onChange={setDateRange} />
 
         {hasActiveFilters && (
           <button

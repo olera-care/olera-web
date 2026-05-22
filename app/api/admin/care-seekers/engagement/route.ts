@@ -96,7 +96,7 @@ interface TimeWindow {
   end: Date;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -108,23 +108,36 @@ export async function GET() {
   }
 
   const db = getServiceClient();
+  const { searchParams } = new URL(request.url);
+  const fromDate = searchParams.get("from_date");
+  const toDate = searchParams.get("to_date");
 
   const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+  // Use custom date range if provided, otherwise default to last 30 days
+  const endDate = toDate ? new Date(toDate) : now;
+  const windowDays = fromDate
+    ? Math.ceil((endDate.getTime() - new Date(fromDate).getTime()) / (24 * 60 * 60 * 1000))
+    : 30;
+  const startDate = fromDate ? new Date(fromDate) : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  // Prior period is the same duration before the start date
+  const priorEnd = startDate;
+  const priorStart = new Date(startDate.getTime() - windowDays * 24 * 60 * 60 * 1000);
 
   // Define time windows for attribution
-  const currentWindow: TimeWindow = { start: thirtyDaysAgo, end: now };
-  const priorWindow: TimeWindow = { start: sixtyDaysAgo, end: thirtyDaysAgo };
+  const currentWindow: TimeWindow = { start: startDate, end: endDate };
+  const priorWindow: TimeWindow = { start: priorStart, end: priorEnd };
 
   try {
-    // Fetch nudge emails from last 30 days (current period) with limit
+    // Fetch nudge emails from current period with limit
     const { data: currentEmails, error: currentError } = await db
       .from("email_log")
       .select("id, recipient, email_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, metadata")
       .eq("recipient_type", "family")
       .in("email_type", NUDGE_EMAIL_TYPES)
-      .gte("created_at", thirtyDaysAgo.toISOString())
+      .gte("created_at", startDate.toISOString())
+      .lte("created_at", endDate.toISOString())
       .order("created_at", { ascending: false })
       .limit(MAX_EMAILS_PER_QUERY);
 
@@ -133,14 +146,14 @@ export async function GET() {
       return NextResponse.json({ error: "Database error" }, { status: 500 });
     }
 
-    // Fetch nudge emails from prior 30 days (30-60 days ago) with limit
+    // Fetch nudge emails from prior period with limit
     const { data: priorEmails, error: priorError } = await db
       .from("email_log")
       .select("id, recipient, email_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, metadata")
       .eq("recipient_type", "family")
       .in("email_type", NUDGE_EMAIL_TYPES)
-      .gte("created_at", sixtyDaysAgo.toISOString())
-      .lt("created_at", thirtyDaysAgo.toISOString())
+      .gte("created_at", priorStart.toISOString())
+      .lt("created_at", priorEnd.toISOString())
       .order("created_at", { ascending: false })
       .limit(MAX_EMAILS_PER_QUERY);
 

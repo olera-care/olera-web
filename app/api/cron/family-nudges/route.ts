@@ -67,7 +67,8 @@ const COMPLETION_COOLDOWNS = [0, 2, 4, 7]; // days between nudges — same-day, 
 const PUBLISH_COOLDOWNS = [0, 2, 4, 7];    // days between nudges — same-day after complete, Day 2, Day 6, Day 13
 const MAINTENANCE_COOLDOWN = 30;           // days between maintenance nudges
 const MAX_MAINTENANCE_NUDGES = 6;          // cap monthly nudges at 6 (stop after ~8 months total)
-const PROFILE_COMPLETE_THRESHOLD = 60;     // must be ≥60% to be considered "complete" (lowered so enrichment completion is sufficient)
+const READY_TO_PUBLISH_THRESHOLD = 60;     // ≥60% can publish profile (enrichment completion is sufficient)
+const FULLY_COMPLETE_THRESHOLD = 100;      // ≥100% is "fully complete" — no more completion nudges needed
 const REPUBLISH_GRACE_PERIOD_DAYS = 30;    // don't nudge to re-publish if was published 30+ days ago
 
 // ── Care type mapping: family profile → olera-providers ──
@@ -539,7 +540,8 @@ export async function GET(request: NextRequest) {
 
       // Calculate profile completeness using the same function as lead-family-nudge
       const completeness = calculateFamilyCompleteness(family, email);
-      const profileComplete = completeness.percentage >= PROFILE_COMPLETE_THRESHOLD;
+      const readyToPublish = completeness.percentage >= READY_TO_PUBLISH_THRESHOLD;  // ≥60% can publish
+      const fullyComplete = completeness.percentage >= FULLY_COMPLETE_THRESHOLD;      // 100% is fully done
 
       // Used to determine whether to fetch provider count/list
       const hasLocation = !!(family.city && family.state);
@@ -552,9 +554,9 @@ export async function GET(request: NextRequest) {
       const firstName = family.display_name?.split(/\s+/)[0] || "there";
       const careTypes = (family.care_types as string[]) || [];
 
-      // ── STOP CONDITION: Profile is published AND complete — SUCCESS! ──
-      // If published but incomplete, we still want to nudge them to improve their profile
-      if (isPublished && profileComplete) {
+      // ── STOP CONDITION: Profile is published AND fully complete (100%) — SUCCESS! ──
+      // Published users < 100% still get completion nudges to reach full completeness
+      if (isPublished && fullyComplete) {
         continue;
       }
 
@@ -574,8 +576,11 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // ── PHASE 1: Profile Completion (if profile incomplete) ──
-      if (!profileComplete) {
+      // ── PHASE 1: Profile Completion ──
+      // Case A: Not ready to publish yet (< 60%) — nudge to reach publishable state
+      // Case B: Published but not fully complete (< 100%) — nudge to reach 100%
+      const needsCompletionNudges = !readyToPublish || (isPublished && !fullyComplete);
+      if (needsCompletionNudges) {
         // Use migration-aware function: if they got the old email, skip nudge #1
         const seq = getSequenceWithMigration(
           meta.completion_sequence,
@@ -745,8 +750,8 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // ── PHASE 2: Profile Publishing (if profile complete but not published) ──
-      if (profileComplete && !isPublished) {
+      // ── PHASE 2: Profile Publishing (if ready to publish but not published yet) ──
+      if (readyToPublish && !isPublished) {
         // Use migration-aware function: if they got the old email, skip nudge #1
         const seq = getSequenceWithMigration(
           meta.publish_sequence,

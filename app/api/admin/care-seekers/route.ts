@@ -4,7 +4,7 @@ import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import type { FamilyMetadata, NudgeSequence } from "@/lib/types";
 
 // Profile completeness threshold (must match cron job)
-const PROFILE_COMPLETE_THRESHOLD = 80;
+const READY_TO_PUBLISH_THRESHOLD = 60;  // ≥60% can publish (matches cron/family-nudges)
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = ReturnType<typeof getServiceClient>;
@@ -118,23 +118,23 @@ function daysSince(isoDate: string | undefined): number {
   return Math.floor((Date.now() - new Date(isoDate).getTime()) / (1000 * 60 * 60 * 24));
 }
 
-function isProfileComplete(seeker: SeekerQueryResult, email: string | null): boolean {
+function isReadyToPublish(seeker: SeekerQueryResult, email: string | null): boolean {
   const completeness = calculateFamilyCompleteness(seeker, email);
-  return completeness.percentage >= PROFILE_COMPLETE_THRESHOLD;
+  return completeness.percentage >= READY_TO_PUBLISH_THRESHOLD;
 }
 
 function isPublished(meta: FamilyMetadata): boolean {
   return meta.care_post?.status === "active";
 }
 
-function getActiveSequence(meta: FamilyMetadata, profileComplete: boolean): NudgeSequence | null {
+function getActiveSequence(meta: FamilyMetadata, readyToPublish: boolean): NudgeSequence | null {
   const published = isPublished(meta);
 
   // If profile is published AND complete, no sequence is active (success!)
-  if (published && profileComplete) return null;
+  if (published && readyToPublish) return null;
 
   // If profile incomplete (published or not), use completion sequence
-  if (!profileComplete) {
+  if (!readyToPublish) {
     return meta.completion_sequence ?? null;
   }
 
@@ -142,11 +142,11 @@ function getActiveSequence(meta: FamilyMetadata, profileComplete: boolean): Nudg
   return meta.publish_sequence ?? null;
 }
 
-function getNudgePhase(meta: FamilyMetadata, profileComplete: boolean): "none" | "active" | "maintenance" | "done" {
+function getNudgePhase(meta: FamilyMetadata, readyToPublish: boolean): "none" | "active" | "maintenance" | "done" {
   // Only "done" if published AND complete
-  if (isPublished(meta) && profileComplete) return "done";
+  if (isPublished(meta) && readyToPublish) return "done";
 
-  const seq = getActiveSequence(meta, profileComplete);
+  const seq = getActiveSequence(meta, readyToPublish);
   if (!seq) return "none";
 
   return seq.phase;
@@ -161,11 +161,11 @@ function getCooldownForNudge(nudgeCount: number, cooldowns: number[]): number {
 
 function needsNudge(seeker: SeekerQueryResult, email: string | null): boolean {
   const meta = (seeker.metadata || {}) as FamilyMetadata;
-  const profileComplete = isProfileComplete(seeker, email);
+  const readyToPublish = isReadyToPublish(seeker, email);
 
   // Skip if published AND complete (success!)
   // Published but incomplete profiles still need completion nudges
-  if (isPublished(meta) && profileComplete) return false;
+  if (isPublished(meta) && readyToPublish) return false;
   if (meta.nudges_unsubscribed === true) return false;
 
   // Skip if was published 30+ days ago then unpublished (respect their decision)
@@ -183,13 +183,13 @@ function needsNudge(seeker: SeekerQueryResult, email: string | null): boolean {
   // - Published profiles: only completion sequence (no re-publish nudges)
   // - Unpublished + complete: publish sequence
   // - Unpublished + incomplete: completion sequence
-  const seq = (published || !profileComplete)
+  const seq = (published || !readyToPublish)
     ? (meta.completion_sequence ?? { nudge_count: 0, phase: "active" as const })
     : (meta.publish_sequence ?? { nudge_count: 0, phase: "active" as const });
 
   // Check maintenance cap (4 active + 6 maintenance = 10 max)
   // Use completion settings for published profiles (they're in completion sequence)
-  const inCompletionSequence = published || !profileComplete;
+  const inCompletionSequence = published || !readyToPublish;
   const activeCount = inCompletionSequence ? COMPLETION_ACTIVE_COUNT : PUBLISH_ACTIVE_COUNT;
   if (seq.phase === "maintenance" && seq.nudge_count >= activeCount + MAX_MAINTENANCE_NUDGES) {
     return false; // Already hit the cap
@@ -320,19 +320,19 @@ export async function GET(request: NextRequest) {
     // Transform data with computed fields
     let seekers = (data ?? []).map((seeker) => {
       const meta = (seeker.metadata || {}) as FamilyMetadata;
-      const profileComplete = isProfileComplete(seeker, seeker.email);
-      const phase = getNudgePhase(meta, profileComplete);
+      const readyToPublish = isReadyToPublish(seeker, seeker.email);
+      const phase = getNudgePhase(meta, readyToPublish);
 
       // Get current sequence for display
-      const currentSeq = profileComplete ? meta.publish_sequence : meta.completion_sequence;
+      const currentSeq = readyToPublish ? meta.publish_sequence : meta.completion_sequence;
 
       return {
         ...seeker,
         connection_count: connectionCounts[seeker.id] || 0,
-        profile_complete: profileComplete,
+        profile_complete: readyToPublish,
         nudge_phase: phase,
         current_sequence: currentSeq || null,
-        sequence_type: profileComplete ? "publish" : "completion",
+        sequence_type: readyToPublish ? "publish" : "completion",
       };
     });
 

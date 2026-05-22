@@ -266,27 +266,25 @@ async function getTopProviders(
   return results;
 }
 
-const connectionStatsCache = new Map<string, { families: number; week: number }>();
+let connectionStatsCache: { familiesThisWeek: number; familiesThisMonth: number } | null = null;
 
 /**
- * Count recent family connections in a given state (last 7 days and last 30 days).
- * Used for social proof in publish nudges.
+ * Count recent family connections platform-wide (last 7 days and last 30 days).
+ * Used for social proof in publish nudges. Returns platform-wide stats since
+ * state-level filtering would require expensive joins.
  */
 async function getConnectionStats(
   db: DB,
-  state: string,
 ): Promise<{ familiesThisWeek: number; familiesThisMonth: number }> {
-  if (connectionStatsCache.has(state)) {
-    const cached = connectionStatsCache.get(state)!;
-    return { familiesThisWeek: cached.week, familiesThisMonth: cached.families };
+  if (connectionStatsCache) {
+    return connectionStatsCache;
   }
 
   const now = new Date();
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Count distinct families who initiated connections in this state
-  // Join connections with to_profile (provider) to filter by state
+  // Count connections initiated by families (type=request, from_profile_id is the seeker)
   const { count: weekCount } = await db
     .from("connections")
     .select("from_profile_id", { count: "exact", head: true })
@@ -301,16 +299,12 @@ async function getConnectionStats(
     .eq("type", "request")
     .not("from_profile_id", "is", null);
 
-  // Note: This counts all connections, not just in-state. For a more accurate
-  // state-level count, we'd need a join with provider profiles. Using platform-wide
-  // stats as social proof is still valid and simpler.
-  const result = {
+  connectionStatsCache = {
     familiesThisWeek: weekCount ?? 0,
     familiesThisMonth: monthCount ?? 0,
   };
 
-  connectionStatsCache.set(state, { families: result.familiesThisMonth, week: result.familiesThisWeek });
-  return result;
+  return connectionStatsCache;
 }
 
 // ── Sequence helpers ──
@@ -709,7 +703,7 @@ export async function GET(request: NextRequest) {
         if (shouldSendPublishNudge(seq, profileCompletedAt, family.created_at)) {
           const providerCount = await countProvidersInArea(db, family.city!, family.state!, careTypes);
           const topProviders = await getTopProviders(db, family.city!, family.state!, careTypes, 3);
-          const connectionStats = await getConnectionStats(db, family.state!);
+          const connectionStats = await getConnectionStats(db);
 
           const nudgeNumber = seq.nudge_count + 1;
           const isMaintenanceNudge = seq.phase === "maintenance";

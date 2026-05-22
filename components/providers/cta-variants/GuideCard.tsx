@@ -638,6 +638,7 @@ export default function GuideCard({
         <div className="px-5 pt-5 pb-5">
           <EnrichmentState
             providerName={providerName}
+            providerId={providerSlug}
             onSave={saveEnrichment}
             onSkip={skipEnrichment}
             saving={enrichmentSubmitting}
@@ -646,6 +647,8 @@ export default function GuideCard({
             successSubtitle="Checklist sent to your email"
             providerCity={providerCity}
             providerState={providerState}
+            ctaVariant="guide"
+            ctaSurface="desktop"
           />
           {/* Re-download link */}
           {pdfUrl && (

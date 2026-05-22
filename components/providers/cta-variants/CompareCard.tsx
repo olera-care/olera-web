@@ -611,6 +611,7 @@ export default function CompareCard({
           ) : (
             <EnrichmentState
               providerName={providerCountDisplay > 1 ? `${providerCountDisplay} providers` : currentProvider.name}
+              providerId={currentProvider.slug}
               onSave={saveEnrichment}
               onSkip={skipEnrichment}
               saving={enrichmentSubmitting}
@@ -618,6 +619,8 @@ export default function CompareCard({
               successSubtitle="We'll send you details to compare"
               providerCity={currentProvider.city}
               providerState={currentProvider.state}
+              ctaVariant="compare"
+              ctaSurface="desktop"
             />
           )}
         </div>

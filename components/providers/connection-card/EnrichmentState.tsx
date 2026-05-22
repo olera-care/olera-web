@@ -5,13 +5,32 @@ import { createPortal } from "react-dom";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { RECIPIENT_OPTIONS } from "./constants";
 import type { CareRecipient } from "./types";
+import {
+  trackEnrichmentStarted,
+  trackEnrichmentStepCompleted,
+  trackEnrichmentStepSkipped,
+  trackEnrichmentCompleted,
+  type EnrichmentStep as EnrichmentStepNumber,
+} from "@/lib/analytics/enrichment-tracking";
 
 type EnrichmentStep = "recipient" | "timeline" | "careType" | "careNeed" | "payment" | "details";
+
+// Map step names to step numbers for tracking
+const STEP_TO_NUMBER: Record<EnrichmentStep, EnrichmentStepNumber> = {
+  recipient: 1,
+  timeline: 2,
+  careType: 3,
+  careNeed: 4,
+  payment: 5,
+  details: 6,
+};
 type TimelineValue = "immediate" | "within_1_month" | "within_3_months" | "exploring";
 type ContactPref = "Call" | "Text" | "Email";
 
 interface EnrichmentStateProps {
   providerName: string;
+  /** Provider ID/slug for analytics tracking */
+  providerId: string;
   onSave: (data: {
     careRecipient?: CareRecipient;
     urgency?: string;
@@ -39,6 +58,10 @@ interface EnrichmentStateProps {
   providerCity?: string | null;
   /** Provider's state for location pre-fill */
   providerState?: string | null;
+  /** CTA variant for A/B test attribution */
+  ctaVariant?: string | null;
+  /** CTA surface (desktop/mobile) */
+  ctaSurface?: "desktop" | "mobile";
 }
 
 const TIMELINE_OPTIONS: { label: string; value: TimelineValue }[] = [
@@ -154,6 +177,7 @@ function LocationDropdown({
 
 export default function EnrichmentState({
   providerName,
+  providerId,
   onSave,
   onSkip,
   saving,
@@ -164,10 +188,24 @@ export default function EnrichmentState({
   hideSuccessBanner = false,
   providerCity,
   providerState,
+  ctaVariant,
+  ctaSurface,
 }: EnrichmentStateProps) {
   void _careTypes; // Suppress unused variable warning
 
   const [step, setStep] = useState<EnrichmentStep>("recipient");
+  const hasTrackedStart = useRef(false);
+
+  // Track enrichment started on mount
+  useEffect(() => {
+    if (!hasTrackedStart.current && providerId) {
+      hasTrackedStart.current = true;
+      trackEnrichmentStarted({ providerId, ctaVariant, ctaSurface });
+    }
+  }, [providerId, ctaVariant, ctaSurface]);
+
+  // Tracking params for all events
+  const trackingParams = { providerId, ctaVariant, ctaSurface };
 
   // Step 1: Recipient
   const [recipient, setRecipient] = useState<CareRecipient | null>(null);
@@ -232,37 +270,44 @@ export default function EnrichmentState({
   // Step 1: Select recipient → auto-advance
   const selectRecipient = useCallback((val: CareRecipient) => {
     setRecipient(val);
+    trackEnrichmentStepCompleted(1, trackingParams);
     setTimeout(() => setStep("timeline"), 150);
-  }, []);
+  }, [trackingParams]);
 
   // Step 2: Select timeline → auto-advance
   const selectTimeline = useCallback((val: TimelineValue) => {
     setTimeline(val);
+    trackEnrichmentStepCompleted(2, trackingParams);
     setTimeout(() => setStep("careType"), 150);
-  }, []);
+  }, [trackingParams]);
 
   // Step 3: Select care type → auto-advance
   const selectCareType = useCallback((val: string) => {
     setCareType(val);
+    trackEnrichmentStepCompleted(3, trackingParams);
     setTimeout(() => setStep("careNeed"), 150);
-  }, []);
+  }, [trackingParams]);
 
   // Step 4: Select care need → auto-advance
   const selectCareNeed = useCallback((val: string) => {
     setCareNeed(val);
+    trackEnrichmentStepCompleted(4, trackingParams);
     setTimeout(() => setStep("payment"), 150);
-  }, []);
+  }, [trackingParams]);
 
   // Step 5: Select payment → auto-advance
   const selectPayment = useCallback((val: string) => {
     setPaymentMethod(val);
+    trackEnrichmentStepCompleted(5, trackingParams);
     setTimeout(() => setStep("details"), 150);
-  }, []);
+  }, [trackingParams]);
 
   // Step 6: Details form submission → save all data
   const handleDetailsSubmit = useCallback(() => {
+    trackEnrichmentStepCompleted(6, trackingParams);
+    trackEnrichmentCompleted(trackingParams);
     onSave(getAllData());
-  }, [onSave, getAllData]);
+  }, [onSave, getAllData, trackingParams]);
 
   // Handle city selection
   const handleCitySelect = useCallback((cityName: string, stateCode: string) => {
@@ -274,12 +319,26 @@ export default function EnrichmentState({
 
   // Skip from any step — save whatever we have
   const handleSkip = useCallback(() => {
+    const currentStepNumber = STEP_TO_NUMBER[step];
+
+    // Calculate which steps were completed before skipping
+    const completedSteps: EnrichmentStepNumber[] = [];
+    if (recipient) completedSteps.push(1);
+    if (timeline) completedSteps.push(2);
+    if (careType) completedSteps.push(3);
+    if (careNeed) completedSteps.push(4);
+    if (paymentMethod) completedSteps.push(5);
+    // Step 6 (details) can't be "completed" before skip - if they click Done, they call handleDetailsSubmit
+
+    // Track the skip event
+    trackEnrichmentStepSkipped(currentStepNumber, trackingParams, completedSteps);
+
     if (step === "recipient" && !recipient) {
       onSkip();
     } else {
       onSave(getAllData());
     }
-  }, [step, recipient, onSave, onSkip, getAllData]);
+  }, [step, recipient, timeline, careType, careNeed, paymentMethod, onSave, onSkip, getAllData, trackingParams]);
 
   // Progress indicator (steps 1-6)
   const stepNumber = {

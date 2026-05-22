@@ -92,6 +92,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
         {hook.cardState === "enrichment" && (
           <EnrichmentState
             providerName={providerName}
+            providerId={props.providerSlug}
             onSave={hook.saveEnrichment}
             onSkip={hook.skipEnrichment}
             saving={hook.submitting}
@@ -99,6 +100,8 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             priceRange={props.priceRange}
             providerCity={props.city}
             providerState={props.state}
+            ctaVariant={props.ctaVariant}
+            ctaSurface={props.ctaSurface}
           />
         )}
 

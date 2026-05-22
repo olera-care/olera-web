@@ -559,6 +559,7 @@ export default function GuideBottomSheet({
             <>
               <EnrichmentState
                 providerName={providerName}
+                providerId={providerSlug}
                 onSave={saveEnrichment}
                 onSkip={skipEnrichment}
                 saving={enrichmentSubmitting}
@@ -566,6 +567,8 @@ export default function GuideBottomSheet({
                 successSubtitle="Checklist sent to your email"
                 providerCity={providerCity}
                 providerState={providerState}
+                ctaVariant="guide"
+                ctaSurface="mobile"
               />
               {/* Re-download link */}
               {pdfUrl && (

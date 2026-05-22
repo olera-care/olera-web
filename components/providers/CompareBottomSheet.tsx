@@ -721,6 +721,7 @@ export default function CompareBottomSheet({
             ) : (
               <EnrichmentState
                 providerName={selectedCount > 1 ? `${selectedCount} providers` : currentProvider.name}
+                providerId={currentProvider.slug}
                 onSave={saveEnrichment}
                 onSkip={skipEnrichment}
                 saving={enrichmentSubmitting}
@@ -728,6 +729,8 @@ export default function CompareBottomSheet({
                 successSubtitle="We'll send you details to compare"
                 providerCity={currentProvider.city}
                 providerState={currentProvider.state}
+                ctaVariant="compare"
+                ctaSurface="mobile"
               />
             )}
           </div>

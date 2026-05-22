@@ -3,8 +3,9 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import type { FamilyMetadata, NudgeSequence } from "@/lib/types";
 
-// Profile completeness threshold (must match cron job)
-const READY_TO_PUBLISH_THRESHOLD = 60;  // ≥60% can publish (matches cron/family-nudges)
+// Profile completeness thresholds (must match cron job)
+const READY_TO_PUBLISH_THRESHOLD = 60;   // ≥60% can publish (matches cron/family-nudges)
+const FULLY_COMPLETE_THRESHOLD = 100;    // 100% is fully complete (no more nudges needed)
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = ReturnType<typeof getServiceClient>;
@@ -127,26 +128,31 @@ function isPublished(meta: FamilyMetadata): boolean {
   return meta.care_post?.status === "active";
 }
 
-function getActiveSequence(meta: FamilyMetadata, readyToPublish: boolean): NudgeSequence | null {
+function getActiveSequence(meta: FamilyMetadata, readyToPublish: boolean, fullyComplete: boolean): NudgeSequence | null {
   const published = isPublished(meta);
 
-  // If profile is published AND complete, no sequence is active (success!)
-  if (published && readyToPublish) return null;
+  // If profile is published AND fully complete (100%), no sequence is active (success!)
+  if (published && fullyComplete) return null;
 
-  // If profile incomplete (published or not), use completion sequence
+  // If not ready to publish (< 60%), use completion sequence
   if (!readyToPublish) {
     return meta.completion_sequence ?? null;
   }
 
-  // If profile complete but not published, use publish sequence
+  // If published but not fully complete (60-99%), use completion sequence
+  if (published && !fullyComplete) {
+    return meta.completion_sequence ?? null;
+  }
+
+  // If ready to publish (≥ 60%) but not published, use publish sequence
   return meta.publish_sequence ?? null;
 }
 
-function getNudgePhase(meta: FamilyMetadata, readyToPublish: boolean): "none" | "active" | "maintenance" | "done" {
-  // Only "done" if published AND complete
-  if (isPublished(meta) && readyToPublish) return "done";
+function getNudgePhase(meta: FamilyMetadata, readyToPublish: boolean, fullyComplete: boolean): "none" | "active" | "maintenance" | "done" {
+  // Only "done" if published AND fully complete (100%)
+  if (isPublished(meta) && fullyComplete) return "done";
 
-  const seq = getActiveSequence(meta, readyToPublish);
+  const seq = getActiveSequence(meta, readyToPublish, fullyComplete);
   if (!seq) return "none";
 
   return seq.phase;
@@ -162,10 +168,12 @@ function getCooldownForNudge(nudgeCount: number, cooldowns: number[]): number {
 function needsNudge(seeker: SeekerQueryResult, email: string | null): boolean {
   const meta = (seeker.metadata || {}) as FamilyMetadata;
   const readyToPublish = isReadyToPublish(seeker, email);
+  const completeness = calculateFamilyCompleteness(seeker, email);
+  const fullyComplete = completeness.percentage >= FULLY_COMPLETE_THRESHOLD;
 
-  // Skip if published AND complete (success!)
-  // Published but incomplete profiles still need completion nudges
-  if (isPublished(meta) && readyToPublish) return false;
+  // Skip if published AND fully complete (100%) — SUCCESS!
+  // Published but < 100% profiles still need completion nudges
+  if (isPublished(meta) && fullyComplete) return false;
   if (meta.nudges_unsubscribed === true) return false;
 
   // Skip if was published 30+ days ago then unpublished (respect their decision)
@@ -180,9 +188,9 @@ function needsNudge(seeker: SeekerQueryResult, email: string | null): boolean {
   const published = isPublished(meta);
 
   // Check which sequence applies:
-  // - Published profiles: only completion sequence (no re-publish nudges)
-  // - Unpublished + complete: publish sequence
-  // - Unpublished + incomplete: completion sequence
+  // - Published but < 100%: completion sequence (to reach 100%)
+  // - Unpublished + < 60%: completion sequence (to reach publishable state)
+  // - Unpublished + ≥ 60%: publish sequence (to get them to publish)
   const seq = (published || !readyToPublish)
     ? (meta.completion_sequence ?? { nudge_count: 0, phase: "active" as const })
     : (meta.publish_sequence ?? { nudge_count: 0, phase: "active" as const });
@@ -320,11 +328,18 @@ export async function GET(request: NextRequest) {
     // Transform data with computed fields
     let seekers = (data ?? []).map((seeker) => {
       const meta = (seeker.metadata || {}) as FamilyMetadata;
-      const readyToPublish = isReadyToPublish(seeker, seeker.email);
-      const phase = getNudgePhase(meta, readyToPublish);
+      const completeness = calculateFamilyCompleteness(seeker, seeker.email);
+      const readyToPublish = completeness.percentage >= READY_TO_PUBLISH_THRESHOLD;
+      const fullyComplete = completeness.percentage >= FULLY_COMPLETE_THRESHOLD;
+      const published = isPublished(meta);
+      const phase = getNudgePhase(meta, readyToPublish, fullyComplete);
 
-      // Get current sequence for display
-      const currentSeq = readyToPublish ? meta.publish_sequence : meta.completion_sequence;
+      // Get current sequence for display:
+      // - Published but not fully complete (60-99%): completion sequence
+      // - Not ready to publish (< 60%): completion sequence
+      // - Ready to publish but not published (≥ 60%): publish sequence
+      const inCompletionSequence = !readyToPublish || (published && !fullyComplete);
+      const currentSeq = inCompletionSequence ? meta.completion_sequence : meta.publish_sequence;
 
       return {
         ...seeker,
@@ -332,7 +347,7 @@ export async function GET(request: NextRequest) {
         profile_complete: readyToPublish,
         nudge_phase: phase,
         current_sequence: currentSeq || null,
-        sequence_type: readyToPublish ? "publish" : "completion",
+        sequence_type: inCompletionSequence ? "completion" : "publish",
       };
     });
 

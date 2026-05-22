@@ -129,7 +129,7 @@ export const CRON_REGISTRY: CronJob[] = [
     name: "Lead family nudge",
     description:
       "Twice-weekly nudge to families with active leads who need to complete or publish their profile. One email per family per run.",
-    recipientCohort: "Families with leads 2+ days old whose profile is incomplete (<80%) or not published.",
+    recipientCohort: "Families with leads 2+ days old whose profile is incomplete (<60%) or not published.",
     audience: "Care seekers",
     fn: "nudge",
     schedule: "0 16 * * 2,5",

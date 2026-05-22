@@ -25,10 +25,10 @@ import type { NudgeSequence, NudgeSequencePhase, FamilyMetadata } from "@/lib/ty
  *
  * Runs daily at 3 PM UTC. Sequence-based re-engagement system:
  *
- * PROFILE COMPLETENESS: Uses ≥80% threshold (same as lead-family-nudge)
- * to determine if a profile is "complete". This is calculated using
- * calculateFamilyCompleteness() which weighs fields like photo, contact
- * info, care types, payment methods, etc.
+ * PROFILE COMPLETENESS: Uses ≥60% threshold to determine if a profile
+ * is "complete". This is calculated using calculateFamilyCompleteness()
+ * which weighs fields like photo, contact info, care types, payment
+ * methods, etc. Lowered from 80% so enrichment completion is sufficient.
  *
  * PHASE 1: Profile Completion (4 active nudges + 6 monthly max)
  * - Nudge #1: Day 3 after signup — What's missing, why it matters
@@ -45,7 +45,7 @@ import type { NudgeSequence, NudgeSequencePhase, FamilyMetadata } from "@/lib/ty
  * - Maintenance: Every 30 days, max 6 times — Updated stats
  *
  * STOP CONDITIONS:
- * - Profile becomes ≥80% complete → stop completion, start publish
+ * - Profile becomes ≥60% complete → stop completion, start publish
  * - Profile gets published → stop ALL sequences (SUCCESS!)
  * - User unsubscribes → stop ALL sequences forever
  * - Was published 30+ days ago then unpublished → don't re-nudge to publish
@@ -64,7 +64,7 @@ const COMPLETION_COOLDOWNS = [3, 5, 7, 7]; // days between nudges in active phas
 const PUBLISH_COOLDOWNS = [1, 4, 5, 5];    // days between nudges in active phase (first is after profile complete)
 const MAINTENANCE_COOLDOWN = 30;           // days between maintenance nudges
 const MAX_MAINTENANCE_NUDGES = 6;          // cap monthly nudges at 6 (stop after ~8 months total)
-const PROFILE_COMPLETE_THRESHOLD = 80;     // must be ≥80% to be considered "complete" (matches lead-family-nudge)
+const PROFILE_COMPLETE_THRESHOLD = 60;     // must be ≥60% to be considered "complete" (lowered so enrichment completion is sufficient)
 const REPUBLISH_GRACE_PERIOD_DAYS = 30;    // don't nudge to re-publish if was published 30+ days ago
 
 // ── Care type mapping: family profile → olera-providers ──

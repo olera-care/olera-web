@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { getServiceClient } from "@/lib/admin";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
@@ -333,24 +332,19 @@ async function generateMagicLinkUrl(
         .single();
 
       if (account?.user_id) {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        // Use the existing service client for auth operations (no need to create new client)
+        const { data: linkData, error: linkError } = await db.auth.admin.generateLink({
+          type: "magiclink",
+          email: family.email,
+          options: {
+            redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(destinationPath)}`,
+          },
+        });
 
-        if (supabaseUrl && serviceKey) {
-          const authClient = createClient(supabaseUrl, serviceKey);
-          const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
-            type: "magiclink",
-            email: family.email,
-            options: {
-              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(destinationPath)}`,
-            },
-          });
-
-          if (!linkError && linkData?.properties?.action_link) {
-            return linkData.properties.action_link;
-          } else if (linkError) {
-            console.warn("[family-nudges] Failed to generate magic link:", linkError);
-          }
+        if (!linkError && linkData?.properties?.action_link) {
+          return linkData.properties.action_link;
+        } else if (linkError) {
+          console.warn("[family-nudges] Failed to generate magic link:", linkError);
         }
       }
     } catch (err) {

@@ -701,8 +701,14 @@ export async function GET(request: NextRequest) {
         const profileCompletedAt = meta.last_active_at;
 
         if (shouldSendPublishNudge(seq, profileCompletedAt, family.created_at)) {
-          const providerCount = await countProvidersInArea(db, family.city!, family.state!, careTypes);
-          const topProviders = await getTopProviders(db, family.city!, family.state!, careTypes, 3);
+          // Defensive: check location exists (should always be true for complete profiles)
+          const hasLocation = family.city && family.state;
+          const providerCount = hasLocation
+            ? await countProvidersInArea(db, family.city!, family.state!, careTypes)
+            : undefined;
+          const topProviders = hasLocation
+            ? await getTopProviders(db, family.city!, family.state!, careTypes, 3)
+            : [];
           const connectionStats = await getConnectionStats(db);
 
           const nudgeNumber = seq.nudge_count + 1;
@@ -728,7 +734,7 @@ export async function GET(request: NextRequest) {
                 subject = "Go live — let providers find you";
                 break;
               case 2:
-                subject = `${providerCount > 0 ? providerCount + " " : ""}providers in ${family.city || "your area"} are looking`;
+                subject = `${providerCount && providerCount > 0 ? providerCount + " " : ""}providers in ${family.city || "your area"} are looking`;
                 break;
               case 3:
                 subject = `Families in ${family.city || family.state || "your area"} are finding care`;

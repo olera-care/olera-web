@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { useProfileCompleteness, type SectionStatus } from "./completeness";
@@ -104,6 +105,10 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
   const hasLocation = Boolean(profile?.city && profile?.state);
   const hasCareTypes = Boolean(profile?.care_types && profile.care_types.length > 0);
   const canGoLive = hasLocation && hasCareTypes;
+
+  // Check if profile is live
+  const carePost = meta.care_post as { status?: string; published_at?: string } | undefined;
+  const isLive = carePost?.status === "active";
 
   const handleQuickGoLive = useCallback(async () => {
     if (!canGoLive) return;
@@ -281,6 +286,58 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
               Edit profile
             </button>
           </div>
+        </div>
+
+        {/* ── Mobile Go Live Card ── */}
+        <div className="lg:hidden p-4 sm:p-5 border-b border-gray-100">
+          {isLive ? (
+            // Live status
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live
+                </span>
+                <span className="text-sm text-gray-500">Providers can find you</span>
+              </div>
+              <Link
+                href="/portal/inbox"
+                className="text-sm font-medium text-primary-600 hover:text-primary-700"
+              >
+                View inbox
+              </Link>
+            </div>
+          ) : canGoLive ? (
+            // Can go live - show button
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900">Ready to go live?</p>
+                <p className="text-xs text-gray-500 mt-0.5">Let providers find and contact you</p>
+              </div>
+              <button
+                onClick={handleQuickGoLive}
+                disabled={activatingProfile}
+                className="shrink-0 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-full transition-colors disabled:opacity-50"
+              >
+                {activatingProfile ? "Publishing..." : "Go live"}
+              </button>
+            </div>
+          ) : (
+            // Can't go live yet - show what's needed
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">Complete your profile to go live</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Add your {!hasLocation && "location"}{!hasLocation && !hasCareTypes && " and "}{!hasCareTypes && "care type"}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── Contact Information ── */}

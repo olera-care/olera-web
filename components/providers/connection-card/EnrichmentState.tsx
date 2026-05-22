@@ -83,8 +83,7 @@ const CARE_TYPE_OPTIONS: { label: string; value: string }[] = [
 ];
 
 const CARE_NEED_OPTIONS: { label: string; value: string }[] = [
-  { label: "Personal care", value: "personal_care" },
-  { label: "Household tasks", value: "household_tasks" },
+  { label: "Daily living help", value: "daily_living" }, // Covers personal care + household tasks
   { label: "Health management", value: "health_management" },
   { label: "Companionship", value: "companionship" },
   { label: "Memory care", value: "memory_care" },
@@ -647,31 +646,7 @@ export default function EnrichmentState({
               />
             </div>
 
-            {/* Location */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Location
-              </label>
-              <input
-                ref={cityInputRef}
-                type="text"
-                value={locationInput}
-                onChange={(e) => {
-                  setLocationInput(e.target.value);
-                  setShowCityDropdown(true);
-                }}
-                onFocus={() => setShowCityDropdown(true)}
-                placeholder="Search for your city..."
-                className="w-full px-4 py-3 rounded-xl bg-gray-100 border-0 focus:bg-white focus:ring-2 focus:ring-gray-900/10 outline-none transition-all text-gray-900 placeholder:text-gray-400"
-              />
-              <LocationDropdown
-                inputRef={cityInputRef}
-                dropdownRef={dropdownRef}
-                results={cityResults}
-                onSelect={handleCitySelect}
-                show={showCityDropdown}
-              />
-            </div>
+            {/* Location is pre-filled silently from provider's city/state */}
           </div>
 
           {/* Done button */}

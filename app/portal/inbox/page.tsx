@@ -101,30 +101,16 @@ function InboxContent() {
     };
   }, [profiles]);
 
-  // Check if family profile's care post is live
-  const [isProfileLive, setIsProfileLive] = useState(false);
+  // Check if family profile's care post is live (stored in metadata.care_post.status)
+  const isProfileLive = useMemo(() => {
+    if (!familyProfile) return false;
+    const metadata = familyProfile.metadata as Record<string, unknown> | null;
+    const carePost = metadata?.care_post as { status?: string } | undefined;
+    return carePost?.status === "active";
+  }, [familyProfile]);
 
-  useEffect(() => {
-    if (!familyProfileId || !isSupabaseConfigured()) return;
-
-    const checkCarePostStatus = async () => {
-      try {
-        const supabase = createClient();
-        const { data } = await supabase
-          .from("care_posts")
-          .select("status")
-          .eq("profile_id", familyProfileId)
-          .single();
-
-        setIsProfileLive(data?.status === "active");
-      } catch {
-        // No care post or error — treat as not live
-        setIsProfileLive(false);
-      }
-    };
-
-    checkCarePostStatus();
-  }, [familyProfileId]);
+  // Track local override when user publishes (before profiles refresh)
+  const [justPublished, setJustPublished] = useState(false);
 
   // Only show role filters for users with both family AND provider profiles
   const showRoleFilters = hasProviderProfile && hasFamilyProfile;
@@ -914,7 +900,7 @@ function InboxContent() {
         onRoleFilterChange={handleRoleFilterChange}
         providerProfileIds={providerProfileIds}
         showRoleFilters={showRoleFilters}
-        isProfileLive={isProfileLive}
+        isProfileLive={isProfileLive || justPublished}
         familyProfileId={familyProfileId || undefined}
         familyTab={familyTab}
         onFamilyTabChange={setFamilyTab}
@@ -948,8 +934,8 @@ function InboxContent() {
           variant={roleFilter === "provider" ? "provider" : "family"}
           familyProfile={familyProfile}
           userEmail={user?.email}
-          isProfileLive={isProfileLive}
-          onProfilePublished={() => setIsProfileLive(true)}
+          isProfileLive={isProfileLive || justPublished}
+          onProfilePublished={() => setJustPublished(true)}
         />
       )}
 

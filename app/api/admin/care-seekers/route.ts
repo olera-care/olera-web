@@ -344,7 +344,8 @@ export async function GET(request: NextRequest) {
       return {
         ...seeker,
         connection_count: connectionCounts[seeker.id] || 0,
-        profile_complete: readyToPublish,
+        profile_complete: readyToPublish,      // ≥60% (ready to publish)
+        fully_complete: fullyComplete,          // 100% (no more nudges needed)
         nudge_phase: phase,
         current_sequence: currentSeq || null,
         sequence_type: inCompletionSequence ? "completion" : "publish",

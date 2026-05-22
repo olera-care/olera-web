@@ -24,7 +24,8 @@ interface SeekerRow {
   source: string;
   created_at: string;
   connection_count: number;
-  profile_complete: boolean;
+  profile_complete: boolean;   // ≥60% (ready to publish)
+  fully_complete: boolean;     // 100% (no more nudges needed)
   nudge_phase: "none" | "active" | "maintenance" | "done";
   current_sequence: NudgeSequence | null;
   sequence_type: "completion" | "publish";
@@ -207,8 +208,8 @@ function getNudgeStatus(seeker: SeekerRow): {
   const nudgeCount = seq?.nudge_count || 0;
   const isMaintenancePhase = seq?.phase === "maintenance";
 
-  // Published AND complete = success (green)
-  if (isPublished && seeker.profile_complete) {
+  // Published AND fully complete (100%) = success (green)
+  if (isPublished && seeker.fully_complete) {
     return { label: "Published", sublabel: "Done", isSuccess: true };
   }
 
@@ -221,8 +222,8 @@ function getNudgeStatus(seeker: SeekerRow): {
   const sequenceType = seeker.sequence_type; // "completion" or "publish"
   const sequenceLabel = sequenceType === "completion" ? "Profile" : "Publish";
 
-  // Published but incomplete - show both states
-  if (isPublished && !seeker.profile_complete) {
+  // Published but not fully complete (< 100%) - show both states
+  if (isPublished && !seeker.fully_complete) {
     if (isMaintenancePhase) {
       const lastNudge = seq?.last_nudge_at;
       return {

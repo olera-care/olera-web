@@ -897,11 +897,6 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
     completeOnboarding(true, true); // Show confirmation after activation
   }, [completeOnboarding]);
 
-  const handleViewProfile = useCallback(() => {
-    setNavigating(true);
-    router.push(destination);
-  }, [router, destination]);
-
   // Navigate to inbox with a specific provider, marking onboarding complete first
   const handleStartConversation = useCallback(async (providerId: string) => {
     setNavigating(true);
@@ -1866,7 +1861,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                     {/* Secondary: Context-aware button */}
                     {connection ? (
                       <button
-                        onClick={handleViewProfile}
+                        onClick={() => handleStartConversation(connection.to_profile!.id)}
                         disabled={navigating}
                         className="w-full min-h-[48px] px-6 text-[15px] font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
@@ -1879,7 +1874,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                             Loading...
                           </>
                         ) : (
-                          "View my profile"
+                          `Message ${connection.to_profile?.display_name || "provider"}`
                         )}
                       </button>
                     ) : (

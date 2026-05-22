@@ -12,6 +12,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Select from "@/components/ui/Select";
 
 interface AuditRow {
   slug: string;
@@ -106,16 +107,17 @@ export default function CatchmentAuditPage() {
               />
               Show empty-catchment universities
             </label>
-            <select
+            <Select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortKey)}
-              className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs"
-            >
-              <option value="in_catchment">Sort: providers in catchment</option>
-              <option value="in_states">Sort: providers in states</option>
-              <option value="active">Sort: activated first</option>
-              <option value="name">Sort: name</option>
-            </select>
+              onChange={(val) => setSortBy(val as SortKey)}
+              size="sm"
+              options={[
+                { value: "in_catchment", label: "Sort: providers in catchment" },
+                { value: "in_states", label: "Sort: providers in states" },
+                { value: "active", label: "Sort: activated first" },
+                { value: "name", label: "Sort: name" },
+              ]}
+            />
           </div>
         </div>
       )}

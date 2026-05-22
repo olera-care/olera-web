@@ -948,6 +948,8 @@ function InboxContent() {
           variant={roleFilter === "provider" ? "provider" : "family"}
           familyProfile={familyProfile}
           userEmail={user?.email}
+          isProfileLive={isProfileLive}
+          onProfilePublished={() => setIsProfileLive(true)}
         />
       )}
 

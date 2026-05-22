@@ -724,7 +724,7 @@ export default function CompareBottomSheet({
                 onSave={saveEnrichment}
                 onSkip={skipEnrichment}
                 saving={enrichmentSubmitting}
-                successTitle={`Requested ${selectedCount} details`}
+                successTitle={`Requested ${selectedCount} detail${selectedCount !== 1 ? "s" : ""}`}
                 successSubtitle="We'll send you details to compare"
                 providerCity={currentProvider.city}
                 providerState={currentProvider.state}
@@ -745,7 +745,7 @@ export default function CompareBottomSheet({
                 <h3 className="text-lg font-bold text-gray-900">
                   {connectionIds.length === 1
                     ? `Connected with ${currentProvider.name}`
-                    : `Requested ${connectionIds.length} details`}
+                    : `Requested ${connectionIds.length} detail${connectionIds.length !== 1 ? "s" : ""}`}
                 </h3>
                 <p className="text-sm text-gray-500">
                   {connectionIds.length === 1
@@ -852,7 +852,7 @@ export default function CompareBottomSheet({
                   >
                     {selectedCount === 0
                       ? "Select at least one"
-                      : `Get ${selectedCount} details`}
+                      : `Get ${selectedCount} detail${selectedCount !== 1 ? "s" : ""}`}
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
@@ -871,7 +871,7 @@ export default function CompareBottomSheet({
                   >
                     {selectedCount === 0
                       ? "Select at least one"
-                      : `Get ${selectedCount} details`}
+                      : `Get ${selectedCount} detail${selectedCount !== 1 ? "s" : ""}`}
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
@@ -909,7 +909,7 @@ export default function CompareBottomSheet({
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <h3 className="text-lg font-bold text-gray-900">
-                  Get {selectedCount} details
+                  Get {selectedCount} detail{selectedCount !== 1 ? "s" : ""}
                 </h3>
                 <p className="text-sm text-gray-500">We&apos;ll send you details to compare.</p>
               </div>
@@ -944,7 +944,7 @@ export default function CompareBottomSheet({
                     </>
                   ) : (
                     <>
-                      Get {selectedCount} details
+                      Get {selectedCount} detail{selectedCount !== 1 ? "s" : ""}
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                       </svg>

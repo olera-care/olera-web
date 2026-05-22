@@ -614,7 +614,7 @@ export default function CompareCard({
               onSave={saveEnrichment}
               onSkip={skipEnrichment}
               saving={enrichmentSubmitting}
-              successTitle={`Requested ${providerCountDisplay} details`}
+              successTitle={`Requested ${providerCountDisplay} detail${providerCountDisplay !== 1 ? "s" : ""}`}
               successSubtitle="We'll send you details to compare"
               providerCity={currentProvider.city}
               providerState={currentProvider.state}
@@ -682,7 +682,7 @@ export default function CompareCard({
               </svg>
             </div>
             <p className="text-[14px] font-semibold text-gray-900">
-              Requested {savedCount} details
+              Requested {savedCount} detail{savedCount !== 1 ? "s" : ""}
             </p>
           </div>
 
@@ -1051,7 +1051,7 @@ export default function CompareCard({
                 </>
               ) : (
                 <>
-                  Get {selectedCount} details
+                  Get {selectedCount} detail{selectedCount !== 1 ? "s" : ""}
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
@@ -1068,7 +1068,7 @@ export default function CompareCard({
           >
             {selectedCount === 0
               ? "Select at least one"
-              : `Get ${selectedCount} details`}
+              : `Get ${selectedCount} detail${selectedCount !== 1 ? "s" : ""}`}
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>

@@ -138,7 +138,7 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
           services={careTypes}
           highlights={highlights}
           similarProviders={similarProviders}
-          ctaVariant={variant}
+          ctaVariant={variant ?? "compare"}
           ctaPreviewMode={isPreview}
         />
       );
@@ -154,7 +154,7 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
           providerImage={providerImage}
           careTypes={careTypes}
           priceRange={priceRange}
-          ctaVariant={variant}
+          ctaVariant={variant ?? "guide"}
           ctaPreviewMode={isPreview}
         />
       );
@@ -267,7 +267,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           services={careTypes}
           highlights={highlights}
           similarProviders={similarProviders}
-          ctaVariant={variant}
+          ctaVariant={variant ?? "compare"}
           ctaPreviewMode={isPreview}
         />
       );
@@ -284,7 +284,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           priceRange={priceRange}
           pricingTier={pricingTier}
           pricingDisclaimer={pricingDisclaimer}
-          ctaVariant={variant}
+          ctaVariant={variant ?? "guide"}
           ctaPreviewMode={isPreview}
         />
       );

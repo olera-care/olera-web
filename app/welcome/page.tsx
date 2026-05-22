@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default function WelcomePage() {
   return (
     <Suspense fallback={<WelcomeLoading />}>
-      <WelcomeClient destination="/portal/inbox" />
+      <WelcomeClient destination="/portal/profile" />
     </Suspense>
   );
 }

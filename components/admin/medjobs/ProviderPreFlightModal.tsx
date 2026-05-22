@@ -58,6 +58,7 @@ import {
   type CallScript,
 } from "@/lib/student-outreach/sequencer";
 import type { Contact } from "@/lib/student-outreach/types";
+import Input from "@/components/ui/Input";
 import { getProgramPdfConfig } from "@/lib/program-pdf/configs";
 
 interface Props {
@@ -466,7 +467,7 @@ export function ProviderPreFlightModal({
                         className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
                           programPdfAttachment.source === "custom"
                             ? "bg-blue-50 text-blue-700"
-                            : "bg-emerald-50 text-emerald-700"
+                            : "bg-primary-50 text-primary-700"
                         }`}
                       >
                         {programPdfAttachment.source === "custom"
@@ -544,7 +545,7 @@ export function ProviderPreFlightModal({
                             )}
                             <span
                               className={`text-[10px] font-medium uppercase tracking-wide ${
-                                r.is_general ? "text-blue-700" : "text-emerald-700"
+                                r.is_general ? "text-blue-700" : "text-primary-700"
                               }`}
                             >
                               {r.is_general ? "general variant" : "named variant"}
@@ -695,7 +696,7 @@ export function ProviderPreFlightModal({
               disabled={
                 submitting || (queuedEmails === 0 && queuedCalls === 0)
               }
-              className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+              className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
             >
               {submitting ? "Starting…" : "Start outreach"}
             </button>
@@ -729,8 +730,8 @@ function VariantEditor({
   };
 }) {
   const [showPreview, setShowPreview] = useState(false);
-  const borderClass = tone === "blue" ? "border-blue-200" : "border-emerald-200";
-  const tagBg = tone === "blue" ? "bg-blue-50 text-blue-800" : "bg-emerald-50 text-emerald-800";
+  const borderClass = tone === "blue" ? "border-blue-200" : "border-primary-200";
+  const tagBg = tone === "blue" ? "bg-blue-50 text-blue-800" : "bg-primary-50 text-primary-800";
   const previewSubject = substitutePreviewVars(snapshot.subject, previewVars);
   const previewBody = substitutePreviewVars(snapshot.body, previewVars);
   return (
@@ -739,36 +740,34 @@ function VariantEditor({
         {label}
       </header>
       <div className="space-y-2 px-3 py-2">
-        <label className="block">
-          <span className="mb-0.5 block text-[11px] font-medium text-gray-700">
-            Subject
-          </span>
-          <input
-            value={snapshot.subject}
-            onChange={(e) => onChange({ subject: e.target.value })}
-            className="w-full rounded-md border border-gray-200 px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
-          />
-        </label>
-        <label className="block">
-          <span className="mb-0.5 flex items-center justify-between text-[11px] font-medium text-gray-700">
+        <Input
+          label="Subject"
+          value={snapshot.subject}
+          onChange={(e) => onChange({ subject: e.target.value })}
+          size="sm"
+        />
+        <div>
+          <div className="mb-1.5 flex items-center justify-between text-[13px] font-semibold text-gray-700">
             <span>Body</span>
-            <span className="font-normal text-gray-500">
+            <span className="text-[11px] font-normal text-gray-500">
               Variables: <code>{"{first_name}"}</code>{" "}
               <code>{"{organization_name}"}</code>{" "}
               <code>{"{campus_name}"}</code>
             </span>
-          </span>
-          <textarea
+          </div>
+          <Input
+            as="textarea"
             value={snapshot.body}
             onChange={(e) => onChange({ body: e.target.value })}
             rows={8}
-            className="w-full rounded-md border border-gray-200 px-2 py-1.5 text-sm font-mono focus:border-gray-400 focus:outline-none"
+            size="sm"
+            className="font-mono"
           />
-        </label>
+        </div>
         <button
           type="button"
           onClick={() => setShowPreview((s) => !s)}
-          className="text-[11px] font-medium text-emerald-700 hover:underline"
+          className="text-[11px] font-medium text-primary-700 hover:underline"
         >
           {showPreview ? "Hide preview" : "Preview substitution"}
         </button>
@@ -815,12 +814,13 @@ function CallScriptEditor({
         {label}
       </header>
       <div className="space-y-2 px-3 py-2">
-        <textarea
+        <Input
+          as="textarea"
           value={script}
           onChange={(e) => onChange(e.target.value)}
           rows={3}
           placeholder="What to say on this call: tone, key references, target ask."
-          className="w-full rounded-md border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+          size="sm"
         />
         {tips && tips.length > 0 && (
           <div className="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2">

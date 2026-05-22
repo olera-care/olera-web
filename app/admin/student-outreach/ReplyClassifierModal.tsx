@@ -6,7 +6,7 @@
  * Single triage modal shared by Replies-tab "They replied" and "Got
  * callback" actions. Five classifications drive different downstream
  * actions:
- *   keep_emailing   → log_email_replied (engaged + supersede emails)
+ *   keep_emailing   → log_email_replied (engaged, cadence continues)
  *   wants_meeting   → flag_wants_meeting (note_added meeting_in_flight)
  *   already_booked  → mark_meeting_scheduled with optional date input
  *   committed       → expands inline with PartnerEvidencePanel; submit
@@ -201,7 +201,7 @@ export function ReplyClassifierModal({
               active={choice === "keep_emailing"}
               onSelect={() => setChoice("keep_emailing")}
               label="They replied"
-              blurb="Generic reply or question. The auto-cadence stops; you'll handle replies through Gmail from here."
+              blurb="Generic reply or question. The auto-cadence continues; respond through Gmail and log updates here."
               tone="neutral"
             />
             <ChoiceCard

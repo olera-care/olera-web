@@ -371,12 +371,12 @@ function ProspectBody({
         />
         <ChecklistRow
           done={addressComplete}
-          tone="required"
+          tone="recommended"
           label="Address"
           hint={
             addressComplete
               ? "Street, city, state, ZIP set — ready for snail mail."
-              : "Required. Need street, city, state, and ZIP."
+              : "Recommended for future snail mail. Need street, city, state, and ZIP."
           }
         />
         {/* v9.1 admin feedback (Graize 05.13): Website is now
@@ -510,7 +510,7 @@ function ProspectBody({
               ? "Open the cadence pre-flight review."
               : launchDisabledReason
           }
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Launch outreach →
         </button>
@@ -617,7 +617,7 @@ function InOutreachBody({
         <button
           onClick={() => setShowLogReply(true)}
           title="Log a reply you received in your inbox."
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
           Log reply
         </button>
@@ -638,9 +638,10 @@ function InOutreachBody({
                 // Prospects for catchment Sites.
                 await action("make_client", { notes: payload.notes });
               } else if (classification === "redirected" && redirect) {
-                // P4: add the new contact + stop the original cadence
-                // via classify_reply(keep_emailing). Two dispatches so
-                // the timeline narrates both events honestly.
+                // P4: add the new contact + stop the original cadence.
+                // Two dispatches so the timeline narrates both events.
+                // stop_cadence: true ensures cadence stops for the original
+                // recipient even though we're using keep_emailing.
                 const derivedName =
                   [redirect.first_name, redirect.last_name]
                     .filter(Boolean)
@@ -655,6 +656,7 @@ function InOutreachBody({
                 await action("classify_reply", {
                   classification: "keep_emailing",
                   notes: payload.notes,
+                  stop_cadence: true,
                 });
               } else {
                 await action("classify_reply", {
@@ -741,7 +743,7 @@ function CallDueBody({
         <p className="mt-2 text-sm">
           <a
             href={`tel:${primaryContact.phone}`}
-            className="font-semibold text-emerald-700 hover:underline"
+            className="font-semibold text-primary-700 hover:underline"
           >
             📞 {primaryContact.phone}
           </a>
@@ -763,7 +765,7 @@ function CallDueBody({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           onClick={() => setShowLogCall(true)}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
           Log call outcome →
         </button>
@@ -801,6 +803,7 @@ function CallDueBody({
                 await action("classify_reply", {
                   classification: "keep_emailing",
                   notes: payload.notes,
+                  stop_cadence: true,
                 });
               } else {
                 await action("classify_reply", {
@@ -892,7 +895,7 @@ function MeetingSetBody({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           onClick={() => setShowLogMeeting(true)}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
           Log meeting →
         </button>
@@ -1037,7 +1040,7 @@ function ConvertedBody({
     : `Marked ${stageLabel.toLowerCase()}`;
   return (
     <>
-      <p className="text-sm text-emerald-800">✓ {sinceText}</p>
+      <p className="text-sm text-primary-800">✓ {sinceText}</p>
       <p className="mt-1 text-xs text-gray-500">
         Ongoing tasks (seasonal check-ins, job-board posts) surface in the timeline below.
       </p>
@@ -1134,7 +1137,7 @@ function ChecklistRow({
 }) {
   const icon = done ? "✓" : tone === "required" ? "✗" : tone === "recommended" ? "⚠" : "○";
   const iconClass = done
-    ? "text-emerald-600"
+    ? "text-primary-600"
     : tone === "required"
       ? "text-red-600"
       : tone === "recommended"

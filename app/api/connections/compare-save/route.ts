@@ -388,7 +388,7 @@ export async function POST(request: Request) {
             ? `${providerNames.slice(0, -1).join(", ")}, and ${providerNames[providerNames.length - 1]}`
             : providerNames.join(" and ");
 
-          const subject = `Welcome to Olera — Your comparison is saved`;
+          const subject = `Welcome to Olera — Your details request is confirmed`;
 
           const emailLogId = await reserveEmailLogId({
             to: normalizedEmail,
@@ -431,12 +431,12 @@ export async function POST(request: Request) {
   </p>
 
   <p style="font-size: 15px; line-height: 1.6; margin: 0 0 20px; color: #6b7280;">
-    Your account is ready. Here's what we saved for you:
+    Your account is ready. Here's what you requested:
   </p>
 
   <div style="background: #f0fdfa; border-radius: 12px; padding: 16px; margin: 0 0 20px; border-left: 4px solid #199087;">
-    <p style="font-size: 14px; color: #199087; margin: 0 0 4px; font-weight: 600;">Comparison saved</p>
-    <p style="font-size: 14px; color: #6b7280; margin: 0;">You're comparing ${providerListText}. Message any of them when you're ready.</p>
+    <p style="font-size: 14px; color: #199087; margin: 0 0 4px; font-weight: 600;">Details requested</p>
+    <p style="font-size: 14px; color: #6b7280; margin: 0;">You requested details from ${providerListText}. Message any of them when you're ready.</p>
   </div>
 
   <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px; color: #111827;">

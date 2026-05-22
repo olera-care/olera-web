@@ -24,6 +24,7 @@ import {
 } from "@/lib/student-outreach/presets";
 import type { OutreachRow, ResearchCampusCard } from "@/lib/student-outreach/types";
 import { BulkProfessorImportModal } from "./BulkProfessorImportModal";
+import Select from "@/components/ui/Select";
 
 const PROFESSOR_APPROVAL_KEY = "Email professors directly";
 
@@ -867,16 +868,17 @@ function SelectCell({
   placeholder?: string;
 }) {
   return (
-    <select
+    <Select
       value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-    >
-      {placeholder && <option value="">{placeholder}</option>}
-      {options.map((o) => (
-        <option key={o} value={o}>{o}</option>
-      ))}
-    </select>
+      onChange={onChange}
+      placeholder={placeholder}
+      size="sm"
+      options={
+        placeholder
+          ? [{ value: "", label: placeholder }, ...options.map((o) => ({ value: o, label: o }))]
+          : options.map((o) => ({ value: o, label: o }))
+      }
+    />
   );
 }
 

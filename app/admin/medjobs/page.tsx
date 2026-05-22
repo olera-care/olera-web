@@ -154,7 +154,7 @@ export default function AdminMedJobsPage() {
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-2.5 rounded-lg shadow-lg text-sm font-medium ${
-          toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"
+          toast.type === "success" ? "bg-primary-600 text-white" : "bg-red-600 text-white"
         }`}>
           {toast.message}
         </div>
@@ -182,7 +182,7 @@ export default function AdminMedJobsPage() {
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">New This Week</p>
-          <p className="text-2xl font-bold text-emerald-600">{loading ? "—" : stats.thisWeek}</p>
+          <p className="text-2xl font-bold text-primary-600">{loading ? "—" : stats.thisWeek}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Total Applications</p>
@@ -256,13 +256,13 @@ export default function AdminMedJobsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
-                        <span title="Driver's license" className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${meta.drivers_license_url ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-400"}`}>
+                        <span title="Driver's license" className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${meta.drivers_license_url ? "bg-primary-100 text-primary-700" : "bg-gray-100 text-gray-400"}`}>
                           DL
                         </span>
-                        <span title="Car insurance" className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${meta.car_insurance_url ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-400"}`}>
+                        <span title="Car insurance" className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${meta.car_insurance_url ? "bg-primary-100 text-primary-700" : "bg-gray-100 text-gray-400"}`}>
                           CI
                         </span>
-                        <span title="Video intro" className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${meta.video_intro_url ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-400"}`}>
+                        <span title="Video intro" className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${meta.video_intro_url ? "bg-primary-100 text-primary-700" : "bg-gray-100 text-gray-400"}`}>
                           V
                         </span>
                       </div>
@@ -271,7 +271,7 @@ export default function AdminMedJobsPage() {
                       <div className="flex items-center gap-2">
                         <div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${completeness >= 70 ? "bg-emerald-500" : completeness >= 40 ? "bg-amber-500" : "bg-red-400"}`}
+                            className={`h-full rounded-full ${completeness >= 70 ? "bg-primary-500" : completeness >= 40 ? "bg-amber-500" : "bg-red-400"}`}
                             style={{ width: `${completeness}%` }}
                           />
                         </div>

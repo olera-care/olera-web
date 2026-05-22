@@ -75,7 +75,7 @@ export default function ClientsPage() {
         and past actions live in{" "}
         <a
           href="/admin/medjobs/logs?source=client"
-          className="font-medium text-emerald-700 underline hover:no-underline"
+          className="font-medium text-primary-700 underline hover:no-underline"
         >
           Logs
         </a>
@@ -100,7 +100,7 @@ export default function ClientsPage() {
           No clients with pending steps right now. View past activity in{" "}
           <a
             href="/admin/medjobs/logs?source=client"
-            className="font-medium text-emerald-700 underline hover:no-underline"
+            className="font-medium text-primary-700 underline hover:no-underline"
           >
             Logs
           </a>

@@ -30,7 +30,7 @@ export function EmptyState({
         </p>
         <button
           onClick={onAdd}
-          className="mt-4 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+          className="mt-4 rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
         >
           + Add Stakeholder
         </button>

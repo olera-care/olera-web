@@ -20,6 +20,7 @@
  */
 
 import type { DistributionEvidence } from "@/lib/student-outreach/types";
+import Input from "@/components/ui/Input";
 
 export interface PartnerEvidence {
   evidence: DistributionEvidence;
@@ -71,8 +72,8 @@ export function PartnerEvidencePanel({
   heading,
 }: Props) {
   return (
-    <div className="space-y-2 rounded-md border border-emerald-200 bg-emerald-50/40 p-3">
-      <p className="text-xs font-medium text-emerald-900">
+    <div className="space-y-2 rounded-md border border-primary-200 bg-primary-50/40 p-3">
+      <p className="text-xs font-medium text-primary-900">
         {heading ?? "How do you know they're distributing?"}
       </p>
       <div className="space-y-1.5">
@@ -81,8 +82,8 @@ export function PartnerEvidencePanel({
             key={opt.value}
             className={`flex cursor-pointer items-start gap-2 rounded-md border p-2.5 ${
               evidence === opt.value
-                ? "border-emerald-600 bg-white"
-                : "border-gray-200 bg-white hover:bg-emerald-50/30"
+                ? "border-primary-600 bg-white"
+                : "border-gray-200 bg-white hover:bg-primary-50/30"
             }`}
           >
             <input
@@ -100,18 +101,15 @@ export function PartnerEvidencePanel({
         ))}
       </div>
 
-      <label className="block">
-        <span className="mb-1 block text-xs font-medium text-gray-600">
-          Evidence notes (optional)
-        </span>
-        <textarea
-          value={notes}
-          onChange={(e) => onNotesChange(e.target.value)}
-          rows={2}
-          placeholder='e.g. "Saw on @berkeleypremed IG story 5/4"'
-          className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-        />
-      </label>
+      <Input
+        as="textarea"
+        label="Evidence notes (optional)"
+        value={notes}
+        onChange={(e) => onNotesChange(e.target.value)}
+        rows={2}
+        placeholder='e.g. "Saw on @berkeleypremed IG story 5/4"'
+        size="sm"
+      />
     </div>
   );
 }

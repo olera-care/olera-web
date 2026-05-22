@@ -71,7 +71,7 @@ export function CardOverflowMenu({ items }: { items: CardOverflowItem[] }) {
                 item.tone === "danger"
                   ? "text-red-600 hover:bg-red-50"
                   : item.tone === "celebration"
-                    ? "text-emerald-700 hover:bg-emerald-50"
+                    ? "text-primary-700 hover:bg-primary-50"
                     : "text-gray-700 hover:bg-gray-50"
               }`}
             >

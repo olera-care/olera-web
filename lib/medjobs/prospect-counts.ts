@@ -84,7 +84,7 @@ export async function countProspectGeneration(
       .in("type", ["organization", "caregiver"]),
     db
       .from("student_outreach")
-      .select("provider_business_profile_id, campus_id")
+      .select("provider_business_profile_id, campus_id, research_data")
       .eq("kind", "provider"),
   ]);
 
@@ -109,9 +109,14 @@ export async function countProspectGeneration(
   for (const r of (materializedData ?? []) as Array<{
     provider_business_profile_id: string | null;
     campus_id: string;
+    research_data: { olera_provider_id?: string } | null;
   }>) {
+    // Support both legacy (provider_business_profile_id) and new (olera_provider_id)
     if (r.provider_business_profile_id) {
       materializedPairs.add(`${r.provider_business_profile_id}|${r.campus_id}`);
+    }
+    if (r.research_data?.olera_provider_id) {
+      materializedPairs.add(`${r.research_data.olera_provider_id}|${r.campus_id}`);
     }
   }
 

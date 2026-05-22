@@ -45,6 +45,8 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Contact, DrawerContext } from "@/lib/student-outreach/types";
 import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
+import Select from "@/components/ui/Select";
+import Input from "@/components/ui/Input";
 
 type ActionFn = (
   actionName: string,
@@ -128,7 +130,7 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
             href={livePagePath}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 text-xs font-medium text-emerald-700 hover:underline"
+            className="shrink-0 text-xs font-medium text-primary-700 hover:underline"
           >
             🔗 Open live page →
           </a>
@@ -220,13 +222,14 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
         <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
           Research notes
         </p>
-        <textarea
+        <Input
+          as="textarea"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           onBlur={saveNotes}
           placeholder="Source of contact info, agency character, hiring activity, anything else worth remembering."
           rows={3}
-          className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+          size="sm"
         />
         <p className="mt-0.5 text-[11px] text-gray-400">
           {savingNotes ? "Saving…" : "Saved on blur"}
@@ -423,39 +426,40 @@ function GeneralContactSection({
               when read-only. */}
           {editable ? (
             <div className="space-y-1">
-              <input
+              <Input
                 type="text"
                 value={street}
                 onChange={(e) => setStreet(e.target.value)}
                 onBlur={() => saveField("street", street)}
                 placeholder="Street + suite"
-                className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                size="sm"
               />
               <div className="grid grid-cols-[1fr_56px_88px] gap-1">
-                <input
+                <Input
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   onBlur={() => saveField("city", city)}
                   placeholder="City"
-                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                  size="sm"
                 />
-                <input
+                <Input
                   type="text"
                   value={stateField}
                   onChange={(e) => setStateField(e.target.value.toUpperCase())}
                   onBlur={() => saveField("state", stateField)}
                   placeholder="ST"
                   maxLength={2}
-                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm uppercase focus:border-gray-400 focus:outline-none"
+                  size="sm"
+                  className="uppercase"
                 />
-                <input
+                <Input
                   type="text"
                   value={zip}
                   onChange={(e) => setZip(e.target.value)}
                   onBlur={() => saveField("zip", zip)}
                   placeholder="ZIP"
-                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                  size="sm"
                 />
               </div>
               {!addressComplete && (
@@ -476,16 +480,16 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(phone)} label="Phone">
           {editable ? (
-            <input
+            <Input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               onBlur={() => saveField("phone", phone)}
               placeholder="(555) 123-4567"
-              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              size="sm"
             />
           ) : phone ? (
-            <a href={`tel:${phone}`} className="block truncate text-emerald-700 hover:underline">
+            <a href={`tel:${phone}`} className="block truncate text-primary-700 hover:underline">
               {phone}
             </a>
           ) : (
@@ -494,13 +498,13 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(email)} label="Email">
           {editable ? (
-            <input
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onBlur={() => saveField("email", email)}
               placeholder="info@agency.com"
-              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              size="sm"
             />
           ) : (
             <span className="block truncate text-gray-700">
@@ -510,20 +514,20 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(website)} label="Website">
           {editable ? (
-            <input
+            <Input
               type="url"
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
               onBlur={() => saveField("website", website)}
               placeholder="https://agency.com"
-              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              size="sm"
             />
           ) : website ? (
             <a
               href={website.startsWith("http") ? website : `https://${website}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="block truncate text-emerald-700 hover:underline"
+              className="block truncate text-primary-700 hover:underline"
             >
               {website}
             </a>
@@ -533,13 +537,13 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(contactFormUrl)} label="Contact form">
           {editable ? (
-            <input
+            <Input
               type="url"
               value={contactFormUrl}
               onChange={(e) => setContactFormUrl(e.target.value)}
               onBlur={() => saveField("contact_form_url", contactFormUrl)}
               placeholder="https://agency.com/contact"
-              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              size="sm"
             />
           ) : contactFormUrl ? (
             <div className="flex flex-wrap items-center gap-2">
@@ -547,7 +551,7 @@ function GeneralContactSection({
                 href={contactFormUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block truncate text-emerald-700 hover:underline"
+                className="block truncate text-primary-700 hover:underline"
               >
                 {contactFormUrl}
               </a>
@@ -555,7 +559,7 @@ function GeneralContactSection({
                 <span
                   className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
                     lastContactFormOutcome === "submitted"
-                      ? "bg-emerald-50 text-emerald-700"
+                      ? "bg-primary-50 text-primary-700"
                       : "bg-gray-100 text-gray-600"
                   }`}
                 >
@@ -572,13 +576,13 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(fax)} label="Fax">
           {editable ? (
-            <input
+            <Input
               type="tel"
               value={fax}
               onChange={(e) => setFax(e.target.value)}
               onBlur={() => saveField("fax", fax)}
               placeholder="(555) 123-9999"
-              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              size="sm"
             />
           ) : (
             <span className="block truncate text-gray-700">
@@ -619,7 +623,7 @@ function SaveStatusBadge({
   }
   if (savedAt && Date.now() - savedAt < 3000) {
     return (
-      <span className="text-[11px] font-medium text-emerald-700">
+      <span className="text-[11px] font-medium text-primary-700">
         ✓ Saved
       </span>
     );
@@ -775,7 +779,7 @@ function ContactRow({
                 {displayName || "(unnamed)"}
               </span>
               {contact.is_primary && (
-                <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
+                <span className="rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-medium text-primary-700">
                   PRIMARY
                 </span>
               )}
@@ -809,7 +813,7 @@ function ContactRow({
           <div className="flex shrink-0 flex-col items-end gap-1">
             <button
               onClick={() => setExpanded(true)}
-              className="text-[11px] font-medium text-emerald-700 hover:underline"
+              className="text-[11px] font-medium text-primary-700 hover:underline"
             >
               Edit
             </button>
@@ -857,29 +861,27 @@ function ContactRow({
         onChange={setTitle}
       />
       <div>
-        <label className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-gray-500">
-          Role
-        </label>
-        <select
+        <Select
+          label="Role"
           value={role}
-          onChange={(e) => setRole(e.target.value)}
-          className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
-        >
-          <option value="">(no role)</option>
-          {PROVIDER_CONTACT_ROLES.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
+          onChange={(val) => setRole(val)}
+          placeholder="(no role)"
+          size="sm"
+          options={[
+            { value: "", label: "(no role)" },
+            ...PROVIDER_CONTACT_ROLES.map((r) => ({ value: r, label: r })),
+          ]}
+        />
         {role === OTHER && (
-          <input
-            type="text"
-            value={roleOther}
-            onChange={(e) => setRoleOther(e.target.value)}
-            placeholder="Custom role"
-            className="mt-1 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
-          />
+          <div className="mt-1">
+            <Input
+              type="text"
+              value={roleOther}
+              onChange={(e) => setRoleOther(e.target.value)}
+              placeholder="Custom role"
+              size="sm"
+            />
+          </div>
         )}
       </div>
       <LabeledInput label="Email" value={email} onChange={setEmail} type="email" />
@@ -905,7 +907,7 @@ function ContactRow({
         <button
           onClick={save}
           disabled={saving}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save"}
         </button>
@@ -976,7 +978,7 @@ function AddContactInline({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="mt-2 text-xs font-medium text-emerald-700 hover:underline"
+        className="mt-2 text-xs font-medium text-primary-700 hover:underline"
       >
         + Add contact
       </button>
@@ -984,7 +986,7 @@ function AddContactInline({
   }
 
   return (
-    <div className="mt-2 space-y-2 rounded-md border border-emerald-200 bg-emerald-50/30 px-3 py-3">
+    <div className="mt-2 space-y-2 rounded-md border border-primary-200 bg-primary-50/30 px-3 py-3">
       <div className="grid grid-cols-2 gap-2">
         <LabeledInput
           label="First name"
@@ -998,29 +1000,27 @@ function AddContactInline({
         />
       </div>
       <div>
-        <label className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-gray-500">
-          Role
-        </label>
-        <select
+        <Select
+          label="Role"
           value={role}
-          onChange={(e) => setRole(e.target.value)}
-          className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
-        >
-          <option value="">(no role)</option>
-          {PROVIDER_CONTACT_ROLES.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
+          onChange={(val) => setRole(val)}
+          placeholder="(no role)"
+          size="sm"
+          options={[
+            { value: "", label: "(no role)" },
+            ...PROVIDER_CONTACT_ROLES.map((r) => ({ value: r, label: r })),
+          ]}
+        />
         {role === OTHER && (
-          <input
-            type="text"
-            value={roleOther}
-            onChange={(e) => setRoleOther(e.target.value)}
-            placeholder="Custom role"
-            className="mt-1 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
-          />
+          <div className="mt-1">
+            <Input
+              type="text"
+              value={roleOther}
+              onChange={(e) => setRoleOther(e.target.value)}
+              placeholder="Custom role"
+              size="sm"
+            />
+          </div>
         )}
       </div>
       <LabeledInput label="Email" value={email} onChange={setEmail} type="email" />
@@ -1046,7 +1046,7 @@ function AddContactInline({
         <button
           onClick={submit}
           disabled={saving}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
         >
           {saving ? "Adding…" : "Add contact"}
         </button>
@@ -1070,7 +1070,7 @@ function CoverageRow({
     <>
       <span
         aria-hidden
-        className={`pt-0.5 ${checked ? "text-emerald-600" : "text-gray-300"}`}
+        className={`pt-0.5 ${checked ? "text-primary-600" : "text-gray-300"}`}
       >
         {checked ? "✓" : "—"}
       </span>
@@ -1120,13 +1120,13 @@ function EnrollmentBanner({
   };
 
   const buttonClass =
-    "rounded-md border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50";
+    "rounded-md border border-primary-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-primary-700 hover:bg-primary-50 disabled:opacity-50";
   const secondaryClass =
     "rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50";
 
   return (
-    <div className="border-t border-emerald-200 bg-emerald-50/40 px-3 py-2">
-      <p className="text-[11px] text-emerald-900">
+    <div className="border-t border-primary-200 bg-primary-50/40 px-3 py-2">
+      <p className="text-[11px] text-primary-900">
         Just added · outreach already in flight. How should we proceed?
       </p>
       <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -1289,7 +1289,7 @@ export function ContactFormBanner({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-[11px] font-medium text-emerald-700 hover:underline"
+          className="shrink-0 text-[11px] font-medium text-primary-700 hover:underline"
         >
           Open form ↗
         </a>
@@ -1356,11 +1356,11 @@ function LabeledInput({
       <label className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-gray-500">
         {label}
       </label>
-      <input
+      <Input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+        size="sm"
       />
     </div>
   );

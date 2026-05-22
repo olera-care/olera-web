@@ -220,7 +220,7 @@ export function EntityStepBoard({ kind, entityId, entityName, onChange }: Props)
                 cta={
                   <button
                     onClick={() => void patch(t.id, "complete")}
-                    className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
+                    className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-700"
                   >
                     Log
                   </button>

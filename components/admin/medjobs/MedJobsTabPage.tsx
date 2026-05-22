@@ -61,6 +61,8 @@ import { RepliesGroupedList } from "@/components/admin/medjobs/lists/RepliesGrou
 import { InBasketHero } from "@/components/admin/medjobs/InBasketHero";
 import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
 import { useMedJobsRefresh, refreshMedJobs } from "@/hooks/useMedJobsRefresh";
+import Select from "@/components/ui/Select";
+import Input from "@/components/ui/Input";
 
 interface MedJobsTabPageProps {
   initialTab: TabKey;
@@ -393,34 +395,34 @@ export function MedJobsTabPage({
       <InBasketHero />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by organization name…"
-          className="min-w-[220px] flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
-        />
-        <select
-          value={campusSlug}
-          onChange={(e) => setCampusSlug(e.target.value)}
-          title="Filter to one site, or 'All sites' to see everything."
-          className="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none"
-        >
-          <option value="">All sites</option>
-          {campuses.map((c) => (
-            <option key={c.id} value={c.slug}>{c.name}</option>
-          ))}
-        </select>
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value as StakeholderType | "all")}
-          title="Filter by stakeholder type."
-          className="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none"
-        >
-          {TYPE_FILTERS.map((f) => (
-            <option key={f.key} value={f.key}>{f.label}</option>
-          ))}
-        </select>
+        <div className="min-w-[220px] flex-1">
+          <Input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by organization name…"
+            size="sm"
+          />
+        </div>
+        <div className="shrink-0 min-w-[140px]">
+          <Select
+            value={campusSlug}
+            onChange={(val) => setCampusSlug(val)}
+            size="sm"
+            options={[
+              { value: "", label: "All sites" },
+              ...campuses.map((c) => ({ value: c.slug, label: c.name })),
+            ]}
+          />
+        </div>
+        <div className="shrink-0 min-w-[120px]">
+          <Select
+            value={typeFilter}
+            onChange={(val) => setTypeFilter(val as StakeholderType | "all")}
+            size="sm"
+            options={TYPE_FILTERS.map((f) => ({ value: f.key, label: f.label }))}
+          />
+        </div>
       </div>
 
       {/* v9.0 Phase 6.5: entity-keyed tab bar with smart-hide. Tab is
@@ -491,14 +493,14 @@ export function MedJobsTabPage({
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : isInboxEmpty ? (
         <div className="py-16 text-center">
-          <p className="text-base font-semibold text-emerald-700">
+          <p className="text-base font-semibold text-primary-700">
             ✓ Everything caught up.
           </p>
           <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
             The In Basket is clear. Head to{" "}
             <a
               href="/admin/medjobs/logs"
-              className="font-medium text-emerald-700 underline hover:no-underline"
+              className="font-medium text-primary-700 underline hover:no-underline"
             >
               Logs
             </a>
@@ -758,6 +760,8 @@ export function MedJobsTabPage({
               });
             } else if (classification === "redirected" && redirect) {
               // P4: add the new contact + stop the original cadence.
+              // stop_cadence: true ensures cadence stops for the original
+              // recipient even though we're using keep_emailing.
               const derivedName =
                 [redirect.first_name, redirect.last_name]
                   .filter(Boolean)
@@ -772,6 +776,7 @@ export function MedJobsTabPage({
               await callAction(classifierRow.row.id, "classify_reply", {
                 classification: "keep_emailing",
                 notes: payload.notes,
+                stop_cadence: true,
               });
             } else {
               await callAction(classifierRow.row.id, "classify_reply", {

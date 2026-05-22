@@ -17,6 +17,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { OutreachRow } from "@/lib/student-outreach/types";
+import Select from "@/components/ui/Select";
 
 interface Props {
   parentCandidates: OutreachRow[]; // dept_head and advisor rows in the same campus
@@ -154,21 +155,17 @@ export function BulkProfessorImportModal({
             </div>
           ) : (
             <>
-              <label className="block">
-                <span className="mb-1 block text-xs font-medium text-gray-600">Parent (dept head / advisor) *</span>
-                <select
-                  value={parentId}
-                  onChange={(e) => setParentId(e.target.value)}
-                  className="w-full rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-                >
-                  {parentCandidates.length === 0 && <option value="">No eligible parents in this campus</option>}
-                  {parentCandidates.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.organization_name}{p.department ? ` (${p.department})` : ""} — {p.stakeholder_type}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <Select
+                label="Parent (dept head / advisor) *"
+                value={parentId}
+                onChange={(val) => setParentId(val)}
+                placeholder={parentCandidates.length === 0 ? "No eligible parents in this campus" : "Select parent..."}
+                size="sm"
+                options={parentCandidates.map((p) => ({
+                  value: p.id,
+                  label: `${p.organization_name}${p.department ? ` (${p.department})` : ""} — ${p.stakeholder_type}`,
+                }))}
+              />
 
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-gray-600">Department</span>

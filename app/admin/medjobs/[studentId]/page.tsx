@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCitySearch } from "@/hooks/use-city-search";
+import Select from "@/components/ui/Select";
 import type { StudentMetadata, StudentProgramTrack, IntendedProfessionalSchool } from "@/lib/types";
 
 const PROGRAM_TRACKS: { value: StudentProgramTrack; label: string }[] = [
@@ -321,7 +322,7 @@ export default function AdminMedJobsDetailPage() {
         </Link>
         <div className="flex items-center gap-3">
           {saveMessage && (
-            <span className={`text-sm ${saveMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+            <span className={`text-sm ${saveMessage.type === "success" ? "text-primary-600" : "text-red-600"}`}>
               {saveMessage.text}
             </span>
           )}
@@ -342,7 +343,7 @@ export default function AdminMedJobsDetailPage() {
           {formData.seeking_status ? (
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
               formData.seeking_status === "actively_looking"
-                ? "bg-emerald-100 text-emerald-700"
+                ? "bg-primary-100 text-primary-700"
                 : formData.seeking_status === "open"
                 ? "bg-blue-100 text-blue-700"
                 : "bg-gray-100 text-gray-600"
@@ -482,32 +483,34 @@ export default function AdminMedJobsDetailPage() {
             <FieldInput label="University" value={formData.university as string} onChange={(v) => updateField("university", v || undefined)} />
             <FieldInput label="Campus" value={formData.campus as string} onChange={(v) => updateField("campus", v || undefined)} />
             <FieldInput label="Major" value={formData.major as string} onChange={(v) => updateField("major", v || undefined)} />
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Intended Professional School</label>
-              <select
-                value={(formData.intended_professional_school as string) || ""}
-                onChange={(e) => updateField("intended_professional_school", e.target.value || undefined)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
-              >
-                <option value="">Select...</option>
-                {INTENDED_SCHOOLS.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Program Track (legacy)</label>
-              <select
-                value={(formData.program_track as string) || ""}
-                onChange={(e) => updateField("program_track", e.target.value || undefined)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
-              >
-                <option value="">Select...</option>
-                {PROGRAM_TRACKS.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Intended Professional School"
+              value={(formData.intended_professional_school as string) || ""}
+              onChange={(val) => updateField("intended_professional_school", val || null)}
+              placeholder="Select..."
+              size="sm"
+              options={[
+                { value: "", label: "None" },
+                ...INTENDED_SCHOOLS.map((s) => ({
+                  value: s.value,
+                  label: s.label,
+                })),
+              ]}
+            />
+            <Select
+              label="Program Track (legacy)"
+              value={(formData.program_track as string) || ""}
+              onChange={(val) => updateField("program_track", val || null)}
+              placeholder="Select..."
+              size="sm"
+              options={[
+                { value: "", label: "None" },
+                ...PROGRAM_TRACKS.map((t) => ({
+                  value: t.value,
+                  label: t.label,
+                })),
+              ]}
+            />
             <FieldInput
               label="Graduation Year"
               value={formData.graduation_year as number}
@@ -658,51 +661,54 @@ export default function AdminMedJobsDetailPage() {
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Duration Commitment</label>
-              <select
-                value={(formData.duration_commitment as string) || ""}
-                onChange={(e) => updateField("duration_commitment", e.target.value || undefined)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
-              >
-                <option value="">Select...</option>
-                {DURATION_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Hours per Week Range</label>
-              <select
-                value={(formData.hours_per_week_range as string) || ""}
-                onChange={(e) => updateField("hours_per_week_range", e.target.value || undefined)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
-              >
-                <option value="">Select...</option>
-                {HOURS_RANGE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Duration Commitment"
+              value={(formData.duration_commitment as string) || ""}
+              onChange={(val) => updateField("duration_commitment", val || null)}
+              placeholder="Select..."
+              size="sm"
+              options={[
+                { value: "", label: "None" },
+                ...DURATION_OPTIONS.map((o) => ({
+                  value: o.value,
+                  label: o.label,
+                })),
+              ]}
+            />
+            <Select
+              label="Hours per Week Range"
+              value={(formData.hours_per_week_range as string) || ""}
+              onChange={(val) => updateField("hours_per_week_range", val || null)}
+              placeholder="Select..."
+              size="sm"
+              options={[
+                { value: "", label: "None" },
+                ...HOURS_RANGE_OPTIONS.map((o) => ({
+                  value: o.value,
+                  label: o.label,
+                })),
+              ]}
+            />
           </div>
 
           {/* Legacy fields */}
           <div className="mt-4 pt-4 border-t border-gray-100">
             <p className="text-xs text-gray-400 mb-3">Legacy fields (old profiles)</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-gray-700">Availability Type (legacy)</label>
-                <select
-                  value={(formData.availability_type as string) || ""}
-                  onChange={(e) => updateField("availability_type", e.target.value || undefined)}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
-                >
-                  <option value="">Select...</option>
-                  {AVAILABILITY_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                label="Availability Type (legacy)"
+                value={(formData.availability_type as string) || ""}
+                onChange={(val) => updateField("availability_type", val || null)}
+                placeholder="Select..."
+                size="sm"
+                options={[
+                  { value: "", label: "None" },
+                  ...AVAILABILITY_OPTIONS.map((o) => ({
+                    value: o.value,
+                    label: o.label,
+                  })),
+                ]}
+              />
               <FieldInput
                 label="Hours per Week (legacy)"
                 value={formData.hours_per_week as number}
@@ -745,14 +751,14 @@ export default function AdminMedJobsDetailPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Driver&apos;s License</label>
               {formData.drivers_license_url ? (
-                <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                  <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center gap-3 p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-emerald-800">Uploaded</p>
+                    <p className="text-sm font-medium text-primary-800">Uploaded</p>
                     {formData.drivers_license_uploaded_at ? (
-                      <p className="text-xs text-emerald-600 truncate">
+                      <p className="text-xs text-primary-600 truncate">
                         {new Date(formData.drivers_license_uploaded_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}
                       </p>
                     ) : null}
@@ -770,14 +776,14 @@ export default function AdminMedJobsDetailPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Car Insurance</label>
               {formData.car_insurance_url ? (
-                <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                  <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center gap-3 p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-emerald-800">Uploaded</p>
+                    <p className="text-sm font-medium text-primary-800">Uploaded</p>
                     {formData.car_insurance_uploaded_at ? (
-                      <p className="text-xs text-emerald-600 truncate">
+                      <p className="text-xs text-primary-600 truncate">
                         {new Date(formData.car_insurance_uploaded_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}
                       </p>
                     ) : null}
@@ -798,19 +804,20 @@ export default function AdminMedJobsDetailPage() {
         {/* Status */}
         <Section title="Status">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Seeking Status</label>
-              <select
-                value={(formData.seeking_status as string) || ""}
-                onChange={(e) => updateField("seeking_status", e.target.value || undefined)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
-              >
-                <option value="">Select...</option>
-                {SEEKING_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Seeking Status"
+              value={(formData.seeking_status as string) || ""}
+              onChange={(val) => updateField("seeking_status", val || null)}
+              placeholder="Select..."
+              size="sm"
+              options={[
+                { value: "", label: "None" },
+                ...SEEKING_OPTIONS.map((o) => ({
+                  value: o.value,
+                  label: o.label,
+                })),
+              ]}
+            />
             <FieldInput
               label="Profile Completeness (%)"
               value={formData.profile_completeness as number}

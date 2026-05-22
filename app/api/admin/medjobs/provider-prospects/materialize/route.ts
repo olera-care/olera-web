@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { getProvidersInCatchment } from "@/lib/medjobs/catchment";
-import { getClientStatus } from "@/lib/medjobs/clients";
+import { getProviderProspectsInCatchment } from "@/lib/medjobs/catchment";
 
 /**
  * POST /api/admin/medjobs/provider-prospects/materialize
@@ -55,17 +54,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify provider exists + is a provider type. Pull email + phone
-    // too — v9 mirrors them into student_outreach_contacts so the
-    // unified cadence path (schedule_sequence + executeEmailTask) finds
-    // a recipient without a provider-specific code branch.
+    // Query olera-providers (the main provider directory with 75K+ providers)
     const { data: provider, error: providerErr } = await db
-      .from("business_profiles")
+      .from("olera-providers")
       .select(
-        "id, display_name, city, state, metadata, type, email, phone, created_at",
+        "provider_id, provider_name, city, state, email, phone, website, slug, created_at",
       )
-      .eq("id", providerId)
-      .in("type", ["organization", "caregiver"])
+      .eq("provider_id", providerId)
+      .or("deleted.is.null,deleted.eq.false")
       .maybeSingle();
 
     if (providerErr || !provider) {
@@ -75,19 +71,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify provider is NOT already a client.
-    const status = getClientStatus(provider.metadata);
-    if (status.isClient) {
-      return NextResponse.json(
-        { error: "Provider is already a client. Materialization is for prospects only." },
-        { status: 400 },
-      );
-    }
+    // Providers from olera-providers are prospects by definition (not clients).
+    // They haven't signed up for Olera yet.
 
     // Verify provider is genuinely in the campus's catchment (defense
     // against caller passing arbitrary provider × campus pairs).
-    const inCatchment = await getProvidersInCatchment(campus.slug);
-    const isInCatchment = inCatchment.some((p) => p.id === provider.id);
+    const inCatchment = await getProviderProspectsInCatchment(campus.slug);
+    const isInCatchment = inCatchment.some((p) => p.id === provider.provider_id);
     if (!isInCatchment) {
       return NextResponse.json(
         { error: "Provider is not in this campus's catchment" },
@@ -96,14 +86,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify uniqueness — no existing student_outreach row for this
-    // provider × campus pair. This protects against double-clicks and
-    // stale UI state.
+    // provider × campus pair. Check by olera_provider_id in research_data.
     const { data: existing } = await db
       .from("student_outreach")
       .select("id")
       .eq("kind", "provider")
-      .eq("provider_business_profile_id", provider.id)
       .eq("campus_id", campus.id)
+      .filter("research_data->olera_provider_id", "eq", provider.provider_id)
       .maybeSingle();
 
     if (existing) {
@@ -111,16 +100,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ id: existing.id, already_materialized: true });
     }
 
-    const orgName = provider.display_name || "(unnamed provider)";
+    const orgName = provider.provider_name || "(unnamed provider)";
 
-    // v9 final: inherit created_at from the business_profile so the
-    // materialized row keeps the same rank in the Prospects sort as
-    // the virtual catchment card it replaced. Without this the new
-    // row got created_at = NOW() and jumped to the top of the list
-    // every time admin opened a virtual card — the visual "moves to
-    // the top" bug the user kept seeing.
-    const inheritedCreatedAt =
-      (provider as { created_at?: string | null }).created_at ?? null;
+    // Inherit created_at from olera-providers so the materialized row
+    // keeps the same rank in the Prospects sort as the virtual card.
+    const inheritedCreatedAt = provider.created_at ?? null;
+
+    // Store olera-providers data in research_data.general_contact so
+    // the outreach cadence can use it (email, phone, website, location).
+    const generalContact = {
+      email: provider.email || null,
+      phone: provider.phone || null,
+      website: provider.website || null,
+      city: provider.city || null,
+      state: provider.state || null,
+    };
 
     const { data: inserted, error: insertErr } = await db
       .from("student_outreach")
@@ -129,11 +123,17 @@ export async function POST(request: NextRequest) {
         kind: "provider",
         // stakeholder_type is NULL for kind='provider' (per migration 073).
         stakeholder_type: null,
-        provider_business_profile_id: provider.id,
+        // provider_business_profile_id is NULL for olera-providers entries
+        // since they don't have a business_profiles row yet.
+        provider_business_profile_id: null,
         organization_name: orgName,
         status: "researched",
         programs: [],
-        research_data: {},
+        research_data: {
+          general_contact: generalContact,
+          olera_provider_id: provider.provider_id,
+          olera_provider_slug: provider.slug,
+        },
         cadence_day: 0,
         contact_permission: "not_yet",
         ...(inheritedCreatedAt ? { created_at: inheritedCreatedAt } : {}),

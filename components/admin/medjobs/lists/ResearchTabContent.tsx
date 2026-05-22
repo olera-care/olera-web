@@ -108,7 +108,7 @@ export function ResearchTabContent({
 
   if (totalAvailable === 0) {
     const headline = tabCountsAll === 0 ? "Nothing here yet." : "✓ All caught up.";
-    const headlineColor = tabCountsAll === 0 ? "text-gray-700" : "text-emerald-700";
+    const headlineColor = tabCountsAll === 0 ? "text-gray-700" : "text-primary-700";
     return (
       <div className="py-12 text-center">
         <p className={`text-sm font-medium ${headlineColor}`}>{headline}</p>

@@ -61,6 +61,7 @@ import { RepliesGroupedList } from "@/components/admin/medjobs/lists/RepliesGrou
 import { InBasketHero } from "@/components/admin/medjobs/InBasketHero";
 import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
 import { useMedJobsRefresh, refreshMedJobs } from "@/hooks/useMedJobsRefresh";
+import Select from "@/components/ui/Select";
 
 interface MedJobsTabPageProps {
   initialTab: TabKey;
@@ -400,27 +401,25 @@ export function MedJobsTabPage({
           placeholder="Search by organization name…"
           className="min-w-[220px] flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
         />
-        <select
-          value={campusSlug}
-          onChange={(e) => setCampusSlug(e.target.value)}
-          title="Filter to one site, or 'All sites' to see everything."
-          className="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none"
-        >
-          <option value="">All sites</option>
-          {campuses.map((c) => (
-            <option key={c.id} value={c.slug}>{c.name}</option>
-          ))}
-        </select>
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value as StakeholderType | "all")}
-          title="Filter by stakeholder type."
-          className="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none"
-        >
-          {TYPE_FILTERS.map((f) => (
-            <option key={f.key} value={f.key}>{f.label}</option>
-          ))}
-        </select>
+        <div className="shrink-0 min-w-[140px]">
+          <Select
+            value={campusSlug}
+            onChange={(val) => setCampusSlug(val)}
+            size="sm"
+            options={[
+              { value: "", label: "All sites" },
+              ...campuses.map((c) => ({ value: c.slug, label: c.name })),
+            ]}
+          />
+        </div>
+        <div className="shrink-0 min-w-[120px]">
+          <Select
+            value={typeFilter}
+            onChange={(val) => setTypeFilter(val as StakeholderType | "all")}
+            size="sm"
+            options={TYPE_FILTERS.map((f) => ({ value: f.key, label: f.label }))}
+          />
+        </div>
       </div>
 
       {/* v9.0 Phase 6.5: entity-keyed tab bar with smart-hide. Tab is

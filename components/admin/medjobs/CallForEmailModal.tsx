@@ -43,6 +43,7 @@ import { useState } from "react";
 import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
+import Select from "@/components/ui/Select";
 
 type ActionFn = (
   actionName: string,
@@ -310,18 +311,16 @@ export function CallForEmailModal({
                   className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
                 />
               </div>
-              <select
+              <Select
                 value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
-              >
-                <option value="">(no role)</option>
-                {PROVIDER_CONTACT_ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setRole(val)}
+                placeholder="(no role)"
+                size="sm"
+                options={[
+                  { value: "", label: "(no role)" },
+                  ...PROVIDER_CONTACT_ROLES.map((r) => ({ value: r, label: r })),
+                ]}
+              />
               {role === OTHER && (
                 <input
                   type="text"

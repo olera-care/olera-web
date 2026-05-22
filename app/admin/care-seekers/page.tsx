@@ -85,6 +85,54 @@ interface EngagementData {
   windowDays: number;
 }
 
+// Enrichment funnel types
+interface EnrichmentFunnelData {
+  funnel: {
+    started: number;
+    step1_completed: number;
+    step2_completed: number;
+    step3_completed: number;
+    step4_completed: number;
+    step5_completed: number;
+    step6_completed: number;
+    completed: number;
+    skipped: number;
+    skipsByStep: Record<number, number>;
+    rates: {
+      step1Rate: number;
+      step2Rate: number;
+      step3Rate: number;
+      step4Rate: number;
+      step5Rate: number;
+      step6Rate: number;
+      completionRate: number;
+    };
+  };
+  byVariant: Record<string, {
+    started: number;
+    completed: number;
+    rates: { completionRate: number };
+  }> | null;
+  trend: Array<{
+    week: string;
+    started: number;
+    completed: number;
+    completionRate: number;
+  }>;
+}
+
+// Display labels for 5-step enrichment flow (step 3 "Care type" is now pre-filled)
+// Maps display step (1-5) to actual tracked step (1,2,4,5,6)
+const ENRICHMENT_DISPLAY_STEPS = [1, 2, 4, 5, 6]; // Actual step numbers (skipping 3)
+const ENRICHMENT_STEP_LABELS: Record<number, string> = {
+  1: "Who needs care",
+  2: "Timeline",
+  // Step 3 (Care type) is pre-filled, not shown
+  4: "Care need",
+  5: "Payment",
+  6: "Details",
+};
+
 // Helper to format relative time
 function timeAgo(isoDate: string | undefined): string {
   if (!isoDate) return "Never";
@@ -321,6 +369,14 @@ export default function AdminCareSeekersPage() {
   const [weeklyExpanded, setWeeklyExpanded] = useState(false);
   const engagementFetchedAt = useRef<number>(0);
 
+  // Enrichment funnel state
+  const [enrichment, setEnrichment] = useState<EnrichmentFunnelData | null>(null);
+  const [enrichmentLoading, setEnrichmentLoading] = useState(false);
+  const [enrichmentExpanded, setEnrichmentExpanded] = useState(false);
+  const [enrichmentByVariantExpanded, setEnrichmentByVariantExpanded] = useState(false);
+  const [enrichmentWeeklyExpanded, setEnrichmentWeeklyExpanded] = useState(false);
+  const enrichmentFetchedAt = useRef<number>(0);
+
   function showToast(message: string, type: "success" | "error" = "success") {
     clearTimeout(toastRef.current);
     setToast({ message, type });
@@ -408,7 +464,13 @@ export default function AdminCareSeekersPage() {
     loadCities();
   }, []);
 
-  // Fetch engagement data when section is expanded (refresh after 5 minutes)
+  // Clear engagement cache when date range changes
+  useEffect(() => {
+    setEngagement(null);
+    engagementFetchedAt.current = 0;
+  }, [dateRange]);
+
+  // Fetch engagement data when section is expanded (refresh after 5 minutes or date change)
   useEffect(() => {
     if (!engagementExpanded) return;
 
@@ -420,7 +482,12 @@ export default function AdminCareSeekersPage() {
     async function loadEngagement() {
       setEngagementLoading(true);
       try {
-        const res = await fetch("/api/admin/care-seekers/engagement");
+        const params = new URLSearchParams();
+        const resolved = resolveRange(dateRange);
+        if (resolved.from) params.set("from_date", resolved.from);
+        if (resolved.to) params.set("to_date", resolved.to);
+
+        const res = await fetch(`/api/admin/care-seekers/engagement?${params}`);
         if (res.ok) {
           const data = await res.json();
           setEngagement(data);
@@ -430,7 +497,42 @@ export default function AdminCareSeekersPage() {
       setEngagementLoading(false);
     }
     loadEngagement();
-  }, [engagementExpanded, engagement]);
+  }, [engagementExpanded, engagement, dateRange]);
+
+  // Clear enrichment cache when date range changes
+  useEffect(() => {
+    setEnrichment(null);
+    enrichmentFetchedAt.current = 0;
+  }, [dateRange]);
+
+  // Fetch enrichment funnel data when section is expanded (refresh after 5 minutes or date change)
+  useEffect(() => {
+    if (!enrichmentExpanded) return;
+
+    const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+    const shouldRefresh = !enrichment || (Date.now() - enrichmentFetchedAt.current > REFRESH_INTERVAL_MS);
+
+    if (!shouldRefresh) return;
+
+    async function loadEnrichment() {
+      setEnrichmentLoading(true);
+      try {
+        const params = new URLSearchParams();
+        const resolved = resolveRange(dateRange);
+        if (resolved.from) params.set("from_date", resolved.from);
+        if (resolved.to) params.set("to_date", resolved.to);
+
+        const res = await fetch(`/api/admin/analytics/enrichment-funnel?${params}`);
+        if (res.ok) {
+          const data = await res.json();
+          setEnrichment(data);
+          enrichmentFetchedAt.current = Date.now();
+        }
+      } catch { /* ignore */ }
+      setEnrichmentLoading(false);
+    }
+    loadEnrichment();
+  }, [enrichmentExpanded, enrichment, dateRange]);
 
   useEffect(() => {
     fetchSeekers();
@@ -525,9 +627,12 @@ export default function AdminCareSeekersPage() {
       )}
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Care Seekers</h1>
-        <p className="text-sm text-gray-500 mt-1">Families and individuals looking for care</p>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Care Seekers</h1>
+          <p className="text-sm text-gray-500 mt-1">Families and individuals looking for care</p>
+        </div>
+        <DateRangePopover value={dateRange} onChange={setDateRange} />
       </div>
 
       {/* Stats */}
@@ -717,6 +822,229 @@ export default function AdminCareSeekersPage() {
         )}
       </div>
 
+      {/* Enrichment Funnel Section */}
+      <div className="mb-6">
+        <button
+          type="button"
+          onClick={() => setEnrichmentExpanded(!enrichmentExpanded)}
+          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg
+            className={`w-3 h-3 transition-transform ${enrichmentExpanded ? "rotate-90" : ""}`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+          </svg>
+          Enrichment Funnel
+          <span className="text-xs text-gray-400 font-normal">post-signup questions · last 30 days</span>
+        </button>
+
+        {enrichmentExpanded && (
+          <div className="mt-4">
+            {enrichmentLoading ? (
+              <div className="text-sm text-gray-400">Loading enrichment data...</div>
+            ) : enrichment ? (
+              <>
+                {/* 6-Step Funnel */}
+                <div className="grid grid-cols-7 gap-2 mb-4">
+                  {/* Started */}
+                  <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+                    <div className="text-xl font-semibold tabular-nums text-gray-900">
+                      {enrichment.funnel.started}
+                    </div>
+                    <div className="mt-0.5 text-xs text-gray-500">Started</div>
+                  </div>
+
+                  {/* Steps 1-5 (skipping step 3 which is now pre-filled) */}
+                  {ENRICHMENT_DISPLAY_STEPS.map((step, displayIndex) => {
+                    const displayStep = displayIndex + 1; // 1-5 for display
+                    const stepKey = `step${step}_completed` as keyof typeof enrichment.funnel;
+                    const rateKey = `step${step}Rate` as keyof typeof enrichment.funnel.rates;
+                    const completed = enrichment.funnel[stepKey] as number;
+                    const rate = enrichment.funnel.rates[rateKey];
+                    const skips = enrichment.funnel.skipsByStep[step] || 0;
+
+                    // Find highest drop-off step (using actual step data, skipping step 3)
+                    const prevStepIndex = displayIndex - 1;
+                    const prevActualStep = prevStepIndex < 0 ? null : ENRICHMENT_DISPLAY_STEPS[prevStepIndex];
+                    const prevCompleted = prevActualStep === null
+                      ? enrichment.funnel.started
+                      : (enrichment.funnel[`step${prevActualStep}_completed` as keyof typeof enrichment.funnel] as number);
+                    const dropOff = prevCompleted > 0 ? Math.round(((prevCompleted - completed) / prevCompleted) * 100) : 0;
+                    const isHighestDropOff = displayIndex > 0 && dropOff > 20 && dropOff === Math.max(
+                      ...(ENRICHMENT_DISPLAY_STEPS.map((s, i) => {
+                        const prevIdx = i - 1;
+                        const prevS = prevIdx < 0 ? null : ENRICHMENT_DISPLAY_STEPS[prevIdx];
+                        const prev = prevS === null ? enrichment.funnel.started : (enrichment.funnel[`step${prevS}_completed` as keyof typeof enrichment.funnel] as number);
+                        const curr = enrichment.funnel[`step${s}_completed` as keyof typeof enrichment.funnel] as number;
+                        return prev > 0 ? Math.round(((prev - curr) / prev) * 100) : 0;
+                      }))
+                    );
+
+                    return (
+                      <div
+                        key={step}
+                        className={`rounded-xl border px-3 py-2.5 ${
+                          isHighestDropOff
+                            ? "border-amber-300 bg-amber-50/50"
+                            : step === 6 // Last step (Details)
+                            ? "border-emerald-200 bg-emerald-50/50"
+                            : "border-gray-200 bg-white"
+                        }`}
+                      >
+                        <div className="text-xl font-semibold tabular-nums text-gray-900">
+                          {rate}%
+                        </div>
+                        <div className="mt-0.5 text-xs text-gray-500 truncate" title={ENRICHMENT_STEP_LABELS[step]}>
+                          {displayStep}. {ENRICHMENT_STEP_LABELS[step]}
+                        </div>
+                        <div className="mt-0.5 text-[10px] text-gray-400 flex items-center gap-1.5">
+                          {completed} done
+                          {skips > 0 && (
+                            <span className="text-amber-500">· {skips} skip</span>
+                          )}
+                        </div>
+                        {isHighestDropOff && (
+                          <div className="mt-1 text-[10px] text-amber-600 font-medium">
+                            ↓ {dropOff}% drop-off
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Summary row */}
+                <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                  <span>
+                    <span className="font-medium text-gray-900">{enrichment.funnel.completed}</span>
+                    <span className="text-gray-400"> / </span>
+                    <span>{enrichment.funnel.started}</span>
+                    <span className="text-gray-500"> completed all 5 steps</span>
+                  </span>
+                  <span className="text-gray-300">·</span>
+                  <span>
+                    <span className="font-medium text-emerald-600">{enrichment.funnel.rates.completionRate}%</span>
+                    <span className="text-gray-500"> completion rate</span>
+                  </span>
+                  {enrichment.funnel.skipped > 0 && (
+                    <>
+                      <span className="text-gray-300">·</span>
+                      <span>
+                        <span className="font-medium text-amber-600">{enrichment.funnel.skipped}</span>
+                        <span className="text-gray-500"> skipped</span>
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {/* By Variant breakdown */}
+                {enrichment.byVariant && (
+                  <div className="mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setEnrichmentByVariantExpanded(!enrichmentByVariantExpanded)}
+                      className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700"
+                    >
+                      <svg
+                        className={`w-2.5 h-2.5 transition-transform ${enrichmentByVariantExpanded ? "rotate-90" : ""}`}
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+                      </svg>
+                      By CTA variant
+                    </button>
+                    {enrichmentByVariantExpanded && (
+                      <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
+                            <tr>
+                              <th className="px-3 py-2 text-left font-medium">Variant</th>
+                              <th className="px-3 py-2 text-right font-medium">Started</th>
+                              <th className="px-3 py-2 text-right font-medium">Completed</th>
+                              <th className="px-3 py-2 text-right font-medium">Rate</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {Object.entries(enrichment.byVariant)
+                              .filter(([, data]) => data.started > 0)
+                              .sort((a, b) => b[1].started - a[1].started)
+                              .map(([variant, data]) => (
+                                <tr key={variant} className="text-gray-700">
+                                  <td className="px-3 py-2 capitalize font-medium">
+                                    {variant === "unknown" ? "No variant" : variant}
+                                  </td>
+                                  <td className="px-3 py-2 text-right tabular-nums">{data.started}</td>
+                                  <td className="px-3 py-2 text-right tabular-nums">{data.completed}</td>
+                                  <td className="px-3 py-2 text-right tabular-nums font-medium text-emerald-600">
+                                    {data.rates.completionRate}%
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Weekly trend */}
+                {enrichment.trend.length > 0 && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setEnrichmentWeeklyExpanded(!enrichmentWeeklyExpanded)}
+                      className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700"
+                    >
+                      <svg
+                        className={`w-2.5 h-2.5 transition-transform ${enrichmentWeeklyExpanded ? "rotate-90" : ""}`}
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+                      </svg>
+                      Weekly trend
+                    </button>
+                    {enrichmentWeeklyExpanded && (
+                      <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
+                            <tr>
+                              <th className="px-3 py-2 text-left font-medium">Week of</th>
+                              <th className="px-3 py-2 text-right font-medium">Started</th>
+                              <th className="px-3 py-2 text-right font-medium">Completed</th>
+                              <th className="px-3 py-2 text-right font-medium">Rate</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {enrichment.trend.map((week) => (
+                              <tr key={week.week} className="text-gray-700">
+                                <td className="px-3 py-2 text-gray-500">
+                                  {new Date(week.week).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                </td>
+                                <td className="px-3 py-2 text-right tabular-nums">{week.started}</td>
+                                <td className="px-3 py-2 text-right tabular-nums">{week.completed}</td>
+                                <td className="px-3 py-2 text-right tabular-nums font-medium text-emerald-600">
+                                  {week.completionRate}%
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-sm text-gray-400">Failed to load enrichment data</div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Filter tabs + city filter row */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <div className="flex gap-2">
@@ -834,9 +1162,6 @@ export default function AdminCareSeekersPage() {
             )}
           </div>
         )}
-
-        {/* Date range filter */}
-        <DateRangePopover value={dateRange} onChange={setDateRange} />
 
         {hasActiveFilters && (
           <button

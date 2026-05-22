@@ -1,17 +1,36 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { RECIPIENT_OPTIONS } from "./constants";
 import type { CareRecipient } from "./types";
+import {
+  trackEnrichmentStarted,
+  trackEnrichmentStepCompleted,
+  trackEnrichmentStepSkipped,
+  trackEnrichmentCompleted,
+  type EnrichmentStep as EnrichmentStepNumber,
+} from "@/lib/analytics/enrichment-tracking";
 
 type EnrichmentStep = "recipient" | "timeline" | "careType" | "careNeed" | "payment" | "details";
+
+// Map step names to step numbers for tracking
+const STEP_TO_NUMBER: Record<EnrichmentStep, EnrichmentStepNumber> = {
+  recipient: 1,
+  timeline: 2,
+  careType: 3,
+  careNeed: 4,
+  payment: 5,
+  details: 6,
+};
 type TimelineValue = "immediate" | "within_1_month" | "within_3_months" | "exploring";
 type ContactPref = "Call" | "Text" | "Email";
 
 interface EnrichmentStateProps {
   providerName: string;
+  /** Provider ID/slug for analytics tracking */
+  providerId: string;
   onSave: (data: {
     careRecipient?: CareRecipient;
     urgency?: string;
@@ -29,6 +48,8 @@ interface EnrichmentStateProps {
   priceRange?: string | null;
   /** @deprecated No longer used in new UI but kept for backward compatibility */
   careTypes?: string[];
+  /** Provider's category (e.g., "Home Care") - used to pre-fill care type and skip that step */
+  providerCategory?: string | null;
   /** Custom success banner title. Defaults to "Sent to {providerName}" */
   successTitle?: string;
   /** Custom success banner subtitle. Defaults to "{priceRange} estimated" if priceRange exists */
@@ -39,6 +60,10 @@ interface EnrichmentStateProps {
   providerCity?: string | null;
   /** Provider's state for location pre-fill */
   providerState?: string | null;
+  /** CTA variant for A/B test attribution */
+  ctaVariant?: string | null;
+  /** CTA surface (desktop/mobile) */
+  ctaSurface?: "desktop" | "mobile";
 }
 
 const TIMELINE_OPTIONS: { label: string; value: TimelineValue }[] = [
@@ -58,8 +83,7 @@ const CARE_TYPE_OPTIONS: { label: string; value: string }[] = [
 ];
 
 const CARE_NEED_OPTIONS: { label: string; value: string }[] = [
-  { label: "Personal care", value: "personal_care" },
-  { label: "Household tasks", value: "household_tasks" },
+  { label: "Daily living help", value: "daily_living" }, // Covers personal care + household tasks
   { label: "Health management", value: "health_management" },
   { label: "Companionship", value: "companionship" },
   { label: "Memory care", value: "memory_care" },
@@ -152,29 +176,85 @@ function LocationDropdown({
   );
 }
 
+// Map provider category to care type values
+// Handles both database format (e.g., "home_care_agency") from profile.category
+// and display format (e.g., "Home Care") from careTypes array
+const CATEGORY_TO_CARE_TYPE: Record<string, string> = {
+  // Database format (from profile.category via CTAVariantRouter)
+  "home_care_agency": "home_care",
+  "home_health_agency": "home_health",
+  "hospice_agency": "home_health",
+  "assisted_living": "assisted_living",
+  "memory_care": "memory_care",
+  "nursing_home": "nursing_home",
+  "independent_living": "independent_living",
+  "adult_day_care": "home_care",
+  "inpatient_hospice": "home_health",
+  "rehab_facility": "home_health",
+  "wellness_center": "home_care",
+  "private_caregiver": "home_care",
+  // Display format (from careTypes[0] in some components)
+  "Home Care": "home_care",
+  "Home Care (Non-medical)": "home_care",
+  "Home Health Care": "home_health",
+  "Home Health": "home_health",
+  "Assisted Living": "assisted_living",
+  "Memory Care": "memory_care",
+  "Nursing Home": "nursing_home",
+  "Independent Living": "independent_living",
+  "Hospice": "home_health",
+  "Inpatient Hospice": "home_health",
+  "Adult Day Care": "home_care",
+  "Rehabilitation": "home_health",
+  "Wellness Center": "home_care",
+  "Private Caregiver": "home_care",
+};
+
 export default function EnrichmentState({
   providerName,
+  providerId,
   onSave,
   onSkip,
   saving,
   priceRange = null,
   careTypes: _careTypes,
+  providerCategory,
   successTitle,
   successSubtitle,
   hideSuccessBanner = false,
   providerCity,
   providerState,
+  ctaVariant,
+  ctaSurface,
 }: EnrichmentStateProps) {
   void _careTypes; // Suppress unused variable warning
 
+  // Pre-fill care type from provider category
+  const prefilledCareType = providerCategory ? CATEGORY_TO_CARE_TYPE[providerCategory] || null : null;
+
   const [step, setStep] = useState<EnrichmentStep>("recipient");
+  const hasTrackedStart = useRef(false);
+
+  // Track enrichment started on mount
+  useEffect(() => {
+    if (!hasTrackedStart.current && providerId) {
+      hasTrackedStart.current = true;
+      trackEnrichmentStarted({ providerId, ctaVariant, ctaSurface });
+    }
+  }, [providerId, ctaVariant, ctaSurface]);
+
+  // Tracking params for all events (memoized to prevent useCallback recreation)
+  const trackingParams = useMemo(
+    () => ({ providerId, ctaVariant, ctaSurface }),
+    [providerId, ctaVariant, ctaSurface]
+  );
 
   // Step 1: Recipient
   const [recipient, setRecipient] = useState<CareRecipient | null>(null);
   // Step 2: Timeline
   const [timeline, setTimeline] = useState<TimelineValue | null>(null);
-  // Step 3: Care Type
-  const [careType, setCareType] = useState<string | null>(null);
+  // Step 3: Care Type (pre-filled from provider category if available)
+  const [careType, setCareType] = useState<string | null>(prefilledCareType);
   // Step 4: Care Need
   const [careNeed, setCareNeed] = useState<string | null>(null);
   // Step 5: Payment
@@ -232,37 +312,50 @@ export default function EnrichmentState({
   // Step 1: Select recipient → auto-advance
   const selectRecipient = useCallback((val: CareRecipient) => {
     setRecipient(val);
+    trackEnrichmentStepCompleted(1, trackingParams);
     setTimeout(() => setStep("timeline"), 150);
-  }, []);
+  }, [trackingParams]);
 
-  // Step 2: Select timeline → auto-advance
+  // Step 2: Select timeline → auto-advance (skip careType if pre-filled)
   const selectTimeline = useCallback((val: TimelineValue) => {
     setTimeline(val);
-    setTimeout(() => setStep("careType"), 150);
-  }, []);
+    trackEnrichmentStepCompleted(2, trackingParams);
+    // If care type is pre-filled from provider category, skip step 3 and go to step 4
+    if (prefilledCareType) {
+      trackEnrichmentStepCompleted(3, trackingParams); // Mark step 3 as completed (pre-filled)
+      setTimeout(() => setStep("careNeed"), 150);
+    } else {
+      setTimeout(() => setStep("careType"), 150);
+    }
+  }, [trackingParams, prefilledCareType]);
 
-  // Step 3: Select care type → auto-advance
+  // Step 3: Select care type → auto-advance (only shown if not pre-filled)
   const selectCareType = useCallback((val: string) => {
     setCareType(val);
+    trackEnrichmentStepCompleted(3, trackingParams);
     setTimeout(() => setStep("careNeed"), 150);
-  }, []);
+  }, [trackingParams]);
 
   // Step 4: Select care need → auto-advance
   const selectCareNeed = useCallback((val: string) => {
     setCareNeed(val);
+    trackEnrichmentStepCompleted(4, trackingParams);
     setTimeout(() => setStep("payment"), 150);
-  }, []);
+  }, [trackingParams]);
 
   // Step 5: Select payment → auto-advance
   const selectPayment = useCallback((val: string) => {
     setPaymentMethod(val);
+    trackEnrichmentStepCompleted(5, trackingParams);
     setTimeout(() => setStep("details"), 150);
-  }, []);
+  }, [trackingParams]);
 
   // Step 6: Details form submission → save all data
   const handleDetailsSubmit = useCallback(() => {
+    trackEnrichmentStepCompleted(6, trackingParams);
+    trackEnrichmentCompleted(trackingParams);
     onSave(getAllData());
-  }, [onSave, getAllData]);
+  }, [onSave, getAllData, trackingParams]);
 
   // Handle city selection
   const handleCitySelect = useCallback((cityName: string, stateCode: string) => {
@@ -274,23 +367,39 @@ export default function EnrichmentState({
 
   // Skip from any step — save whatever we have
   const handleSkip = useCallback(() => {
+    const currentStepNumber = STEP_TO_NUMBER[step];
+
+    // Calculate which steps were completed before skipping
+    const completedSteps: EnrichmentStepNumber[] = [];
+    if (recipient) completedSteps.push(1);
+    if (timeline) completedSteps.push(2);
+    if (careType) completedSteps.push(3);
+    if (careNeed) completedSteps.push(4);
+    if (paymentMethod) completedSteps.push(5);
+    // Step 6 (details) can't be "completed" before skip - if they click Done, they call handleDetailsSubmit
+
+    // Track the skip event
+    trackEnrichmentStepSkipped(currentStepNumber, trackingParams, completedSteps);
+
     if (step === "recipient" && !recipient) {
       onSkip();
     } else {
       onSave(getAllData());
     }
-  }, [step, recipient, onSave, onSkip, getAllData]);
+  }, [step, recipient, timeline, careType, careNeed, paymentMethod, onSave, onSkip, getAllData, trackingParams]);
 
-  // Progress indicator (steps 1-6)
-  const stepNumber = {
-    recipient: 1,
-    timeline: 2,
-    careType: 3,
-    careNeed: 4,
-    payment: 5,
-    details: 6,
-  }[step];
-  const totalSteps = 6;
+  // Progress indicator (5 steps if careType pre-filled, 6 otherwise)
+  const totalSteps = prefilledCareType ? 5 : 6;
+  // Adjust step numbers when careType is skipped
+  const getStepNumber = (): number => {
+    if (prefilledCareType) {
+      const map: Record<string, number> = { recipient: 1, timeline: 2, careNeed: 3, payment: 4, details: 5 };
+      return map[step] ?? 1;
+    }
+    const map: Record<string, number> = { recipient: 1, timeline: 2, careType: 3, careNeed: 4, payment: 5, details: 6 };
+    return map[step] ?? 1;
+  };
+  const stepNumber = getStepNumber();
 
   return (
     <div>
@@ -537,31 +646,7 @@ export default function EnrichmentState({
               />
             </div>
 
-            {/* Location */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Location
-              </label>
-              <input
-                ref={cityInputRef}
-                type="text"
-                value={locationInput}
-                onChange={(e) => {
-                  setLocationInput(e.target.value);
-                  setShowCityDropdown(true);
-                }}
-                onFocus={() => setShowCityDropdown(true)}
-                placeholder="Search for your city..."
-                className="w-full px-4 py-3 rounded-xl bg-gray-100 border-0 focus:bg-white focus:ring-2 focus:ring-gray-900/10 outline-none transition-all text-gray-900 placeholder:text-gray-400"
-              />
-              <LocationDropdown
-                inputRef={cityInputRef}
-                dropdownRef={dropdownRef}
-                results={cityResults}
-                onSelect={handleCitySelect}
-                show={showCityDropdown}
-              />
-            </div>
+            {/* Location is pre-filled silently from provider's city/state */}
           </div>
 
           {/* Done button */}

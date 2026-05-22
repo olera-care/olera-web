@@ -15,8 +15,8 @@ import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
  * Criteria:
  * - Connection type is 'inquiry' or 'request'
  * - Lead is at least 2 days old
- * - Family profile < 80% → nudge to complete
- * - Family profile ≥ 80% but not published → nudge to publish
+ * - Family profile < 60% → nudge to complete
+ * - Family profile ≥ 60% but not published → nudge to publish
  * - Family was NOT nudged (for this lead) in the last 7 days
  *
  * One email per family per run (even if they have multiple leads).
@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
 
       // Calculate profile completeness
       const completeness = calculateFamilyCompleteness(fromProfile, familyEmail);
-      const isComplete = completeness.percentage >= 80;
+      const isComplete = completeness.percentage >= 60;
 
       // Check if published
       const familyMeta = (fromProfile?.metadata as Record<string, unknown>) ?? {};

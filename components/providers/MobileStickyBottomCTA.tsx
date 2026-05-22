@@ -927,6 +927,7 @@ export default function MobileStickyBottomCTA({
           <div className="py-4 animate-step-in">
             <EnrichmentState
               providerName={providerName}
+              providerId={providerSlug}
               onSave={hook.saveEnrichment}
               onSkip={hook.skipEnrichment}
               saving={hook.submitting}
@@ -934,6 +935,9 @@ export default function MobileStickyBottomCTA({
               priceRange={priceRange}
               providerCity={providerCity}
               providerState={providerState}
+              providerCategory={providerCategory}
+              ctaVariant={ctaVariant}
+              ctaSurface="mobile"
             />
           </div>
         )}

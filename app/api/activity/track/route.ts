@@ -74,6 +74,11 @@ const ANONYMOUS_EVENT_TYPES = [
   // CTA variant A/B test events — provider page CTA impressions and clicks
   "cta_variant_impression",
   "cta_variant_clicked",
+  // Enrichment step tracking — post-conversion profile enrichment flow
+  "enrichment_started",        // User entered enrichment flow (after email submit)
+  "enrichment_step_completed", // User completed a specific step (metadata.step: 1-6)
+  "enrichment_step_skipped",   // User skipped from a specific step (metadata.step: 1-6)
+  "enrichment_completed",      // User finished all 6 steps
 ] as const;
 
 function getServiceDb() {

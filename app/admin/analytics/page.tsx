@@ -3352,7 +3352,7 @@ function ResponseLeadsList({
                                 Add email
                               </button>
                             </span>
-                          ) : lead.family_completeness.percentage < 80 ? (
+                          ) : lead.family_completeness.percentage < 60 ? (
                             <span>
                               {lead.family_completeness.percentage}% ·{" "}
                               {familyNudgeSuccess ? (

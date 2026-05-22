@@ -31,8 +31,8 @@ interface Question {
   getValue: () => string | string[];
   /** Set value (for tap questions, auto-advances) */
   setValue: (value: string | string[]) => void;
-  /** Save this field to the database. Pass value directly for tap questions to avoid stale closures. */
-  save: (value?: string | string[]) => Promise<void>;
+  /** Save this field to the database. Pass value directly for tap questions to avoid stale closures. Returns true on success. */
+  save: (value?: string | string[]) => Promise<boolean>;
 }
 
 // ── Options ──
@@ -191,6 +191,7 @@ export default function ProfileWizard({
   const [saving, setSaving] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Location autocomplete
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -217,9 +218,10 @@ export default function ProfileWizard({
   }, [showCityDropdown]);
 
   // ── Save helpers ──
-  const saveField = useCallback(async (field: string, value: unknown, metaField?: string) => {
-    if (!isSupabaseConfigured() || !profile) return;
+  const saveField = useCallback(async (field: string, value: unknown, metaField?: string): Promise<boolean> => {
+    if (!isSupabaseConfigured() || !profile) return true; // Skip if not configured
     setSaving(true);
+    setSaveError(null);
     try {
       const supabase = createClient();
       const { data: current } = await supabase
@@ -231,19 +233,24 @@ export default function ProfileWizard({
       const existingMeta = (current?.metadata || {}) as Record<string, unknown>;
 
       if (metaField) {
-        await supabase
+        const { error } = await supabase
           .from("business_profiles")
           .update({ metadata: { ...existingMeta, [metaField]: value } })
           .eq("id", profile.id);
+        if (error) throw error;
       } else {
-        await supabase
+        const { error } = await supabase
           .from("business_profiles")
           .update({ [field]: value })
           .eq("id", profile.id);
+        if (error) throw error;
       }
       onStepSaved?.();
+      return true;
     } catch (err) {
       console.error("[ProfileWizard] Save failed:", err);
+      setSaveError("Couldn't save. Please try again.");
+      return false;
     } finally {
       setSaving(false);
     }
@@ -389,8 +396,10 @@ export default function ProfileWizard({
       save: async () => {
         // Location uses city/state from component state (set via handleCitySelect)
         // No stale closure issue here because user clicks Continue after selecting
-        await saveField("city", city);
-        await saveField("state", state);
+        const citySuccess = await saveField("city", city);
+        if (!citySuccess) return false;
+        const stateSuccess = await saveField("state", state);
+        return stateSuccess;
       },
     });
 
@@ -418,8 +427,14 @@ export default function ProfileWizard({
       return;
     }
 
+    // Clear any previous error
+    setSaveError(null);
+
     // Save current question (no value passed - uses current state)
-    await currentQuestion.save();
+    const success = await currentQuestion.save();
+
+    // Don't advance if save failed
+    if (!success) return;
 
     // Check if there are more questions
     if (currentIndex < totalQuestions - 1) {
@@ -438,11 +453,17 @@ export default function ProfileWizard({
   const handleTapSelect = useCallback(async (value: string) => {
     if (!currentQuestion) return;
 
+    // Clear any previous error
+    setSaveError(null);
+
     // Update state for visual feedback
     currentQuestion.setValue(value);
 
     // Save IMMEDIATELY with the passed value (avoids stale closure issue)
-    await currentQuestion.save(value);
+    const success = await currentQuestion.save(value);
+
+    // Don't advance if save failed
+    if (!success) return;
 
     // Check if this was the last question
     if (currentIndex >= totalQuestions - 1) {
@@ -462,13 +483,19 @@ export default function ProfileWizard({
   const handleTapSingleSelect = useCallback(async (value: string) => {
     if (!currentQuestion) return;
 
+    // Clear any previous error
+    setSaveError(null);
+
     const arrayValue = [value];
 
     // Update state for visual feedback
     currentQuestion.setValue(arrayValue);
 
     // Save IMMEDIATELY with the passed value
-    await currentQuestion.save(arrayValue);
+    const success = await currentQuestion.save(arrayValue);
+
+    // Don't advance if save failed
+    if (!success) return;
 
     // Check if this was the last question
     if (currentIndex >= totalQuestions - 1) {
@@ -656,6 +683,13 @@ export default function ProfileWizard({
               >
                 {saving ? "Saving..." : "Continue"}
               </button>
+            </div>
+          )}
+
+          {/* Error message */}
+          {saveError && (
+            <div className="mt-4 px-4 py-2.5 rounded-lg bg-red-50 border border-red-100 text-center">
+              <p className="text-sm text-red-600">{saveError}</p>
             </div>
           )}
 

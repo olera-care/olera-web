@@ -2796,30 +2796,83 @@ async function handleMakeClient(db: DB, row: OutreachRow, userId: string) {
   if (row.kind !== "provider") {
     throw new Error("make_client only valid for kind='provider' rows");
   }
-  if (!row.provider_business_profile_id) {
-    throw new Error("Provider row missing provider_business_profile_id");
-  }
 
   const nowIso = new Date().toISOString();
+  let businessProfileId = row.provider_business_profile_id;
 
-  const { data: bp } = await db
-    .from("business_profiles")
-    .select("metadata")
-    .eq("id", row.provider_business_profile_id)
-    .maybeSingle();
-  if (!bp) throw new Error("Business profile not found");
+  // For olera-providers based rows, we need to create a business_profiles
+  // row first since they don't have one yet.
+  if (!businessProfileId) {
+    const oleraProviderId = (row.research_data as { olera_provider_id?: string })?.olera_provider_id;
+    if (!oleraProviderId) {
+      throw new Error("Provider row missing both provider_business_profile_id and olera_provider_id");
+    }
 
-  const existingMeta = (bp.metadata as Record<string, unknown> | null) ?? {};
-  const newMeta = {
-    ...existingMeta,
-    interview_terms_accepted_at: nowIso,
-  };
+    // Fetch provider data from olera-providers
+    const { data: oleraProvider } = await db
+      .from("olera-providers")
+      .select("provider_id, provider_name, city, state, email, phone, website, slug, address, zipcode")
+      .eq("provider_id", oleraProviderId)
+      .maybeSingle();
 
-  const { error: bpErr } = await db
-    .from("business_profiles")
-    .update({ metadata: newMeta, updated_at: nowIso })
-    .eq("id", row.provider_business_profile_id);
-  if (bpErr) throw new Error(bpErr.message);
+    if (!oleraProvider) {
+      throw new Error(`olera-providers entry not found: ${oleraProviderId}`);
+    }
+
+    // Create a business_profiles row for this provider
+    const { data: newBp, error: createErr } = await db
+      .from("business_profiles")
+      .insert({
+        type: "organization",
+        display_name: oleraProvider.provider_name || row.organization_name,
+        city: oleraProvider.city,
+        state: oleraProvider.state,
+        email: oleraProvider.email,
+        phone: oleraProvider.phone,
+        website: oleraProvider.website,
+        slug: oleraProvider.slug,
+        address: oleraProvider.address,
+        zip: oleraProvider.zipcode?.toString() || null,
+        metadata: { interview_terms_accepted_at: nowIso },
+        source_provider_id: oleraProviderId,
+        created_at: nowIso,
+        updated_at: nowIso,
+      })
+      .select("id")
+      .single();
+
+    if (createErr || !newBp) {
+      throw new Error(`Failed to create business_profiles: ${createErr?.message ?? "unknown error"}`);
+    }
+
+    businessProfileId = newBp.id;
+
+    // Update student_outreach to link to the new business_profiles row
+    await db
+      .from("student_outreach")
+      .update({ provider_business_profile_id: businessProfileId })
+      .eq("id", row.id);
+  } else {
+    // Existing business_profiles row - update its metadata
+    const { data: bp } = await db
+      .from("business_profiles")
+      .select("metadata")
+      .eq("id", businessProfileId)
+      .maybeSingle();
+    if (!bp) throw new Error("Business profile not found");
+
+    const existingMeta = (bp.metadata as Record<string, unknown> | null) ?? {};
+    const newMeta = {
+      ...existingMeta,
+      interview_terms_accepted_at: nowIso,
+    };
+
+    const { error: bpErr } = await db
+      .from("business_profiles")
+      .update({ metadata: newMeta, updated_at: nowIso })
+      .eq("id", businessProfileId);
+    if (bpErr) throw new Error(bpErr.message);
+  }
 
   await insertTouchpoint(db, row.id, "stage_change", userId, {
     notes: "Marked as Client (provider conversion)",

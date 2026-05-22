@@ -37,23 +37,16 @@ export function getPartnerUniversity(slug: string): PartnerUniversity | null {
 }
 
 /**
- * All providers (organization or caregiver) in this campus's catchment.
- * Returns the raw business_profiles columns useful for both list views
- * and stage derivation.
+ * All providers (organization or caregiver) in this campus's catchment
+ * from business_profiles. Used for client status checks and stage derivation.
  *
- * Note: matching is done by case-insensitive city + exact state. If
- * the markdown catchment file diverges from how providers store their
- * city/state, this is the seam to fix.
+ * Note: matching is done by case-insensitive city + exact state.
  */
 export async function getProvidersInCatchment(slug: string) {
   const uni = getPartnerUniversity(slug);
   if (!uni) return [];
 
   const db = getServiceClient();
-  // PostgREST .in() doesn't allow case-insensitive matching, so we
-  // pull all providers in the catchment states and filter cities in JS.
-  // For ~27 universities × hundreds of providers per state, this is
-  // fine. Optimize when it bites.
   const states = Array.from(new Set(uni.catchment.map((c) => c.state)));
   const { data, error } = await db
     .from("business_profiles")
@@ -83,6 +76,70 @@ export async function getProvidersInCatchment(slug: string) {
     if (!p.city || !p.state) return false;
     return cityKeys.has(`${p.city.toLowerCase()}|${p.state}`);
   });
+}
+
+/**
+ * Provider prospects from the olera-providers directory table.
+ * This is the main source for MedJobs prospecting (75K+ providers).
+ *
+ * Returns providers in the catchment who haven't been deleted.
+ * These are external providers who may not have Olera accounts yet.
+ */
+export async function getProviderProspectsInCatchment(slug: string) {
+  const uni = getPartnerUniversity(slug);
+  if (!uni) return [];
+
+  const db = getServiceClient();
+  const states = Array.from(new Set(uni.catchment.map((c) => c.state)));
+
+  // Query olera-providers (the 75K+ provider directory)
+  const { data, error } = await db
+    .from("olera-providers")
+    .select("provider_id, provider_name, city, state, email, website, phone, slug, created_at")
+    .in("state", states)
+    .or("deleted.is.null,deleted.eq.false");
+
+  if (error) {
+    console.error("[catchment] olera-providers query error:", error);
+    return [];
+  }
+
+  const cityKeys = new Set(
+    uni.catchment.map((c) => `${c.city.toLowerCase()}|${c.state}`),
+  );
+
+  type Row = {
+    provider_id: string;
+    provider_name: string | null;
+    city: string | null;
+    state: string | null;
+    email: string | null;
+    website: string | null;
+    phone: string | null;
+    slug: string | null;
+    created_at: string | null;
+  };
+
+  // Map to the shape expected by provider-prospects endpoint
+  return ((data ?? []) as Row[])
+    .filter((p) => {
+      if (!p.city || !p.state) return false;
+      return cityKeys.has(`${p.city.toLowerCase()}|${p.state}`);
+    })
+    .map((p) => ({
+      id: p.provider_id,
+      display_name: p.provider_name,
+      city: p.city,
+      state: p.state,
+      email: p.email,
+      website: p.website,
+      phone: p.phone,
+      slug: p.slug,
+      // Providers from olera-providers are not clients (no metadata)
+      metadata: null as ProviderMetadata | null,
+      is_active: true,
+      created_at: p.created_at ?? new Date().toISOString(),
+    }));
 }
 
 /**

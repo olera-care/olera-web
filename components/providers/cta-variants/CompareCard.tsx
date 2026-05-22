@@ -585,7 +585,7 @@ export default function CompareCard({
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Couldn&apos;t save providers
+                Couldn&apos;t request details
               </h3>
               <p className="text-sm text-gray-600 mb-4">{saveError}</p>
               <button
@@ -614,8 +614,8 @@ export default function CompareCard({
               onSave={saveEnrichment}
               onSkip={skipEnrichment}
               saving={enrichmentSubmitting}
-              successTitle={`Saved ${providerCountDisplay} provider${providerCountDisplay !== 1 ? "s" : ""}`}
-              successSubtitle="We'll send you a summary to compare"
+              successTitle={`Requested ${providerCountDisplay} details`}
+              successSubtitle="We'll send you details to compare"
               providerCity={currentProvider.city}
               providerState={currentProvider.state}
             />
@@ -682,7 +682,7 @@ export default function CompareCard({
               </svg>
             </div>
             <p className="text-[14px] font-semibold text-gray-900">
-              Saved {savedCount} provider{savedCount !== 1 ? "s" : ""}
+              Requested {savedCount} details
             </p>
           </div>
 
@@ -1047,13 +1047,13 @@ export default function CompareCard({
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Saving...
+                  Requesting...
                 </>
               ) : (
                 <>
-                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                  Get {selectedCount} details
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </>
               )}
@@ -1068,15 +1068,15 @@ export default function CompareCard({
           >
             {selectedCount === 0
               ? "Select at least one"
-              : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+              : `Get ${selectedCount} details`}
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
         )}
 
         <p className="text-[12px] text-gray-500 text-center mt-2">
-          {showEmailInput ? "We'll send you a summary to compare" : "Save now, message when ready"}
+          {showEmailInput ? "We'll send you details to compare" : "Get details, message when ready"}
         </p>
       </div>
     </div>

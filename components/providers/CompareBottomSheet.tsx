@@ -695,7 +695,7 @@ export default function CompareBottomSheet({
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Couldn&apos;t save providers
+                  Couldn&apos;t request details
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">{saveError}</p>
                 <button
@@ -724,8 +724,8 @@ export default function CompareBottomSheet({
                 onSave={saveEnrichment}
                 onSkip={skipEnrichment}
                 saving={enrichmentSubmitting}
-                successTitle={`Saved ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
-                successSubtitle="We'll send you a summary to compare"
+                successTitle={`Requested ${selectedCount} details`}
+                successSubtitle="We'll send you details to compare"
                 providerCity={currentProvider.city}
                 providerState={currentProvider.state}
               />
@@ -745,12 +745,12 @@ export default function CompareBottomSheet({
                 <h3 className="text-lg font-bold text-gray-900">
                   {connectionIds.length === 1
                     ? `Connected with ${currentProvider.name}`
-                    : `Saved ${connectionIds.length} providers`}
+                    : `Requested ${connectionIds.length} details`}
                 </h3>
                 <p className="text-sm text-gray-500">
                   {connectionIds.length === 1
-                    ? "Summary sent to your email"
-                    : "We'll send you a summary to compare"}
+                    ? "Details sent to your email"
+                    : "We'll send you details to compare"}
                 </p>
               </div>
             </div>
@@ -852,13 +852,13 @@ export default function CompareBottomSheet({
                   >
                     {selectedCount === 0
                       ? "Select at least one"
-                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                      : `Get ${selectedCount} details`}
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
                   <p className="text-center text-xs text-gray-500 mt-2">
-                    Saving as {userEmail}
+                    Requesting as {userEmail}
                   </p>
                 </>
               ) : (
@@ -871,13 +871,13 @@ export default function CompareBottomSheet({
                   >
                     {selectedCount === 0
                       ? "Select at least one"
-                      : `Save ${selectedCount} provider${selectedCount !== 1 ? "s" : ""}`}
+                      : `Get ${selectedCount} details`}
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
                   <p className="text-center text-xs text-gray-500 mt-2">
-                    Save now, message when ready
+                    Get details, message when ready
                   </p>
                 </>
               )}
@@ -896,10 +896,10 @@ export default function CompareBottomSheet({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Saving...
+                Requesting...
               </button>
               <p className="text-center text-xs text-gray-500 mt-2">
-                Saving as {userEmail}
+                Requesting as {userEmail}
               </p>
             </div>
           )}
@@ -909,9 +909,9 @@ export default function CompareBottomSheet({
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <h3 className="text-lg font-bold text-gray-900">
-                  Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                  Get {selectedCount} details
                 </h3>
-                <p className="text-sm text-gray-500">We&apos;ll send you a summary to compare.</p>
+                <p className="text-sm text-gray-500">We&apos;ll send you details to compare.</p>
               </div>
 
               <div className="flex flex-col gap-3">
@@ -940,13 +940,13 @@ export default function CompareBottomSheet({
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Saving...
+                      Requesting...
                     </>
                   ) : (
                     <>
-                      Save {selectedCount} provider{selectedCount !== 1 ? "s" : ""}
+                      Get {selectedCount} details
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                       </svg>
                     </>
                   )}

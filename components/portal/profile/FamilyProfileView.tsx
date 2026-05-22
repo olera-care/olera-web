@@ -858,10 +858,10 @@ function MobileCarePostContent({
                 width={52}
                 height={52}
                 sizes="52px"
-                className="w-13 h-13 rounded-full object-cover border border-gray-100"
+                className="w-[52px] h-[52px] rounded-full object-cover border border-gray-100"
               />
             ) : (
-              <div className="w-13 h-13 rounded-full bg-primary-100/60 flex items-center justify-center text-[14px] font-bold text-primary-700">
+              <div className="w-[52px] h-[52px] rounded-full bg-primary-100/60 flex items-center justify-center text-[14px] font-bold text-primary-700">
                 {initials}
               </div>
             )}

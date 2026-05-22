@@ -568,25 +568,43 @@ export default function ProfileWizard({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50">
-      <div className="relative w-full sm:max-w-md sm:mx-4 bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] sm:max-h-none animate-slideUp sm:animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      {/* Backdrop with blur */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-[2px] animate-fade-in"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div
+        className={[
+          "relative bg-white w-full flex flex-col",
+          "max-h-[92dvh] animate-sheet-up rounded-t-2xl",
+          "sm:max-w-[480px] sm:max-h-[85dvh] sm:animate-modal-pop sm:rounded-2xl sm:shadow-2xl",
+        ].join(" ")}
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      >
         {/* Mobile drag handle */}
-        <div className="sm:hidden flex justify-center pt-3 pb-1">
+        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0">
           <div className="w-10 h-1 bg-gray-300 rounded-full" />
         </div>
 
         {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 sm:top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors z-10"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
         {/* Progress dots */}
-        <div className="flex items-center justify-center gap-1.5 pt-3 sm:pt-6 pb-2">
+        <div className="flex items-center justify-center gap-1.5 pt-4 sm:pt-6 pb-2 shrink-0">
           {Array.from({ length: totalQuestions }, (_, i) => (
             <div
               key={i}
@@ -602,8 +620,14 @@ export default function ProfileWizard({
         </div>
 
         {/* Question content */}
-        <div className={`px-6 pb-6 sm:pb-6 pt-4 transition-opacity duration-150 ${isTransitioning ? "opacity-0" : "opacity-100"}`} style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
+        <div
+          className={[
+            "flex-1 overflow-y-auto px-6 pb-6 pt-4",
+            isTransitioning ? "opacity-0" : "opacity-100 animate-step-in",
+            "transition-opacity duration-150",
+          ].join(" ")}
+        >
+          <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900 mb-6 text-center">
             {currentQuestion.title}
           </h2>
 

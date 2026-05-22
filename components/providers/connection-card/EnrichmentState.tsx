@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { RECIPIENT_OPTIONS } from "./constants";
@@ -204,8 +204,11 @@ export default function EnrichmentState({
     }
   }, [providerId, ctaVariant, ctaSurface]);
 
-  // Tracking params for all events
-  const trackingParams = { providerId, ctaVariant, ctaSurface };
+  // Tracking params for all events (memoized to prevent useCallback recreation)
+  const trackingParams = useMemo(
+    () => ({ providerId, ctaVariant, ctaSurface }),
+    [providerId, ctaVariant, ctaSurface]
+  );
 
   // Step 1: Recipient
   const [recipient, setRecipient] = useState<CareRecipient | null>(null);

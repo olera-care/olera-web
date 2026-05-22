@@ -159,22 +159,32 @@ function calculateEnrichmentFunnel(events: EnrichmentEvent[]): FunnelMetrics {
     if (hasCompleted) completed++;
     if (hasSkipped) skipped++;
 
-    // Count step completions
+    // Count UNIQUE step completions per session (dedupe duplicate events)
+    const completedStepsInSession = new Set<number>();
+    const skippedStepsInSession = new Set<number>();
+
     for (const event of sessionEvents) {
       if (event.event_type === "enrichment_step_completed") {
         const step = event.metadata?.step;
         if (step && step >= 1 && step <= 6) {
-          stepCompleted[step - 1]++;
+          completedStepsInSession.add(step);
         }
       }
 
-      // Track which step they skipped at
       if (event.event_type === "enrichment_step_skipped") {
         const step = event.metadata?.step;
         if (step && step >= 1 && step <= 6) {
-          skipsByStep[step]++;
+          skippedStepsInSession.add(step);
         }
       }
+    }
+
+    // Increment session-level counts (not event-level)
+    for (const step of completedStepsInSession) {
+      stepCompleted[step - 1]++;
+    }
+    for (const step of skippedStepsInSession) {
+      skipsByStep[step]++;
     }
   }
 

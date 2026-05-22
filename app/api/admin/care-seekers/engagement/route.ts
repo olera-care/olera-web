@@ -114,14 +114,14 @@ export async function GET(request: Request) {
 
   const now = new Date();
 
-  // Use custom date range if provided, otherwise default to last 30 days
+  // Use custom date range if provided, otherwise default to "all time" (no date filter)
   const endDate = toDate ? new Date(toDate) : now;
-  const windowDays = fromDate
-    ? Math.ceil((endDate.getTime() - new Date(fromDate).getTime()) / (24 * 60 * 60 * 1000))
-    : 30;
-  const startDate = fromDate ? new Date(fromDate) : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  // For "all time", use a very old start date to capture everything
+  const startDate = fromDate ? new Date(fromDate) : new Date("2020-01-01");
 
-  // Prior period is the same duration before the start date
+  const windowDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+
+  // Prior period only makes sense for bounded ranges, not "all time"
   const priorEnd = startDate;
   const priorStart = new Date(startDate.getTime() - windowDays * 24 * 60 * 60 * 1000);
 

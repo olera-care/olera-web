@@ -51,10 +51,11 @@ export async function GET(request: Request) {
   const fromDate = searchParams.get("from_date");
   const toDate = searchParams.get("to_date");
 
-  // Default to last 30 days
+  // "All time" if no date params, otherwise use provided range
   const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const startDate = fromDate || thirtyDaysAgo.toISOString();
+  // Use 2020-01-01 as "all time" start to capture all historical data
+  const allTimeStart = new Date("2020-01-01").toISOString();
+  const startDate = fromDate || allTimeStart;
   const endDate = toDate || now.toISOString();
 
   try {

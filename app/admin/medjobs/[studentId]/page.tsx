@@ -486,7 +486,7 @@ export default function AdminMedJobsDetailPage() {
             <Select
               label="Intended Professional School"
               value={(formData.intended_professional_school as string) || ""}
-              onChange={(val) => updateField("intended_professional_school", val || undefined)}
+              onChange={(val) => updateField("intended_professional_school", val || null)}
               placeholder="Select..."
               size="sm"
               options={[
@@ -500,7 +500,7 @@ export default function AdminMedJobsDetailPage() {
             <Select
               label="Program Track (legacy)"
               value={(formData.program_track as string) || ""}
-              onChange={(val) => updateField("program_track", val || undefined)}
+              onChange={(val) => updateField("program_track", val || null)}
               placeholder="Select..."
               size="sm"
               options={[
@@ -664,7 +664,7 @@ export default function AdminMedJobsDetailPage() {
             <Select
               label="Duration Commitment"
               value={(formData.duration_commitment as string) || ""}
-              onChange={(val) => updateField("duration_commitment", val || undefined)}
+              onChange={(val) => updateField("duration_commitment", val || null)}
               placeholder="Select..."
               size="sm"
               options={[
@@ -678,7 +678,7 @@ export default function AdminMedJobsDetailPage() {
             <Select
               label="Hours per Week Range"
               value={(formData.hours_per_week_range as string) || ""}
-              onChange={(val) => updateField("hours_per_week_range", val || undefined)}
+              onChange={(val) => updateField("hours_per_week_range", val || null)}
               placeholder="Select..."
               size="sm"
               options={[
@@ -698,7 +698,7 @@ export default function AdminMedJobsDetailPage() {
               <Select
                 label="Availability Type (legacy)"
                 value={(formData.availability_type as string) || ""}
-                onChange={(val) => updateField("availability_type", val || undefined)}
+                onChange={(val) => updateField("availability_type", val || null)}
                 placeholder="Select..."
                 size="sm"
                 options={[
@@ -807,7 +807,7 @@ export default function AdminMedJobsDetailPage() {
             <Select
               label="Seeking Status"
               value={(formData.seeking_status as string) || ""}
-              onChange={(val) => updateField("seeking_status", val || undefined)}
+              onChange={(val) => updateField("seeking_status", val || null)}
               placeholder="Select..."
               size="sm"
               options={[

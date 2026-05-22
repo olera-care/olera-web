@@ -58,6 +58,7 @@ import {
   type CallScript,
 } from "@/lib/student-outreach/sequencer";
 import type { Contact } from "@/lib/student-outreach/types";
+import Input from "@/components/ui/Input";
 import { getProgramPdfConfig } from "@/lib/program-pdf/configs";
 
 interface Props {
@@ -739,32 +740,30 @@ function VariantEditor({
         {label}
       </header>
       <div className="space-y-2 px-3 py-2">
-        <label className="block">
-          <span className="mb-0.5 block text-[11px] font-medium text-gray-700">
-            Subject
-          </span>
-          <input
-            value={snapshot.subject}
-            onChange={(e) => onChange({ subject: e.target.value })}
-            className="w-full rounded-md border border-gray-200 px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
-          />
-        </label>
-        <label className="block">
-          <span className="mb-0.5 flex items-center justify-between text-[11px] font-medium text-gray-700">
+        <Input
+          label="Subject"
+          value={snapshot.subject}
+          onChange={(e) => onChange({ subject: e.target.value })}
+          size="sm"
+        />
+        <div>
+          <div className="mb-1.5 flex items-center justify-between text-[13px] font-semibold text-gray-700">
             <span>Body</span>
-            <span className="font-normal text-gray-500">
+            <span className="text-[11px] font-normal text-gray-500">
               Variables: <code>{"{first_name}"}</code>{" "}
               <code>{"{organization_name}"}</code>{" "}
               <code>{"{campus_name}"}</code>
             </span>
-          </span>
-          <textarea
+          </div>
+          <Input
+            as="textarea"
             value={snapshot.body}
             onChange={(e) => onChange({ body: e.target.value })}
             rows={8}
-            className="w-full rounded-md border border-gray-200 px-2 py-1.5 text-sm font-mono focus:border-gray-400 focus:outline-none"
+            size="sm"
+            className="font-mono"
           />
-        </label>
+        </div>
         <button
           type="button"
           onClick={() => setShowPreview((s) => !s)}
@@ -815,12 +814,13 @@ function CallScriptEditor({
         {label}
       </header>
       <div className="space-y-2 px-3 py-2">
-        <textarea
+        <Input
+          as="textarea"
           value={script}
           onChange={(e) => onChange(e.target.value)}
           rows={3}
           placeholder="What to say on this call: tone, key references, target ask."
-          className="w-full rounded-md border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+          size="sm"
         />
         {tips && tips.length > 0 && (
           <div className="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2">

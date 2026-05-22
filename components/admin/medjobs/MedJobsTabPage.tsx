@@ -62,6 +62,7 @@ import { InBasketHero } from "@/components/admin/medjobs/InBasketHero";
 import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
 import { useMedJobsRefresh, refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import Select from "@/components/ui/Select";
+import Input from "@/components/ui/Input";
 
 interface MedJobsTabPageProps {
   initialTab: TabKey;
@@ -394,13 +395,15 @@ export function MedJobsTabPage({
       <InBasketHero />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by organization name…"
-          className="min-w-[220px] flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
-        />
+        <div className="min-w-[220px] flex-1">
+          <Input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by organization name…"
+            size="sm"
+          />
+        </div>
         <div className="shrink-0 min-w-[140px]">
           <Select
             value={campusSlug}

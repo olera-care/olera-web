@@ -44,6 +44,7 @@ import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
 import Select from "@/components/ui/Select";
+import Input from "@/components/ui/Input";
 
 type ActionFn = (
   actionName: string,
@@ -296,19 +297,19 @@ export function CallForEmailModal({
             </p>
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
-                <input
+                <Input
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="First name"
-                  className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                  size="sm"
                 />
-                <input
+                <Input
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   placeholder="Last name"
-                  className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                  size="sm"
                 />
               </div>
               <Select
@@ -322,38 +323,37 @@ export function CallForEmailModal({
                 ]}
               />
               {role === OTHER && (
-                <input
+                <Input
                   type="text"
                   value={roleOther}
                   onChange={(e) => setRoleOther(e.target.value)}
                   placeholder="Custom role"
-                  className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                  size="sm"
                 />
               )}
-              <input
+              <Input
                 type="email"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="Email (if obtained)"
-                className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                size="sm"
               />
-              <input
+              <Input
                 type="tel"
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value)}
                 placeholder="Direct phone / extension (optional)"
-                className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                size="sm"
               />
             </div>
           </div>
         </div>
       )}
 
-      <label className="block pt-1">
-        <span className="mb-1 block text-xs font-medium text-gray-600">
-          Notes (optional)
-        </span>
-        <textarea
+      <div className="pt-1">
+        <Input
+          as="textarea"
+          label="Notes (optional)"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder={
@@ -364,9 +364,9 @@ export function CallForEmailModal({
                 : "Context for this call attempt."
           }
           rows={3}
-          className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
+          size="sm"
         />
-      </label>
+      </div>
     </LogModalShell>
   );
 }

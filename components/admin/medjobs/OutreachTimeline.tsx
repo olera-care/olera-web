@@ -34,6 +34,7 @@
  */
 
 import { useMemo, useState } from "react";
+import Input from "@/components/ui/Input";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
@@ -437,13 +438,13 @@ function AddCustomEventFooter({
 
   return (
     <div className="space-y-2 border-t border-gray-100 px-4 py-3">
-      <input
+      <Input
         type="text"
         autoFocus
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="e.g. Send proposal PDF · Call back when free"
-        className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+        size="sm"
       />
       <div className="flex flex-wrap items-center gap-2">
         <input

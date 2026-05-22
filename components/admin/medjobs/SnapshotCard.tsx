@@ -46,6 +46,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Contact, DrawerContext } from "@/lib/student-outreach/types";
 import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
 import Select from "@/components/ui/Select";
+import Input from "@/components/ui/Input";
 
 type ActionFn = (
   actionName: string,
@@ -221,13 +222,14 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
         <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
           Research notes
         </p>
-        <textarea
+        <Input
+          as="textarea"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           onBlur={saveNotes}
           placeholder="Source of contact info, agency character, hiring activity, anything else worth remembering."
           rows={3}
-          className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+          size="sm"
         />
         <p className="mt-0.5 text-[11px] text-gray-400">
           {savingNotes ? "Saving…" : "Saved on blur"}
@@ -424,39 +426,40 @@ function GeneralContactSection({
               when read-only. */}
           {editable ? (
             <div className="space-y-1">
-              <input
+              <Input
                 type="text"
                 value={street}
                 onChange={(e) => setStreet(e.target.value)}
                 onBlur={() => saveField("street", street)}
                 placeholder="Street + suite"
-                className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                size="sm"
               />
               <div className="grid grid-cols-[1fr_56px_88px] gap-1">
-                <input
+                <Input
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   onBlur={() => saveField("city", city)}
                   placeholder="City"
-                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                  size="sm"
                 />
-                <input
+                <Input
                   type="text"
                   value={stateField}
                   onChange={(e) => setStateField(e.target.value.toUpperCase())}
                   onBlur={() => saveField("state", stateField)}
                   placeholder="ST"
                   maxLength={2}
-                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm uppercase focus:border-gray-400 focus:outline-none"
+                  size="sm"
+                  className="uppercase"
                 />
-                <input
+                <Input
                   type="text"
                   value={zip}
                   onChange={(e) => setZip(e.target.value)}
                   onBlur={() => saveField("zip", zip)}
                   placeholder="ZIP"
-                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                  size="sm"
                 />
               </div>
               {!addressComplete && (
@@ -477,13 +480,13 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(phone)} label="Phone">
           {editable ? (
-            <input
+            <Input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               onBlur={() => saveField("phone", phone)}
               placeholder="(555) 123-4567"
-              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              size="sm"
             />
           ) : phone ? (
             <a href={`tel:${phone}`} className="block truncate text-primary-700 hover:underline">
@@ -495,13 +498,13 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(email)} label="Email">
           {editable ? (
-            <input
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onBlur={() => saveField("email", email)}
               placeholder="info@agency.com"
-              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              size="sm"
             />
           ) : (
             <span className="block truncate text-gray-700">
@@ -511,13 +514,13 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(website)} label="Website">
           {editable ? (
-            <input
+            <Input
               type="url"
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
               onBlur={() => saveField("website", website)}
               placeholder="https://agency.com"
-              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              size="sm"
             />
           ) : website ? (
             <a
@@ -534,13 +537,13 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(contactFormUrl)} label="Contact form">
           {editable ? (
-            <input
+            <Input
               type="url"
               value={contactFormUrl}
               onChange={(e) => setContactFormUrl(e.target.value)}
               onBlur={() => saveField("contact_form_url", contactFormUrl)}
               placeholder="https://agency.com/contact"
-              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              size="sm"
             />
           ) : contactFormUrl ? (
             <div className="flex flex-wrap items-center gap-2">
@@ -573,13 +576,13 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(fax)} label="Fax">
           {editable ? (
-            <input
+            <Input
               type="tel"
               value={fax}
               onChange={(e) => setFax(e.target.value)}
               onBlur={() => saveField("fax", fax)}
               placeholder="(555) 123-9999"
-              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+              size="sm"
             />
           ) : (
             <span className="block truncate text-gray-700">
@@ -870,13 +873,15 @@ function ContactRow({
           ]}
         />
         {role === OTHER && (
-          <input
-            type="text"
-            value={roleOther}
-            onChange={(e) => setRoleOther(e.target.value)}
-            placeholder="Custom role"
-            className="mt-1 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
-          />
+          <div className="mt-1">
+            <Input
+              type="text"
+              value={roleOther}
+              onChange={(e) => setRoleOther(e.target.value)}
+              placeholder="Custom role"
+              size="sm"
+            />
+          </div>
         )}
       </div>
       <LabeledInput label="Email" value={email} onChange={setEmail} type="email" />
@@ -1007,13 +1012,15 @@ function AddContactInline({
           ]}
         />
         {role === OTHER && (
-          <input
-            type="text"
-            value={roleOther}
-            onChange={(e) => setRoleOther(e.target.value)}
-            placeholder="Custom role"
-            className="mt-1 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
-          />
+          <div className="mt-1">
+            <Input
+              type="text"
+              value={roleOther}
+              onChange={(e) => setRoleOther(e.target.value)}
+              placeholder="Custom role"
+              size="sm"
+            />
+          </div>
         )}
       </div>
       <LabeledInput label="Email" value={email} onChange={setEmail} type="email" />
@@ -1349,11 +1356,11 @@ function LabeledInput({
       <label className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-gray-500">
         {label}
       </label>
-      <input
+      <Input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+        size="sm"
       />
     </div>
   );

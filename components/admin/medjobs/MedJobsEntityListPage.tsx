@@ -21,6 +21,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Input from "@/components/ui/Input";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
@@ -270,12 +271,12 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
       <p className="-mt-6 mb-4 text-sm text-gray-500">{subtitle}</p>
 
       <div className="mb-4">
-        <input
+        <Input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by organization name…"
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+          size="sm"
         />
       </div>
 

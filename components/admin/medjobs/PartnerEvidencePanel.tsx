@@ -20,6 +20,7 @@
  */
 
 import type { DistributionEvidence } from "@/lib/student-outreach/types";
+import Input from "@/components/ui/Input";
 
 export interface PartnerEvidence {
   evidence: DistributionEvidence;
@@ -100,18 +101,15 @@ export function PartnerEvidencePanel({
         ))}
       </div>
 
-      <label className="block">
-        <span className="mb-1 block text-xs font-medium text-gray-600">
-          Evidence notes (optional)
-        </span>
-        <textarea
-          value={notes}
-          onChange={(e) => onNotesChange(e.target.value)}
-          rows={2}
-          placeholder='e.g. "Saw on @berkeleypremed IG story 5/4"'
-          className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-        />
-      </label>
+      <Input
+        as="textarea"
+        label="Evidence notes (optional)"
+        value={notes}
+        onChange={(e) => onNotesChange(e.target.value)}
+        rows={2}
+        placeholder='e.g. "Saw on @berkeleypremed IG story 5/4"'
+        size="sm"
+      />
     </div>
   );
 }

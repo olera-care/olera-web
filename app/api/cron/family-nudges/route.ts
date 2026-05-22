@@ -504,74 +504,28 @@ export async function GET(request: NextRequest) {
             continue; // Give up gracefully — they're not engaging
           }
 
+          // Step 1: Determine subject, emailType, and increment counters
           let subject: string;
-          let html: string;
           let emailType: string;
 
           if (isMaintenanceNudge) {
-            // Maintenance nudge
             subject = `New providers in ${family.city || family.state || "your area"}`;
-            html = completionMaintenanceEmail({
-              familyName: firstName,
-              welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-              providers: topProviders,
-              missingFields: completeness.missingFields,
-              completionPercent: completeness.percentage,
-              city: family.city || undefined,
-              state: family.state || undefined,
-            });
             emailType = "completion_maintenance";
             counts.maintenanceNudges++;
           } else {
-            // Active sequence nudges (1-4)
             switch (nudgeNumber) {
               case 1:
                 subject = `Your profile is ${completeness.percentage}% complete`;
-                html = completionNudge1Email({
-                  familyName: firstName,
-                  welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-                  missingFields: completeness.missingFields,
-                  completionPercent: completeness.percentage,
-                  providerCount,
-                  city: family.city || undefined,
-                });
                 break;
               case 2:
                 subject = `You're ${completeness.percentage}% there — finish your profile`;
-                html = completionNudge2Email({
-                  familyName: firstName,
-                  welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-                  missingFields: completeness.missingFields,
-                  completionPercent: completeness.percentage,
-                  providerCount,
-                  city: family.city || undefined,
-                  state: family.state || undefined,
-                });
                 break;
               case 3:
                 subject = "Complete profiles get 3x faster responses";
-                html = completionNudge3Email({
-                  familyName: firstName,
-                  welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-                  missingFields: completeness.missingFields,
-                  completionPercent: completeness.percentage,
-                  providerCount,
-                  city: family.city || undefined,
-                  state: family.state || undefined,
-                });
                 break;
               case 4:
               default:
                 subject = `Top providers in ${family.city || family.state || "your area"} are ready to help`;
-                html = completionNudge4Email({
-                  familyName: firstName,
-                  welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-                  missingFields: completeness.missingFields,
-                  completionPercent: completeness.percentage,
-                  providers: topProviders,
-                  city: family.city || undefined,
-                  state: family.state || undefined,
-                });
                 break;
             }
             emailType = `completion_nudge_${nudgeNumber}`;
@@ -580,8 +534,10 @@ export async function GET(request: NextRequest) {
             counts.profileIncomplete++;
           }
 
+          // Step 2: Reserve logId BEFORE building HTML (so tracking works)
+          let logId: string | null = null;
           if (!dryRun) {
-            const logId = await reserveEmailLogId({
+            logId = await reserveEmailLogId({
               to: email,
               subject,
               emailType,
@@ -594,6 +550,74 @@ export async function GET(request: NextRequest) {
                 },
               },
             });
+          }
+
+          // Step 3: Build tracked URL with logId
+          const welcomeUrl = appendTrackingParams(`${siteUrl}/welcome`, logId);
+
+          // Step 4: Build HTML using tracked URL
+          let html: string;
+          if (isMaintenanceNudge) {
+            html = completionMaintenanceEmail({
+              familyName: firstName,
+              welcomeUrl,
+              providers: topProviders,
+              missingFields: completeness.missingFields,
+              completionPercent: completeness.percentage,
+              city: family.city || undefined,
+              state: family.state || undefined,
+            });
+          } else {
+            switch (nudgeNumber) {
+              case 1:
+                html = completionNudge1Email({
+                  familyName: firstName,
+                  welcomeUrl,
+                  missingFields: completeness.missingFields,
+                  completionPercent: completeness.percentage,
+                  providerCount,
+                  city: family.city || undefined,
+                });
+                break;
+              case 2:
+                html = completionNudge2Email({
+                  familyName: firstName,
+                  welcomeUrl,
+                  missingFields: completeness.missingFields,
+                  completionPercent: completeness.percentage,
+                  providerCount,
+                  city: family.city || undefined,
+                  state: family.state || undefined,
+                });
+                break;
+              case 3:
+                html = completionNudge3Email({
+                  familyName: firstName,
+                  welcomeUrl,
+                  missingFields: completeness.missingFields,
+                  completionPercent: completeness.percentage,
+                  providerCount,
+                  city: family.city || undefined,
+                  state: family.state || undefined,
+                });
+                break;
+              case 4:
+              default:
+                html = completionNudge4Email({
+                  familyName: firstName,
+                  welcomeUrl,
+                  missingFields: completeness.missingFields,
+                  completionPercent: completeness.percentage,
+                  providers: topProviders,
+                  city: family.city || undefined,
+                  state: family.state || undefined,
+                });
+                break;
+            }
+          }
+
+          // Step 5: Send email (if not dryRun)
+          if (!dryRun) {
             await sendEmail({
               to: email,
               subject,
@@ -648,61 +672,28 @@ export async function GET(request: NextRequest) {
             continue; // Give up gracefully — they're not engaging
           }
 
+          // Step 1: Determine subject, emailType, and increment counters
           let subject: string;
-          let html: string;
           let emailType: string;
 
           if (isMaintenanceNudge) {
-            // Maintenance nudge
             subject = "Still looking for care?";
-            html = publishMaintenanceEmail({
-              familyName: firstName,
-              matchesUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-              providerCount,
-              city: family.city || undefined,
-              state: family.state || undefined,
-            });
             emailType = "publish_maintenance";
             counts.maintenanceNudges++;
           } else {
-            // Active sequence nudges (1-4)
             switch (nudgeNumber) {
               case 1:
                 subject = "Go live — let providers find you";
-                html = publishNudge1Email({
-                  familyName: firstName,
-                  matchesUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-                  providerCount,
-                  city: family.city || undefined,
-                });
                 break;
               case 2:
                 subject = `${providerCount > 0 ? providerCount + " " : ""}providers in ${family.city || "your area"} are looking`;
-                html = publishNudge2Email({
-                  familyName: firstName,
-                  matchesUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-                  providerCount,
-                  providers: topProviders,
-                  city: family.city || undefined,
-                });
                 break;
               case 3:
                 subject = `Families in ${family.city || family.state || "your area"} are finding care`;
-                html = publishNudge3Email({
-                  familyName: firstName,
-                  matchesUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-                  city: family.city || undefined,
-                  state: family.state || undefined,
-                });
                 break;
               case 4:
               default:
                 subject = "We're here when you're ready";
-                html = publishNudge4Email({
-                  familyName: firstName,
-                  matchesUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-                  city: family.city || undefined,
-                });
                 break;
             }
             emailType = `publish_nudge_${nudgeNumber}`;
@@ -711,8 +702,10 @@ export async function GET(request: NextRequest) {
             counts.goLiveReminders++;
           }
 
+          // Step 2: Reserve logId BEFORE building HTML (so tracking works)
+          let logId: string | null = null;
           if (!dryRun) {
-            const logId = await reserveEmailLogId({
+            logId = await reserveEmailLogId({
               to: email,
               subject,
               emailType,
@@ -725,6 +718,61 @@ export async function GET(request: NextRequest) {
                 },
               },
             });
+          }
+
+          // Step 3: Build tracked URL with logId
+          const matchesUrl = appendTrackingParams(`${siteUrl}/welcome`, logId);
+
+          // Step 4: Build HTML using tracked URL
+          let html: string;
+          if (isMaintenanceNudge) {
+            html = publishMaintenanceEmail({
+              familyName: firstName,
+              matchesUrl,
+              providerCount,
+              city: family.city || undefined,
+              state: family.state || undefined,
+            });
+          } else {
+            switch (nudgeNumber) {
+              case 1:
+                html = publishNudge1Email({
+                  familyName: firstName,
+                  matchesUrl,
+                  providerCount,
+                  city: family.city || undefined,
+                });
+                break;
+              case 2:
+                html = publishNudge2Email({
+                  familyName: firstName,
+                  matchesUrl,
+                  providerCount,
+                  providers: topProviders,
+                  city: family.city || undefined,
+                });
+                break;
+              case 3:
+                html = publishNudge3Email({
+                  familyName: firstName,
+                  matchesUrl,
+                  city: family.city || undefined,
+                  state: family.state || undefined,
+                });
+                break;
+              case 4:
+              default:
+                html = publishNudge4Email({
+                  familyName: firstName,
+                  matchesUrl,
+                  city: family.city || undefined,
+                });
+                break;
+            }
+          }
+
+          // Step 5: Send email (if not dryRun)
+          if (!dryRun) {
             await sendEmail({
               to: email,
               subject,

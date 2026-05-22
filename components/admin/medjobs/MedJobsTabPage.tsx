@@ -758,6 +758,8 @@ export function MedJobsTabPage({
               });
             } else if (classification === "redirected" && redirect) {
               // P4: add the new contact + stop the original cadence.
+              // stop_cadence: true ensures cadence stops for the original
+              // recipient even though we're using keep_emailing.
               const derivedName =
                 [redirect.first_name, redirect.last_name]
                   .filter(Boolean)
@@ -772,6 +774,7 @@ export function MedJobsTabPage({
               await callAction(classifierRow.row.id, "classify_reply", {
                 classification: "keep_emailing",
                 notes: payload.notes,
+                stop_cadence: true,
               });
             } else {
               await callAction(classifierRow.row.id, "classify_reply", {

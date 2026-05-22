@@ -638,9 +638,10 @@ function InOutreachBody({
                 // Prospects for catchment Sites.
                 await action("make_client", { notes: payload.notes });
               } else if (classification === "redirected" && redirect) {
-                // P4: add the new contact + stop the original cadence
-                // via classify_reply(keep_emailing). Two dispatches so
-                // the timeline narrates both events honestly.
+                // P4: add the new contact + stop the original cadence.
+                // Two dispatches so the timeline narrates both events.
+                // stop_cadence: true ensures cadence stops for the original
+                // recipient even though we're using keep_emailing.
                 const derivedName =
                   [redirect.first_name, redirect.last_name]
                     .filter(Boolean)
@@ -655,6 +656,7 @@ function InOutreachBody({
                 await action("classify_reply", {
                   classification: "keep_emailing",
                   notes: payload.notes,
+                  stop_cadence: true,
                 });
               } else {
                 await action("classify_reply", {
@@ -801,6 +803,7 @@ function CallDueBody({
                 await action("classify_reply", {
                   classification: "keep_emailing",
                   notes: payload.notes,
+                  stop_cadence: true,
                 });
               } else {
                 await action("classify_reply", {

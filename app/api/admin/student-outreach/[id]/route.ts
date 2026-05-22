@@ -1233,12 +1233,13 @@ async function handleLogReply(
     channel,
     notes: body.notes ?? null,
   });
-  // v8.8: an email reply supersedes BOTH pending email and call tasks.
-  // If they've replied, we don't need to keep emailing or calling — admin
-  // can still call manually, but the system shouldn't auto-prompt it.
-  await supersedePendingOutreachEmails(db, row.id, userId);
-  await supersedePendingFollowupCalls(db, row.id, userId, "reply_received");
-  // A reply jumps the row to engaged (cadence freezes).
+  // v9.2: logging a reply does NOT stop the cadence. The sequence continues
+  // until the admin explicitly selects a close-out status (not_interested,
+  // became_client, committed, etc.) or advances the row to meetings. This
+  // allows admins to log replies for tracking while the automated outreach
+  // continues in the background.
+  //
+  // A reply transitions the row to engaged status.
   // v8.10.6: no_response_closed (archived) rows also re-enter engaged
   // when a reply lands — admin's "Log reply" CTA from the Archive tab
   // pulls the stakeholder back into active Replies. reopen_at is
@@ -1585,7 +1586,7 @@ function legacyDispositionToOutcome(disposition: string | undefined): string | n
  * existing actions. The mini-modal is shared between "they replied
  * via email" and "got a callback" paths.
  *
- *   keep_emailing      → log_email_replied (engaged + supersede emails)
+ *   keep_emailing      → log_email_replied (engaged, cadence continues)
  *   wants_meeting      → flag_wants_meeting (note_added meeting_in_flight)
  *   already_booked     → mark_meeting_scheduled (with optional meeting_at)
  *   committed          → mark_partner with the supplied evidence
@@ -1599,12 +1600,21 @@ async function handleClassifyReply(
     meeting_at?: string;
     evidence?: DistributionEvidence;
     evidence_notes?: string;
+    // v9.2: when true, explicitly stop the cadence. Used by `redirected`
+    // flow where the admin is switching to a different contact.
+    stop_cadence?: boolean;
   },
   userId: string,
 ) {
   switch (body.classification) {
     case "keep_emailing":
       await handleLogReply(db, row, { notes: body.notes }, userId, "email_replied", "email");
+      // v9.2: if stop_cadence is explicitly requested (e.g., redirected flow),
+      // stop the email/call cadence even though we're logging a reply.
+      if (body.stop_cadence) {
+        await supersedePendingOutreachEmails(db, row.id, userId);
+        await supersedePendingFollowupCalls(db, row.id, userId, "redirected");
+      }
       return;
     case "wants_meeting":
       await handleFlagWantsMeeting(db, row, { notes: body.notes }, userId);

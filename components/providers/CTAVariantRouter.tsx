@@ -177,7 +177,7 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
           providerCategory={providerCategory}
           providerCity={providerCity}
           providerState={providerState}
-          ctaVariant={variant}
+          ctaVariant={variant ?? "legacy"}
           ctaSurface="desktop"
           ctaPreviewMode={isPreview}
         />
@@ -306,7 +306,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerCity={providerCity}
           providerState={providerState}
           providerImage={providerImage}
-          ctaVariant={variant}
+          ctaVariant={variant ?? "legacy"}
           ctaSurface="mobile"
           ctaPreviewMode={isPreview}
         />

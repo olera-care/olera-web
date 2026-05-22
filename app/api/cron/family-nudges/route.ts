@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { getServiceClient } from "@/lib/admin";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
@@ -112,6 +113,7 @@ interface FamilyRow {
   metadata: FamilyMetadata | null;
   created_at: string;
   account_id: string | null;
+  claim_token: string | null;
 }
 
 /**
@@ -127,7 +129,7 @@ async function fetchAllFamilies(db: DB, cutoffTime: string): Promise<FamilyRow[]
   while (hasMore) {
     const { data, error } = await db
       .from("business_profiles")
-      .select("id, display_name, email, phone, image_url, city, state, description, care_types, metadata, created_at, account_id")
+      .select("id, display_name, email, phone, image_url, city, state, description, care_types, metadata, created_at, account_id, claim_token")
       .eq("type", "family")
       .lte("created_at", cutoffTime)
       .order("created_at", { ascending: false })
@@ -305,6 +307,65 @@ async function getConnectionStats(
   };
 
   return connectionStatsCache;
+}
+
+// ── Magic link generation ──
+
+/**
+ * Generate a magic link for a family to auto-sign-in when clicking email CTAs.
+ * Returns the magic link URL, or falls back to plain URL if generation fails.
+ */
+async function generateMagicLinkUrl(
+  db: DB,
+  family: FamilyRow,
+  destinationPath: string,
+  siteUrl: string,
+): Promise<string> {
+  const plainUrl = `${siteUrl}${destinationPath}`;
+
+  // If family has an account, generate a magic link
+  if (family.account_id && family.email) {
+    try {
+      const { data: account } = await db
+        .from("accounts")
+        .select("user_id")
+        .eq("id", family.account_id)
+        .single();
+
+      if (account?.user_id) {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (supabaseUrl && serviceKey) {
+          const authClient = createClient(supabaseUrl, serviceKey);
+          const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
+            type: "magiclink",
+            email: family.email,
+            options: {
+              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(destinationPath)}`,
+            },
+          });
+
+          if (!linkError && linkData?.properties?.action_link) {
+            return linkData.properties.action_link;
+          } else if (linkError) {
+            console.warn("[family-nudges] Failed to generate magic link:", linkError);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("[family-nudges] Error generating magic link:", err);
+    }
+  }
+
+  // Fallback for guest families with claim token
+  if (family.claim_token) {
+    const separator = destinationPath.includes("?") ? "&" : "?";
+    return `${plainUrl}${separator}token=${family.claim_token}`;
+  }
+
+  // Final fallback: plain URL (user will need to sign in manually)
+  return plainUrl;
 }
 
 // ── Sequence helpers ──
@@ -593,8 +654,9 @@ export async function GET(request: NextRequest) {
             });
           }
 
-          // Step 3: Build tracked URL with logId
-          const welcomeUrl = appendTrackingParams(`${siteUrl}/welcome`, logId);
+          // Step 3: Build magic link URL with tracking (auto-signs user in)
+          const trackedPath = appendTrackingParams("/welcome", logId);
+          const welcomeUrl = await generateMagicLinkUrl(db, family, trackedPath, siteUrl);
 
           // Step 4: Build HTML using tracked URL
           let html: string;
@@ -768,10 +830,11 @@ export async function GET(request: NextRequest) {
             });
           }
 
-          // Step 3: Build tracked URL with logId
-          const matchesUrl = appendTrackingParams(`${siteUrl}/welcome`, logId);
+          // Step 3: Build magic link URL with tracking (auto-signs user in)
+          const trackedPath = appendTrackingParams("/welcome", logId);
+          const matchesUrl = await generateMagicLinkUrl(db, family, trackedPath, siteUrl);
 
-          // Step 4: Build HTML using tracked URL
+          // Step 4: Build HTML using magic link URL
           let html: string;
           if (isMaintenanceNudge) {
             html = publishMaintenanceEmail({

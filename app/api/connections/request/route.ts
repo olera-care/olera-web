@@ -3,7 +3,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, careReportEmail } from "@/lib/email-templates";
+import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, verifyEmailEmail, careReportEmail } from "@/lib/email-templates";
 import { getPricingForProviderSync, formatPricingRange, getFundingOptions } from "@/lib/pricing-ranges";
 import { sendSlackAlert, slackNewLead, slackMissingEmail, slackLeadCaptureConverted, slackLegacyConnectConverted } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
@@ -766,6 +766,48 @@ async function handleGuestConnection({
       entry_point: entryPoint || null,
     },
   });
+
+  // Send "Verify your email" email ONLY for new users
+  // Returning family users who submit while not logged in shouldn't get welcome emails
+  if (isNewUser) {
+    try {
+      const verifyEmailLogId = await reserveEmailLogId({
+        to: normalizedEmail,
+        subject: `Verify your email — Olera`,
+        emailType: "verify_email",
+        recipientType: "family",
+      });
+
+      const verifyDest = appendTrackingParams("/portal/inbox", verifyEmailLogId);
+
+      // Generate a verification link for the email
+      const { data: verifyLinkData, error: verifyLinkError } = await authClient.auth.admin.generateLink({
+        type: "magiclink",
+        email: normalizedEmail,
+        options: {
+          redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(verifyDest)}&verify=true`,
+        },
+      });
+
+      if (!verifyLinkError && verifyLinkData?.properties?.action_link) {
+        await sendEmail({
+          to: normalizedEmail,
+          subject: `Verify your email — Olera`,
+          html: verifyEmailEmail({
+            familyName: firstName || "there",  // "there" is fine for "Hello there"
+            providerName,
+            verifyUrl: verifyLinkData.properties.action_link,
+          }),
+          emailType: 'verify_email',
+          recipientType: 'family',
+          emailLogId: verifyEmailLogId ?? undefined,
+        });
+      }
+    } catch (emailErr) {
+      console.error("Failed to send verify email:", emailErr);
+      // Non-blocking — user has instant session, verification is optional
+    }
+  }
 
   // Provider notifications (fire-and-forget)
   try {

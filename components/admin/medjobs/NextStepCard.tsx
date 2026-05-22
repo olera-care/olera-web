@@ -371,12 +371,12 @@ function ProspectBody({
         />
         <ChecklistRow
           done={addressComplete}
-          tone="required"
+          tone="recommended"
           label="Address"
           hint={
             addressComplete
               ? "Street, city, state, ZIP set — ready for snail mail."
-              : "Required. Need street, city, state, and ZIP."
+              : "Recommended for future snail mail. Need street, city, state, and ZIP."
           }
         />
         {/* v9.1 admin feedback (Graize 05.13): Website is now

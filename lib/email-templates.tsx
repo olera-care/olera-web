@@ -1132,23 +1132,41 @@ export function publishNudge2Email(opts: {
   `);
 }
 
-/** Publish Nudge #3 (Day 10): Social proof, success stories */
+/** Publish Nudge #3 (Day 6): Social proof with real connection stats */
 export function publishNudge3Email(opts: {
   familyName: string;
   matchesUrl: string;
+  familiesThisWeek?: number;
+  familiesThisMonth?: number;
+  providerCount?: number;
   city?: string;
   state?: string;
 }): string {
   const locationText = opts.city || opts.state || "your area";
 
+  // Build social proof line with real data
+  let socialProof: string;
+  if (opts.familiesThisWeek && opts.familiesThisWeek >= 5) {
+    socialProof = `${opts.familiesThisWeek} families connected with providers this week on Olera.`;
+  } else if (opts.familiesThisMonth && opts.familiesThisMonth >= 10) {
+    socialProof = `${opts.familiesThisMonth} families found care this month on Olera.`;
+  } else {
+    socialProof = "Families like yours are connecting with care providers every day on Olera.";
+  }
+
+  const providerLine = opts.providerCount
+    ? `${opts.providerCount} providers in ${locationText} are ready to help.`
+    : `Providers in ${locationText} are waiting to hear from you.`;
+
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families in ${locationText} are finding care</h1>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families are finding care — you can too</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${opts.familyName}, families like yours are connecting with care providers every day on Olera. The sooner you publish, the sooner you can start conversations.
+      Hi ${opts.familyName}, ${socialProof}
     </p>
     <div style="background:#f0fdfa;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;font-style:italic;">"I was nervous about putting my needs out there, but within a week I had three great options to choose from."</p>
-      <p style="font-size:13px;color:#6b7280;margin:8px 0 0;">— A family in ${locationText}</p>
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Your profile is complete.</strong> ${providerLine} The sooner you publish, the sooner you can start conversations.
+      </p>
     </div>
     <div>${button("Publish and Start Connecting", opts.matchesUrl)}</div>
   `);

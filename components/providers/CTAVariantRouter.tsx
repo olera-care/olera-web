@@ -277,6 +277,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerName={providerName}
           providerId={providerId}
           providerSlug={providerSlug}
+          providerCategory={providerCategory}
           providerCity={providerCity}
           providerState={providerState}
           providerImage={providerImage}

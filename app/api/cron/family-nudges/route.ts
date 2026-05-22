@@ -25,27 +25,30 @@ import type { NudgeSequence, NudgeSequencePhase, FamilyMetadata } from "@/lib/ty
  *
  * Runs daily at 3 PM UTC. Sequence-based re-engagement system:
  *
- * PROFILE COMPLETENESS: Uses ≥80% threshold (same as lead-family-nudge)
- * to determine if a profile is "complete". This is calculated using
- * calculateFamilyCompleteness() which weighs fields like photo, contact
- * info, care types, payment methods, etc.
+ * PROFILE COMPLETENESS: Uses ≥60% threshold to determine if a profile
+ * is "complete". This is calculated using calculateFamilyCompleteness()
+ * which weighs fields like photo, contact info, care types, payment
+ * methods, etc. Lowered from 80% so enrichment completion is sufficient.
+ *
+ * TIMING: Aggressive early engagement — users are most motivated right
+ * after signup. We start same-day and front-load the sequence.
  *
  * PHASE 1: Profile Completion (4 active nudges + 6 monthly max)
- * - Nudge #1: Day 3 after signup — What's missing, why it matters
- * - Nudge #2: Day 8 (+5 days) — Progress encouragement, provider count
- * - Nudge #3: Day 15 (+7 days) — Social proof, urgency
- * - Nudge #4: Day 22 (+7 days) — Final push with specific providers
+ * - Nudge #1: Same day (4h+ after signup) — What's missing, why it matters
+ * - Nudge #2: Day 2 (+2 days) — Progress encouragement, provider count
+ * - Nudge #3: Day 6 (+4 days) — Social proof, urgency
+ * - Nudge #4: Day 13 (+7 days) — Final push with specific providers
  * - Maintenance: Every 30 days, max 6 times — New providers added
  *
  * PHASE 2: Profile Publishing (4 active nudges + 6 monthly max)
- * - Nudge #1: Day 1 after complete — Benefits of publishing
- * - Nudge #2: Day 5 (+4 days) — Provider count, top rated
- * - Nudge #3: Day 10 (+5 days) — Social proof, success stories
- * - Nudge #4: Day 15 (+5 days) — Soft touch, no pressure
+ * - Nudge #1: Same day after complete — Benefits of publishing
+ * - Nudge #2: Day 2 (+2 days) — Provider count, top rated
+ * - Nudge #3: Day 6 (+4 days) — Social proof, success stories
+ * - Nudge #4: Day 13 (+7 days) — Soft touch, no pressure
  * - Maintenance: Every 30 days, max 6 times — Updated stats
  *
  * STOP CONDITIONS:
- * - Profile becomes ≥80% complete → stop completion, start publish
+ * - Profile becomes ≥60% complete → stop completion, start publish
  * - Profile gets published → stop ALL sequences (SUCCESS!)
  * - User unsubscribes → stop ALL sequences forever
  * - Was published 30+ days ago then unpublished → don't re-nudge to publish
@@ -60,11 +63,12 @@ export const maxDuration = 60;
 
 const COMPLETION_ACTIVE_COUNT = 4;
 const PUBLISH_ACTIVE_COUNT = 4;
-const COMPLETION_COOLDOWNS = [3, 5, 7, 7]; // days between nudges in active phase
-const PUBLISH_COOLDOWNS = [1, 4, 5, 5];    // days between nudges in active phase (first is after profile complete)
+const COMPLETION_COOLDOWNS = [0, 2, 4, 7]; // days between nudges — same-day, Day 2, Day 6, Day 13
+const PUBLISH_COOLDOWNS = [0, 2, 4, 7];    // days between nudges — same-day after complete, Day 2, Day 6, Day 13
 const MAINTENANCE_COOLDOWN = 30;           // days between maintenance nudges
 const MAX_MAINTENANCE_NUDGES = 6;          // cap monthly nudges at 6 (stop after ~8 months total)
-const PROFILE_COMPLETE_THRESHOLD = 80;     // must be ≥80% to be considered "complete" (matches lead-family-nudge)
+const READY_TO_PUBLISH_THRESHOLD = 60;     // ≥60% can publish profile (enrichment completion is sufficient)
+const FULLY_COMPLETE_THRESHOLD = 100;      // ≥100% is "fully complete" — no more completion nudges needed
 const REPUBLISH_GRACE_PERIOD_DAYS = 30;    // don't nudge to re-publish if was published 30+ days ago
 
 // ── Care type mapping: family profile → olera-providers ──
@@ -109,12 +113,14 @@ interface FamilyRow {
   metadata: FamilyMetadata | null;
   created_at: string;
   account_id: string | null;
+  claim_token: string | null;
 }
 
 /**
  * Fetch all eligible family profiles in batches (handles >1000 rows).
+ * Only fetches profiles created before the cutoff time (4h grace period).
  */
-async function fetchAllFamilies(db: DB, oneDayAgo: string): Promise<FamilyRow[]> {
+async function fetchAllFamilies(db: DB, cutoffTime: string): Promise<FamilyRow[]> {
   const PAGE_SIZE = 500;
   const allFamilies: FamilyRow[] = [];
   let offset = 0;
@@ -123,9 +129,9 @@ async function fetchAllFamilies(db: DB, oneDayAgo: string): Promise<FamilyRow[]>
   while (hasMore) {
     const { data, error } = await db
       .from("business_profiles")
-      .select("id, display_name, email, phone, image_url, city, state, description, care_types, metadata, created_at, account_id")
+      .select("id, display_name, email, phone, image_url, city, state, description, care_types, metadata, created_at, account_id, claim_token")
       .eq("type", "family")
-      .lte("created_at", oneDayAgo)
+      .lte("created_at", cutoffTime)
       .order("created_at", { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
 
@@ -262,6 +268,101 @@ async function getTopProviders(
   return results;
 }
 
+let connectionStatsCache: { familiesThisWeek: number; familiesThisMonth: number } | null = null;
+
+/**
+ * Count recent family connections platform-wide (last 7 days and last 30 days).
+ * Used for social proof in publish nudges. Returns platform-wide stats since
+ * state-level filtering would require expensive joins.
+ */
+async function getConnectionStats(
+  db: DB,
+): Promise<{ familiesThisWeek: number; familiesThisMonth: number }> {
+  if (connectionStatsCache) {
+    return connectionStatsCache;
+  }
+
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Count connections initiated by families (type=request, from_profile_id is the seeker)
+  const { count: weekCount } = await db
+    .from("connections")
+    .select("from_profile_id", { count: "exact", head: true })
+    .gte("created_at", weekAgo)
+    .eq("type", "request")
+    .not("from_profile_id", "is", null);
+
+  const { count: monthCount } = await db
+    .from("connections")
+    .select("from_profile_id", { count: "exact", head: true })
+    .gte("created_at", monthAgo)
+    .eq("type", "request")
+    .not("from_profile_id", "is", null);
+
+  connectionStatsCache = {
+    familiesThisWeek: weekCount ?? 0,
+    familiesThisMonth: monthCount ?? 0,
+  };
+
+  return connectionStatsCache;
+}
+
+// ── Magic link generation ──
+
+/**
+ * Generate a magic link for a family to auto-sign-in when clicking email CTAs.
+ * Returns the magic link URL, or falls back to plain URL if generation fails.
+ */
+async function generateMagicLinkUrl(
+  db: DB,
+  family: FamilyRow,
+  destinationPath: string,
+  siteUrl: string,
+): Promise<string> {
+  const plainUrl = `${siteUrl}${destinationPath}`;
+
+  // If family has an account, generate a magic link
+  if (family.account_id && family.email) {
+    try {
+      const { data: account } = await db
+        .from("accounts")
+        .select("user_id")
+        .eq("id", family.account_id)
+        .single();
+
+      if (account?.user_id) {
+        // Use the existing service client for auth operations (no need to create new client)
+        const { data: linkData, error: linkError } = await db.auth.admin.generateLink({
+          type: "magiclink",
+          email: family.email,
+          options: {
+            redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(destinationPath)}`,
+          },
+        });
+
+        if (!linkError && linkData?.properties?.action_link) {
+          return linkData.properties.action_link;
+        } else if (linkError) {
+          console.warn("[family-nudges] Failed to generate magic link:", linkError);
+        }
+      }
+    } catch (err) {
+      console.warn("[family-nudges] Error generating magic link:", err);
+    }
+  }
+
+  // Fallback for guest families with claim token
+  if (family.claim_token) {
+    const separator = destinationPath.includes("?") ? "&" : "?";
+    return `${plainUrl}${separator}token=${family.claim_token}`;
+  }
+
+  // Final fallback: plain URL (user will need to sign in manually)
+  return plainUrl;
+}
+
 // ── Sequence helpers ──
 
 function daysSince(isoDate: string | undefined | null): number {
@@ -355,7 +456,8 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
     const now = Date.now();
-    const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+    // 4-hour grace period: let users complete on their own before nudging
+    const fourHoursAgo = new Date(now - 4 * 60 * 60 * 1000).toISOString();
     const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const counts = {
@@ -372,8 +474,8 @@ export async function GET(request: NextRequest) {
       skipped: 0,
     };
 
-    // ── Step 1: Fetch family profiles (24h+ old) using paginated fetch ──
-    const families = await fetchAllFamilies(db, oneDayAgo);
+    // ── Step 1: Fetch family profiles (4h+ old) using paginated fetch ──
+    const families = await fetchAllFamilies(db, fourHoursAgo);
 
     if (!families.length) {
       return NextResponse.json({ status: "ok", message: "No eligible families", ...counts });
@@ -438,10 +540,10 @@ export async function GET(request: NextRequest) {
 
       // Calculate profile completeness using the same function as lead-family-nudge
       const completeness = calculateFamilyCompleteness(family, email);
-      const profileComplete = completeness.percentage >= PROFILE_COMPLETE_THRESHOLD;
+      const readyToPublish = completeness.percentage >= READY_TO_PUBLISH_THRESHOLD;  // ≥60% can publish
+      const fullyComplete = completeness.percentage >= FULLY_COMPLETE_THRESHOLD;      // 100% is fully done
 
-      // These are still needed for email template content
-      const hasCareTypes = family.care_types && (family.care_types as string[]).length > 0;
+      // Used to determine whether to fetch provider count/list
       const hasLocation = !!(family.city && family.state);
 
       const carePost = meta.care_post;
@@ -452,9 +554,9 @@ export async function GET(request: NextRequest) {
       const firstName = family.display_name?.split(/\s+/)[0] || "there";
       const careTypes = (family.care_types as string[]) || [];
 
-      // ── STOP CONDITION: Profile is published AND complete — SUCCESS! ──
-      // If published but incomplete, we still want to nudge them to improve their profile
-      if (isPublished && profileComplete) {
+      // ── STOP CONDITION: Profile is published AND fully complete (100%) — SUCCESS! ──
+      // Published users < 100% still get completion nudges to reach full completeness
+      if (isPublished && fullyComplete) {
         continue;
       }
 
@@ -474,8 +576,11 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // ── PHASE 1: Profile Completion (if profile incomplete) ──
-      if (!profileComplete) {
+      // ── PHASE 1: Profile Completion ──
+      // Case A: Not ready to publish yet (< 60%) — nudge to reach publishable state
+      // Case B: Published but not fully complete (< 100%) — nudge to reach 100%
+      const needsCompletionNudges = !readyToPublish || (isPublished && !fullyComplete);
+      if (needsCompletionNudges) {
         // Use migration-aware function: if they got the old email, skip nudge #1
         const seq = getSequenceWithMigration(
           meta.completion_sequence,
@@ -483,8 +588,6 @@ export async function GET(request: NextRequest) {
         );
 
         if (shouldSendCompletionNudge(seq, family.created_at)) {
-          const missingCareTypes = !hasCareTypes;
-          const missingLocation = !hasLocation;
           let providerCount: number | undefined;
           if (hasLocation) {
             providerCount = await countProvidersInArea(db, family.city!, family.state!, careTypes);
@@ -502,66 +605,28 @@ export async function GET(request: NextRequest) {
             continue; // Give up gracefully — they're not engaging
           }
 
+          // Step 1: Determine subject, emailType, and increment counters
           let subject: string;
-          let html: string;
           let emailType: string;
 
           if (isMaintenanceNudge) {
-            // Maintenance nudge
             subject = `New providers in ${family.city || family.state || "your area"}`;
-            html = completionMaintenanceEmail({
-              familyName: firstName,
-              welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-              providers: topProviders,
-              city: family.city || undefined,
-              state: family.state || undefined,
-            });
             emailType = "completion_maintenance";
             counts.maintenanceNudges++;
           } else {
-            // Active sequence nudges (1-4)
             switch (nudgeNumber) {
               case 1:
-                subject = "Help providers understand your needs";
-                html = completionNudge1Email({
-                  familyName: firstName,
-                  welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-                  missingCareTypes,
-                  missingLocation,
-                  providerCount,
-                  city: family.city || undefined,
-                });
+                subject = `Your profile is ${completeness.percentage}% complete`;
                 break;
               case 2:
-                subject = "Your profile is almost complete";
-                html = completionNudge2Email({
-                  familyName: firstName,
-                  welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-                  providerCount,
-                  city: family.city || undefined,
-                  state: family.state || undefined,
-                });
+                subject = `You're ${completeness.percentage}% there — finish your profile`;
                 break;
               case 3:
-                subject = "Providers respond faster to complete profiles";
-                html = completionNudge3Email({
-                  familyName: firstName,
-                  welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-                  providerCount,
-                  city: family.city || undefined,
-                  state: family.state || undefined,
-                });
+                subject = "Complete profiles get 3x faster responses";
                 break;
               case 4:
               default:
                 subject = `Top providers in ${family.city || family.state || "your area"} are ready to help`;
-                html = completionNudge4Email({
-                  familyName: firstName,
-                  welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
-                  providers: topProviders,
-                  city: family.city || undefined,
-                  state: family.state || undefined,
-                });
                 break;
             }
             emailType = `completion_nudge_${nudgeNumber}`;
@@ -570,8 +635,91 @@ export async function GET(request: NextRequest) {
             counts.profileIncomplete++;
           }
 
+          // Step 2: Reserve logId BEFORE building HTML (so tracking works)
+          let logId: string | null = null;
           if (!dryRun) {
-            const logId = await reserveEmailLogId({ to: email, subject, emailType, recipientType: "family" });
+            logId = await reserveEmailLogId({
+              to: email,
+              subject,
+              emailType,
+              recipientType: "family",
+              metadata: {
+                family_profile_id: family.id,
+                profile_snapshot: {
+                  completeness: completeness.percentage,
+                  is_published: isPublished,
+                },
+              },
+            });
+          }
+
+          // Step 3: Build magic link URL with tracking (auto-signs user in)
+          const trackedPath = appendTrackingParams("/welcome", logId);
+          const welcomeUrl = await generateMagicLinkUrl(db, family, trackedPath, siteUrl);
+
+          // Step 4: Build HTML using tracked URL
+          let html: string;
+          if (isMaintenanceNudge) {
+            html = completionMaintenanceEmail({
+              familyName: firstName,
+              welcomeUrl,
+              providers: topProviders,
+              missingFields: completeness.missingFields,
+              completionPercent: completeness.percentage,
+              city: family.city || undefined,
+              state: family.state || undefined,
+            });
+          } else {
+            switch (nudgeNumber) {
+              case 1:
+                html = completionNudge1Email({
+                  familyName: firstName,
+                  welcomeUrl,
+                  missingFields: completeness.missingFields,
+                  completionPercent: completeness.percentage,
+                  providerCount,
+                  city: family.city || undefined,
+                });
+                break;
+              case 2:
+                html = completionNudge2Email({
+                  familyName: firstName,
+                  welcomeUrl,
+                  missingFields: completeness.missingFields,
+                  completionPercent: completeness.percentage,
+                  providerCount,
+                  city: family.city || undefined,
+                  state: family.state || undefined,
+                });
+                break;
+              case 3:
+                html = completionNudge3Email({
+                  familyName: firstName,
+                  welcomeUrl,
+                  missingFields: completeness.missingFields,
+                  completionPercent: completeness.percentage,
+                  providerCount,
+                  city: family.city || undefined,
+                  state: family.state || undefined,
+                });
+                break;
+              case 4:
+              default:
+                html = completionNudge4Email({
+                  familyName: firstName,
+                  welcomeUrl,
+                  missingFields: completeness.missingFields,
+                  completionPercent: completeness.percentage,
+                  providers: topProviders,
+                  city: family.city || undefined,
+                  state: family.state || undefined,
+                });
+                break;
+            }
+          }
+
+          // Step 5: Send email (if not dryRun)
+          if (!dryRun) {
             await sendEmail({
               to: email,
               subject,
@@ -602,8 +750,8 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // ── PHASE 2: Profile Publishing (if profile complete but not published) ──
-      if (profileComplete && !isPublished) {
+      // ── PHASE 2: Profile Publishing (if ready to publish but not published yet) ──
+      if (readyToPublish && !isPublished) {
         // Use migration-aware function: if they got the old email, skip nudge #1
         const seq = getSequenceWithMigration(
           meta.publish_sequence,
@@ -614,8 +762,15 @@ export async function GET(request: NextRequest) {
         const profileCompletedAt = meta.last_active_at;
 
         if (shouldSendPublishNudge(seq, profileCompletedAt, family.created_at)) {
-          const providerCount = await countProvidersInArea(db, family.city!, family.state!, careTypes);
-          const topProviders = await getTopProviders(db, family.city!, family.state!, careTypes, 3);
+          // Defensive: check location exists (should always be true for complete profiles)
+          const hasLocation = family.city && family.state;
+          const providerCount = hasLocation
+            ? await countProvidersInArea(db, family.city!, family.state!, careTypes)
+            : undefined;
+          const topProviders = hasLocation
+            ? await getTopProviders(db, family.city!, family.state!, careTypes, 3)
+            : [];
+          const connectionStats = await getConnectionStats(db);
 
           const nudgeNumber = seq.nudge_count + 1;
           const isMaintenanceNudge = seq.phase === "maintenance";
@@ -626,61 +781,28 @@ export async function GET(request: NextRequest) {
             continue; // Give up gracefully — they're not engaging
           }
 
+          // Step 1: Determine subject, emailType, and increment counters
           let subject: string;
-          let html: string;
           let emailType: string;
 
           if (isMaintenanceNudge) {
-            // Maintenance nudge
             subject = "Still looking for care?";
-            html = publishMaintenanceEmail({
-              familyName: firstName,
-              matchesUrl: appendTrackingParams(`${siteUrl}/portal/profile`, null),
-              providerCount,
-              city: family.city || undefined,
-              state: family.state || undefined,
-            });
             emailType = "publish_maintenance";
             counts.maintenanceNudges++;
           } else {
-            // Active sequence nudges (1-4)
             switch (nudgeNumber) {
               case 1:
                 subject = "Go live — let providers find you";
-                html = publishNudge1Email({
-                  familyName: firstName,
-                  matchesUrl: appendTrackingParams(`${siteUrl}/portal/profile`, null),
-                  providerCount,
-                  city: family.city || undefined,
-                });
                 break;
               case 2:
-                subject = `${providerCount > 0 ? providerCount + " " : ""}providers in ${family.city || "your area"} are looking`;
-                html = publishNudge2Email({
-                  familyName: firstName,
-                  matchesUrl: appendTrackingParams(`${siteUrl}/portal/profile`, null),
-                  providerCount,
-                  providers: topProviders,
-                  city: family.city || undefined,
-                });
+                subject = `${providerCount && providerCount > 0 ? providerCount + " " : ""}providers in ${family.city || "your area"} are looking`;
                 break;
               case 3:
                 subject = `Families in ${family.city || family.state || "your area"} are finding care`;
-                html = publishNudge3Email({
-                  familyName: firstName,
-                  matchesUrl: appendTrackingParams(`${siteUrl}/portal/profile`, null),
-                  city: family.city || undefined,
-                  state: family.state || undefined,
-                });
                 break;
               case 4:
               default:
                 subject = "We're here when you're ready";
-                html = publishNudge4Email({
-                  familyName: firstName,
-                  matchesUrl: appendTrackingParams(`${siteUrl}/portal/profile`, null),
-                  city: family.city || undefined,
-                });
                 break;
             }
             emailType = `publish_nudge_${nudgeNumber}`;
@@ -689,8 +811,81 @@ export async function GET(request: NextRequest) {
             counts.goLiveReminders++;
           }
 
+          // Step 2: Reserve logId BEFORE building HTML (so tracking works)
+          let logId: string | null = null;
           if (!dryRun) {
-            const logId = await reserveEmailLogId({ to: email, subject, emailType, recipientType: "family" });
+            logId = await reserveEmailLogId({
+              to: email,
+              subject,
+              emailType,
+              recipientType: "family",
+              metadata: {
+                family_profile_id: family.id,
+                profile_snapshot: {
+                  completeness: completeness.percentage,
+                  is_published: isPublished,
+                },
+              },
+            });
+          }
+
+          // Step 3: Build magic link URL with tracking (auto-signs user in)
+          const trackedPath = appendTrackingParams("/welcome", logId);
+          const matchesUrl = await generateMagicLinkUrl(db, family, trackedPath, siteUrl);
+
+          // Step 4: Build HTML using magic link URL
+          let html: string;
+          if (isMaintenanceNudge) {
+            html = publishMaintenanceEmail({
+              familyName: firstName,
+              matchesUrl,
+              providerCount,
+              city: family.city || undefined,
+              state: family.state || undefined,
+            });
+          } else {
+            switch (nudgeNumber) {
+              case 1:
+                html = publishNudge1Email({
+                  familyName: firstName,
+                  matchesUrl,
+                  providerCount,
+                  city: family.city || undefined,
+                });
+                break;
+              case 2:
+                html = publishNudge2Email({
+                  familyName: firstName,
+                  matchesUrl,
+                  providerCount,
+                  providers: topProviders,
+                  city: family.city || undefined,
+                });
+                break;
+              case 3:
+                html = publishNudge3Email({
+                  familyName: firstName,
+                  matchesUrl,
+                  familiesThisWeek: connectionStats.familiesThisWeek,
+                  familiesThisMonth: connectionStats.familiesThisMonth,
+                  providerCount,
+                  city: family.city || undefined,
+                  state: family.state || undefined,
+                });
+                break;
+              case 4:
+              default:
+                html = publishNudge4Email({
+                  familyName: firstName,
+                  matchesUrl,
+                  city: family.city || undefined,
+                });
+                break;
+            }
+          }
+
+          // Step 5: Send email (if not dryRun)
+          if (!dryRun) {
             await sendEmail({
               to: email,
               subject,

@@ -65,12 +65,15 @@ const careTypeMap: Record<string, string> = {
 
 /** Maps enrichment careNeed value → profile metadata.care_needs[] display value */
 const careNeedMap: Record<string, string> = {
-  personal_care: "Personal care",
-  household_tasks: "Household tasks",
+  // Current options
+  daily_living: "Daily living help", // Merged from personal_care + household_tasks
   health_management: "Health management",
   companionship: "Companionship",
   memory_care: "Memory care",
   mobility_help: "Mobility help",
+  // Legacy values (for backward compatibility with existing data)
+  personal_care: "Personal care",
+  household_tasks: "Household tasks",
 };
 
 /** Maps enrichment paymentMethod value → profile metadata.payment_methods[] display value */

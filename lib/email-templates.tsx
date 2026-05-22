@@ -939,108 +939,144 @@ export function dormantReengagementEmail(opts: {
 
 // ── Profile Completion Sequence (4 active + 1 maintenance) ──────────
 
-/** Completion Nudge #1 (Day 3): What's missing, why it matters */
+/** Completion Nudge #1 (Same day): What's missing, why it matters */
 export function completionNudge1Email(opts: {
   familyName: string;
   welcomeUrl: string;
-  missingCareTypes: boolean;
-  missingLocation: boolean;
+  missingFields?: string[];
+  completionPercent?: number;
   providerCount?: number;
   city?: string;
 }): string {
-  let body = "";
-
-  if (opts.missingCareTypes && opts.missingLocation) {
-    body = `Adding your location and care needs helps providers understand exactly how they can help you.`;
-  } else if (opts.missingCareTypes) {
-    body = `Let us know what type of care you're looking for — providers respond better when they know your specific needs.`;
-  } else if (opts.missingLocation) {
-    body = `Add your city so nearby providers can reach out to you directly.`;
-  } else {
-    body = `A few more details will help providers understand your situation and respond with relevant information.`;
-  }
+  const percent = opts.completionPercent ?? 0;
+  const missing = opts.missingFields ?? [];
+  const missingSummary = missing.length <= 3
+    ? missing.join(", ")
+    : `${missing.slice(0, 3).join(", ")}, and ${missing.length - 3} more`;
+  const locationText = opts.city || "your area";
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Help providers understand your needs</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${opts.familyName}, ${body}
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Complete your profile to connect with providers</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+      Hi ${opts.familyName}, your profile is ${percent}% complete. A few more details will help providers in ${locationText} understand your needs.
     </p>
+    ${missing.length > 0 ? `
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 20px;">
+      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">Missing information:</p>
+      <p style="font-size:14px;color:#6b7280;margin:0;">${missingSummary}</p>
+    </div>
+    ` : ""}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      It only takes a minute, and profiles with more details get better responses from providers.
+      ${opts.providerCount ? `${opts.providerCount} providers are looking for families like yours.` : "Complete profiles get faster responses from providers."}
     </p>
-    <div>${button("Add more details", opts.welcomeUrl)}</div>
+    <div>${button("Complete Your Profile", opts.welcomeUrl)}</div>
   `);
 }
 
-/** Completion Nudge #2 (Day 8): Progress encouragement, provider count */
+/** Completion Nudge #2 (Day 2): Progress encouragement, provider count */
 export function completionNudge2Email(opts: {
   familyName: string;
   welcomeUrl: string;
+  missingFields?: string[];
+  completionPercent?: number;
   providerCount?: number;
   city?: string;
   state?: string;
 }): string {
+  const percent = opts.completionPercent ?? 0;
+  const missing = opts.missingFields ?? [];
+  const missingSummary = missing.length <= 3
+    ? missing.join(", ")
+    : `${missing.slice(0, 3).join(", ")}, and ${missing.length - 3} more`;
   const locationText = opts.city || opts.state || "your area";
-  const countLine = opts.providerCount
-    ? `${opts.providerCount} care providers in ${locationText} are looking for families like yours.`
-    : `Care providers in ${locationText} are looking for families like yours.`;
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is almost complete</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${opts.familyName}, you're close! ${countLine}
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You're ${percent}% there — let's finish your profile</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+      Hi ${opts.familyName}, ${opts.providerCount ? `${opts.providerCount} providers in ${locationText} are looking for families like yours.` : `providers in ${locationText} are waiting to hear from you.`}
     </p>
+    ${missing.length > 0 ? `
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 20px;">
+      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">Still needed:</p>
+      <p style="font-size:14px;color:#6b7280;margin:0;">${missingSummary}</p>
+    </div>
+    ` : ""}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       Complete profiles stand out — providers are more likely to reach out when they can see your full situation.
     </p>
-    <div>${button("Finish your profile", opts.welcomeUrl)}</div>
+    <div>${button("Complete Your Profile", opts.welcomeUrl)}</div>
   `);
 }
 
-/** Completion Nudge #3 (Day 15): Social proof, urgency */
+/** Completion Nudge #3 (Day 6): Social proof, urgency */
 export function completionNudge3Email(opts: {
   familyName: string;
   welcomeUrl: string;
+  missingFields?: string[];
+  completionPercent?: number;
   providerCount?: number;
   city?: string;
   state?: string;
 }): string {
+  const percent = opts.completionPercent ?? 0;
+  const missing = opts.missingFields ?? [];
+  const missingSummary = missing.length <= 3
+    ? missing.join(", ")
+    : `${missing.slice(0, 3).join(", ")}, and ${missing.length - 3} more`;
   const locationText = opts.city || opts.state || "your area";
-  const countText = opts.providerCount ? `${opts.providerCount} ` : "";
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Providers respond faster to complete profiles</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${opts.familyName}, ${countText}providers in ${locationText} are actively looking for new clients. Families with detailed profiles hear back 3x faster.
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families with complete profiles hear back 3x faster</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+      Hi ${opts.familyName}, your profile is ${percent}% complete. ${opts.providerCount ? `${opts.providerCount} providers in ${locationText} are actively looking for new clients.` : `Providers in ${locationText} are actively looking for new clients.`}
     </p>
+    ${missing.length > 0 ? `
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 20px;">
+      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">Quick wins to complete:</p>
+      <p style="font-size:14px;color:#6b7280;margin:0;">${missingSummary}</p>
+    </div>
+    ` : ""}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Take a minute to fill in the missing details — it makes a real difference.
+      A complete profile helps providers understand exactly how they can help you.
     </p>
-    <div>${button("Complete your profile", opts.welcomeUrl)}</div>
+    <div>${button("Complete Your Profile", opts.welcomeUrl)}</div>
   `);
 }
 
-/** Completion Nudge #4 (Day 22): Final push with specific providers */
+/** Completion Nudge #4 (Day 13): Final push with specific providers */
 export function completionNudge4Email(opts: {
   familyName: string;
   welcomeUrl: string;
+  missingFields?: string[];
+  completionPercent?: number;
   providers?: EmailProviderCard[];
   city?: string;
   state?: string;
 }): string {
+  const percent = opts.completionPercent ?? 0;
+  const missing = opts.missingFields ?? [];
+  const missingSummary = missing.length <= 3
+    ? missing.join(", ")
+    : `${missing.slice(0, 3).join(", ")}, and ${missing.length - 3} more`;
   const locationText = opts.city || opts.state || "your area";
   const providersHtml = opts.providers?.length ? providerCardsBlock(opts.providers) : "";
 
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Top providers in ${locationText} are ready to help</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${opts.familyName}, here are some highly-rated providers near you:
+    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+      Hi ${opts.familyName}, your profile is ${percent}% complete. Here are some highly-rated providers near you:
     </p>
     ${providersHtml}
+    ${missing.length > 0 ? `
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 20px;">
+      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">To connect with these providers, add:</p>
+      <p style="font-size:14px;color:#6b7280;margin:0;">${missingSummary}</p>
+    </div>
+    ` : ""}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      A complete profile helps these providers understand your needs and reach out with relevant information.
+      Complete your profile so these providers can understand your needs and reach out directly.
     </p>
-    <div>${button("Complete your profile", opts.welcomeUrl)}</div>
+    <div>${button("Complete Your Profile", opts.welcomeUrl)}</div>
   `);
 }
 
@@ -1096,23 +1132,41 @@ export function publishNudge2Email(opts: {
   `);
 }
 
-/** Publish Nudge #3 (Day 10): Social proof, success stories */
+/** Publish Nudge #3 (Day 6): Social proof with real connection stats */
 export function publishNudge3Email(opts: {
   familyName: string;
   matchesUrl: string;
+  familiesThisWeek?: number;
+  familiesThisMonth?: number;
+  providerCount?: number;
   city?: string;
   state?: string;
 }): string {
   const locationText = opts.city || opts.state || "your area";
 
+  // Build social proof line with real data
+  let socialProof: string;
+  if (opts.familiesThisWeek && opts.familiesThisWeek >= 5) {
+    socialProof = `${opts.familiesThisWeek} families connected with providers this week on Olera.`;
+  } else if (opts.familiesThisMonth && opts.familiesThisMonth >= 10) {
+    socialProof = `${opts.familiesThisMonth} families found care this month on Olera.`;
+  } else {
+    socialProof = "Families like yours are connecting with care providers every day on Olera.";
+  }
+
+  const providerLine = opts.providerCount
+    ? `${opts.providerCount} providers in ${locationText} are ready to help.`
+    : `Providers in ${locationText} are waiting to hear from you.`;
+
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families in ${locationText} are finding care</h1>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families are finding care — you can too</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${opts.familyName}, families like yours are connecting with care providers every day on Olera. The sooner you publish, the sooner you can start conversations.
+      Hi ${opts.familyName}, ${socialProof}
     </p>
     <div style="background:#f0fdfa;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;font-style:italic;">"I was nervous about putting my needs out there, but within a week I had three great options to choose from."</p>
-      <p style="font-size:13px;color:#6b7280;margin:8px 0 0;">— A family in ${locationText}</p>
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Your profile is complete.</strong> ${providerLine} The sooner you publish, the sooner you can start conversations.
+      </p>
     </div>
     <div>${button("Publish and Start Connecting", opts.matchesUrl)}</div>
   `);
@@ -1149,9 +1203,16 @@ export function completionMaintenanceEmail(opts: {
   welcomeUrl: string;
   providers?: EmailProviderCard[];
   newProviderCount?: number;
+  missingFields?: string[];
+  completionPercent?: number;
   city?: string;
   state?: string;
 }): string {
+  const percent = opts.completionPercent ?? 0;
+  const missing = opts.missingFields ?? [];
+  const missingSummary = missing.length <= 3
+    ? missing.join(", ")
+    : `${missing.slice(0, 3).join(", ")}, and ${missing.length - 3} more`;
   const locationText = opts.city || opts.state || "your area";
   const newText = opts.newProviderCount
     ? `${opts.newProviderCount} new providers joined Olera in ${locationText} this month.`
@@ -1160,14 +1221,20 @@ export function completionMaintenanceEmail(opts: {
 
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">New providers in ${locationText}</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${opts.familyName}, ${newText}
+    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+      Hi ${opts.familyName}, ${newText} Your profile is ${percent}% complete — finish it to connect.
     </p>
+    ${missing.length > 0 ? `
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 20px;">
+      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">Still needed:</p>
+      <p style="font-size:14px;color:#6b7280;margin:0;">${missingSummary}</p>
+    </div>
+    ` : ""}
     ${providersHtml}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       Complete your profile to see all available providers and start connecting.
     </p>
-    <div>${button("Complete your profile", opts.welcomeUrl)}</div>
+    <div>${button("Complete Your Profile", opts.welcomeUrl)}</div>
   `);
 }
 

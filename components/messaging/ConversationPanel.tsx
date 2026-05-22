@@ -8,6 +8,7 @@ import type { ConnectionWithProfile } from "./ConversationList";
 import { formatRedactedName } from "@/lib/utils/pii-redaction";
 import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import ProfileCompletionNudge from "@/components/portal/profile/ProfileCompletionNudge";
+import GoLiveNudge from "@/components/portal/profile/GoLiveNudge";
 import QuickProfileWizard from "@/components/portal/profile/QuickProfileWizard";
 
 interface ConversationPanelProps {
@@ -33,6 +34,10 @@ interface ConversationPanelProps {
   familyProfile?: Profile | null;
   /** User email for profile completeness calculation */
   userEmail?: string;
+  /** Whether the family's care profile is published/live */
+  isProfileLive?: boolean;
+  /** Called when profile is published via the GoLiveNudge */
+  onProfilePublished?: () => void;
 }
 
 interface ThreadMessage {
@@ -356,6 +361,8 @@ export default function ConversationPanel({
   variant = "family",
   familyProfile,
   userEmail,
+  isProfileLive = false,
+  onProfilePublished,
 }: ConversationPanelProps) {
   // Use guest profile ID when activeProfile is not available
   const currentProfileId = activeProfile?.id || guestProfileId;
@@ -368,6 +375,7 @@ export default function ConversationPanel({
   // Profile completion nudge state
   const [showWizard, setShowWizard] = useState(false);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const [goLiveNudgeDismissed, setGoLiveNudgeDismissed] = useState(false);
 
   // Profile completeness check (family view only)
   const { percentage: completeness } = useProfileCompleteness(
@@ -375,12 +383,14 @@ export default function ConversationPanel({
     userEmail
   );
 
-  // Check localStorage for nudge dismissal on mount and when connection changes
+  // Check localStorage for nudge dismissals on mount and when connection changes
   useEffect(() => {
     if (!connection?.id) return;
     try {
       const dismissed = localStorage.getItem(`nudge_dismissed_${connection.id}`);
       setNudgeDismissed(dismissed === "true");
+      const goLiveDismissed = localStorage.getItem(`go_live_nudge_dismissed_${connection.id}`);
+      setGoLiveNudgeDismissed(goLiveDismissed === "true");
     } catch {
       // localStorage unavailable
     }
@@ -583,6 +593,25 @@ export default function ConversationPanel({
             }}
             connectionId={connection.id}
             completionPercentage={completeness}
+          />
+        </div>
+      )}
+
+      {/* Go Live nudge - for complete profiles (>=60%) that aren't published yet */}
+      {variant === "family" && familyProfile && completeness >= 60 && !isProfileLive && !goLiveNudgeDismissed && connection && (
+        <div className="border-b border-gray-100">
+          <GoLiveNudge
+            onDismiss={() => {
+              setGoLiveNudgeDismissed(true);
+              try {
+                localStorage.setItem(`go_live_nudge_dismissed_${connection.id}`, "true");
+              } catch {
+                // localStorage unavailable
+              }
+            }}
+            onPublished={onProfilePublished}
+            connectionId={connection.id}
+            profile={familyProfile}
           />
         </div>
       )}

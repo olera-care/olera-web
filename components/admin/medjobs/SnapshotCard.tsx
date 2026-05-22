@@ -129,7 +129,7 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
             href={livePagePath}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 text-xs font-medium text-emerald-700 hover:underline"
+            className="shrink-0 text-xs font-medium text-primary-700 hover:underline"
           >
             🔗 Open live page →
           </a>
@@ -486,7 +486,7 @@ function GeneralContactSection({
               className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
             />
           ) : phone ? (
-            <a href={`tel:${phone}`} className="block truncate text-emerald-700 hover:underline">
+            <a href={`tel:${phone}`} className="block truncate text-primary-700 hover:underline">
               {phone}
             </a>
           ) : (
@@ -524,7 +524,7 @@ function GeneralContactSection({
               href={website.startsWith("http") ? website : `https://${website}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="block truncate text-emerald-700 hover:underline"
+              className="block truncate text-primary-700 hover:underline"
             >
               {website}
             </a>
@@ -548,7 +548,7 @@ function GeneralContactSection({
                 href={contactFormUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block truncate text-emerald-700 hover:underline"
+                className="block truncate text-primary-700 hover:underline"
               >
                 {contactFormUrl}
               </a>
@@ -556,7 +556,7 @@ function GeneralContactSection({
                 <span
                   className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
                     lastContactFormOutcome === "submitted"
-                      ? "bg-emerald-50 text-emerald-700"
+                      ? "bg-primary-50 text-primary-700"
                       : "bg-gray-100 text-gray-600"
                   }`}
                 >
@@ -620,7 +620,7 @@ function SaveStatusBadge({
   }
   if (savedAt && Date.now() - savedAt < 3000) {
     return (
-      <span className="text-[11px] font-medium text-emerald-700">
+      <span className="text-[11px] font-medium text-primary-700">
         ✓ Saved
       </span>
     );
@@ -776,7 +776,7 @@ function ContactRow({
                 {displayName || "(unnamed)"}
               </span>
               {contact.is_primary && (
-                <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
+                <span className="rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-medium text-primary-700">
                   PRIMARY
                 </span>
               )}
@@ -810,7 +810,7 @@ function ContactRow({
           <div className="flex shrink-0 flex-col items-end gap-1">
             <button
               onClick={() => setExpanded(true)}
-              className="text-[11px] font-medium text-emerald-700 hover:underline"
+              className="text-[11px] font-medium text-primary-700 hover:underline"
             >
               Edit
             </button>
@@ -902,7 +902,7 @@ function ContactRow({
         <button
           onClick={save}
           disabled={saving}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save"}
         </button>
@@ -973,7 +973,7 @@ function AddContactInline({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="mt-2 text-xs font-medium text-emerald-700 hover:underline"
+        className="mt-2 text-xs font-medium text-primary-700 hover:underline"
       >
         + Add contact
       </button>
@@ -981,7 +981,7 @@ function AddContactInline({
   }
 
   return (
-    <div className="mt-2 space-y-2 rounded-md border border-emerald-200 bg-emerald-50/30 px-3 py-3">
+    <div className="mt-2 space-y-2 rounded-md border border-primary-200 bg-primary-50/30 px-3 py-3">
       <div className="grid grid-cols-2 gap-2">
         <LabeledInput
           label="First name"
@@ -1039,7 +1039,7 @@ function AddContactInline({
         <button
           onClick={submit}
           disabled={saving}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
         >
           {saving ? "Adding…" : "Add contact"}
         </button>
@@ -1063,7 +1063,7 @@ function CoverageRow({
     <>
       <span
         aria-hidden
-        className={`pt-0.5 ${checked ? "text-emerald-600" : "text-gray-300"}`}
+        className={`pt-0.5 ${checked ? "text-primary-600" : "text-gray-300"}`}
       >
         {checked ? "✓" : "—"}
       </span>
@@ -1113,13 +1113,13 @@ function EnrollmentBanner({
   };
 
   const buttonClass =
-    "rounded-md border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50";
+    "rounded-md border border-primary-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-primary-700 hover:bg-primary-50 disabled:opacity-50";
   const secondaryClass =
     "rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50";
 
   return (
-    <div className="border-t border-emerald-200 bg-emerald-50/40 px-3 py-2">
-      <p className="text-[11px] text-emerald-900">
+    <div className="border-t border-primary-200 bg-primary-50/40 px-3 py-2">
+      <p className="text-[11px] text-primary-900">
         Just added · outreach already in flight. How should we proceed?
       </p>
       <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -1282,7 +1282,7 @@ export function ContactFormBanner({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-[11px] font-medium text-emerald-700 hover:underline"
+          className="shrink-0 text-[11px] font-medium text-primary-700 hover:underline"
         >
           Open form ↗
         </a>

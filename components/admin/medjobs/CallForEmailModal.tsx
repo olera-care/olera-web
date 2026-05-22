@@ -223,7 +223,7 @@ export function CallForEmailModal({
       {phone && (
         <>
           {" · "}
-          <a href={`tel:${phone}`} className="text-emerald-700 hover:underline">
+          <a href={`tel:${phone}`} className="text-primary-700 hover:underline">
             📞 {phone}
           </a>
         </>
@@ -271,9 +271,9 @@ export function CallForEmailModal({
       </div>
 
       {outcome === "connected" && (
-        <div className="space-y-3 rounded-md border border-emerald-200 bg-emerald-50/30 px-3 py-3">
+        <div className="space-y-3 rounded-md border border-primary-200 bg-primary-50/30 px-3 py-3">
           <div>
-            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary-700">
               What happened on the call?
             </p>
             <div className="space-y-1.5">
@@ -291,7 +291,7 @@ export function CallForEmailModal({
           </div>
 
           <div>
-            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary-700">
               New contact (optional)
             </p>
             <div className="space-y-2">
@@ -393,18 +393,18 @@ function StatusCard({
       type="button"
       className={`flex w-full items-start gap-3 rounded-lg border-2 ${compact ? "p-2.5" : "p-3"} text-left transition-colors ${
         active
-          ? "border-emerald-500 bg-emerald-50"
-          : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/30"
+          ? "border-primary-500 bg-primary-50"
+          : "border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"
       }`}
     >
       <span
         className={`mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 ${
-          active ? "border-emerald-600 bg-emerald-600" : "border-gray-300 bg-white"
+          active ? "border-primary-600 bg-primary-600" : "border-gray-300 bg-white"
         }`}
         aria-hidden
       >
         {active && (
-          <span className="block h-full w-full rounded-full border-2 border-white bg-emerald-600" />
+          <span className="block h-full w-full rounded-full border-2 border-white bg-primary-600" />
         )}
       </span>
       <span className="min-w-0 flex-1">

@@ -323,7 +323,7 @@ function TimelineRow({
                   onLogCall();
                 }}
                 title="Log the outcome of this specific call."
-                className="ml-3 rounded-md bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
+                className="ml-3 rounded-md bg-primary-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-primary-700"
               >
                 Log
               </button>
@@ -366,7 +366,7 @@ function EngagementChips({
 }
 
 const TONE_CLASSES: Record<string, string> = {
-  emerald: "bg-emerald-50 text-emerald-700",
+  emerald: "bg-primary-50 text-primary-700",
   blue: "bg-blue-50 text-blue-700",
   red: "bg-red-50 text-red-700",
 };
@@ -427,7 +427,7 @@ function AddCustomEventFooter({
       <div className="border-t border-gray-100 px-4 py-2">
         <button
           onClick={() => setOpen(true)}
-          className="text-xs font-medium text-emerald-700 hover:underline"
+          className="text-xs font-medium text-primary-700 hover:underline"
         >
           + Add custom event
         </button>
@@ -455,7 +455,7 @@ function AddCustomEventFooter({
         <button
           onClick={submit}
           disabled={saving || !title.trim()}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
         >
           {saving ? "Adding…" : "Add"}
         </button>

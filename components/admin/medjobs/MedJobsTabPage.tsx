@@ -490,14 +490,14 @@ export function MedJobsTabPage({
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : isInboxEmpty ? (
         <div className="py-16 text-center">
-          <p className="text-base font-semibold text-emerald-700">
+          <p className="text-base font-semibold text-primary-700">
             ✓ Everything caught up.
           </p>
           <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
             The In Basket is clear. Head to{" "}
             <a
               href="/admin/medjobs/logs"
-              className="font-medium text-emerald-700 underline hover:no-underline"
+              className="font-medium text-primary-700 underline hover:no-underline"
             >
               Logs
             </a>

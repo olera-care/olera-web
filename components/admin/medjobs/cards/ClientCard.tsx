@@ -58,7 +58,7 @@ export function ClientCard({
             onManage();
           }}
           title="Open the drawer to log a follow-up step or manage this client."
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
           Log
         </button>

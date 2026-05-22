@@ -71,8 +71,8 @@ export function PartnerEvidencePanel({
   heading,
 }: Props) {
   return (
-    <div className="space-y-2 rounded-md border border-emerald-200 bg-emerald-50/40 p-3">
-      <p className="text-xs font-medium text-emerald-900">
+    <div className="space-y-2 rounded-md border border-primary-200 bg-primary-50/40 p-3">
+      <p className="text-xs font-medium text-primary-900">
         {heading ?? "How do you know they're distributing?"}
       </p>
       <div className="space-y-1.5">
@@ -81,8 +81,8 @@ export function PartnerEvidencePanel({
             key={opt.value}
             className={`flex cursor-pointer items-start gap-2 rounded-md border p-2.5 ${
               evidence === opt.value
-                ? "border-emerald-600 bg-white"
-                : "border-gray-200 bg-white hover:bg-emerald-50/30"
+                ? "border-primary-600 bg-white"
+                : "border-gray-200 bg-white hover:bg-primary-50/30"
             }`}
           >
             <input

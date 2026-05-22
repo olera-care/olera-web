@@ -466,7 +466,7 @@ export function ProviderPreFlightModal({
                         className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
                           programPdfAttachment.source === "custom"
                             ? "bg-blue-50 text-blue-700"
-                            : "bg-emerald-50 text-emerald-700"
+                            : "bg-primary-50 text-primary-700"
                         }`}
                       >
                         {programPdfAttachment.source === "custom"
@@ -544,7 +544,7 @@ export function ProviderPreFlightModal({
                             )}
                             <span
                               className={`text-[10px] font-medium uppercase tracking-wide ${
-                                r.is_general ? "text-blue-700" : "text-emerald-700"
+                                r.is_general ? "text-blue-700" : "text-primary-700"
                               }`}
                             >
                               {r.is_general ? "general variant" : "named variant"}
@@ -695,7 +695,7 @@ export function ProviderPreFlightModal({
               disabled={
                 submitting || (queuedEmails === 0 && queuedCalls === 0)
               }
-              className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+              className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
             >
               {submitting ? "Starting…" : "Start outreach"}
             </button>
@@ -729,8 +729,8 @@ function VariantEditor({
   };
 }) {
   const [showPreview, setShowPreview] = useState(false);
-  const borderClass = tone === "blue" ? "border-blue-200" : "border-emerald-200";
-  const tagBg = tone === "blue" ? "bg-blue-50 text-blue-800" : "bg-emerald-50 text-emerald-800";
+  const borderClass = tone === "blue" ? "border-blue-200" : "border-primary-200";
+  const tagBg = tone === "blue" ? "bg-blue-50 text-blue-800" : "bg-primary-50 text-primary-800";
   const previewSubject = substitutePreviewVars(snapshot.subject, previewVars);
   const previewBody = substitutePreviewVars(snapshot.body, previewVars);
   return (
@@ -768,7 +768,7 @@ function VariantEditor({
         <button
           type="button"
           onClick={() => setShowPreview((s) => !s)}
-          className="text-[11px] font-medium text-emerald-700 hover:underline"
+          className="text-[11px] font-medium text-primary-700 hover:underline"
         >
           {showPreview ? "Hide preview" : "Preview substitution"}
         </button>

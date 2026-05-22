@@ -171,7 +171,7 @@ export function AddSiteModal({ existingSlugs, onClose, onCreated }: Props) {
             See all rankings on the{" "}
             <Link
               href="/admin/medjobs/catchment-audit"
-              className="font-medium text-emerald-700 hover:underline"
+              className="font-medium text-primary-700 hover:underline"
             >
               Catchment Audit
             </Link>{" "}
@@ -190,7 +190,7 @@ export function AddSiteModal({ existingSlugs, onClose, onCreated }: Props) {
           <button
             onClick={submit}
             disabled={submitting || !selectedSlug}
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
           >
             {submitting ? "Adding…" : "Add Site"}
           </button>
@@ -222,7 +222,7 @@ function CatchmentPreview({
   const tone = empty
     ? "border-amber-200 bg-amber-50 text-amber-900"
     : dense
-      ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+      ? "border-primary-200 bg-primary-50 text-primary-900"
       : "border-gray-200 bg-gray-50 text-gray-700";
   return (
     <div className={`space-y-1 rounded-md border px-3 py-2 text-xs ${tone}`}>

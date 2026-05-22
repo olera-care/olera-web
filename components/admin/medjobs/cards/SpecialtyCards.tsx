@@ -62,7 +62,7 @@ export function EmailSentCard({
   let pill: ReactNode = null;
   if (row.has_reply) {
     pill = (
-      <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-900">
+      <span className="rounded bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-900">
         Replied
       </span>
     );
@@ -86,7 +86,7 @@ export function EmailSentCard({
         }
       }}
       title="Open the stakeholder drawer for full context."
-      className="cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+      className="cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
     >
       <div className="flex items-stretch justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -235,8 +235,8 @@ export function OutboundCard({
         }
       }}
       title="Open the stakeholder drawer for full thread + Log reply."
-      className={`cursor-pointer rounded-lg border bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
-        row.has_pending_reply ? "border-emerald-200" : "border-gray-200"
+      className={`cursor-pointer rounded-lg border bg-white px-4 py-3 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+        row.has_pending_reply ? "border-primary-200" : "border-gray-200"
       }`}
     >
       <div className="flex items-stretch justify-between gap-3">
@@ -252,7 +252,7 @@ export function OutboundCard({
           <p className="mt-0.5 text-[11px] text-gray-400">{footnote}</p>
           {row.has_pending_reply && (
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-900">
+              <span className="rounded bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-900">
                 Reply waiting
               </span>
             </div>

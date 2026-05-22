@@ -76,7 +76,7 @@ export default function SitesPage() {
         actions={
           <button
             onClick={() => setShowAdd(true)}
-            className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+            className="rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-700"
           >
             + Add Site
           </button>
@@ -87,7 +87,7 @@ export default function SitesPage() {
         Operational work for each site lives in{" "}
         <a
           href="/admin/medjobs/in-basket"
-          className="font-medium text-emerald-700 underline hover:no-underline"
+          className="font-medium text-primary-700 underline hover:no-underline"
         >
           In Basket
         </a>

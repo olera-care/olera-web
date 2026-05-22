@@ -322,7 +322,7 @@ export default function AdminMedJobsDetailPage() {
         </Link>
         <div className="flex items-center gap-3">
           {saveMessage && (
-            <span className={`text-sm ${saveMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+            <span className={`text-sm ${saveMessage.type === "success" ? "text-primary-600" : "text-red-600"}`}>
               {saveMessage.text}
             </span>
           )}
@@ -343,7 +343,7 @@ export default function AdminMedJobsDetailPage() {
           {formData.seeking_status ? (
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
               formData.seeking_status === "actively_looking"
-                ? "bg-emerald-100 text-emerald-700"
+                ? "bg-primary-100 text-primary-700"
                 : formData.seeking_status === "open"
                 ? "bg-blue-100 text-blue-700"
                 : "bg-gray-100 text-gray-600"
@@ -751,14 +751,14 @@ export default function AdminMedJobsDetailPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Driver&apos;s License</label>
               {formData.drivers_license_url ? (
-                <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                  <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center gap-3 p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-emerald-800">Uploaded</p>
+                    <p className="text-sm font-medium text-primary-800">Uploaded</p>
                     {formData.drivers_license_uploaded_at ? (
-                      <p className="text-xs text-emerald-600 truncate">
+                      <p className="text-xs text-primary-600 truncate">
                         {new Date(formData.drivers_license_uploaded_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}
                       </p>
                     ) : null}
@@ -776,14 +776,14 @@ export default function AdminMedJobsDetailPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Car Insurance</label>
               {formData.car_insurance_url ? (
-                <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                  <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center gap-3 p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-emerald-800">Uploaded</p>
+                    <p className="text-sm font-medium text-primary-800">Uploaded</p>
                     {formData.car_insurance_uploaded_at ? (
-                      <p className="text-xs text-emerald-600 truncate">
+                      <p className="text-xs text-primary-600 truncate">
                         {new Date(formData.car_insurance_uploaded_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}
                       </p>
                     ) : null}

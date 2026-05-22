@@ -426,6 +426,7 @@ async function fetchWindow(
     .from("provider_activity")
     .select("event_type, metadata")
     .in("event_type", [...PROVIDER_EVENT_TYPES])
+    .order("created_at", { ascending: false })
     .limit(50000);
   if (from) providerQ = providerQ.gte("created_at", from);
   if (to) providerQ = providerQ.lt("created_at", to);
@@ -434,6 +435,7 @@ async function fetchWindow(
     .from("seeker_activity")
     .select("event_type")
     .in("event_type", [...SEEKER_EVENT_TYPES])
+    .order("created_at", { ascending: false })
     .limit(50000);
   if (from) seekerQ = seekerQ.gte("created_at", from);
   if (to) seekerQ = seekerQ.lt("created_at", to);
@@ -442,6 +444,7 @@ async function fetchWindow(
     .from("provider_activity")
     .select("provider_id, event_type, metadata")
     .in("event_type", [...PROVIDER_DISTINCT_EVENT_TYPES])
+    .order("created_at", { ascending: false })
     .limit(50000);
   if (from) distinctQ = distinctQ.gte("created_at", from);
   if (to) distinctQ = distinctQ.lt("created_at", to);
@@ -456,6 +459,7 @@ async function fetchWindow(
     .eq("email_type", "question_received")
     .eq("recipient_type", "provider")
     .not("first_opened_at", "is", null)
+    .order("first_opened_at", { ascending: false })
     .limit(50000);
   if (from) openersQ = openersQ.gte("first_opened_at", from);
   if (to) openersQ = openersQ.lt("first_opened_at", to);
@@ -473,6 +477,7 @@ async function fetchWindow(
     .select("delivered_at, first_opened_at, first_clicked_at, metadata")
     .eq("email_type", "question_received")
     .eq("recipient_type", "provider")
+    .order("created_at", { ascending: false })
     .limit(50000);
   if (from) funnelQ = funnelQ.gte("created_at", from);
   if (to) funnelQ = funnelQ.lt("created_at", to);
@@ -488,6 +493,7 @@ async function fetchWindow(
     .select("email_type, provider_id, delivered_at, first_opened_at, first_clicked_at")
     .in("email_type", [...PROVIDER_EMAIL_FUNNEL_TYPES.all])
     .eq("recipient_type", "provider")
+    .order("created_at", { ascending: false })
     .limit(50000);
   if (from) commsFunnelQ = commsFunnelQ.gte("created_at", from);
   if (to) commsFunnelQ = commsFunnelQ.lt("created_at", to);
@@ -500,6 +506,7 @@ async function fetchWindow(
     .from("email_events")
     .select("event_type, bounce_type, bounce_reason, email_log_id")
     .in("event_type", ["bounced", "complained"])
+    .order("occurred_at", { ascending: false })
     .limit(5000);
   if (from) issuesEventsQ = issuesEventsQ.gte("occurred_at", from);
   if (to) issuesEventsQ = issuesEventsQ.lt("occurred_at", to);
@@ -512,6 +519,7 @@ async function fetchWindow(
     .from("provider_activity")
     .select("event_type, metadata")
     .in("event_type", ["benefits_entry_viewed", "benefits_started", "benefits_step_completed"])
+    .order("created_at", { ascending: false })
     .limit(50000);
   if (from) benefitsQ = benefitsQ.gte("created_at", from);
   if (to) benefitsQ = benefitsQ.lt("created_at", to);
@@ -533,6 +541,7 @@ async function fetchWindow(
       "qa_email_capture_impression",
       "question_email_enriched",
     ])
+    .order("created_at", { ascending: false })
     .limit(50000);
   if (from) outreachQ = outreachQ.gte("created_at", from);
   if (to) outreachQ = outreachQ.lt("created_at", to);
@@ -549,6 +558,7 @@ async function fetchWindow(
     .from("provider_activity")
     .select("event_type, metadata")
     .in("event_type", ["multi_provider_viewed", "multi_provider_card_shown", "multi_provider_engaged", "multi_provider_converted"])
+    .order("created_at", { ascending: false })
     .limit(50000);
   if (from) multiProviderQ = multiProviderQ.gte("created_at", from);
   if (to) multiProviderQ = multiProviderQ.lt("created_at", to);
@@ -564,6 +574,7 @@ async function fetchWindow(
     .from("accounts")
     .select("signup_source")
     .not("signup_source", "is", null)
+    .order("created_at", { ascending: false })
     .limit(50000);
   if (from) accountsQ = accountsQ.gte("created_at", from);
   if (to) accountsQ = accountsQ.lt("created_at", to);
@@ -571,10 +582,13 @@ async function fetchWindow(
   // CTA Variants A/B funnel. impression → clicked → converted.
   // Events are on provider_activity: cta_variant_impression, cta_variant_clicked,
   // and lead_received (with metadata.cta_variant for attribution).
+  // ORDER BY created_at DESC ensures "All time" includes most recent events first,
+  // so the 50K limit doesn't cause recent conversions to be missed.
   let ctaQ = db
     .from("provider_activity")
     .select("event_type, metadata")
     .in("event_type", ["cta_variant_impression", "cta_variant_clicked", "lead_received"])
+    .order("created_at", { ascending: false })
     .limit(50000);
   if (from) ctaQ = ctaQ.gte("created_at", from);
   if (to) ctaQ = ctaQ.lt("created_at", to);
@@ -595,6 +609,7 @@ async function fetchWindow(
       to_profile:business_profiles!connections_to_profile_id_fkey(display_name, slug, source_provider_id)
     `)
     .in("type", ["inquiry", "request"])
+    .order("created_at", { ascending: false })
     .limit(5000);
   if (from) connectionsQ = connectionsQ.gte("created_at", from);
   if (to) connectionsQ = connectionsQ.lt("created_at", to);
@@ -1786,6 +1801,7 @@ export async function GET(request: NextRequest) {
         .select("provider_id, created_at, metadata")
         .eq("event_type", "page_view")
         .gte("created_at", sevenDaysAgo)
+        .order("created_at", { ascending: false })
         .limit(50000),
       // Latest rows table — broad fetch, all event types.
       db

@@ -38,6 +38,53 @@ interface TabCounts {
   needsNudge: number;
 }
 
+interface EngagementFunnel {
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  converted: number;
+  improved: number | null; // null for prior period (can't measure historically)
+  completed: number | null;
+  published: number;
+  totalLift?: number;
+  improvedCount?: number;
+  avgLift?: number;
+}
+
+interface EngagementRates {
+  deliveryRate: number;
+  openRate: number;
+  clickRate: number;
+  conversionRate: number;
+}
+
+interface WeeklyData {
+  week: string;
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  converted: number;
+  improved: number;
+  published: number;
+}
+
+interface EngagementData {
+  funnel: EngagementFunnel;
+  rates: EngagementRates;
+  prior: {
+    funnel: EngagementFunnel;
+    rates: EngagementRates;
+  };
+  bySequence: {
+    completion: EngagementFunnel;
+    publish: EngagementFunnel;
+  };
+  trend: WeeklyData[];
+  windowDays: number;
+}
+
 // Helper to format relative time
 function timeAgo(isoDate: string | undefined): string {
   if (!isoDate) return "Never";
@@ -164,6 +211,71 @@ function getNudgeStatus(seeker: SeekerRow): {
 
 const PAGE_SIZE = 25;
 
+// Helper component for funnel stats
+function FunnelStat({
+  label,
+  value,
+  prior,
+  format,
+  highlight,
+  subtitle,
+}: {
+  label: string;
+  value: number | null;
+  prior?: number | null;
+  format?: "number" | "percent";
+  highlight?: boolean;
+  subtitle?: string;
+}) {
+  // Handle null value (can't be measured)
+  if (value === null) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+        <div className="text-xl font-semibold tabular-nums text-gray-300">—</div>
+        <div className="mt-0.5 text-xs text-gray-400">{label}</div>
+      </div>
+    );
+  }
+
+  // Calculate delta only if prior is a valid number > 0
+  const canShowDelta = prior !== undefined && prior !== null && prior > 0;
+  const delta = canShowDelta ? ((value - prior) / prior) * 100 : null;
+  const arrow = delta === null ? null : delta > 0 ? "↑" : delta < 0 ? "↓" : "→";
+
+  return (
+    <div
+      className={`rounded-xl border px-3 py-2.5 ${
+        highlight
+          ? "border-emerald-200 bg-emerald-50/50"
+          : "border-gray-200 bg-white"
+      }`}
+    >
+      <div className="text-xl font-semibold tabular-nums text-gray-900">
+        {format === "percent" ? `${Math.round(value)}%` : value.toLocaleString()}
+      </div>
+      <div className="mt-0.5 text-xs text-gray-500 flex items-center gap-1.5">
+        {label}
+        {delta !== null && (
+          <span
+            className={
+              delta > 0
+                ? "text-emerald-600"
+                : delta < 0
+                ? "text-red-500"
+                : "text-gray-400"
+            }
+          >
+            {arrow} {Math.abs(Math.round(delta))}%
+          </span>
+        )}
+      </div>
+      {subtitle && (
+        <div className="mt-0.5 text-[10px] text-gray-400">{subtitle}</div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminCareSeekersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -201,6 +313,13 @@ export default function AdminCareSeekersPage() {
   const [pendingDelete, setPendingDelete] = useState<SeekerRow | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const [engagement, setEngagement] = useState<EngagementData | null>(null);
+  const [engagementLoading, setEngagementLoading] = useState(false);
+  const [engagementExpanded, setEngagementExpanded] = useState(false);
+  const [bySequenceExpanded, setBySequenceExpanded] = useState(false);
+  const [weeklyExpanded, setWeeklyExpanded] = useState(false);
+  const engagementFetchedAt = useRef<number>(0);
 
   function showToast(message: string, type: "success" | "error" = "success") {
     clearTimeout(toastRef.current);
@@ -288,6 +407,30 @@ export default function AdminCareSeekersPage() {
     }
     loadCities();
   }, []);
+
+  // Fetch engagement data when section is expanded (refresh after 5 minutes)
+  useEffect(() => {
+    if (!engagementExpanded) return;
+
+    const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+    const shouldRefresh = !engagement || (Date.now() - engagementFetchedAt.current > REFRESH_INTERVAL_MS);
+
+    if (!shouldRefresh) return;
+
+    async function loadEngagement() {
+      setEngagementLoading(true);
+      try {
+        const res = await fetch("/api/admin/care-seekers/engagement");
+        if (res.ok) {
+          const data = await res.json();
+          setEngagement(data);
+          engagementFetchedAt.current = Date.now();
+        }
+      } catch { /* ignore */ }
+      setEngagementLoading(false);
+    }
+    loadEngagement();
+  }, [engagementExpanded, engagement]);
 
   useEffect(() => {
     fetchSeekers();
@@ -405,6 +548,173 @@ export default function AdminCareSeekersPage() {
           <p className="text-sm text-gray-500">New This Week</p>
           <p className="text-2xl font-bold text-emerald-600">{tabCounts ? tabCounts.thisWeek : "—"}</p>
         </div>
+      </div>
+
+      {/* Nudge Engagement Section */}
+      <div className="mb-6">
+        <button
+          type="button"
+          onClick={() => setEngagementExpanded(!engagementExpanded)}
+          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg
+            className={`w-3 h-3 transition-transform ${engagementExpanded ? "rotate-90" : ""}`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+          </svg>
+          Nudge Engagement
+          <span className="text-xs text-gray-400 font-normal">last 30 days</span>
+        </button>
+
+        {engagementExpanded && (
+          <div className="mt-4">
+            {engagementLoading ? (
+              <div className="text-sm text-gray-400">Loading engagement data...</div>
+            ) : engagement ? (
+              <>
+                {/* Funnel stats row */}
+                <div className="grid grid-cols-6 gap-3 mb-4">
+                  <FunnelStat
+                    label="Sent"
+                    value={engagement.funnel.sent}
+                    prior={engagement.prior.funnel.sent}
+                  />
+                  <FunnelStat
+                    label="Delivered"
+                    value={engagement.rates.deliveryRate}
+                    prior={engagement.prior.rates.deliveryRate}
+                    format="percent"
+                  />
+                  <FunnelStat
+                    label="Opened"
+                    value={engagement.rates.openRate}
+                    prior={engagement.prior.rates.openRate}
+                    format="percent"
+                  />
+                  <FunnelStat
+                    label="Clicked"
+                    value={engagement.rates.clickRate}
+                    prior={engagement.prior.rates.clickRate}
+                    format="percent"
+                  />
+                  <FunnelStat
+                    label="Improved"
+                    value={engagement.funnel.improved}
+                    prior={engagement.prior.funnel.improved}
+                    subtitle={engagement.bySequence.completion.avgLift ? `+${engagement.bySequence.completion.avgLift}% avg` : undefined}
+                  />
+                  <FunnelStat
+                    label="Published"
+                    value={engagement.funnel.published}
+                    prior={engagement.prior.funnel.published}
+                    highlight
+                  />
+                </div>
+
+                {/* By Sequence breakdown */}
+                <div className="mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setBySequenceExpanded(!bySequenceExpanded)}
+                    className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700"
+                  >
+                    <svg
+                      className={`w-2.5 h-2.5 transition-transform ${bySequenceExpanded ? "rotate-90" : ""}`}
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+                    </svg>
+                    By sequence
+                  </button>
+                  {bySequenceExpanded && (
+                    <div className="mt-2 pl-4 text-sm text-gray-600 space-y-1">
+                      <p>
+                        <span className="font-medium">Completion:</span>{" "}
+                        {engagement.bySequence.completion.sent} sent, {engagement.bySequence.completion.improved ?? 0} improved
+                        {engagement.bySequence.completion.sent > 0 && engagement.bySequence.completion.improved !== null && (
+                          <span className="text-gray-400">
+                            {" "}({Math.round((engagement.bySequence.completion.improved / engagement.bySequence.completion.sent) * 100)}% conv)
+                          </span>
+                        )}
+                      </p>
+                      <p>
+                        <span className="font-medium">Publish:</span>{" "}
+                        {engagement.bySequence.publish.sent} sent, {engagement.bySequence.publish.published} published
+                        {engagement.bySequence.publish.sent > 0 && (
+                          <span className="text-gray-400">
+                            {" "}({Math.round((engagement.bySequence.publish.published / engagement.bySequence.publish.sent) * 100)}% conv)
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Weekly breakdown */}
+                {engagement.trend.length > 0 && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setWeeklyExpanded(!weeklyExpanded)}
+                      className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700"
+                    >
+                      <svg
+                        className={`w-2.5 h-2.5 transition-transform ${weeklyExpanded ? "rotate-90" : ""}`}
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+                      </svg>
+                      Weekly breakdown
+                    </button>
+                    {weeklyExpanded && (
+                      <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
+                            <tr>
+                              <th className="px-3 py-2 text-left font-medium">Week of</th>
+                              <th className="px-3 py-2 text-right font-medium">Sent</th>
+                              <th className="px-3 py-2 text-right font-medium">Delivered</th>
+                              <th className="px-3 py-2 text-right font-medium">Opened</th>
+                              <th className="px-3 py-2 text-right font-medium">Clicked</th>
+                              <th className="px-3 py-2 text-right font-medium">Improved</th>
+                              <th className="px-3 py-2 text-right font-medium">Published</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {engagement.trend.map((week) => {
+                              const deliveryRate = week.sent > 0 ? Math.round((week.delivered / week.sent) * 100) : 0;
+                              const openRate = week.delivered > 0 ? Math.round((week.opened / week.delivered) * 100) : 0;
+                              const clickRate = week.opened > 0 ? Math.round((week.clicked / week.opened) * 100) : 0;
+                              return (
+                                <tr key={week.week} className="text-gray-700">
+                                  <td className="px-3 py-2 text-gray-500">
+                                    {new Date(week.week).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                  </td>
+                                  <td className="px-3 py-2 text-right tabular-nums">{week.sent}</td>
+                                  <td className="px-3 py-2 text-right tabular-nums">{deliveryRate}%</td>
+                                  <td className="px-3 py-2 text-right tabular-nums">{openRate}%</td>
+                                  <td className="px-3 py-2 text-right tabular-nums">{clickRate}%</td>
+                                  <td className="px-3 py-2 text-right tabular-nums">{week.improved}</td>
+                                  <td className="px-3 py-2 text-right tabular-nums font-medium text-emerald-600">{week.published}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-sm text-gray-400">Failed to load engagement data</div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Filter tabs + city filter row */}

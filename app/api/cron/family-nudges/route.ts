@@ -657,7 +657,7 @@ export async function GET(request: NextRequest) {
             subject = "Still looking for care?";
             html = publishMaintenanceEmail({
               familyName: firstName,
-              matchesUrl: appendTrackingParams(`${siteUrl}/portal/profile`, null),
+              matchesUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
               providerCount,
               city: family.city || undefined,
               state: family.state || undefined,
@@ -671,7 +671,7 @@ export async function GET(request: NextRequest) {
                 subject = "Go live — let providers find you";
                 html = publishNudge1Email({
                   familyName: firstName,
-                  matchesUrl: appendTrackingParams(`${siteUrl}/portal/profile`, null),
+                  matchesUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
                   providerCount,
                   city: family.city || undefined,
                 });
@@ -680,7 +680,7 @@ export async function GET(request: NextRequest) {
                 subject = `${providerCount > 0 ? providerCount + " " : ""}providers in ${family.city || "your area"} are looking`;
                 html = publishNudge2Email({
                   familyName: firstName,
-                  matchesUrl: appendTrackingParams(`${siteUrl}/portal/profile`, null),
+                  matchesUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
                   providerCount,
                   providers: topProviders,
                   city: family.city || undefined,
@@ -690,7 +690,7 @@ export async function GET(request: NextRequest) {
                 subject = `Families in ${family.city || family.state || "your area"} are finding care`;
                 html = publishNudge3Email({
                   familyName: firstName,
-                  matchesUrl: appendTrackingParams(`${siteUrl}/portal/profile`, null),
+                  matchesUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
                   city: family.city || undefined,
                   state: family.state || undefined,
                 });
@@ -700,7 +700,7 @@ export async function GET(request: NextRequest) {
                 subject = "We're here when you're ready";
                 html = publishNudge4Email({
                   familyName: firstName,
-                  matchesUrl: appendTrackingParams(`${siteUrl}/portal/profile`, null),
+                  matchesUrl: appendTrackingParams(`${siteUrl}/welcome`, null),
                   city: family.city || undefined,
                 });
                 break;

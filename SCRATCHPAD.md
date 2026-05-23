@@ -7,6 +7,18 @@
 
 ## Current Focus
 
+### 2026-05-22 (Fri) — Comfort Keepers (College Station) engagement kickoff (no code)
+
+**Context:** TJ met with Susan (Comfort Keepers, ~5 yrs, caregiver-recruiting side) — a home care agency, 20 yrs in Bryan-College Station, warm relationship (we've helped them recruit before). First time in Susan's tenure they have **more caregivers than clients**, so the ask flipped: they need family/client lead-gen, not recruiting. Lead volume down (word-of-mouth + past-client referrals dried up); competition ~doubled in 5 yrs (new franchises, Houston entrants, cheap private caregivers); their paid ads skew to recruiting (Meta great for caregivers, weak for family leads); most family leads still organic Google; families increasingly source recs in local FB groups (B-CS women's group) where CK isn't present.
+
+**Done this session:** Pulled the Notion meeting notes (`Meeting Notes` data source) + reviewed the Slack thread, drafted a team recap in TJ's voice, posted to the Comfort Keepers thread in `#ai-product-development` (tagged Graize + Logan).
+
+**Framing:** A learning engagement — **not charging initially.** Positioned as a clean test case for the provider client-acquisition side of Olera (provider-as-customer). Win for CK + sharpen our provider playbook.
+
+**Resume next session here →** (1) **TJ's deep dive** into CK's specific lead-gen levers (PPC vs content vs optimization) — the committed next step. (2) Follow up with tailored proposals + next steps, possibly a budget rec. (3) Awaiting from Susan: current ad spend + which platforms ads run on. (4) Memory: `project_comfort_keepers`.
+
+---
+
 ### 2026-05-21 (Thu) — TX benefits QA published; CA + TX promoted to PRODUCTION (decoupled)
 
 **Context:** Continuation of the CA publish (entry below). Cess re-reviewed Texas under the same per-program audit paradigm. Shipped TX, merged both states to staging, and promoted only the benefits content to production.

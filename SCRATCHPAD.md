@@ -7,6 +7,25 @@
 
 ## Current Focus
 
+### 2026-05-21→22 — Email deliverability: shipped to prod + cold-outreach strategy right-sized
+
+**Shipped to PRODUCTION (3-PR fix, promoted via #862, carried forward in later promotions):**
+- **#855** pre-send suppression (skip already-bounced/complained) · **#860** provider-notify domain split (env-gated, dormant until `PROVIDER_NOTIFY_FROM` set) · **#861** pre-send verification (ZeroBounce; `sendEmail` suppresses cached `invalid`). All in `lib/email.ts` + `lib/email-verification.ts` + migration 085 (`email_verifications` cache, applied in Supabase) + `scripts/verify-emails.ts`.
+- **Diagnosis:** `olera.care` hit **5.75% bounce in May, past Resend's 4% suspend-without-warning line** — same account as auth mail. Driver: `question_received` provider Q&A notifications to scraped directory addresses.
+- **ZeroBounce batch:** verified 1,275 `question_received` addresses → **556 (44%) invalid**, now auto-suppressed in prod. Key in `.env.local` only (prod `sendEmail` only reads the cache; never calls ZeroBounce). ~825 credits left.
+
+**Cold-outreach strategy — RIGHT-SIZED after TJ flagged sunk-cost/yes-man bias (good catch):**
+- Was over-building a 40-mailbox / ~$225-400/mo Smartlead rig for an aspirational 55k/mo. Reality: `student_outreach` sent **~91 emails in 180 days**. Actual near-term volume = **few hundred to ~1,000/mo, starting ~1 month out** (TJ).
+- **Decision:** lean on-ramp, not the big rig. **Own domain (`findmedjobs.co`, NOT youngadultcaregivers.com — better B2B fit for provider outreach; youngadult* reserved for student side) + 3 mailboxes + Smartlead Basic ($39) + NORMAL warmup. ~$57-78/mo.** Timeline (~1mo) matches ~4wk warmup, so skip the prewarmed premium AND keep the owned/branded domain. Scale only past ~3-5k/mo.
+- **Tooling:** Zapmail (mailboxes on your own domain, auto-DNS) + Smartlead (engine). Both fully API-driven (TJ hard requirement — confirmed; Smartlead "infrastructure-first" beats Instantly).
+- **Smartlead×CRM integration plan drafted** (Notion, Product Development): campaign-centric, maps Smartlead webhooks → existing `log_email_sent/replied/bounced` actions (no new enums/actions), CRM pauses leads on engagement. Needs Logan sign-off on launch-flow + D2 (inbound reply ingestion). Build once mailboxes exist + API key.
+
+**IN PROGRESS (paused on DNS propagation):** Zapmail Starter (Normal) purchased; `findmedjobs.co` nameservers repointed at GoDaddy → CloudNS (`pns61.cloudns.net` / `pns62.cloudns.com` / `pns63.cloudns.net` / `pns64.cloudns.uk`). Zapmail still shows "Workspace Already Exists" + "Current Nameservers: -" = propagation lag. Domain was parked (GoDaddy WebsiteBuilder placeholder + leftover `google-site-verification` TXT — likely the workspace-conflict cause).
+
+**Resume here →** (1) After ~30-60min propagation, in Zapmail confirm "Current Nameservers" shows CloudNS; then delete+reconnect `findmedjobs.co` to clear "Workspace Already Exists" (if it persists post-propagation = real prior Google Workspace → Zapmail support or release old workspace). (2) Create 3 mailboxes (`logan@`/`partnerships@`/`team@findmedjobs.co`), connect to Smartlead, start warmup. (3) Claude builds lean `lib/smartlead.ts` + reply webhook in parallel. Context: memory `project_email_deliverability.md`; Notion *Email Deliverability Audit* + *Smartlead Setup Runbook* + *Smartlead×MedJobs Integration Plan*. Open: verify `student_outreach` list; activate #860 domain; staffing-outreach bypasses the gate (direct `resend.emails.send`) — follow-up.
+
+---
+
 ### 2026-05-22 (Fri) — Comfort Keepers (College Station) engagement kickoff (no code)
 
 **Context:** TJ met with Susan (Comfort Keepers, ~5 yrs, caregiver-recruiting side) — a home care agency, 20 yrs in Bryan-College Station, warm relationship (we've helped them recruit before). First time in Susan's tenure they have **more caregivers than clients**, so the ask flipped: they need family/client lead-gen, not recruiting. Lead volume down (word-of-mouth + past-client referrals dried up); competition ~doubled in 5 yrs (new franchises, Houston entrants, cheap private caregivers); their paid ads skew to recruiting (Meta great for caregivers, weak for family leads); most family leads still organic Google; families increasingly source recs in local FB groups (B-CS women's group) where CK isn't present.

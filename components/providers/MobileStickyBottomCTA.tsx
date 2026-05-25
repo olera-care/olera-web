@@ -936,8 +936,10 @@ export default function MobileStickyBottomCTA({
               providerCity={providerCity}
               providerState={providerState}
               providerCategory={providerCategory}
+              providerImage={providerImage}
               ctaVariant={ctaVariant}
               ctaSurface="mobile"
+              isAlreadyLive={hook.isMatchesLive}
             />
           </div>
         )}

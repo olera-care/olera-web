@@ -96,6 +96,7 @@ interface EnrichmentFunnelData {
     step4_completed: number;
     step5_completed: number;
     step6_completed: number;
+    step7_completed: number;  // Go Live
     completed: number;
     skipped: number;
     skipsByStep: Record<number, number>;
@@ -106,6 +107,7 @@ interface EnrichmentFunnelData {
       step4Rate: number;
       step5Rate: number;
       step6Rate: number;
+      step7Rate: number;  // Go Live rate
       completionRate: number;
     };
   };
@@ -122,9 +124,9 @@ interface EnrichmentFunnelData {
   }>;
 }
 
-// Display labels for 5-step enrichment flow (step 3 "Care type" is now pre-filled)
-// Maps display step (1-5) to actual tracked step (1,2,4,5,6)
-const ENRICHMENT_DISPLAY_STEPS = [1, 2, 4, 5, 6]; // Actual step numbers (skipping 3)
+// Display labels for 6-step enrichment flow (step 3 "Care type" is now pre-filled)
+// Maps display step (1-6) to actual tracked step (1,2,4,5,6,7)
+const ENRICHMENT_DISPLAY_STEPS = [1, 2, 4, 5, 6, 7]; // Actual step numbers (skipping 3)
 const ENRICHMENT_STEP_LABELS: Record<number, string> = {
   1: "Who needs care",
   2: "Timeline",
@@ -132,6 +134,7 @@ const ENRICHMENT_STEP_LABELS: Record<number, string> = {
   4: "Care need",
   5: "Payment",
   6: "Details",
+  7: "Go Live",
 };
 
 // Helper to format relative time
@@ -156,35 +159,40 @@ function formatJoinedDate(isoDate: string): string {
 }
 
 // Calculate profile completeness (matches server-side calculateFamilyCompleteness)
+// Weights aligned with lib/admin/profile-completeness.ts
 function calculateCompleteness(seeker: SeekerRow): number {
   const meta = seeker.metadata || {};
 
-  // Use cached value if available
+  // Use cached value if available (e.g., MedJobs students)
   if (meta.profile_completeness !== undefined) {
     return meta.profile_completeness;
   }
 
-  // Same weights as lib/admin/profile-completeness.ts
+  // Check if name is a real name (not placeholder "Care Seeker" - case insensitive)
+  const hasRealName = !!seeker.display_name && seeker.display_name.toLowerCase() !== "care seeker";
+
+  // Weights aligned with lib/admin/profile-completeness.ts (Total: 100)
   const checks: Array<{ weight: number; check: () => boolean }> = [
-    // Basic Info
-    { weight: 15, check: () => !!seeker.image_url },
-    { weight: 5, check: () => !!seeker.display_name },
-    { weight: 5, check: () => !!seeker.city },
-    // Contact
+    // Basic Info (20 total)
+    { weight: 2, check: () => !!seeker.image_url },
+    { weight: 5, check: () => !!seeker.display_name }, // Placeholder counts
+    { weight: 5, check: () => hasRealName }, // Bonus for real name
+    { weight: 8, check: () => !!seeker.city }, // Required for Go Live
+    // Contact (24 total)
     { weight: 10, check: () => !!seeker.email },
-    { weight: 10, check: () => !!seeker.phone },
-    { weight: 5, check: () => !!meta.contact_preference },
-    // Care Recipient
-    { weight: 5, check: () => !!meta.relationship_to_recipient },
-    { weight: 5, check: () => !!meta.age },
-    { weight: 5, check: () => !!seeker.description },
-    // Care Needs
-    { weight: 5, check: () => (seeker.care_types?.length ?? 0) > 0 },
-    { weight: 4, check: () => (meta.care_needs?.length ?? 0) > 0 },
-    { weight: 3, check: () => !!meta.timeline },
-    { weight: 3, check: () => !!meta.schedule_preference },
-    // Payment
-    { weight: 20, check: () => (meta.payment_methods?.length ?? 0) > 0 },
+    { weight: 12, check: () => !!seeker.phone }, // Enrichment Step 5
+    { weight: 2, check: () => !!meta.contact_preference },
+    // Care Recipient (16 total)
+    { weight: 10, check: () => !!meta.relationship_to_recipient || !!meta.who_needs_care }, // Enrichment Step 1
+    { weight: 2, check: () => !!meta.age },
+    { weight: 4, check: () => !!seeker.description || !!meta.about_situation },
+    // Care Needs (28 total)
+    { weight: 8, check: () => (seeker.care_types?.length ?? 0) > 0 }, // Required for Go Live
+    { weight: 6, check: () => (meta.care_needs?.length ?? 0) > 0 }, // Enrichment Step 3
+    { weight: 12, check: () => !!meta.timeline }, // Enrichment Step 2
+    { weight: 2, check: () => !!meta.schedule_preference },
+    // Payment (12 total)
+    { weight: 12, check: () => (meta.payment_methods?.length ?? 0) > 0 }, // Enrichment Step 4
   ];
 
   let earned = 0;
@@ -847,8 +855,8 @@ export default function AdminCareSeekersPage() {
               <div className="text-sm text-gray-400">Loading enrichment data...</div>
             ) : enrichment ? (
               <>
-                {/* 6-Step Funnel (Started + 5 visible steps, step 3 is pre-filled) */}
-                <div className="grid grid-cols-6 gap-3 mb-4">
+                {/* 7-Card Funnel (Started + 6 visible steps, step 3 is pre-filled) */}
+                <div className="grid grid-cols-7 gap-2 mb-4">
                   {/* Started */}
                   <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
                     <div className="text-xl font-semibold tabular-nums text-gray-900">
@@ -857,9 +865,9 @@ export default function AdminCareSeekersPage() {
                     <div className="mt-0.5 text-xs text-gray-500">Started</div>
                   </div>
 
-                  {/* Steps 1-5 (skipping step 3 which is now pre-filled) */}
+                  {/* Steps 1-6 (skipping step 3 which is now pre-filled) */}
                   {ENRICHMENT_DISPLAY_STEPS.map((step, displayIndex) => {
-                    const displayStep = displayIndex + 1; // 1-5 for display
+                    const displayStep = displayIndex + 1; // 1-6 for display
                     const stepKey = `step${step}_completed` as keyof typeof enrichment.funnel;
                     const rateKey = `step${step}Rate` as keyof typeof enrichment.funnel.rates;
                     const completed = enrichment.funnel[stepKey] as number;
@@ -889,7 +897,7 @@ export default function AdminCareSeekersPage() {
                         className={`rounded-xl border px-3 py-2.5 ${
                           isHighestDropOff
                             ? "border-amber-300 bg-amber-50/50"
-                            : step === 6 // Last step (Details)
+                            : step === 7 // Last step (Go Live)
                             ? "border-emerald-200 bg-emerald-50/50"
                             : "border-gray-200 bg-white"
                         }`}
@@ -922,7 +930,7 @@ export default function AdminCareSeekersPage() {
                     <span className="font-medium text-gray-900">{enrichment.funnel.completed}</span>
                     <span className="text-gray-400"> / </span>
                     <span>{enrichment.funnel.started}</span>
-                    <span className="text-gray-500"> completed all 5 steps</span>
+                    <span className="text-gray-500"> completed all 6 steps</span>
                   </span>
                   <span className="text-gray-300">·</span>
                   <span>

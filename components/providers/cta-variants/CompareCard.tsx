@@ -95,6 +95,11 @@ export default function CompareCard({
     ? "caregiver"
     : "current";
 
+  // Check if user's profile is already published (skip Go Live step in enrichment)
+  const profileMeta = (activeProfile?.metadata || {}) as Record<string, unknown>;
+  const carePost = profileMeta.care_post as { status?: string } | undefined;
+  const isMatchesLive = carePost?.status === "active";
+
   // Card state
   const [cardState, setCardState] = useState<CardState>("initial");
   const [email, setEmail] = useState("");
@@ -616,12 +621,14 @@ export default function CompareCard({
               onSkip={skipEnrichment}
               saving={enrichmentSubmitting}
               providerCategory={currentProvider.category}
-              successTitle={`Requested ${providerCountDisplay} detail${providerCountDisplay !== 1 ? "s" : ""}`}
-              successSubtitle="We'll send you details to compare"
+              successTitle={providerCountDisplay > 1 ? `Connected with ${providerCountDisplay} providers` : `Connected with ${currentProvider.name}`}
               providerCity={currentProvider.city}
               providerState={currentProvider.state}
               ctaVariant="compare"
               ctaSurface="desktop"
+              providerImage={currentProvider.image}
+              providerImages={selectedProviders.map((p) => p.image ?? null)}
+              isAlreadyLive={isMatchesLive}
             />
           )}
         </div>

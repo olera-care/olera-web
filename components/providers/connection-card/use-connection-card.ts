@@ -880,6 +880,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     hasProfileCareDetails,
     initialRecipient,
     initialUrgency,
+    isMatchesLive,
 
     // Non-family profile guard
     isNonFamilyProfile,

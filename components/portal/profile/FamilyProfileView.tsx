@@ -767,25 +767,6 @@ function MobileCarePostContent({
           </div>
         </div>
 
-        {/* Edit Profile Card */}
-        <button
-          type="button"
-          onClick={onEdit}
-          className="w-full bg-white rounded-2xl border border-gray-200/80 shadow-sm p-4 flex items-center gap-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-        >
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-            </svg>
-          </div>
-          <div className="flex-1 text-left">
-            <p className="text-[14px] font-semibold text-gray-900">Edit profile</p>
-            <p className="text-[12px] text-gray-500">Update your care details</p>
-          </div>
-          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-          </svg>
-        </button>
       </div>
     );
   }

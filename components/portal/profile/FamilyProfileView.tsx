@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { useProfileCompleteness, type SectionStatus } from "./completeness";
 import { BenefitsFinderBanner } from "./ProfileEditContent";
-import ProfileEditWizard from "./ProfileEditWizard";
+import ProfileEditSheet, { type EditSection } from "./ProfileEditSheet";
 import CarePostSidebar from "@/components/portal/profile/CarePostSidebar";
 
 // Mobile tab type
@@ -37,8 +37,7 @@ const SCHEDULE_LABELS: Record<string, string> = {
   flexible: "Flexible",
 };
 
-// Map section index to wizard step
-type WizardStep = 1 | 2 | 3 | 4 | 5;
+// Section to edit - matches ProfileEditSheet sections
 
 // ── Main Component ──
 
@@ -49,8 +48,7 @@ interface FamilyProfileViewProps {
 
 export default function FamilyProfileView({ profile: profileProp }: FamilyProfileViewProps = {}) {
   const { user, activeProfile, refreshAccountData } = useAuth();
-  const [wizardOpen, setWizardOpen] = useState(false);
-  const [wizardInitialStep, setWizardInitialStep] = useState<WizardStep>(1);
+  const [editingSection, setEditingSection] = useState<EditSection | null>(null);
   const [activatingProfile, setActivatingProfile] = useState(false);
 
   // Mobile tab state
@@ -62,17 +60,16 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
 
   const { percentage, sectionStatus } = useProfileCompleteness(profile, userEmail);
 
-  const openWizard = (step: WizardStep = 1) => {
-    setWizardInitialStep(step);
-    setWizardOpen(true);
+  const openSection = (section: EditSection) => {
+    setEditingSection(section);
   };
 
-  const handleWizardClose = () => {
-    setWizardOpen(false);
+  const handleSheetClose = () => {
+    setEditingSection(null);
   };
 
-  const handleWizardSaved = () => {
-    setWizardOpen(false);
+  const handleSheetSaved = () => {
+    setEditingSection(null);
     refreshAccountData();
   };
 
@@ -153,14 +150,16 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
 
   return (
     <div className="flex flex-col lg:flex-row lg:gap-8">
-      {/* Profile Edit Wizard Modal */}
-      {wizardOpen && (
-        <ProfileEditWizard
+      {/* Profile Edit Sheet - key forces remount when section changes to ensure fresh state */}
+      {editingSection && (
+        <ProfileEditSheet
+          key={editingSection}
+          isOpen={true}
+          section={editingSection}
           profile={profile}
           userEmail={userEmail}
-          initialStep={wizardInitialStep}
-          onClose={handleWizardClose}
-          onSaved={handleWizardSaved}
+          onClose={handleSheetClose}
+          onSaved={handleSheetSaved}
         />
       )}
 
@@ -218,7 +217,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
             {/* Avatar */}
             <button
               type="button"
-              onClick={() => openWizard(1)}
+              onClick={() => openSection("info")}
               className="w-24 h-24 rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 shadow-sm flex items-center justify-center mb-4 hover:ring-primary-200 transition-all group"
             >
               {profile.image_url ? (
@@ -267,7 +266,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
             {/* Edit button */}
             <button
               type="button"
-              onClick={() => openWizard(1)}
+              onClick={() => openSection("info")}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -281,7 +280,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
           <div className="hidden sm:flex items-center gap-5">
             <button
               type="button"
-              onClick={() => openWizard(1)}
+              onClick={() => openSection("info")}
               className="shrink-0 relative group"
             >
               <div className="w-[88px] h-[88px] rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 hover:ring-primary-200 shadow-xs flex items-center justify-center transition-all">
@@ -328,7 +327,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
 
             <button
               type="button"
-              onClick={() => openWizard(1)}
+              onClick={() => openSection("info")}
               className="shrink-0 self-start mt-1 inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -343,7 +342,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         <SectionCard
           title="Contact Information"
           status={sectionStatus[1]}
-          onEdit={() => openWizard(2)}
+          onEdit={() => openSection("contact")}
         >
           <div className="divide-y divide-gray-50">
             <ViewRow label="Email" value={profile.email || userEmail || null} />
@@ -356,7 +355,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         <SectionCard
           title="Care Recipient"
           status={sectionStatus[2]}
-          onEdit={() => openWizard(3)}
+          onEdit={() => openSection("recipient")}
         >
           <div className="divide-y divide-gray-50">
             <ViewRow label="Who needs care" value={meta.relationship_to_recipient || null} />
@@ -375,7 +374,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         <SectionCard
           title="Care Needs"
           status={sectionStatus[3]}
-          onEdit={() => openWizard(4)}
+          onEdit={() => openSection("needs")}
         >
           <div className="divide-y divide-gray-50">
             <ViewRow label="Type of care" value={careTypesDisplay} />
@@ -389,7 +388,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         <SectionCard
           title="Payment & Benefits"
           status={sectionStatus[4]}
-          onEdit={() => openWizard(5)}
+          onEdit={() => openSection("payment")}
         >
           {meta.payment_methods && meta.payment_methods.length > 0 ? (
             <div className="flex flex-wrap gap-2 mb-4">
@@ -434,7 +433,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
             onPublish={handlePublish}
             onDeactivate={handleDeactivate}
             onDelete={handleDelete}
-            onEdit={() => openWizard(1)}
+            onEdit={() => openSection("info")}
             interestedCount={interestedCount}
           />
         </div>
@@ -453,7 +452,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
           canGoLive={canGoLive}
           onGoLive={handleQuickGoLive}
           activating={activatingProfile}
-          onEdit={() => openWizard(1)}
+          onEdit={() => openSection("info")}
         />
       </div>
     </div>

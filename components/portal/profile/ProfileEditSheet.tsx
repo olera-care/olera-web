@@ -451,10 +451,13 @@ export default function ProfileEditSheet({
     section,
   ]);
 
-  // Track initial load
+  // Track initial load - delay to ensure first render effects don't trigger save
   const initialLoadDone = useRef(false);
   useEffect(() => {
-    initialLoadDone.current = true;
+    const timer = setTimeout(() => {
+      initialLoadDone.current = true;
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   // Debounced auto-save
@@ -835,9 +838,9 @@ export default function ProfileEditSheet({
 
   return (
     <div className="fixed inset-0 z-50">
-      {/* Backdrop - fades in */}
+      {/* Backdrop - fades in, blur only on desktop (looks patchy on mobile) */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-fade-in"
+        className="absolute inset-0 bg-black/40 md:backdrop-blur-[2px] animate-fade-in"
         onClick={handleClose}
       />
 

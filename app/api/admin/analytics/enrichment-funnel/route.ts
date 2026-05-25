@@ -32,6 +32,8 @@ const ENRICHMENT_EVENT_TYPES = [
   "enrichment_step_completed",
   "enrichment_step_skipped",
   "enrichment_completed",
+  "profile_published",   // Go Live: clicked "Get started"
+  "go_live_skipped",     // Go Live: clicked "Maybe later"
 ];
 
 export async function GET(request: Request) {
@@ -116,7 +118,8 @@ interface FunnelMetrics {
   step4_completed: number;  // careNeed
   step5_completed: number;  // payment
   step6_completed: number;  // details
-  completed: number;        // finished all 6
+  step7_completed: number;  // Go Live (profile_published)
+  completed: number;        // finished all 6 (legacy) or 7 (with Go Live)
   skipped: number;          // skipped at any point
   skipsByStep: Record<number, number>;  // count of skips per step
   rates: {
@@ -126,6 +129,7 @@ interface FunnelMetrics {
     step4Rate: number;
     step5Rate: number;
     step6Rate: number;
+    step7Rate: number;  // Go Live rate
     completionRate: number;
   };
 }
@@ -134,7 +138,21 @@ function calculateEnrichmentFunnel(events: EnrichmentEvent[]): FunnelMetrics {
   // Group events by session to track unique user journeys
   const sessionMap = new Map<string, EnrichmentEvent[]>();
 
+  // Also track Go Live events by profile_id (they don't have session_id)
+  let goLiveCompleted = 0;
+  let goLiveSkipped = 0;
+
   for (const event of events) {
+    // Go Live events don't have session_id, count them separately
+    if (event.event_type === "profile_published") {
+      goLiveCompleted++;
+      continue;
+    }
+    if (event.event_type === "go_live_skipped") {
+      goLiveSkipped++;
+      continue;
+    }
+
     const sessionId = event.metadata?.session_id;
     if (!sessionId) continue;
 
@@ -148,7 +166,7 @@ function calculateEnrichmentFunnel(events: EnrichmentEvent[]): FunnelMetrics {
   const stepCompleted = [0, 0, 0, 0, 0, 0]; // steps 1-6
   let completed = 0;
   let skipped = 0;
-  const skipsByStep: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+  const skipsByStep: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 };
 
   for (const [, sessionEvents] of sessionMap) {
     // Check what events this session has
@@ -189,6 +207,9 @@ function calculateEnrichmentFunnel(events: EnrichmentEvent[]): FunnelMetrics {
     }
   }
 
+  // Add Go Live skips to skipsByStep
+  skipsByStep[7] = goLiveSkipped;
+
   // Calculate rates (percentage of started that completed each step)
   const rates = {
     step1Rate: started > 0 ? Math.round((stepCompleted[0] / started) * 100) : 0,
@@ -197,6 +218,7 @@ function calculateEnrichmentFunnel(events: EnrichmentEvent[]): FunnelMetrics {
     step4Rate: started > 0 ? Math.round((stepCompleted[3] / started) * 100) : 0,
     step5Rate: started > 0 ? Math.round((stepCompleted[4] / started) * 100) : 0,
     step6Rate: started > 0 ? Math.round((stepCompleted[5] / started) * 100) : 0,
+    step7Rate: started > 0 ? Math.round((goLiveCompleted / started) * 100) : 0,
     completionRate: started > 0 ? Math.round((completed / started) * 100) : 0,
   };
 
@@ -208,6 +230,7 @@ function calculateEnrichmentFunnel(events: EnrichmentEvent[]): FunnelMetrics {
     step4_completed: stepCompleted[3],
     step5_completed: stepCompleted[4],
     step6_completed: stepCompleted[5],
+    step7_completed: goLiveCompleted,
     completed,
     skipped,
     skipsByStep,

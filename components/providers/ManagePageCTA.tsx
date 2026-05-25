@@ -146,9 +146,15 @@ export default function ManagePageCTA({
     );
   }, [router, providerSlug, providerName, sourceProviderId, providerId]);
 
+  // Don't show CTA if claimed and user is not the owner
+  // (they can see the "Claimed" badge - no action needed)
+  if (isClaimed && !isOwner) {
+    return null;
+  }
+
   return (
     <>
-      {/* Inline CTA trigger */}
+      {/* Inline CTA trigger - only shown when unclaimed OR when user is owner */}
       <div className="mt-4 flex items-center gap-2 text-sm">
         <svg
           className="w-4 h-4 text-gray-400 flex-shrink-0"
@@ -163,13 +169,27 @@ export default function ManagePageCTA({
             d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
           />
         </svg>
-        <span className="text-gray-500">Is this your business?</span>
-        <button
-          onClick={() => setOpen(true)}
-          className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
-        >
-          Manage this page <span aria-hidden="true">→</span>
-        </button>
+        {isOwner ? (
+          <>
+            <span className="text-gray-500">You manage this page.</span>
+            <button
+              onClick={handleGoToDashboard}
+              className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+            >
+              Go to Dashboard <span aria-hidden="true">→</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="text-gray-500">Is this your business?</span>
+            <button
+              onClick={() => setOpen(true)}
+              className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+            >
+              Manage this page <span aria-hidden="true">→</span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* Modal */}

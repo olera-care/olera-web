@@ -114,25 +114,29 @@ export default function CarePostSidebar({
         .slice(0, 2)
     : "?";
 
-  const handlePublishAction = useCallback(async () => {
+  const handlePublishAction = useCallback(async (): Promise<boolean> => {
     setPublishing(true);
     setActionError(null);
     try {
       await onPublish();
+      return true;
     } catch {
       setActionError("Couldn't publish. Please try again.");
+      return false;
     } finally {
       setPublishing(false);
     }
   }, [onPublish]);
 
-  const handleDeactivateAction = useCallback(async () => {
+  const handleDeactivateAction = useCallback(async (): Promise<boolean> => {
     setDeactivating(true);
     setActionError(null);
     try {
       await onDeactivate();
+      return true;
     } catch {
       setActionError("Couldn't pause. Please try again.");
+      return false;
     } finally {
       setDeactivating(false);
     }
@@ -143,12 +147,18 @@ export default function CarePostSidebar({
       // Turning off — pause
       setAcceptingMatches(false);
       setToggleMessage("off");
-      await handleDeactivateAction();
+      const success = await handleDeactivateAction();
+      if (!success) {
+        setAcceptingMatches(true); // Revert on failure
+      }
     } else {
       // Turning back on — re-publish
       setAcceptingMatches(true);
       setToggleMessage("on");
-      await handlePublishAction();
+      const success = await handlePublishAction();
+      if (!success) {
+        setAcceptingMatches(false); // Revert on failure
+      }
     }
   }, [acceptingMatches, handleDeactivateAction, handlePublishAction]);
 
@@ -196,22 +206,22 @@ export default function CarePostSidebar({
       <div className="sticky top-24">
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
           <div className="p-5">
-            {/* Header */}
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
+            {/* Illustration + headline */}
+            <div className="text-center mb-5">
+              <div className="w-24 h-24 mx-auto mb-3 relative">
+                <Image
+                  src="/illustration-go-live.png"
+                  alt="Let care come to you"
+                  fill
+                  className="object-contain"
+                />
               </div>
-              <div>
-                <h4 className="text-[15px] font-semibold text-gray-900">
-                  Let providers find you
-                </h4>
-                <p className="text-[12px] text-gray-500">
-                  Go live to start getting matched
-                </p>
-              </div>
+              <h4 className="text-[24px] font-display font-semibold text-gray-900 mb-1.5">
+                Let care come to you
+              </h4>
+              <p className="text-[16px] text-gray-500">
+                Providers who match your needs will reach out directly.
+              </p>
             </div>
 
             {/* Benefits list */}
@@ -241,7 +251,7 @@ export default function CarePostSidebar({
               <button
                 onClick={onGoLive}
                 disabled={activating}
-                className="w-full min-h-[48px] py-3 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold hover:from-primary-400 hover:to-primary-500 transition-all shadow-[0_1px_3px_rgba(25,144,135,0.3)] disabled:opacity-70 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                className="w-full py-3 rounded-xl bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white text-[14px] font-semibold transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
               >
                 {activating ? (
                   <>
@@ -260,35 +270,26 @@ export default function CarePostSidebar({
               </button>
             ) : (
               <button
-                onClick={handlePublishAction}
-                disabled={publishing || !canGoLive}
-                className="w-full min-h-[48px] py-3 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold hover:from-primary-400 hover:to-primary-500 transition-all shadow-[0_1px_3px_rgba(25,144,135,0.3)] disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                disabled
+                className="w-full py-3 rounded-xl bg-gray-100 text-gray-400 text-[14px] font-semibold cursor-not-allowed"
               >
-                {publishing ? "Publishing..." : "Go Live"}
+                Go Live
               </button>
             )}
 
-            {/* Hint if can't go live - link to complete setup */}
+            {/* Hint if can't go live */}
             {!canGoLive && (
-              <p className="text-[12px] text-gray-400 text-center mt-3">
-                <Link href="/welcome" className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
+              <p className="text-[12px] text-gray-500 text-center mt-3">
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                >
                   Complete your profile
-                </Link>
+                </button>
                 {" "}to go live
               </p>
             )}
-
-            {/* Edit profile link - always available */}
-            <button
-              type="button"
-              onClick={onEdit}
-              className="w-full mt-3 min-h-[44px] py-2.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors flex items-center justify-center gap-1.5"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-              </svg>
-              Edit profile
-            </button>
           </div>
         </div>
       </div>

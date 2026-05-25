@@ -80,6 +80,11 @@ export default function CompareBottomSheet({
     ? "caregiver"
     : "current";
 
+  // Check if user's profile is already published (skip Go Live step in enrichment)
+  const profileMeta = (activeProfile?.metadata || {}) as Record<string, unknown>;
+  const carePost = profileMeta.care_post as { status?: string } | undefined;
+  const isMatchesLive = carePost?.status === "active";
+
   const [mounted, setMounted] = useState(false);
   const [footerState, setFooterState] = useState<FooterState>("initial");
   const [email, setEmail] = useState("");
@@ -726,12 +731,14 @@ export default function CompareBottomSheet({
                 onSkip={skipEnrichment}
                 saving={enrichmentSubmitting}
                 providerCategory={currentProvider.category}
-                successTitle={`Requested ${selectedCount} detail${selectedCount !== 1 ? "s" : ""}`}
-                successSubtitle="We'll send you details to compare"
+                successTitle={selectedCount > 1 ? `Connected with ${selectedCount} providers` : `Connected with ${currentProvider.name}`}
                 providerCity={currentProvider.city}
                 providerState={currentProvider.state}
                 ctaVariant="compare"
                 ctaSurface="mobile"
+                providerImage={currentProvider.image}
+                providerImages={selectedProviders.map((p) => p.image ?? null)}
+                isAlreadyLive={isMatchesLive}
               />
             )}
           </div>

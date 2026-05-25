@@ -2,12 +2,11 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { useProfileCompleteness, type SectionStatus } from "./completeness";
 import { BenefitsFinderBanner } from "./ProfileEditContent";
-import ProfileEditWizard from "./ProfileEditWizard";
+import ProfileEditSheet, { type EditSection } from "./ProfileEditSheet";
 import CarePostSidebar from "@/components/portal/profile/CarePostSidebar";
 
 // Mobile tab type
@@ -37,8 +36,7 @@ const SCHEDULE_LABELS: Record<string, string> = {
   flexible: "Flexible",
 };
 
-// Map section index to wizard step
-type WizardStep = 1 | 2 | 3 | 4 | 5;
+// Section to edit - matches ProfileEditSheet sections
 
 // ── Main Component ──
 
@@ -49,8 +47,7 @@ interface FamilyProfileViewProps {
 
 export default function FamilyProfileView({ profile: profileProp }: FamilyProfileViewProps = {}) {
   const { user, activeProfile, refreshAccountData } = useAuth();
-  const [wizardOpen, setWizardOpen] = useState(false);
-  const [wizardInitialStep, setWizardInitialStep] = useState<WizardStep>(1);
+  const [editingSection, setEditingSection] = useState<EditSection | null>(null);
   const [activatingProfile, setActivatingProfile] = useState(false);
 
   // Mobile tab state
@@ -62,21 +59,27 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
 
   const { percentage, sectionStatus } = useProfileCompleteness(profile, userEmail);
 
-  const openWizard = (step: WizardStep = 1) => {
-    setWizardInitialStep(step);
-    setWizardOpen(true);
+  const openSection = (section: EditSection) => {
+    setEditingSection(section);
   };
 
-  const handleWizardClose = () => {
-    setWizardOpen(false);
+  const handleSheetClose = () => {
+    setEditingSection(null);
   };
 
-  const handleWizardSaved = () => {
-    setWizardOpen(false);
+  const handleSheetSaved = () => {
+    setEditingSection(null);
     refreshAccountData();
   };
 
+  const handleNavigateToSection = (nextSection: EditSection) => {
+    // This will cause a remount due to key={editingSection}
+    setEditingSection(nextSection);
+  };
+
   // ── Care Profile (Matches) handlers ──
+  // These handlers return immediately after API success.
+  // UI updates optimistically, data refreshes in background.
   const handlePublish = useCallback(async () => {
     const res = await fetch("/api/care-post/publish", {
       method: "POST",
@@ -84,7 +87,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
       body: JSON.stringify({ action: "publish" }),
     });
     if (!res.ok) throw new Error("Failed to publish");
-    await refreshAccountData();
+    // Refresh in background - don't block UI
+    refreshAccountData().catch(() => {});
   }, [refreshAccountData]);
 
   const handleDeactivate = useCallback(async () => {
@@ -94,7 +98,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
       body: JSON.stringify({ action: "deactivate" }),
     });
     if (!res.ok) throw new Error("Failed to deactivate");
-    await refreshAccountData();
+    // Refresh in background - don't block UI
+    refreshAccountData().catch(() => {});
   }, [refreshAccountData]);
 
   const handleDelete = useCallback(async (reasons: string[]) => {
@@ -104,7 +109,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
       body: JSON.stringify({ action: "delete", reasons }),
     });
     if (!res.ok) throw new Error("Failed to delete");
-    await refreshAccountData();
+    // Refresh in background - don't block UI
+    refreshAccountData().catch(() => {});
   }, [refreshAccountData]);
 
   // Check if profile has minimum data to go live
@@ -130,7 +136,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         }),
       });
       if (!res.ok) throw new Error("Failed to activate");
-      await refreshAccountData();
+      // Refresh in background - don't block UI
+      refreshAccountData().catch(() => {});
     } finally {
       setActivatingProfile(false);
     }
@@ -153,28 +160,31 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
 
   return (
     <div className="flex flex-col lg:flex-row lg:gap-8">
-      {/* Profile Edit Wizard Modal */}
-      {wizardOpen && (
-        <ProfileEditWizard
+      {/* Profile Edit Sheet - key forces remount when section changes to ensure fresh state */}
+      {editingSection && (
+        <ProfileEditSheet
+          key={editingSection}
+          isOpen={true}
+          section={editingSection}
           profile={profile}
           userEmail={userEmail}
-          initialStep={wizardInitialStep}
-          onClose={handleWizardClose}
-          onSaved={handleWizardSaved}
+          onClose={handleSheetClose}
+          onSaved={handleSheetSaved}
+          onNavigateToSection={handleNavigateToSection}
         />
       )}
 
-      {/* ── Mobile Tab Bar ── */}
-      <div className="lg:hidden mb-4">
-        <div className="flex border-b border-gray-200">
+      {/* ── Mobile Tab Bar (pill style, full-width) ── */}
+      <div className="lg:hidden mb-5">
+        <div className="flex items-center p-1 bg-gray-100 rounded-full">
           <button
             type="button"
             onClick={() => setMobileTab("profile")}
             className={[
-              "flex-1 py-3 text-[14px] font-medium text-center border-b-2 transition-colors",
+              "flex-1 py-2.5 text-[14px] font-medium rounded-full transition-all text-center",
               mobileTab === "profile"
-                ? "border-gray-900 text-gray-900"
-                : "border-transparent text-gray-500 hover:text-gray-700",
+                ? "bg-gray-900 text-white shadow-sm"
+                : "text-gray-600 hover:text-gray-900",
             ].join(" ")}
           >
             Profile
@@ -183,24 +193,39 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
             type="button"
             onClick={() => setMobileTab("care-post")}
             className={[
-              "flex-1 py-3 text-[14px] font-medium text-center border-b-2 transition-colors flex items-center justify-center gap-2",
+              "flex-1 py-2.5 text-[14px] font-medium rounded-full transition-all flex items-center justify-center gap-2",
               mobileTab === "care-post"
-                ? "border-gray-900 text-gray-900"
-                : "border-transparent text-gray-500 hover:text-gray-700",
+                ? "bg-gray-900 text-white shadow-sm"
+                : "text-gray-600 hover:text-gray-900",
             ].join(" ")}
           >
             Care Post
             {isLive ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className={[
+                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
+                mobileTab === "care-post"
+                  ? "bg-emerald-400/20 text-emerald-200"
+                  : "bg-emerald-50 text-emerald-700 border border-emerald-200",
+              ].join(" ")}>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Live
               </span>
             ) : isPaused ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+              <span className={[
+                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
+                mobileTab === "care-post"
+                  ? "bg-amber-400/20 text-amber-200"
+                  : "bg-amber-50 text-amber-600 border border-amber-200",
+              ].join(" ")}>
                 Paused
               </span>
             ) : canGoLive ? (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary-50 text-primary-700 border border-primary-200">
+              <span className={[
+                "inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
+                mobileTab === "care-post"
+                  ? "bg-primary-400/20 text-primary-200"
+                  : "bg-primary-50 text-primary-700 border border-primary-200",
+              ].join(" ")}>
                 Ready
               </span>
             ) : null}
@@ -218,8 +243,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
             {/* Avatar */}
             <button
               type="button"
-              onClick={() => openWizard(1)}
-              className="w-24 h-24 rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 shadow-sm flex items-center justify-center mb-4 hover:ring-primary-200 transition-all group"
+              onClick={() => openSection("info")}
+              className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 shadow-sm flex items-center justify-center mb-4 hover:ring-primary-200 transition-all group"
             >
               {profile.image_url ? (
                 <>
@@ -264,24 +289,25 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
               </div>
             )}
 
-            {/* Edit button */}
+            {/* Edit Profile button - mobile */}
             <button
               type="button"
-              onClick={() => openWizard(1)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors"
+              onClick={() => openSection("info")}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-full transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
               </svg>
-              Edit profile
+              Edit Profile
             </button>
+
           </div>
 
           {/* Desktop: Horizontal layout */}
           <div className="hidden sm:flex items-center gap-5">
             <button
               type="button"
-              onClick={() => openWizard(1)}
+              onClick={() => openSection("info")}
               className="shrink-0 relative group"
             >
               <div className="w-[88px] h-[88px] rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 hover:ring-primary-200 shadow-xs flex items-center justify-center transition-all">
@@ -326,16 +352,18 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
               )}
             </div>
 
+            {/* Edit Profile button - desktop */}
             <button
               type="button"
-              onClick={() => openWizard(1)}
-              className="shrink-0 self-start mt-1 inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors"
+              onClick={() => openSection("info")}
+              className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-full transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
               </svg>
-              Edit profile
+              Edit Profile
             </button>
+
           </div>
         </div>
 
@@ -343,7 +371,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         <SectionCard
           title="Contact Information"
           status={sectionStatus[1]}
-          onEdit={() => openWizard(2)}
+          onEdit={() => openSection("contact")}
         >
           <div className="divide-y divide-gray-50">
             <ViewRow label="Email" value={profile.email || userEmail || null} />
@@ -356,7 +384,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         <SectionCard
           title="Care Recipient"
           status={sectionStatus[2]}
-          onEdit={() => openWizard(3)}
+          onEdit={() => openSection("recipient")}
         >
           <div className="divide-y divide-gray-50">
             <ViewRow label="Who needs care" value={meta.relationship_to_recipient || null} />
@@ -375,7 +403,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         <SectionCard
           title="Care Needs"
           status={sectionStatus[3]}
-          onEdit={() => openWizard(4)}
+          onEdit={() => openSection("needs")}
         >
           <div className="divide-y divide-gray-50">
             <ViewRow label="Type of care" value={careTypesDisplay} />
@@ -389,7 +417,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         <SectionCard
           title="Payment & Benefits"
           status={sectionStatus[4]}
-          onEdit={() => openWizard(5)}
+          onEdit={() => openSection("payment")}
         >
           {meta.payment_methods && meta.payment_methods.length > 0 ? (
             <div className="flex flex-wrap gap-2 mb-4">
@@ -434,7 +462,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
             onPublish={handlePublish}
             onDeactivate={handleDeactivate}
             onDelete={handleDelete}
-            onEdit={() => openWizard(1)}
+            onEdit={() => openSection("info")}
             interestedCount={interestedCount}
           />
         </div>
@@ -453,7 +481,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
           canGoLive={canGoLive}
           onGoLive={handleQuickGoLive}
           activating={activatingProfile}
-          onEdit={() => openWizard(1)}
+          onEdit={() => openSection("info")}
         />
       </div>
     </div>
@@ -494,21 +522,15 @@ function SectionCard({
   const editLabel = status === "empty" ? "Add" : "Edit";
 
   return (
-    <div
-      className="p-5 sm:p-6 cursor-pointer hover:bg-gray-50/50 transition-colors group"
-      onClick={onEdit}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onEdit(); } }}
-    >
+    <div className="p-5 sm:p-6 group">
       {/* Header row */}
       <div className="flex items-center gap-2.5 mb-4">
         <h3 className="text-lg font-display font-bold text-gray-900">{title}</h3>
         <SectionBadge status={status} />
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onEdit(); }}
-          className="ml-auto text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors opacity-0 group-hover:opacity-100"
+          onClick={onEdit}
+          className="ml-auto text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors sm:opacity-0 sm:group-hover:opacity-100"
         >
           {editLabel} &rarr;
         </button>
@@ -632,26 +654,30 @@ function MobileCarePostContent({
     ? profile.display_name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
     : "?";
 
-  // Handlers
-  const handlePublishAction = useCallback(async () => {
+  // Handlers - return boolean for success/failure
+  const handlePublishAction = useCallback(async (): Promise<boolean> => {
     setPublishing(true);
     setActionError(null);
     try {
       await onPublish();
+      return true;
     } catch {
       setActionError("Couldn't publish. Please try again.");
+      return false;
     } finally {
       setPublishing(false);
     }
   }, [onPublish]);
 
-  const handleDeactivateAction = useCallback(async () => {
+  const handleDeactivateAction = useCallback(async (): Promise<boolean> => {
     setDeactivating(true);
     setActionError(null);
     try {
       await onDeactivate();
+      return true;
     } catch {
       setActionError("Couldn't pause. Please try again.");
+      return false;
     } finally {
       setDeactivating(false);
     }
@@ -661,11 +687,17 @@ function MobileCarePostContent({
     if (acceptingMatches) {
       setAcceptingMatches(false);
       setToggleMessage("off");
-      await handleDeactivateAction();
+      const success = await handleDeactivateAction();
+      if (!success) {
+        setAcceptingMatches(true); // Revert on failure
+      }
     } else {
       setAcceptingMatches(true);
       setToggleMessage("on");
-      await handlePublishAction();
+      const success = await handlePublishAction();
+      if (!success) {
+        setAcceptingMatches(false); // Revert on failure
+      }
     }
   }, [acceptingMatches, handleDeactivateAction, handlePublishAction]);
 
@@ -692,122 +724,71 @@ function MobileCarePostContent({
   // ── Not Published State ──
   if (!hasPost) {
     return (
-      <div className="space-y-4">
-        {/* Go Live CTA Card */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-          <div className="p-5">
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-sm">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-[17px] font-bold text-gray-900">
-                  Let providers find you
-                </h3>
-                <p className="text-[13px] text-gray-500">
-                  Go live to start getting matched
-                </p>
-              </div>
-            </div>
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+        <div className="p-6 text-center">
+          {/* Illustration - same as enrichment Go Live step */}
+          <div className="w-32 h-32 mx-auto mb-4 relative">
+            <Image
+              src="/illustration-go-live.png"
+              alt="Let care come to you"
+              fill
+              className="object-contain"
+            />
+          </div>
 
-            {/* Benefits list */}
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-primary-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg className="w-3 h-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-[14px] text-gray-600">Providers in your area can find and reach out to you</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-primary-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg className="w-3 h-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-[14px] text-gray-600">Review interested providers at your own pace</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-primary-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg className="w-3 h-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-[14px] text-gray-600">Pause or delete your profile anytime</span>
-              </li>
-            </ul>
+          {/* Headline */}
+          <h3 className="text-[24px] font-display font-semibold text-gray-900 mb-1.5">
+            Let care come to you
+          </h3>
+          <p className="text-[16px] text-gray-500 mb-5">
+            Providers who match your needs will reach out directly.
+          </p>
 
-            {/* Go Live button */}
-            {canGoLive ? (
+          {/* Go Live button */}
+          {canGoLive ? (
+            <button
+              type="button"
+              onClick={onGoLive}
+              disabled={activatingProfile}
+              className="w-full py-3.5 rounded-xl bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white text-[15px] font-semibold transition-colors disabled:opacity-70 flex items-center justify-center gap-2 touch-manipulation"
+            >
+              {activatingProfile ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Going live...
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-white/80 animate-pulse" />
+                  Go Live
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="space-y-3">
               <button
                 type="button"
-                onClick={onGoLive}
-                disabled={activatingProfile}
-                className="w-full min-h-[52px] py-3.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[15px] font-semibold hover:from-primary-400 hover:to-primary-500 active:from-primary-600 active:to-primary-700 transition-all shadow-[0_1px_3px_rgba(25,144,135,0.3)] disabled:opacity-70 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                disabled
+                className="w-full py-3.5 rounded-xl bg-gray-100 text-gray-400 text-[15px] font-semibold cursor-not-allowed"
               >
-                {activatingProfile ? (
-                  <>
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Going live...
-                  </>
-                ) : (
-                  <>
-                    <span className="w-2.5 h-2.5 rounded-full bg-white/80 animate-pulse" />
-                    Go Live
-                  </>
-                )}
+                Go Live
               </button>
-            ) : (
-              <div className="space-y-3">
+              <p className="text-[13px] text-gray-500">
                 <button
                   type="button"
-                  disabled
-                  className="w-full min-h-[52px] py-3.5 rounded-xl bg-gray-100 text-gray-400 text-[15px] font-semibold cursor-not-allowed"
+                  onClick={onEdit}
+                  className="text-primary-600 hover:text-primary-700 font-medium transition-colors touch-manipulation"
                 >
-                  Go Live
+                  Complete your profile
                 </button>
-                <p className="text-[13px] text-gray-500 text-center">
-                  <button
-                    type="button"
-                    onClick={onEdit}
-                    className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
-                  >
-                    Complete your profile
-                  </button>
-                  {" "}to go live
-                </p>
-              </div>
-            )}
-          </div>
+                {" "}to go live
+              </p>
+            </div>
+          )}
         </div>
-
-        {/* Edit Profile Card */}
-        <button
-          type="button"
-          onClick={onEdit}
-          className="w-full bg-white rounded-2xl border border-gray-200/80 shadow-sm p-4 flex items-center gap-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-        >
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-            </svg>
-          </div>
-          <div className="flex-1 text-left">
-            <p className="text-[14px] font-semibold text-gray-900">Edit profile</p>
-            <p className="text-[12px] text-gray-500">Update your care details</p>
-          </div>
-          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-          </svg>
-        </button>
       </div>
     );
   }
@@ -815,9 +796,9 @@ function MobileCarePostContent({
   // ── Published State (Live or Paused) ──
   return (
     <div className="space-y-4">
-      {/* Profile Preview Card */}
+      {/* Unified Care Profile Card */}
       <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-        {/* Header with status */}
+        {/* Header with status + Edit */}
         <div className="px-5 pt-5 pb-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
@@ -920,15 +901,12 @@ function MobileCarePostContent({
             )}
           </div>
         </div>
-      </div>
 
-      {/* Toggle Card */}
-      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-        <div className="px-5 py-4">
-          {/* Accepting toggle */}
-          <div className="flex items-center justify-between min-h-[44px]">
+        {/* Accepting toggle - integrated */}
+        <div className="border-t border-gray-100 px-5 py-4">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-[15px] font-medium text-gray-900">Accepting new matches</p>
+              <p className="text-[14px] font-medium text-gray-900">Accepting new matches</p>
               <p className="text-[12px] text-gray-500">
                 {acceptingMatches ? "Providers can find you" : "Hidden from search"}
               </p>
@@ -940,14 +918,14 @@ function MobileCarePostContent({
               onClick={handleToggleAccepting}
               disabled={deactivating || publishing}
               className={[
-                "relative inline-flex h-8 w-[56px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out disabled:opacity-50",
+                "relative inline-flex h-7 w-[50px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out disabled:opacity-50 touch-manipulation",
                 acceptingMatches ? "bg-primary-500" : "bg-gray-200",
               ].join(" ")}
             >
               <span
                 className={[
-                  "pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
-                  acceptingMatches ? "translate-x-6" : "translate-x-0",
+                  "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
+                  acceptingMatches ? "translate-x-[22px]" : "translate-x-0",
                 ].join(" ")}
               />
             </button>
@@ -960,46 +938,26 @@ function MobileCarePostContent({
           >
             <div className="overflow-hidden">
               {toggleMessage === "on" && (
-                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-primary-50/60 border border-primary-100/50 mt-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-600 shrink-0 mt-0.5">
-                    <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
-                  <p className="text-[13px] text-gray-600 leading-relaxed">
-                    Your profile is now visible. Providers can find and reach out to you.
-                  </p>
-                </div>
+                <p className="text-[13px] text-primary-600 mt-2">
+                  Your profile is now visible to providers.
+                </p>
               )}
               {toggleMessage === "off" && (
-                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-amber-50/60 border border-amber-100/50 mt-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-amber-500 shrink-0 mt-0.5">
-                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" />
-                    <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  <p className="text-[13px] text-gray-600 leading-relaxed">
-                    New providers won&apos;t see your profile. Anyone who already reached out can still be reviewed.
-                  </p>
-                </div>
+                <p className="text-[13px] text-amber-600 mt-2">
+                  Your profile is hidden from search.
+                </p>
               )}
               {actionError && (
-                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-rose-50/60 border border-rose-100/50 mt-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-500 shrink-0 mt-0.5">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  <p className="text-[13px] text-gray-600 leading-relaxed">
-                    {actionError}
-                  </p>
-                </div>
+                <p className="text-[13px] text-rose-600 mt-2">
+                  {actionError}
+                </p>
               )}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Delete Section */}
-      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-        <div className="px-5 py-4">
+        {/* Delete - subtle text link */}
+        <div className="border-t border-gray-100">
           {/* Delete confirmation */}
           <div
             className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]"
@@ -1007,17 +965,17 @@ function MobileCarePostContent({
           >
             <div className="overflow-hidden">
               {showDeleteConfirm && (
-                <div className="space-y-4 pb-3">
+                <div className="px-5 py-4 space-y-4 bg-gray-50/50">
                   <div>
-                    <p className="text-[15px] font-semibold text-gray-900 mb-1">Remove your care profile?</p>
-                    <p className="text-[13px] text-gray-600 leading-relaxed">
-                      Providers will no longer be able to find or reach out to you. Existing conversations are not affected.
+                    <p className="text-[14px] font-semibold text-gray-900 mb-1">Remove your care profile?</p>
+                    <p className="text-[13px] text-gray-500">
+                      Providers won&apos;t be able to find you anymore.
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-[13px] font-medium text-gray-700 mb-2.5">Why are you removing it?</p>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-[12px] font-medium text-gray-600 mb-2">Why are you removing it?</p>
+                    <div className="flex flex-wrap gap-1.5">
                       {DELETE_REASONS.map((reason) => {
                         const isSelected = selectedDeleteReasons.includes(reason);
                         return (
@@ -1026,10 +984,10 @@ function MobileCarePostContent({
                             type="button"
                             onClick={() => toggleDeleteReason(reason)}
                             className={[
-                              "text-[13px] font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150",
+                              "text-[12px] font-medium px-3 py-2 rounded-full border transition-all duration-150 touch-manipulation",
                               isSelected
                                 ? "border-gray-300 bg-gray-100 text-gray-800"
-                                : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 active:bg-gray-50",
+                                : "border-gray-200 bg-white text-gray-600",
                             ].join(" ")}
                           >
                             {reason}
@@ -1039,24 +997,24 @@ function MobileCarePostContent({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 pt-1">
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => {
                         setShowDeleteConfirm(false);
                         setSelectedDeleteReasons([]);
                       }}
-                      className="flex-1 min-h-[48px] py-3 rounded-xl border border-gray-200 bg-white text-[14px] font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                      className="flex-1 py-2.5 rounded-lg border border-gray-200 bg-white text-[13px] font-medium text-gray-700 touch-manipulation"
                     >
-                      Keep profile
+                      Cancel
                     </button>
                     <button
                       type="button"
                       onClick={handleDeletePost}
                       disabled={deleting}
-                      className="flex-1 min-h-[48px] py-3 rounded-xl bg-red-600 text-white text-[14px] font-semibold hover:bg-red-700 active:bg-red-800 transition-colors disabled:opacity-50"
+                      className="flex-1 py-2.5 rounded-lg bg-red-600 text-white text-[13px] font-semibold disabled:opacity-50 touch-manipulation"
                     >
-                      {deleting ? "Removing..." : "Delete profile"}
+                      {deleting ? "Removing..." : "Delete"}
                     </button>
                   </div>
                 </div>
@@ -1068,7 +1026,7 @@ function MobileCarePostContent({
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="w-full min-h-[44px] py-2 text-[14px] text-gray-400 hover:text-red-600 active:text-red-700 transition-colors text-center"
+              className="w-full py-3 text-[13px] text-gray-400 hover:text-red-500 transition-colors text-center touch-manipulation"
             >
               Delete profile
             </button>
@@ -1076,20 +1034,12 @@ function MobileCarePostContent({
         </div>
       </div>
 
-      {/* Response Time Info */}
-      <div className="rounded-2xl border border-primary-100/60 bg-primary-50/40 px-4 py-4 flex items-start gap-3">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-500 shrink-0 mt-0.5">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="16" x2="12" y2="12" />
-          <line x1="12" y1="8" x2="12.01" y2="8" />
-        </svg>
-        <p className="text-[14px] text-gray-600 leading-relaxed">
-          {interestedCount > 0
-            ? <>Take your time. There&apos;s <span className="font-semibold text-gray-800">no pressure</span> to respond immediately.</>
-            : <>Providers typically respond within <span className="font-semibold text-gray-800">3–5 days</span>. We&apos;ll email you when someone reaches out.</>
-          }
-        </p>
-      </div>
+      {/* Info disclaimer - simple and subtle */}
+      <p className="text-[13px] text-gray-500 text-center px-4">
+        {interestedCount > 0
+          ? "Take your time reviewing interested providers."
+          : "Providers typically respond within 3–5 days."}
+      </p>
     </div>
   );
 }

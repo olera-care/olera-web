@@ -101,8 +101,10 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             priceRange={props.priceRange}
             providerCity={props.city}
             providerState={props.state}
+            providerImage={props.providerImage}
             ctaVariant={props.ctaVariant}
             ctaSurface={props.ctaSurface}
+            isAlreadyLive={hook.isMatchesLive}
           />
         )}
 

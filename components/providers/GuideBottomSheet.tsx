@@ -82,6 +82,11 @@ export default function GuideBottomSheet({
     ? "caregiver"
     : "current";
 
+  // Check if user's profile is already published (skip Go Live step in enrichment)
+  const profileMeta = (activeProfile?.metadata || {}) as Record<string, unknown>;
+  const carePost = profileMeta.care_post as { status?: string } | undefined;
+  const isMatchesLive = carePost?.status === "active";
+
   const [mounted, setMounted] = useState(false);
   const [sheetState, setSheetState] = useState<SheetState>("email_capture");
   const [email, setEmail] = useState("");
@@ -567,12 +572,13 @@ export default function GuideBottomSheet({
                 onSkip={skipEnrichment}
                 saving={enrichmentSubmitting}
                 successTitle={`Connected with ${providerName}`}
-                successSubtitle="Checklist sent to your email"
                 providerCity={providerCity}
                 providerState={providerState}
                 providerCategory={providerCategory}
                 ctaVariant="guide"
                 ctaSurface="mobile"
+                providerImage={providerImage}
+                isAlreadyLive={isMatchesLive}
               />
               {/* Re-download link */}
               {pdfUrl && (

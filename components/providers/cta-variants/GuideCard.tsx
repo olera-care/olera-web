@@ -104,6 +104,11 @@ export default function GuideCard({
     ? "caregiver"
     : "current";
 
+  // Check if user's profile is already published (skip Go Live step in enrichment)
+  const profileMeta = (activeProfile?.metadata || {}) as Record<string, unknown>;
+  const carePost = profileMeta.care_post as { status?: string } | undefined;
+  const isMatchesLive = carePost?.status === "active";
+
   // Get pricing unit from category config
   const pricingConfig = providerCategory ? getPricingConfig(providerCategory) : null;
   const priceUnit = pricingConfig?.unit ?? "month";
@@ -645,11 +650,12 @@ export default function GuideCard({
             providerCategory={providerCategory}
             priceRange={priceRange}
             successTitle={`Connected with ${providerName}`}
-            successSubtitle="Checklist sent to your email"
             providerCity={providerCity}
             providerState={providerState}
             ctaVariant="guide"
             ctaSurface="desktop"
+            providerImage={providerImage}
+            isAlreadyLive={isMatchesLive}
           />
           {/* Re-download link */}
           {pdfUrl && (

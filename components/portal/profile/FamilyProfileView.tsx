@@ -169,17 +169,17 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         />
       )}
 
-      {/* ── Mobile Tab Bar ── */}
-      <div className="lg:hidden mb-4">
-        <div className="flex border-b border-gray-200">
+      {/* ── Mobile Tab Bar (pill style) ── */}
+      <div className="lg:hidden mb-5">
+        <div className="inline-flex items-center gap-1 p-1 bg-gray-100 rounded-full">
           <button
             type="button"
             onClick={() => setMobileTab("profile")}
             className={[
-              "flex-1 py-3 text-[14px] font-medium text-center border-b-2 transition-colors",
+              "px-5 py-2 text-[14px] font-medium rounded-full transition-all",
               mobileTab === "profile"
-                ? "border-gray-900 text-gray-900"
-                : "border-transparent text-gray-500 hover:text-gray-700",
+                ? "bg-gray-900 text-white shadow-sm"
+                : "text-gray-600 hover:text-gray-900",
             ].join(" ")}
           >
             Profile
@@ -188,24 +188,39 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
             type="button"
             onClick={() => setMobileTab("care-post")}
             className={[
-              "flex-1 py-3 text-[14px] font-medium text-center border-b-2 transition-colors flex items-center justify-center gap-2",
+              "px-5 py-2 text-[14px] font-medium rounded-full transition-all flex items-center gap-2",
               mobileTab === "care-post"
-                ? "border-gray-900 text-gray-900"
-                : "border-transparent text-gray-500 hover:text-gray-700",
+                ? "bg-gray-900 text-white shadow-sm"
+                : "text-gray-600 hover:text-gray-900",
             ].join(" ")}
           >
             Care Post
             {isLive ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className={[
+                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
+                mobileTab === "care-post"
+                  ? "bg-emerald-400/20 text-emerald-200"
+                  : "bg-emerald-50 text-emerald-700 border border-emerald-200",
+              ].join(" ")}>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Live
               </span>
             ) : isPaused ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+              <span className={[
+                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
+                mobileTab === "care-post"
+                  ? "bg-amber-400/20 text-amber-200"
+                  : "bg-amber-50 text-amber-600 border border-amber-200",
+              ].join(" ")}>
                 Paused
               </span>
             ) : canGoLive ? (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary-50 text-primary-700 border border-primary-200">
+              <span className={[
+                "inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
+                mobileTab === "care-post"
+                  ? "bg-primary-400/20 text-primary-200"
+                  : "bg-primary-50 text-primary-700 border border-primary-200",
+              ].join(" ")}>
                 Ready
               </span>
             ) : null}

@@ -15,6 +15,9 @@ import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 
 export type EditSection = "info" | "contact" | "recipient" | "needs" | "payment";
 
+// Section order for progressive navigation
+const SECTION_ORDER: EditSection[] = ["info", "contact", "recipient", "needs", "payment"];
+
 interface ProfileEditSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -22,6 +25,8 @@ interface ProfileEditSheetProps {
   profile: BusinessProfile;
   userEmail?: string;
   onSaved: () => void;
+  /** Called when user wants to navigate to the next section (progressive wizard flow) */
+  onNavigateToSection?: (section: EditSection) => void;
 }
 
 // ============================================================
@@ -184,7 +189,12 @@ export default function ProfileEditSheet({
   profile,
   userEmail = "",
   onSaved,
+  onNavigateToSection,
 }: ProfileEditSheetProps) {
+  // Calculate navigation state
+  const currentIndex = SECTION_ORDER.indexOf(section);
+  const isLastSection = currentIndex === SECTION_ORDER.length - 1;
+  const nextSection = isLastSection ? null : SECTION_ORDER[currentIndex + 1];
   const { refreshAccountData } = useAuth();
   const meta = (profile.metadata || {}) as FamilyMetadata;
 
@@ -494,6 +504,17 @@ export default function ProfileEditSheet({
     onSaved();
     onClose();
   }, [saveChanges, onSaved, onClose, profile?.id]);
+
+  // Handle continue to next section
+  const handleContinue = useCallback(() => {
+    if (!nextSection || !onNavigateToSection) return;
+
+    // Fire save in background
+    saveChanges();
+
+    // Navigate to next section
+    onNavigateToSection(nextSection);
+  }, [nextSection, onNavigateToSection, saveChanges]);
 
   // Prevent body scroll when open
   useEffect(() => {
@@ -827,9 +848,9 @@ export default function ProfileEditSheet({
 
   return (
     <div className="fixed inset-0 z-50">
-      {/* Backdrop - fades in, blur only on desktop (looks patchy on mobile) */}
+      {/* Backdrop - simple semi-transparent overlay */}
       <div
-        className="absolute inset-0 bg-black/40 md:backdrop-blur-[2px] animate-fade-in"
+        className="absolute inset-0 bg-black/30 animate-fade-in"
         onClick={handleClose}
       />
 
@@ -848,15 +869,39 @@ export default function ProfileEditSheet({
           <button
             type="button"
             onClick={handleClose}
-            className="text-[15px] font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+            className="text-[15px] font-semibold text-gray-500 hover:text-gray-700 transition-colors"
           >
             Done
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-5 py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+        <div className="flex-1 overflow-y-auto px-5 py-6">
           {renderSectionContent()}
+        </div>
+
+        {/* Footer with Continue button */}
+        <div className="px-5 py-4 border-t border-gray-100" style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}>
+          {!isLastSection && onNavigateToSection ? (
+            <button
+              type="button"
+              onClick={handleContinue}
+              className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              Continue
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleClose}
+              className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-xl transition-colors"
+            >
+              Done
+            </button>
+          )}
         </div>
       </div>
 
@@ -885,14 +930,35 @@ export default function ProfileEditSheet({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end px-6 py-4 border-t border-gray-100">
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100">
             <button
               type="button"
               onClick={handleClose}
-              className="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-full transition-colors"
+              className="px-5 py-2 text-gray-600 hover:text-gray-800 text-[15px] font-medium transition-colors"
             >
               Done
             </button>
+            {!isLastSection && onNavigateToSection && (
+              <button
+                type="button"
+                onClick={handleContinue}
+                className="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-full transition-colors flex items-center gap-1.5"
+              >
+                Continue
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+            {isLastSection && (
+              <button
+                type="button"
+                onClick={handleClose}
+                className="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-full transition-colors"
+              >
+                Save & Close
+              </button>
+            )}
           </div>
         </div>
       </div>

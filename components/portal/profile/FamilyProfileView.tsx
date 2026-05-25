@@ -73,6 +73,11 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
     refreshAccountData();
   };
 
+  const handleNavigateToSection = (nextSection: EditSection) => {
+    // This will cause a remount due to key={editingSection}
+    setEditingSection(nextSection);
+  };
+
   // ── Care Profile (Matches) handlers ──
   const handlePublish = useCallback(async () => {
     const res = await fetch("/api/care-post/publish", {
@@ -160,6 +165,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
           userEmail={userEmail}
           onClose={handleSheetClose}
           onSaved={handleSheetSaved}
+          onNavigateToSection={handleNavigateToSection}
         />
       )}
 
@@ -263,6 +269,18 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
               </div>
             )}
 
+            {/* Edit Profile button - mobile */}
+            <button
+              type="button"
+              onClick={() => openSection("info")}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-full transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+              </svg>
+              Edit Profile
+            </button>
+
           </div>
 
           {/* Desktop: Horizontal layout */}
@@ -313,6 +331,18 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
                 </div>
               )}
             </div>
+
+            {/* Edit Profile button - desktop */}
+            <button
+              type="button"
+              onClick={() => openSection("info")}
+              className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-full transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+              </svg>
+              Edit Profile
+            </button>
 
           </div>
         </div>
@@ -472,21 +502,15 @@ function SectionCard({
   const editLabel = status === "empty" ? "Add" : "Edit";
 
   return (
-    <div
-      className="p-5 sm:p-6 cursor-pointer hover:bg-gray-50/50 transition-colors group"
-      onClick={onEdit}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onEdit(); } }}
-    >
+    <div className="p-5 sm:p-6 group">
       {/* Header row */}
       <div className="flex items-center gap-2.5 mb-4">
         <h3 className="text-lg font-display font-bold text-gray-900">{title}</h3>
         <SectionBadge status={status} />
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onEdit(); }}
-          className="ml-auto text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors opacity-0 group-hover:opacity-100"
+          onClick={onEdit}
+          className="ml-auto text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors sm:opacity-0 sm:group-hover:opacity-100"
         >
           {editLabel} &rarr;
         </button>

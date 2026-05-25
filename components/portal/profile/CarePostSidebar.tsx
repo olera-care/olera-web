@@ -205,24 +205,46 @@ export default function CarePostSidebar({
     return (
       <div className="sticky top-24">
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-          <div className="p-6 text-center">
-            {/* Illustration - same as mobile */}
-            <div className="w-28 h-28 mx-auto mb-4 relative">
-              <Image
-                src="/illustration-go-live.png"
-                alt="Let care come to you"
-                fill
-                className="object-contain"
-              />
+          <div className="p-5">
+            {/* Illustration + headline */}
+            <div className="text-center mb-5">
+              <div className="w-24 h-24 mx-auto mb-3 relative">
+                <Image
+                  src="/illustration-go-live.png"
+                  alt="Let care come to you"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <h4 className="text-[16px] font-bold text-gray-900 mb-1">
+                Let care come to you
+              </h4>
+              <p className="text-[13px] text-gray-500">
+                Providers who match your needs will reach out directly.
+              </p>
             </div>
 
-            {/* Headline */}
-            <h4 className="text-[17px] font-bold text-gray-900 mb-2">
-              Let care come to you
-            </h4>
-            <p className="text-[14px] text-gray-500 mb-5">
-              Providers who match your needs will reach out directly.
-            </p>
+            {/* Benefits list */}
+            <ul className="space-y-2.5 mb-5">
+              <li className="flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-[13px] text-gray-600">Providers in your area can find and reach out to you</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-[13px] text-gray-600">Review interested providers at your own pace</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-[13px] text-gray-600">Pause or delete your profile anytime</span>
+              </li>
+            </ul>
 
             {/* Go Live button */}
             {canGoLive && onGoLive ? (
@@ -257,7 +279,7 @@ export default function CarePostSidebar({
 
             {/* Hint if can't go live */}
             {!canGoLive && (
-              <p className="text-[12px] text-gray-500 mt-3">
+              <p className="text-[12px] text-gray-500 text-center mt-3">
                 <button
                   type="button"
                   onClick={onEdit}

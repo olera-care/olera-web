@@ -559,9 +559,10 @@ export default function EnrichmentState({
 
   return (
     <div>
-      {/* Compact success banner with avatar + optional "+N" badge */}
-      {/* Hide on Go Live step - user has moved past the connection, focus on publish decision */}
-      {!hideSuccessBanner && step !== "goLive" && (
+      {/* Success banner removed from enrichment flow entirely.
+          Rationale: The user just connected - they know. Each step should focus on ONE thing.
+          The final "Go to inbox" screen is the real confirmation. */}
+      {false && !hideSuccessBanner && (
         <div className="mb-4 bg-emerald-50/60 rounded-full px-3 py-2 border border-emerald-100 inline-flex items-center gap-2">
           {/* Avatar section: single avatar + "+N" for multi-provider */}
           {avatarImages.length > 0 ? (

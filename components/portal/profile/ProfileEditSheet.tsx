@@ -931,32 +931,33 @@ export default function ProfileEditSheet({
 
           {/* Footer */}
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-5 py-2 text-gray-600 hover:text-gray-800 text-[15px] font-medium transition-colors"
-            >
-              Done
-            </button>
-            {!isLastSection && onNavigateToSection && (
-              <button
-                type="button"
-                onClick={handleContinue}
-                className="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-full transition-colors flex items-center gap-1.5"
-              >
-                Continue
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            )}
-            {isLastSection && (
+            {!isLastSection && onNavigateToSection ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="px-5 py-2 text-gray-600 hover:text-gray-800 text-[15px] font-medium transition-colors"
+                >
+                  Done
+                </button>
+                <button
+                  type="button"
+                  onClick={handleContinue}
+                  className="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-full transition-colors flex items-center gap-1.5"
+                >
+                  Continue
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </>
+            ) : (
               <button
                 type="button"
                 onClick={handleClose}
                 className="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-full transition-colors"
               >
-                Save & Close
+                Done
               </button>
             )}
           </div>

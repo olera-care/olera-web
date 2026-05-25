@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { useProfileCompleteness, type SectionStatus } from "./completeness";
@@ -239,7 +238,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
             <button
               type="button"
               onClick={() => openSection("info")}
-              className="w-24 h-24 rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 shadow-sm flex items-center justify-center mb-4 hover:ring-primary-200 transition-all group"
+              className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 shadow-sm flex items-center justify-center mb-4 hover:ring-primary-200 transition-all group"
             >
               {profile.image_url ? (
                 <>

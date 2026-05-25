@@ -36,6 +36,7 @@ export async function DELETE() {
     const profileIds = (profiles || []).map((p: { id: string }) => p.id);
 
     if (profileIds.length > 0) {
+      // Delete connections
       await admin
         .from("connections")
         .delete()
@@ -47,6 +48,18 @@ export async function DELETE() {
             )
             .join(",")
         );
+
+      // Delete provider_activity records (enrichment analytics)
+      await admin
+        .from("provider_activity")
+        .delete()
+        .in("profile_id", profileIds);
+
+      // Delete seeker_activity records
+      await admin
+        .from("seeker_activity")
+        .delete()
+        .in("profile_id", profileIds);
     }
 
     // Delete business profiles

@@ -884,12 +884,12 @@ export default function EnrichmentState({
           </div>
 
           {/* Title */}
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <h3 className="text-[17px] font-display font-semibold text-gray-900 mb-1.5">
             Let care come to you
           </h3>
 
           {/* Subtitle */}
-          <p className="text-[15px] text-gray-500 mb-6 max-w-xs mx-auto">
+          <p className="text-[14px] text-gray-500 mb-5 max-w-xs mx-auto">
             Providers who match you will reach out.
           </p>
 
@@ -902,9 +902,16 @@ export default function EnrichmentState({
           <button
             onClick={handleGoLive}
             disabled={publishing}
-            className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation"
           >
-            {publishing ? "Publishing..." : "Get started"}
+            {publishing ? (
+              "Publishing..."
+            ) : (
+              <>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Go live
+              </>
+            )}
           </button>
 
           {/* Maybe later */}

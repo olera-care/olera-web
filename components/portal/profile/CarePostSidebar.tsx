@@ -205,53 +205,31 @@ export default function CarePostSidebar({
     return (
       <div className="sticky top-24">
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-          <div className="p-5">
-            {/* Header */}
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="text-[15px] font-semibold text-gray-900">
-                  Let providers find you
-                </h4>
-                <p className="text-[12px] text-gray-500">
-                  Go live to start getting matched
-                </p>
-              </div>
+          <div className="p-6 text-center">
+            {/* Illustration - same as mobile */}
+            <div className="w-28 h-28 mx-auto mb-4 relative">
+              <Image
+                src="/illustration-go-live.png"
+                alt="Let care come to you"
+                fill
+                className="object-contain"
+              />
             </div>
 
-            {/* Benefits list */}
-            <ul className="space-y-2.5 mb-5">
-              <li className="flex items-start gap-2.5">
-                <svg className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span className="text-[13px] text-gray-600">Providers in your area can find and reach out to you</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <svg className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span className="text-[13px] text-gray-600">Review interested providers at your own pace</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <svg className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span className="text-[13px] text-gray-600">Pause or delete your profile anytime</span>
-              </li>
-            </ul>
+            {/* Headline */}
+            <h4 className="text-[17px] font-bold text-gray-900 mb-2">
+              Let care come to you
+            </h4>
+            <p className="text-[14px] text-gray-500 mb-5">
+              Providers who match your needs will reach out directly.
+            </p>
 
             {/* Go Live button */}
             {canGoLive && onGoLive ? (
               <button
                 onClick={onGoLive}
                 disabled={activating}
-                className="w-full min-h-[48px] py-3 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold hover:from-primary-400 hover:to-primary-500 transition-all shadow-[0_1px_3px_rgba(25,144,135,0.3)] disabled:opacity-70 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                className="w-full py-3 rounded-xl bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white text-[14px] font-semibold transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
               >
                 {activating ? (
                   <>
@@ -270,24 +248,26 @@ export default function CarePostSidebar({
               </button>
             ) : (
               <button
-                onClick={handlePublishAction}
-                disabled={publishing || !canGoLive}
-                className="w-full min-h-[48px] py-3 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold hover:from-primary-400 hover:to-primary-500 transition-all shadow-[0_1px_3px_rgba(25,144,135,0.3)] disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                disabled
+                className="w-full py-3 rounded-xl bg-gray-100 text-gray-400 text-[14px] font-semibold cursor-not-allowed"
               >
-                {publishing ? "Publishing..." : "Go Live"}
+                Go Live
               </button>
             )}
 
-            {/* Hint if can't go live - link to complete setup */}
+            {/* Hint if can't go live */}
             {!canGoLive && (
-              <p className="text-[12px] text-gray-400 text-center mt-3">
-                <Link href="/welcome" className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
+              <p className="text-[12px] text-gray-500 mt-3">
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                >
                   Complete your profile
-                </Link>
+                </button>
                 {" "}to go live
               </p>
             )}
-
           </div>
         </div>
       </div>

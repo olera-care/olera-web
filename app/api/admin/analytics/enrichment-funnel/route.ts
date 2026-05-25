@@ -23,6 +23,7 @@ interface EnrichmentEvent {
     ctaVariant?: string;
     cta_variant?: string;
     session_id?: string;
+    source?: string;  // "enrichment_flow" for Go Live events from enrichment
   } | null;
   created_at: string;
 }
@@ -144,12 +145,18 @@ function calculateEnrichmentFunnel(events: EnrichmentEvent[]): FunnelMetrics {
 
   for (const event of events) {
     // Go Live events don't have session_id, count them separately
+    // Only count events from the enrichment flow (not from nudge emails, portal, etc.)
     if (event.event_type === "profile_published") {
-      goLiveCompleted++;
+      if (event.metadata?.source === "enrichment_flow") {
+        goLiveCompleted++;
+      }
       continue;
     }
     if (event.event_type === "go_live_skipped") {
-      goLiveSkipped++;
+      // go_live_skipped only comes from enrichment flow, but check anyway
+      if (event.metadata?.source === "enrichment_flow") {
+        goLiveSkipped++;
+      }
       continue;
     }
 

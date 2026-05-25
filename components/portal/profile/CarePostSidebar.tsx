@@ -114,25 +114,29 @@ export default function CarePostSidebar({
         .slice(0, 2)
     : "?";
 
-  const handlePublishAction = useCallback(async () => {
+  const handlePublishAction = useCallback(async (): Promise<boolean> => {
     setPublishing(true);
     setActionError(null);
     try {
       await onPublish();
+      return true;
     } catch {
       setActionError("Couldn't publish. Please try again.");
+      return false;
     } finally {
       setPublishing(false);
     }
   }, [onPublish]);
 
-  const handleDeactivateAction = useCallback(async () => {
+  const handleDeactivateAction = useCallback(async (): Promise<boolean> => {
     setDeactivating(true);
     setActionError(null);
     try {
       await onDeactivate();
+      return true;
     } catch {
       setActionError("Couldn't pause. Please try again.");
+      return false;
     } finally {
       setDeactivating(false);
     }
@@ -143,12 +147,18 @@ export default function CarePostSidebar({
       // Turning off — pause
       setAcceptingMatches(false);
       setToggleMessage("off");
-      await handleDeactivateAction();
+      const success = await handleDeactivateAction();
+      if (!success) {
+        setAcceptingMatches(true); // Revert on failure
+      }
     } else {
       // Turning back on — re-publish
       setAcceptingMatches(true);
       setToggleMessage("on");
-      await handlePublishAction();
+      const success = await handlePublishAction();
+      if (!success) {
+        setAcceptingMatches(false); // Revert on failure
+      }
     }
   }, [acceptingMatches, handleDeactivateAction, handlePublishAction]);
 

@@ -708,103 +708,92 @@ function MobileCarePostContent({
   // ── Not Published State ──
   if (!hasPost) {
     return (
-      <div className="space-y-4">
-        {/* Go Live CTA Card */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-          <div className="p-5">
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-sm">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-[17px] font-bold text-gray-900">
-                  Let providers find you
-                </h3>
-                <p className="text-[13px] text-gray-500">
-                  Go live to start getting matched
-                </p>
-              </div>
-            </div>
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+        <div className="p-6 text-center">
+          {/* Centered illustration */}
+          <div className="w-20 h-20 mx-auto mb-5">
+            <svg viewBox="0 0 80 80" fill="none" className="w-full h-full">
+              {/* Soft background glow */}
+              <circle cx="40" cy="40" r="36" fill="#199087" fillOpacity="0.06" />
+              <circle cx="40" cy="40" r="24" fill="#199087" fillOpacity="0.1" />
 
-            {/* Benefits list */}
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-primary-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg className="w-3 h-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-[14px] text-gray-600">Providers in your area can find and reach out to you</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-primary-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg className="w-3 h-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-[14px] text-gray-600">Review interested providers at your own pace</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-primary-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg className="w-3 h-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-[14px] text-gray-600">Pause or delete your profile anytime</span>
-              </li>
-            </ul>
+              {/* Person silhouette */}
+              <circle cx="40" cy="30" r="8" fill="#199087" fillOpacity="0.85" />
+              <path
+                d="M26 52c0-7.732 6.268-14 14-14s14 6.268 14 14"
+                fill="#199087"
+                fillOpacity="0.2"
+              />
 
-            {/* Go Live button */}
-            {canGoLive ? (
+              {/* Connection dots - providers finding you */}
+              <circle cx="18" cy="34" r="3" fill="#199087" fillOpacity="0.4">
+                <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="62" cy="34" r="3" fill="#199087" fillOpacity="0.4">
+                <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" begin="0.6s" />
+              </circle>
+              <circle cx="24" cy="50" r="2.5" fill="#199087" fillOpacity="0.3">
+                <animate attributeName="opacity" values="0.15;0.4;0.15" dur="2s" repeatCount="indefinite" begin="0.3s" />
+              </circle>
+              <circle cx="56" cy="50" r="2.5" fill="#199087" fillOpacity="0.3">
+                <animate attributeName="opacity" values="0.15;0.4;0.15" dur="2s" repeatCount="indefinite" begin="0.9s" />
+              </circle>
+            </svg>
+          </div>
+
+          {/* Headline */}
+          <h3 className="text-[18px] font-bold text-gray-900 mb-2">
+            Let providers find you
+          </h3>
+          <p className="text-[14px] text-gray-500 mb-6 max-w-[260px] mx-auto">
+            Go live and care providers in your area will reach out to you directly.
+          </p>
+
+          {/* Go Live button */}
+          {canGoLive ? (
+            <button
+              type="button"
+              onClick={onGoLive}
+              disabled={activatingProfile}
+              className="w-full py-3.5 rounded-xl bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white text-[15px] font-semibold transition-colors disabled:opacity-70 flex items-center justify-center gap-2 touch-manipulation"
+            >
+              {activatingProfile ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Going live...
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-white/80 animate-pulse" />
+                  Go Live
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="space-y-3">
               <button
                 type="button"
-                onClick={onGoLive}
-                disabled={activatingProfile}
-                className="w-full min-h-[52px] py-3.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[15px] font-semibold hover:from-primary-400 hover:to-primary-500 active:from-primary-600 active:to-primary-700 transition-all shadow-[0_1px_3px_rgba(25,144,135,0.3)] disabled:opacity-70 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                disabled
+                className="w-full py-3.5 rounded-xl bg-gray-100 text-gray-400 text-[15px] font-semibold cursor-not-allowed"
               >
-                {activatingProfile ? (
-                  <>
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Going live...
-                  </>
-                ) : (
-                  <>
-                    <span className="w-2.5 h-2.5 rounded-full bg-white/80 animate-pulse" />
-                    Go Live
-                  </>
-                )}
+                Go Live
               </button>
-            ) : (
-              <div className="space-y-3">
+              <p className="text-[13px] text-gray-500">
                 <button
                   type="button"
-                  disabled
-                  className="w-full min-h-[52px] py-3.5 rounded-xl bg-gray-100 text-gray-400 text-[15px] font-semibold cursor-not-allowed"
+                  onClick={onEdit}
+                  className="text-primary-600 hover:text-primary-700 font-medium transition-colors touch-manipulation"
                 >
-                  Go Live
+                  Complete your profile
                 </button>
-                <p className="text-[13px] text-gray-500 text-center">
-                  <button
-                    type="button"
-                    onClick={onEdit}
-                    className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
-                  >
-                    Complete your profile
-                  </button>
-                  {" "}to go live
-                </p>
-              </div>
-            )}
-          </div>
+                {" "}to go live
+              </p>
+            </div>
+          )}
         </div>
-
       </div>
     );
   }
@@ -812,9 +801,9 @@ function MobileCarePostContent({
   // ── Published State (Live or Paused) ──
   return (
     <div className="space-y-4">
-      {/* Profile Preview Card */}
+      {/* Unified Care Profile Card */}
       <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-        {/* Header with status */}
+        {/* Header with status + Edit */}
         <div className="px-5 pt-5 pb-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
@@ -917,15 +906,12 @@ function MobileCarePostContent({
             )}
           </div>
         </div>
-      </div>
 
-      {/* Toggle Card */}
-      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-        <div className="px-5 py-4">
-          {/* Accepting toggle */}
-          <div className="flex items-center justify-between min-h-[44px]">
+        {/* Accepting toggle - integrated */}
+        <div className="border-t border-gray-100 px-5 py-4">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-[15px] font-medium text-gray-900">Accepting new matches</p>
+              <p className="text-[14px] font-medium text-gray-900">Accepting new matches</p>
               <p className="text-[12px] text-gray-500">
                 {acceptingMatches ? "Providers can find you" : "Hidden from search"}
               </p>
@@ -937,14 +923,14 @@ function MobileCarePostContent({
               onClick={handleToggleAccepting}
               disabled={deactivating || publishing}
               className={[
-                "relative inline-flex h-8 w-[56px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out disabled:opacity-50",
+                "relative inline-flex h-7 w-[50px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out disabled:opacity-50 touch-manipulation",
                 acceptingMatches ? "bg-primary-500" : "bg-gray-200",
               ].join(" ")}
             >
               <span
                 className={[
-                  "pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
-                  acceptingMatches ? "translate-x-6" : "translate-x-0",
+                  "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
+                  acceptingMatches ? "translate-x-[22px]" : "translate-x-0",
                 ].join(" ")}
               />
             </button>
@@ -957,46 +943,26 @@ function MobileCarePostContent({
           >
             <div className="overflow-hidden">
               {toggleMessage === "on" && (
-                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-primary-50/60 border border-primary-100/50 mt-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-600 shrink-0 mt-0.5">
-                    <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
-                  <p className="text-[13px] text-gray-600 leading-relaxed">
-                    Your profile is now visible. Providers can find and reach out to you.
-                  </p>
-                </div>
+                <p className="text-[13px] text-primary-600 mt-2">
+                  Your profile is now visible to providers.
+                </p>
               )}
               {toggleMessage === "off" && (
-                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-amber-50/60 border border-amber-100/50 mt-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-amber-500 shrink-0 mt-0.5">
-                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" />
-                    <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  <p className="text-[13px] text-gray-600 leading-relaxed">
-                    New providers won&apos;t see your profile. Anyone who already reached out can still be reviewed.
-                  </p>
-                </div>
+                <p className="text-[13px] text-amber-600 mt-2">
+                  Your profile is hidden from search.
+                </p>
               )}
               {actionError && (
-                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-rose-50/60 border border-rose-100/50 mt-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-500 shrink-0 mt-0.5">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  <p className="text-[13px] text-gray-600 leading-relaxed">
-                    {actionError}
-                  </p>
-                </div>
+                <p className="text-[13px] text-rose-600 mt-2">
+                  {actionError}
+                </p>
               )}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Delete Section */}
-      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-        <div className="px-5 py-4">
+        {/* Delete - subtle text link */}
+        <div className="border-t border-gray-100">
           {/* Delete confirmation */}
           <div
             className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]"
@@ -1004,17 +970,17 @@ function MobileCarePostContent({
           >
             <div className="overflow-hidden">
               {showDeleteConfirm && (
-                <div className="space-y-4 pb-3">
+                <div className="px-5 py-4 space-y-4 bg-gray-50/50">
                   <div>
-                    <p className="text-[15px] font-semibold text-gray-900 mb-1">Remove your care profile?</p>
-                    <p className="text-[13px] text-gray-600 leading-relaxed">
-                      Providers will no longer be able to find or reach out to you. Existing conversations are not affected.
+                    <p className="text-[14px] font-semibold text-gray-900 mb-1">Remove your care profile?</p>
+                    <p className="text-[13px] text-gray-500">
+                      Providers won&apos;t be able to find you anymore.
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-[13px] font-medium text-gray-700 mb-2.5">Why are you removing it?</p>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-[12px] font-medium text-gray-600 mb-2">Why are you removing it?</p>
+                    <div className="flex flex-wrap gap-1.5">
                       {DELETE_REASONS.map((reason) => {
                         const isSelected = selectedDeleteReasons.includes(reason);
                         return (
@@ -1023,10 +989,10 @@ function MobileCarePostContent({
                             type="button"
                             onClick={() => toggleDeleteReason(reason)}
                             className={[
-                              "text-[13px] font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150",
+                              "text-[12px] font-medium px-3 py-2 rounded-full border transition-all duration-150 touch-manipulation",
                               isSelected
                                 ? "border-gray-300 bg-gray-100 text-gray-800"
-                                : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 active:bg-gray-50",
+                                : "border-gray-200 bg-white text-gray-600",
                             ].join(" ")}
                           >
                             {reason}
@@ -1036,24 +1002,24 @@ function MobileCarePostContent({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 pt-1">
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => {
                         setShowDeleteConfirm(false);
                         setSelectedDeleteReasons([]);
                       }}
-                      className="flex-1 min-h-[48px] py-3 rounded-xl border border-gray-200 bg-white text-[14px] font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                      className="flex-1 py-2.5 rounded-lg border border-gray-200 bg-white text-[13px] font-medium text-gray-700 touch-manipulation"
                     >
-                      Keep profile
+                      Cancel
                     </button>
                     <button
                       type="button"
                       onClick={handleDeletePost}
                       disabled={deleting}
-                      className="flex-1 min-h-[48px] py-3 rounded-xl bg-red-600 text-white text-[14px] font-semibold hover:bg-red-700 active:bg-red-800 transition-colors disabled:opacity-50"
+                      className="flex-1 py-2.5 rounded-lg bg-red-600 text-white text-[13px] font-semibold disabled:opacity-50 touch-manipulation"
                     >
-                      {deleting ? "Removing..." : "Delete profile"}
+                      {deleting ? "Removing..." : "Delete"}
                     </button>
                   </div>
                 </div>
@@ -1065,7 +1031,7 @@ function MobileCarePostContent({
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="w-full min-h-[44px] py-2 text-[14px] text-gray-400 hover:text-red-600 active:text-red-700 transition-colors text-center"
+              className="w-full py-3 text-[13px] text-gray-400 hover:text-red-500 transition-colors text-center touch-manipulation"
             >
               Delete profile
             </button>
@@ -1073,20 +1039,12 @@ function MobileCarePostContent({
         </div>
       </div>
 
-      {/* Response Time Info */}
-      <div className="rounded-2xl border border-primary-100/60 bg-primary-50/40 px-4 py-4 flex items-start gap-3">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-500 shrink-0 mt-0.5">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="16" x2="12" y2="12" />
-          <line x1="12" y1="8" x2="12.01" y2="8" />
-        </svg>
-        <p className="text-[14px] text-gray-600 leading-relaxed">
-          {interestedCount > 0
-            ? <>Take your time. There&apos;s <span className="font-semibold text-gray-800">no pressure</span> to respond immediately.</>
-            : <>Providers typically respond within <span className="font-semibold text-gray-800">3–5 days</span>. We&apos;ll email you when someone reaches out.</>
-          }
-        </p>
-      </div>
+      {/* Info disclaimer - simple and subtle */}
+      <p className="text-[13px] text-gray-500 text-center px-4">
+        {interestedCount > 0
+          ? "Take your time reviewing interested providers."
+          : "Providers typically respond within 3–5 days."}
+      </p>
     </div>
   );
 }

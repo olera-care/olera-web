@@ -616,12 +616,13 @@ export default function CompareCard({
               onSkip={skipEnrichment}
               saving={enrichmentSubmitting}
               providerCategory={currentProvider.category}
-              successTitle={`Requested ${providerCountDisplay} detail${providerCountDisplay !== 1 ? "s" : ""}`}
-              successSubtitle="We'll send you details to compare"
+              successTitle={providerCountDisplay > 1 ? `Connected with ${providerCountDisplay} providers` : `Connected with ${currentProvider.name}`}
               providerCity={currentProvider.city}
               providerState={currentProvider.state}
               ctaVariant="compare"
               ctaSurface="desktop"
+              providerImage={currentProvider.image}
+              providerImages={selectedProviders.map((p) => p.image ?? null)}
             />
           )}
         </div>

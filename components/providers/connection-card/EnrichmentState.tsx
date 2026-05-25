@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { RECIPIENT_OPTIONS } from "./constants";
 import type { CareRecipient } from "./types";
@@ -64,6 +65,10 @@ interface EnrichmentStateProps {
   ctaVariant?: string | null;
   /** CTA surface (desktop/mobile) */
   ctaSurface?: "desktop" | "mobile";
+  /** Provider image URL for avatar in success banner */
+  providerImage?: string | null;
+  /** Multiple provider images for stacked avatars (Compare variant) */
+  providerImages?: (string | null)[];
 }
 
 const TIMELINE_OPTIONS: { label: string; value: TimelineValue }[] = [
@@ -226,8 +231,12 @@ export default function EnrichmentState({
   providerState,
   ctaVariant,
   ctaSurface,
+  providerImage,
+  providerImages,
 }: EnrichmentStateProps) {
   void _careTypes; // Suppress unused variable warning
+  void priceRange; // No longer shown in compact banner
+  void successSubtitle; // No longer shown in compact banner
 
   // Pre-fill care type from provider category
   const prefilledCareType = providerCategory ? CATEGORY_TO_CARE_TYPE[providerCategory] || null : null;
@@ -272,9 +281,16 @@ export default function EnrichmentState({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { results: cityResults, preload: preloadCities } = useCitySearch(locationInput);
 
-  // Compute display values
-  const displayTitle = successTitle ?? `Sent to ${providerName}`;
-  const displaySubtitle = successSubtitle ?? (priceRange ? `${priceRange} estimated` : null);
+  // Compute display values for compact banner
+  const displayTitle = successTitle ?? `Connected with ${providerName}`;
+
+  // Get images for avatar display (multi-provider or single)
+  // Use length check to properly fall back to single providerImage when providerImages is empty
+  const filteredImages = providerImages?.filter(Boolean) as string[] | undefined;
+  const avatarImages = (filteredImages && filteredImages.length > 0)
+    ? filteredImages
+    : (providerImage ? [providerImage] : []);
+  const additionalCount = avatarImages.length > 1 ? avatarImages.length - 1 : 0;
 
   // Preload cities on mount
   useEffect(() => {
@@ -431,18 +447,44 @@ export default function EnrichmentState({
 
   return (
     <div>
-      {/* Success banner */}
+      {/* Compact success banner with avatar + optional "+N" badge */}
       {!hideSuccessBanner && (
-        <div className="mb-6 bg-emerald-50/60 rounded-xl p-4 border border-emerald-100">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+        <div className="mb-4 bg-emerald-50/60 rounded-full px-3 py-2 border border-emerald-100 inline-flex items-center gap-2">
+          {/* Avatar section: single avatar + "+N" for multi-provider */}
+          {avatarImages.length > 0 ? (
+            <div className="flex items-center shrink-0">
+              {/* Primary provider avatar */}
+              <div className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-100 shrink-0">
+                <Image
+                  src={avatarImages[0]}
+                  alt=""
+                  width={24}
+                  height={24}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {/* "+N" badge for additional providers */}
+              {additionalCount > 0 && (
+                <div
+                  className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 shrink-0 flex items-center justify-center"
+                  style={{ marginLeft: "-8px" }}
+                >
+                  <span className="text-[10px] font-semibold text-gray-600">
+                    +{additionalCount}
+                  </span>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Fallback: checkmark icon if no images */
+            <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
               <svg
-                width="16"
-                height="16"
+                width="12"
+                height="12"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2.5"
+                strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 className="text-emerald-600"
@@ -450,16 +492,28 @@ export default function EnrichmentState({
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <div>
-              <p className="text-[15px] font-semibold text-gray-900">
-                {displayTitle}
-              </p>
-              {displaySubtitle && (
-                <p className="text-[13px] text-gray-500 mt-0.5">
-                  {displaySubtitle}
-                </p>
-              )}
-            </div>
+          )}
+
+          {/* Checkmark + text */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            {avatarImages.length > 0 && (
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-emerald-600 shrink-0"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            )}
+            <p className="text-[13px] font-medium text-gray-700 truncate">
+              {displayTitle}
+            </p>
           </div>
         </div>
       )}

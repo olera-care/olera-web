@@ -726,12 +726,13 @@ export default function CompareBottomSheet({
                 onSkip={skipEnrichment}
                 saving={enrichmentSubmitting}
                 providerCategory={currentProvider.category}
-                successTitle={`Requested ${selectedCount} detail${selectedCount !== 1 ? "s" : ""}`}
-                successSubtitle="We'll send you details to compare"
+                successTitle={selectedCount > 1 ? `Connected with ${selectedCount} providers` : `Connected with ${currentProvider.name}`}
                 providerCity={currentProvider.city}
                 providerState={currentProvider.state}
                 ctaVariant="compare"
                 ctaSurface="mobile"
+                providerImage={currentProvider.image}
+                providerImages={selectedProviders.map((p) => p.image ?? null)}
               />
             )}
           </div>

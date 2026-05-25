@@ -645,11 +645,11 @@ export default function GuideCard({
             providerCategory={providerCategory}
             priceRange={priceRange}
             successTitle={`Connected with ${providerName}`}
-            successSubtitle="Checklist sent to your email"
             providerCity={providerCity}
             providerState={providerState}
             ctaVariant="guide"
             ctaSurface="desktop"
+            providerImage={providerImage}
           />
           {/* Re-download link */}
           {pdfUrl && (

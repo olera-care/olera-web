@@ -567,12 +567,12 @@ export default function GuideBottomSheet({
                 onSkip={skipEnrichment}
                 saving={enrichmentSubmitting}
                 successTitle={`Connected with ${providerName}`}
-                successSubtitle="Checklist sent to your email"
                 providerCity={providerCity}
                 providerState={providerState}
                 providerCategory={providerCategory}
                 ctaVariant="guide"
                 ctaSurface="mobile"
+                providerImage={providerImage}
               />
               {/* Re-download link */}
               {pdfUrl && (

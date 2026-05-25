@@ -188,11 +188,6 @@ export default function ProfileEditSheet({
   const { refreshAccountData } = useAuth();
   const meta = (profile.metadata || {}) as FamilyMetadata;
 
-  // Saving state
-  const [saving, setSaving] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  // Show "Saved" indicator for 2 seconds after save completes
-  const [showSavedIndicator, setShowSavedIndicator] = useState(false);
   // Track if ANY changes were made during this session (for notify-connections on close)
   const madeChangesThisSession = useRef(false);
 
@@ -343,10 +338,9 @@ export default function ProfileEditSheet({
     );
   };
 
-  // Save function
+  // Save function - runs silently in background
   const saveChanges = useCallback(async () => {
     if (!isSupabaseConfigured() || !profile) return;
-    setSaving(true);
 
     try {
       const supabase = createClient();
@@ -422,14 +416,8 @@ export default function ProfileEditSheet({
       }).catch(() => {});
 
       await refreshAccountData();
-      setHasUnsavedChanges(false);
-      // Show "Saved" indicator for 2 seconds
-      setShowSavedIndicator(true);
-      setTimeout(() => setShowSavedIndicator(false), 2000);
     } catch (err) {
       console.error("[ProfileEditSheet] Auto-save failed:", err);
-    } finally {
-      setSaving(false);
     }
   }, [
     profile,
@@ -464,7 +452,6 @@ export default function ProfileEditSheet({
   useEffect(() => {
     if (!initialLoadDone.current) return;
 
-    setHasUnsavedChanges(true);
     madeChangesThisSession.current = true;
     const timer = setTimeout(() => {
       saveChanges();
@@ -489,9 +476,10 @@ export default function ProfileEditSheet({
     saveChanges,
   ]);
 
-  // Handle close
-  const handleClose = useCallback(async () => {
-    await saveChanges();
+  // Handle close - instant, save happens in background
+  const handleClose = useCallback(() => {
+    // Fire save in background, don't wait
+    saveChanges();
 
     // Notify connections if any changes were made during this session
     if (madeChangesThisSession.current && profile?.id) {
@@ -502,6 +490,7 @@ export default function ProfileEditSheet({
       }).catch(() => {});
     }
 
+    // Close immediately
     onSaved();
     onClose();
   }, [saveChanges, onSaved, onClose, profile?.id]);
@@ -856,33 +845,13 @@ export default function ProfileEditSheet({
           <h3 className="text-lg font-display font-bold text-gray-900">
             {SECTION_TITLES[section]}
           </h3>
-          <div className="flex items-center gap-3">
-            {/* Save status */}
-            {(saving || showSavedIndicator) && (
-              <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                {saving ? (
-                  <>
-                    <div className="w-3 h-3 border-[1.5px] border-gray-300 border-t-transparent rounded-full animate-spin" />
-                    <span>Saving</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Saved</span>
-                  </>
-                )}
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={handleClose}
-              className="text-[15px] font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-            >
-              Done
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="text-[15px] font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            Done
+          </button>
         </div>
 
         {/* Content */}
@@ -916,25 +885,7 @@ export default function ProfileEditSheet({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-            {/* Save status */}
-            <div className="flex items-center gap-1.5 text-xs text-gray-400 h-4">
-              {(saving || showSavedIndicator) && (
-                saving ? (
-                  <>
-                    <div className="w-3 h-3 border-[1.5px] border-gray-300 border-t-transparent rounded-full animate-spin" />
-                    <span>Saving</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Saved</span>
-                  </>
-                )
-              )}
-            </div>
+          <div className="flex items-center justify-end px-6 py-4 border-t border-gray-100">
             <button
               type="button"
               onClick={handleClose}

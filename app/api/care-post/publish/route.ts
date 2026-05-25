@@ -65,21 +65,25 @@ export async function POST(request: Request) {
         metadata.matches_live_email_sent = true;
 
         // Get profile details for email (fire-and-forget)
+        // Note: Family email is in auth.users (user.email), not business_profiles
         try {
           const { data: bp } = await supabase
             .from("business_profiles")
-            .select("display_name, email, city")
+            .select("display_name, city")
             .eq("id", profile.id)
             .single();
 
-          if (bp?.email) {
+          // Use auth user's email since family profiles don't store email in business_profiles
+          const recipientEmail = user.email;
+
+          if (recipientEmail) {
             const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
             await sendEmail({
-              to: bp.email,
-              subject: `Your care profile is live — providers in ${bp.city || "your area"} can find you`,
+              to: recipientEmail,
+              subject: `Your care profile is live — providers in ${bp?.city || "your area"} can find you`,
               html: matchesLiveEmail({
-                familyName: bp.display_name || "there",
-                city: bp.city || "your area",
+                familyName: bp?.display_name || "there",
+                city: bp?.city || "your area",
                 matchesUrl: `${siteUrl}/portal/profile`,
               }),
               emailType: "matches_live",

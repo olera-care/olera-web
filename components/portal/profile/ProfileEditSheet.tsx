@@ -352,17 +352,17 @@ export default function ProfileEditSheet({
 
       const existingMeta = (current?.metadata || {}) as Record<string, unknown>;
 
-      // Build updated metadata
+      // Build updated metadata - always set values (including empty) to allow clearing
       const updatedMeta: Record<string, unknown> = { ...existingMeta };
 
-      if (contactPref) updatedMeta.contact_preference = contactPref;
-      if (whoNeedsCare) updatedMeta.relationship_to_recipient = whoNeedsCare;
-      if (age) updatedMeta.age = parseInt(age, 10);
-      if (careNeeds.length > 0) updatedMeta.care_needs = careNeeds;
-      if (timeline) updatedMeta.timeline = timeline;
-      if (schedulePreference) updatedMeta.schedule_preference = schedulePreference;
-      if (description) updatedMeta.about_situation = description;
-      if (payments.length > 0) updatedMeta.payment_methods = payments;
+      updatedMeta.contact_preference = contactPref || null;
+      updatedMeta.relationship_to_recipient = whoNeedsCare || null;
+      updatedMeta.age = age ? parseInt(age, 10) : null;
+      updatedMeta.care_needs = careNeeds.length > 0 ? careNeeds : [];
+      updatedMeta.timeline = timeline || null;
+      updatedMeta.schedule_preference = schedulePreference || null;
+      updatedMeta.about_situation = description || null;
+      updatedMeta.payment_methods = payments.length > 0 ? payments : [];
 
       const updatePayload = {
         display_name: displayName || null,

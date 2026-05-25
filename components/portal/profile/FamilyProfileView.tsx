@@ -168,14 +168,14 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         />
       )}
 
-      {/* ── Mobile Tab Bar (pill style) ── */}
+      {/* ── Mobile Tab Bar (pill style, full-width) ── */}
       <div className="lg:hidden mb-5">
-        <div className="inline-flex items-center gap-1 p-1 bg-gray-100 rounded-full">
+        <div className="flex items-center p-1 bg-gray-100 rounded-full">
           <button
             type="button"
             onClick={() => setMobileTab("profile")}
             className={[
-              "px-5 py-2 text-[14px] font-medium rounded-full transition-all",
+              "flex-1 py-2.5 text-[14px] font-medium rounded-full transition-all text-center",
               mobileTab === "profile"
                 ? "bg-gray-900 text-white shadow-sm"
                 : "text-gray-600 hover:text-gray-900",
@@ -187,7 +187,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
             type="button"
             onClick={() => setMobileTab("care-post")}
             className={[
-              "px-5 py-2 text-[14px] font-medium rounded-full transition-all flex items-center gap-2",
+              "flex-1 py-2.5 text-[14px] font-medium rounded-full transition-all flex items-center justify-center gap-2",
               mobileTab === "care-post"
                 ? "bg-gray-900 text-white shadow-sm"
                 : "text-gray-600 hover:text-gray-900",

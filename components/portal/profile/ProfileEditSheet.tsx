@@ -128,12 +128,12 @@ function SelectionChip({
         ${sizeClasses} rounded-xl font-medium transition-all duration-200
         flex items-center gap-2
         ${selected
-          ? "bg-primary-600 text-white shadow-sm"
+          ? "bg-primary-100 text-primary-700 ring-2 ring-primary-500 ring-inset"
           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
         }
       `}
     >
-      {icon && <span className={selected ? "text-white/90" : "text-gray-500"}>{icon}</span>}
+      {icon && <span className={selected ? "text-primary-600" : "text-gray-500"}>{icon}</span>}
       {children}
     </button>
   );
@@ -886,7 +886,7 @@ export default function ProfileEditSheet({
             <button
               type="button"
               onClick={handleContinue}
-              className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white text-[15px] font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 touch-manipulation"
             >
               Continue
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -897,7 +897,7 @@ export default function ProfileEditSheet({
             <button
               type="button"
               onClick={handleClose}
-              className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-xl transition-colors"
+              className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white text-[15px] font-semibold rounded-xl transition-colors touch-manipulation"
             >
               Done
             </button>
@@ -943,7 +943,7 @@ export default function ProfileEditSheet({
                 <button
                   type="button"
                   onClick={handleContinue}
-                  className="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-full transition-colors flex items-center gap-1.5"
+                  className="px-5 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white text-[15px] font-semibold rounded-full transition-colors flex items-center gap-1.5 touch-manipulation"
                 >
                   Continue
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>

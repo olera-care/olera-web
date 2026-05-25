@@ -78,7 +78,8 @@ export default function GoLiveNudge({
 
       if (!res.ok) throw new Error("Failed to activate");
 
-      await refreshAccountData?.();
+      // Refresh in background - don't block UI
+      refreshAccountData?.().catch(() => {});
       onPublished?.();
       onDismiss(); // Hide nudge after successful publish
     } catch (err) {

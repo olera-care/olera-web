@@ -78,6 +78,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
   };
 
   // ── Care Profile (Matches) handlers ──
+  // These handlers return immediately after API success.
+  // UI updates optimistically, data refreshes in background.
   const handlePublish = useCallback(async () => {
     const res = await fetch("/api/care-post/publish", {
       method: "POST",
@@ -85,7 +87,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
       body: JSON.stringify({ action: "publish" }),
     });
     if (!res.ok) throw new Error("Failed to publish");
-    await refreshAccountData();
+    // Refresh in background - don't block UI
+    refreshAccountData().catch(() => {});
   }, [refreshAccountData]);
 
   const handleDeactivate = useCallback(async () => {
@@ -95,7 +98,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
       body: JSON.stringify({ action: "deactivate" }),
     });
     if (!res.ok) throw new Error("Failed to deactivate");
-    await refreshAccountData();
+    // Refresh in background - don't block UI
+    refreshAccountData().catch(() => {});
   }, [refreshAccountData]);
 
   const handleDelete = useCallback(async (reasons: string[]) => {
@@ -105,7 +109,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
       body: JSON.stringify({ action: "delete", reasons }),
     });
     if (!res.ok) throw new Error("Failed to delete");
-    await refreshAccountData();
+    // Refresh in background - don't block UI
+    refreshAccountData().catch(() => {});
   }, [refreshAccountData]);
 
   // Check if profile has minimum data to go live
@@ -131,7 +136,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         }),
       });
       if (!res.ok) throw new Error("Failed to activate");
-      await refreshAccountData();
+      // Refresh in background - don't block UI
+      refreshAccountData().catch(() => {});
     } finally {
       setActivatingProfile(false);
     }

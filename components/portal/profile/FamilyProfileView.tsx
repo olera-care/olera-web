@@ -710,43 +710,22 @@ function MobileCarePostContent({
     return (
       <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
         <div className="p-6 text-center">
-          {/* Centered illustration */}
-          <div className="w-20 h-20 mx-auto mb-5">
-            <svg viewBox="0 0 80 80" fill="none" className="w-full h-full">
-              {/* Soft background glow */}
-              <circle cx="40" cy="40" r="36" fill="#199087" fillOpacity="0.06" />
-              <circle cx="40" cy="40" r="24" fill="#199087" fillOpacity="0.1" />
-
-              {/* Person silhouette */}
-              <circle cx="40" cy="30" r="8" fill="#199087" fillOpacity="0.85" />
-              <path
-                d="M26 52c0-7.732 6.268-14 14-14s14 6.268 14 14"
-                fill="#199087"
-                fillOpacity="0.2"
-              />
-
-              {/* Connection dots - providers finding you */}
-              <circle cx="18" cy="34" r="3" fill="#199087" fillOpacity="0.4">
-                <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" />
-              </circle>
-              <circle cx="62" cy="34" r="3" fill="#199087" fillOpacity="0.4">
-                <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" begin="0.6s" />
-              </circle>
-              <circle cx="24" cy="50" r="2.5" fill="#199087" fillOpacity="0.3">
-                <animate attributeName="opacity" values="0.15;0.4;0.15" dur="2s" repeatCount="indefinite" begin="0.3s" />
-              </circle>
-              <circle cx="56" cy="50" r="2.5" fill="#199087" fillOpacity="0.3">
-                <animate attributeName="opacity" values="0.15;0.4;0.15" dur="2s" repeatCount="indefinite" begin="0.9s" />
-              </circle>
-            </svg>
+          {/* Illustration - same as enrichment Go Live step */}
+          <div className="w-32 h-32 mx-auto mb-4 relative">
+            <Image
+              src="/illustration-go-live.png"
+              alt="Let care come to you"
+              fill
+              className="object-contain"
+            />
           </div>
 
           {/* Headline */}
           <h3 className="text-[18px] font-bold text-gray-900 mb-2">
-            Let providers find you
+            Let care come to you
           </h3>
           <p className="text-[14px] text-gray-500 mb-6 max-w-[260px] mx-auto">
-            Go live and care providers in your area will reach out to you directly.
+            Providers who match your needs will reach out directly.
           </p>
 
           {/* Go Live button */}

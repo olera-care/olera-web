@@ -328,6 +328,8 @@ async function handleGuestConnection({
                 ? timelineMap[intentData.urgency] ?? null
                 : null,
               about_situation: intentData.additionalNotes || null,
+              // Store session_id for cleanup when account is deleted
+              enrichment_session_id: sessionId || null,
             },
           })
           .select("id")
@@ -393,6 +395,8 @@ async function handleGuestConnection({
             ? timelineMap[intentData.urgency] ?? null
             : null,
           about_situation: intentData.additionalNotes || null,
+          // Store session_id for cleanup when account is deleted
+          enrichment_session_id: sessionId || null,
         },
       })
       .select("id")
@@ -1316,7 +1320,10 @@ export async function POST(request: Request) {
           claim_state: "claimed",
           verification_state: "unverified",
           source: "user_created",
-          metadata: {},
+          metadata: {
+            // Store session_id for cleanup when account is deleted
+            enrichment_session_id: sessionId || null,
+          },
         })
         .select("id")
         .single();

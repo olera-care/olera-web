@@ -21,19 +21,36 @@ export async function DELETE() {
 
     const admin = getServiceClient();
 
-    // Delete connections (both directions)
+    // Get account ID first
+    const { data: account } = await admin
+      .from("accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!account) {
+      // No account found — just delete auth user
+      const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);
+      if (deleteError) {
+        console.error("[olera] deleteUser failed:", deleteError);
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    // Get profiles with metadata to extract enrichment session IDs
     const { data: profiles } = await admin
       .from("business_profiles")
-      .select("id")
-      .eq("account_id", (
-        await admin
-          .from("accounts")
-          .select("id")
-          .eq("user_id", user.id)
-          .single()
-      ).data?.id || "");
+      .select("id, metadata")
+      .eq("account_id", account.id);
 
     const profileIds = (profiles || []).map((p: { id: string }) => p.id);
+
+    // Extract enrichment session IDs from profile metadata
+    const sessionIds = (profiles || [])
+      .map((p: { metadata?: { enrichment_session_id?: string } }) =>
+        p.metadata?.enrichment_session_id
+      )
+      .filter((id): id is string => !!id);
 
     if (profileIds.length > 0) {
       // Delete connections
@@ -49,7 +66,7 @@ export async function DELETE() {
             .join(",")
         );
 
-      // Delete provider_activity records (enrichment analytics)
+      // Delete provider_activity records by profile_id (for non-anonymous events)
       await admin
         .from("provider_activity")
         .delete()
@@ -62,28 +79,31 @@ export async function DELETE() {
         .in("profile_id", profileIds);
     }
 
-    // Delete business profiles
-    const { data: account } = await admin
-      .from("accounts")
-      .select("id")
-      .eq("user_id", user.id)
-      .single();
-
-    if (account) {
-      await admin
-        .from("business_profiles")
-        .delete()
-        .eq("account_id", account.id);
-
-      // Delete memberships
-      await admin
-        .from("memberships")
-        .delete()
-        .eq("account_id", account.id);
-
-      // Delete account
-      await admin.from("accounts").delete().eq("id", account.id);
+    // Delete provider_activity records by session_id (for anonymous enrichment events)
+    // These events have profile_id=null but can be linked via session_id in metadata
+    if (sessionIds.length > 0) {
+      for (const sessionId of sessionIds) {
+        await admin
+          .from("provider_activity")
+          .delete()
+          .filter("metadata->>session_id", "eq", sessionId);
+      }
     }
+
+    // Delete business profiles
+    await admin
+      .from("business_profiles")
+      .delete()
+      .eq("account_id", account.id);
+
+    // Delete memberships
+    await admin
+      .from("memberships")
+      .delete()
+      .eq("account_id", account.id);
+
+    // Delete account
+    await admin.from("accounts").delete().eq("id", account.id);
 
     // Delete auth user
     const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);

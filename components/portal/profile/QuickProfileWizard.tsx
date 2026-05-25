@@ -100,9 +100,9 @@ function TappableOption({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border ${
+      className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border touch-manipulation ${
         selected
-          ? "bg-gray-900 text-white border-gray-900"
+          ? "bg-primary-100 text-primary-700 border-primary-300 ring-2 ring-primary-500 ring-inset"
           : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
       }`}
     >
@@ -554,10 +554,10 @@ export default function QuickProfileWizard({
           {/* Content */}
           <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 text-center animate-step-in">
             {/* Illustration */}
-            <div className="w-56 h-40 mb-6 relative">
+            <div className="w-40 h-40 mx-auto mb-4 relative">
               <Image
-                src="/go-live-illustration.png"
-                alt="Providers can find you"
+                src="/illustration-go-live.png"
+                alt="Let care come to you"
                 fill
                 className="object-contain"
                 priority
@@ -565,15 +565,13 @@ export default function QuickProfileWizard({
             </div>
 
             {/* Title */}
-            <h2 className="text-[28px] md:text-[32px] font-bold text-gray-900 tracking-tight leading-tight mb-3">
-              Let providers find you
-            </h2>
+            <h3 className="text-[24px] font-display font-semibold text-gray-900 mb-1.5">
+              Let care come to you
+            </h3>
 
             {/* Subtitle */}
-            <p className="text-[16px] text-gray-600 leading-relaxed max-w-sm mb-8">
-              {displayCity
-                ? `Providers in ${displayCity} will be able to see your care needs and reach out.`
-                : "Providers will be able to see your care needs and reach out."}
+            <p className="text-[16px] text-gray-500 mb-5 max-w-xs mx-auto">
+              Providers who match you will reach out.
             </p>
 
             {/* Error message */}
@@ -581,14 +579,21 @@ export default function QuickProfileWizard({
               <p className="text-sm text-red-600 mb-4">{publishError}</p>
             )}
 
-            {/* Go Live button */}
+            {/* Go Live button with pulsing dot */}
             <button
               type="button"
               onClick={handleGoLive}
               disabled={publishing}
-              className="w-full max-w-xs py-4 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation"
             >
-              {publishing ? "Publishing..." : "Go Live"}
+              {publishing ? (
+                "Publishing..."
+              ) : (
+                <>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  Go live
+                </>
+              )}
             </button>
 
             {/* Maybe later */}

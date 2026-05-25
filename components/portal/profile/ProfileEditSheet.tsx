@@ -955,7 +955,7 @@ export default function ProfileEditSheet({
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-full transition-colors"
+                className="px-5 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white text-[15px] font-semibold rounded-full transition-colors"
               >
                 Done
               </button>

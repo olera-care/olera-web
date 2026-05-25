@@ -216,10 +216,10 @@ export default function CarePostSidebar({
                   className="object-contain"
                 />
               </div>
-              <h4 className="text-[16px] font-bold text-gray-900 mb-1">
+              <h4 className="text-[17px] font-display font-semibold text-gray-900 mb-1.5">
                 Let care come to you
               </h4>
-              <p className="text-[13px] text-gray-500">
+              <p className="text-[14px] text-gray-500">
                 Providers who match your needs will reach out directly.
               </p>
             </div>

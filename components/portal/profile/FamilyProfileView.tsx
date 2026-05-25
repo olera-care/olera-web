@@ -731,10 +731,10 @@ function MobileCarePostContent({
           </div>
 
           {/* Headline */}
-          <h3 className="text-[18px] font-bold text-gray-900 mb-2">
+          <h3 className="text-[17px] font-display font-semibold text-gray-900 mb-1.5">
             Let care come to you
           </h3>
-          <p className="text-[14px] text-gray-500 mb-6 max-w-[260px] mx-auto">
+          <p className="text-[14px] text-gray-500 mb-5">
             Providers who match your needs will reach out directly.
           </p>
 

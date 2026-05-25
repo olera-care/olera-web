@@ -14,7 +14,7 @@ import {
   type EnrichmentStep as EnrichmentStepNumber,
 } from "@/lib/analytics/enrichment-tracking";
 
-type EnrichmentStep = "recipient" | "timeline" | "careType" | "careNeed" | "payment" | "details";
+type EnrichmentStep = "recipient" | "timeline" | "careType" | "careNeed" | "payment" | "details" | "goLive";
 
 // Map step names to step numbers for tracking
 const STEP_TO_NUMBER: Record<EnrichmentStep, EnrichmentStepNumber> = {
@@ -24,6 +24,7 @@ const STEP_TO_NUMBER: Record<EnrichmentStep, EnrichmentStepNumber> = {
   careNeed: 4,
   payment: 5,
   details: 6,
+  goLive: 6, // Go Live doesn't have its own tracking number - it's part of step 6
 };
 type TimelineValue = "immediate" | "within_1_month" | "within_3_months" | "exploring";
 type ContactPref = "Call" | "Text" | "Email";
@@ -69,6 +70,8 @@ interface EnrichmentStateProps {
   providerImage?: string | null;
   /** Multiple provider images for stacked avatars (Compare variant) */
   providerImages?: (string | null)[];
+  /** Whether user's profile is already published (skip Go Live step) */
+  isAlreadyLive?: boolean;
 }
 
 const TIMELINE_OPTIONS: { label: string; value: TimelineValue }[] = [
@@ -233,6 +236,7 @@ export default function EnrichmentState({
   ctaSurface,
   providerImage,
   providerImages,
+  isAlreadyLive = false,
 }: EnrichmentStateProps) {
   void _careTypes; // Suppress unused variable warning
   void priceRange; // No longer shown in compact banner
@@ -280,6 +284,10 @@ export default function EnrichmentState({
   const cityInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { results: cityResults, preload: preloadCities } = useCitySearch(locationInput);
+
+  // Step 7: Go Live
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   // Compute display values for compact banner
   const displayTitle = successTitle ?? `Connected with ${providerName}`;
@@ -366,12 +374,17 @@ export default function EnrichmentState({
     setTimeout(() => setStep("details"), 150);
   }, [trackingParams]);
 
-  // Step 6: Details form submission → save all data
+  // Step 6: Details form submission → advance to Go Live step (or complete if already live)
   const handleDetailsSubmit = useCallback(() => {
     trackEnrichmentStepCompleted(6, trackingParams);
-    trackEnrichmentCompleted(trackingParams);
-    onSave(getAllData());
-  }, [onSave, getAllData, trackingParams]);
+    if (isAlreadyLive) {
+      // User is already live - skip Go Live step, just save and complete
+      trackEnrichmentCompleted(trackingParams);
+      onSave(getAllData());
+    } else {
+      setTimeout(() => setStep("goLive"), 150);
+    }
+  }, [trackingParams, isAlreadyLive, onSave, getAllData]);
 
   // Handle city selection
   const handleCitySelect = useCallback((cityName: string, stateCode: string) => {
@@ -419,31 +432,122 @@ export default function EnrichmentState({
         setTimeout(() => setStep("details"), 150);
         break;
       case "details":
-        // Final step — check if user provided any data themselves (not counting pre-fills)
+        // Advance to Go Live step (or complete if already live)
+        if (isAlreadyLive) {
+          // User is already live - skip Go Live step
+          const userSelectedCareType1 = !prefilledCareType && careType;
+          const hasUserProvidedData1 = recipient || timeline || userSelectedCareType1 || careNeed || paymentMethod || name.trim() || phone.trim();
+          trackEnrichmentCompleted(trackingParams);
+          if (hasUserProvidedData1) {
+            onSave(getAllData());
+          } else {
+            onSkip();
+          }
+        } else {
+          setTimeout(() => setStep("goLive"), 150);
+        }
+        break;
+      case "goLive":
+        // "Maybe later" on Go Live - save data and complete
         const userSelectedCareType = !prefilledCareType && careType;
         const hasUserProvidedData = recipient || timeline || userSelectedCareType || careNeed || paymentMethod || name.trim() || phone.trim();
+        trackEnrichmentCompleted(trackingParams);
         if (hasUserProvidedData) {
           onSave(getAllData());
         } else {
-          // User skipped everything — exit without success state
           onSkip();
         }
         break;
     }
-  }, [step, recipient, timeline, careType, careNeed, paymentMethod, name, phone, prefilledCareType, onSave, onSkip, getAllData, trackingParams]);
+  }, [step, recipient, timeline, careType, careNeed, paymentMethod, name, phone, prefilledCareType, isAlreadyLive, onSave, onSkip, getAllData, trackingParams]);
 
-  // Progress indicator (5 steps if careType pre-filled, 6 otherwise)
-  const totalSteps = prefilledCareType ? 5 : 6;
-  // Adjust step numbers when careType is skipped
+  // Progress indicator - excludes Go Live step (it has its own UI without progress dots)
+  // Also excludes Go Live from count when user is already live
+  const getBaseSteps = () => {
+    if (isAlreadyLive) {
+      // Already live: 5 steps (no careType) or 6 steps (with careType), no Go Live
+      return prefilledCareType ? 5 : 6;
+    } else {
+      // Not live: 6 steps (no careType) or 7 steps (with careType), includes Go Live
+      return prefilledCareType ? 6 : 7;
+    }
+  };
+  const totalSteps = getBaseSteps();
+
+  // Adjust step numbers when careType is skipped and/or user is already live
   const getStepNumber = (): number => {
     if (prefilledCareType) {
-      const map: Record<string, number> = { recipient: 1, timeline: 2, careNeed: 3, payment: 4, details: 5 };
+      const map: Record<string, number> = { recipient: 1, timeline: 2, careNeed: 3, payment: 4, details: 5, goLive: 6 };
       return map[step] ?? 1;
     }
-    const map: Record<string, number> = { recipient: 1, timeline: 2, careType: 3, careNeed: 4, payment: 5, details: 6 };
+    const map: Record<string, number> = { recipient: 1, timeline: 2, careType: 3, careNeed: 4, payment: 5, details: 6, goLive: 7 };
     return map[step] ?? 1;
   };
   const stepNumber = getStepNumber();
+
+  // Handle Go Live - publish profile first, then save enrichment data
+  const handleGoLive = useCallback(async () => {
+    setPublishing(true);
+    setPublishError(null);
+
+    try {
+      // First publish the profile (before onSave which may unmount component)
+      const res = await fetch("/api/care-post/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "publish" }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to publish");
+      }
+
+      // Log go_live event (fire-and-forget)
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_type: "profile_published",
+          metadata: { source: "enrichment_flow", provider_id: providerId },
+        }),
+      }).catch(() => {});
+
+      // Track completion
+      trackEnrichmentCompleted(trackingParams);
+
+      // Now save enrichment data and complete the flow (this may unmount the component)
+      onSave(getAllData());
+
+    } catch (err) {
+      console.error("[EnrichmentState] Go Live failed:", err);
+      setPublishError("Couldn't publish. Please try again.");
+      setPublishing(false);
+    }
+  }, [onSave, getAllData, trackingParams, providerId]);
+
+  // Handle "Maybe later" - save data without publishing
+  const handleMaybeLater = useCallback(() => {
+    trackEnrichmentCompleted(trackingParams);
+
+    // Log skip event
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event_type: "go_live_skipped",
+        metadata: { source: "enrichment_flow", provider_id: providerId },
+      }),
+    }).catch(() => {});
+
+    // Save enrichment data and complete
+    const userSelectedCareType = !prefilledCareType && careType;
+    const hasUserProvidedData = recipient || timeline || userSelectedCareType || careNeed || paymentMethod || name.trim() || phone.trim();
+    if (hasUserProvidedData) {
+      onSave(getAllData());
+    } else {
+      onSkip();
+    }
+  }, [trackingParams, providerId, prefilledCareType, careType, recipient, timeline, careNeed, paymentMethod, name, phone, onSave, onSkip, getAllData]);
 
   return (
     <div>
@@ -518,9 +622,12 @@ export default function EnrichmentState({
         </div>
       )}
 
-      {/* Progress dots */}
+      {/* Progress dots - hidden on Go Live step */}
+      {step !== "goLive" && (
       <div className="flex items-center justify-center gap-1.5 mb-4">
-        {Array.from({ length: totalSteps }, (_, i) => (
+        {/* When isAlreadyLive, totalSteps already excludes goLive, so don't subtract 1 */}
+        {/* When !isAlreadyLive, subtract 1 to exclude goLive from dot count */}
+        {Array.from({ length: isAlreadyLive ? totalSteps : totalSteps - 1 }, (_, i) => (
           <div
             key={i}
             className={`rounded-full transition-all duration-300 ${
@@ -533,6 +640,7 @@ export default function EnrichmentState({
           />
         ))}
       </div>
+      )}
 
       {/* Step 1: Who needs care? */}
       {step === "recipient" && (
@@ -747,6 +855,55 @@ export default function EnrichmentState({
             className="w-full py-2 mt-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors disabled:opacity-50"
           >
             Skip
+          </button>
+        </div>
+      )}
+
+      {/* ── Step 7: Go Live ── */}
+      {step === "goLive" && (
+        <div className="animate-step-in text-center">
+          {/* Illustration */}
+          <div className="w-40 h-40 mx-auto mb-4 relative">
+            <Image
+              src="/illustration-go-live.png"
+              alt="Let care come to you"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+
+          {/* Title */}
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            Let care come to you
+          </h3>
+
+          {/* Subtitle */}
+          <p className="text-[15px] text-gray-500 mb-6 max-w-xs mx-auto">
+            Providers who match you will reach out.
+          </p>
+
+          {/* Error message */}
+          {publishError && (
+            <p className="text-sm text-red-600 mb-4">{publishError}</p>
+          )}
+
+          {/* Go Live button */}
+          <button
+            onClick={handleGoLive}
+            disabled={publishing}
+            className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {publishing ? "Publishing..." : "Get started"}
+          </button>
+
+          {/* Maybe later */}
+          <button
+            onClick={handleMaybeLater}
+            disabled={publishing}
+            className="w-full py-2 mt-3 text-[14px] text-gray-400 hover:text-gray-600 font-medium bg-transparent border-none transition-colors disabled:opacity-50"
+          >
+            Maybe later
           </button>
         </div>
       )}

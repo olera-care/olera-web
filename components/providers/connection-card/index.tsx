@@ -104,6 +104,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             providerImage={props.providerImage}
             ctaVariant={props.ctaVariant}
             ctaSurface={props.ctaSurface}
+            isAlreadyLive={hook.isMatchesLive}
           />
         )}
 

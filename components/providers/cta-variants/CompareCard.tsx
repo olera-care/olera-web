@@ -95,6 +95,11 @@ export default function CompareCard({
     ? "caregiver"
     : "current";
 
+  // Check if user's profile is already published (skip Go Live step in enrichment)
+  const profileMeta = (activeProfile?.metadata || {}) as Record<string, unknown>;
+  const carePost = profileMeta.care_post as { status?: string } | undefined;
+  const isMatchesLive = carePost?.status === "active";
+
   // Card state
   const [cardState, setCardState] = useState<CardState>("initial");
   const [email, setEmail] = useState("");
@@ -623,6 +628,7 @@ export default function CompareCard({
               ctaSurface="desktop"
               providerImage={currentProvider.image}
               providerImages={selectedProviders.map((p) => p.image ?? null)}
+              isAlreadyLive={isMatchesLive}
             />
           )}
         </div>

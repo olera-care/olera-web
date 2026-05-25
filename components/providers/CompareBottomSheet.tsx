@@ -80,6 +80,11 @@ export default function CompareBottomSheet({
     ? "caregiver"
     : "current";
 
+  // Check if user's profile is already published (skip Go Live step in enrichment)
+  const profileMeta = (activeProfile?.metadata || {}) as Record<string, unknown>;
+  const carePost = profileMeta.care_post as { status?: string } | undefined;
+  const isMatchesLive = carePost?.status === "active";
+
   const [mounted, setMounted] = useState(false);
   const [footerState, setFooterState] = useState<FooterState>("initial");
   const [email, setEmail] = useState("");
@@ -733,6 +738,7 @@ export default function CompareBottomSheet({
                 ctaSurface="mobile"
                 providerImage={currentProvider.image}
                 providerImages={selectedProviders.map((p) => p.image ?? null)}
+                isAlreadyLive={isMatchesLive}
               />
             )}
           </div>

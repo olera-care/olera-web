@@ -365,7 +365,7 @@ export default function EnrichmentState({
     setShowCityDropdown(false);
   }, []);
 
-  // Skip from any step — save whatever we have
+  // Skip from any step — advance to next step (save & exit only on final step)
   const handleSkip = useCallback(() => {
     const currentStepNumber = STEP_TO_NUMBER[step];
 
@@ -376,17 +376,45 @@ export default function EnrichmentState({
     if (careType) completedSteps.push(3);
     if (careNeed) completedSteps.push(4);
     if (paymentMethod) completedSteps.push(5);
-    // Step 6 (details) can't be "completed" before skip - if they click Done, they call handleDetailsSubmit
 
     // Track the skip event
     trackEnrichmentStepSkipped(currentStepNumber, trackingParams, completedSteps);
 
-    if (step === "recipient" && !recipient) {
-      onSkip();
-    } else {
-      onSave(getAllData());
+    // Advance to next step (or save & exit on final step)
+    switch (step) {
+      case "recipient":
+        setTimeout(() => setStep("timeline"), 150);
+        break;
+      case "timeline":
+        // If care type is pre-filled, skip to careNeed
+        if (prefilledCareType) {
+          setTimeout(() => setStep("careNeed"), 150);
+        } else {
+          setTimeout(() => setStep("careType"), 150);
+        }
+        break;
+      case "careType":
+        setTimeout(() => setStep("careNeed"), 150);
+        break;
+      case "careNeed":
+        setTimeout(() => setStep("payment"), 150);
+        break;
+      case "payment":
+        setTimeout(() => setStep("details"), 150);
+        break;
+      case "details":
+        // Final step — check if user provided any data themselves (not counting pre-fills)
+        const userSelectedCareType = !prefilledCareType && careType;
+        const hasUserProvidedData = recipient || timeline || userSelectedCareType || careNeed || paymentMethod || name.trim() || phone.trim();
+        if (hasUserProvidedData) {
+          onSave(getAllData());
+        } else {
+          // User skipped everything — exit without success state
+          onSkip();
+        }
+        break;
     }
-  }, [step, recipient, timeline, careType, careNeed, paymentMethod, onSave, onSkip, getAllData, trackingParams]);
+  }, [step, recipient, timeline, careType, careNeed, paymentMethod, name, phone, prefilledCareType, onSave, onSkip, getAllData, trackingParams]);
 
   // Progress indicator (5 steps if careType pre-filled, 6 otherwise)
   const totalSteps = prefilledCareType ? 5 : 6;
@@ -545,11 +573,11 @@ export default function EnrichmentState({
         </div>
       )}
 
-      {/* Step 4: What help is needed most? */}
+      {/* Step 4: What help do you need? */}
       {step === "careNeed" && (
         <div className="animate-in fade-in duration-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            What help is needed most?
+            What help do you need?
           </h3>
           <div className="space-y-2 mb-4">
             {CARE_NEED_OPTIONS.map((opt) => (

@@ -305,6 +305,14 @@ export default function EnrichmentState({
     preloadCities();
   }, [preloadCities]);
 
+  // Preload Go Live illustration so it's ready when user reaches that step
+  useEffect(() => {
+    if (!isAlreadyLive) {
+      const img = new window.Image();
+      img.src = "/illustration-go-live.png";
+    }
+  }, [isAlreadyLive]);
+
   // Close dropdown on click outside
   useEffect(() => {
     if (!showCityDropdown) return;
@@ -552,7 +560,8 @@ export default function EnrichmentState({
   return (
     <div>
       {/* Compact success banner with avatar + optional "+N" badge */}
-      {!hideSuccessBanner && (
+      {/* Hide on Go Live step - user has moved past the connection, focus on publish decision */}
+      {!hideSuccessBanner && step !== "goLive" && (
         <div className="mb-4 bg-emerald-50/60 rounded-full px-3 py-2 border border-emerald-100 inline-flex items-center gap-2">
           {/* Avatar section: single avatar + "+N" for multi-provider */}
           {avatarImages.length > 0 ? (

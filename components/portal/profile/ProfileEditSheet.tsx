@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
-import { useClickOutside } from "@/hooks/use-click-outside";
+import type { CitySearchResult } from "@/lib/us-city-search";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 
 // ============================================================
@@ -203,9 +204,28 @@ export default function ProfileEditSheet({
     profile.city && profile.state ? `${profile.city}, ${profile.state}` : ""
   );
   const [showCityDropdown, setShowCityDropdown] = useState(false);
-  const cityDropdownRef = useRef<HTMLDivElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const cityInputContainerRef = useRef<HTMLDivElement>(null);
+  const cityInputRef = useRef<HTMLInputElement>(null);
+  const cityDropdownPortalRef = useRef<HTMLDivElement>(null);
   const { results: cityResults, preload: preloadCities } = useCitySearch(locationInput);
-  useClickOutside(cityDropdownRef, () => setShowCityDropdown(false));
+
+  // Close dropdown when clicking outside both the input container and the portal dropdown
+  useEffect(() => {
+    if (!showCityDropdown) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const isInsideInput = cityInputContainerRef.current?.contains(target);
+      const isInsideDropdown = cityDropdownPortalRef.current?.contains(target);
+      if (!isInsideInput && !isInsideDropdown) {
+        setShowCityDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showCityDropdown]);
 
   // Image upload
   const [imageUploading, setImageUploading] = useState(false);
@@ -236,6 +256,30 @@ export default function ProfileEditSheet({
   useEffect(() => {
     preloadCities();
   }, [preloadCities]);
+
+  // Update dropdown position when it opens or window resizes
+  useEffect(() => {
+    if (!showCityDropdown || !cityInputRef.current) return;
+
+    const updatePosition = () => {
+      if (!cityInputRef.current) return;
+      const rect = cityInputRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 8, // 8px gap below input
+        left: rect.left,
+        width: rect.width,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [showCityDropdown]);
 
   // Handle city selection
   const handleCitySelect = (cityName: string, stateCode: string) => {
@@ -561,9 +605,10 @@ export default function ProfileEditSheet({
             </div>
 
             {/* Location */}
-            <div ref={cityDropdownRef} className="relative">
+            <div ref={cityInputContainerRef}>
               <SectionLabel>Location</SectionLabel>
               <input
+                ref={cityInputRef}
                 type="text"
                 value={locationInput}
                 onChange={(e) => {
@@ -574,21 +619,33 @@ export default function ProfileEditSheet({
                 placeholder="Search for your city..."
                 className="w-full px-4 py-3.5 rounded-xl bg-gray-100 border-0 focus:bg-white focus:ring-2 focus:ring-primary-500/20 outline-none transition-all text-gray-900 placeholder:text-gray-400"
               />
-              {showCityDropdown && cityResults.length > 0 && (
-                <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
-                  {cityResults.map((result) => (
-                    <button
-                      key={`${result.city}-${result.state}`}
-                      type="button"
-                      onClick={() => handleCitySelect(result.city, result.state)}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                    >
-                      <span className="font-medium text-gray-900">{result.city}</span>
-                      <span className="text-gray-500">, {result.state}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+              {/* Dropdown rendered via portal to avoid clipping by modal overflow */}
+              {showCityDropdown && cityResults.length > 0 && typeof document !== "undefined" &&
+                createPortal(
+                  <div
+                    ref={cityDropdownPortalRef}
+                    className="fixed z-[60] bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto animate-dropdown-pop"
+                    style={{
+                      top: dropdownPosition.top,
+                      left: dropdownPosition.left,
+                      width: dropdownPosition.width,
+                    }}
+                  >
+                    {cityResults.map((result: CitySearchResult) => (
+                      <button
+                        key={`${result.city}-${result.state}`}
+                        type="button"
+                        onClick={() => handleCitySelect(result.city, result.state)}
+                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                      >
+                        <span className="font-medium text-gray-900">{result.city}</span>
+                        <span className="text-gray-500">, {result.state}</span>
+                      </button>
+                    ))}
+                  </div>,
+                  document.body
+                )
+              }
             </div>
           </div>
         );

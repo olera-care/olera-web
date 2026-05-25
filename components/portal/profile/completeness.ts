@@ -9,30 +9,41 @@ interface CompletenessResult {
   sectionStatus: Record<number, SectionStatus>;
 }
 
+/**
+ * Field weights - prioritized for enrichment flow and provider value.
+ * Total: 100 points
+ *
+ * Weights optimized for:
+ * - Higher weights for fields collected during enrichment (Steps 1-5)
+ * - Lower weights for fields not in enrichment flow
+ * - Name split: 5 for placeholder "Care Seeker", +5 bonus for real name
+ * - Auto-filled fields (city, care_types) valued for Go Live requirements
+ */
 const FIELD_CHECKS: {
   weight: number;
   step: number;
   check: (p: BusinessProfile, email?: string) => boolean;
 }[] = [
-  // Step 0: Basic Info (25)
-  { weight: 15, step: 0, check: (p) => !!p.image_url },
-  { weight: 5, step: 0, check: (p) => !!p.display_name },
-  { weight: 5, step: 0, check: (p) => !!p.city },
-  // Step 1: Contact (25)
+  // Step 0: Basic Info (20 total)
+  { weight: 2, step: 0, check: (p) => !!p.image_url },
+  { weight: 5, step: 0, check: (p) => !!p.display_name }, // Placeholder "Care Seeker" counts
+  { weight: 5, step: 0, check: (p) => !!p.display_name && p.display_name.toLowerCase() !== "care seeker" }, // Bonus for real name
+  { weight: 8, step: 0, check: (p) => !!p.city }, // Required for Go Live
+  // Step 1: Contact (24 total)
   { weight: 10, step: 1, check: (_p, email) => !!email },
-  { weight: 10, step: 1, check: (p) => !!p.phone },
-  { weight: 5, step: 1, check: (p) => !!(p.metadata as FamilyMetadata)?.contact_preference },
-  // Step 2: Care Recipient (15)
-  { weight: 5, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.relationship_to_recipient },
-  { weight: 5, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.age },
-  { weight: 5, step: 2, check: (p) => !!p.description },
-  // Step 3: Care Needs (15)
-  { weight: 5, step: 3, check: (p) => (p.care_types?.length ?? 0) > 0 },
-  { weight: 4, step: 3, check: (p) => ((p.metadata as FamilyMetadata)?.care_needs?.length ?? 0) > 0 },
-  { weight: 3, step: 3, check: (p) => !!(p.metadata as FamilyMetadata)?.timeline },
-  { weight: 3, step: 3, check: (p) => !!(p.metadata as FamilyMetadata)?.schedule_preference },
-  // Step 4: Payment (20)
-  { weight: 20, step: 4, check: (p) => ((p.metadata as FamilyMetadata)?.payment_methods?.length ?? 0) > 0 },
+  { weight: 12, step: 1, check: (p) => !!p.phone }, // Enrichment Step 5
+  { weight: 2, step: 1, check: (p) => !!(p.metadata as FamilyMetadata)?.contact_preference },
+  // Step 2: Care Recipient (16 total)
+  { weight: 10, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.relationship_to_recipient || !!(p.metadata as FamilyMetadata)?.who_needs_care }, // Enrichment Step 1
+  { weight: 2, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.age },
+  { weight: 4, step: 2, check: (p) => !!p.description || !!(p.metadata as FamilyMetadata)?.about_situation },
+  // Step 3: Care Needs (28 total)
+  { weight: 8, step: 3, check: (p) => (p.care_types?.length ?? 0) > 0 }, // Required for Go Live
+  { weight: 6, step: 3, check: (p) => ((p.metadata as FamilyMetadata)?.care_needs?.length ?? 0) > 0 }, // Enrichment Step 3
+  { weight: 12, step: 3, check: (p) => !!(p.metadata as FamilyMetadata)?.timeline }, // Enrichment Step 2
+  { weight: 2, step: 3, check: (p) => !!(p.metadata as FamilyMetadata)?.schedule_preference },
+  // Step 4: Payment (12 total)
+  { weight: 12, step: 4, check: (p) => ((p.metadata as FamilyMetadata)?.payment_methods?.length ?? 0) > 0 }, // Enrichment Step 4
 ];
 
 function computeSectionStatus(

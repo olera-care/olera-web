@@ -73,19 +73,65 @@ const TONE_CHIPS_MINIMAL: { id: ToneType; label: string }[] = [
 ];
 
 // Calculate profile completeness
+// Weights aligned with lib/admin/profile-completeness.ts (Total: 100)
 function calculateCompleteness(family: Profile, meta: FamilyMetadata | null): number {
   if (meta?.profile_completeness !== undefined) {
     return meta.profile_completeness;
   }
 
   let score = 0;
-  if (family.display_name?.trim()) score += 15;
-  if (family.city?.trim()) score += 10;
-  if (meta?.care_needs && meta.care_needs.length > 0) score += 20;
-  if (meta?.timeline) score += 15;
-  if (meta?.payment_methods && meta.payment_methods.length > 0) score += 15;
-  if (meta?.who_needs_care || meta?.relationship_to_recipient) score += 10;
-  if (meta?.about_situation?.trim()) score += 15;
+
+  // Check if name is real (not placeholder "Care Seeker" - case insensitive)
+  const hasRealName = family.display_name?.trim() && family.display_name.toLowerCase() !== "care seeker";
+
+  // Weights aligned with FamilyMatchCard and admin calculations
+  const weights = {
+    // Basic Info (20)
+    photo: 2,
+    display_name: 5,       // Placeholder counts
+    display_name_real: 5,  // Bonus for real name
+    city: 8,               // Required for Go Live
+    // Contact (24)
+    email: 10,
+    phone: 12,             // Enrichment Step 5
+    contact_preference: 2,
+    // Care Recipient (16)
+    who_needs_care: 10,    // Enrichment Step 1
+    age: 2,
+    about_situation: 4,
+    // Care Needs (28)
+    care_types: 8,         // Required for Go Live
+    care_needs: 6,         // Enrichment Step 3
+    timeline: 12,          // Enrichment Step 2
+    schedule_preference: 2,
+    // Payment (12)
+    payment_methods: 12,   // Enrichment Step 4
+  };
+
+  // Basic Info
+  if (family.image_url?.trim()) score += weights.photo;
+  if (family.display_name?.trim()) score += weights.display_name;
+  if (hasRealName) score += weights.display_name_real;
+  if (family.city?.trim()) score += weights.city;
+
+  // Contact
+  if (family.email?.trim()) score += weights.email;
+  if (family.phone?.trim()) score += weights.phone;
+  if (meta?.contact_preference) score += weights.contact_preference;
+
+  // Care Recipient
+  if (meta?.who_needs_care || meta?.relationship_to_recipient) score += weights.who_needs_care;
+  if (meta?.age) score += weights.age;
+  if (family.description?.trim() || meta?.about_situation?.trim()) score += weights.about_situation;
+
+  // Care Needs
+  if (family.care_types && family.care_types.length > 0) score += weights.care_types;
+  if (meta?.care_needs && meta.care_needs.length > 0) score += weights.care_needs;
+  if (meta?.timeline) score += weights.timeline;
+  if (meta?.schedule_preference) score += weights.schedule_preference;
+
+  // Payment
+  if (meta?.payment_methods && meta.payment_methods.length > 0) score += weights.payment_methods;
 
   return Math.min(100, score);
 }

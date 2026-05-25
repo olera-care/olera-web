@@ -23,6 +23,12 @@ export interface ProfileCompletenessResult {
  *
  * Based on the user-facing completeness in components/portal/profile/completeness.ts
  * but simplified for admin display (just percentage + missing fields).
+ *
+ * Weights are optimized for enrichment flow completion:
+ * - Higher weights for fields collected during enrichment (Steps 1-5)
+ * - Lower weights for fields not in enrichment flow
+ * - Name split: 5 for placeholder "Care Seeker", +5 bonus for real name
+ * - Auto-filled fields (city, care_types) valued for Go Live requirements
  */
 export function calculateFamilyCompleteness(
   profile: {
@@ -39,27 +45,32 @@ export function calculateFamilyCompleteness(
   const meta = (profile.metadata as FamilyMetadata) ?? {};
   const missingFields: string[] = [];
 
-  // Field weights (same as user-facing version)
+  // Check if name is a real name (not placeholder - case insensitive)
+  const hasRealName = !!profile.display_name && profile.display_name.toLowerCase() !== "care seeker";
+
+  // Field weights - prioritized for enrichment flow and provider value
+  // Total: 100 points
   const checks: Array<{ weight: number; field: string; check: () => boolean }> = [
-    // Basic Info
-    { weight: 15, field: "Photo", check: () => !!profile.image_url },
-    { weight: 5, field: "Name", check: () => !!profile.display_name },
-    { weight: 5, field: "Location", check: () => !!profile.city },
-    // Contact
+    // Basic Info (20 total)
+    { weight: 2, field: "Photo", check: () => !!profile.image_url },
+    { weight: 5, field: "Name", check: () => !!profile.display_name }, // Placeholder counts
+    { weight: 5, field: "Real Name", check: () => hasRealName }, // Bonus for real name
+    { weight: 8, field: "Location", check: () => !!profile.city }, // Required for Go Live
+    // Contact (24 total)
     { weight: 10, field: "Email", check: () => !!email },
-    { weight: 10, field: "Phone", check: () => !!profile.phone },
-    { weight: 5, field: "Contact Preference", check: () => !!meta.contact_preference },
-    // Care Recipient
-    { weight: 5, field: "Relationship", check: () => !!meta.relationship_to_recipient },
-    { weight: 5, field: "Care Recipient Age", check: () => !!meta.age },
-    { weight: 5, field: "Situation Description", check: () => !!profile.description },
-    // Care Needs
-    { weight: 5, field: "Care Types", check: () => (profile.care_types?.length ?? 0) > 0 },
-    { weight: 4, field: "Care Needs", check: () => (meta.care_needs?.length ?? 0) > 0 },
-    { weight: 3, field: "Timeline", check: () => !!meta.timeline },
-    { weight: 3, field: "Schedule Preference", check: () => !!meta.schedule_preference },
-    // Payment
-    { weight: 20, field: "Payment Methods", check: () => (meta.payment_methods?.length ?? 0) > 0 },
+    { weight: 12, field: "Phone", check: () => !!profile.phone }, // Enrichment Step 5
+    { weight: 2, field: "Contact Preference", check: () => !!meta.contact_preference },
+    // Care Recipient (16 total)
+    { weight: 10, field: "Relationship", check: () => !!meta.relationship_to_recipient || !!meta.who_needs_care }, // Enrichment Step 1
+    { weight: 2, field: "Care Recipient Age", check: () => !!meta.age },
+    { weight: 4, field: "Situation Description", check: () => !!profile.description || !!meta.about_situation },
+    // Care Needs (28 total)
+    { weight: 8, field: "Care Types", check: () => (profile.care_types?.length ?? 0) > 0 }, // Required for Go Live
+    { weight: 6, field: "Care Needs", check: () => (meta.care_needs?.length ?? 0) > 0 }, // Enrichment Step 3
+    { weight: 12, field: "Timeline", check: () => !!meta.timeline }, // Enrichment Step 2
+    { weight: 2, field: "Schedule Preference", check: () => !!meta.schedule_preference },
+    // Payment (12 total)
+    { weight: 12, field: "Payment Methods", check: () => (meta.payment_methods?.length ?? 0) > 0 }, // Enrichment Step 4
   ];
 
   let earned = 0;

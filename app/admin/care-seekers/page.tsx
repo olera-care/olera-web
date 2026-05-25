@@ -156,35 +156,40 @@ function formatJoinedDate(isoDate: string): string {
 }
 
 // Calculate profile completeness (matches server-side calculateFamilyCompleteness)
+// Weights aligned with lib/admin/profile-completeness.ts
 function calculateCompleteness(seeker: SeekerRow): number {
   const meta = seeker.metadata || {};
 
-  // Use cached value if available
+  // Use cached value if available (e.g., MedJobs students)
   if (meta.profile_completeness !== undefined) {
     return meta.profile_completeness;
   }
 
-  // Same weights as lib/admin/profile-completeness.ts
+  // Check if name is a real name (not placeholder "Care Seeker" - case insensitive)
+  const hasRealName = !!seeker.display_name && seeker.display_name.toLowerCase() !== "care seeker";
+
+  // Weights aligned with lib/admin/profile-completeness.ts (Total: 100)
   const checks: Array<{ weight: number; check: () => boolean }> = [
-    // Basic Info
-    { weight: 15, check: () => !!seeker.image_url },
-    { weight: 5, check: () => !!seeker.display_name },
-    { weight: 5, check: () => !!seeker.city },
-    // Contact
+    // Basic Info (20 total)
+    { weight: 2, check: () => !!seeker.image_url },
+    { weight: 5, check: () => !!seeker.display_name }, // Placeholder counts
+    { weight: 5, check: () => hasRealName }, // Bonus for real name
+    { weight: 8, check: () => !!seeker.city }, // Required for Go Live
+    // Contact (24 total)
     { weight: 10, check: () => !!seeker.email },
-    { weight: 10, check: () => !!seeker.phone },
-    { weight: 5, check: () => !!meta.contact_preference },
-    // Care Recipient
-    { weight: 5, check: () => !!meta.relationship_to_recipient },
-    { weight: 5, check: () => !!meta.age },
-    { weight: 5, check: () => !!seeker.description },
-    // Care Needs
-    { weight: 5, check: () => (seeker.care_types?.length ?? 0) > 0 },
-    { weight: 4, check: () => (meta.care_needs?.length ?? 0) > 0 },
-    { weight: 3, check: () => !!meta.timeline },
-    { weight: 3, check: () => !!meta.schedule_preference },
-    // Payment
-    { weight: 20, check: () => (meta.payment_methods?.length ?? 0) > 0 },
+    { weight: 12, check: () => !!seeker.phone }, // Enrichment Step 5
+    { weight: 2, check: () => !!meta.contact_preference },
+    // Care Recipient (16 total)
+    { weight: 10, check: () => !!meta.relationship_to_recipient || !!meta.who_needs_care }, // Enrichment Step 1
+    { weight: 2, check: () => !!meta.age },
+    { weight: 4, check: () => !!seeker.description || !!meta.about_situation },
+    // Care Needs (28 total)
+    { weight: 8, check: () => (seeker.care_types?.length ?? 0) > 0 }, // Required for Go Live
+    { weight: 6, check: () => (meta.care_needs?.length ?? 0) > 0 }, // Enrichment Step 3
+    { weight: 12, check: () => !!meta.timeline }, // Enrichment Step 2
+    { weight: 2, check: () => !!meta.schedule_preference },
+    // Payment (12 total)
+    { weight: 12, check: () => (meta.payment_methods?.length ?? 0) > 0 }, // Enrichment Step 4
   ];
 
   let earned = 0;

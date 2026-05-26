@@ -986,6 +986,10 @@ export default function ProviderMatchesPage() {
         if (familiesRes.error) {
           throw new Error(familiesRes.error.message);
         }
+        if (fullConnectionsRes.error) {
+          // Log but don't fail - connections are less critical than families
+          console.error("[olera] connections fetch failed:", fullConnectionsRes.error.message);
+        }
 
         const fetchedFamilies = (familiesRes.data as Profile[]) || [];
         setFamilies(fetchedFamilies);

@@ -542,29 +542,29 @@ function MatchesEmptyState() {
 }
 
 // ---------------------------------------------------------------------------
-// This Month Stats (prominent 2-column layout like Profile page)
+// Activity Summary (prominent 2-column layout)
 // ---------------------------------------------------------------------------
 
-function ThisMonthStats({
-  familiesLooking,
+function ActivitySummary({
+  totalFamilies,
   outreachSent,
   connections,
 }: {
-  familiesLooking: number;
+  totalFamilies: number;
   outreachSent: number;
   connections: number;
 }) {
   return (
     <div className="space-y-4">
       <h3 className="text-base font-display font-bold text-gray-900">
-        This month
+        At a glance
       </h3>
 
       <div className="grid grid-cols-2 gap-4">
-        {/* Families Looking */}
+        {/* Total Families */}
         <div className="space-y-1">
           <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
-            {familiesLooking}
+            {totalFamilies}
           </p>
           <p className="text-sm text-gray-500">families looking</p>
         </div>
@@ -1576,9 +1576,9 @@ export default function ProviderMatchesPage() {
         {/* self-stretch ensures this column matches left column height, enabling sticky */}
         <div className="hidden lg:block lg:col-span-1 self-stretch">
           <div className="sticky top-24 space-y-4">
-            {/* This Month - prominent stats like Profile page */}
-            <ThisMonthStats
-              familiesLooking={families.filter((f) => !contactedIds.has(f.id)).length}
+            {/* Activity Summary - prominent stats */}
+            <ActivitySummary
+              totalFamilies={families.length}
               outreachSent={contactedIds.size}
               connections={Array.from(connectionData.values()).filter((c) => c.status === "accepted").length}
             />

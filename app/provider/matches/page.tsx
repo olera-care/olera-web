@@ -1751,10 +1751,10 @@ export default function ProviderMatchesPage() {
         </div>
       </div>
 
-      {/* ── Main layout ── */}
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+      {/* ── Main layout (matches Profile page grid) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
         {/* ── LEFT COLUMN: Banner + Filters + Content ── */}
-        <div className="flex-1 min-w-0">
+        <div className="lg:col-span-2">
           {/* Discovery Banner */}
           <div className="mb-6">
             <DiscoveryBanner
@@ -1896,8 +1896,8 @@ export default function ProviderMatchesPage() {
           )}
         </div>
 
-        {/* ── RIGHT COLUMN: Profile Snapshot + Sidebar (fixed width, hidden on mobile) ── */}
-        <div className="hidden lg:block w-[300px] shrink-0">
+        {/* ── RIGHT COLUMN: Profile Snapshot + Sidebar (matches Profile page) ── */}
+        <div className="hidden lg:block lg:col-span-1">
           <div className="sticky top-24 space-y-4">
             {/* Profile Snapshot Card */}
             <ProfileSnapshotCard

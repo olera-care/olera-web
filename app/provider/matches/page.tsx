@@ -18,6 +18,7 @@ import {
 } from "@/components/provider/matches/MatchesFilterBar";
 import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
 import FiltersModal, { type FiltersState, DEFAULT_FILTERS_STATE, countActiveFilters } from "@/components/provider/matches/FiltersModal";
+import MyOutreach from "@/components/provider/matches/MyOutreach";
 
 // Tab types for the matches view
 type MatchesTab = "best_matches" | "near_you";
@@ -1888,6 +1889,15 @@ export default function ProviderMatchesPage() {
             <ProfileSnapshotCard
               profile={providerProfile}
               completeness={profileCompleteness}
+            />
+
+            {/* My Outreach - tracking sent messages */}
+            <MyOutreach
+              families={families}
+              connectionData={connectionData}
+              archivedIds={archivedConnectionIds}
+              onSendReminder={handleSendReminder}
+              sendingReminderId={sendingReminderId}
             />
 
             {/* Membership / Access Card + How it works */}

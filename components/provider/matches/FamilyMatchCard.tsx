@@ -322,7 +322,7 @@ export default function FamilyMatchCard({
 
       <div className="p-5">
         {/* NAME ROW - Avatar + Name/Location stacked */}
-        <div className="flex items-start gap-3.5 mb-3">
+        <div className="flex items-center gap-3 mb-3">
           {/* Avatar with optional online dot */}
           <div className="relative shrink-0">
             {family.image_url ? (
@@ -349,10 +349,10 @@ export default function FamilyMatchCard({
 
           {/* Name + Location stacked */}
           <div className="min-w-0">
-            <h3 className="text-[17px] sm:text-lg font-bold text-gray-900 leading-snug truncate">
+            <h3 className="text-base font-semibold text-gray-900 leading-snug truncate">
               {hasFullAccess ? displayName : displayName.split(" ")[0]}
             </h3>
-            <p className="text-[13px] text-gray-500 mt-0.5">
+            <p className="text-sm font-medium text-gray-600">
               {hasFullAccess ? location : (family.city || "Nearby")}
             </p>
           </div>

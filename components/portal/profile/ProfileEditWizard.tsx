@@ -7,6 +7,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
+import { calculateProfileCompletenessPercentage } from "./completeness";
 
 // ============================================================
 // Types
@@ -379,6 +380,21 @@ export default function ProfileEditWizard({
       if (schedulePreference) updatedMeta.schedule_preference = schedulePreference;
       if (description) updatedMeta.about_situation = description;
       if (payments.length > 0) updatedMeta.payment_methods = payments;
+
+      // Calculate and store profile completeness for accurate display elsewhere
+      const completenessPercentage = calculateProfileCompletenessPercentage(
+        {
+          display_name: displayName || null,
+          image_url: profile.image_url,
+          city: city || null,
+          phone: phone || null,
+          description: description || null,
+          care_types: careTypes,
+          metadata: updatedMeta as FamilyMetadata,
+        },
+        email
+      );
+      updatedMeta.profile_completeness = completenessPercentage;
 
       const updatePayload = {
         display_name: displayName || null,

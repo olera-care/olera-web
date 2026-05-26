@@ -73,6 +73,57 @@ function computeSectionStatus(
   return result;
 }
 
+/**
+ * Standalone calculation function (not a hook) for use in save handlers.
+ * Returns just the percentage for storage in metadata.
+ */
+export function calculateProfileCompletenessPercentage(
+  profileData: {
+    display_name?: string | null;
+    image_url?: string | null;
+    city?: string | null;
+    phone?: string | null;
+    description?: string | null;
+    care_types?: string[] | null;
+    metadata?: FamilyMetadata | null;
+  },
+  email?: string | null
+): number {
+  const meta = (profileData.metadata || {}) as FamilyMetadata;
+
+  // Check if name is a real name (not placeholder "Care Seeker" - case insensitive)
+  const hasRealName = !!profileData.display_name && profileData.display_name.toLowerCase() !== "care seeker";
+
+  let earned = 0;
+
+  // Basic Info (20 total)
+  if (profileData.image_url) earned += 2;
+  if (profileData.display_name) earned += 5; // Placeholder counts
+  if (hasRealName) earned += 5; // Bonus for real name
+  if (profileData.city) earned += 8; // Required for Go Live
+
+  // Contact (24 total)
+  if (email) earned += 10;
+  if (profileData.phone) earned += 12; // Enrichment Step 5
+  if (meta.contact_preference) earned += 2;
+
+  // Care Recipient (16 total)
+  if (meta.relationship_to_recipient || meta.who_needs_care) earned += 10; // Enrichment Step 1
+  if (meta.age) earned += 2;
+  if (profileData.description || meta.about_situation) earned += 4;
+
+  // Care Needs (28 total)
+  if ((profileData.care_types?.length ?? 0) > 0) earned += 8; // Required for Go Live
+  if ((meta.care_needs?.length ?? 0) > 0) earned += 6; // Enrichment Step 3
+  if (meta.timeline) earned += 12; // Enrichment Step 2
+  if (meta.schedule_preference) earned += 2;
+
+  // Payment (12 total)
+  if ((meta.payment_methods?.length ?? 0) > 0) earned += 12; // Enrichment Step 4
+
+  return Math.min(earned, 100);
+}
+
 export function useProfileCompleteness(
   profile: BusinessProfile | null,
   userEmail?: string

@@ -7,6 +7,7 @@ import { PRIMARY_NEEDS, type PrimaryNeed } from "@/lib/types/benefits";
 import { generateUniqueSlug } from "@/lib/slug";
 import { sanitizeDisplayName } from "@/lib/validation";
 import { getSiteUrl } from "@/lib/site-url";
+import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
     if (profileId) {
       const { data: existingProfile } = await db
         .from("business_profiles")
-        .select("id, metadata, type, display_name, city, state, care_types")
+        .select("id, metadata, type, display_name, city, state, care_types, image_url, phone, description")
         .eq("id", profileId)
         .single();
 
@@ -99,7 +100,7 @@ export async function POST(request: Request) {
     if (!profileId) {
       const { data: existingFamilyProfile } = await db
         .from("business_profiles")
-        .select("id, metadata, type, display_name, city, state, care_types")
+        .select("id, metadata, type, display_name, city, state, care_types, image_url, phone, description")
         .eq("account_id", account.id)
         .eq("type", "family")
         .limit(1)
@@ -144,7 +145,7 @@ export async function POST(request: Request) {
             visible_to_providers: true,
           },
         })
-        .select("id, metadata, type, display_name, city, state, care_types")
+        .select("id, metadata, type, display_name, city, state, care_types, image_url, phone, description")
         .single();
 
       if (insertErr) {
@@ -197,6 +198,21 @@ export async function POST(request: Request) {
     if ((!profile.care_types || profile.care_types.length === 0) && primaryNeeds.length > 0) {
       profileUpdate.care_types = mapNeedsToCareTypes(primaryNeeds);
     }
+
+    // Calculate and store profile completeness
+    const completeness = calculateFamilyCompleteness(
+      {
+        display_name: profile.display_name,
+        image_url: (profile as Record<string, unknown>).image_url as string | null,
+        city: city || profile.city,
+        phone: (profile as Record<string, unknown>).phone as string | null,
+        description: (profile as Record<string, unknown>).description as string | null,
+        care_types: profileUpdate.care_types as string[] || profile.care_types,
+        metadata: metadata,
+      },
+      user.email
+    );
+    metadata.profile_completeness = completeness.percentage;
 
     // Publish the care post
     metadata.care_post = {

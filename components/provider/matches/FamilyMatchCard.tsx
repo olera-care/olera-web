@@ -177,19 +177,28 @@ function calculateCompleteness(family: Profile, meta: FamilyMetadata | null): nu
   return Math.min(100, score);
 }
 
-// Timeline tag configuration - gray bg with colored text/dot
-const TIMELINE_CONFIG: Record<string, { label: string; textColor: string; dotColor: string }> = {
+// Timeline configuration with urgency suffix for dynamic labels
+const TIMELINE_CONFIG: Record<string, { urgency: string; textColor: string; dotColor: string }> = {
   // New values
-  as_soon_as_possible: { label: "Needs care ASAP", textColor: "text-red-600", dotColor: "bg-red-500" },
-  within_a_month: { label: "Needs care in ~1 month", textColor: "text-amber-600", dotColor: "bg-amber-500" },
-  in_a_few_months: { label: "Needs care in 2-3 months", textColor: "text-teal-600", dotColor: "bg-teal-500" },
-  just_researching: { label: "Just exploring", textColor: "text-gray-500", dotColor: "bg-gray-400" },
-  // Legacy values (map to new display)
-  immediate: { label: "Needs care ASAP", textColor: "text-red-600", dotColor: "bg-red-500" },
-  within_1_month: { label: "Needs care in ~1 month", textColor: "text-amber-600", dotColor: "bg-amber-500" },
-  within_3_months: { label: "Needs care in 2-3 months", textColor: "text-teal-600", dotColor: "bg-teal-500" },
-  exploring: { label: "Just exploring", textColor: "text-gray-500", dotColor: "bg-gray-400" },
+  as_soon_as_possible: { urgency: "ASAP", textColor: "text-red-600", dotColor: "bg-red-500" },
+  within_a_month: { urgency: "in ~1 month", textColor: "text-amber-600", dotColor: "bg-amber-500" },
+  in_a_few_months: { urgency: "in 2-3 months", textColor: "text-teal-600", dotColor: "bg-teal-500" },
+  just_researching: { urgency: "exploring", textColor: "text-gray-500", dotColor: "bg-gray-400" },
+  // Legacy values
+  immediate: { urgency: "ASAP", textColor: "text-red-600", dotColor: "bg-red-500" },
+  within_1_month: { urgency: "in ~1 month", textColor: "text-amber-600", dotColor: "bg-amber-500" },
+  within_3_months: { urgency: "in 2-3 months", textColor: "text-teal-600", dotColor: "bg-teal-500" },
+  exploring: { urgency: "exploring", textColor: "text-gray-500", dotColor: "bg-gray-400" },
 };
+
+// Build timeline label with optional care type
+// "Needs Home Care ASAP" or "Needs care in ~1 month" (fallback)
+function buildTimelineLabel(careType: string | undefined, urgency: string): string {
+  if (urgency === "exploring") {
+    return careType ? `Exploring ${careType}` : "Just exploring";
+  }
+  return careType ? `Needs ${careType} ${urgency}` : `Needs care ${urgency}`;
+}
 
 // Who needs care - returns relationship label for conversational format
 function formatWhoNeedsCare(value: string | undefined): { relationship: string; isSelf: boolean } | null {
@@ -249,7 +258,7 @@ export default function FamilyMatchCard({
   const displayName = family.display_name || "Family";
   const initials = getInitials(displayName);
   const location = [family.city, family.state].filter(Boolean).join(", ");
-  const timeline = meta?.timeline ? TIMELINE_CONFIG[meta.timeline] : null;
+  const timelineConfig = meta?.timeline ? TIMELINE_CONFIG[meta.timeline] : null;
   const paymentMethods = meta?.payment_methods || [];
   const publishedAt = meta?.care_post?.published_at || family.created_at;
   const lastActiveAt = meta?.last_active_at;
@@ -260,9 +269,17 @@ export default function FamilyMatchCard({
   const contactPreference = meta?.contact_preference;
   const schedulePreference = meta?.schedule_preference;
 
-  // Deduplicate care needs by lowercase, keep first occurrence's casing
+  // Care type (e.g., "Home Care", "Assisted Living") - shown in timeline
+  const careType = family.care_types?.[0] || null;
+
+  // Build timeline label with care type: "Needs Home Care ASAP"
+  const timelineLabel = timelineConfig
+    ? buildTimelineLabel(careType || undefined, timelineConfig.urgency)
+    : null;
+
+  // Care needs only (not care types - those are in timeline now)
   const careNeeds = useMemo(() => {
-    const raw = meta?.care_needs || family.care_types || [];
+    const raw = meta?.care_needs || [];
     const seen = new Set<string>();
     return raw.filter((need) => {
       const lower = need.toLowerCase();
@@ -270,7 +287,7 @@ export default function FamilyMatchCard({
       seen.add(lower);
       return true;
     });
-  }, [meta?.care_needs, family.care_types]);
+  }, [meta?.care_needs]);
 
   // Calculate profile completeness and determine card state
   // Aligned with cron threshold: ≥60% is "ready", <60% is "building"
@@ -408,11 +425,11 @@ export default function FamilyMatchCard({
           </p>
         )}
 
-        {/* TIMELINE - Plain colored text with dot (no pill) */}
-        {timeline && (
-          <p className={`flex items-center gap-1.5 text-[13px] font-medium mb-3 ${timeline.textColor}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${timeline.dotColor}`} />
-            {timeline.label}
+        {/* TIMELINE - "Needs Home Care ASAP" or "Needs care in ~1 month" */}
+        {timelineConfig && timelineLabel && (
+          <p className={`flex items-center gap-1.5 text-[13px] font-medium mb-3 ${timelineConfig.textColor}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${timelineConfig.dotColor}`} />
+            {timelineLabel}
           </p>
         )}
 

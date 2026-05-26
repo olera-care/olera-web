@@ -177,17 +177,17 @@ function calculateCompleteness(family: Profile, meta: FamilyMetadata | null): nu
   return Math.min(100, score);
 }
 
-// Timeline configuration with urgency suffix for dynamic labels
+// Timeline configuration - amber for active needs, gray for exploring
 const TIMELINE_CONFIG: Record<string, { urgency: string; textColor: string; dotColor: string }> = {
-  // New values
-  as_soon_as_possible: { urgency: "ASAP", textColor: "text-red-600", dotColor: "bg-red-500" },
+  // New values - amber for all active needs
+  as_soon_as_possible: { urgency: "ASAP", textColor: "text-amber-600", dotColor: "bg-amber-500" },
   within_a_month: { urgency: "in ~1 month", textColor: "text-amber-600", dotColor: "bg-amber-500" },
-  in_a_few_months: { urgency: "in 2-3 months", textColor: "text-teal-600", dotColor: "bg-teal-500" },
+  in_a_few_months: { urgency: "in 2-3 months", textColor: "text-amber-600", dotColor: "bg-amber-500" },
   just_researching: { urgency: "exploring", textColor: "text-gray-500", dotColor: "bg-gray-400" },
   // Legacy values
-  immediate: { urgency: "ASAP", textColor: "text-red-600", dotColor: "bg-red-500" },
+  immediate: { urgency: "ASAP", textColor: "text-amber-600", dotColor: "bg-amber-500" },
   within_1_month: { urgency: "in ~1 month", textColor: "text-amber-600", dotColor: "bg-amber-500" },
-  within_3_months: { urgency: "in 2-3 months", textColor: "text-teal-600", dotColor: "bg-teal-500" },
+  within_3_months: { urgency: "in 2-3 months", textColor: "text-amber-600", dotColor: "bg-amber-500" },
   exploring: { urgency: "exploring", textColor: "text-gray-500", dotColor: "bg-gray-400" },
 };
 
@@ -235,12 +235,6 @@ function buildCarePhrase(who: { relationship: string; isSelf: boolean } | null, 
   return null;
 }
 
-// Completeness color config - three tiers for visual clarity
-function getCompletenessColors(percent: number): { dot: string; text: string } {
-  if (percent >= 70) return { dot: "#2a7a6e", text: "#2a7a6e" }; // green/teal - good
-  if (percent >= 40) return { dot: "#b86e1a", text: "#b86e1a" }; // amber - partial
-  return { dot: "#9ca3af", text: "#6b7280" }; // gray - minimal
-}
 
 export default function FamilyMatchCard({
   family,
@@ -294,9 +288,6 @@ export default function FamilyMatchCard({
   const completeness = calculateCompleteness(family, meta);
   const cardState: "full" | "partial" =
     completeness >= 60 ? "full" : "partial";
-
-  // Completeness chip colors
-  const completenessColors = getCompletenessColors(completeness);
 
   // Tooltip hover handlers
   const handleTooltipMouseEnter = () => {
@@ -472,17 +463,13 @@ export default function FamilyMatchCard({
             </div>
           )}
 
-          {/* Profile completeness - colored dot with percentage */}
+          {/* Profile completeness - simple gray text, no dot */}
           <div
-            className="relative flex items-center gap-1.5 shrink-0"
+            className="relative shrink-0"
             onMouseEnter={handleTooltipMouseEnter}
             onMouseLeave={handleTooltipMouseLeave}
           >
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: completenessColors.dot }}
-            />
-            <span style={{ color: completenessColors.text }}>
+            <span className="text-gray-500">
               Profile {completeness}%
             </span>
 

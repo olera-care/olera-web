@@ -240,101 +240,48 @@ function buildCarePhrase(who: { relationship: string; isSelf: boolean } | null, 
   return null;
 }
 
-// Generate a rich, personalized description when user hasn't written one
+// Generate a description when user hasn't written one
+// ONLY includes info NOT shown elsewhere (timeline, tags, payment are shown separately)
 function generateDescription(params: {
   name: string;
   who: { relationship: string; isSelf: boolean } | null;
   age: number | undefined;
-  careType: string | null;
-  careNeeds: string[];
   location: string;
-  urgency: string | undefined;
   schedule: string | undefined;
   contactPref: string | undefined;
-  paymentMethods: string[];
 }): string | null {
-  const { name, who, age, careType, careNeeds, location, urgency, schedule, contactPref, paymentMethods } = params;
+  const { name, who, age, location, schedule, contactPref } = params;
 
   // Need at least some meaningful data to generate
-  if (!who && !careType && careNeeds.length === 0 && !location) return null;
+  if (!who && !location && !schedule && !contactPref) return null;
 
   // Use first name for personalization (or skip if generic)
   const firstName = name && name !== "Family" && name.toLowerCase() !== "care seeker"
     ? name.split(" ")[0]
     : null;
 
-  const sentences: string[] = [];
+  const parts: string[] = [];
 
-  // ── First sentence: Name + care type + who + location ──
-  // "Sarah needs Home Care for her 78-year-old parent in Austin, TX."
-  // "Looking for Assisted Living for their spouse in Dallas."
-  let s1 = "";
-
-  if (urgency === "exploring") {
-    // Exploring/researching mode - softer language
-    s1 = firstName ? `${firstName} is researching` : "Researching";
-    s1 += careType ? ` ${careType} options` : " care options";
-    if (who) {
-      s1 += who.isSelf ? " for themselves" : ` for ${firstName ? "their" : "their"} ${who.relationship}`;
-      if (age && !who.isSelf) s1 = s1.replace(who.relationship, `${age}-year-old ${who.relationship}`);
+  // ── Main phrase: Who they're seeking care for ──
+  // "Sarah is seeking care for their 78-year-old parent"
+  // "Seeking care for their spouse"
+  if (who) {
+    let whoPhrase = firstName ? `${firstName} is seeking care` : "Seeking care";
+    if (who.isSelf) {
+      whoPhrase += age ? ` for themselves (age ${age})` : " for themselves";
+    } else {
+      const recipientDesc = age ? `${age}-year-old ${who.relationship}` : who.relationship;
+      whoPhrase += ` for their ${recipientDesc}`;
     }
-    if (location) s1 += ` in ${location}`;
-  } else {
-    // Active need - direct language
-    s1 = firstName ? `${firstName} needs` : "Looking for";
-    s1 += careType ? ` ${careType}` : " care";
-    if (who) {
-      if (who.isSelf) {
-        s1 += age ? ` (age ${age})` : "";
-      } else {
-        const recipientDesc = age ? `${age}-year-old ${who.relationship}` : who.relationship;
-        s1 += ` for ${firstName ? "their" : "their"} ${recipientDesc}`;
-      }
-    }
-    if (location) s1 += ` in ${location}`;
-  }
-  sentences.push(s1 + ".");
-
-  // ── Second sentence: Care needs + timeline ──
-  // "They're looking for help with mobility and companionship, ideally starting ASAP."
-  if (careNeeds.length > 0 || (urgency && urgency !== "exploring")) {
-    let s2Parts: string[] = [];
-
-    if (careNeeds.length > 0) {
-      const needsList = careNeeds.map(n => n.toLowerCase());
-      if (needsList.length === 1) {
-        s2Parts.push(`looking for help with ${needsList[0]}`);
-      } else if (needsList.length === 2) {
-        s2Parts.push(`looking for help with ${needsList[0]} and ${needsList[1]}`);
-      } else {
-        const last = needsList.pop();
-        s2Parts.push(`looking for help with ${needsList.join(", ")}, and ${last}`);
-      }
-    }
-
-    // Add timeline context
-    if (urgency && urgency !== "exploring") {
-      const timelineText = urgency === "ASAP"
-        ? "ideally starting as soon as possible"
-        : `hoping to start ${urgency}`;
-      if (s2Parts.length > 0) {
-        s2Parts.push(timelineText);
-      } else {
-        s2Parts.push(firstName ? `${firstName} is ${timelineText}` : `They're ${timelineText}`);
-      }
-    }
-
-    if (s2Parts.length > 0) {
-      const pronoun = firstName ? "They're" : "They're";
-      const s2 = s2Parts.length === 1
-        ? `${pronoun} ${s2Parts[0]}.`
-        : `${pronoun} ${s2Parts[0]}, ${s2Parts[1]}.`;
-      sentences.push(s2);
-    }
+    if (location) whoPhrase += ` in ${location}`;
+    parts.push(whoPhrase + ".");
+  } else if (location) {
+    // No "who" info, but have location
+    parts.push(firstName ? `${firstName} is based in ${location}.` : `Based in ${location}.`);
   }
 
-  // ── Third sentence: Preferences + payment (if we have them) ──
-  // "Prefers morning hours and can pay via Medicare."
+  // ── Preferences: schedule + contact ──
+  // "Prefers mornings and best reached by calls."
   const prefParts: string[] = [];
 
   if (schedule) {
@@ -347,27 +294,15 @@ function generateDescription(params: {
     prefParts.push(`best reached by ${contactFormatted}`);
   }
 
-  if (paymentMethods.length > 0) {
-    const paymentList = paymentMethods.slice(0, 2); // Max 2 to keep it concise
-    if (paymentList.length === 1) {
-      prefParts.push(`can pay via ${paymentList[0]}`);
-    } else {
-      prefParts.push(`can pay via ${paymentList[0]} or ${paymentList[1]}`);
-    }
-  }
-
   if (prefParts.length > 0) {
-    // Capitalize first letter and join with "and"
-    let s3 = prefParts[0].charAt(0).toUpperCase() + prefParts[0].slice(1);
+    let prefSentence = prefParts[0].charAt(0).toUpperCase() + prefParts[0].slice(1);
     if (prefParts.length === 2) {
-      s3 += ` and ${prefParts[1]}`;
-    } else if (prefParts.length > 2) {
-      s3 += `, ${prefParts.slice(1, -1).join(", ")}, and ${prefParts[prefParts.length - 1]}`;
+      prefSentence += ` and ${prefParts[1]}`;
     }
-    sentences.push(s3 + ".");
+    parts.push(prefSentence + ".");
   }
 
-  return sentences.length > 0 ? sentences.join(" ") : null;
+  return parts.length > 0 ? parts.join(" ") : null;
 }
 
 
@@ -455,22 +390,19 @@ export default function FamilyMatchCard({
   const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient);
   const carePhrase = buildCarePhrase(whoNeedsCare, age);
 
-  // Description: use user's own description, or generate a rich one from metadata
+  // Description: use user's own description, or generate one from metadata
+  // Only includes info NOT shown elsewhere (timeline, tags, payment shown separately)
   const generatedDescription = useMemo(() => {
     if (familyDescription) return null; // Don't generate if user has their own
     return generateDescription({
       name: displayName,
       who: whoNeedsCare,
       age,
-      careType,
-      careNeeds,
       location,
-      urgency: timelineConfig?.urgency,
       schedule: schedulePreference,
       contactPref: contactPreference,
-      paymentMethods,
     });
-  }, [familyDescription, displayName, whoNeedsCare, age, careType, careNeeds, location, timelineConfig?.urgency, schedulePreference, contactPreference, paymentMethods]);
+  }, [familyDescription, displayName, whoNeedsCare, age, location, schedulePreference, contactPreference]);
 
   const displayDescription = familyDescription || generatedDescription;
 

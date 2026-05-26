@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
 import type { Profile } from "@/lib/types";
 
 // Connection data from parent
@@ -160,15 +159,12 @@ function OutreachLink({
   onSendReminder?: (connectionId: string) => void;
   sendingReminderId?: string | null;
 }) {
-  // For now, just display. Later will link to /provider/outreach
+  // For now, just display. Will become a Link to /provider/outreach when that page exists
   return (
     <div>
-      <Link
-        href="/provider/matches"
-        className="text-[14px] text-gray-900 underline underline-offset-2 hover:text-gray-700"
-      >
+      <span className="text-[14px] text-gray-900 font-medium">
         {count} {label}
-      </Link>
+      </span>
       {/* Show items inline if any exist */}
       {items.length > 0 && (
         <div className="mt-2 ml-3 space-y-1.5">

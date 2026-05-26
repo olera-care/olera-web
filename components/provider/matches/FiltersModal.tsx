@@ -26,16 +26,50 @@ const CARE_TYPE_OPTIONS = [
   { value: "hospice", label: "Hospice" },
 ];
 
+// Values must match what QuickProfileWizard stores (after normalization: lowercase + underscores)
+const PAYMENT_OPTIONS = [
+  { value: "private_pay", label: "Private Pay" },
+  { value: "medicaid", label: "Medicaid" },
+  { value: "medicare", label: "Medicare" },
+  { value: "veterans_benefits", label: "Veterans Benefits" },
+  { value: "private_insurance", label: "Private Insurance" },
+];
+
+// Values must match what ProfileEditWizard stores in relationship_to_recipient (exact strings)
+const WHO_NEEDS_CARE_OPTIONS = [
+  { value: "myself", label: "Self" },
+  { value: "my_parent", label: "Parent" },
+  { value: "my_spouse", label: "Spouse" },
+  { value: "someone_else", label: "Other" },
+];
+
+const SCHEDULE_OPTIONS = [
+  { value: "mornings", label: "Mornings" },
+  { value: "afternoons", label: "Afternoons" },
+  { value: "evenings", label: "Evenings" },
+  { value: "overnight", label: "Overnight" },
+  { value: "full_time", label: "Full-time / Live-in" },
+  { value: "flexible", label: "Flexible" },
+];
+
 export interface FiltersState {
   distance: string;
   urgency: string[];
   careTypes: string[];
+  paymentMethods: string[];
+  whoNeedsCare: string[];
+  schedule: string[];
+  profileQuality: "all" | "complete";
 }
 
 export const DEFAULT_FILTERS_STATE: FiltersState = {
   distance: "any",
   urgency: [],
   careTypes: [],
+  paymentMethods: [],
+  whoNeedsCare: [],
+  schedule: [],
+  profileQuality: "all",
 };
 
 interface FiltersModalProps {
@@ -46,6 +80,11 @@ interface FiltersModalProps {
   familyCounts?: {
     byUrgency: Record<string, number>;
     byCareType: Record<string, number>;
+    byPayment: Record<string, number>;
+    byWhoNeedsCare: Record<string, number>;
+    bySchedule: Record<string, number>;
+    completeProfiles: number;
+    totalProfiles: number;
   };
   /** Whether the provider has coordinates for distance filtering. If false, distance filter is hidden. */
   hasProviderCoordinates?: boolean;
@@ -113,6 +152,37 @@ export default function FiltersModal({
     }));
   }, []);
 
+  const handlePaymentToggle = useCallback((value: string) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      paymentMethods: prev.paymentMethods.includes(value)
+        ? prev.paymentMethods.filter((v) => v !== value)
+        : [...prev.paymentMethods, value],
+    }));
+  }, []);
+
+  const handleWhoNeedsCareToggle = useCallback((value: string) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      whoNeedsCare: prev.whoNeedsCare.includes(value)
+        ? prev.whoNeedsCare.filter((v) => v !== value)
+        : [...prev.whoNeedsCare, value],
+    }));
+  }, []);
+
+  const handleScheduleToggle = useCallback((value: string) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      schedule: prev.schedule.includes(value)
+        ? prev.schedule.filter((v) => v !== value)
+        : [...prev.schedule, value],
+    }));
+  }, []);
+
+  const handleProfileQualityChange = useCallback((value: "all" | "complete") => {
+    setLocalFilters((prev) => ({ ...prev, profileQuality: value }));
+  }, []);
+
   const handleClear = useCallback(() => {
     setLocalFilters(DEFAULT_FILTERS_STATE);
   }, []);
@@ -125,7 +195,11 @@ export default function FiltersModal({
   const activeFilterCount =
     (localFilters.distance !== "any" ? 1 : 0) +
     localFilters.urgency.length +
-    localFilters.careTypes.length;
+    localFilters.careTypes.length +
+    localFilters.paymentMethods.length +
+    localFilters.whoNeedsCare.length +
+    localFilters.schedule.length +
+    (localFilters.profileQuality !== "all" ? 1 : 0);
 
   if (!isOpen) return null;
 
@@ -247,6 +321,126 @@ export default function FiltersModal({
                 })}
               </div>
             </FilterSection>
+
+            {/* Payment Methods filter */}
+            <FilterSection title="Payment Method">
+              <div className="space-y-2">
+                {PAYMENT_OPTIONS.map((option) => {
+                  const count = familyCounts?.byPayment?.[option.value] ?? 0;
+                  return (
+                    <label
+                      key={option.value}
+                      className="flex items-center gap-3 cursor-pointer group"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={localFilters.paymentMethods.includes(option.value)}
+                        onChange={() => handlePaymentToggle(option.value)}
+                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      />
+                      <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
+                        {option.label}
+                      </span>
+                      {count > 0 && (
+                        <span className="text-sm text-gray-400">({count})</span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </FilterSection>
+
+            {/* Who Needs Care filter */}
+            <FilterSection title="Who Needs Care">
+              <div className="space-y-2">
+                {WHO_NEEDS_CARE_OPTIONS.map((option) => {
+                  const count = familyCounts?.byWhoNeedsCare?.[option.value] ?? 0;
+                  return (
+                    <label
+                      key={option.value}
+                      className="flex items-center gap-3 cursor-pointer group"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={localFilters.whoNeedsCare.includes(option.value)}
+                        onChange={() => handleWhoNeedsCareToggle(option.value)}
+                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      />
+                      <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
+                        {option.label}
+                      </span>
+                      {count > 0 && (
+                        <span className="text-sm text-gray-400">({count})</span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </FilterSection>
+
+            {/* Schedule filter */}
+            <FilterSection title="Schedule">
+              <div className="space-y-2">
+                {SCHEDULE_OPTIONS.map((option) => {
+                  const count = familyCounts?.bySchedule?.[option.value] ?? 0;
+                  return (
+                    <label
+                      key={option.value}
+                      className="flex items-center gap-3 cursor-pointer group"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={localFilters.schedule.includes(option.value)}
+                        onChange={() => handleScheduleToggle(option.value)}
+                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      />
+                      <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
+                        {option.label}
+                      </span>
+                      {count > 0 && (
+                        <span className="text-sm text-gray-400">({count})</span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </FilterSection>
+
+            {/* Profile Quality filter */}
+            <FilterSection title="Profile Quality">
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="profileQuality"
+                    checked={localFilters.profileQuality === "all"}
+                    onChange={() => handleProfileQualityChange("all")}
+                    className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                  />
+                  <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
+                    All profiles
+                  </span>
+                  {familyCounts?.totalProfiles !== undefined && (
+                    <span className="text-sm text-gray-400">({familyCounts.totalProfiles})</span>
+                  )}
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="profileQuality"
+                    checked={localFilters.profileQuality === "complete"}
+                    onChange={() => handleProfileQualityChange("complete")}
+                    className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                  />
+                  <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
+                    Complete profiles only (80%+)
+                  </span>
+                  {familyCounts?.completeProfiles !== undefined && (
+                    <span className="text-sm text-gray-400">({familyCounts.completeProfiles})</span>
+                  )}
+                </label>
+              </div>
+            </FilterSection>
           </div>
 
           {/* Footer with actions */}
@@ -340,6 +534,10 @@ export function countActiveFilters(filters: FiltersState): number {
   return (
     (filters.distance !== "any" ? 1 : 0) +
     filters.urgency.length +
-    filters.careTypes.length
+    filters.careTypes.length +
+    filters.paymentMethods.length +
+    filters.whoNeedsCare.length +
+    filters.schedule.length +
+    (filters.profileQuality !== "all" ? 1 : 0)
   );
 }

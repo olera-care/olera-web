@@ -266,6 +266,166 @@ function MatchesTabs({
 }
 
 // ---------------------------------------------------------------------------
+// Filter Chips (shows active filters with quick-clear)
+// ---------------------------------------------------------------------------
+
+// Label mappings for filter values
+const FILTER_LABELS: Record<string, Record<string, string>> = {
+  distance: {
+    "25": "Within 25 mi",
+    "50": "Within 50 mi",
+    "100": "Within 100 mi",
+  },
+  urgency: {
+    immediate: "ASAP",
+    within_1_month: "Within 1 month",
+    within_3_months: "Within 3 months",
+    exploring: "Exploring",
+  },
+  careTypes: {
+    home_care: "Home Care",
+    memory_care: "Memory Care",
+    assisted_living: "Assisted Living",
+    nursing_home: "Nursing Home",
+    independent_living: "Independent Living",
+    hospice: "Hospice",
+  },
+  paymentMethods: {
+    private_pay: "Private Pay",
+    medicaid: "Medicaid",
+    medicare: "Medicare",
+    veterans_benefits: "Veterans Benefits",
+    private_insurance: "Private Insurance",
+  },
+  whoNeedsCare: {
+    myself: "Self",
+    my_parent: "Parent",
+    my_spouse: "Spouse",
+    someone_else: "Other",
+  },
+  schedule: {
+    mornings: "Mornings",
+    afternoons: "Afternoons",
+    evenings: "Evenings",
+    overnight: "Overnight",
+    full_time: "Full-time",
+    flexible: "Flexible",
+  },
+  profileQuality: {
+    complete: "Complete profiles",
+  },
+};
+
+function FilterChips({
+  filters,
+  onRemove,
+  onClearAll,
+}: {
+  filters: FiltersState;
+  onRemove: (key: string, value: string) => void;
+  onClearAll: () => void;
+}) {
+  const chips: { key: string; value: string; label: string }[] = [];
+
+  // Distance
+  if (filters.distance !== "any") {
+    chips.push({
+      key: "distance",
+      value: filters.distance,
+      label: FILTER_LABELS.distance[filters.distance] || filters.distance,
+    });
+  }
+
+  // Urgency
+  for (const value of filters.urgency) {
+    chips.push({
+      key: "urgency",
+      value,
+      label: FILTER_LABELS.urgency[value] || value,
+    });
+  }
+
+  // Care Types
+  for (const value of filters.careTypes) {
+    chips.push({
+      key: "careTypes",
+      value,
+      label: FILTER_LABELS.careTypes[value] || value,
+    });
+  }
+
+  // Payment Methods
+  for (const value of filters.paymentMethods) {
+    chips.push({
+      key: "paymentMethods",
+      value,
+      label: FILTER_LABELS.paymentMethods[value] || value,
+    });
+  }
+
+  // Who Needs Care
+  for (const value of filters.whoNeedsCare) {
+    chips.push({
+      key: "whoNeedsCare",
+      value,
+      label: FILTER_LABELS.whoNeedsCare[value] || value,
+    });
+  }
+
+  // Schedule
+  for (const value of filters.schedule) {
+    chips.push({
+      key: "schedule",
+      value,
+      label: FILTER_LABELS.schedule[value] || value,
+    });
+  }
+
+  // Profile Quality
+  if (filters.profileQuality !== "all") {
+    chips.push({
+      key: "profileQuality",
+      value: filters.profileQuality,
+      label: FILTER_LABELS.profileQuality[filters.profileQuality] || filters.profileQuality,
+    });
+  }
+
+  if (chips.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 py-3">
+      {chips.map((chip) => (
+        <span
+          key={`${chip.key}-${chip.value}`}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium text-gray-700 bg-gray-100 rounded-full"
+        >
+          {chip.label}
+          <button
+            type="button"
+            onClick={() => onRemove(chip.key, chip.value)}
+            className="p-0.5 -mr-0.5 text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label={`Remove ${chip.label} filter`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </span>
+      ))}
+      {chips.length > 1 && (
+        <button
+          type="button"
+          onClick={onClearAll}
+          className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          Clear all
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Profile Snapshot Card (Upwork-style sidebar header)
 // ---------------------------------------------------------------------------
 
@@ -828,7 +988,24 @@ export default function ProviderMatchesPage() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [filters, setFilters] = useState<MatchesFilters>(DEFAULT_FILTERS);
-  const [modalFilters, setModalFilters] = useState<FiltersState>(DEFAULT_FILTERS_STATE);
+  const [modalFilters, setModalFilters] = useState<FiltersState>(() => {
+    // Load from localStorage on initial mount
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("olera_matches_filters");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          // Validate the parsed object has expected shape
+          if (parsed && typeof parsed === "object" && "distance" in parsed) {
+            return { ...DEFAULT_FILTERS_STATE, ...parsed };
+          }
+        }
+      } catch {
+        // Ignore parsing errors, use defaults
+      }
+    }
+    return DEFAULT_FILTERS_STATE;
+  });
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<MatchesTab>("best_matches");
 
@@ -1268,25 +1445,76 @@ export default function ProviderMatchesPage() {
     setCurrentPage(1);
   }, [filters, modalFilters, activeTab]);
 
-  // Compute family counts by urgency and care type for filter badges
+  // Persist filter preferences to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("olera_matches_filters", JSON.stringify(modalFilters));
+    } catch {
+      // Ignore storage errors (e.g., quota exceeded, private browsing)
+    }
+  }, [modalFilters]);
+
+  // Compute family counts for filter badges
   const familyCounts = useMemo(() => {
     const nonContactedFamilies = families.filter((f) => !contactedIds.has(f.id));
     const byUrgency: Record<string, number> = {};
     const byCareType: Record<string, number> = {};
+    const byPayment: Record<string, number> = {};
+    const byWhoNeedsCare: Record<string, number> = {};
+    const bySchedule: Record<string, number> = {};
+    let completeProfiles = 0;
 
     for (const family of nonContactedFamilies) {
       const meta = family.metadata as FamilyMetadata;
+
+      // Urgency/Timeline
       const timeline = meta?.timeline || "exploring";
       byUrgency[timeline] = (byUrgency[timeline] || 0) + 1;
 
+      // Care Types
       const careNeeds = meta?.care_needs || family.care_types || [];
       for (const need of careNeeds) {
         const normalized = need.toLowerCase().replace(/[\s-]+/g, "_");
         byCareType[normalized] = (byCareType[normalized] || 0) + 1;
       }
+
+      // Payment Methods
+      const payments = meta?.payment_methods || [];
+      for (const payment of payments) {
+        const normalized = payment.toLowerCase().replace(/[\s-]+/g, "_");
+        byPayment[normalized] = (byPayment[normalized] || 0) + 1;
+      }
+
+      // Who Needs Care (stored in relationship_to_recipient)
+      const relationship = (meta?.relationship_to_recipient || meta?.who_needs_care || "")
+        .toLowerCase()
+        .replace(/[\s-]+/g, "_");
+      if (relationship) {
+        byWhoNeedsCare[relationship] = (byWhoNeedsCare[relationship] || 0) + 1;
+      }
+
+      // Schedule
+      const schedule = meta?.schedule_preference?.toLowerCase() || "";
+      if (schedule) {
+        bySchedule[schedule] = (bySchedule[schedule] || 0) + 1;
+      }
+
+      // Profile completeness (80%+ is "complete")
+      const completeness = meta?.profile_completeness ?? 0;
+      if (completeness >= 80) {
+        completeProfiles++;
+      }
     }
 
-    return { byUrgency, byCareType };
+    return {
+      byUrgency,
+      byCareType,
+      byPayment,
+      byWhoNeedsCare,
+      bySchedule,
+      completeProfiles,
+      totalProfiles: nonContactedFamilies.length,
+    };
   }, [families, contactedIds]);
 
   // Filter + sort families based on active tab and modal filters
@@ -1309,6 +1537,47 @@ export default function ProviderMatchesPage() {
         const careNeeds = meta?.care_needs || f.care_types || [];
         const normalizedNeeds = careNeeds.map((n) => n.toLowerCase().replace(/[\s-]+/g, "_"));
         return modalFilters.careTypes.some((ct) => normalizedNeeds.includes(ct));
+      });
+    }
+
+    // Apply modal filters: payment methods
+    if (modalFilters.paymentMethods.length > 0) {
+      result = result.filter((f) => {
+        const meta = f.metadata as FamilyMetadata;
+        const payments = meta?.payment_methods || [];
+        const normalizedPayments = payments.map((p) => p.toLowerCase().replace(/[\s-]+/g, "_"));
+        return modalFilters.paymentMethods.some((pm) => normalizedPayments.includes(pm));
+      });
+    }
+
+    // Apply modal filters: who needs care (stored in relationship_to_recipient)
+    if (modalFilters.whoNeedsCare.length > 0) {
+      result = result.filter((f) => {
+        const meta = f.metadata as FamilyMetadata;
+        // Data is stored as "Myself", "My parent", "My spouse", "Someone else"
+        // Normalize to lowercase with underscores: "myself", "my_parent", "my_spouse", "someone_else"
+        const relationship = (meta?.relationship_to_recipient || meta?.who_needs_care || "")
+          .toLowerCase()
+          .replace(/[\s-]+/g, "_");
+        return modalFilters.whoNeedsCare.includes(relationship);
+      });
+    }
+
+    // Apply modal filters: schedule
+    if (modalFilters.schedule.length > 0) {
+      result = result.filter((f) => {
+        const meta = f.metadata as FamilyMetadata;
+        const schedule = meta?.schedule_preference?.toLowerCase() || "";
+        return modalFilters.schedule.includes(schedule);
+      });
+    }
+
+    // Apply modal filters: profile quality
+    if (modalFilters.profileQuality === "complete") {
+      result = result.filter((f) => {
+        const meta = f.metadata as FamilyMetadata;
+        const completeness = meta?.profile_completeness ?? 0;
+        return completeness >= 80;
       });
     }
 
@@ -1457,6 +1726,26 @@ export default function ProviderMatchesPage() {
             activeFilterCount={countActiveFilters(modalFilters)}
             onFiltersClick={() => setIsFiltersModalOpen(true)}
           />
+
+          {/* Active filter chips */}
+          {countActiveFilters(modalFilters) > 0 && (
+            <FilterChips
+              filters={modalFilters}
+              onRemove={(key, value) => {
+                if (key === "distance") {
+                  setModalFilters((prev) => ({ ...prev, distance: "any" }));
+                } else if (key === "profileQuality") {
+                  setModalFilters((prev) => ({ ...prev, profileQuality: "all" }));
+                } else {
+                  setModalFilters((prev) => ({
+                    ...prev,
+                    [key]: (prev[key as keyof typeof prev] as string[]).filter((v) => v !== value),
+                  }));
+                }
+              }}
+              onClearAll={() => setModalFilters(DEFAULT_FILTERS_STATE)}
+            />
+          )}
 
           {/* Content based on active tab */}
           {families.length === 0 ? (

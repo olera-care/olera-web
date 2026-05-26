@@ -24,33 +24,6 @@ interface MyOutreachProps {
   sendingReminderId?: string | null;
 }
 
-// Avatar colors matching sidebar
-const AVATAR_COLORS = [
-  { bg: "#d4ede7", text: "#1a6055" },
-  { bg: "#fce5d8", text: "#a04020" },
-  { bg: "#e0ddf4", text: "#4838a0" },
-  { bg: "#fcdede", text: "#982828" },
-];
-
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return name.slice(0, 2).toUpperCase();
-}
-
-function timeAgo(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diffMs = now - then;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-  return `${Math.floor(diffDays / 30)}mo ago`;
-}
-
 // Check if reminder can be sent (48 hours since initial outreach, no reminder sent yet)
 function canSendReminder(conn: ConnectionInfo, reminderSentIds: Set<string>): boolean {
   if (conn.status !== "pending") return false;
@@ -144,37 +117,26 @@ export default function MyOutreach({
         style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-gray-100">
-            {/* Outreach list - always show categories (Upwork pattern) */}
-            <div className="max-h-[320px] overflow-y-auto">
-              {/* Pending section - always visible */}
-              <OutreachSection
-                title="Pending"
-                count={pendingItems.length}
-                items={pendingItems}
-                emptyText="No pending outreach"
-                reminderSentIds={reminderSentIds}
-                onSendReminder={onSendReminder}
-                sendingReminderId={sendingReminderId}
-              />
-
-              {/* Connected section - always visible */}
-              <OutreachSection
-                title="Connected"
-                count={activeItems.length}
-                items={activeItems}
-                emptyText="No connections yet"
-              />
-
-              {/* Declined section - always visible */}
-              <OutreachSection
-                title="Declined"
-                count={archivedItems.length}
-                items={archivedItems}
-                emptyText="None"
-                muted
-              />
-            </div>
+          <div className="border-t border-gray-100 px-5 py-4 space-y-2">
+            {/* Upwork-style: "X pending outreach" as underlined clickable links */}
+            <OutreachLink
+              count={pendingItems.length}
+              label="pending outreach"
+              items={pendingItems}
+              reminderSentIds={reminderSentIds}
+              onSendReminder={onSendReminder}
+              sendingReminderId={sendingReminderId}
+            />
+            <OutreachLink
+              count={activeItems.length}
+              label="connected"
+              items={activeItems}
+            />
+            <OutreachLink
+              count={archivedItems.length}
+              label="declined"
+              items={archivedItems}
+            />
           </div>
         </div>
       </div>
@@ -182,136 +144,57 @@ export default function MyOutreach({
   );
 }
 
-// Section within outreach list
-function OutreachSection({
-  title,
+// Upwork-style link: "X pending outreach" (underlined, clickable)
+function OutreachLink({
   count,
+  label,
   items,
-  emptyText,
-  muted = false,
   reminderSentIds,
   onSendReminder,
   sendingReminderId,
 }: {
-  title: string;
   count: number;
+  label: string;
   items: Array<{ family: Profile; connection: ConnectionInfo }>;
-  emptyText: string;
-  muted?: boolean;
   reminderSentIds?: Set<string>;
   onSendReminder?: (connectionId: string) => void;
   sendingReminderId?: string | null;
 }) {
+  // For now, just display. Later will link to /provider/outreach
   return (
-    <div className={muted ? "opacity-60" : ""}>
-      <div className="px-5 py-2.5 bg-gray-50/30 border-b border-gray-100 flex items-center justify-between">
-        <span className="text-[11px] font-semibold text-gray-500">{title}</span>
-        <span className="text-[11px] font-medium text-gray-400">{count}</span>
-      </div>
-      {items.length > 0 ? (
-        <div className="divide-y divide-gray-50">
-          {items.map(({ family, connection }, index) => (
-            <OutreachItem
-              key={connection.id}
-              family={family}
-              connection={connection}
-              colorIndex={index}
-              reminderSentIds={reminderSentIds}
-              onSendReminder={onSendReminder}
-              sendingReminderId={sendingReminderId}
-            />
+    <div>
+      <Link
+        href="/provider/matches"
+        className="text-[14px] text-gray-900 underline underline-offset-2 hover:text-gray-700"
+      >
+        {count} {label}
+      </Link>
+      {/* Show items inline if any exist */}
+      {items.length > 0 && (
+        <div className="mt-2 ml-3 space-y-1.5">
+          {items.slice(0, 3).map(({ family, connection }) => (
+            <div key={connection.id} className="flex items-center gap-2 text-[13px]">
+              <span className="text-gray-600 truncate max-w-[180px]">
+                {family.display_name || "Family"}
+              </span>
+              {label === "pending outreach" && canSendReminder(connection, reminderSentIds || new Set()) && onSendReminder && (
+                <button
+                  type="button"
+                  onClick={() => onSendReminder(connection.id)}
+                  disabled={sendingReminderId === connection.id}
+                  className="text-[11px] text-primary-600 hover:text-primary-700 disabled:opacity-50"
+                >
+                  {sendingReminderId === connection.id ? "..." : "Nudge"}
+                </button>
+              )}
+            </div>
           ))}
-        </div>
-      ) : (
-        <div className="px-5 py-3">
-          <p className="text-[12px] text-gray-400 italic">{emptyText}</p>
+          {items.length > 3 && (
+            <p className="text-[12px] text-gray-400">+{items.length - 3} more</p>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-// Individual outreach item
-function OutreachItem({
-  family,
-  connection,
-  colorIndex,
-  reminderSentIds,
-  onSendReminder,
-  sendingReminderId,
-}: {
-  family: Profile;
-  connection: ConnectionInfo;
-  colorIndex: number;
-  reminderSentIds?: Set<string>;
-  onSendReminder?: (connectionId: string) => void;
-  sendingReminderId?: string | null;
-}) {
-  const colors = AVATAR_COLORS[colorIndex % AVATAR_COLORS.length];
-  const canRemind = canSendReminder(connection, reminderSentIds || new Set());
-  const isSendingReminder = sendingReminderId === connection.id;
-  const wasNudged = reminderSentIds?.has(connection.id) || connection.reminder_sent;
-
-  return (
-    <div className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/50 transition-colors">
-      {/* Avatar */}
-      <div
-        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
-        style={{ backgroundColor: colors.bg, color: colors.text }}
-      >
-        {getInitials(family.display_name || "?")}
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium text-gray-900 truncate">
-          {family.display_name || "Family"}
-        </p>
-        <p className="text-[11px] text-gray-400">
-          {timeAgo(connection.created_at)}
-          {connection.status === "accepted" && connection.replied_at && (
-            <> · Replied {timeAgo(connection.replied_at)}</>
-          )}
-        </p>
-      </div>
-
-      {/* Status badge / Actions */}
-      <div className="flex items-center gap-2 shrink-0">
-        {connection.status === "pending" && (
-          <>
-            {canRemind && onSendReminder ? (
-              <button
-                type="button"
-                onClick={() => onSendReminder(connection.id)}
-                disabled={isSendingReminder}
-                className="text-[11px] font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50"
-              >
-                {isSendingReminder ? "Sending..." : "Nudge"}
-              </button>
-            ) : wasNudged ? (
-              <span className="text-[10px] text-gray-400">Nudged</span>
-            ) : null}
-            <span className="px-2 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 rounded-full">
-              Pending
-            </span>
-          </>
-        )}
-
-        {connection.status === "accepted" && (
-          <Link
-            href="/provider/connections"
-            className="px-2 py-0.5 text-[10px] font-medium text-green-700 bg-green-50 rounded-full hover:bg-green-100 transition-colors"
-          >
-            View
-          </Link>
-        )}
-
-        {connection.status === "declined" && (
-          <span className="px-2 py-0.5 text-[10px] font-medium text-gray-500 bg-gray-100 rounded-full">
-            Declined
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}

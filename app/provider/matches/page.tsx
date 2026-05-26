@@ -797,6 +797,12 @@ export default function ProviderMatchesPage() {
     return meta?.accepted_payments || [];
   }, [providerProfile]);
 
+  // Memoize connections count to avoid recomputing in multiple places
+  const connectionsCount = useMemo(
+    () => Array.from(connectionData.values()).filter((c) => c.status === "accepted").length,
+    [connectionData]
+  );
+
   const profileId = providerProfile?.id;
 
   // ── Drawer handlers ──
@@ -1470,11 +1476,11 @@ export default function ProviderMatchesPage() {
                 {contactedIds.size}
               </span>
               <span className="text-gray-500">outreach</span>
-              {Array.from(connectionData.values()).filter((c) => c.status === "accepted").length > 0 && (
+              {connectionsCount > 0 && (
                 <>
                   <span className="text-gray-300">·</span>
                   <span className="font-semibold text-green-600">
-                    {Array.from(connectionData.values()).filter((c) => c.status === "accepted").length}
+                    {connectionsCount}
                   </span>
                   <span className="text-gray-500">connected</span>
                 </>
@@ -1633,7 +1639,7 @@ export default function ProviderMatchesPage() {
             <ActivitySummary
               totalFamilies={families.length}
               outreachSent={contactedIds.size}
-              connections={Array.from(connectionData.values()).filter((c) => c.status === "accepted").length}
+              connections={connectionsCount}
             />
 
             {/* My Outreach - tracking sent messages */}

@@ -619,335 +619,50 @@ function MatchesEmptyState() {
 }
 
 // ---------------------------------------------------------------------------
-// Matches Sidebar (sticky — mirrors dashboard completeness sidebar)
+// How It Works Accordion
 // ---------------------------------------------------------------------------
 
-// Avatar colors by position
-const AVATAR_COLORS = [
-  { bg: "#d4ede7", text: "#1a6055" }, // green
-  { bg: "#fce5d8", text: "#a04020" }, // orange
-  { bg: "#e0ddf4", text: "#4838a0" }, // purple
-  { bg: "#fcdede", text: "#982828" }, // red
-];
-
-function getInitialsForSidebar(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return name.slice(0, 2).toUpperCase();
-}
-
-function MatchesSidebar({
-  families,
-  contactedIds,
-  providerLocation,
-}: {
-  families: Profile[];
-  contactedIds: Set<string>;
-  providerLocation: string | null;
-}) {
-  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
-
-  // Calculate counts
-  const totalFamilies = families.length;
-  const contactedCount = contactedIds.size;
-  const remainingFamilies = totalFamilies - contactedCount;
-
-  // Determine state
-  const isZeroOutreach = contactedCount === 0;
-  const isActive = contactedCount > 0;
-
-  // Get families for avatar display (up to 4 + overflow)
-  const displayFamilies = families.slice(0, 4);
-  const overflowCount = Math.max(0, totalFamilies - 4);
+function HowItWorks() {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="space-y-3">
-      {/* ── Main sidebar card ── */}
-      <div className="rounded-2xl border border-gray-100 overflow-hidden bg-white">
-        <div className="p-5">
-          {/* ── STATE 1: ZERO OUTREACH ── */}
-          {isZeroOutreach && totalFamilies > 0 && (
-            <>
-              {/* Full Access header */}
-              <div className="flex items-center gap-1.5 mb-5">
-                <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-                <span className="text-[10.5px] font-bold text-primary-600 uppercase tracking-wide">
-                  Full Access {providerLocation && `· ${providerLocation}`}
-                </span>
-              </div>
-
-              {/* Avatar stack - all bright */}
-              <div className="flex items-center mb-4">
-                {displayFamilies.map((family, index) => (
-                  <div
-                    key={family.id}
-                    className="relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-[2.5px] border-white"
-                    style={{
-                      backgroundColor: AVATAR_COLORS[index % AVATAR_COLORS.length].bg,
-                      color: AVATAR_COLORS[index % AVATAR_COLORS.length].text,
-                      marginRight: index < displayFamilies.length - 1 || overflowCount > 0 ? "-10px" : "0",
-                      zIndex: displayFamilies.length - index,
-                    }}
-                  >
-                    {getInitialsForSidebar(family.display_name || "?")}
-                  </div>
-                ))}
-                {overflowCount > 0 && (
-                  <div
-                    className="relative w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold border-[2.5px] border-white bg-gray-100 text-gray-500"
-                    style={{ zIndex: 0 }}
-                  >
-                    +{overflowCount}
-                  </div>
-                )}
-              </div>
-
-              {/* Family count */}
-              <p className="text-[22px] font-display font-bold text-gray-900 leading-tight">
-                {totalFamilies} {totalFamilies === 1 ? "family" : "families"}
-              </p>
-              <p className="text-[14px] text-gray-500 mt-0.5">
-                haven&apos;t heard from you yet.
-              </p>
-
-              {/* Tip section */}
-              <div className="mt-5 pt-4 border-t border-gray-100">
-                <div className="flex items-start gap-2">
-                  <span className="text-base">💡</span>
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Tip</p>
-                    <p className="text-[13px] text-gray-600 leading-relaxed">
-                      First to reach out is 3× more likely to be chosen.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* ── STATE 2: ACTIVE (reached out to some) ── */}
-          {isActive && totalFamilies > 0 && (
-            <>
-              {/* Full Access header */}
-              <div className="flex items-center gap-1.5 mb-5">
-                <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-                <span className="text-[10.5px] font-bold text-primary-600 uppercase tracking-wide">
-                  Full Access {providerLocation && `· ${providerLocation}`}
-                </span>
-              </div>
-
-              {/* Avatar stack - contacted are dimmed with checkmark */}
-              <div className="flex items-center mb-4">
-                {displayFamilies.map((family, index) => {
-                  const isContacted = contactedIds.has(family.id);
-                  return (
-                    <div
-                      key={family.id}
-                      className="relative"
-                      style={{
-                        marginRight: index < displayFamilies.length - 1 || overflowCount > 0 ? "-10px" : "0",
-                        zIndex: displayFamilies.length - index,
-                      }}
-                    >
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-[2.5px] border-white transition-opacity"
-                        style={{
-                          backgroundColor: AVATAR_COLORS[index % AVATAR_COLORS.length].bg,
-                          color: AVATAR_COLORS[index % AVATAR_COLORS.length].text,
-                          opacity: isContacted ? 0.3 : 1,
-                        }}
-                      >
-                        {getInitialsForSidebar(family.display_name || "?")}
-                      </div>
-                      {/* Checkmark badge for contacted */}
-                      {isContacted && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-primary-500 flex items-center justify-center">
-                          <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                {overflowCount > 0 && (
-                  <div
-                    className="relative w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold border-[2.5px] border-white bg-gray-100 text-gray-500"
-                    style={{ zIndex: 0 }}
-                  >
-                    +{overflowCount}
-                  </div>
-                )}
-              </div>
-
-              {/* Remaining family count */}
-              <p className="text-[22px] font-display font-bold text-gray-900 leading-tight">
-                {remainingFamilies} {remainingFamilies === 1 ? "family" : "families"}
-              </p>
-              <p className="text-[14px] text-gray-500 mt-0.5">
-                haven&apos;t heard from you yet.
-              </p>
-            </>
-          )}
-
-          {/* ── ALL CAUGHT UP (no families) ── */}
-          {totalFamilies === 0 && (
-            <>
-              {/* Full Access header */}
-              <div className="flex items-center gap-1.5 mb-5">
-                <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-                <span className="text-[10.5px] font-bold text-primary-600 uppercase tracking-wide">
-                  Full Access {providerLocation && `· ${providerLocation}`}
-                </span>
-              </div>
-
-              {/* Checkmark circle */}
-              <div className="flex justify-center mb-4">
-                <div className="w-14 h-14 rounded-full bg-primary-50/60 flex items-center justify-center">
-                  <svg className="w-7 h-7 text-primary-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                </div>
-              </div>
-
-              <h3 className="text-lg font-display font-bold text-gray-900 text-center">
-                You&apos;re all caught up
-              </h3>
-              <p className="text-[13px] text-gray-400 text-center mt-2 leading-relaxed">
-                No new families waiting. We&apos;ll notify you when someone&apos;s looking for care in your area.
-              </p>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════════════════
-         STATE 3: FREE PLAN (commented out — enable when subscriptions launch)
-         ══════════════════════════════════════════════════════════════════════
-
-      {isFreeTier && (
-        <div className="rounded-2xl border border-gray-100 overflow-hidden bg-white">
-          <div className="p-5">
-            {/* Free Plan header *}
-            <div className="flex items-center gap-1.5 mb-5">
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
-              <span className="text-[10.5px] font-bold text-amber-600 uppercase tracking-wide">
-                Free Plan {providerLocation && `· ${providerLocation}`}
-              </span>
-            </div>
-
-            {/* Avatar stack - 3 bright, 1 blurred, dashed overflow *}
-            <div className="flex items-center mb-4">
-              {displayFamilies.slice(0, 3).map((family, index) => (
-                <div
-                  key={family.id}
-                  className="relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-[2.5px] border-white"
-                  style={{
-                    backgroundColor: AVATAR_COLORS[index % AVATAR_COLORS.length].bg,
-                    color: AVATAR_COLORS[index % AVATAR_COLORS.length].text,
-                    marginRight: "-10px",
-                    zIndex: 4 - index,
-                  }}
-                >
-                  {getInitialsForSidebar(family.display_name || "?")}
-                </div>
-              ))}
-              {/* Blurred avatar *}
-              {displayFamilies[3] && (
-                <div
-                  className="relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-[2.5px] border-white"
-                  style={{
-                    backgroundColor: AVATAR_COLORS[3].bg,
-                    color: AVATAR_COLORS[3].text,
-                    marginRight: "-10px",
-                    zIndex: 1,
-                    opacity: 0.25,
-                    filter: "blur(2px)",
-                  }}
-                >
-                  {getInitialsForSidebar(displayFamilies[3].display_name || "?")}
-                </div>
-              )}
-              {/* Dashed overflow *}
-              {overflowCount > 0 && (
-                <div
-                  className="relative w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold bg-gray-50 text-gray-400"
-                  style={{
-                    zIndex: 0,
-                    border: "2px dashed #d1d5db",
-                  }}
-                >
-                  +{overflowCount}
-                </div>
-              )}
-            </div>
-
-            {/* Family count *}
-            <p className="text-[22px] font-display font-bold text-gray-900 leading-tight">
-              {totalFamilies} families
-            </p>
-            <p className="text-[14px] text-gray-500 mt-0.5 leading-relaxed">
-              in your area. You can reach <span className="font-semibold">{FREE_CONNECTION_LIMIT} per month</span> on the free plan.
-            </p>
-
-            {/* Upgrade CTA *}
-            <Link
-              href="/provider/pro"
-              className="flex items-center justify-center w-full mt-5 py-3 rounded-xl bg-primary-500 text-white text-[14px] font-semibold hover:bg-primary-600 transition-colors"
-            >
-              Unlock all {totalFamilies} families
-            </Link>
-          </div>
-        </div>
-      )}
-
-      ══════════════════════════════════════════════════════════════════════ */}
-
-      {/* ── How It Works accordion ── */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setHowItWorksOpen(!howItWorksOpen)}
-          className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-warm-50/30 transition-colors"
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50/50 transition-colors"
+      >
+        <span className="text-[15px] font-semibold text-gray-900">How it works</span>
+        <svg
+          className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+          fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
         >
-          <span className="text-[13px] font-semibold text-gray-500">How it works</span>
-          <svg
-            className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${howItWorksOpen ? "rotate-180" : ""}`}
-            fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
-        <div
-          className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]"
-          style={{ gridTemplateRows: howItWorksOpen ? "1fr" : "0fr" }}
-        >
-          <div className="overflow-hidden">
-            <div className="px-5 pb-5 space-y-4 border-t border-warm-100/60 pt-4">
-              {[
-                { num: 1, bold: "Send a note", rest: "explaining why you\u2019re a good fit" },
-                { num: 2, bold: "Family reviews", rest: "your profile and message" },
-                { num: 3, bold: "If they reply,", rest: "you\u2019re connected" },
-              ].map((step) => (
-                <div key={step.num} className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-warm-100/70 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-[12px] font-bold text-gray-500">{step.num}</span>
-                  </div>
-                  <p className="text-[13px] text-gray-500 leading-relaxed">
-                    <span className="font-semibold text-gray-700">{step.bold}</span> {step.rest}
-                  </p>
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]"
+        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          <div className="px-5 pb-5 space-y-4 border-t border-gray-100 pt-4">
+            {[
+              { num: 1, bold: "Send a note", rest: "explaining why you're a good fit" },
+              { num: 2, bold: "Family reviews", rest: "your profile and message" },
+              { num: 3, bold: "If they reply,", rest: "you're connected" },
+            ].map((step) => (
+              <div key={step.num} className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-[12px] font-bold text-gray-500">{step.num}</span>
                 </div>
-              ))}
-              <p className="text-[12px] text-gray-400 leading-relaxed pt-2 border-t border-warm-100/60">
-                Families choose the first provider who responds.
-              </p>
-            </div>
+                <p className="text-[14px] text-gray-600 leading-relaxed">
+                  <span className="font-semibold text-gray-900">{step.bold}</span> {step.rest}
+                </p>
+              </div>
+            ))}
+            <p className="text-[13px] text-gray-400 leading-relaxed pt-3 border-t border-gray-100">
+              Families choose the first provider who responds.
+            </p>
           </div>
         </div>
       </div>
@@ -1691,10 +1406,6 @@ export default function ProviderMatchesPage() {
     }).length;
   }, [families]);
 
-  const providerLocation = providerProfile
-    ? [providerProfile.city, providerProfile.state].filter(Boolean).join(", ") || null
-    : null;
-
   if (!providerProfile || loading) {
     return <MatchesSkeleton />;
   }
@@ -1913,12 +1624,8 @@ export default function ProviderMatchesPage() {
               sendingReminderId={sendingReminderId}
             />
 
-            {/* Membership / Access Card + How it works */}
-            <MatchesSidebar
-              families={families}
-              contactedIds={contactedIds}
-              providerLocation={providerLocation}
-            />
+            {/* How it works */}
+            <HowItWorks />
           </div>
         </div>
       </div>

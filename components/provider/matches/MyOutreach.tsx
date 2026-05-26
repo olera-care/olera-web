@@ -116,26 +116,22 @@ export default function MyOutreach({
 
   const totalCount = outreachItems.length;
 
-  // Don't render if no outreach yet
-  if (totalCount === 0) return null;
-
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
       {/* Header - always visible */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-warm-50/30 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50/50 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-          </svg>
-          <span className="text-[13px] font-semibold text-gray-700">My Outreach</span>
-          <span className="text-[12px] font-medium text-gray-400">({totalCount})</span>
+          <span className="text-[15px] font-semibold text-gray-900">My Outreach</span>
+          {totalCount > 0 && (
+            <span className="text-[13px] font-medium text-gray-400">({totalCount})</span>
+          )}
         </div>
         <svg
-          className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+          className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
           fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -149,55 +145,68 @@ export default function MyOutreach({
       >
         <div className="overflow-hidden">
           <div className="border-t border-gray-100">
-            {/* Status summary row */}
-            <div className="flex items-center gap-4 px-5 py-3 bg-gray-50/50 text-[12px]">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-400" />
-                <span className="text-gray-500">Pending</span>
-                <span className="font-semibold text-gray-700">{pendingItems.length}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-green-400" />
-                <span className="text-gray-500">Connected</span>
-                <span className="font-semibold text-gray-700">{activeItems.length}</span>
-              </div>
-              {archivedItems.length > 0 && (
+            {/* Status summary row - only show when there's outreach */}
+            {totalCount > 0 && (
+              <div className="flex items-center gap-4 px-5 py-3 bg-gray-50/50 text-[12px]">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-gray-300" />
-                  <span className="text-gray-500">Declined</span>
-                  <span className="font-semibold text-gray-700">{archivedItems.length}</span>
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span className="text-gray-500">Pending</span>
+                  <span className="font-semibold text-gray-700">{pendingItems.length}</span>
                 </div>
-              )}
-            </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-green-400" />
+                  <span className="text-gray-500">Connected</span>
+                  <span className="font-semibold text-gray-700">{activeItems.length}</span>
+                </div>
+                {archivedItems.length > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-gray-300" />
+                    <span className="text-gray-500">Declined</span>
+                    <span className="font-semibold text-gray-700">{archivedItems.length}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Outreach list */}
             <div className="max-h-[320px] overflow-y-auto">
-              {/* Pending section */}
-              {pendingItems.length > 0 && (
-                <OutreachSection
-                  title="Awaiting Response"
-                  items={pendingItems}
-                  reminderSentIds={reminderSentIds}
-                  onSendReminder={onSendReminder}
-                  sendingReminderId={sendingReminderId}
-                />
-              )}
+              {totalCount === 0 ? (
+                /* Empty state */
+                <div className="px-5 py-6 text-center">
+                  <p className="text-[13px] text-gray-500">
+                    No outreach yet. Send a note to families to get started.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Pending section */}
+                  {pendingItems.length > 0 && (
+                    <OutreachSection
+                      title="Awaiting Response"
+                      items={pendingItems}
+                      reminderSentIds={reminderSentIds}
+                      onSendReminder={onSendReminder}
+                      sendingReminderId={sendingReminderId}
+                    />
+                  )}
 
-              {/* Active/Connected section */}
-              {activeItems.length > 0 && (
-                <OutreachSection
-                  title="Connected"
-                  items={activeItems}
-                />
-              )}
+                  {/* Active/Connected section */}
+                  {activeItems.length > 0 && (
+                    <OutreachSection
+                      title="Connected"
+                      items={activeItems}
+                    />
+                  )}
 
-              {/* Archived/Declined section */}
-              {archivedItems.length > 0 && (
-                <OutreachSection
-                  title="Not a Match"
-                  items={archivedItems}
-                  muted
-                />
+                  {/* Archived/Declined section */}
+                  {archivedItems.length > 0 && (
+                    <OutreachSection
+                      title="Not a Match"
+                      items={archivedItems}
+                      muted
+                    />
+                  )}
+                </>
               )}
             </div>
           </div>

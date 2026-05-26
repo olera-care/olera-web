@@ -191,16 +191,39 @@ const TIMELINE_CONFIG: Record<string, { label: string; textColor: string; dotCol
   exploring: { label: "Just exploring", textColor: "text-gray-500", dotColor: "bg-gray-400" },
 };
 
-// Who needs care display
-function formatWhoNeedsCare(value: string | undefined): string | null {
+// Who needs care - returns relationship label for conversational format
+function formatWhoNeedsCare(value: string | undefined): { relationship: string; isSelf: boolean } | null {
   if (!value) return null;
-  const mapping: Record<string, string> = {
-    myself: "For themselves",
-    my_parent: "For a parent",
-    my_spouse: "For a spouse",
-    someone_else: "For someone",
+  const mapping: Record<string, { relationship: string; isSelf: boolean }> = {
+    // Enrichment flow values (current)
+    self: { relationship: "themselves", isSelf: true },
+    parent: { relationship: "parent", isSelf: false },
+    spouse: { relationship: "spouse", isSelf: false },
+    other: { relationship: "someone", isSelf: false },
+    // Legacy values (older profiles)
+    myself: { relationship: "themselves", isSelf: true },
+    my_parent: { relationship: "parent", isSelf: false },
+    my_spouse: { relationship: "spouse", isSelf: false },
+    someone_else: { relationship: "someone", isSelf: false },
   };
   return mapping[value] || null;
+}
+
+// Build conversational care seeking phrase
+function buildCarePhrase(who: { relationship: string; isSelf: boolean } | null, age: number | undefined): string | null {
+  if (!who && !age) return null;
+
+  if (who?.isSelf) {
+    // "Seeking care for themselves, age 34"
+    return age ? `Seeking care for themselves, age ${age}` : "Seeking care for themselves";
+  } else if (who) {
+    // "Seeking care for their 78-year-old parent"
+    return age ? `Seeking care for their ${age}-year-old ${who.relationship}` : `Seeking care for their ${who.relationship}`;
+  } else if (age) {
+    // Just age, no relationship
+    return `Age ${age}`;
+  }
+  return null;
 }
 
 // Completeness color config - three tiers for visual clarity
@@ -285,8 +308,9 @@ export default function FamilyMatchCard({
     );
   }, [careNeeds, providerCareTypes]);
 
-  // Who needs care display
+  // Who needs care - conversational format
   const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient);
+  const carePhrase = buildCarePhrase(whoNeedsCare, age);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -358,15 +382,13 @@ export default function FamilyMatchCard({
           </div>
         </div>
 
-        {/* INLINE SPECS - Age, who needs care, preferences */}
-        {(whoNeedsCare || age || contactPreference || schedulePreference) && (
-          <p className="text-[13px] sm:text-sm text-gray-500 mb-4 leading-relaxed">
-            {whoNeedsCare && <span>{whoNeedsCare}</span>}
-            {whoNeedsCare && age && <span className="text-gray-400"> - </span>}
-            {age && <span>Age {age}</span>}
-            {(whoNeedsCare || age) && (contactPreference || schedulePreference) && <span className="text-gray-400"> - </span>}
+        {/* INLINE SPECS - Conversational format */}
+        {(carePhrase || contactPreference || schedulePreference) && (
+          <p className="text-[13px] sm:text-sm text-gray-600 mb-4 leading-relaxed">
+            {carePhrase && <span>{carePhrase}</span>}
+            {carePhrase && (contactPreference || schedulePreference) && <span className="text-gray-400"> · </span>}
             {contactPreference && <span>Prefers {formatContactPref(contactPreference)}</span>}
-            {contactPreference && schedulePreference && <span className="text-gray-400">, </span>}
+            {contactPreference && schedulePreference && <span className="text-gray-400"> · </span>}
             {schedulePreference && <span>{formatSchedulePref(schedulePreference)}</span>}
           </p>
         )}
@@ -416,11 +438,26 @@ export default function FamilyMatchCard({
           </div>
         )}
 
-        {/* TRUST SIGNALS - Clean bottom row */}
-        <div className="flex items-center justify-between text-[13px] pt-3 border-t border-gray-100">
+        {/* TRUST SIGNALS - Stacked on mobile, side by side on desktop */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-[13px] pt-3 border-t border-gray-100">
+          {/* Payment methods - scrollable, shown first on mobile */}
+          {paymentMethods.length > 0 && (
+            <div className="flex items-center gap-1.5 min-w-0 order-first sm:order-last">
+              <span className="text-gray-500 shrink-0">Can pay via</span>
+              <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+                {paymentMethods.map((method, i) => (
+                  <span key={method} className="text-gray-700 font-medium whitespace-nowrap shrink-0">
+                    {i > 0 && <span className="text-gray-400 mr-1">·</span>}
+                    {method}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Profile completeness - colored dot with percentage */}
           <div
-            className="relative flex items-center gap-1.5"
+            className="relative flex items-center gap-1.5 shrink-0"
             onMouseEnter={handleTooltipMouseEnter}
             onMouseLeave={handleTooltipMouseLeave}
           >
@@ -494,13 +531,6 @@ export default function FamilyMatchCard({
               </div>
             )}
           </div>
-
-          {/* Payment methods - plain text */}
-          {paymentMethods.length > 0 && (
-            <span className="text-gray-500 truncate ml-4">
-              Pays: {paymentMethods.join(", ")}
-            </span>
-          )}
         </div>
       </div>
 

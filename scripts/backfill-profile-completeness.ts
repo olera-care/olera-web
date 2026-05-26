@@ -5,8 +5,9 @@
  * - Published before this feature was added
  * - Are fully complete (100%) and don't receive nudges
  *
- * Run with: npx ts-node scripts/backfill-profile-completeness.ts
- * Or: npx tsx scripts/backfill-profile-completeness.ts
+ * Run with:
+ *   npx tsx scripts/backfill-profile-completeness.ts --dry-run   # Preview changes
+ *   npx tsx scripts/backfill-profile-completeness.ts             # Apply changes
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -25,6 +26,9 @@ if (!supabaseUrl || !supabaseServiceKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+// Parse command line arguments
+const isDryRun = process.argv.includes("--dry-run");
 
 /**
  * Calculate family profile completeness - same logic as lib/admin/profile-completeness.ts
@@ -77,6 +81,9 @@ function calculateFamilyCompleteness(
 }
 
 async function main() {
+  if (isDryRun) {
+    console.log("🔍 DRY RUN MODE - No changes will be made\n");
+  }
   console.log("🔍 Fetching published families...\n");
 
   // Get all published families with their account emails
@@ -141,30 +148,40 @@ async function main() {
 
     const completeness = calculateFamilyCompleteness(family, email);
 
-    // Update metadata with profile_completeness
-    const updatedMeta = {
-      ...meta,
-      profile_completeness: completeness,
-    };
-
-    const { error: updateError } = await supabase
-      .from("business_profiles")
-      .update({ metadata: updatedMeta })
-      .eq("id", family.id);
-
-    if (updateError) {
-      console.error(`❌ Error updating ${family.display_name}:`, updateError.message);
-      errors++;
-    } else {
-      console.log(`✓ ${family.display_name || "Care Seeker"} (${family.city}): ${completeness}%`);
+    if (isDryRun) {
+      // Dry run - just show what would be updated
+      console.log(`  Would update: ${family.display_name || "Care Seeker"} (${family.city}) → ${completeness}%`);
       updated++;
+    } else {
+      // Actually update metadata with profile_completeness
+      const updatedMeta = {
+        ...meta,
+        profile_completeness: completeness,
+      };
+
+      const { error: updateError } = await supabase
+        .from("business_profiles")
+        .update({ metadata: updatedMeta })
+        .eq("id", family.id);
+
+      if (updateError) {
+        console.error(`❌ Error updating ${family.display_name}:`, updateError.message);
+        errors++;
+      } else {
+        console.log(`✓ ${family.display_name || "Care Seeker"} (${family.city}): ${completeness}%`);
+        updated++;
+      }
     }
   }
 
   console.log("\n📊 Summary:");
-  console.log(`   Updated: ${updated}`);
+  console.log(`   ${isDryRun ? "Would update" : "Updated"}: ${updated}`);
   console.log(`   Skipped (already set): ${skipped}`);
   console.log(`   Errors: ${errors}`);
+
+  if (isDryRun && updated > 0) {
+    console.log("\n💡 To apply these changes, run without --dry-run flag");
+  }
 }
 
 main().catch(console.error);

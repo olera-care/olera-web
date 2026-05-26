@@ -2237,7 +2237,6 @@ export default function ProviderMatchesPage() {
                       family={family}
                       hasFullAccess={hasFullAccess}
                       providerCareTypes={providerCareTypes}
-                      providerPaymentMethods={providerPaymentMethods}
                       contacted={contactedIds.has(family.id)}
                       reachOutCount={reachOutCounts.get(family.id) || 0}
                       onReachOut={handleReachOut}

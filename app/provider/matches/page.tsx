@@ -788,7 +788,10 @@ export default function ProviderMatchesPage() {
 
   const freeRemaining = getFreeConnectionsRemaining(membership);
   const isFreeTier = freeRemaining !== null;
-  const providerCareTypes = providerProfile?.care_types || [];
+  const providerCareTypes = useMemo(
+    () => providerProfile?.care_types || [],
+    [providerProfile?.care_types]
+  );
   const providerPaymentMethods = useMemo(() => {
     const meta = providerProfile?.metadata as ExtendedMetadata | undefined;
     return meta?.accepted_payments || [];

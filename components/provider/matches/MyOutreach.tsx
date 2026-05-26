@@ -145,69 +145,35 @@ export default function MyOutreach({
       >
         <div className="overflow-hidden">
           <div className="border-t border-gray-100">
-            {/* Status summary row - only show when there's outreach */}
-            {totalCount > 0 && (
-              <div className="flex items-center gap-4 px-5 py-3 bg-gray-50/50 text-[12px]">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  <span className="text-gray-500">Pending</span>
-                  <span className="font-semibold text-gray-700">{pendingItems.length}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-green-400" />
-                  <span className="text-gray-500">Connected</span>
-                  <span className="font-semibold text-gray-700">{activeItems.length}</span>
-                </div>
-                {archivedItems.length > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-gray-300" />
-                    <span className="text-gray-500">Declined</span>
-                    <span className="font-semibold text-gray-700">{archivedItems.length}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Outreach list */}
+            {/* Outreach list - always show categories (Upwork pattern) */}
             <div className="max-h-[320px] overflow-y-auto">
-              {totalCount === 0 ? (
-                /* Empty state */
-                <div className="px-5 py-6 text-center">
-                  <p className="text-[13px] text-gray-500">
-                    No outreach yet. Send a note to families to get started.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {/* Pending section */}
-                  {pendingItems.length > 0 && (
-                    <OutreachSection
-                      title="Awaiting Response"
-                      items={pendingItems}
-                      reminderSentIds={reminderSentIds}
-                      onSendReminder={onSendReminder}
-                      sendingReminderId={sendingReminderId}
-                    />
-                  )}
+              {/* Pending section - always visible */}
+              <OutreachSection
+                title="Pending"
+                count={pendingItems.length}
+                items={pendingItems}
+                emptyText="No pending outreach"
+                reminderSentIds={reminderSentIds}
+                onSendReminder={onSendReminder}
+                sendingReminderId={sendingReminderId}
+              />
 
-                  {/* Active/Connected section */}
-                  {activeItems.length > 0 && (
-                    <OutreachSection
-                      title="Connected"
-                      items={activeItems}
-                    />
-                  )}
+              {/* Connected section - always visible */}
+              <OutreachSection
+                title="Connected"
+                count={activeItems.length}
+                items={activeItems}
+                emptyText="No connections yet"
+              />
 
-                  {/* Archived/Declined section */}
-                  {archivedItems.length > 0 && (
-                    <OutreachSection
-                      title="Not a Match"
-                      items={archivedItems}
-                      muted
-                    />
-                  )}
-                </>
-              )}
+              {/* Declined section - always visible */}
+              <OutreachSection
+                title="Declined"
+                count={archivedItems.length}
+                items={archivedItems}
+                emptyText="None"
+                muted
+              />
             </div>
           </div>
         </div>
@@ -219,14 +185,18 @@ export default function MyOutreach({
 // Section within outreach list
 function OutreachSection({
   title,
+  count,
   items,
+  emptyText,
   muted = false,
   reminderSentIds,
   onSendReminder,
   sendingReminderId,
 }: {
   title: string;
+  count: number;
   items: Array<{ family: Profile; connection: ConnectionInfo }>;
+  emptyText: string;
   muted?: boolean;
   reminderSentIds?: Set<string>;
   onSendReminder?: (connectionId: string) => void;
@@ -234,22 +204,29 @@ function OutreachSection({
 }) {
   return (
     <div className={muted ? "opacity-60" : ""}>
-      <div className="px-5 py-2 bg-gray-50/30 border-b border-gray-100">
-        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{title}</span>
+      <div className="px-5 py-2.5 bg-gray-50/30 border-b border-gray-100 flex items-center justify-between">
+        <span className="text-[11px] font-semibold text-gray-500">{title}</span>
+        <span className="text-[11px] font-medium text-gray-400">{count}</span>
       </div>
-      <div className="divide-y divide-gray-50">
-        {items.map(({ family, connection }, index) => (
-          <OutreachItem
-            key={connection.id}
-            family={family}
-            connection={connection}
-            colorIndex={index}
-            reminderSentIds={reminderSentIds}
-            onSendReminder={onSendReminder}
-            sendingReminderId={sendingReminderId}
-          />
-        ))}
-      </div>
+      {items.length > 0 ? (
+        <div className="divide-y divide-gray-50">
+          {items.map(({ family, connection }, index) => (
+            <OutreachItem
+              key={connection.id}
+              family={family}
+              connection={connection}
+              colorIndex={index}
+              reminderSentIds={reminderSentIds}
+              onSendReminder={onSendReminder}
+              sendingReminderId={sendingReminderId}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="px-5 py-3">
+          <p className="text-[12px] text-gray-400 italic">{emptyText}</p>
+        </div>
+      )}
     </div>
   );
 }

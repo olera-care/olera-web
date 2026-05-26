@@ -467,6 +467,7 @@ export default function FamilyMatchCard({
       {/* META BAR */}
       <div className="px-5 py-3">
         <span className="text-[13px]">
+          <span className="text-gray-500">Posted</span>{" "}
           <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
           <span className="mx-1.5 text-gray-500">·</span>
           <span className="text-gray-500">Interested providers:</span>

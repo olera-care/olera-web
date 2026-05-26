@@ -1337,18 +1337,42 @@ export default function ProviderMatchesPage() {
         return new Date(dateB).getTime() - new Date(dateA).getTime();
       }
 
-      // best_matches (default): most service overlap first, then urgent, then recent
-      const needsA = metaA?.care_needs || a.care_types || [];
-      const needsB = metaB?.care_needs || b.care_types || [];
-      const matchA = computeMatchingServices(needsA, providerCareTypes);
-      const matchB = computeMatchingServices(needsB, providerCareTypes);
-      if (matchA !== matchB) return matchB - matchA;
-      const urgA = URGENCY_ORDER[metaA?.timeline || "exploring"] ?? 3;
-      const urgB = URGENCY_ORDER[metaB?.timeline || "exploring"] ?? 3;
-      if (urgA !== urgB) return urgA - urgB;
-      const dateA = metaA?.care_post?.published_at || a.created_at;
-      const dateB = metaB?.care_post?.published_at || b.created_at;
-      return new Date(dateB).getTime() - new Date(dateA).getTime();
+      // best_matches: composite score balancing match + urgency + freshness
+      // This prevents stale posts from dominating just because they match well
+      const computeScore = (profile: Profile, meta: FamilyMetadata | undefined) => {
+        // Service match score (0-100): how many services overlap
+        const needs = meta?.care_needs || profile.care_types || [];
+        const matchCount = computeMatchingServices(needs, providerCareTypes);
+        const maxPossible = Math.max(needs.length, 1);
+        const matchScore = (matchCount / maxPossible) * 100;
+
+        // Urgency score (0-100): immediate is most valuable
+        const urgencyScores: Record<string, number> = {
+          immediate: 100,
+          within_1_month: 75,
+          within_3_months: 50,
+          exploring: 25,
+        };
+        const urgencyScore = urgencyScores[meta?.timeline || "exploring"] ?? 25;
+
+        // Freshness score (0-100): decays over time
+        const publishedAt = meta?.care_post?.published_at || profile.created_at;
+        const daysAgo = (Date.now() - new Date(publishedAt).getTime()) / (1000 * 60 * 60 * 24);
+        let freshnessScore: number;
+        if (daysAgo <= 1) freshnessScore = 100;
+        else if (daysAgo <= 7) freshnessScore = 85;
+        else if (daysAgo <= 14) freshnessScore = 70;
+        else if (daysAgo <= 30) freshnessScore = 50;
+        else if (daysAgo <= 60) freshnessScore = 30;
+        else freshnessScore = 10;
+
+        // Weighted composite: freshness 45%, match 30%, urgency 25%
+        return (freshnessScore * 0.45) + (matchScore * 0.30) + (urgencyScore * 0.25);
+      };
+
+      const scoreA = computeScore(a, metaA);
+      const scoreB = computeScore(b, metaB);
+      return scoreB - scoreA;
     });
 
     return sorted;

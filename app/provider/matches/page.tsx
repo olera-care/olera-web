@@ -1405,37 +1405,8 @@ export default function ProviderMatchesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
         {/* ── LEFT COLUMN: Banner + Filters + Content ── */}
         <div className="lg:col-span-2">
-          {/* Discovery Banner */}
-          <div className="mb-6">
-            <DiscoveryBanner
-              familyCount={families.filter((f) => !contactedIds.has(f.id)).length}
-              firstName={firstName}
-            />
-          </div>
-
-          {/* ── Mobile-only: Compact stats + My Outreach ── */}
-          <div className="lg:hidden space-y-3 mb-6">
-            {/* Compact stats bar */}
-            <div className="flex items-center gap-3 text-sm">
-              <span className="font-semibold text-gray-900">{families.length}</span>
-              <span className="text-gray-500">families</span>
-              <span className="text-gray-300">·</span>
-              <span className={`font-semibold ${contactedIds.size === 0 ? "text-gray-400" : "text-gray-900"}`}>
-                {contactedIds.size}
-              </span>
-              <span className="text-gray-500">outreach</span>
-              {connectionsCount > 0 && (
-                <>
-                  <span className="text-gray-300">·</span>
-                  <span className="font-semibold text-green-600">
-                    {connectionsCount}
-                  </span>
-                  <span className="text-gray-500">connected</span>
-                </>
-              )}
-            </div>
-
-            {/* My Outreach - collapsible on mobile */}
+          {/* ── Mobile-only: My Outreach above banner (Upwork pattern) ── */}
+          <div className="lg:hidden mb-4">
             <MyOutreach
               families={families}
               connectionData={connectionData}
@@ -1443,6 +1414,14 @@ export default function ProviderMatchesPage() {
               reminderSentIds={reminderSentIds}
               onSendReminder={handleSendReminder}
               sendingReminderId={sendingReminderId}
+            />
+          </div>
+
+          {/* Discovery Banner */}
+          <div className="mb-6">
+            <DiscoveryBanner
+              familyCount={families.filter((f) => !contactedIds.has(f.id)).length}
+              firstName={firstName}
             />
           </div>
 

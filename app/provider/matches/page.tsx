@@ -578,17 +578,12 @@ function ActivitySummary({
                 {connections === 1 ? "connection" : "connections"}
               </p>
             </>
-          ) : outreachSent > 0 ? (
-            <>
-              <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
-                {outreachSent}
-              </p>
-              <p className="text-sm text-gray-500">outreach sent</p>
-            </>
           ) : (
             <>
-              <p className="font-display text-[32px] font-semibold text-gray-300 leading-none">—</p>
-              <p className="text-sm text-gray-500">no outreach yet</p>
+              <p className={`font-display text-[32px] font-semibold leading-none tabular-nums tracking-tight ${outreachSent === 0 ? "text-gray-300" : "text-gray-900"}`}>
+                {outreachSent}
+              </p>
+              <p className="text-sm text-gray-500">outreach</p>
             </>
           )}
         </div>

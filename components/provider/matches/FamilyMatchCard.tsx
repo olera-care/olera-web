@@ -240,71 +240,134 @@ function buildCarePhrase(who: { relationship: string; isSelf: boolean } | null, 
   return null;
 }
 
-// Generate a natural description when user hasn't written one
+// Generate a rich, personalized description when user hasn't written one
 function generateDescription(params: {
+  name: string;
   who: { relationship: string; isSelf: boolean } | null;
   age: number | undefined;
   careType: string | null;
   careNeeds: string[];
   location: string;
   urgency: string | undefined;
+  schedule: string | undefined;
+  contactPref: string | undefined;
+  paymentMethods: string[];
 }): string | null {
-  const { who, age, careType, careNeeds, location, urgency } = params;
+  const { name, who, age, careType, careNeeds, location, urgency, schedule, contactPref, paymentMethods } = params;
 
-  // Need at least one meaningful piece of data
+  // Need at least some meaningful data to generate
   if (!who && !careType && careNeeds.length === 0 && !location) return null;
 
-  const parts: string[] = [];
+  // Use first name for personalization (or skip if generic)
+  const firstName = name && name !== "Family" && name.toLowerCase() !== "care seeker"
+    ? name.split(" ")[0]
+    : null;
 
-  // First sentence: Who + care type + location
-  let opening = "";
+  const sentences: string[] = [];
+
+  // ── First sentence: Name + care type + who + location ──
+  // "Sarah needs Home Care for her 78-year-old parent in Austin, TX."
+  // "Looking for Assisted Living for their spouse in Dallas."
+  let s1 = "";
+
   if (urgency === "exploring") {
-    // Exploring mode
-    if (careType) {
-      opening = `Researching ${careType} options`;
-    } else {
-      opening = "Exploring care options";
-    }
+    // Exploring/researching mode - softer language
+    s1 = firstName ? `${firstName} is researching` : "Researching";
+    s1 += careType ? ` ${careType} options` : " care options";
     if (who) {
-      opening += who.isSelf ? " for themselves" : ` for their ${who.relationship}`;
+      s1 += who.isSelf ? " for themselves" : ` for ${firstName ? "their" : "their"} ${who.relationship}`;
+      if (age && !who.isSelf) s1 = s1.replace(who.relationship, `${age}-year-old ${who.relationship}`);
     }
+    if (location) s1 += ` in ${location}`;
   } else {
-    // Active need
-    if (careType) {
-      opening = `Looking for ${careType}`;
-    } else {
-      opening = "Looking for care";
-    }
-    if (location) {
-      opening += ` in ${location}`;
-    }
+    // Active need - direct language
+    s1 = firstName ? `${firstName} needs` : "Looking for";
+    s1 += careType ? ` ${careType}` : " care";
     if (who) {
       if (who.isSelf) {
-        opening += age ? `, age ${age}` : "";
+        s1 += age ? ` (age ${age})` : "";
       } else {
-        opening += age ? ` for their ${age}-year-old ${who.relationship}` : ` for their ${who.relationship}`;
+        const recipientDesc = age ? `${age}-year-old ${who.relationship}` : who.relationship;
+        s1 += ` for ${firstName ? "their" : "their"} ${recipientDesc}`;
       }
     }
+    if (location) s1 += ` in ${location}`;
   }
+  sentences.push(s1 + ".");
 
-  if (opening) {
-    parts.push(opening.endsWith(".") ? opening : opening + ".");
-  }
+  // ── Second sentence: Care needs + timeline ──
+  // "They're looking for help with mobility and companionship, ideally starting ASAP."
+  if (careNeeds.length > 0 || (urgency && urgency !== "exploring")) {
+    let s2Parts: string[] = [];
 
-  // Second sentence: Care needs (if any)
-  if (careNeeds.length > 0) {
-    if (careNeeds.length === 1) {
-      parts.push(`Needs help with ${careNeeds[0].toLowerCase()}.`);
-    } else if (careNeeds.length === 2) {
-      parts.push(`Needs help with ${careNeeds[0].toLowerCase()} and ${careNeeds[1].toLowerCase()}.`);
-    } else {
-      const lastNeed = careNeeds[careNeeds.length - 1];
-      const otherNeeds = careNeeds.slice(0, -1).map(n => n.toLowerCase()).join(", ");
-      parts.push(`Needs help with ${otherNeeds}, and ${lastNeed.toLowerCase()}.`);
+    if (careNeeds.length > 0) {
+      const needsList = careNeeds.map(n => n.toLowerCase());
+      if (needsList.length === 1) {
+        s2Parts.push(`looking for help with ${needsList[0]}`);
+      } else if (needsList.length === 2) {
+        s2Parts.push(`looking for help with ${needsList[0]} and ${needsList[1]}`);
+      } else {
+        const last = needsList.pop();
+        s2Parts.push(`looking for help with ${needsList.join(", ")}, and ${last}`);
+      }
+    }
+
+    // Add timeline context
+    if (urgency && urgency !== "exploring") {
+      const timelineText = urgency === "ASAP"
+        ? "ideally starting as soon as possible"
+        : `hoping to start ${urgency}`;
+      if (s2Parts.length > 0) {
+        s2Parts.push(timelineText);
+      } else {
+        s2Parts.push(firstName ? `${firstName} is ${timelineText}` : `They're ${timelineText}`);
+      }
+    }
+
+    if (s2Parts.length > 0) {
+      const pronoun = firstName ? "They're" : "They're";
+      const s2 = s2Parts.length === 1
+        ? `${pronoun} ${s2Parts[0]}.`
+        : `${pronoun} ${s2Parts[0]}, ${s2Parts[1]}.`;
+      sentences.push(s2);
     }
   }
 
-  return parts.length > 0 ? parts.join(" ") : null;
+  // ── Third sentence: Preferences + payment (if we have them) ──
+  // "Prefers morning hours and can pay via Medicare."
+  const prefParts: string[] = [];
+
+  if (schedule) {
+    const scheduleFormatted = formatSchedulePref(schedule).toLowerCase();
+    prefParts.push(`prefers ${scheduleFormatted}`);
+  }
+
+  if (contactPref) {
+    const contactFormatted = formatContactPref(contactPref);
+    prefParts.push(`best reached by ${contactFormatted}`);
+  }
+
+  if (paymentMethods.length > 0) {
+    const paymentList = paymentMethods.slice(0, 2); // Max 2 to keep it concise
+    if (paymentList.length === 1) {
+      prefParts.push(`can pay via ${paymentList[0]}`);
+    } else {
+      prefParts.push(`can pay via ${paymentList[0]} or ${paymentList[1]}`);
+    }
+  }
+
+  if (prefParts.length > 0) {
+    // Capitalize first letter and join with "and"
+    let s3 = prefParts[0].charAt(0).toUpperCase() + prefParts[0].slice(1);
+    if (prefParts.length === 2) {
+      s3 += ` and ${prefParts[1]}`;
+    } else if (prefParts.length > 2) {
+      s3 += `, ${prefParts.slice(1, -1).join(", ")}, and ${prefParts[prefParts.length - 1]}`;
+    }
+    sentences.push(s3 + ".");
+  }
+
+  return sentences.length > 0 ? sentences.join(" ") : null;
 }
 
 
@@ -392,18 +455,22 @@ export default function FamilyMatchCard({
   const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient);
   const carePhrase = buildCarePhrase(whoNeedsCare, age);
 
-  // Description: use user's own description, or generate one from metadata
+  // Description: use user's own description, or generate a rich one from metadata
   const generatedDescription = useMemo(() => {
     if (familyDescription) return null; // Don't generate if user has their own
     return generateDescription({
+      name: displayName,
       who: whoNeedsCare,
       age,
       careType,
       careNeeds,
       location,
       urgency: timelineConfig?.urgency,
+      schedule: schedulePreference,
+      contactPref: contactPreference,
+      paymentMethods,
     });
-  }, [familyDescription, whoNeedsCare, age, careType, careNeeds, location, timelineConfig?.urgency]);
+  }, [familyDescription, displayName, whoNeedsCare, age, careType, careNeeds, location, timelineConfig?.urgency, schedulePreference, contactPreference, paymentMethods]);
 
   const displayDescription = familyDescription || generatedDescription;
 
@@ -477,12 +544,12 @@ export default function FamilyMatchCard({
           </div>
         </div>
 
-        {/* INLINE SPECS - Conversational format */}
-        {/* Show carePhrase only when user has their own description (avoid redundancy with generated) */}
-        {((carePhrase && familyDescription) || contactPreference || schedulePreference) && (
+        {/* INLINE SPECS - Only show when user has their own description */}
+        {/* (Generated descriptions already include all this info in natural prose) */}
+        {familyDescription && (carePhrase || contactPreference || schedulePreference) && (
           <p className="text-[13px] sm:text-sm text-gray-600 mb-4 leading-relaxed">
-            {carePhrase && familyDescription && <span>{carePhrase}</span>}
-            {carePhrase && familyDescription && (contactPreference || schedulePreference) && <span className="text-gray-400"> · </span>}
+            {carePhrase && <span>{carePhrase}</span>}
+            {carePhrase && (contactPreference || schedulePreference) && <span className="text-gray-400"> · </span>}
             {contactPreference && <span>Prefers {formatContactPref(contactPreference)}</span>}
             {contactPreference && schedulePreference && <span className="text-gray-400"> · </span>}
             {schedulePreference && <span>{formatSchedulePref(schedulePreference)}</span>}
@@ -492,11 +559,7 @@ export default function FamilyMatchCard({
         {/* FAMILY DESCRIPTION - User's own or auto-generated from metadata */}
         {displayDescription && (
           <p
-            className={`text-[14px] sm:text-[15px] leading-[1.7] mb-4 ${
-              familyDescription
-                ? "text-gray-700"
-                : "text-gray-500 italic" // Generated descriptions are subtle
-            }`}
+            className="text-[14px] sm:text-[15px] text-gray-700 leading-[1.7] mb-4"
             style={{
               display: "-webkit-box",
               WebkitLineClamp: 3,

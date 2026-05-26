@@ -172,11 +172,10 @@ function formatWhoNeedsCare(value: string | undefined): string | null {
   return mapping[value] || null;
 }
 
-// Completeness color config
+// Completeness color config - aligned with 60% threshold
 function getCompletenessColors(percent: number): { dot: string; text: string; border: string } {
-  if (percent >= 70) return { dot: "#2a7a6e", text: "#2a7a6e", border: "#2a7a6e" };
-  if (percent >= 30) return { dot: "#b86e1a", text: "#b86e1a", border: "#b86e1a" };
-  return { dot: "#a8b8b4", text: "#a8b8b4", border: "#a8b8b4" };
+  if (percent >= 60) return { dot: "#2a7a6e", text: "#2a7a6e", border: "#2a7a6e" }; // teal - ready
+  return { dot: "#b86e1a", text: "#b86e1a", border: "#b86e1a" }; // amber - building
 }
 
 export default function FamilyMatchCard({
@@ -204,10 +203,10 @@ export default function FamilyMatchCard({
   const familyDescription = meta?.about_situation?.trim();
 
   // Calculate profile completeness and determine card state
+  // Aligned with cron threshold: ≥60% is "ready", <60% is "building"
   const completeness = calculateCompleteness(family, meta);
-  const cardState: "full" | "partial" | "minimal" =
-    completeness >= 70 ? "full" :
-    completeness >= 30 ? "partial" : "minimal";
+  const cardState: "full" | "partial" =
+    completeness >= 60 ? "full" : "partial";
 
   // Completeness chip colors
   const completenessColors = getCompletenessColors(completeness);
@@ -354,24 +353,9 @@ export default function FamilyMatchCard({
           </div>
         )}
 
-        {/* OPPORTUNITY LINE (Partial + Minimal only) */}
-        {cardState === "partial" && (
-          <div className="bg-amber-50/70 border border-amber-100/60 rounded-lg px-3.5 py-3 mb-4">
-            <p className="text-sm text-amber-900/80 leading-relaxed">
-              <span className="font-semibold">✦ Still filling in their profile.</span> Families at this stage are open — reach out first and build the relationship early.
-            </p>
-          </div>
-        )}
-        {cardState === "minimal" && (
-          <div className="bg-amber-50/70 border border-amber-100/60 rounded-lg px-3.5 py-3 mb-4">
-            <p className="text-sm text-amber-900/80 leading-relaxed">
-              <span className="font-semibold">✦ Early in their journey.</span> The provider who reaches out first — warmly, with no pressure — builds the relationship that leads to a placement.
-            </p>
-          </div>
-        )}
 
-        {/* TAGS ROW (Full + Partial only) */}
-        {cardState !== "minimal" && (careNeeds.length > 0 || whoNeedsCare) && (
+        {/* TAGS ROW */}
+        {(careNeeds.length > 0 || whoNeedsCare) && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {careNeeds.slice(0, 3).map((need) => (
               <span
@@ -467,41 +451,21 @@ export default function FamilyMatchCard({
                   </>
                 )}
 
-                {/* PARTIAL PROFILE */}
+                {/* BUILDING PROFILE (<60%) */}
                 {cardState === "partial" && (
                   <>
                     <p className="text-[9px] font-semibold text-white/50 uppercase tracking-wider mb-1">
                       Match quality
                     </p>
                     <p className="text-white/90 mb-2.5">
-                      Potential match — still filling in their profile.
+                      New to Olera — still building their profile.
                     </p>
                     <div className="border-t border-white/10 pt-2.5">
                       <p className="text-[9px] font-semibold text-white/50 uppercase tracking-wider mb-1">
                         Tip
                       </p>
                       <p className="text-white/70">
-                        Ask what matters most to them. Families at this stage are open to conversation.
-                      </p>
-                    </div>
-                  </>
-                )}
-
-                {/* MINIMAL PROFILE */}
-                {cardState === "minimal" && (
-                  <>
-                    <p className="text-[9px] font-semibold text-white/50 uppercase tracking-wider mb-1">
-                      Match quality
-                    </p>
-                    <p className="text-white/90 mb-2.5">
-                      New lead — just getting started.
-                    </p>
-                    <div className="border-t border-white/10 pt-2.5">
-                      <p className="text-[9px] font-semibold text-white/50 uppercase tracking-wider mb-1">
-                        Tip
-                      </p>
-                      <p className="text-white/70">
-                        Keep it warm and pressure-free. Early outreach builds trust before they&apos;ve talked to anyone else.
+                        Keep it warm and friendly. Ask what matters most to them — early outreach builds trust.
                       </p>
                     </div>
                   </>

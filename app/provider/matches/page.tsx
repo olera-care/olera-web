@@ -619,6 +619,65 @@ function MatchesEmptyState() {
 }
 
 // ---------------------------------------------------------------------------
+// Quick Stats Card
+// ---------------------------------------------------------------------------
+
+function QuickStats({
+  totalFamilies,
+  outreachSent,
+  connections,
+}: {
+  totalFamilies: number;
+  outreachSent: number;
+  connections: number;
+}) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden p-5">
+      <h3 className="text-[13px] font-semibold text-gray-400 uppercase tracking-wide mb-4">
+        Your Activity
+      </h3>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+              </svg>
+            </div>
+            <span className="text-[14px] text-gray-600">Families looking</span>
+          </div>
+          <span className="text-[18px] font-bold text-gray-900">{totalFamilies}</span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+              </svg>
+            </div>
+            <span className="text-[14px] text-gray-600">Outreach sent</span>
+          </div>
+          <span className="text-[18px] font-bold text-gray-900">{outreachSent}</span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </div>
+            <span className="text-[14px] text-gray-600">Connections</span>
+          </div>
+          <span className="text-[18px] font-bold text-gray-900">{connections}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // How It Works Accordion
 // ---------------------------------------------------------------------------
 
@@ -1606,12 +1665,20 @@ export default function ProviderMatchesPage() {
         </div>
 
         {/* ── RIGHT COLUMN: Profile Snapshot + Sidebar (matches Profile page) ── */}
-        <div className="hidden lg:block lg:col-span-1">
+        {/* self-stretch ensures this column matches left column height, enabling sticky */}
+        <div className="hidden lg:block lg:col-span-1 self-stretch">
           <div className="sticky top-24 space-y-4">
             {/* Profile Snapshot Card */}
             <ProfileSnapshotCard
               profile={providerProfile}
               completeness={profileCompleteness}
+            />
+
+            {/* Quick Stats */}
+            <QuickStats
+              totalFamilies={families.filter((f) => !contactedIds.has(f.id)).length}
+              outreachSent={contactedIds.size}
+              connections={Array.from(connectionData.values()).filter((c) => c.status === "accepted").length}
             />
 
             {/* My Outreach - tracking sent messages */}

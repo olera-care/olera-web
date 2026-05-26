@@ -204,12 +204,17 @@ function buildTimelineLabel(careType: string | undefined, urgency: string): stri
 function formatWhoNeedsCare(value: string | undefined): { relationship: string; isSelf: boolean } | null {
   if (!value) return null;
   const mapping: Record<string, { relationship: string; isSelf: boolean }> = {
-    // Enrichment flow values (current)
+    // Enrichment flow values (keys)
     self: { relationship: "themselves", isSelf: true },
     parent: { relationship: "parent", isSelf: false },
     spouse: { relationship: "spouse", isSelf: false },
     other: { relationship: "someone", isSelf: false },
-    // Legacy values (older profiles)
+    // Display values (as saved by sync-intent-to-profile)
+    "Myself": { relationship: "themselves", isSelf: true },
+    "My parent": { relationship: "parent", isSelf: false },
+    "My spouse": { relationship: "spouse", isSelf: false },
+    "Someone else": { relationship: "someone", isSelf: false },
+    // Legacy underscore values
     myself: { relationship: "themselves", isSelf: true },
     my_parent: { relationship: "parent", isSelf: false },
     my_spouse: { relationship: "spouse", isSelf: false },

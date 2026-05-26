@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
@@ -10,7 +9,6 @@ import { useProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfileShareable, getProfileCompletionGaps } from "@/lib/membership";
 import type { Profile, FamilyMetadata } from "@/lib/types";
-import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import { type ExtendedMetadata } from "@/lib/profile-completeness";
 import {
   type MatchesFilters,

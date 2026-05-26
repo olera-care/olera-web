@@ -45,17 +45,17 @@ function avatarGradient(name: string): string {
   return gradients[Math.abs(hash) % gradients.length];
 }
 
-// Timeline badge configuration
+// Timeline badge configuration - aligned with FamilyMatchCard labels
 const TIMELINE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
-  as_soon_as_possible: { label: "Immediate", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-500" },
-  within_a_month: { label: "Within a month", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
-  in_a_few_months: { label: "In a few months", color: "text-teal-600", bg: "bg-teal-50", border: "border-teal-200", dot: "bg-teal-500" },
-  just_researching: { label: "Just researching", color: "text-gray-600", bg: "bg-gray-100", border: "border-gray-300", dot: "bg-gray-500" },
+  as_soon_as_possible: { label: "Needs care ASAP", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-500" },
+  within_a_month: { label: "Needs care in ~1 month", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
+  in_a_few_months: { label: "Needs care in 2-3 months", color: "text-teal-600", bg: "bg-teal-50", border: "border-teal-200", dot: "bg-teal-500" },
+  just_researching: { label: "Just exploring", color: "text-gray-600", bg: "bg-gray-100", border: "border-gray-300", dot: "bg-gray-500" },
   // Legacy values
-  immediate: { label: "Immediate", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-500" },
-  within_1_month: { label: "Within a month", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
-  within_3_months: { label: "In a few months", color: "text-teal-600", bg: "bg-teal-50", border: "border-teal-200", dot: "bg-teal-500" },
-  exploring: { label: "Just researching", color: "text-gray-600", bg: "bg-gray-100", border: "border-gray-300", dot: "bg-gray-500" },
+  immediate: { label: "Needs care ASAP", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-500" },
+  within_1_month: { label: "Needs care in ~1 month", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
+  within_3_months: { label: "Needs care in 2-3 months", color: "text-teal-600", bg: "bg-teal-50", border: "border-teal-200", dot: "bg-teal-500" },
+  exploring: { label: "Just exploring", color: "text-gray-600", bg: "bg-gray-100", border: "border-gray-300", dot: "bg-gray-500" },
 };
 
 // Tone chip options

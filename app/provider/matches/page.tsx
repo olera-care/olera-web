@@ -997,7 +997,36 @@ export default function ProviderMatchesPage() {
           const parsed = JSON.parse(saved);
           // Validate the parsed object has expected shape
           if (parsed && typeof parsed === "object" && "distance" in parsed) {
-            return { ...DEFAULT_FILTERS_STATE, ...parsed };
+            const merged = { ...DEFAULT_FILTERS_STATE, ...parsed };
+
+            // Migrate old filter values to new values (Phase 2 rename)
+            const PAYMENT_MIGRATIONS: Record<string, string> = {
+              va_benefits: "veterans_benefits",
+              long_term_care_insurance: "", // removed, clear it
+              aid_attendance: "", // removed, clear it
+            };
+            const WHO_MIGRATIONS: Record<string, string> = {
+              self: "myself",
+              parent: "my_parent",
+              spouse: "my_spouse",
+              other: "someone_else",
+            };
+
+            // Migrate payment methods
+            if (Array.isArray(merged.paymentMethods)) {
+              merged.paymentMethods = merged.paymentMethods
+                .map((v: string) => PAYMENT_MIGRATIONS[v] ?? v)
+                .filter((v: string) => v !== "");
+            }
+
+            // Migrate who needs care
+            if (Array.isArray(merged.whoNeedsCare)) {
+              merged.whoNeedsCare = merged.whoNeedsCare
+                .map((v: string) => WHO_MIGRATIONS[v] ?? v)
+                .filter((v: string) => v !== "");
+            }
+
+            return merged;
           }
         }
       } catch {

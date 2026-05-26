@@ -593,58 +593,6 @@ function ActivitySummary({
 }
 
 // ---------------------------------------------------------------------------
-// How It Works Accordion
-// ---------------------------------------------------------------------------
-
-function HowItWorks() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50/50 transition-colors"
-      >
-        <span className="text-[15px] font-semibold text-gray-900">How it works</span>
-        <svg
-          className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
-          fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-        </svg>
-      </button>
-      <div
-        className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]"
-        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
-      >
-        <div className="overflow-hidden">
-          <div className="px-5 pb-5 space-y-4 border-t border-gray-100 pt-4">
-            {[
-              { num: 1, bold: "Send a note", rest: "explaining why you're a good fit" },
-              { num: 2, bold: "Family reviews", rest: "your profile and message" },
-              { num: 3, bold: "If they reply,", rest: "you're connected" },
-            ].map((step) => (
-              <div key={step.num} className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-[12px] font-bold text-gray-500">{step.num}</span>
-                </div>
-                <p className="text-[14px] text-gray-600 leading-relaxed">
-                  <span className="font-semibold text-gray-900">{step.bold}</span> {step.rest}
-                </p>
-              </div>
-            ))}
-            <p className="text-[13px] text-gray-400 leading-relaxed pt-3 border-t border-gray-100">
-              Families choose the first provider who responds.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -1651,9 +1599,6 @@ export default function ProviderMatchesPage() {
               onSendReminder={handleSendReminder}
               sendingReminderId={sendingReminderId}
             />
-
-            {/* How it works */}
-            <HowItWorks />
           </div>
         </div>
       </div>

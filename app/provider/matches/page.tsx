@@ -600,8 +600,7 @@ function MatchesSkeleton() {
 
 function MatchesEmptyState() {
   return (
-    <div className="lg:col-span-2">
-      <div className="flex flex-col items-center text-center py-20 px-8">
+    <div className="flex flex-col items-center text-center py-20 px-8">
         <div
           className="w-16 h-16 rounded-2xl bg-warm-100/60 border border-warm-200/50 flex items-center justify-center mb-6"
           style={{ animation: "matchFloat 3s ease-in-out infinite" }}
@@ -616,7 +615,6 @@ function MatchesEmptyState() {
           they&apos;ll appear here. Check back soon.
         </p>
       </div>
-    </div>
   );
 }
 

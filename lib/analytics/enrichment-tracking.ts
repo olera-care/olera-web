@@ -70,6 +70,30 @@ export function trackEnrichmentCompleted(params: EnrichmentEventParams): void {
   });
 }
 
+/**
+ * Track when user clicks "Go live" in the enrichment flow (step 7)
+ */
+export function trackEnrichmentGoLive(params: EnrichmentEventParams): void {
+  fireEnrichmentEvent("enrichment_profile_published", {
+    ...params,
+    step: 7,
+    step_name: "goLive",
+    source: "enrichment_flow",
+  });
+}
+
+/**
+ * Track when user clicks "Maybe later" on the Go Live step
+ */
+export function trackEnrichmentGoLiveSkipped(params: EnrichmentEventParams): void {
+  fireEnrichmentEvent("enrichment_go_live_skipped", {
+    ...params,
+    step: 7,
+    step_name: "goLive",
+    source: "enrichment_flow",
+  });
+}
+
 function fireEnrichmentEvent(
   eventType: string,
   metadata: Record<string, unknown>

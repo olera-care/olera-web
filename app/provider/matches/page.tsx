@@ -1459,6 +1459,39 @@ export default function ProviderMatchesPage() {
             />
           </div>
 
+          {/* ── Mobile-only: Compact stats + My Outreach ── */}
+          <div className="lg:hidden space-y-3 mb-6">
+            {/* Compact stats bar */}
+            <div className="flex items-center gap-3 text-sm">
+              <span className="font-semibold text-gray-900">{families.length}</span>
+              <span className="text-gray-500">families</span>
+              <span className="text-gray-300">·</span>
+              <span className={`font-semibold ${contactedIds.size === 0 ? "text-gray-400" : "text-gray-900"}`}>
+                {contactedIds.size}
+              </span>
+              <span className="text-gray-500">outreach</span>
+              {Array.from(connectionData.values()).filter((c) => c.status === "accepted").length > 0 && (
+                <>
+                  <span className="text-gray-300">·</span>
+                  <span className="font-semibold text-green-600">
+                    {Array.from(connectionData.values()).filter((c) => c.status === "accepted").length}
+                  </span>
+                  <span className="text-gray-500">connected</span>
+                </>
+              )}
+            </div>
+
+            {/* My Outreach - collapsible on mobile */}
+            <MyOutreach
+              families={families}
+              connectionData={connectionData}
+              archivedIds={archivedConnectionIds}
+              reminderSentIds={reminderSentIds}
+              onSendReminder={handleSendReminder}
+              sendingReminderId={sendingReminderId}
+            />
+          </div>
+
           {/* Tabs + Cards = one grouped stack */}
           <MatchesTabs
             activeTab={activeTab}

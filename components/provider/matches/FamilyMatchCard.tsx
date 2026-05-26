@@ -344,7 +344,9 @@ export default function FamilyMatchCard({
   animationDelay = 0,
 }: FamilyMatchCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
 
   const meta = (family.metadata || {}) as FamilyMetadata;
   const displayName = family.display_name || "Family";
@@ -435,6 +437,14 @@ export default function FamilyMatchCard({
 
   const displayDescription = familyDescription || generatedDescription;
 
+  // Check if description is truncated
+  useEffect(() => {
+    const el = descriptionRef.current;
+    if (el) {
+      setIsDescriptionTruncated(el.scrollHeight > el.clientHeight);
+    }
+  }, [displayDescription]);
+
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!contacted) {
@@ -454,16 +464,14 @@ export default function FamilyMatchCard({
       }}
       onClick={handleClick}
     >
-      {/* META BAR - Plain text, no pill */}
+      {/* META BAR */}
       <div className="px-5 py-3">
-        <span className="text-[13px] text-gray-500">
-          <span className="font-semibold text-gray-700">Posted</span> {timeAgo(publishedAt)}
-          <span className="mx-1.5 text-gray-400">·</span>
-          {reachOutCount === 0 ? (
-            <span className="font-semibold text-[#2a7a6e]">Be first to connect</span>
-          ) : (
-            <span>{reachOutCount} provider{reachOutCount !== 1 ? "s" : ""} reached out</span>
-          )}
+        <span className="text-[13px]">
+          <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
+          <span className="mx-1.5 text-gray-500">·</span>
+          <span className="text-gray-500">Interested providers:</span>
+          {" "}
+          <span className="font-semibold text-gray-700">{reachOutCount}</span>
         </span>
       </div>
 
@@ -518,17 +526,29 @@ export default function FamilyMatchCard({
 
         {/* FAMILY DESCRIPTION - User's own or auto-generated from metadata */}
         {displayDescription && (
-          <p
-            className="text-[14px] sm:text-[15px] text-gray-700 leading-[1.7] mb-4"
-            style={{
-              display: "-webkit-box",
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {displayDescription}
-          </p>
+          <div className="mb-4">
+            <p
+              ref={descriptionRef}
+              className="text-[14px] sm:text-[15px] text-gray-700 leading-[1.7]"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {displayDescription}
+            </p>
+            {isDescriptionTruncated && (
+              <button
+                type="button"
+                className="text-[14px] font-medium text-gray-900 underline underline-offset-2 mt-1 hover:text-gray-700"
+                onClick={(e) => e.stopPropagation()}
+              >
+                more
+              </button>
+            )}
+          </div>
         )}
 
         {/* TIMELINE - "Needs Home Care ASAP" or "Needs care in ~1 month" */}
@@ -565,12 +585,12 @@ export default function FamilyMatchCard({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-[13px] pt-3 border-t border-gray-100">
           {/* Payment methods - scrollable, shown first on mobile */}
           {paymentMethods.length > 0 && (
-            <div className="flex items-center gap-1.5 min-w-0 order-first sm:order-last">
+            <div className="flex items-center gap-1.5 min-w-0 order-first sm:order-last text-[13px]">
               <span className="text-gray-500 shrink-0">Can pay via</span>
               <div className="flex gap-1 overflow-x-auto scrollbar-hide">
                 {paymentMethods.map((method, i) => (
-                  <span key={method} className="text-gray-700 font-medium whitespace-nowrap shrink-0">
-                    {i > 0 && <span className="text-gray-400 mr-1">·</span>}
+                  <span key={method} className="font-semibold text-gray-700 whitespace-nowrap shrink-0">
+                    {i > 0 && <span className="text-gray-500 font-normal mr-1">·</span>}
                     {method}
                   </span>
                 ))}
@@ -578,14 +598,16 @@ export default function FamilyMatchCard({
             </div>
           )}
 
-          {/* Profile completeness - simple gray text, no dot */}
+          {/* Profile completeness */}
           <div
             className="relative shrink-0"
             onMouseEnter={handleTooltipMouseEnter}
             onMouseLeave={handleTooltipMouseLeave}
           >
-            <span className="text-gray-500">
-              Profile {completeness}%
+            <span className="text-[13px]">
+              <span className="text-gray-500">Profile</span>
+              {" "}
+              <span className="font-semibold text-gray-700">{completeness}% complete</span>
             </span>
 
             {/* Tooltip */}

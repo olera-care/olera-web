@@ -21,6 +21,23 @@ interface MyOutreachProps {
   reminderSentIds: Set<string>;
   onSendReminder?: (connectionId: string) => void;
   sendingReminderId?: string | null;
+  // Optional controlled state (for syncing mobile/desktop instances)
+  isOpen?: boolean;
+  onToggle?: () => void;
+}
+
+// Simple time ago helper
+function timeAgo(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "today";
+  if (diffDays === 1) return "1d ago";
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+  return `${Math.floor(diffDays / 30)}mo ago`;
 }
 
 // Check if reminder can be sent (48 hours since initial outreach, no reminder sent yet)
@@ -43,8 +60,13 @@ export default function MyOutreach({
   reminderSentIds,
   onSendReminder,
   sendingReminderId,
+  isOpen: controlledIsOpen,
+  onToggle,
 }: MyOutreachProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  // Support both controlled (synced) and uncontrolled (local) state
+  const [localIsOpen, setLocalIsOpen] = useState(false);
+  const isOpen = controlledIsOpen ?? localIsOpen;
+  const handleToggle = onToggle ?? (() => setLocalIsOpen(!localIsOpen));
 
   // Build outreach items with family data
   const outreachItems = useMemo(() => {
@@ -93,7 +115,7 @@ export default function MyOutreach({
       {/* Header - always visible */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50/50 transition-colors"
       >
         <div className="flex items-center gap-2">
@@ -170,8 +192,11 @@ function OutreachLink({
         <div className="mt-2 ml-3 space-y-1.5">
           {items.slice(0, 3).map(({ family, connection }) => (
             <div key={connection.id} className="flex items-center gap-2 text-[13px]">
-              <span className="text-gray-600 truncate max-w-[180px]">
+              <span className="text-gray-600 truncate max-w-[140px]">
                 {family.display_name || "Family"}
+              </span>
+              <span className="text-gray-400 text-[11px] shrink-0">
+                {timeAgo(connection.created_at)}
               </span>
               {label === "pending outreach" && canSendReminder(connection, reminderSentIds || new Set()) && onSendReminder && (
                 <button

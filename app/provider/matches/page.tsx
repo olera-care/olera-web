@@ -671,6 +671,8 @@ export default function ProviderMatchesPage() {
   });
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<MatchesTab>("best_matches");
+  // Shared state for MyOutreach (syncs mobile + desktop instances)
+  const [isOutreachOpen, setIsOutreachOpen] = useState(false);
 
   // Reach-out drawer state
   const [drawerFamily, setDrawerFamily] = useState<Profile | null>(null);
@@ -1404,6 +1406,8 @@ export default function ProviderMatchesPage() {
               reminderSentIds={reminderSentIds}
               onSendReminder={handleSendReminder}
               sendingReminderId={sendingReminderId}
+              isOpen={isOutreachOpen}
+              onToggle={() => setIsOutreachOpen(!isOutreachOpen)}
             />
           </div>
 
@@ -1567,6 +1571,8 @@ export default function ProviderMatchesPage() {
               reminderSentIds={reminderSentIds}
               onSendReminder={handleSendReminder}
               sendingReminderId={sendingReminderId}
+              isOpen={isOutreachOpen}
+              onToggle={() => setIsOutreachOpen(!isOutreachOpen)}
             />
           </div>
         </div>

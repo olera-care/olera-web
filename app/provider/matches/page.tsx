@@ -134,63 +134,61 @@ const floatKeyframes = `
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// Discovery Banner
+// Discovery Banner (matches Profile page style)
 // ---------------------------------------------------------------------------
 
 function DiscoveryBanner({
   familyCount,
+  firstName,
 }: {
   familyCount: number;
+  firstName: string;
 }) {
   return (
-    <div className="relative rounded-[20px]">
-      {/* Warm cream background */}
+    <div className="relative overflow-hidden rounded-2xl bg-warm-950 md:min-h-[220px]">
+      {/* Background image - hidden on mobile, fades into warm-950 on left */}
       <div
-        className="absolute inset-0 rounded-[20px] overflow-hidden"
+        className="absolute inset-0 hidden md:block"
         style={{
-          background: 'linear-gradient(145deg, #f5f0e8 0%, #efe9e0 40%, #e9e2d8 100%)'
+          backgroundImage: "url('/Matches-banner-image.png')",
+          backgroundSize: "auto 140%",
+          backgroundPosition: "right 30%",
+          backgroundRepeat: "no-repeat",
+          // Soft-fade into the warm-950 background
+          maskImage: "linear-gradient(to right, transparent 0%, transparent calc(100% - 520px), black calc(100% - 320px), black 100%)",
+          WebkitMaskImage: "linear-gradient(to right, transparent 0%, transparent calc(100% - 520px), black calc(100% - 320px), black 100%)",
         }}
       />
 
-      {/* Subtle background accent shape */}
+      {/* Dark gradient overlay for text readability */}
       <div
-        className="absolute right-0 top-0 bottom-0 w-1/2 opacity-30 rounded-r-[20px] overflow-hidden"
+        className="absolute inset-0 hidden md:block"
         style={{
-          background: 'radial-gradient(ellipse 100% 120% at 100% 50%, #d8d0c4 0%, transparent 60%)'
+          background: `linear-gradient(to right,
+            rgba(42, 24, 16, 0.96) 0%,
+            rgba(42, 24, 16, 0.96) calc(100% - 480px),
+            rgba(42, 24, 16, 0.7) calc(100% - 340px),
+            rgba(42, 24, 16, 0.25) calc(100% - 160px),
+            rgba(42, 24, 16, 0.08) 100%)`,
         }}
       />
 
-      <div className="relative flex items-stretch min-h-[160px] sm:min-h-[180px]">
-        {/* Left: Content */}
-        <div className="flex-1 flex flex-col justify-center px-6 py-5 sm:px-8 sm:py-6 lg:px-10">
-          {/* Headline — bold serif, tight leading */}
-          <h1 className="font-display text-[24px] sm:text-[30px] lg:text-[36px] font-bold leading-[1.15] tracking-[-0.02em] text-gray-900">
-            {familyCount} {familyCount === 1 ? 'family is' : 'families are'} looking
-            <br className="hidden sm:block" />
-            <span className="sm:hidden"> </span>for care
-          </h1>
+      {/* Content */}
+      <div className="relative px-6 py-5 md:px-9 md:py-7 max-w-[560px]">
+        {/* Greeting */}
+        <p className="font-serif italic text-[15px] md:text-[16px] text-warm-200/85 leading-snug mb-2">
+          Hey {firstName}
+        </p>
 
-          {/* Subtitle with teal accent */}
-          <p className="mt-3 text-[14px] sm:text-[15px] text-gray-500 leading-relaxed">
-            First to reach out is{' '}
-            <span className="font-semibold text-primary-600">3× more likely</span>
-            {' '}to connect.
-          </p>
-        </div>
+        {/* Headline */}
+        <p className="font-display text-[20px] md:text-[24px] font-semibold text-white leading-[1.2] tracking-tight">
+          {familyCount} {familyCount === 1 ? 'family is' : 'families are'} looking for care.
+        </p>
 
-        {/* Right: Floating image card */}
-        <div className="hidden md:flex items-center justify-center flex-shrink-0 pr-6 lg:pr-8 py-4">
-          <div className="relative rounded-2xl overflow-hidden shadow-lg shadow-black/10 ring-1 ring-black/5">
-            <Image
-              src="/Matches-banner-image.png"
-              alt="Caregiver connecting with families"
-              width={220}
-              height={150}
-              className="w-[180px] lg:w-[220px] h-auto object-cover"
-              priority
-            />
-          </div>
-        </div>
+        {/* Subline */}
+        <p className="mt-2 text-sm text-warm-100/70 leading-relaxed">
+          First to reach out is 3× more likely to connect.
+        </p>
       </div>
     </div>
   );
@@ -1733,19 +1731,35 @@ export default function ProviderMatchesPage() {
     );
   }
 
+  // Get first name for greeting
+  const firstName = providerProfile?.display_name?.split(" ")[0] || "there";
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
       <style dangerouslySetInnerHTML={{ __html: floatKeyframes }} />
+
+      {/* Page header - outside grid so both columns align */}
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">
+            Find families
+          </h1>
+          <p className="text-sm lg:text-[15px] text-gray-500">
+            Connect with families looking for care in your area
+          </p>
+        </div>
+      </div>
 
       {/* ── Main layout ── */}
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
         {/* ── LEFT COLUMN: Banner + Filters + Content ── */}
         <div className="flex-1 min-w-0">
           {/* Discovery Banner */}
-          <div className="mb-8">
+          <div className="mb-6">
             <DiscoveryBanner
               familyCount={families.filter((f) => !contactedIds.has(f.id)).length}
+              firstName={firstName}
             />
           </div>
 

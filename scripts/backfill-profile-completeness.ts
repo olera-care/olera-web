@@ -12,10 +12,10 @@
 
 import { createClient } from "@supabase/supabase-js";
 import type { FamilyMetadata } from "../lib/types";
+import { loadEnvConfig } from "@next/env";
 
-// Load environment variables
-import * as dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
+// Load environment variables from .env.local
+loadEnvConfig(process.cwd());
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -99,7 +99,7 @@ async function main() {
       care_types,
       metadata,
       account_id,
-      accounts!inner(user_id)
+      accounts!business_profiles_account_id_fkey(user_id)
     `)
     .eq("type", "family")
     .eq("is_active", true)
@@ -119,7 +119,7 @@ async function main() {
 
   // Get emails from auth.users
   const userIds = families
-    .map((f) => (f.accounts as { user_id: string })?.user_id)
+    .map((f) => (f.accounts as { user_id: string } | null)?.user_id)
     .filter(Boolean);
 
   const { data: users } = await supabase.auth.admin.listUsers();

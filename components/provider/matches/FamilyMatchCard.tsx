@@ -203,10 +203,11 @@ function formatWhoNeedsCare(value: string | undefined): string | null {
   return mapping[value] || null;
 }
 
-// Completeness color config - aligned with 60% threshold
-function getCompletenessColors(percent: number): { dot: string; text: string; border: string } {
-  if (percent >= 60) return { dot: "#2a7a6e", text: "#2a7a6e", border: "#2a7a6e" }; // teal - ready
-  return { dot: "#b86e1a", text: "#b86e1a", border: "#b86e1a" }; // amber - building
+// Completeness color config - three tiers for visual clarity
+function getCompletenessColors(percent: number): { dot: string; text: string } {
+  if (percent >= 70) return { dot: "#2a7a6e", text: "#2a7a6e" }; // green/teal - good
+  if (percent >= 40) return { dot: "#b86e1a", text: "#b86e1a" }; // amber - partial
+  return { dot: "#9ca3af", text: "#6b7280" }; // gray - minimal
 }
 
 export default function FamilyMatchCard({
@@ -385,20 +386,18 @@ export default function FamilyMatchCard({
           </p>
         )}
 
-        {/* TAGS ROW - Timeline as first tag + care needs */}
-        {(timeline || careNeeds.length > 0) && (
+        {/* TIMELINE - Plain colored text with dot (no pill) */}
+        {timeline && (
+          <p className={`flex items-center gap-1.5 text-[13px] font-medium mb-3 ${timeline.textColor}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${timeline.dotColor}`} />
+            {timeline.label}
+          </p>
+        )}
+
+        {/* TAGS ROW - Care needs only */}
+        {careNeeds.length > 0 && (
           <div className="relative mb-4">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 pr-6">
-              {/* Timeline tag - first, with colored dot and text */}
-              {timeline && (
-                <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium bg-gray-100 rounded-lg border border-gray-200 whitespace-nowrap shrink-0 ${timeline.textColor}`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${timeline.dotColor}`} />
-                  {timeline.label}
-                </span>
-              )}
-              {/* Care needs tags */}
               {careNeeds.map((need) => (
                 <span
                   key={need}
@@ -409,7 +408,7 @@ export default function FamilyMatchCard({
               ))}
             </div>
             {/* Scroll indicator */}
-            {(careNeeds.length > 2 || (timeline && careNeeds.length > 1)) && (
+            {careNeeds.length > 2 && (
               <div className="absolute right-0 top-0 bottom-1 w-10 bg-gradient-to-l from-white via-white/90 pointer-events-none flex items-center justify-end pr-1">
                 <span className="text-gray-400 text-lg font-light">&rsaquo;</span>
               </div>
@@ -417,20 +416,20 @@ export default function FamilyMatchCard({
           </div>
         )}
 
-        {/* TRUST SIGNALS - Upwork style with icons */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] pt-4 border-t border-gray-100">
-          {/* Profile completeness with checkmark icon */}
+        {/* TRUST SIGNALS - Clean bottom row */}
+        <div className="flex items-center justify-between text-[13px] pt-3 border-t border-gray-100">
+          {/* Profile completeness - colored dot with percentage */}
           <div
             className="relative flex items-center gap-1.5"
             onMouseEnter={handleTooltipMouseEnter}
             onMouseLeave={handleTooltipMouseLeave}
           >
-            {/* Checkmark icon like Upwork's "Payment verified" */}
-            <svg className="w-4 h-4" style={{ color: completenessColors.dot }} viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-            </svg>
-            <span className="font-medium" style={{ color: completenessColors.text }}>
-              {completeness}% complete
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: completenessColors.dot }}
+            />
+            <span style={{ color: completenessColors.text }}>
+              Profile {completeness}%
             </span>
 
             {/* Tooltip */}
@@ -496,23 +495,11 @@ export default function FamilyMatchCard({
             )}
           </div>
 
-          {/* Payment methods - scrollable row */}
+          {/* Payment methods - plain text */}
           {paymentMethods.length > 0 && (
-            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-              </svg>
-              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-                {paymentMethods.map((method) => (
-                  <span
-                    key={method}
-                    className="inline-flex items-center px-2 py-0.5 text-[12px] font-medium text-gray-700 bg-gray-100 rounded border border-gray-200 whitespace-nowrap shrink-0"
-                  >
-                    {method}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <span className="text-gray-500 truncate ml-4">
+              Pays: {paymentMethods.join(", ")}
+            </span>
           )}
         </div>
       </div>

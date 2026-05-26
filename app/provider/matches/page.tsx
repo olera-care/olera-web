@@ -11,7 +11,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfileShareable, getProfileCompletionGaps } from "@/lib/membership";
 import type { Profile, FamilyMetadata } from "@/lib/types";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
-import { calculateProfileCompleteness, type ExtendedMetadata } from "@/lib/profile-completeness";
+import { type ExtendedMetadata } from "@/lib/profile-completeness";
 import {
   type MatchesFilters,
   DEFAULT_FILTERS,
@@ -424,83 +424,6 @@ function FilterChips({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Profile Snapshot Card (Upwork-style sidebar header)
-// ---------------------------------------------------------------------------
-
-function ProfileSnapshotCard({
-  profile,
-  completeness,
-}: {
-  profile: Profile;
-  completeness: number;
-}) {
-  const displayName = profile.display_name || "Your Business";
-  const category = profile.category || profile.care_types?.[0] || "Care Provider";
-  const initials = displayName
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5">
-      <div className="flex items-start gap-3.5">
-        {/* Profile image or initials */}
-        {profile.image_url ? (
-          <Image
-            src={profile.image_url}
-            alt={displayName}
-            width={52}
-            height={52}
-            className="w-13 h-13 rounded-xl object-cover shrink-0"
-            style={{ width: 52, height: 52 }}
-          />
-        ) : (
-          <div
-            className="w-13 h-13 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0"
-            style={{ background: avatarGradient(displayName), width: 52, height: 52 }}
-          >
-            {initials}
-          </div>
-        )}
-
-        {/* Name and category */}
-        <div className="flex-1 min-w-0 pt-0.5">
-          <Link
-            href={profile.slug ? `/provider/${profile.slug}` : "/provider"}
-            className="block text-[15px] font-semibold text-gray-900 hover:underline truncate leading-tight"
-          >
-            {displayName}
-          </Link>
-          <p className="text-sm text-gray-500 truncate mt-0.5">
-            {category}
-          </p>
-        </div>
-      </div>
-
-      {/* Complete your profile link */}
-      <Link
-        href="/provider"
-        className="inline-block text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline mt-4 transition-colors"
-      >
-        Complete your profile
-      </Link>
-
-      {/* Progress bar - simple, Upwork style */}
-      <div className="flex items-center gap-3 mt-2">
-        <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gray-900 rounded-full transition-all duration-500"
-            style={{ width: `${completeness}%` }}
-          />
-        </div>
-        <span className="text-sm font-medium text-gray-700 tabular-nums">{completeness}%</span>
-      </div>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Icons
@@ -619,58 +542,57 @@ function MatchesEmptyState() {
 }
 
 // ---------------------------------------------------------------------------
-// Quick Stats Card
+// This Month Stats (prominent 2-column layout like Profile page)
 // ---------------------------------------------------------------------------
 
-function QuickStats({
-  totalFamilies,
+function ThisMonthStats({
+  familiesLooking,
   outreachSent,
   connections,
 }: {
-  totalFamilies: number;
+  familiesLooking: number;
   outreachSent: number;
   connections: number;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden p-5">
-      <h3 className="text-[13px] font-semibold text-gray-400 uppercase tracking-wide mb-4">
-        Your Activity
+    <div className="space-y-4">
+      <h3 className="text-base font-display font-bold text-gray-900">
+        This month
       </h3>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
-              <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-              </svg>
-            </div>
-            <span className="text-[14px] text-gray-600">Families looking</span>
-          </div>
-          <span className="text-[18px] font-bold text-gray-900">{totalFamilies}</span>
+
+      <div className="grid grid-cols-2 gap-4">
+        {/* Families Looking */}
+        <div className="space-y-1">
+          <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+            {familiesLooking}
+          </p>
+          <p className="text-sm text-gray-500">families looking</p>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
-              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-              </svg>
-            </div>
-            <span className="text-[14px] text-gray-600">Outreach sent</span>
-          </div>
-          <span className="text-[18px] font-bold text-gray-900">{outreachSent}</span>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
-              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg>
-            </div>
-            <span className="text-[14px] text-gray-600">Connections</span>
-          </div>
-          <span className="text-[18px] font-bold text-gray-900">{connections}</span>
+        {/* Outreach / Connections */}
+        <div className="space-y-1">
+          {connections > 0 ? (
+            <>
+              <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+                {connections}
+              </p>
+              <p className="text-sm text-gray-500">
+                {connections === 1 ? "connection" : "connections"}
+              </p>
+            </>
+          ) : outreachSent > 0 ? (
+            <>
+              <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+                {outreachSent}
+              </p>
+              <p className="text-sm text-gray-500">outreach sent</p>
+            </>
+          ) : (
+            <>
+              <p className="font-display text-[32px] font-semibold text-gray-300 leading-none">—</p>
+              <p className="text-sm text-gray-500">no outreach yet</p>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -880,20 +802,6 @@ export default function ProviderMatchesPage() {
   }, [providerProfile]);
 
   const profileId = providerProfile?.id;
-
-  // Profile completeness for sidebar snapshot (synced with dashboard calculation)
-  const profileCompleteness = useMemo(() => {
-    if (!providerProfile) return 0;
-    const meta = (dashboardMetadata || providerProfile.metadata || {}) as ExtendedMetadata;
-    // Include reviews and response rate from v2 data for consistent 9-section calculation
-    const reviewsSummary = v2.data
-      ? { count: v2.data.reviews.count, avgRating: v2.data.reviews.avgRating }
-      : undefined;
-    const responseRateSummary = v2.data
-      ? { totalQuestions: v2.data.responseRate.totalQuestions, answeredCount: v2.data.responseRate.answeredCount }
-      : undefined;
-    return calculateProfileCompleteness(providerProfile, meta, reviewsSummary, responseRateSummary).overall;
-  }, [providerProfile, dashboardMetadata, v2.data]);
 
   // ── Drawer handlers ──
 
@@ -1668,15 +1576,9 @@ export default function ProviderMatchesPage() {
         {/* self-stretch ensures this column matches left column height, enabling sticky */}
         <div className="hidden lg:block lg:col-span-1 self-stretch">
           <div className="sticky top-24 space-y-4">
-            {/* Profile Snapshot Card */}
-            <ProfileSnapshotCard
-              profile={providerProfile}
-              completeness={profileCompleteness}
-            />
-
-            {/* Quick Stats */}
-            <QuickStats
-              totalFamilies={families.filter((f) => !contactedIds.has(f.id)).length}
+            {/* This Month - prominent stats like Profile page */}
+            <ThisMonthStats
+              familiesLooking={families.filter((f) => !contactedIds.has(f.id)).length}
               outreachSent={contactedIds.size}
               connections={Array.from(connectionData.values()).filter((c) => c.status === "accepted").length}
             />

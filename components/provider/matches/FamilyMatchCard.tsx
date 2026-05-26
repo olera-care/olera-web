@@ -177,18 +177,18 @@ function calculateCompleteness(family: Profile, meta: FamilyMetadata | null): nu
   return Math.min(100, score);
 }
 
-// Timeline badge configuration
-const TIMELINE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
+// Timeline tag configuration - gray bg with colored text/dot
+const TIMELINE_CONFIG: Record<string, { label: string; textColor: string; dotColor: string }> = {
   // New values
-  as_soon_as_possible: { label: "Immediate", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-500" },
-  within_a_month: { label: "Within a month", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
-  in_a_few_months: { label: "In a few months", color: "text-teal-600", bg: "bg-teal-50", border: "border-teal-200", dot: "bg-teal-500" },
-  just_researching: { label: "Just researching", color: "text-gray-600", bg: "bg-gray-100", border: "border-gray-300", dot: "bg-gray-500" },
+  as_soon_as_possible: { label: "Needs care ASAP", textColor: "text-red-600", dotColor: "bg-red-500" },
+  within_a_month: { label: "Needs care in ~1 month", textColor: "text-amber-600", dotColor: "bg-amber-500" },
+  in_a_few_months: { label: "Needs care in 2-3 months", textColor: "text-teal-600", dotColor: "bg-teal-500" },
+  just_researching: { label: "Just exploring", textColor: "text-gray-500", dotColor: "bg-gray-400" },
   // Legacy values (map to new display)
-  immediate: { label: "Immediate", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-500" },
-  within_1_month: { label: "Within a month", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
-  within_3_months: { label: "In a few months", color: "text-teal-600", bg: "bg-teal-50", border: "border-teal-200", dot: "bg-teal-500" },
-  exploring: { label: "Just researching", color: "text-gray-600", bg: "bg-gray-100", border: "border-gray-300", dot: "bg-gray-500" },
+  immediate: { label: "Needs care ASAP", textColor: "text-red-600", dotColor: "bg-red-500" },
+  within_1_month: { label: "Needs care in ~1 month", textColor: "text-amber-600", dotColor: "bg-amber-500" },
+  within_3_months: { label: "Needs care in 2-3 months", textColor: "text-teal-600", dotColor: "bg-teal-500" },
+  exploring: { label: "Just exploring", textColor: "text-gray-500", dotColor: "bg-gray-400" },
 };
 
 // Who needs care display
@@ -306,29 +306,22 @@ export default function FamilyMatchCard({
       }}
       onClick={handleClick}
     >
-      {/* META BAR - Plain on mobile, pill on desktop */}
-      <div className="flex items-center justify-between px-5 py-3">
-        {/* Mobile: plain text | Desktop: pill container */}
-        <span className="text-[13px] text-gray-500 sm:text-gray-600 sm:bg-[#f1f5f9] sm:px-3 sm:py-1.5 sm:rounded-full">
-          <span className="font-medium text-gray-700 sm:text-gray-600">Posted</span> {timeAgo(publishedAt)}
+      {/* META BAR - Plain text, no pill */}
+      <div className="px-5 py-3">
+        <span className="text-[13px] text-gray-500">
+          <span className="font-semibold text-gray-700">Posted</span> {timeAgo(publishedAt)}
           <span className="mx-1.5 text-gray-400">·</span>
           {reachOutCount === 0 ? (
-            <span className="font-medium text-[#2a7a6e]">Be first to connect</span>
+            <span className="font-semibold text-[#2a7a6e]">Be first to connect</span>
           ) : (
-            <span><span className="font-medium text-gray-700 sm:text-gray-600">Proposals:</span> {reachOutCount}</span>
+            <span>{reachOutCount} provider{reachOutCount !== 1 ? "s" : ""} reached out</span>
           )}
         </span>
-        {timeline && (
-          <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${timeline.color} ${timeline.bg}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${timeline.dot}`} />
-            {timeline.label}
-          </span>
-        )}
       </div>
 
       <div className="p-5">
-        {/* NAME ROW */}
-        <div className="flex items-center gap-3.5 mb-3">
+        {/* NAME ROW - Avatar + Name/Location stacked */}
+        <div className="flex items-start gap-3.5 mb-3">
           {/* Avatar with optional online dot */}
           <div className="relative shrink-0">
             {family.image_url ? (
@@ -353,24 +346,29 @@ export default function FamilyMatchCard({
             )}
           </div>
 
-          {/* Name - prominent like Upwork title */}
-          <h3 className="text-[17px] sm:text-lg font-bold text-gray-900 leading-snug">
-            {hasFullAccess ? displayName : displayName.split(" ")[0]}
-          </h3>
+          {/* Name + Location stacked */}
+          <div className="min-w-0">
+            <h3 className="text-[17px] sm:text-lg font-bold text-gray-900 leading-snug truncate">
+              {hasFullAccess ? displayName : displayName.split(" ")[0]}
+            </h3>
+            <p className="text-[13px] text-gray-500 mt-0.5">
+              {hasFullAccess ? location : (family.city || "Nearby")}
+            </p>
+          </div>
         </div>
 
-        {/* INLINE SPECS - Upwork style with hyphens */}
-        <p className="text-[13px] sm:text-sm text-gray-500 mb-4 leading-relaxed">
-          <span>{hasFullAccess ? location : (family.city || "Nearby")}</span>
-          {whoNeedsCare && <span className="text-gray-400"> - </span>}
-          {whoNeedsCare && <span>{whoNeedsCare}</span>}
-          {age && <span className="text-gray-400"> - </span>}
-          {age && <span>Age {age}</span>}
-          {(contactPreference || schedulePreference) && <span className="text-gray-400"> - </span>}
-          {contactPreference && <span>Prefers {formatContactPref(contactPreference)}</span>}
-          {contactPreference && schedulePreference && <span className="text-gray-400">, </span>}
-          {schedulePreference && <span>{formatSchedulePref(schedulePreference)}</span>}
-        </p>
+        {/* INLINE SPECS - Age, who needs care, preferences */}
+        {(whoNeedsCare || age || contactPreference || schedulePreference) && (
+          <p className="text-[13px] sm:text-sm text-gray-500 mb-4 leading-relaxed">
+            {whoNeedsCare && <span>{whoNeedsCare}</span>}
+            {whoNeedsCare && age && <span className="text-gray-400"> - </span>}
+            {age && <span>Age {age}</span>}
+            {(whoNeedsCare || age) && (contactPreference || schedulePreference) && <span className="text-gray-400"> - </span>}
+            {contactPreference && <span>Prefers {formatContactPref(contactPreference)}</span>}
+            {contactPreference && schedulePreference && <span className="text-gray-400">, </span>}
+            {schedulePreference && <span>{formatSchedulePref(schedulePreference)}</span>}
+          </p>
+        )}
 
         {/* FAMILY DESCRIPTION - Upwork style: regular weight, dark, readable */}
         {familyDescription && (
@@ -387,21 +385,31 @@ export default function FamilyMatchCard({
           </p>
         )}
 
-        {/* TAGS ROW - Upwork style scrollable */}
-        {careNeeds.length > 0 && (
+        {/* TAGS ROW - Timeline as first tag + care needs */}
+        {(timeline || careNeeds.length > 0) && (
           <div className="relative mb-4">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 pr-6">
+              {/* Timeline tag - first, with colored dot and text */}
+              {timeline && (
+                <span
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium bg-gray-100 rounded-lg border border-gray-200 whitespace-nowrap shrink-0 ${timeline.textColor}`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${timeline.dotColor}`} />
+                  {timeline.label}
+                </span>
+              )}
+              {/* Care needs tags */}
               {careNeeds.map((need) => (
                 <span
                   key={need}
-                  className="inline-flex items-center px-3 py-1.5 text-[13px] font-medium text-gray-700 bg-gray-100 rounded-full border border-gray-200 whitespace-nowrap shrink-0"
+                  className="inline-flex items-center px-3 py-1.5 text-[13px] font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-200 whitespace-nowrap shrink-0"
                 >
                   {need}
                 </span>
               ))}
             </div>
-            {/* Scroll indicator - Upwork style arrow */}
-            {careNeeds.length > 3 && (
+            {/* Scroll indicator */}
+            {(careNeeds.length > 2 || (timeline && careNeeds.length > 1)) && (
               <div className="absolute right-0 top-0 bottom-1 w-10 bg-gradient-to-l from-white via-white/90 pointer-events-none flex items-center justify-end pr-1">
                 <span className="text-gray-400 text-lg font-light">&rsaquo;</span>
               </div>
@@ -488,18 +496,22 @@ export default function FamilyMatchCard({
             )}
           </div>
 
-          {/* Payment methods with icon */}
+          {/* Payment methods - scrollable row */}
           {paymentMethods.length > 0 && (
-            <div className="flex items-center gap-1.5 text-gray-600">
-              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
               </svg>
-              <span className="font-semibold text-gray-800">
-                {paymentMethods.slice(0, 2).join(", ")}
-              </span>
-              {paymentMethods.length > 2 && (
-                <span className="text-gray-500">+{paymentMethods.length - 2}</span>
-              )}
+              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+                {paymentMethods.map((method) => (
+                  <span
+                    key={method}
+                    className="inline-flex items-center px-2 py-0.5 text-[12px] font-medium text-gray-700 bg-gray-100 rounded border border-gray-200 whitespace-nowrap shrink-0"
+                  >
+                    {method}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>

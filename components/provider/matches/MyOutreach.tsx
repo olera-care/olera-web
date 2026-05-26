@@ -19,6 +19,7 @@ interface MyOutreachProps {
   families: Profile[];
   connectionData: Map<string, ConnectionInfo>;
   archivedIds: Set<string>;
+  reminderSentIds: Set<string>;
   onSendReminder?: (connectionId: string) => void;
   sendingReminderId?: string | null;
 }
@@ -51,9 +52,10 @@ function timeAgo(dateStr: string): string {
 }
 
 // Check if reminder can be sent (48 hours since initial outreach, no reminder sent yet)
-function canSendReminder(conn: ConnectionInfo): boolean {
+function canSendReminder(conn: ConnectionInfo, reminderSentIds: Set<string>): boolean {
   if (conn.status !== "pending") return false;
-  if (conn.reminder_sent) return false;
+  // Check both the connection data AND the live state (for immediate UI update after sending)
+  if (conn.reminder_sent || reminderSentIds.has(conn.id)) return false;
 
   const sentAt = new Date(conn.created_at).getTime();
   const now = Date.now();
@@ -66,6 +68,7 @@ export default function MyOutreach({
   families,
   connectionData,
   archivedIds,
+  reminderSentIds,
   onSendReminder,
   sendingReminderId,
 }: MyOutreachProps) {
@@ -174,6 +177,7 @@ export default function MyOutreach({
                 <OutreachSection
                   title="Awaiting Response"
                   items={pendingItems}
+                  reminderSentIds={reminderSentIds}
                   onSendReminder={onSendReminder}
                   sendingReminderId={sendingReminderId}
                 />
@@ -208,12 +212,14 @@ function OutreachSection({
   title,
   items,
   muted = false,
+  reminderSentIds,
   onSendReminder,
   sendingReminderId,
 }: {
   title: string;
   items: Array<{ family: Profile; connection: ConnectionInfo }>;
   muted?: boolean;
+  reminderSentIds?: Set<string>;
   onSendReminder?: (connectionId: string) => void;
   sendingReminderId?: string | null;
 }) {
@@ -229,6 +235,7 @@ function OutreachSection({
             family={family}
             connection={connection}
             colorIndex={index}
+            reminderSentIds={reminderSentIds}
             onSendReminder={onSendReminder}
             sendingReminderId={sendingReminderId}
           />
@@ -243,18 +250,21 @@ function OutreachItem({
   family,
   connection,
   colorIndex,
+  reminderSentIds,
   onSendReminder,
   sendingReminderId,
 }: {
   family: Profile;
   connection: ConnectionInfo;
   colorIndex: number;
+  reminderSentIds?: Set<string>;
   onSendReminder?: (connectionId: string) => void;
   sendingReminderId?: string | null;
 }) {
   const colors = AVATAR_COLORS[colorIndex % AVATAR_COLORS.length];
-  const canRemind = canSendReminder(connection);
+  const canRemind = canSendReminder(connection, reminderSentIds || new Set());
   const isSendingReminder = sendingReminderId === connection.id;
+  const wasNudged = reminderSentIds?.has(connection.id) || connection.reminder_sent;
 
   return (
     <div className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/50 transition-colors">
@@ -292,7 +302,7 @@ function OutreachItem({
               >
                 {isSendingReminder ? "Sending..." : "Nudge"}
               </button>
-            ) : connection.reminder_sent ? (
+            ) : wasNudged ? (
               <span className="text-[10px] text-gray-400">Nudged</span>
             ) : null}
             <span className="px-2 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 rounded-full">

@@ -1896,6 +1896,7 @@ export default function ProviderMatchesPage() {
               families={families}
               connectionData={connectionData}
               archivedIds={archivedConnectionIds}
+              reminderSentIds={reminderSentIds}
               onSendReminder={handleSendReminder}
               sendingReminderId={sendingReminderId}
             />

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { matchesLiveEmail } from "@/lib/email-templates";
+import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 
 /**
  * POST /api/care-post/publish
@@ -44,7 +45,7 @@ export async function POST(request: Request) {
 
     const { data: profile } = await supabase
       .from("business_profiles")
-      .select("id, metadata, type")
+      .select("id, metadata, type, display_name, image_url, city, phone, description, care_types")
       .eq("id", account.active_profile_id)
       .single();
 
@@ -53,6 +54,21 @@ export async function POST(request: Request) {
     }
 
     const metadata = (profile.metadata || {}) as Record<string, unknown>;
+
+    // Calculate and store profile completeness at publish time
+    const completeness = calculateFamilyCompleteness(
+      {
+        display_name: profile.display_name,
+        image_url: profile.image_url,
+        city: profile.city,
+        phone: profile.phone,
+        description: profile.description,
+        care_types: profile.care_types,
+        metadata: profile.metadata,
+      },
+      user.email
+    );
+    metadata.profile_completeness = completeness.percentage;
 
     if (action === "publish") {
       metadata.care_post = {

@@ -10,6 +10,7 @@ import { sendSlackAlert, slackBenefitsCompleted } from "@/lib/slack";
 import { validateEmailStrict } from "@/lib/email-validation";
 import { generateBenefitsToken } from "@/lib/benefits-token";
 import { getStateSlug } from "@/lib/program-data";
+import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 
 // ─── Email + SMS body helpers ────────────────────────────────────────────
 //
@@ -491,10 +492,10 @@ export async function POST(req: Request) {
     },
   };
 
-  // Look up family profile by account_id
+  // Look up family profile by account_id (include fields needed for completeness calculation)
   const { data: existingFamilyProfile } = await db
     .from("business_profiles")
-    .select("id, metadata")
+    .select("id, metadata, display_name, image_url, city, phone, email, description, care_types")
     .eq("account_id", accountId)
     .eq("type", "family")
     .maybeSingle();
@@ -508,6 +509,22 @@ export async function POST(req: Request) {
         Object.entries(intakeMetadata).filter(([, v]) => v !== undefined)
       ),
     };
+
+    // Calculate profile completeness with merged data
+    const completeness = calculateFamilyCompleteness(
+      {
+        display_name: existingFamilyProfile.display_name,
+        image_url: existingFamilyProfile.image_url,
+        city: existingFamilyProfile.city,
+        phone: normalizedPhone || existingFamilyProfile.phone,
+        description: existingFamilyProfile.description,
+        care_types: existingFamilyProfile.care_types,
+        metadata: mergedMetadata,
+      },
+      normalizedEmail || existingFamilyProfile.email
+    );
+    mergedMetadata.profile_completeness = completeness.percentage;
+
     const profileUpdate: Record<string, unknown> = {
       metadata: mergedMetadata,
       preferred_contact_channel: contactChannel,
@@ -530,6 +547,22 @@ export async function POST(req: Request) {
     const cleanedMetadata = Object.fromEntries(
       Object.entries(intakeMetadata).filter(([, v]) => v !== undefined)
     );
+
+    // Calculate profile completeness for new profile
+    const completeness = calculateFamilyCompleteness(
+      {
+        display_name: displayName,
+        image_url: null,
+        city: null,
+        phone: normalizedPhone,
+        description: null,
+        care_types: null,
+        metadata: cleanedMetadata,
+      },
+      normalizedEmail
+    );
+    cleanedMetadata.profile_completeness = completeness.percentage;
+
     const profileInsert: Record<string, unknown> = {
       account_id: accountId,
       slug,

@@ -79,6 +79,9 @@ const ANONYMOUS_EVENT_TYPES = [
   "enrichment_step_completed", // User completed a specific step (metadata.step: 1-6)
   "enrichment_step_skipped",   // User skipped from a specific step (metadata.step: 1-6)
   "enrichment_completed",      // User finished all 6 steps
+  // Go Live step (step 7) — profile publication from enrichment flow
+  "enrichment_profile_published",  // User clicked "Go live" in enrichment flow
+  "enrichment_go_live_skipped",    // User clicked "Maybe later" in enrichment flow
 ] as const;
 
 function getServiceDb() {

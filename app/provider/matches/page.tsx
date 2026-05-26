@@ -962,8 +962,8 @@ export default function ProviderMatchesPage() {
       try {
         const supabase = createClient();
 
-        // Fetch all families + provider's own connections (+ responded)
-        const [familiesRes, connectionsRes, respondedRes, fullConnectionsRes] = await Promise.all([
+        // Fetch families + provider's connections in parallel (optimized: 2 queries instead of 4)
+        const [familiesRes, fullConnectionsRes] = await Promise.all([
           supabase
             .from("business_profiles")
             .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at", { count: "exact" })
@@ -971,20 +971,7 @@ export default function ProviderMatchesPage() {
             .eq("is_active", true)
             .filter("metadata->care_post->>status", "eq", "active")
             .order("created_at", { ascending: false }),
-          supabase
-            .from("connections")
-            .select("to_profile_id")
-            .eq("from_profile_id", profileId)
-            .eq("type", "request")
-            .in("status", ["pending", "accepted", "declined"]),
-          supabase
-            .from("connections")
-            .select("to_profile_id")
-            .eq("from_profile_id", profileId)
-            .eq("type", "request")
-            .eq("status", "accepted"),
-          // Full connection data for Reached Out tab (includes message, timestamps, metadata)
-          // Include declined to show "Not a match" state
+          // Full connection data - we derive contactedIds and respondedIds from this
           supabase
             .from("connections")
             .select("id, to_profile_id, message, created_at, status, metadata")
@@ -1001,11 +988,14 @@ export default function ProviderMatchesPage() {
         const fetchedFamilies = (familiesRes.data as Profile[]) || [];
         setFamilies(fetchedFamilies);
         setTotalCount(familiesRes.count || fetchedFamilies.length);
+
+        // Derive contactedIds and respondedIds from fullConnectionsRes (eliminates 2 redundant queries)
+        const connections = fullConnectionsRes.data || [];
         setContactedIds(
-          new Set(connectionsRes.data?.map((c: { to_profile_id: string }) => c.to_profile_id) || [])
+          new Set(connections.map((c: { to_profile_id: string }) => c.to_profile_id))
         );
         setRespondedIds(
-          new Set(respondedRes.data?.map((c: { to_profile_id: string }) => c.to_profile_id) || [])
+          new Set(connections.filter((c: { status: string }) => c.status === "accepted").map((c: { to_profile_id: string }) => c.to_profile_id))
         );
 
         // Process full connection data for Reached Out tab

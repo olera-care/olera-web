@@ -240,6 +240,73 @@ function buildCarePhrase(who: { relationship: string; isSelf: boolean } | null, 
   return null;
 }
 
+// Generate a natural description when user hasn't written one
+function generateDescription(params: {
+  who: { relationship: string; isSelf: boolean } | null;
+  age: number | undefined;
+  careType: string | null;
+  careNeeds: string[];
+  location: string;
+  urgency: string | undefined;
+}): string | null {
+  const { who, age, careType, careNeeds, location, urgency } = params;
+
+  // Need at least one meaningful piece of data
+  if (!who && !careType && careNeeds.length === 0 && !location) return null;
+
+  const parts: string[] = [];
+
+  // First sentence: Who + care type + location
+  let opening = "";
+  if (urgency === "exploring") {
+    // Exploring mode
+    if (careType) {
+      opening = `Researching ${careType} options`;
+    } else {
+      opening = "Exploring care options";
+    }
+    if (who) {
+      opening += who.isSelf ? " for themselves" : ` for their ${who.relationship}`;
+    }
+  } else {
+    // Active need
+    if (careType) {
+      opening = `Looking for ${careType}`;
+    } else {
+      opening = "Looking for care";
+    }
+    if (location) {
+      opening += ` in ${location}`;
+    }
+    if (who) {
+      if (who.isSelf) {
+        opening += age ? `, age ${age}` : "";
+      } else {
+        opening += age ? ` for their ${age}-year-old ${who.relationship}` : ` for their ${who.relationship}`;
+      }
+    }
+  }
+
+  if (opening) {
+    parts.push(opening.endsWith(".") ? opening : opening + ".");
+  }
+
+  // Second sentence: Care needs (if any)
+  if (careNeeds.length > 0) {
+    if (careNeeds.length === 1) {
+      parts.push(`Needs help with ${careNeeds[0].toLowerCase()}.`);
+    } else if (careNeeds.length === 2) {
+      parts.push(`Needs help with ${careNeeds[0].toLowerCase()} and ${careNeeds[1].toLowerCase()}.`);
+    } else {
+      const lastNeed = careNeeds[careNeeds.length - 1];
+      const otherNeeds = careNeeds.slice(0, -1).map(n => n.toLowerCase()).join(", ");
+      parts.push(`Needs help with ${otherNeeds}, and ${lastNeed.toLowerCase()}.`);
+    }
+  }
+
+  return parts.length > 0 ? parts.join(" ") : null;
+}
+
 
 export default function FamilyMatchCard({
   family,
@@ -325,6 +392,21 @@ export default function FamilyMatchCard({
   const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient);
   const carePhrase = buildCarePhrase(whoNeedsCare, age);
 
+  // Description: use user's own description, or generate one from metadata
+  const generatedDescription = useMemo(() => {
+    if (familyDescription) return null; // Don't generate if user has their own
+    return generateDescription({
+      who: whoNeedsCare,
+      age,
+      careType,
+      careNeeds,
+      location,
+      urgency: timelineConfig?.urgency,
+    });
+  }, [familyDescription, whoNeedsCare, age, careType, careNeeds, location, timelineConfig?.urgency]);
+
+  const displayDescription = familyDescription || generatedDescription;
+
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!contacted) {
@@ -396,20 +478,25 @@ export default function FamilyMatchCard({
         </div>
 
         {/* INLINE SPECS - Conversational format */}
-        {(carePhrase || contactPreference || schedulePreference) && (
+        {/* Show carePhrase only when user has their own description (avoid redundancy with generated) */}
+        {((carePhrase && familyDescription) || contactPreference || schedulePreference) && (
           <p className="text-[13px] sm:text-sm text-gray-600 mb-4 leading-relaxed">
-            {carePhrase && <span>{carePhrase}</span>}
-            {carePhrase && (contactPreference || schedulePreference) && <span className="text-gray-400"> · </span>}
+            {carePhrase && familyDescription && <span>{carePhrase}</span>}
+            {carePhrase && familyDescription && (contactPreference || schedulePreference) && <span className="text-gray-400"> · </span>}
             {contactPreference && <span>Prefers {formatContactPref(contactPreference)}</span>}
             {contactPreference && schedulePreference && <span className="text-gray-400"> · </span>}
             {schedulePreference && <span>{formatSchedulePref(schedulePreference)}</span>}
           </p>
         )}
 
-        {/* FAMILY DESCRIPTION - Upwork style: regular weight, dark, readable */}
-        {familyDescription && (
+        {/* FAMILY DESCRIPTION - User's own or auto-generated from metadata */}
+        {displayDescription && (
           <p
-            className="text-[14px] sm:text-[15px] text-gray-700 leading-[1.7] mb-4"
+            className={`text-[14px] sm:text-[15px] leading-[1.7] mb-4 ${
+              familyDescription
+                ? "text-gray-700"
+                : "text-gray-500 italic" // Generated descriptions are subtle
+            }`}
             style={{
               display: "-webkit-box",
               WebkitLineClamp: 3,
@@ -417,7 +504,7 @@ export default function FamilyMatchCard({
               overflow: "hidden",
             }}
           >
-            {familyDescription}
+            {displayDescription}
           </p>
         )}
 

@@ -1024,16 +1024,23 @@ export default function ProviderQnAPage() {
   }, [activeFilter, questions]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredQuestions.length / PAGE_SIZE);
+  const totalPages = Math.ceil(filteredQuestions.length / PAGE_SIZE) || 1;
   const paginatedQuestions = useMemo(() => {
     const startIndex = (currentPage - 1) * PAGE_SIZE;
     return filteredQuestions.slice(startIndex, startIndex + PAGE_SIZE);
   }, [filteredQuestions, currentPage]);
 
-  // Reset page when filter changes
+  // Reset page when filter changes or if current page exceeds total pages
   useEffect(() => {
     setCurrentPage(1);
   }, [activeFilter]);
+
+  // Ensure currentPage doesn't exceed totalPages (e.g., after answering questions)
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const counts = useMemo(() => ({
     pending: questions.filter((q) => q.status === "pending").length,

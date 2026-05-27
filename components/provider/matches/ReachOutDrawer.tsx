@@ -592,7 +592,7 @@ export default function ReachOutDrawer({
         </div>
       ) : displayDescription ? (
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+          <p className="text-lg font-semibold text-gray-900 mb-2">
             About their situation
           </p>
           <p
@@ -615,7 +615,7 @@ export default function ReachOutDrawer({
       {/* Care Details (structured list) */}
       {(whoNeedsCare || schedulePref || contactPref) && (
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          <p className="text-lg font-semibold text-gray-900 mb-3">
             Care Details
           </p>
           <div className="space-y-2.5">
@@ -653,7 +653,7 @@ export default function ReachOutDrawer({
       {/* Care Needs tags */}
       {careNeeds.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2.5">
+          <p className="text-lg font-semibold text-gray-900 mb-2.5">
             Care Needs
           </p>
           <div className="flex flex-wrap gap-2">
@@ -694,7 +694,7 @@ export default function ReachOutDrawer({
         <>
           <div className="border-t border-gray-100" />
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <p className="text-lg font-semibold text-gray-900 mb-3">
               About the Family
             </p>
             <div className="space-y-2">

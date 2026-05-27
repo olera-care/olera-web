@@ -615,10 +615,7 @@ export default function ProviderMatchesPage() {
     status: "pending" | "accepted" | "declined";
     reply_message?: string | null;
     replied_at?: string | null;
-    reminder_sent?: boolean;
   }>>(new Map());
-  // Track which connections have had reminders sent (local state, persisted via DB)
-  const [reminderSentIds, setReminderSentIds] = useState<Set<string>>(new Set());
   const [archivedConnectionIds, setArchivedConnectionIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -684,8 +681,6 @@ export default function ProviderMatchesPage() {
   const [profileGapWarning, setProfileGapWarning] = useState<string[] | null>(null);
   const gapWarningRef = useRef<HTMLDivElement>(null);
 
-  // Reminder sending state
-  const [sendingReminderId, setSendingReminderId] = useState<string | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -802,44 +797,6 @@ export default function ProviderMatchesPage() {
     }
   }, [sending]);
 
-  // Handle sending a follow-up reminder (48-hour rule, max 1 per family)
-  const handleSendReminder = useCallback(
-    async (connectionId: string) => {
-      if (!profileId || !isSupabaseConfigured() || sendingReminderId) return;
-
-      setSendingReminderId(connectionId);
-
-      try {
-        const supabase = createClient();
-
-        // Update the connection metadata to mark reminder as sent
-        const { error } = await supabase
-          .from("connections")
-          .update({
-            metadata: {
-              provider_initiated: true,
-              reminder_sent: true,
-              reminder_sent_at: new Date().toISOString(),
-            },
-          })
-          .eq("id", connectionId);
-
-        if (error) throw error;
-
-        // Update local state
-        setReminderSentIds((prev) => new Set([...prev, connectionId]));
-
-        // Optionally trigger a notification to the family (fire-and-forget)
-        // This could be expanded with an API route similar to notify-reach-out
-      } catch (err) {
-        console.error("[olera] Failed to send reminder:", err);
-      } finally {
-        setSendingReminderId(null);
-      }
-    },
-    [profileId, sendingReminderId],
-  );
-
   // Handle archiving a declined connection (removes from view)
   const handleArchiveConnection = useCallback(
     async (connectionId: string) => {
@@ -954,7 +911,6 @@ export default function ProviderMatchesPage() {
               status: "pending",
               reply_message: null,
               replied_at: null,
-              reminder_sent: false,
             });
             return updated;
           });
@@ -1042,9 +998,7 @@ export default function ProviderMatchesPage() {
           status: "pending" | "accepted" | "declined";
           reply_message?: string | null;
           replied_at?: string | null;
-          reminder_sent?: boolean;
         }>();
-        const reminderIds = new Set<string>();
 
         (fullConnectionsRes.data || []).forEach((conn: {
           id: string;
@@ -1057,7 +1011,6 @@ export default function ProviderMatchesPage() {
           const meta = conn.metadata as {
             reply_message?: string;
             replied_at?: string;
-            reminder_sent?: boolean;
           } | null;
 
           connDataMap.set(conn.to_profile_id, {
@@ -1067,16 +1020,10 @@ export default function ProviderMatchesPage() {
             status: conn.status as "pending" | "accepted" | "declined",
             reply_message: meta?.reply_message || null,
             replied_at: meta?.replied_at || null,
-            reminder_sent: meta?.reminder_sent || false,
           });
-
-          if (meta?.reminder_sent) {
-            reminderIds.add(conn.id);
-          }
         });
 
         setConnectionData(connDataMap);
-        setReminderSentIds(reminderIds);
 
         // Reach-out counts per family
         const familyIds = fetchedFamilies.map((f) => f.id);

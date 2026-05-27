@@ -437,7 +437,7 @@ export default function ReachOutDrawer({
     ? [providerProfile.city, providerProfile.state].filter(Boolean).join(", ")
     : "";
 
-  // Build "At a glance" items - combine care needs, timeline, who, payment, profile stats
+  // Build "Care details" items - combine care needs, timeline, who, payment, profile stats
   const getTimelineLabel = (): { label: string; value: string } | null => {
     const tl = meta?.timeline as string | undefined;
     if (!tl && !primaryCareType) return null;
@@ -466,29 +466,40 @@ export default function ReachOutDrawer({
     return paymentMethods.join(", ");
   };
 
+  // Format preferences (contact + schedule) as a single combined label
   const getPreferencesLabel = (): string | null => {
     const parts: string[] = [];
 
-    // Format contact preference
+    // Format contact preference with clearer labels
     if (contactPreference) {
       const contactMap: Record<string, string> = {
-        call: "Prefers calls",
-        phone: "Prefers calls",
-        text: "Prefers text",
-        sms: "Prefers text",
+        call: "Prefers phone calls",
+        phone: "Prefers phone calls",
+        text: "Prefers text messages",
+        sms: "Prefers text messages",
         email: "Prefers email",
       };
       const formatted = contactMap[contactPreference.toLowerCase()] || `Prefers ${contactPreference}`;
       parts.push(formatted);
     }
 
-    // Format schedule preference (pass through as-is, it's usually human-readable)
+    // Format schedule preference with proper labels
     if (schedulePreference) {
-      // Clean up common patterns
-      const schedule = schedulePreference.trim();
+      const schedule = schedulePreference.trim().toLowerCase();
       if (schedule) {
-        // If it doesn't already imply timing, we could prefix it, but usually it's clear
-        parts.push(schedule);
+        const scheduleMap: Record<string, string> = {
+          mornings: "Mornings",
+          afternoons: "Afternoons",
+          evenings: "Evenings",
+          overnight: "Overnight",
+          full_time: "Full-time",
+          "full-time": "Full-time",
+          flexible: "Flexible",
+          weekdays: "Weekdays",
+          weekends: "Weekends",
+        };
+        const formatted = scheduleMap[schedule] || schedule.charAt(0).toUpperCase() + schedule.slice(1).replace(/_/g, " ");
+        parts.push(formatted);
       }
     }
 
@@ -706,7 +717,7 @@ ${providerName}`;
 
   if (!family) return null;
 
-  // Build at-a-glance items
+  // Build care details items
   const timelineItem = getTimelineLabel();
   const careNeedsValue = getCareNeedsLabel();
   const paymentValue = getPaymentLabel();
@@ -747,7 +758,7 @@ ${providerName}`;
     </div>
   );
 
-  // ── Profile Section (About + At a glance) ──
+  // ── Profile Section (About + Care details) ──
   const ProfileSection = (
     <div className="space-y-6">
       {/* About Their Situation */}
@@ -779,11 +790,11 @@ ${providerName}`;
         </div>
       ) : null}
 
-      {/* At a glance - consolidated section */}
+      {/* Care details - consolidated section */}
       {profileState !== "minimal" && (
         <div className={displayDescription ? "mt-2" : ""}>
           <p className="text-lg font-semibold text-gray-900 mb-3">
-            At a glance
+            Care details
           </p>
           <div className="space-y-3">
             {/* Timeline + Care Type */}

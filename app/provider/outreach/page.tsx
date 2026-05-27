@@ -23,7 +23,6 @@ interface OutreachItem {
   status: OutreachStatus;
   replyMessage?: string | null;
   repliedAt?: string | null;
-  reminderSent?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -103,9 +102,9 @@ function OutreachPageContent() {
   // Provider profile for drawer
   const [providerProfile, setProviderProfile] = useState<Profile | null>(null);
 
-  // Nudge state
-  const [nudgingId, setNudgingId] = useState<string | null>(null);
-  const [nudgeError, setNudgeError] = useState<string | null>(null);
+  // Interested providers count per family
+  const [reachOutCounts, setReachOutCounts] = useState<Map<string, number>>(new Map());
+
 
   // Update URL when tab changes
   const handleTabChange = useCallback((tab: OutreachStatus) => {
@@ -190,7 +189,7 @@ function OutreachPageContent() {
         const items: OutreachItem[] = (connections || [])
           .filter((conn) => conn.to_profile) // Only include if family profile exists
           .map((conn) => {
-            const meta = conn.metadata as { reminder_sent?: boolean; reply_message?: string; replied_at?: string } | null;
+            const meta = conn.metadata as { reply_message?: string; replied_at?: string } | null;
             return {
               id: conn.id,
               family: conn.to_profile as unknown as Profile,
@@ -199,11 +198,27 @@ function OutreachPageContent() {
               status: conn.status === "accepted" ? "connected" : conn.status as OutreachStatus,
               replyMessage: meta?.reply_message,
               repliedAt: meta?.replied_at,
-              reminderSent: meta?.reminder_sent,
             };
           });
 
         setOutreachItems(items);
+
+        // Fetch interested providers count for each family
+        const familyIds = items.map((item) => item.family.id);
+        if (familyIds.length > 0) {
+          const { data: reachOuts } = await supabase
+            .from("connections")
+            .select("to_profile_id")
+            .in("to_profile_id", familyIds)
+            .eq("type", "request")
+            .in("status", ["pending", "accepted"]);
+
+          const counts = new Map<string, number>();
+          (reachOuts || []).forEach((r: { to_profile_id: string }) => {
+            counts.set(r.to_profile_id, (counts.get(r.to_profile_id) || 0) + 1);
+          });
+          setReachOutCounts(counts);
+        }
       } catch (err) {
         console.error("Failed to fetch outreach:", err);
         setError(err instanceof Error ? err.message : "Failed to load outreach");
@@ -227,37 +242,6 @@ function OutreachPageContent() {
     declined: outreachItems.filter((i) => i.status === "declined").length,
   }), [outreachItems]);
 
-  // Handle nudge
-  const handleNudge = useCallback(async (connectionId: string) => {
-    setNudgingId(connectionId);
-    setNudgeError(null);
-    try {
-      const res = await fetch("/api/connections/reminder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ connectionId }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to send reminder");
-      }
-
-      // Update local state
-      setOutreachItems((prev) =>
-        prev.map((item) =>
-          item.id === connectionId ? { ...item, reminderSent: true } : item
-        )
-      );
-    } catch (err) {
-      console.error("Nudge failed:", err);
-      setNudgeError(err instanceof Error ? err.message : "Failed to send reminder");
-      // Clear error after 5 seconds
-      setTimeout(() => setNudgeError(null), 5000);
-    } finally {
-      setNudgingId(null);
-    }
-  }, []);
 
   // Open drawer
   const openDrawer = useCallback((item: OutreachItem) => {
@@ -326,14 +310,6 @@ function OutreachPageContent() {
         </div>
       </div>
 
-      {/* Nudge Error Toast */}
-      {nudgeError && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-          <div className="px-4 py-3 bg-red-50 border border-red-100 rounded-xl shadow-lg">
-            <p className="text-sm text-red-700">{nudgeError}</p>
-          </div>
-        </div>
-      )}
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -360,7 +336,7 @@ function OutreachPageContent() {
                 onReachOut={() => openDrawer(item)}
                 animationDelay={idx * 50}
                 sentAt={item.sentAt}
-                hideReachOutCount={true}
+                reachOutCount={reachOutCounts.get(item.family.id) || 0}
               />
             ))}
           </div>

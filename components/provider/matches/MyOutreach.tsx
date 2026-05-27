@@ -12,7 +12,6 @@ interface ConnectionInfo {
   status: "pending" | "accepted" | "declined";
   reply_message?: string | null;
   replied_at?: string | null;
-  reminder_sent?: boolean;
 }
 
 interface MyOutreachProps {

@@ -139,10 +139,10 @@ export default function MyOutreach({
       >
         <div className="overflow-hidden">
           <div className="border-t border-gray-100 px-5 py-4 space-y-2">
-            {/* Upwork-style: "X pending outreach" as underlined clickable links */}
+            {/* Status counts - will link to /provider/outreach when that page exists */}
             <OutreachLink
               count={pendingItems.length}
-              label="pending outreach"
+              label="pending"
               items={pendingItems}
               reminderSentIds={reminderSentIds}
               onSendReminder={onSendReminder}
@@ -165,7 +165,7 @@ export default function MyOutreach({
   );
 }
 
-// Upwork-style link: "X pending outreach" (underlined, clickable)
+// Status row with optional item list
 function OutreachLink({
   count,
   label,
@@ -198,7 +198,7 @@ function OutreachLink({
               <span className="text-gray-400 text-[11px] shrink-0">
                 {timeAgo(connection.created_at)}
               </span>
-              {label === "pending outreach" && canSendReminder(connection, reminderSentIds || new Set()) && onSendReminder && (
+              {label === "pending" && canSendReminder(connection, reminderSentIds || new Set()) && onSendReminder && (
                 <button
                   type="button"
                   onClick={() => onSendReminder(connection.id)}

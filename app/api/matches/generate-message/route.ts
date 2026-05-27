@@ -1,7 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 
 const anthropic = new Anthropic();
+
+// Simple in-memory rate limiter (per user, per minute)
+// Note: This resets on server restart and doesn't work across multiple instances.
+// For production scale, consider Redis or database-backed rate limiting.
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX = 10; // 10 requests per minute per user
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const MAX_MAP_SIZE = 10000; // Prevent unbounded growth
+
+function checkRateLimit(userId: string): { allowed: boolean } {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId);
+
+  // Cleanup expired entry on access (lazy cleanup)
+  if (entry && now > entry.resetAt) {
+    rateLimitMap.delete(userId);
+  }
+
+  // If map is too large, clear expired entries (prevents memory leak)
+  if (rateLimitMap.size > MAX_MAP_SIZE) {
+    for (const [key, value] of rateLimitMap.entries()) {
+      if (now > value.resetAt) {
+        rateLimitMap.delete(key);
+      }
+    }
+  }
+
+  const currentEntry = rateLimitMap.get(userId);
+
+  if (!currentEntry) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true };
+  }
+
+  if (currentEntry.count >= RATE_LIMIT_MAX) {
+    return { allowed: false };
+  }
+
+  currentEntry.count++;
+  return { allowed: true };
+}
 
 const SYSTEM_PROMPT = `You are helping a senior care provider reach out to a family looking for care. Write a warm, professional, concise message (2–3 short paragraphs max). Use the family's first name. Reference their care needs if known. End with a clear, low-pressure call to action. Sign off with just the provider's name (no "Best regards" or formal closings - keep it casual). Never mention specific prices or guarantees.`;
 
@@ -111,17 +153,69 @@ function buildUserPrompt(data: GenerateMessageRequest): string {
 
 export async function POST(request: NextRequest) {
   try {
+    // Authentication check
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    // Rate limiting
+    const { allowed } = checkRateLimit(user.id);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a moment before generating another message." },
+        { status: 429 }
+      );
+    }
+
     const data = (await request.json()) as GenerateMessageRequest;
 
-    // Validate required fields
-    if (!data.familyFirstName || !data.providerName) {
+    // Validate and sanitize required fields
+    const familyFirstName = data.familyFirstName?.trim();
+    const providerName = data.providerName?.trim();
+
+    if (!familyFirstName || !providerName) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    const userPrompt = buildUserPrompt(data);
+    // Basic input length validation to prevent abuse
+    if (familyFirstName.length > 100 || providerName.length > 200) {
+      return NextResponse.json(
+        { error: "Input too long" },
+        { status: 400 }
+      );
+    }
+
+    // Validate profileState
+    const validProfileStates = ["full", "partial", "minimal"] as const;
+    const profileState = validProfileStates.includes(data.profileState as typeof validProfileStates[number])
+      ? data.profileState
+      : "partial"; // Default to partial if invalid
+
+    // Sanitize the data before building prompt
+    const sanitizedData: GenerateMessageRequest = {
+      familyFirstName,
+      providerName,
+      profileState,
+      providerLocation: data.providerLocation?.trim().slice(0, 200),
+      careTypes: data.careTypes?.slice(0, 10).map(t => t.trim().slice(0, 100)),
+      timeline: data.timeline?.trim().slice(0, 50),
+      whoNeedsCare: data.whoNeedsCare?.trim().slice(0, 50),
+      tone: data.tone,
+    };
+
+    const userPrompt = buildUserPrompt(sanitizedData);
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",

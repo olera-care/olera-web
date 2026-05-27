@@ -27,9 +27,13 @@ interface ReachOutDrawerProps {
 // ── Helpers ──
 
 function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return name.slice(0, 2).toUpperCase();
+  const trimmed = name.trim();
+  if (!trimmed) return "?";
+  const parts = trimmed.split(/\s+/);
+  if (parts.length >= 2 && parts[0] && parts[1]) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return trimmed.slice(0, 2).toUpperCase() || "?";
 }
 
 function avatarGradient(name: string): string {
@@ -252,6 +256,13 @@ function generateDefaultMessage(params: {
 }): string {
   const { firstName, careTypes, careNeeds, timeline, profileState, providerName } = params;
 
+  // Handle generic names gracefully
+  const isGenericName = !firstName ||
+    firstName.toLowerCase() === "family" ||
+    firstName.toLowerCase() === "care" ||
+    firstName.toLowerCase() === "seeker";
+  const greeting = isGenericName ? "Hi there" : `Hi ${firstName}`;
+
   // Build care context
   const allCare = [...careTypes, ...careNeeds];
   const careList = allCare.length > 0 ? allCare.slice(0, 2).join(" and ") : "";
@@ -263,7 +274,7 @@ function generateDefaultMessage(params: {
   // Full profile with care info - be specific
   if (profileState === "full" && careList) {
     if (isUrgent) {
-      return `Hi ${firstName},
+      return `${greeting},
 
 I saw you're looking for ${careList} soon. We specialize in exactly this and have availability.
 
@@ -272,7 +283,7 @@ Would a quick call work to discuss your needs?
 ${providerName}`;
     }
 
-    return `Hi ${firstName},
+    return `${greeting},
 
 I noticed you're looking for ${careList}. We'd love to help — our team has experience with exactly this.
 
@@ -284,14 +295,14 @@ ${providerName}`;
   // Full or partial profile without specific care types - be warm but brief
   if (profileState === "full" || profileState === "partial") {
     if (isExploring) {
-      return `Hi ${firstName},
+      return `${greeting},
 
 I saw your profile and wanted to introduce myself. No pressure at all — happy to answer any questions when you're ready.
 
 ${providerName}`;
     }
 
-    return `Hi ${firstName},
+    return `${greeting},
 
 I came across your profile and wanted to reach out. We're a local care provider and I'd love to learn more about what you're looking for.
 
@@ -299,7 +310,7 @@ ${providerName}`;
   }
 
   // Minimal profile - keep it simple and low-pressure
-  return `Hi ${firstName},
+  return `${greeting},
 
 I wanted to introduce myself. We're here to help whenever you're ready — no pressure at all.
 
@@ -324,11 +335,17 @@ export default function ReachOutDrawer({
   const [step, setStep] = useState<"profile" | "message">("profile");
   const [quoteExpanded, setQuoteExpanded] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Extract family data
   const meta = family ? (family.metadata as FamilyMetadata) : null;
   const displayName = family?.display_name || "Family";
   const firstName = displayName.split(" ")[0];
+  const isGenericFirstName = !firstName ||
+    firstName.toLowerCase() === "family" ||
+    firstName.toLowerCase() === "care" ||
+    firstName.toLowerCase() === "seeker";
+  const personalGreeting = isGenericFirstName ? "Hi there" : `Hi ${firstName}`;
   const initials = getInitials(displayName);
   const location = family ? [family.city, family.state].filter(Boolean).join(", ") : "";
   const careNeeds = meta?.care_needs || [];
@@ -338,6 +355,8 @@ export default function ReachOutDrawer({
   const paymentMethods = meta?.payment_methods || [];
   const publishedAt = meta?.care_post?.published_at || family?.created_at;
   const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient, meta?.age);
+  const contactPreference = meta?.contact_preference;
+  const schedulePreference = meta?.schedule_preference;
   const whoNeedsCareParsed = parseWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient);
 
   // Map timeline to urgency text for description generation
@@ -399,20 +418,42 @@ export default function ReachOutDrawer({
 
   const getCareNeedsLabel = (): string | null => {
     if (careNeeds.length === 0) return null;
-    // Limit to 4 items to avoid very long inline text
-    if (careNeeds.length <= 4) {
-      return careNeeds.join(", ");
-    }
-    return `${careNeeds.slice(0, 4).join(", ")} +${careNeeds.length - 4} more`;
+    return careNeeds.join(", ");
   };
 
   const getPaymentLabel = (): string | null => {
     if (paymentMethods.length === 0) return null;
-    // Limit to 3 items for payment methods
-    if (paymentMethods.length <= 3) {
-      return paymentMethods.join(", ");
+    return paymentMethods.join(", ");
+  };
+
+  const getPreferencesLabel = (): string | null => {
+    const parts: string[] = [];
+
+    // Format contact preference
+    if (contactPreference) {
+      const contactMap: Record<string, string> = {
+        call: "Prefers calls",
+        phone: "Prefers calls",
+        text: "Prefers text",
+        sms: "Prefers text",
+        email: "Prefers email",
+      };
+      const formatted = contactMap[contactPreference.toLowerCase()] || `Prefers ${contactPreference}`;
+      parts.push(formatted);
     }
-    return `${paymentMethods.slice(0, 3).join(", ")} +${paymentMethods.length - 3} more`;
+
+    // Format schedule preference (pass through as-is, it's usually human-readable)
+    if (schedulePreference) {
+      // Clean up common patterns
+      const schedule = schedulePreference.trim();
+      if (schedule) {
+        // If it doesn't already imply timing, we could prefix it, but usually it's clear
+        parts.push(schedule);
+      }
+    }
+
+    if (parts.length === 0) return null;
+    return parts.join(", ");
   };
 
   // Generate AI message with timeout
@@ -491,12 +532,12 @@ export default function ReachOutDrawer({
 
   // Simple starter message - no API call, fast and personal
   const getStarterMessage = useCallback(() => {
-    return `Hi ${firstName},
+    return `${personalGreeting},
 
 I came across your profile and wanted to reach out.
 
 ${providerName}`;
-  }, [firstName, providerName]);
+  }, [personalGreeting, providerName]);
 
   // Initialize message when drawer opens
   useEffect(() => {
@@ -538,6 +579,15 @@ ${providerName}`;
     };
   }, [isOpen]);
 
+  // Cleanup focus timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleSend = async () => {
     if (!family || !message.trim() || sending) return;
     await onSend(family.id, message.trim(), saveAsDefault);
@@ -545,7 +595,14 @@ ${providerName}`;
 
   const handleConnect = () => {
     setStep("message");
-    setTimeout(() => textareaRef.current?.focus(), 100);
+    // Clear any existing timeout before setting a new one
+    if (focusTimeoutRef.current) {
+      clearTimeout(focusTimeoutRef.current);
+    }
+    focusTimeoutRef.current = setTimeout(() => {
+      textareaRef.current?.focus();
+      focusTimeoutRef.current = null;
+    }, 100);
   };
 
   const handleBack = () => {
@@ -558,6 +615,8 @@ ${providerName}`;
   const timelineItem = getTimelineLabel();
   const careNeedsValue = getCareNeedsLabel();
   const paymentValue = getPaymentLabel();
+  const preferencesValue = getPreferencesLabel();
+  const memberSinceValue = family.created_at ? memberSince(family.created_at) : null;
 
   // ── Sticky Header Content ──
   const StickyHeader = (
@@ -627,11 +686,11 @@ ${providerName}`;
 
       {/* At a glance - consolidated section */}
       {profileState !== "minimal" && (
-        <div>
-          <p className="text-lg font-semibold text-gray-900 mb-4">
+        <div className={displayDescription ? "mt-2" : ""}>
+          <p className="text-lg font-semibold text-gray-900 mb-3">
             At a glance
           </p>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Timeline + Care Type */}
             {timelineItem && (
               <div>
@@ -656,6 +715,14 @@ ${providerName}`;
               </div>
             )}
 
+            {/* Preferences (contact + schedule) */}
+            {preferencesValue && (
+              <div>
+                <p className="text-sm text-gray-500">Preferences</p>
+                <p className="text-base font-medium text-gray-700">{preferencesValue}</p>
+              </div>
+            )}
+
             {/* Payment */}
             {paymentValue && (
               <div>
@@ -671,10 +738,10 @@ ${providerName}`;
             </div>
 
             {/* Member since */}
-            {family.created_at && (
+            {memberSinceValue && (
               <div>
                 <p className="text-sm text-gray-500">Member since</p>
-                <p className="text-base font-medium text-gray-700">{memberSince(family.created_at)}</p>
+                <p className="text-base font-medium text-gray-700">{memberSinceValue}</p>
               </div>
             )}
           </div>
@@ -696,7 +763,7 @@ ${providerName}`;
           className={`w-full min-h-[160px] px-4 py-3.5 text-base leading-relaxed bg-white border border-gray-200 rounded-xl resize-y focus:outline-none focus:ring-2 focus:ring-[#2a7a6e]/40 focus:border-[#2a7a6e] transition-all placeholder:text-gray-400 ${
             isGenerating ? "opacity-50 animate-pulse" : ""
           }`}
-          placeholder={`Hi ${firstName}! I'd love to help with your care needs...`}
+          placeholder={isGenericFirstName ? "Hi! I'd love to help with your care needs..." : `Hi ${firstName}! I'd love to help with your care needs...`}
         />
         {isGenerating && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -757,17 +824,11 @@ ${providerName}`;
           <p className="text-sm text-rose-600">{sendError}</p>
         </div>
       )}
-      <div className="flex gap-3">
-        <button
-          onClick={onClose}
-          className="flex-1 px-4 py-3.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors"
-        >
-          Cancel
-        </button>
+      <div>
         {!isVerified ? (
           <button
             onClick={onVerifyClick}
-            className="flex-[2] px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
+            className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
@@ -778,7 +839,7 @@ ${providerName}`;
           <button
             onClick={handleSend}
             disabled={!message.trim() || sending || isGenerating}
-            className="flex-[2] px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {sending ? (
               <>
@@ -800,7 +861,7 @@ ${providerName}`;
         )}
       </div>
       <p className="text-sm text-center text-gray-500 mt-3">
-        {firstName} will see your profile{" "}
+        {isGenericFirstName ? "They" : firstName} will see your profile{" "}
         <span className="text-gray-400">·</span>{" "}
         <Link href="/provider/profile" className="font-medium text-[#2a7a6e] hover:text-[#1f5c54]">
           Edit
@@ -852,7 +913,7 @@ ${providerName}`;
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                   </svg>
                 </button>
-                <span className="text-lg font-semibold text-gray-900">Message to {firstName}</span>
+                <span className="text-lg font-semibold text-gray-900">{isGenericFirstName ? "Your message" : `Message to ${firstName}`}</span>
               </div>
             ) : (
               StickyHeader
@@ -874,7 +935,7 @@ ${providerName}`;
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
                 </svg>
-                Send a Message
+                Reach Out
               </button>
             ) : (
               StickyFooter
@@ -899,7 +960,7 @@ ${providerName}`;
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                   </svg>
                 </button>
-                <span className="text-lg font-semibold text-gray-900">Message to {firstName}</span>
+                <span className="text-lg font-semibold text-gray-900">{isGenericFirstName ? "Your message" : `Message to ${firstName}`}</span>
               </div>
             ) : (
               StickyHeader
@@ -921,7 +982,7 @@ ${providerName}`;
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
                 </svg>
-                Send a Message
+                Reach Out
               </button>
             ) : (
               StickyFooter

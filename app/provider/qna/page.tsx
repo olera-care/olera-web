@@ -7,6 +7,7 @@ import { useProviderVerification } from "@/lib/hooks/useProviderVerification";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import VerifyToUnlockPrompt from "@/components/provider/VerifyToUnlockPrompt";
+import Pagination from "@/components/ui/Pagination";
 
 // ── Types ──
 
@@ -28,6 +29,10 @@ interface Question {
 }
 
 import { markQuestionAsRead, migrateQnaReadData } from "@/hooks/useUnreadQnACount";
+
+// ── Constants ──
+
+const PAGE_SIZE = 10;
 
 // ── Helpers ──
 
@@ -903,6 +908,7 @@ export default function ProviderQnAPage() {
   const { refreshAccountData } = useAuth();
   const providerProfile = useProviderProfile();
   const [activeFilter, setActiveFilter] = useState<TabFilter>("pending");
+  const [currentPage, setCurrentPage] = useState(1);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -1016,6 +1022,18 @@ export default function ProviderQnAPage() {
     const statusToMatch = activeFilter === "published" ? "answered" : "pending";
     return questions.filter((q) => q.status === statusToMatch);
   }, [activeFilter, questions]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredQuestions.length / PAGE_SIZE);
+  const paginatedQuestions = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return filteredQuestions.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredQuestions, currentPage]);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter]);
 
   const counts = useMemo(() => ({
     pending: questions.filter((q) => q.status === "pending").length,
@@ -1186,7 +1204,7 @@ export default function ProviderQnAPage() {
           <div>
             {filteredQuestions.length > 0 ? (
               <div className="space-y-4">
-                {filteredQuestions.map((question) => (
+                {paginatedQuestions.map((question) => (
                   question.status === "pending" ? (
                     <PendingQuestionCard
                       key={question.id}
@@ -1210,6 +1228,21 @@ export default function ProviderQnAPage() {
             ) : (
               <div className="bg-white rounded-2xl border border-gray-200/80 lg:min-h-[420px] flex items-center justify-center">
                 <EmptyState filter={activeFilter} />
+              </div>
+            )}
+
+            {/* Pagination */}
+            {filteredQuestions.length > PAGE_SIZE && (
+              <div className="pt-4">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredQuestions.length}
+                  itemsPerPage={PAGE_SIZE}
+                  onPageChange={setCurrentPage}
+                  itemLabel="questions"
+                  showItemCount={true}
+                />
               </div>
             )}
           </div>

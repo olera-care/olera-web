@@ -3,14 +3,14 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic();
 
-const SYSTEM_PROMPT = `You are helping a senior care provider reach out to a family looking for care. Write a warm, professional, concise message (3–4 short paragraphs max). Use the family's first name. Reference their care needs if known. End with a clear, low-pressure call to action. Sign off with the provider's facility name. Never mention specific prices or guarantees.`;
+const SYSTEM_PROMPT = `You are helping a senior care provider reach out to a family looking for care. Write a warm, professional, concise message (2–3 short paragraphs max). Use the family's first name. Reference their care needs if known. End with a clear, low-pressure call to action. Sign off with just the provider's name (no "Best regards" or formal closings - keep it casual). Never mention specific prices or guarantees.`;
 
 interface GenerateMessageRequest {
   familyFirstName: string;
   careTypes?: string[];
   timeline?: string;
   whoNeedsCare?: string;
-  tone: "introduce" | "ask_needs" | "invite_visit";
+  tone?: "introduce" | "ask_needs" | "invite_visit"; // Now optional
   providerName: string;
   providerLocation?: string;
   profileState: "full" | "partial" | "minimal";
@@ -66,26 +66,44 @@ function buildUserPrompt(data: GenerateMessageRequest): string {
 
   prompt += `\nProfile completeness: ${profileState}\n`;
 
-  // Tone instructions
-  switch (tone) {
-    case "introduce":
-      prompt += `\nTone: Warm introduction. Introduce the provider and express interest in helping. Keep it friendly and professional.`;
-      break;
-    case "ask_needs":
-      prompt += `\nTone: Curious and caring. Focus on asking about their specific needs and situation. Show genuine interest in understanding what they're looking for.`;
-      break;
-    case "invite_visit":
-      prompt += `\nTone: Inviting and welcoming. Extend an invitation to visit or tour the facility. Make it feel low-pressure but enthusiastic.`;
-      break;
+  // Determine tone based on context if not explicitly provided
+  const isUrgent = timeline === "as_soon_as_possible" || timeline === "immediate";
+  const isExploring = timeline === "just_researching" || timeline === "exploring";
+
+  // Smart tone instructions based on context
+  if (tone) {
+    // Legacy support: use explicit tone if provided
+    switch (tone) {
+      case "introduce":
+        prompt += `\nTone: Warm introduction. Introduce the provider and express interest in helping.`;
+        break;
+      case "ask_needs":
+        prompt += `\nTone: Curious and caring. Focus on asking about their specific needs.`;
+        break;
+      case "invite_visit":
+        prompt += `\nTone: Inviting and welcoming. Extend an invitation to visit.`;
+        break;
+    }
+  } else {
+    // Smart approach based on context
+    if (profileState === "minimal") {
+      prompt += `\nApproach: Very warm and low-pressure. Don't assume anything about their needs. Just introduce yourself and let them know you're available to help.`;
+    } else if (isUrgent) {
+      prompt += `\nApproach: Direct and helpful. They need care soon, so be clear about availability and offer to connect quickly. Still warm, but action-oriented.`;
+    } else if (isExploring) {
+      prompt += `\nApproach: Relaxed and informational. They're just looking around, so no pressure. Just introduce yourself as an option.`;
+    } else {
+      prompt += `\nApproach: Warm and specific. Reference their care needs and express genuine interest in helping.`;
+    }
   }
 
-  // Profile state instructions
+  // Profile state specific instructions
   if (profileState === "minimal") {
-    prompt += `\n\nIMPORTANT: This family has a minimal profile with limited information. Write a very warm, gentle message that doesn't assume too much about their needs. Focus on being welcoming and available without being pushy.`;
+    prompt += `\n\nIMPORTANT: This family has very limited info. Keep the message short and welcoming without making assumptions.`;
   } else if (profileState === "partial") {
-    prompt += `\n\nNote: This family's profile is partially complete. Be warm and open-ended, inviting them to share more about their situation.`;
+    prompt += `\n\nNote: Partial profile. Be warm and invite them to share more.`;
   } else {
-    prompt += `\n\nNote: This family has a complete profile. You can reference their specific care needs in the message.`;
+    prompt += `\n\nNote: Full profile. Reference their specific care needs.`;
   }
 
   return prompt;
@@ -96,7 +114,7 @@ export async function POST(request: NextRequest) {
     const data = (await request.json()) as GenerateMessageRequest;
 
     // Validate required fields
-    if (!data.familyFirstName || !data.providerName || !data.tone) {
+    if (!data.familyFirstName || !data.providerName) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }

@@ -19,48 +19,15 @@ interface MyOutreachProps {
   families: Profile[];
   connectionData: Map<string, ConnectionInfo>;
   archivedIds: Set<string>;
-  reminderSentIds: Set<string>;
-  onSendReminder?: (connectionId: string) => void;
-  sendingReminderId?: string | null;
   // Optional controlled state (for syncing mobile/desktop instances)
   isOpen?: boolean;
   onToggle?: () => void;
-}
-
-// Simple time ago helper
-function timeAgo(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diffMs = now - then;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "today";
-  if (diffDays === 1) return "1d ago";
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-  return `${Math.floor(diffDays / 30)}mo ago`;
-}
-
-// Check if reminder can be sent (48 hours since initial outreach, no reminder sent yet)
-function canSendReminder(conn: ConnectionInfo, reminderSentIds: Set<string>): boolean {
-  if (conn.status !== "pending") return false;
-  // Check both the connection data AND the live state (for immediate UI update after sending)
-  if (conn.reminder_sent || reminderSentIds.has(conn.id)) return false;
-
-  const sentAt = new Date(conn.created_at).getTime();
-  const now = Date.now();
-  const hoursSince = (now - sentAt) / (1000 * 60 * 60);
-
-  return hoursSince >= 48;
 }
 
 export default function MyOutreach({
   families,
   connectionData,
   archivedIds,
-  reminderSentIds,
-  onSendReminder,
-  sendingReminderId,
   isOpen: controlledIsOpen,
   onToggle,
 }: MyOutreachProps) {
@@ -139,27 +106,21 @@ export default function MyOutreach({
         style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-gray-100 px-5 py-4 space-y-2">
+          <div className="border-t border-gray-100 px-5 py-3 space-y-1">
             <OutreachLink
               count={pendingItems.length}
               label="pending"
               status="pending"
-              items={pendingItems}
-              reminderSentIds={reminderSentIds}
-              onSendReminder={onSendReminder}
-              sendingReminderId={sendingReminderId}
             />
             <OutreachLink
               count={activeItems.length}
               label="connected"
               status="connected"
-              items={activeItems}
             />
             <OutreachLink
               count={archivedItems.length}
               label="declined"
               status="declined"
-              items={archivedItems}
             />
           </div>
         </div>
@@ -168,64 +129,35 @@ export default function MyOutreach({
   );
 }
 
-// Status row with clickable link to outreach page
+// Status row with clickable link to outreach page - just count, no names
 function OutreachLink({
   count,
   label,
   status,
-  items,
-  reminderSentIds,
-  onSendReminder,
-  sendingReminderId,
 }: {
   count: number;
   label: string;
   status: "pending" | "connected" | "declined";
-  items: Array<{ family: Profile; connection: ConnectionInfo }>;
-  reminderSentIds?: Set<string>;
-  onSendReminder?: (connectionId: string) => void;
-  sendingReminderId?: string | null;
 }) {
+  // Status indicator colors
+  const dotColor = status === "pending"
+    ? "bg-amber-400"
+    : status === "connected"
+    ? "bg-emerald-400"
+    : "bg-gray-300";
+
   return (
-    <div>
-      <Link
-        href={`/provider/outreach?status=${status}`}
-        className="text-[14px] text-gray-900 font-medium underline decoration-gray-300 underline-offset-2 hover:decoration-gray-500 hover:text-gray-700 transition-colors"
-      >
-        {count} {label}
-      </Link>
-      {/* Show items inline if any exist */}
-      {items.length > 0 && (
-        <div className="mt-2 ml-3 space-y-1.5">
-          {items.slice(0, 3).map(({ family, connection }) => (
-            <div key={connection.id} className="flex items-center gap-2 text-[13px]">
-              <span className="text-gray-600 truncate max-w-[140px]">
-                {family.display_name || "Family"}
-              </span>
-              <span className="text-gray-400 text-[11px] shrink-0">
-                {timeAgo(connection.created_at)}
-              </span>
-              {label === "pending" && canSendReminder(connection, reminderSentIds || new Set()) && onSendReminder && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSendReminder(connection.id);
-                  }}
-                  disabled={sendingReminderId === connection.id}
-                  className="text-[11px] text-primary-600 hover:text-primary-700 disabled:opacity-50"
-                >
-                  {sendingReminderId === connection.id ? "..." : "Nudge"}
-                </button>
-              )}
-            </div>
-          ))}
-          {items.length > 3 && (
-            <p className="text-[12px] text-gray-400">+{items.length - 3} more</p>
-          )}
-        </div>
-      )}
-    </div>
+    <Link
+      href={`/provider/outreach?status=${status}`}
+      className="flex items-center gap-2 py-1.5 text-[14px] text-gray-700 hover:text-gray-900 transition-colors group"
+    >
+      <span className={`w-2 h-2 rounded-full ${dotColor}`} />
+      <span className="font-medium">{count}</span>
+      <span className="text-gray-500 group-hover:text-gray-600">{label}</span>
+      <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-400 ml-auto" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+      </svg>
+    </Link>
   );
 }
 

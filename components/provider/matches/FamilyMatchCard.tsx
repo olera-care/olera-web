@@ -16,6 +16,10 @@ interface FamilyMatchCardProps {
   reachOutCount?: number;
   onReachOut: (family: Profile) => void;
   animationDelay?: number;
+  /** For outreach page: when the message was sent (replaces "Posted X ago") */
+  sentAt?: string;
+  /** Hide the "Interested providers" count (for outreach page) */
+  hideReachOutCount?: boolean;
 }
 
 // ── Helpers ──
@@ -347,6 +351,8 @@ export default function FamilyMatchCard({
   reachOutCount = 0,
   onReachOut,
   animationDelay = 0,
+  sentAt,
+  hideReachOutCount = false,
 }: FamilyMatchCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
@@ -478,12 +484,27 @@ export default function FamilyMatchCard({
       {/* META BAR */}
       <div className="px-5 py-3 flex items-center justify-between gap-3">
         <span className="text-[13px]">
-          <span className="text-gray-500">Posted</span>{" "}
-          <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
-          <span className="mx-1.5 text-gray-500">·</span>
-          <span className="text-gray-500">Interested providers:</span>
-          {" "}
-          <span className="font-semibold text-gray-700">{reachOutCount}</span>
+          {sentAt ? (
+            // Outreach mode: show when message was sent
+            <>
+              <span className="text-gray-500">Sent</span>{" "}
+              <span className="font-semibold text-gray-700">{timeAgo(sentAt)}</span>
+            </>
+          ) : (
+            // Discovery mode: show when family posted + interest count
+            <>
+              <span className="text-gray-500">Posted</span>{" "}
+              <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
+              {!hideReachOutCount && (
+                <>
+                  <span className="mx-1.5 text-gray-500">·</span>
+                  <span className="text-gray-500">Interested providers:</span>
+                  {" "}
+                  <span className="font-semibold text-gray-700">{reachOutCount}</span>
+                </>
+              )}
+            </>
+          )}
         </span>
 
         {/* Status badge for contacted families */}

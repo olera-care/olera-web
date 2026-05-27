@@ -5,8 +5,9 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
-import type { Profile, FamilyMetadata } from "@/lib/types";
+import type { Profile } from "@/lib/types";
 import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
+import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -26,89 +27,6 @@ interface OutreachItem {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-function formatDate(dateStr: string): { display: string; relative: string } {
-  const date = new Date(dateStr);
-
-  // Handle invalid dates
-  if (isNaN(date.getTime())) {
-    return { display: "Unknown", relative: "Unknown" };
-  }
-
-  const now = Date.now();
-  const diffMs = now - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  const display = date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: date.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
-  });
-
-  let relative: string;
-  if (diffDays < 0) relative = "Today"; // Future date edge case
-  else if (diffDays === 0) relative = "Today";
-  else if (diffDays === 1) relative = "Yesterday";
-  else if (diffDays < 7) relative = `${diffDays} days ago`;
-  else if (diffDays < 14) relative = "1 week ago";
-  else if (diffDays < 30) relative = `${Math.floor(diffDays / 7)} weeks ago`;
-  else if (diffDays < 60) relative = "1 month ago";
-  else relative = `${Math.floor(diffDays / 30)} months ago`;
-
-  return { display, relative };
-}
-
-function getInitials(name: string): string {
-  const trimmed = name.trim();
-  if (!trimmed) return "?";
-  const parts = trimmed.split(/\s+/);
-  if (parts.length >= 2 && parts[0] && parts[1]) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return trimmed.slice(0, 2).toUpperCase() || "?";
-}
-
-function avatarGradient(name: string): string {
-  const gradients = [
-    "linear-gradient(135deg, #7fbfb5, #5a9e94)",
-    "linear-gradient(135deg, #9683b5, #7c6a9a)",
-    "linear-gradient(135deg, #7a8fa8, #5d7490)",
-    "linear-gradient(135deg, #b59683, #9a7c6a)",
-    "linear-gradient(135deg, #a89683, #8a7a68)",
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return gradients[Math.abs(hash) % gradients.length];
-}
-
-function getPrimaryCareType(family: Profile): string | null {
-  const careTypes = family.care_types || [];
-  return careTypes[0] || null;
-}
-
-function getTimeline(family: Profile): string | null {
-  const meta = family.metadata as FamilyMetadata | null;
-  if (!meta?.timeline) return null;
-
-  const labels: Record<string, string> = {
-    immediate: "ASAP",
-    as_soon_as_possible: "ASAP",
-    within_1_month: "In 1 month",
-    within_a_month: "In 1 month",
-    within_3_months: "In 2-3 months",
-    in_a_few_months: "In 2-3 months",
-    exploring: "Exploring",
-    just_researching: "Exploring",
-  };
-
-  return labels[meta.timeline] || meta.timeline;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Tab Configuration
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -117,134 +35,6 @@ const TABS: { id: OutreachStatus; label: string }[] = [
   { id: "connected", label: "Connected" },
   { id: "declined", label: "Declined" },
 ];
-
-// ─────────────────────────────────────────────────────────────────────────────
-// OutreachRow Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-function OutreachRow({
-  item,
-  onClick,
-  onNudge,
-  nudging,
-}: {
-  item: OutreachItem;
-  onClick: () => void;
-  onNudge?: () => void;
-  nudging?: boolean;
-}) {
-  const { display: dateDisplay, relative: dateRelative } = formatDate(item.sentAt);
-  const familyName = item.family.display_name || "Family";
-  const location = [item.family.city, item.family.state].filter(Boolean).join(", ");
-  const careType = getPrimaryCareType(item.family);
-  const timeline = getTimeline(item.family);
-
-  // Can nudge if pending, 48+ hours passed, and no reminder sent yet
-  const canNudge = useMemo(() => {
-    if (item.status !== "pending" || item.reminderSent) return false;
-    const sentAt = new Date(item.sentAt).getTime();
-    const hoursSince = (Date.now() - sentAt) / (1000 * 60 * 60);
-    return hoursSince >= 48;
-  }, [item.status, item.sentAt, item.reminderSent]);
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="w-full text-left bg-white rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all duration-150 px-5 py-4 group"
-    >
-      <div className="flex items-center gap-4">
-        {/* Date column */}
-        <div className="w-24 shrink-0">
-          <p className="text-[13px] font-medium text-gray-900">{dateDisplay}</p>
-          <p className="text-[12px] text-gray-400 mt-0.5">{dateRelative}</p>
-        </div>
-
-        {/* Avatar + Name + Location */}
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          {item.family.image_url ? (
-            <Image
-              src={item.family.image_url}
-              alt={familyName}
-              width={40}
-              height={40}
-              className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
-            />
-          ) : (
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center ring-2 ring-white shadow-sm shrink-0"
-              style={{ background: avatarGradient(familyName) }}
-            >
-              <span className="text-xs font-bold text-white/90">{getInitials(familyName)}</span>
-            </div>
-          )}
-          <div className="min-w-0">
-            <p className="text-[15px] font-semibold text-gray-900 truncate group-hover:text-gray-700 transition-colors">
-              {familyName}
-            </p>
-            <p className="text-[13px] text-gray-500 truncate">{location || "Location not specified"}</p>
-          </div>
-        </div>
-
-        {/* Care type + Timeline */}
-        <div className="hidden sm:block w-40 shrink-0">
-          {(careType || timeline) && (
-            <p className="text-[13px] text-gray-600 truncate">
-              {[careType, timeline].filter(Boolean).join(" · ")}
-            </p>
-          )}
-        </div>
-
-        {/* Status + Action */}
-        <div className="flex items-center gap-3 shrink-0">
-          {item.status === "pending" && (
-            <>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium bg-amber-50 text-amber-700 border border-amber-100">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                Pending
-              </span>
-              {canNudge && onNudge && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onNudge();
-                  }}
-                  disabled={nudging}
-                  className="text-[12px] font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50 transition-colors"
-                >
-                  {nudging ? "..." : "Nudge"}
-                </button>
-              )}
-            </>
-          )}
-          {item.status === "connected" && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Connected
-            </span>
-          )}
-          {item.status === "declined" && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium bg-gray-50 text-gray-500 border border-gray-100">
-              Declined
-            </span>
-          )}
-
-          {/* Chevron */}
-          <svg
-            className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-          </svg>
-        </div>
-      </div>
-    </button>
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Empty State
@@ -558,14 +348,19 @@ function OutreachPageContent() {
         ) : filteredItems.length === 0 ? (
           <EmptyState status={activeTab} />
         ) : (
-          <div className="space-y-3">
-            {filteredItems.map((item) => (
-              <OutreachRow
+          <div className="space-y-4">
+            {filteredItems.map((item, idx) => (
+              <FamilyMatchCard
                 key={item.id}
-                item={item}
-                onClick={() => openDrawer(item)}
-                onNudge={() => handleNudge(item.id)}
-                nudging={nudgingId === item.id}
+                family={item.family}
+                hasFullAccess={true}
+                providerCareTypes={providerProfile?.care_types || []}
+                contacted={true}
+                outreachStatus={item.status}
+                onReachOut={() => openDrawer(item)}
+                animationDelay={idx * 50}
+                sentAt={item.sentAt}
+                hideReachOutCount={true}
               />
             ))}
           </div>

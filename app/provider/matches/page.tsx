@@ -1471,9 +1471,6 @@ export default function ProviderMatchesPage() {
               families={families}
               connectionData={connectionData}
               archivedIds={archivedConnectionIds}
-              reminderSentIds={reminderSentIds}
-              onSendReminder={handleSendReminder}
-              sendingReminderId={sendingReminderId}
               isOpen={isOutreachOpen}
               onToggle={() => setIsOutreachOpen(!isOutreachOpen)}
             />
@@ -1639,9 +1636,6 @@ export default function ProviderMatchesPage() {
               families={families}
               connectionData={connectionData}
               archivedIds={archivedConnectionIds}
-              reminderSentIds={reminderSentIds}
-              onSendReminder={handleSendReminder}
-              sendingReminderId={sendingReminderId}
               isOpen={isOutreachOpen}
               onToggle={() => setIsOutreachOpen(!isOutreachOpen)}
             />

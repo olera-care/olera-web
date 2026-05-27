@@ -380,6 +380,8 @@ function OutreachPageContent() {
               image_url,
               city,
               state,
+              phone,
+              email,
               care_types,
               metadata,
               created_at

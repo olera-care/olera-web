@@ -253,8 +253,17 @@ function ProviderRow({
     <div className="border-b border-gray-100 last:border-b-0">
       {/* Row Header */}
       <div
-        className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
         onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
       >
         {/* Expand Icon */}
         <div className="w-5 shrink-0">
@@ -461,18 +470,25 @@ export default function AdminOutreachPage() {
     fetchData();
   }, [fetchData]);
 
-  // Filter and search providers
-  const filteredProviders = data?.providers.filter((p) => {
-    // Search filter
-    if (debouncedSearch) {
-      const q = debouncedSearch.toLowerCase();
-      const matchesName = p.provider.name.toLowerCase().includes(q);
-      const matchesLocation = p.provider.location.toLowerCase().includes(q);
-      const matchesFamily = p.outreach.some((o) => o.family.name.toLowerCase().includes(q));
-      if (!matchesName && !matchesLocation && !matchesFamily) return false;
-    }
+  // First filter by search (used for tab counts)
+  const searchFilteredProviders = data?.providers.filter((p) => {
+    if (!debouncedSearch) return true;
+    const q = debouncedSearch.toLowerCase();
+    const matchesName = p.provider.name.toLowerCase().includes(q);
+    const matchesLocation = p.provider.location.toLowerCase().includes(q);
+    const matchesFamily = p.outreach.some((o) => o.family.name.toLowerCase().includes(q));
+    return matchesName || matchesLocation || matchesFamily;
+  }) ?? [];
 
-    // Tab filter
+  // Tab counts (based on search-filtered results)
+  const tabCounts: TabCount = {
+    all: searchFilteredProviders.length,
+    has_responses: searchFilteredProviders.filter((p) => p.stats.accepted > 0 || p.stats.declined > 0).length,
+    pending_only: searchFilteredProviders.filter((p) => p.stats.pending > 0 && p.stats.accepted === 0 && p.stats.declined === 0).length,
+  };
+
+  // Then apply tab filter for final display
+  const filteredProviders = searchFilteredProviders.filter((p) => {
     switch (filter) {
       case "has_responses":
         return p.stats.accepted > 0 || p.stats.declined > 0;
@@ -481,14 +497,7 @@ export default function AdminOutreachPage() {
       default:
         return true;
     }
-  }) ?? [];
-
-  // Tab counts
-  const tabCounts: TabCount = data ? {
-    all: data.providers.length,
-    has_responses: data.providers.filter((p) => p.stats.accepted > 0 || p.stats.declined > 0).length,
-    pending_only: data.providers.filter((p) => p.stats.pending > 0 && p.stats.accepted === 0 && p.stats.declined === 0).length,
-  } : { all: 0, has_responses: 0, pending_only: 0 };
+  });
 
   // Pagination
   const totalPages = Math.ceil(filteredProviders.length / PAGE_SIZE);

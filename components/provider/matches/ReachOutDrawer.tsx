@@ -68,41 +68,7 @@ function memberSince(dateStr: string | undefined): string {
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
-function formatContactPref(pref: string | undefined): string | null {
-  if (!pref) return null;
-  const map: Record<string, string> = {
-    call: "Prefers phone calls",
-    phone: "Prefers phone calls",
-    text: "Prefers text messages",
-    sms: "Prefers text messages",
-    email: "Prefers email",
-  };
-  return map[pref.toLowerCase()] || `Prefers ${pref}`;
-}
-
-function formatSchedulePref(pref: string | undefined): string | null {
-  if (!pref) return null;
-  const map: Record<string, string> = {
-    mornings: "Mornings preferred",
-    morning: "Mornings preferred",
-    afternoons: "Afternoons preferred",
-    afternoon: "Afternoons preferred",
-    evenings: "Evenings preferred",
-    evening: "Evenings preferred",
-    overnight: "Overnight care needed",
-    night: "Overnight care needed",
-    full_time: "Full-time care needed",
-    fulltime: "Full-time care needed",
-    part_time: "Part-time care needed",
-    parttime: "Part-time care needed",
-    flexible: "Flexible schedule",
-    weekends: "Weekends preferred",
-    weekdays: "Weekdays preferred",
-  };
-  return map[pref.toLowerCase()] || pref;
-}
-
-function formatWhoNeedsCare(value: string | undefined, age: number | undefined): string | null {
+function formatWhoNeedsCare(value: string | undefined): string | null {
   if (!value) return null;
   const mapping: Record<string, string> = {
     self: "Self",
@@ -118,8 +84,7 @@ function formatWhoNeedsCare(value: string | undefined, age: number | undefined):
     my_spouse: "Spouse",
     someone_else: "Family member",
   };
-  const who = mapping[value] || value;
-  return age ? `${who}, ${age} years old` : who;
+  return mapping[value] || value;
 }
 
 // Parse who needs care into structured format for description generation
@@ -219,20 +184,6 @@ function generateDescription(params: {
   return sentences.length > 0 ? sentences.join(" ") : null;
 }
 
-// Timeline badge configuration - aligned with FamilyMatchCard labels
-const TIMELINE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
-  as_soon_as_possible: { label: "Needs care ASAP", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-500" },
-  within_a_month: { label: "Needs care in ~1 month", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
-  in_a_few_months: { label: "Needs care in 2-3 months", color: "text-teal-600", bg: "bg-teal-50", border: "border-teal-200", dot: "bg-teal-500" },
-  just_researching: { label: "Just exploring", color: "text-gray-600", bg: "bg-gray-100", border: "border-gray-300", dot: "bg-gray-500" },
-  // Legacy values
-  immediate: { label: "Needs care ASAP", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-500" },
-  within_1_month: { label: "Needs care in ~1 month", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
-  within_3_months: { label: "Needs care in 2-3 months", color: "text-teal-600", bg: "bg-teal-50", border: "border-teal-200", dot: "bg-teal-500" },
-  exploring: { label: "Just exploring", color: "text-gray-600", bg: "bg-gray-100", border: "border-gray-300", dot: "bg-gray-500" },
-};
-
-
 // Calculate profile completeness
 function calculateCompleteness(family: Profile, meta: FamilyMetadata | null): number {
   if (meta?.profile_completeness !== undefined) {
@@ -289,7 +240,7 @@ function generateDefaultMessage(params: {
   profileState: "full" | "partial" | "minimal";
   providerName: string;
 }): string {
-  const { firstName, careTypes, careNeeds, timeline, whoNeedsCare, profileState, providerName } = params;
+  const { firstName, careTypes, careNeeds, timeline, profileState, providerName } = params;
 
   // Build care context
   const allCare = [...careTypes, ...careNeeds];
@@ -373,14 +324,11 @@ export default function ReachOutDrawer({
   const careNeeds = meta?.care_needs || [];
   const careTypes = family?.care_types || [];
   const primaryCareType = careTypes[0];
-  const timeline = meta?.timeline ? TIMELINE_CONFIG[meta.timeline] : null;
   const familyQuote = meta?.about_situation;
   const paymentMethods = meta?.payment_methods || [];
   const publishedAt = meta?.care_post?.published_at || family?.created_at;
-  const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient, meta?.age);
+  const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient);
   const whoNeedsCareParsed = parseWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient);
-  const schedulePref = formatSchedulePref(meta?.schedule_preference);
-  const contactPref = formatContactPref(meta?.contact_preference);
 
   // Map timeline to urgency text for description generation
   const urgencyMap: Record<string, string> = {
@@ -416,10 +364,38 @@ export default function ReachOutDrawer({
 
   // Provider data
   const providerName = providerProfile?.display_name || "Your Business";
-  const providerInitials = providerProfile ? getInitials(providerName) : "?";
   const providerLocation = providerProfile
     ? [providerProfile.city, providerProfile.state].filter(Boolean).join(", ")
     : "";
+
+  // Build "At a glance" items - combine care needs, timeline, who, payment, profile stats
+  const getTimelineLabel = (): { label: string; value: string } | null => {
+    const tl = meta?.timeline as string | undefined;
+    if (!tl && !primaryCareType) return null;
+
+    const care = primaryCareType || "care";
+    const isExploring = tl === "just_researching" || tl === "exploring";
+    const isAsap = tl === "as_soon_as_possible" || tl === "immediate";
+    const isMonth = tl === "within_a_month" || tl === "within_1_month";
+    const isFewMonths = tl === "in_a_few_months" || tl === "within_3_months";
+
+    if (isExploring) return { label: "Exploring", value: care };
+    if (isAsap) return { label: "Needs", value: `${care} ASAP` };
+    if (isMonth) return { label: "Needs", value: `${care} in ~1 month` };
+    if (isFewMonths) return { label: "Needs", value: `${care} in 2-3 months` };
+    if (primaryCareType) return { label: "Looking for", value: care };
+    return null;
+  };
+
+  const getCareNeedsLabel = (): string | null => {
+    if (careNeeds.length === 0) return null;
+    return careNeeds.join(", ");
+  };
+
+  const getPaymentLabel = (): string | null => {
+    if (paymentMethods.length === 0) return null;
+    return paymentMethods.join(", ");
+  };
 
   // Generate AI message
   const generateMessage = useCallback(async () => {
@@ -548,41 +524,48 @@ export default function ReachOutDrawer({
 
   if (!family) return null;
 
-  // ── Family Profile Content (used in left column on desktop, step 1 on mobile) ──
-  const FamilyProfileContent = (
-    <div className="space-y-5">
-      {/* Header: Avatar, Name, Location, Posted */}
-      <div className="flex items-start gap-3">
-        {family.image_url ? (
-          <Image
-            src={family.image_url}
-            alt={displayName}
-            width={52}
-            height={52}
-            className="w-[52px] h-[52px] rounded-xl object-cover shrink-0"
-          />
-        ) : (
-          <div
-            className="w-[52px] h-[52px] rounded-xl flex items-center justify-center text-base font-semibold text-white shrink-0"
-            style={{ background: avatarGradient(displayName) }}
-          >
-            {initials}
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <h2 id="drawer-title" className="text-base font-semibold text-gray-900">{displayName}</h2>
-          {location && (
-            <p className="text-sm font-medium text-gray-600">{location}</p>
-          )}
-          <p className="text-sm mt-1">
-            <span className="text-gray-500">Posted</span>{" "}
-            <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
-          </p>
+  // Build at-a-glance items
+  const timelineItem = getTimelineLabel();
+  const careNeedsValue = getCareNeedsLabel();
+  const paymentValue = getPaymentLabel();
+
+  // ── Sticky Header Content ──
+  const StickyHeader = (
+    <div className="flex items-center gap-3">
+      {family.image_url ? (
+        <Image
+          src={family.image_url}
+          alt={displayName}
+          width={48}
+          height={48}
+          className="w-12 h-12 rounded-xl object-cover shrink-0"
+        />
+      ) : (
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center text-base font-semibold text-white shrink-0"
+          style={{ background: avatarGradient(displayName) }}
+        >
+          {initials}
         </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <h2 id="drawer-title" className="text-lg font-semibold text-gray-900">{displayName}</h2>
+        {location && (
+          <p className="text-sm text-gray-600">{location}</p>
+        )}
       </div>
+      <div className="text-right shrink-0">
+        <p className="text-sm">
+          <span className="text-gray-500">Posted</span>{" "}
+          <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
+        </p>
+      </div>
+    </div>
+  );
 
-      <div className="border-t border-gray-100" />
-
+  // ── Scrollable Content (Profile + At a glance + Message) ──
+  const ScrollableContent = (
+    <div className="space-y-6">
       {/* About Their Situation */}
       {profileState === "minimal" ? (
         <div className="px-4 py-3 bg-amber-50/60 border-l-2 border-amber-300 rounded-r-lg">
@@ -612,140 +595,72 @@ export default function ReachOutDrawer({
         </div>
       ) : null}
 
-      {/* Care Details (structured list) */}
-      {(whoNeedsCare || schedulePref || contactPref) && (
-        <div>
-          <p className="text-lg font-semibold text-gray-900 mb-3">
-            Care Details
-          </p>
-          <div className="space-y-2.5">
-            {whoNeedsCare && (
-              <div className="flex items-center gap-2 text-sm">
-                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                </svg>
-                <span className="text-gray-500">Who needs care</span>
-                <span className="font-semibold text-gray-700">{whoNeedsCare}</span>
-              </div>
-            )}
-            {schedulePref && (
-              <div className="flex items-center gap-2 text-sm">
-                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                </svg>
-                <span className="text-gray-500">Schedule</span>
-                <span className="font-semibold text-gray-700">{schedulePref}</span>
-              </div>
-            )}
-            {contactPref && (
-              <div className="flex items-center gap-2 text-sm">
-                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                </svg>
-                <span className="text-gray-500">How to reach them</span>
-                <span className="font-semibold text-gray-700">{contactPref}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Care Needs tags */}
-      {careNeeds.length > 0 && (
-        <div>
-          <p className="text-lg font-semibold text-gray-900 mb-2.5">
-            Care Needs
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {careNeeds.slice(0, 6).map((need) => (
-              <span
-                key={need}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-200"
-              >
-                {need}
-              </span>
-            ))}
-            {careNeeds.length > 6 && (
-              <span className="px-3 py-1.5 text-sm font-medium text-gray-500 bg-gray-50 rounded-lg border border-gray-100">
-                +{careNeeds.length - 6} more
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Payment methods - inline like the card */}
-      {paymentMethods.length > 0 && (
-        <div className="flex items-baseline gap-2 text-sm">
-          <span className="text-gray-500 shrink-0">Can pay via</span>
-          <div className="flex flex-wrap gap-x-1 gap-y-0.5">
-            {paymentMethods.map((method, i) => (
-              <span key={method} className="font-semibold text-gray-700 whitespace-nowrap">
-                {i > 0 && <span className="text-gray-500 font-normal mr-1">·</span>}
-                {method}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* About the Family (trust signals) - only show for partial/full profiles */}
+      {/* At a glance - consolidated section */}
       {profileState !== "minimal" && (
         <>
           <div className="border-t border-gray-100" />
           <div>
             <p className="text-lg font-semibold text-gray-900 mb-3">
-              About the Family
+              At a glance
             </p>
-            <div className="space-y-2">
-              {/* Timeline + Care Type combined */}
-              {(() => {
-                const tl = meta?.timeline as string | undefined;
-                const care = primaryCareType || "care";
-                const isExploring = tl === "just_researching" || tl === "exploring";
-                const isAsap = tl === "as_soon_as_possible" || tl === "immediate";
-                const isMonth = tl === "within_a_month" || tl === "within_1_month";
-                const isFewMonths = tl === "in_a_few_months" || tl === "within_3_months";
+            <div className="space-y-2.5">
+              {/* Timeline + Care Type */}
+              {timelineItem && (
+                <div className="flex items-start gap-2 text-base">
+                  <svg className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                  <span className="text-gray-500">{timelineItem.label}</span>
+                  <span className="font-semibold text-gray-700">{timelineItem.value}</span>
+                </div>
+              )}
 
-                if (!tl && !primaryCareType) return null;
+              {/* Care Needs - inline list */}
+              {careNeedsValue && (
+                <div className="flex items-start gap-2 text-base">
+                  <svg className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                  <span className="text-gray-500">Help with</span>
+                  <span className="font-semibold text-gray-700">{careNeedsValue}</span>
+                </div>
+              )}
 
-                let label = "Looking for";
-                let value = primaryCareType || "care options";
+              {/* Who needs care */}
+              {whoNeedsCare && (
+                <div className="flex items-start gap-2 text-base">
+                  <svg className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                  <span className="text-gray-500">Who needs care</span>
+                  <span className="font-semibold text-gray-700">{whoNeedsCare}</span>
+                </div>
+              )}
 
-                if (isExploring) {
-                  label = "Exploring";
-                  value = primaryCareType || "care options";
-                } else if (isAsap) {
-                  label = "Needs";
-                  value = `${care} ASAP`;
-                } else if (isMonth) {
-                  label = "Needs";
-                  value = `${care} in ~1 month`;
-                } else if (isFewMonths) {
-                  label = "Needs";
-                  value = `${care} in 2-3 months`;
-                }
+              {/* Payment */}
+              {paymentValue && (
+                <div className="flex items-start gap-2 text-base">
+                  <svg className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                  <span className="text-gray-500">Can pay via</span>
+                  <span className="font-semibold text-gray-700">{paymentValue}</span>
+                </div>
+              )}
 
-                return (
-                  <div className="flex items-center gap-2 text-sm">
-                    <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                    </svg>
-                    <span className="text-gray-500">{label}</span>
-                    <span className="font-semibold text-gray-700">{value}</span>
-                  </div>
-                );
-              })()}
-              <div className="flex items-center gap-2 text-sm">
-                <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              {/* Profile completeness */}
+              <div className="flex items-start gap-2 text-base">
+                <svg className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 <span className="text-gray-500">Profile</span>
                 <span className="font-semibold text-gray-700">{completeness}% complete</span>
               </div>
+
+              {/* Member since */}
               {family.created_at && (
-                <div className="flex items-center gap-2 text-sm">
-                  <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <div className="flex items-start gap-2 text-base">
+                  <svg className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                   </svg>
                   <span className="text-gray-500">Member since</span>
@@ -759,43 +674,41 @@ export default function ReachOutDrawer({
     </div>
   );
 
-  // ── Message Composition Content (used in right column on desktop, step 2 on mobile) ──
-  const MessageContent = (
-    <div className="flex flex-col">
-      {/* Header */}
-      <h3 className="text-base font-semibold text-gray-900 mb-4">
+  // ── Message Section ──
+  const MessageSection = (
+    <div className="space-y-4">
+      <div className="border-t border-gray-100 pt-6" />
+      <p className="text-lg font-semibold text-gray-900">
         Your message
-      </h3>
+      </p>
 
       {/* Textarea */}
-      <div className="flex-1 min-h-0">
-        <div className="relative">
-          <textarea
-            ref={textareaRef}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            disabled={isGenerating}
-            className={`w-full min-h-[160px] lg:min-h-[180px] px-4 py-3.5 text-[15px] leading-relaxed bg-white border border-gray-200 rounded-xl resize-y focus:outline-none focus:ring-2 focus:ring-[#2a7a6e]/40 focus:border-[#2a7a6e] transition-all placeholder:text-gray-400 ${
-              isGenerating ? "opacity-50 animate-pulse" : ""
-            }`}
-            placeholder={`Hi ${firstName}! I'd love to help with your care needs...`}
-          />
-          {isGenerating && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-white/90 rounded-lg shadow-sm">
-                <svg className="w-4 h-4 animate-spin text-[#2a7a6e]" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                <span className="text-xs text-gray-500">Generating...</span>
-              </div>
+      <div className="relative">
+        <textarea
+          ref={textareaRef}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          disabled={isGenerating}
+          className={`w-full min-h-[160px] px-4 py-3.5 text-base leading-relaxed bg-white border border-gray-200 rounded-xl resize-y focus:outline-none focus:ring-2 focus:ring-[#2a7a6e]/40 focus:border-[#2a7a6e] transition-all placeholder:text-gray-400 ${
+            isGenerating ? "opacity-50 animate-pulse" : ""
+          }`}
+          placeholder={`Hi ${firstName}! I'd love to help with your care needs...`}
+        />
+        {isGenerating && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-white/90 rounded-lg shadow-sm">
+              <svg className="w-4 h-4 animate-spin text-[#2a7a6e]" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <span className="text-sm text-gray-500">Generating...</span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Actions row */}
-      <div className="flex items-center justify-between mt-3">
+      <div className="flex items-center justify-between">
         <label className="inline-flex items-center gap-2.5 cursor-pointer select-none">
           <input
             type="checkbox"
@@ -817,8 +730,67 @@ export default function ReachOutDrawer({
           {isGenerating ? "Generating..." : "Regenerate"}
         </button>
       </div>
+    </div>
+  );
 
+  // ── Sticky Footer Content ──
+  const StickyFooter = (
+    <>
+      {sendError && (
+        <div className="mb-3 px-3 py-2 bg-rose-50 border border-rose-100 rounded-lg">
+          <p className="text-sm text-rose-600">{sendError}</p>
+        </div>
+      )}
+      <div className="flex gap-3">
+        <button
+          onClick={onClose}
+          className="flex-1 px-4 py-3.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors"
+        >
+          Cancel
+        </button>
+        {!isVerified ? (
+          <button
+            onClick={onVerifyClick}
+            className="flex-[2] px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+            </svg>
+            Verify to message
+          </button>
+        ) : (
+          <button
+            onClick={handleSend}
+            disabled={!message.trim() || sending || isGenerating}
+            className="flex-[2] px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {sending ? (
+              <>
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Sending...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                </svg>
+                Send Message
+              </>
+            )}
+          </button>
+        )}
       </div>
+      <p className="text-sm text-center text-gray-500 mt-3">
+        {firstName} will see your profile{" "}
+        <span className="text-gray-400">·</span>{" "}
+        <Link href="/provider/profile" className="font-medium text-[#2a7a6e] hover:text-[#1f5c54]">
+          Edit
+        </Link>
+      </p>
+    </>
   );
 
   return (
@@ -836,184 +808,82 @@ export default function ReachOutDrawer({
       <div
         className={`fixed z-[70] bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-300 ease-out
           inset-x-0 bottom-0 max-h-[95dvh] rounded-t-2xl pb-[env(safe-area-inset-bottom)]
-          lg:inset-y-0 lg:top-0 lg:right-0 lg:left-auto lg:bottom-0 lg:w-[800px] lg:max-w-[calc(100vw-24px)] lg:h-screen lg:max-h-none lg:rounded-none lg:pb-0
+          lg:inset-y-0 lg:top-0 lg:right-0 lg:left-auto lg:bottom-0 lg:w-[500px] lg:max-w-[calc(100vw-24px)] lg:h-screen lg:max-h-none lg:rounded-none lg:pb-0
           ${isOpen ? "translate-y-0 lg:translate-x-0" : "translate-y-full lg:translate-y-0 lg:translate-x-full"}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="drawer-title"
       >
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* MOBILE LAYOUT */}
+        {/* MOBILE LAYOUT (two-step flow) */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <div className="lg:hidden flex flex-col h-full">
           {/* Mobile drag handle */}
-          <div className="pt-3 pb-1 flex justify-center shrink-0">
+          <div className="pt-3 pb-2 flex justify-center shrink-0">
             <div className="w-10 h-1 bg-gray-300 rounded-full" />
           </div>
 
-          {/* Mobile header with back button (step 2 only) */}
-          {mobileStep === "message" && (
-            <div className="px-5 pt-2 pb-3 border-b border-gray-100 flex items-center gap-3">
-              <button
-                onClick={handleMobileBack}
-                className="p-1.5 -ml-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                aria-label="Back to profile"
-              >
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
-              </button>
-              <span className="text-[15px] font-medium text-gray-900">Message to {firstName}</span>
-            </div>
-          )}
+          {/* Mobile sticky header */}
+          <div className="shrink-0 px-5 pb-4 border-b border-gray-100">
+            {mobileStep === "message" ? (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleMobileBack}
+                  className="p-1.5 -ml-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  aria-label="Back to profile"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                  </svg>
+                </button>
+                <span className="text-lg font-semibold text-gray-900">Message to {firstName}</span>
+              </div>
+            ) : (
+              StickyHeader
+            )}
+          </div>
 
           {/* Mobile scrollable content */}
           <div className="flex-1 overflow-y-auto px-5 py-5">
-            {mobileStep === "profile" ? FamilyProfileContent : MessageContent}
+            {mobileStep === "profile" ? ScrollableContent : MessageSection}
           </div>
 
           {/* Mobile sticky footer */}
           <div className="shrink-0 border-t border-gray-100 px-5 pt-4 pb-4 bg-white">
-            {sendError && (
-              <div className="mb-3 px-3 py-2 bg-rose-50 border border-rose-100 rounded-lg">
-                <p className="text-sm text-rose-600">{sendError}</p>
-              </div>
-            )}
-
             {mobileStep === "profile" ? (
-              <>
-                <button
-                  onClick={handleMobileConnect}
-                  className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-                  </svg>
-                  Send a Message
-                </button>
-              </>
+              <button
+                onClick={handleMobileConnect}
+                className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+                </svg>
+                Send a Message
+              </button>
             ) : (
-              <>
-                {!isVerified ? (
-                  <button
-                    onClick={onVerifyClick}
-                    className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                    </svg>
-                    Verify to message
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSend}
-                    disabled={!message.trim() || sending || isGenerating}
-                    className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {sending ? (
-                      <>
-                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                        </svg>
-                        Send Message
-                      </>
-                    )}
-                  </button>
-                )}
-                <p className="text-sm text-center text-gray-500 mt-2.5">
-                  {firstName} will see your profile{" "}
-                  <span className="text-gray-400">·</span>{" "}
-                  <Link href="/provider/profile" className="font-medium text-[#2a7a6e] hover:text-[#1f5c54]">
-                    Edit
-                  </Link>
-                </p>
-              </>
+              StickyFooter
             )}
           </div>
         </div>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* DESKTOP LAYOUT (two-column) */}
+        {/* DESKTOP LAYOUT (single column) */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <div className="hidden lg:flex lg:flex-row lg:h-full">
-          {/* LEFT COLUMN: Scrollable family profile */}
-          <div className="w-[420px] border-r border-gray-100 overflow-y-auto">
-            <div className="p-6">
-              {FamilyProfileContent}
-            </div>
+        <div className="hidden lg:flex lg:flex-col lg:h-full">
+          {/* Desktop sticky header */}
+          <div className="shrink-0 px-6 py-5 border-b border-gray-100">
+            {StickyHeader}
           </div>
 
-          {/* RIGHT COLUMN: Message section - centered vertically */}
-          <div className="flex-1 flex flex-col min-w-0">
-            <div className="flex-1 flex flex-col justify-center p-6 overflow-y-auto">
-              {MessageContent}
-            </div>
+          {/* Desktop scrollable content */}
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            {ScrollableContent}
+            {MessageSection}
+          </div>
 
-            {/* Desktop footer */}
-            <div className="shrink-0 border-t border-gray-100 px-6 pt-4 pb-5 bg-white">
-              {sendError && (
-                <div className="mb-3 px-3 py-2 bg-rose-50 border border-rose-100 rounded-lg">
-                  <p className="text-sm text-rose-600">{sendError}</p>
-                </div>
-              )}
-              <div className="flex gap-3">
-                <button
-                  onClick={onClose}
-                  className="flex-1 px-4 py-3.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                >
-                  Cancel
-                </button>
-                {!isVerified ? (
-                  <button
-                    onClick={onVerifyClick}
-                    className="flex-[2] px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                    </svg>
-                    Verify to message
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSend}
-                    disabled={!message.trim() || sending || isGenerating}
-                    className="flex-[2] px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {sending ? (
-                      <>
-                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                        </svg>
-                        Send Message
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-              <p className="text-sm text-center text-gray-500 mt-3">
-                {firstName} will see your profile{" "}
-                <span className="text-gray-400">·</span>{" "}
-                <Link href="/provider/profile" className="font-medium text-[#2a7a6e] hover:text-[#1f5c54]">
-                  Edit
-                </Link>
-              </p>
-            </div>
+          {/* Desktop sticky footer */}
+          <div className="shrink-0 border-t border-gray-100 px-6 pt-4 pb-5 bg-white">
+            {StickyFooter}
           </div>
         </div>
       </div>

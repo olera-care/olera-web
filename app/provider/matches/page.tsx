@@ -1502,7 +1502,31 @@ export default function ProviderMatchesPage() {
                   Browse All Families
                 </button>
               </div>
+            ) : families.every((f) => contactedIds.has(f.id)) ? (
+              // All families contacted - congratulations state
+              <div className="text-center py-12 px-8">
+                <Image
+                  src="/Near-you-img.png"
+                  alt="All families contacted"
+                  width={180}
+                  height={180}
+                  className="mx-auto mb-6"
+                />
+                <h3 className="text-[17px] font-display font-bold text-gray-900 mb-2">
+                  You&apos;ve reached out to everyone
+                </h3>
+                <p className="text-[15px] text-gray-500 max-w-sm mx-auto leading-relaxed mb-6">
+                  Great work! Check your outreach to see who&apos;s responded, or check back soon for new families.
+                </p>
+                <Link
+                  href="/provider/outreach"
+                  className="inline-flex px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
+                >
+                  View Outreach
+                </Link>
+              </div>
             ) : (
+              // Filter mismatch - no families match current filters
               <div className="text-center py-16 px-8">
                 <div className="w-12 h-12 rounded-2xl bg-warm-50 border border-warm-100/60 flex items-center justify-center mx-auto mb-4">
                   <svg className="w-6 h-6 text-warm-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">

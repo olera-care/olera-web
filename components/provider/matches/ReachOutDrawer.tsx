@@ -494,12 +494,6 @@ ${providerName}`;
         // Use simple starter - no API call, instant
         setMessage(getStarterMessage());
       }
-
-      // Only auto-focus on desktop (mobile starts on profile view)
-      const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
-      if (isDesktop) {
-        setTimeout(() => textareaRef.current?.focus(), 350);
-      }
     }
   }, [isOpen, family, defaultMessage, getStarterMessage]);
 
@@ -615,7 +609,7 @@ ${providerName}`;
 
       {/* At a glance - consolidated section */}
       {profileState !== "minimal" && (
-        <div className="mt-6">
+        <div>
           <p className="text-lg font-semibold text-gray-900 mb-4">
             At a glance
           </p>

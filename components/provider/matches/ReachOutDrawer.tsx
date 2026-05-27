@@ -574,7 +574,7 @@ export default function ReachOutDrawer({
           {location && (
             <p className="text-sm font-medium text-gray-600">{location}</p>
           )}
-          <p className="text-[13px] mt-1">
+          <p className="text-sm mt-1">
             <span className="text-gray-500">Posted</span>{" "}
             <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
           </p>
@@ -592,11 +592,11 @@ export default function ReachOutDrawer({
         </div>
       ) : displayDescription ? (
         <div>
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
             About their situation
           </p>
           <p
-            className={`text-[14px] text-gray-700 leading-relaxed ${!quoteExpanded ? 'line-clamp-3' : ''}`}
+            className={`text-base text-gray-700 leading-relaxed ${!quoteExpanded ? 'line-clamp-3' : ''}`}
           >
             {familyQuote ? `"${displayDescription}"` : displayDescription}
           </p>
@@ -604,7 +604,7 @@ export default function ReachOutDrawer({
             <button
               type="button"
               onClick={() => setQuoteExpanded(true)}
-              className="text-[14px] font-medium text-gray-900 underline underline-offset-2 mt-1 hover:text-gray-700"
+              className="text-base font-medium text-gray-900 underline underline-offset-2 mt-1 hover:text-gray-700"
             >
               more
             </button>
@@ -615,12 +615,12 @@ export default function ReachOutDrawer({
       {/* Care Details (structured list) */}
       {(whoNeedsCare || schedulePref || contactPref) && (
         <div>
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
             Care Details
           </p>
           <div className="space-y-2.5">
             {whoNeedsCare && (
-              <div className="flex items-center gap-2 text-[13px]">
+              <div className="flex items-center gap-2 text-sm">
                 <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                 </svg>
@@ -629,7 +629,7 @@ export default function ReachOutDrawer({
               </div>
             )}
             {schedulePref && (
-              <div className="flex items-center gap-2 text-[13px]">
+              <div className="flex items-center gap-2 text-sm">
                 <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                 </svg>
@@ -638,7 +638,7 @@ export default function ReachOutDrawer({
               </div>
             )}
             {contactPref && (
-              <div className="flex items-center gap-2 text-[13px]">
+              <div className="flex items-center gap-2 text-sm">
                 <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
                 </svg>
@@ -653,20 +653,20 @@ export default function ReachOutDrawer({
       {/* Care Needs tags */}
       {careNeeds.length > 0 && (
         <div>
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2.5">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2.5">
             Care Needs
           </p>
           <div className="flex flex-wrap gap-2">
             {careNeeds.slice(0, 6).map((need) => (
               <span
                 key={need}
-                className="px-3 py-1.5 text-[13px] font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-200"
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-200"
               >
                 {need}
               </span>
             ))}
             {careNeeds.length > 6 && (
-              <span className="px-3 py-1.5 text-[13px] font-medium text-gray-500 bg-gray-50 rounded-lg border border-gray-100">
+              <span className="px-3 py-1.5 text-sm font-medium text-gray-500 bg-gray-50 rounded-lg border border-gray-100">
                 +{careNeeds.length - 6} more
               </span>
             )}
@@ -676,7 +676,7 @@ export default function ReachOutDrawer({
 
       {/* Payment methods - inline like the card */}
       {paymentMethods.length > 0 && (
-        <div className="flex items-baseline gap-2 text-[13px]">
+        <div className="flex items-baseline gap-2 text-sm">
           <span className="text-gray-500 shrink-0">Can pay via</span>
           <div className="flex flex-wrap gap-x-1 gap-y-0.5">
             {paymentMethods.map((method, i) => (
@@ -694,7 +694,7 @@ export default function ReachOutDrawer({
         <>
           <div className="border-t border-gray-100" />
           <div>
-            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
               About the Family
             </p>
             <div className="space-y-2">
@@ -727,7 +727,7 @@ export default function ReachOutDrawer({
                 }
 
                 return (
-                  <div className="flex items-center gap-2 text-[13px]">
+                  <div className="flex items-center gap-2 text-sm">
                     <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                     </svg>
@@ -736,7 +736,7 @@ export default function ReachOutDrawer({
                   </div>
                 );
               })()}
-              <div className="flex items-center gap-2 text-[13px]">
+              <div className="flex items-center gap-2 text-sm">
                 <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
@@ -744,7 +744,7 @@ export default function ReachOutDrawer({
                 <span className="font-semibold text-gray-700">{completeness}% complete</span>
               </div>
               {family.created_at && (
-                <div className="flex items-center gap-2 text-[13px]">
+                <div className="flex items-center gap-2 text-sm">
                   <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                   </svg>
@@ -803,13 +803,13 @@ export default function ReachOutDrawer({
             onChange={(e) => setSaveAsDefault(e.target.checked)}
             className="w-4 h-4 rounded border-gray-300 text-[#2a7a6e] focus:ring-[#2a7a6e]/30 focus:ring-offset-0"
           />
-          <span className="text-[13px] text-gray-500">Save as default</span>
+          <span className="text-sm text-gray-500">Save as default</span>
         </label>
         <button
           type="button"
           onClick={() => generateMessage()}
           disabled={isGenerating}
-          className="text-[13px] font-medium text-[#2a7a6e] hover:text-[#1f5c54] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+          className="text-sm font-medium text-[#2a7a6e] hover:text-[#1f5c54] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
         >
           <svg className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
@@ -928,7 +928,7 @@ export default function ReachOutDrawer({
                     )}
                   </button>
                 )}
-                <p className="text-[13px] text-center text-gray-500 mt-2.5">
+                <p className="text-sm text-center text-gray-500 mt-2.5">
                   {firstName} will see your profile{" "}
                   <span className="text-gray-400">·</span>{" "}
                   <Link href="/provider/profile" className="font-medium text-[#2a7a6e] hover:text-[#1f5c54]">
@@ -1006,7 +1006,7 @@ export default function ReachOutDrawer({
                   </button>
                 )}
               </div>
-              <p className="text-[13px] text-center text-gray-500 mt-3">
+              <p className="text-sm text-center text-gray-500 mt-3">
                 {firstName} will see your profile{" "}
                 <span className="text-gray-400">·</span>{" "}
                 <Link href="/provider/profile" className="font-medium text-[#2a7a6e] hover:text-[#1f5c54]">

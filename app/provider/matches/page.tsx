@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
@@ -1457,25 +1458,26 @@ export default function ProviderMatchesPage() {
           ) : filteredFamilies.length === 0 ? (
             // Empty state - different message based on tab
             activeTab === "near_you" ? (
-              <div className="text-center py-16 px-8">
-                <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center mx-auto mb-5">
-                  <svg className="w-7 h-7 text-primary-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                  </svg>
-                </div>
-                <h3 className="text-[17px] font-display font-bold text-gray-900 mb-1.5">
+              <div className="text-center py-12 px-8">
+                <Image
+                  src="/Near-you-img.png"
+                  alt="No families nearby"
+                  width={180}
+                  height={180}
+                  className="mx-auto mb-6"
+                />
+                <h3 className="text-[17px] font-display font-bold text-gray-900 mb-2">
                   No families in {providerProfile?.city || "your area"} yet
                 </h3>
-                <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed mb-5">
-                  We&apos;ll notify you when someone posts nearby. In the meantime, browse all families.
+                <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed mb-6">
+                  New families post every day. Check back soon, or browse all families looking for care.
                 </p>
                 <button
                   type="button"
                   onClick={() => setActiveTab("best_matches")}
                   className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
                 >
-                  Browse all families
+                  Browse All Families
                 </button>
               </div>
             ) : (

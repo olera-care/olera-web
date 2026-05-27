@@ -608,9 +608,10 @@ ${providerName}`;
   }, []);
 
   // Auto-resize textarea to fit content
+  // Runs when: message changes, step changes to "message", or view mode changes
   useEffect(() => {
     const textarea = textareaRef.current;
-    if (!textarea || isViewMode) return;
+    if (!textarea || isViewMode || step !== "message") return;
 
     // Reset height to auto to get accurate scrollHeight
     textarea.style.height = "auto";
@@ -621,7 +622,7 @@ ${providerName}`;
     const newHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight);
 
     textarea.style.height = `${newHeight}px`;
-  }, [message, isViewMode]);
+  }, [message, isViewMode, step]);
 
   const handleSend = async () => {
     if (!family || !message.trim() || sending) return;

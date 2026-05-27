@@ -312,7 +312,7 @@ export default function ReachOutDrawer({
   const [message, setMessage] = useState("");
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [mobileStep, setMobileStep] = useState<"profile" | "message">("profile");
+  const [step, setStep] = useState<"profile" | "message">("profile");
   const [quoteExpanded, setQuoteExpanded] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -484,7 +484,7 @@ ${providerName}`;
   useEffect(() => {
     if (isOpen && family) {
       setSaveAsDefault(false);
-      setMobileStep("profile");
+      setStep("profile");
       setQuoteExpanded(false);
       setIsGenerating(false);
 
@@ -531,13 +531,13 @@ ${providerName}`;
     await onSend(family.id, message.trim(), saveAsDefault);
   };
 
-  const handleMobileConnect = () => {
-    setMobileStep("message");
+  const handleConnect = () => {
+    setStep("message");
     setTimeout(() => textareaRef.current?.focus(), 100);
   };
 
-  const handleMobileBack = () => {
-    setMobileStep("profile");
+  const handleBack = () => {
+    setStep("profile");
   };
 
   if (!family) return null;
@@ -615,79 +615,58 @@ ${providerName}`;
 
       {/* At a glance - consolidated section */}
       {profileState !== "minimal" && (
-        <>
-          <div className="border-t border-gray-100" />
-          <div>
-            <p className="text-lg font-semibold text-gray-900 mb-3">
-              At a glance
-            </p>
-            <div className="space-y-2.5">
-              {/* Timeline + Care Type */}
-              {timelineItem && (
-                <div className="flex items-start gap-2 text-base">
-                  <svg className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                  <span className="text-gray-500">{timelineItem.label}</span>
-                  <span className="font-semibold text-gray-700">{timelineItem.value}</span>
-                </div>
-              )}
-
-              {/* Care Needs - inline list */}
-              {careNeedsValue && (
-                <div className="flex items-start gap-2 text-base">
-                  <svg className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                  <span className="text-gray-500">Help with</span>
-                  <span className="font-semibold text-gray-700">{careNeedsValue}</span>
-                </div>
-              )}
-
-              {/* Who needs care */}
-              {whoNeedsCare && (
-                <div className="flex items-start gap-2 text-base">
-                  <svg className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                  <span className="text-gray-500">Who needs care</span>
-                  <span className="font-semibold text-gray-700">{whoNeedsCare}</span>
-                </div>
-              )}
-
-              {/* Payment */}
-              {paymentValue && (
-                <div className="flex items-start gap-2 text-base">
-                  <svg className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                  <span className="text-gray-500">Can pay via</span>
-                  <span className="font-semibold text-gray-700">{paymentValue}</span>
-                </div>
-              )}
-
-              {/* Profile completeness */}
-              <div className="flex items-start gap-2 text-base">
-                <svg className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                </svg>
-                <span className="text-gray-500">Profile</span>
-                <span className="font-semibold text-gray-700">{completeness}% complete</span>
+        <div className="mt-6">
+          <p className="text-lg font-semibold text-gray-900 mb-4">
+            At a glance
+          </p>
+          <div className="space-y-4">
+            {/* Timeline + Care Type */}
+            {timelineItem && (
+              <div>
+                <p className="text-sm text-gray-500">{timelineItem.label}</p>
+                <p className="text-base font-medium text-gray-700">{timelineItem.value}</p>
               </div>
+            )}
 
-              {/* Member since */}
-              {family.created_at && (
-                <div className="flex items-start gap-2 text-base">
-                  <svg className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                  <span className="text-gray-500">Member since</span>
-                  <span className="font-semibold text-gray-700">{memberSince(family.created_at)}</span>
-                </div>
-              )}
+            {/* Care Needs */}
+            {careNeedsValue && (
+              <div>
+                <p className="text-sm text-gray-500">Help with</p>
+                <p className="text-base font-medium text-gray-700">{careNeedsValue}</p>
+              </div>
+            )}
+
+            {/* Who needs care */}
+            {whoNeedsCare && (
+              <div>
+                <p className="text-sm text-gray-500">Who needs care</p>
+                <p className="text-base font-medium text-gray-700">{whoNeedsCare}</p>
+              </div>
+            )}
+
+            {/* Payment */}
+            {paymentValue && (
+              <div>
+                <p className="text-sm text-gray-500">Can pay via</p>
+                <p className="text-base font-medium text-gray-700">{paymentValue}</p>
+              </div>
+            )}
+
+            {/* Profile completeness */}
+            <div>
+              <p className="text-sm text-gray-500">Profile</p>
+              <p className="text-base font-medium text-gray-700">{completeness}% complete</p>
             </div>
+
+            {/* Member since */}
+            {family.created_at && (
+              <div>
+                <p className="text-sm text-gray-500">Member since</p>
+                <p className="text-base font-medium text-gray-700">{memberSince(family.created_at)}</p>
+              </div>
+            )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
@@ -695,11 +674,6 @@ ${providerName}`;
   // ── Message Section ──
   const MessageSection = (
     <div className="space-y-4">
-      <div className="border-t border-gray-100 pt-6" />
-      <p className="text-lg font-semibold text-gray-900">
-        Your message
-      </p>
-
       {/* Textarea */}
       <div className="relative">
         <textarea
@@ -838,7 +812,7 @@ ${providerName}`;
       <div
         className={`fixed z-[70] bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-300 ease-out
           inset-x-0 bottom-0 max-h-[95dvh] rounded-t-2xl pb-[env(safe-area-inset-bottom)]
-          lg:inset-y-0 lg:top-0 lg:right-0 lg:left-auto lg:bottom-0 lg:w-[500px] lg:max-w-[calc(100vw-24px)] lg:h-screen lg:max-h-none lg:rounded-none lg:pb-0
+          lg:inset-y-0 lg:top-0 lg:right-0 lg:left-auto lg:bottom-0 lg:w-[640px] lg:max-w-[calc(100vw-24px)] lg:h-screen lg:max-h-none lg:rounded-none lg:pb-0
           ${isOpen ? "translate-y-0 lg:translate-x-0" : "translate-y-full lg:translate-y-0 lg:translate-x-full"}`}
         role="dialog"
         aria-modal="true"
@@ -855,10 +829,10 @@ ${providerName}`;
 
           {/* Mobile sticky header */}
           <div className="shrink-0 px-5 pb-4 border-b border-gray-100">
-            {mobileStep === "message" ? (
+            {step === "message" ? (
               <div className="flex items-center gap-3">
                 <button
-                  onClick={handleMobileBack}
+                  onClick={handleBack}
                   className="p-1.5 -ml-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                   aria-label="Back to profile"
                 >
@@ -875,14 +849,14 @@ ${providerName}`;
 
           {/* Mobile scrollable content */}
           <div className="flex-1 overflow-y-auto px-5 py-5">
-            {mobileStep === "profile" ? ScrollableContent : MessageSection}
+            {step === "profile" ? ScrollableContent : MessageSection}
           </div>
 
           {/* Mobile sticky footer */}
           <div className="shrink-0 border-t border-gray-100 px-5 pt-4 pb-4 bg-white">
-            {mobileStep === "profile" ? (
+            {step === "profile" ? (
               <button
-                onClick={handleMobileConnect}
+                onClick={handleConnect}
                 className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -897,23 +871,49 @@ ${providerName}`;
         </div>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* DESKTOP LAYOUT (single column) */}
+        {/* DESKTOP LAYOUT (two-step flow, same as mobile) */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <div className="hidden lg:flex lg:flex-col lg:h-full">
           {/* Desktop sticky header */}
           <div className="shrink-0 px-6 py-5 border-b border-gray-100">
-            {StickyHeader}
+            {step === "message" ? (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleBack}
+                  className="p-1.5 -ml-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  aria-label="Back to profile"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                  </svg>
+                </button>
+                <span className="text-lg font-semibold text-gray-900">Message to {firstName}</span>
+              </div>
+            ) : (
+              StickyHeader
+            )}
           </div>
 
           {/* Desktop scrollable content */}
           <div className="flex-1 overflow-y-auto px-6 py-6">
-            {ScrollableContent}
-            {MessageSection}
+            {step === "profile" ? ScrollableContent : MessageSection}
           </div>
 
           {/* Desktop sticky footer */}
           <div className="shrink-0 border-t border-gray-100 px-6 pt-4 pb-5 bg-white">
-            {StickyFooter}
+            {step === "profile" ? (
+              <button
+                onClick={handleConnect}
+                className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+                </svg>
+                Send a Message
+              </button>
+            ) : (
+              StickyFooter
+            )}
           </div>
         </div>
       </div>

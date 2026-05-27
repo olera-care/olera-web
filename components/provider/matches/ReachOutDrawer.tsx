@@ -639,8 +639,8 @@ ${providerName}`;
   };
 
   const handleViewOutreach = () => {
-    onClose();
     router.push("/provider/outreach?status=pending");
+    onClose();
   };
 
   const handleDone = () => {

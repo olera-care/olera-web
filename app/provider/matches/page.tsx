@@ -873,7 +873,7 @@ export default function ProviderMatchesPage() {
       try {
         const supabase = createClient();
 
-        const { error: insertError } = await supabase
+        const { data: insertedConn, error: insertError } = await supabase
           .from("connections")
           .insert({
             from_profile_id: profileId,
@@ -882,7 +882,9 @@ export default function ProviderMatchesPage() {
             status: "pending",
             message: message.trim() || null,
             metadata: { provider_initiated: true },
-          });
+          })
+          .select("id, created_at")
+          .single();
 
         if (insertError) {
           if (
@@ -930,9 +932,26 @@ export default function ProviderMatchesPage() {
           }
         }
 
-        // Mark as contacted and close drawer
+        // Mark as contacted (drawer will show success state and close itself)
         setContactedIds((prev) => new Set([...prev, toProfileId]));
-        setDrawerFamily(null);
+
+        // Optimistically add to connectionData so MyOutreach updates immediately
+        if (insertedConn) {
+          setConnectionData((prev) => {
+            const updated = new Map(prev);
+            updated.set(toProfileId, {
+              id: insertedConn.id,
+              message: message.trim() || null,
+              created_at: insertedConn.created_at,
+              status: "pending",
+              reply_message: null,
+              replied_at: null,
+              reminder_sent: false,
+            });
+            return updated;
+          });
+        }
+
         setReachOutNote("");
       } catch (err: unknown) {
         const msg =

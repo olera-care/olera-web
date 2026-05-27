@@ -12,7 +12,7 @@ import DateRangePopover, {
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
-type FilterTab = "all" | "has_responses" | "pending_only";
+type FilterTab = "all" | "accepted" | "pending" | "declined";
 
 interface OutreachItem {
   id: string;
@@ -58,8 +58,9 @@ interface OutreachData {
 
 interface TabCount {
   all: number;
-  has_responses: number;
-  pending_only: number;
+  accepted: number;
+  pending: number;
+  declined: number;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -290,22 +291,22 @@ function ProviderRow({
           )}
         </div>
 
-        {/* Stats */}
+        {/* Stats - all neutral colors for clean table */}
         <div className="flex-1 text-center">
           <p className="text-sm font-semibold text-gray-900 tabular-nums">{stats.total}</p>
           <p className="text-xs text-gray-400">Sent</p>
         </div>
         <div className="flex-1 text-center">
-          <p className="text-sm font-semibold text-emerald-600 tabular-nums">{stats.accepted}</p>
+          <p className="text-sm font-semibold text-gray-900 tabular-nums">{stats.accepted}</p>
           <p className="text-xs text-gray-400">Accepted</p>
+        </div>
+        <div className="flex-1 text-center">
+          <p className="text-sm font-semibold text-gray-900 tabular-nums">{stats.pending}</p>
+          <p className="text-xs text-gray-400">Pending</p>
         </div>
         <div className="flex-1 text-center">
           <p className="text-sm font-semibold text-gray-500 tabular-nums">{stats.declined}</p>
           <p className="text-xs text-gray-400">Declined</p>
-        </div>
-        <div className="flex-1 text-center">
-          <p className="text-sm font-semibold text-amber-600 tabular-nums">{stats.pending}</p>
-          <p className="text-xs text-gray-400">Pending</p>
         </div>
 
         {/* Last Activity */}
@@ -483,17 +484,20 @@ export default function AdminOutreachPage() {
   // Tab counts (based on search-filtered results)
   const tabCounts: TabCount = {
     all: searchFilteredProviders.length,
-    has_responses: searchFilteredProviders.filter((p) => p.stats.accepted > 0 || p.stats.declined > 0).length,
-    pending_only: searchFilteredProviders.filter((p) => p.stats.pending > 0 && p.stats.accepted === 0 && p.stats.declined === 0).length,
+    accepted: searchFilteredProviders.filter((p) => p.stats.accepted > 0).length,
+    pending: searchFilteredProviders.filter((p) => p.stats.pending > 0).length,
+    declined: searchFilteredProviders.filter((p) => p.stats.declined > 0).length,
   };
 
   // Then apply tab filter for final display
   const filteredProviders = searchFilteredProviders.filter((p) => {
     switch (filter) {
-      case "has_responses":
-        return p.stats.accepted > 0 || p.stats.declined > 0;
-      case "pending_only":
-        return p.stats.pending > 0 && p.stats.accepted === 0 && p.stats.declined === 0;
+      case "accepted":
+        return p.stats.accepted > 0;
+      case "pending":
+        return p.stats.pending > 0;
+      case "declined":
+        return p.stats.declined > 0;
       default:
         return true;
     }
@@ -522,9 +526,10 @@ export default function AdminOutreachPage() {
     : 0;
 
   const tabs: { value: FilterTab; label: string; count: number }[] = [
-    { value: "all", label: "All Providers", count: tabCounts.all },
-    { value: "has_responses", label: "Has Responses", count: tabCounts.has_responses },
-    { value: "pending_only", label: "Pending Only", count: tabCounts.pending_only },
+    { value: "all", label: "All", count: tabCounts.all },
+    { value: "accepted", label: "Accepted", count: tabCounts.accepted },
+    { value: "pending", label: "Pending", count: tabCounts.pending },
+    { value: "declined", label: "Declined", count: tabCounts.declined },
   ];
 
   return (
@@ -620,8 +625,8 @@ export default function AdminOutreachPage() {
           <div className="flex-[2]">Provider</div>
           <div className="flex-1 text-center">Sent</div>
           <div className="flex-1 text-center">Accepted</div>
-          <div className="flex-1 text-center">Declined</div>
           <div className="flex-1 text-center">Pending</div>
+          <div className="flex-1 text-center">Declined</div>
           <div className="w-24 text-right">Last Active</div>
         </div>
 

@@ -3,6 +3,10 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import DateRangePopover, {
+  resolveRange,
+  type DateRangeValue,
+} from "@/components/admin/DateRangePopover";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -38,6 +42,7 @@ interface ProviderOutreach {
     declined: number;
   };
   outreach: OutreachItem[];
+  lastActivity: string | null;
 }
 
 interface OutreachData {
@@ -61,7 +66,7 @@ interface TabCount {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-function timeAgo(isoDate: string | undefined): string {
+function timeAgo(isoDate: string | undefined | null): string {
   if (!isoDate) return "—";
   const days = Math.floor((Date.now() - new Date(isoDate).getTime()) / (1000 * 60 * 60 * 24));
   if (days === 0) return "Today";
@@ -80,6 +85,27 @@ function formatDate(isoDate: string): string {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+// Calculate response time between two dates
+function responseTime(sentAt: string, repliedAt: string): string {
+  const sent = new Date(sentAt).getTime();
+  const replied = new Date(repliedAt).getTime();
+  const diffMs = replied - sent;
+
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const days = Math.floor(hours / 24);
+
+  if (hours < 1) return "< 1h";
+  if (hours < 24) return `${hours}h`;
+  if (days === 1) return "1 day";
+  return `${days} days`;
+}
+
+// Truncate text with ellipsis
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + "...";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -156,6 +182,58 @@ function StatusBadge({ status }: { status: "pending" | "accepted" | "declined" }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Collapsible Message Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+const MESSAGE_TRUNCATE_LENGTH = 150;
+
+function CollapsibleMessage({
+  message,
+  variant,
+  label,
+  subLabel,
+}: {
+  message: string;
+  variant: "provider" | "family";
+  label: string;
+  subLabel?: string;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const needsTruncation = message.length > MESSAGE_TRUNCATE_LENGTH;
+
+  const displayText = isExpanded || !needsTruncation
+    ? message
+    : truncateText(message, MESSAGE_TRUNCATE_LENGTH);
+
+  const colors = variant === "provider"
+    ? { bg: "bg-blue-50", border: "border-blue-100", label: "text-blue-600", text: "text-blue-900" }
+    : { bg: "bg-emerald-50", border: "border-emerald-100", label: "text-emerald-600", text: "text-emerald-900" };
+
+  return (
+    <div className={`${colors.bg} rounded-lg px-3 py-2.5 border ${colors.border}`}>
+      <p className={`text-[11px] font-medium ${colors.label} mb-1 uppercase tracking-wide`}>
+        {label}
+        {subLabel && (
+          <span className="font-normal ml-2 normal-case">{subLabel}</span>
+        )}
+      </p>
+      <p className={`text-sm ${colors.text} whitespace-pre-wrap leading-relaxed`}>
+        {displayText}
+      </p>
+      {needsTruncation && (
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className={`mt-1.5 text-xs font-medium ${colors.label} hover:underline`}
+        >
+          {isExpanded ? "Show less" : "Show more"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Provider Row Component
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -168,7 +246,7 @@ function ProviderRow({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const { provider, stats, outreach } = data;
+  const { provider, stats, outreach, lastActivity } = data;
   const router = useRouter();
 
   return (
@@ -224,7 +302,7 @@ function ProviderRow({
         {/* Last Activity */}
         <div className="w-24 text-right">
           <p className="text-sm text-gray-400">
-            {outreach.length > 0 ? timeAgo(outreach[0].created_at) : "—"}
+            {timeAgo(lastActivity)}
           </p>
         </div>
       </div>
@@ -262,29 +340,21 @@ function ProviderRow({
                   <div className="space-y-2">
                     {/* Provider's message */}
                     {item.message && (
-                      <div className="bg-blue-50 rounded-lg px-3 py-2.5 border border-blue-100">
-                        <p className="text-[11px] font-medium text-blue-600 mb-1 uppercase tracking-wide">
-                          Provider&apos;s Message
-                        </p>
-                        <p className="text-sm text-blue-900 whitespace-pre-wrap leading-relaxed">
-                          {item.message}
-                        </p>
-                      </div>
+                      <CollapsibleMessage
+                        message={item.message}
+                        variant="provider"
+                        label="Provider&apos;s Message"
+                      />
                     )}
 
                     {/* Family's reply */}
                     {item.status === "accepted" && item.reply_message && (
-                      <div className="bg-emerald-50 rounded-lg px-3 py-2.5 border border-emerald-100">
-                        <p className="text-[11px] font-medium text-emerald-600 mb-1 uppercase tracking-wide">
-                          Family&apos;s Reply
-                          {item.replied_at && (
-                            <span className="font-normal ml-2 normal-case">· {formatDate(item.replied_at)}</span>
-                          )}
-                        </p>
-                        <p className="text-sm text-emerald-900 whitespace-pre-wrap leading-relaxed">
-                          {item.reply_message}
-                        </p>
-                      </div>
+                      <CollapsibleMessage
+                        message={item.reply_message}
+                        variant="family"
+                        label="Family&apos;s Reply"
+                        subLabel={item.replied_at ? `· Responded in ${responseTime(item.created_at, item.replied_at)}` : undefined}
+                      />
                     )}
 
                     {/* Status context */}
@@ -331,6 +401,13 @@ export default function AdminOutreachPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  // Date range filter
+  const [dateRange, setDateRange] = useState<DateRangeValue>({
+    preset: "30d",
+    customFrom: "",
+    customTo: "",
+  });
+
   // Pagination
   const [page, setPage] = useState(1);
 
@@ -349,7 +426,7 @@ export default function AdminOutreachPage() {
   // Reset page on filter change
   useEffect(() => {
     setPage(1);
-  }, [filter]);
+  }, [filter, dateRange]);
 
   // Fetch data
   const fetchData = useCallback(async () => {
@@ -357,7 +434,16 @@ export default function AdminOutreachPage() {
     setError(null);
 
     try {
-      const res = await fetch("/api/admin/outreach");
+      const params = new URLSearchParams();
+
+      // Apply date range filter
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) params.set("from_date", resolved.from);
+      if (resolved.to) params.set("to_date", resolved.to);
+
+      const url = `/api/admin/outreach${params.toString() ? `?${params}` : ""}`;
+      const res = await fetch(url);
+
       if (res.ok) {
         const json = await res.json();
         setData(json);
@@ -369,7 +455,7 @@ export default function AdminOutreachPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [dateRange]);
 
   useEffect(() => {
     fetchData();
@@ -435,13 +521,18 @@ export default function AdminOutreachPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
-          Provider Outreach
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Track providers reaching out to families via Find Families
-        </p>
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
+            Provider Outreach
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Track providers reaching out to families via Find Families
+          </p>
+        </div>
+
+        {/* Date Range Filter */}
+        <DateRangePopover value={dateRange} onChange={setDateRange} />
       </div>
 
       {error && (

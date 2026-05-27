@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 /**
@@ -7,11 +7,15 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  * Returns provider outreach data - which providers are reaching out to families,
  * and how those families are responding.
  *
+ * Query params:
+ * - from_date: ISO date string - filter outreach created after this date
+ * - to_date: ISO date string - filter outreach created before this date
+ *
  * Response structure:
- * - providers: list of providers who have sent outreach, with their stats and outreach items
+ * - providers: list of providers who have sent outreach, sorted by most recent activity
  * - totals: aggregate counts across all providers
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const user = await getAuthUser();
     if (!user) {
@@ -25,8 +29,13 @@ export async function GET() {
 
     const db = getServiceClient();
 
-    // Fetch all provider-initiated outreach with both profiles
-    const { data: connections, error: connError } = await db
+    // Parse date range filters
+    const { searchParams } = new URL(request.url);
+    const fromDate = searchParams.get("from_date");
+    const toDate = searchParams.get("to_date");
+
+    // Build query for provider-initiated outreach
+    let query = db
       .from("connections")
       .select(`
         id,
@@ -52,6 +61,16 @@ export async function GET() {
       .contains("metadata", { provider_initiated: true })
       .order("created_at", { ascending: false });
 
+    // Apply date filters
+    if (fromDate) {
+      query = query.gte("created_at", fromDate);
+    }
+    if (toDate) {
+      query = query.lte("created_at", toDate);
+    }
+
+    const { data: connections, error: connError } = await query;
+
     if (connError) {
       console.error("[admin/outreach] Failed to fetch connections:", connError);
       return NextResponse.json({ error: "Failed to fetch outreach data" }, { status: 500 });
@@ -66,11 +85,17 @@ export async function GET() {
       state: string | null;
     };
 
+    type ConnectionMetadata = {
+      reply_message?: string;
+      replied_at?: string;
+      provider_initiated?: boolean;
+    } | null;
+
     type ConnectionWithMetadata = {
       id: string;
       status: string;
       message: string | null;
-      metadata: { reply_message?: string; replied_at?: string } | null;
+      metadata: ConnectionMetadata;
       created_at: string;
       from_profile: ProfileData | null;
       to_profile: ProfileData | null;
@@ -97,6 +122,7 @@ export async function GET() {
         reply_message?: string | null;
         replied_at?: string | null;
       }[];
+      lastActivity: string | null;
     }>();
 
     // Process each connection
@@ -119,16 +145,24 @@ export async function GET() {
             location: [fromProfile.city, fromProfile.state].filter(Boolean).join(", "),
           },
           outreach: [],
+          lastActivity: null,
         });
       }
 
-      // Map status - database uses "accepted" but we want to keep it consistent
+      // Map status
       const status = conn.status === "accepted" ? "accepted"
         : conn.status === "declined" ? "declined"
         : "pending";
 
+      // Track the most recent activity (either outreach created or reply received)
+      const providerEntry = providerMap.get(providerId)!;
+      const activityDate = meta?.replied_at || conn.created_at;
+      if (!providerEntry.lastActivity || new Date(activityDate) > new Date(providerEntry.lastActivity)) {
+        providerEntry.lastActivity = activityDate;
+      }
+
       // Add outreach item
-      providerMap.get(providerId)!.outreach.push({
+      providerEntry.outreach.push({
         id: conn.id,
         status: status as "pending" | "accepted" | "declined",
         message: conn.message,
@@ -153,10 +187,15 @@ export async function GET() {
         declined: entry.outreach.filter((o) => o.status === "declined").length,
       },
       outreach: entry.outreach,
+      lastActivity: entry.lastActivity,
     }));
 
-    // Sort by total outreach (most active first)
-    providers.sort((a, b) => b.stats.total - a.stats.total);
+    // Sort by most recent activity first (recency), not by total sent
+    providers.sort((a, b) => {
+      const aDate = a.lastActivity ? new Date(a.lastActivity).getTime() : 0;
+      const bDate = b.lastActivity ? new Date(b.lastActivity).getTime() : 0;
+      return bDate - aDate;
+    });
 
     // Calculate totals
     const totals = {

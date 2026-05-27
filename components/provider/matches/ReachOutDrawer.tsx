@@ -471,19 +471,28 @@ export default function ReachOutDrawer({
     }
   }, [family, providerProfile, firstName, careTypes, careNeeds, meta?.timeline, meta?.who_needs_care, providerName, providerLocation, profileState]);
 
+  // Simple starter message - no API call, fast and personal
+  const getStarterMessage = useCallback(() => {
+    return `Hi ${firstName},
+
+I came across your profile and wanted to reach out.
+
+${providerName}`;
+  }, [firstName, providerName]);
+
   // Initialize message when drawer opens
   useEffect(() => {
     if (isOpen && family) {
       setSaveAsDefault(false);
       setMobileStep("profile");
       setQuoteExpanded(false);
+      setIsGenerating(false);
 
       if (defaultMessage) {
         setMessage(defaultMessage);
-        setIsGenerating(false);
       } else {
-        setMessage("");
-        generateMessage();
+        // Use simple starter - no API call, instant
+        setMessage(getStarterMessage());
       }
 
       // Only auto-focus on desktop (mobile starts on profile view)
@@ -492,7 +501,7 @@ export default function ReachOutDrawer({
         setTimeout(() => textareaRef.current?.focus(), 350);
       }
     }
-  }, [isOpen, family, defaultMessage, generateMessage]);
+  }, [isOpen, family, defaultMessage, getStarterMessage]);
 
   // Close on Escape
   useEffect(() => {
@@ -733,10 +742,22 @@ export default function ReachOutDrawer({
           disabled={isGenerating}
           className="text-sm font-medium text-[#2a7a6e] hover:text-[#1f5c54] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
         >
-          <svg className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-          </svg>
-          {isGenerating ? "Generating..." : "Regenerate"}
+          {isGenerating ? (
+            <>
+              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Generating...
+            </>
+          ) : (
+            <>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
+              </svg>
+              Generate with AI
+            </>
+          )}
         </button>
       </div>
     </div>

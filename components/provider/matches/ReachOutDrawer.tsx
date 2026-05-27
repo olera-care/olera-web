@@ -457,23 +457,6 @@ export default function ReachOutDrawer({
         </div>
       </div>
 
-      {/* Urgency + Primary Care Type badges */}
-      {(timeline || primaryCareType) && (
-        <div className="flex flex-wrap gap-2">
-          {timeline && (
-            <span className={`inline-flex items-center gap-1.5 text-[13px] font-medium px-3 py-1.5 rounded-full border ${timeline.border} ${timeline.color} ${timeline.bg}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${timeline.dot}`} />
-              {timeline.label}
-            </span>
-          )}
-          {primaryCareType && (
-            <span className="text-[13px] font-medium px-3 py-1.5 rounded-lg bg-gray-100 border border-gray-200 text-gray-700">
-              {primaryCareType}
-            </span>
-          )}
-        </div>
-      )}
-
       <div className="border-t border-gray-100" />
 
       {/* About Their Situation */}
@@ -591,6 +574,44 @@ export default function ReachOutDrawer({
               About the Family
             </p>
             <div className="space-y-2">
+              {/* Timeline + Care Type combined */}
+              {(() => {
+                const tl = meta?.timeline as string | undefined;
+                const care = primaryCareType || "care";
+                const isExploring = tl === "just_researching" || tl === "exploring";
+                const isAsap = tl === "as_soon_as_possible" || tl === "immediate";
+                const isMonth = tl === "within_a_month" || tl === "within_1_month";
+                const isFewMonths = tl === "in_a_few_months" || tl === "within_3_months";
+
+                if (!tl && !primaryCareType) return null;
+
+                let label = "Looking for";
+                let value = primaryCareType || "care options";
+
+                if (isExploring) {
+                  label = "Exploring";
+                  value = primaryCareType || "care options";
+                } else if (isAsap) {
+                  label = "Needs";
+                  value = `${care} ASAP`;
+                } else if (isMonth) {
+                  label = "Needs";
+                  value = `${care} in ~1 month`;
+                } else if (isFewMonths) {
+                  label = "Needs";
+                  value = `${care} in 2-3 months`;
+                }
+
+                return (
+                  <div className="flex items-center gap-2 text-[13px]">
+                    <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    <span className="text-gray-500">{label}</span>
+                    <span className="font-semibold text-gray-700">{value}</span>
+                  </div>
+                );
+              })()}
               <div className="flex items-center gap-2 text-[13px]">
                 <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />

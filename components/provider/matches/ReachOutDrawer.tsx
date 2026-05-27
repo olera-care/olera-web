@@ -593,14 +593,40 @@ export default function ReachOutDrawer({
     }
   }, [family, providerProfile, firstName, careTypes, careNeeds, meta?.timeline, meta?.who_needs_care, providerName, providerLocation, profileState, onAIGenerate]);
 
-  // Simple starter message - no API call, fast and personal
+  // Smart starter message - contextual but incomplete, inviting personalization
+  // Key design: NO signature, references what we know, clearly needs more
   const getStarterMessage = useCallback(() => {
+    // Build context based on what we know about the family
+    const care = primaryCareType || (careNeeds.length > 0 ? careNeeds[0] : null);
+    const loc = location;
+
+    // Check urgency for tone
+    const tl = meta?.timeline as string | undefined;
+    const isUrgent = tl === "as_soon_as_possible" || tl === "immediate";
+
+    // Build the contextual opener - show we actually read their profile
+    let context = "";
+    if (care && loc) {
+      context = `I saw you're looking for ${care.toLowerCase()} in ${loc}`;
+    } else if (care) {
+      context = `I noticed you're looking for help with ${care.toLowerCase()}`;
+    } else if (loc) {
+      context = `I saw your post looking for care in ${loc}`;
+    } else {
+      context = `I came across your profile`;
+    }
+
+    // Add urgency acknowledgment if they need help soon
+    const urgencyNote = isUrgent ? ", and I know timing matters" : "";
+
+    // The message: contextual but clearly incomplete
+    // No signature forces them to add who they are
     return `${personalGreeting},
 
-I came across your profile and wanted to reach out.
+${context}${urgencyNote}. I'd love to help.
 
-${providerName}`;
-  }, [personalGreeting, providerName]);
+`;
+  }, [personalGreeting, primaryCareType, careNeeds, location, meta?.timeline]);
 
   // Track previous family to detect fresh drawer opens vs. mid-session updates
   const prevFamilyIdRef = useRef<string | null>(null);

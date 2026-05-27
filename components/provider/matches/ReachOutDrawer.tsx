@@ -818,45 +818,7 @@ export default function ReachOutDrawer({
         </button>
       </div>
 
-      <div className="border-t border-gray-100 my-4" />
-
-      {/* Provider preview */}
-      <div>
-        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-3">
-          {firstName} will see
-        </p>
-        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-          {providerProfile?.image_url ? (
-            <Image
-              src={providerProfile.image_url}
-              alt={providerName}
-              width={40}
-              height={40}
-              className="w-10 h-10 rounded-lg object-cover"
-            />
-          ) : (
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold text-white"
-              style={{ background: avatarGradient(providerName) }}
-            >
-              {providerInitials}
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{providerName}</p>
-            {providerLocation && (
-              <p className="text-xs text-gray-500 truncate">{providerLocation}</p>
-            )}
-          </div>
-          <Link
-            href="/provider/profile"
-            className="text-xs font-medium text-[#2a7a6e] hover:text-[#1f5c54] transition-colors shrink-0"
-          >
-            Edit
-          </Link>
-        </div>
       </div>
-    </div>
   );
 
   return (
@@ -966,8 +928,12 @@ export default function ReachOutDrawer({
                     )}
                   </button>
                 )}
-                <p className="text-[11px] text-center text-gray-400 mt-2.5">
-                  {firstName} will see your profile
+                <p className="text-[13px] text-center text-gray-500 mt-2.5">
+                  {firstName} will see your profile{" "}
+                  <span className="text-gray-400">·</span>{" "}
+                  <Link href="/provider/profile" className="font-medium text-[#2a7a6e] hover:text-[#1f5c54]">
+                    Edit
+                  </Link>
                 </p>
               </>
             )}
@@ -1040,8 +1006,12 @@ export default function ReachOutDrawer({
                   </button>
                 )}
               </div>
-              <p className="text-[11px] text-center text-gray-400 mt-3">
-                {firstName} will see your profile
+              <p className="text-[13px] text-center text-gray-500 mt-3">
+                {firstName} will see your profile{" "}
+                <span className="text-gray-400">·</span>{" "}
+                <Link href="/provider/profile" className="font-medium text-[#2a7a6e] hover:text-[#1f5c54]">
+                  Edit
+                </Link>
               </p>
             </div>
           </div>

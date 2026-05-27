@@ -864,8 +864,8 @@ export default function ProviderMatchesPage() {
   );
 
   const handleSendFromDrawer = useCallback(
-    async (toProfileId: string, message: string, shouldSaveAsDefault: boolean) => {
-      if (!profileId || !isSupabaseConfigured()) return;
+    async (toProfileId: string, message: string, shouldSaveAsDefault: boolean): Promise<boolean> => {
+      if (!profileId || !isSupabaseConfigured()) return false;
 
       setSending(true);
       setSendError(null);
@@ -892,9 +892,10 @@ export default function ProviderMatchesPage() {
             insertError.message.includes("duplicate") ||
             insertError.message.includes("unique")
           ) {
+            // Already contacted - close drawer, don't show success
             setContactedIds((prev) => new Set([...prev, toProfileId]));
             setDrawerFamily(null);
-            return;
+            return false;
           }
           throw new Error(insertError.message);
         }
@@ -953,12 +954,14 @@ export default function ProviderMatchesPage() {
         }
 
         setReachOutNote("");
+        return true;
       } catch (err: unknown) {
         const msg =
           err && typeof err === "object" && "message" in err
             ? (err as { message: string }).message
             : String(err);
         setSendError(`Something went wrong: ${msg}`);
+        return false;
       } finally {
         setSending(false);
       }

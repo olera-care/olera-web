@@ -575,7 +575,7 @@ function OutreachPageContent() {
         family={selectedItem?.family || null}
         isOpen={isDrawerOpen}
         onClose={closeDrawer}
-        onSend={async () => {}} // No-op for view mode
+        onSend={async () => true} // No-op for view mode
         providerProfile={providerProfile}
         mode="view"
         sentMessage={selectedItem?.message || undefined}

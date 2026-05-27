@@ -10,7 +10,7 @@ interface ReachOutDrawerProps {
   family: Profile | null;
   isOpen: boolean;
   onClose: () => void;
-  onSend: (familyId: string, message: string, saveAsDefault: boolean) => Promise<void>;
+  onSend: (familyId: string, message: string, saveAsDefault: boolean) => Promise<boolean>;
   defaultMessage?: string;
   providerProfile?: Profile | null;
   /** @deprecated Not used in redesigned drawer */
@@ -633,9 +633,11 @@ ${providerName}`;
 
   const handleSend = async () => {
     if (!family || !message.trim() || sending) return;
-    await onSend(family.id, message.trim(), saveAsDefault);
-    // Show success state after sending
-    setShowSuccess(true);
+    const success = await onSend(family.id, message.trim(), saveAsDefault);
+    // Only show success state if send actually succeeded
+    if (success) {
+      setShowSuccess(true);
+    }
   };
 
   const handleViewOutreach = () => {

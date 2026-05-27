@@ -1194,9 +1194,18 @@ export default function ProviderMatchesPage() {
     };
   }, [families, contactedIds]);
 
+  // Helper to get outreach status for a family
+  const getOutreachStatus = useCallback((familyId: string): "pending" | "connected" | "declined" | null => {
+    const conn = connectionData.get(familyId);
+    if (!conn) return null;
+    if (conn.status === "accepted") return "connected";
+    return conn.status; // "pending" or "declined"
+  }, [connectionData]);
+
   // Filter + sort families based on active tab and modal filters
+  // Note: We keep contacted families in the list (sorted to bottom) instead of filtering them out
   const filteredFamilies = useMemo(() => {
-    let result = families.filter((f) => !contactedIds.has(f.id));
+    let result = [...families]; // Keep all families
 
     // Apply modal filters: urgency
     if (modalFilters.urgency.length > 0) {
@@ -1341,13 +1350,38 @@ export default function ProviderMatchesPage() {
         return (freshnessScore * 0.45) + (matchScore * 0.30) + (urgencyScore * 0.25);
       };
 
+      // First, separate contacted from uncontacted
+      const aContacted = contactedIds.has(a.id);
+      const bContacted = contactedIds.has(b.id);
+
+      // Uncontacted families come first
+      if (!aContacted && bContacted) return -1;
+      if (aContacted && !bContacted) return 1;
+
+      // If both contacted, sort by status: pending > connected > declined
+      if (aContacted && bContacted) {
+        const statusOrder: Record<string, number> = { pending: 0, connected: 1, declined: 2 };
+        const aStatus = getOutreachStatus(a.id) || "declined";
+        const bStatus = getOutreachStatus(b.id) || "declined";
+        const statusDiff = (statusOrder[aStatus] ?? 3) - (statusOrder[bStatus] ?? 3);
+        if (statusDiff !== 0) return statusDiff;
+        // Same status: sort by most recent outreach first
+        const aConn = connectionData.get(a.id);
+        const bConn = connectionData.get(b.id);
+        if (aConn && bConn) {
+          return new Date(bConn.created_at).getTime() - new Date(aConn.created_at).getTime();
+        }
+        return 0;
+      }
+
+      // Both uncontacted: use score-based sorting
       const scoreA = computeScore(a, metaA);
       const scoreB = computeScore(b, metaB);
       return scoreB - scoreA;
     });
 
     return sorted;
-  }, [families, contactedIds, modalFilters, activeTab, providerCareTypes, providerProfile]);
+  }, [families, contactedIds, connectionData, getOutreachStatus, modalFilters, activeTab, providerCareTypes, providerProfile]);
 
   // Paginate filtered families
   const totalPages = Math.ceil(filteredFamilies.length / PAGE_SIZE);
@@ -1441,7 +1475,7 @@ export default function ProviderMatchesPage() {
           {/* Discovery Banner */}
           <div className="mb-6">
             <DiscoveryBanner
-              familyCount={families.filter((f) => !contactedIds.has(f.id)).length}
+              familyCount={families.length}
               firstName={firstName}
             />
           </div>
@@ -1502,29 +1536,6 @@ export default function ProviderMatchesPage() {
                   Browse All Families
                 </button>
               </div>
-            ) : families.every((f) => contactedIds.has(f.id)) ? (
-              // All families contacted - congratulations state
-              <div className="text-center py-12 px-8">
-                <Image
-                  src="/Near-you-img.png"
-                  alt="All families contacted"
-                  width={180}
-                  height={180}
-                  className="mx-auto mb-6"
-                />
-                <h3 className="text-[17px] font-display font-bold text-gray-900 mb-2">
-                  You&apos;ve reached out to everyone
-                </h3>
-                <p className="text-[15px] text-gray-500 max-w-sm mx-auto leading-relaxed mb-6">
-                  Great work! Check your outreach to see who&apos;s responded, or check back soon for new families.
-                </p>
-                <Link
-                  href="/provider/outreach"
-                  className="inline-flex px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
-                >
-                  View Outreach
-                </Link>
-              </div>
             ) : (
               // Filter mismatch - no families match current filters
               <div className="text-center py-16 px-8">
@@ -1579,6 +1590,7 @@ export default function ProviderMatchesPage() {
                       hasFullAccess={hasFullAccess}
                       providerCareTypes={providerCareTypes}
                       contacted={contactedIds.has(family.id)}
+                      outreachStatus={getOutreachStatus(family.id) || undefined}
                       reachOutCount={reachOutCounts.get(family.id) || 0}
                       onReachOut={handleReachOut}
                       animationDelay={index * 40}
@@ -1631,20 +1643,35 @@ export default function ProviderMatchesPage() {
       </div>
 
       {/* ── Reach Out Drawer ── */}
-      <ReachOutDrawer
-        family={drawerFamily}
-        isOpen={!!drawerFamily}
-        onClose={handleCloseDrawer}
-        onSend={handleSendFromDrawer}
-        defaultMessage={reachOutNote}
-        providerProfile={providerProfile}
-        providerCareTypes={providerCareTypes}
-        providerPaymentMethods={providerPaymentMethods}
-        sending={sending}
-        sendError={sendError}
-        isVerified={isVerified}
-        onVerifyClick={handleVerifyFromDrawer}
-      />
+      {(() => {
+        // Determine if viewing existing outreach
+        const isViewMode = drawerFamily && contactedIds.has(drawerFamily.id);
+        const conn = drawerFamily ? connectionData.get(drawerFamily.id) : undefined;
+        const viewOutreachStatus = conn
+          ? conn.status === "accepted" ? "connected" : conn.status as "pending" | "declined"
+          : undefined;
+
+        return (
+          <ReachOutDrawer
+            family={drawerFamily}
+            isOpen={!!drawerFamily}
+            onClose={handleCloseDrawer}
+            onSend={handleSendFromDrawer}
+            defaultMessage={reachOutNote}
+            providerProfile={providerProfile}
+            providerCareTypes={providerCareTypes}
+            providerPaymentMethods={providerPaymentMethods}
+            sending={sending}
+            sendError={sendError}
+            isVerified={isVerified}
+            onVerifyClick={handleVerifyFromDrawer}
+            mode={isViewMode ? "view" : "compose"}
+            sentMessage={isViewMode ? (conn?.message || undefined) : undefined}
+            sentAt={isViewMode ? conn?.created_at : undefined}
+            outreachStatus={viewOutreachStatus}
+          />
+        );
+      })()}
 
       {/* ── Verification Modal ── */}
       <VerificationMethodModal

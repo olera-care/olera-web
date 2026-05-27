@@ -4,11 +4,15 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { Profile, FamilyMetadata } from "@/lib/types";
 
+type OutreachStatus = "pending" | "connected" | "declined";
+
 interface FamilyMatchCardProps {
   family: Profile;
   hasFullAccess: boolean;
   providerCareTypes: string[];
   contacted?: boolean;
+  /** Status of existing outreach (if contacted) */
+  outreachStatus?: OutreachStatus;
   reachOutCount?: number;
   onReachOut: (family: Profile) => void;
   animationDelay?: number;
@@ -339,6 +343,7 @@ export default function FamilyMatchCard({
   hasFullAccess,
   providerCareTypes,
   contacted = false,
+  outreachStatus,
   reachOutCount = 0,
   onReachOut,
   animationDelay = 0,
@@ -447,17 +452,23 @@ export default function FamilyMatchCard({
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!contacted) {
-      onReachOut(family);
-    }
+    // Always call onReachOut - parent will handle view vs compose mode
+    onReachOut(family);
   };
+
+  // Status badge config for contacted families
+  const statusBadge = contacted && outreachStatus ? {
+    pending: { label: "Awaiting response", bgClass: "bg-amber-50", textClass: "text-amber-700", borderClass: "border-amber-100", dotClass: "bg-amber-400" },
+    connected: { label: "Connected", bgClass: "bg-emerald-50", textClass: "text-emerald-700", borderClass: "border-emerald-100", dotClass: "bg-emerald-400" },
+    declined: { label: "Declined", bgClass: "bg-gray-50", textClass: "text-gray-500", borderClass: "border-gray-200", dotClass: "" },
+  }[outreachStatus] : null;
 
   return (
     <div
-      className={`group bg-white rounded-[14px] border overflow-hidden ${
+      className={`group bg-white rounded-[14px] border overflow-hidden cursor-pointer ${
         contacted
-          ? "border-[#e4edea] opacity-60 cursor-default"
-          : "border-[#e4edea] hover:border-[#a8d4cf] cursor-pointer card-hover-shadow"
+          ? "border-[#d4e4df] hover:border-[#b8d4cd] card-hover-shadow"
+          : "border-[#e4edea] hover:border-[#a8d4cf] card-hover-shadow"
       }`}
       style={{
         animation: `fadeSlideUp 0.4s ease-out ${animationDelay}ms both`,
@@ -465,7 +476,7 @@ export default function FamilyMatchCard({
       onClick={handleClick}
     >
       {/* META BAR */}
-      <div className="px-5 py-3">
+      <div className="px-5 py-3 flex items-center justify-between gap-3">
         <span className="text-[13px]">
           <span className="text-gray-500">Posted</span>{" "}
           <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
@@ -474,6 +485,14 @@ export default function FamilyMatchCard({
           {" "}
           <span className="font-semibold text-gray-700">{reachOutCount}</span>
         </span>
+
+        {/* Status badge for contacted families */}
+        {statusBadge && (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium ${statusBadge.bgClass} ${statusBadge.textClass} border ${statusBadge.borderClass}`}>
+            {statusBadge.dotClass && <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dotClass}`} />}
+            {statusBadge.label}
+          </span>
+        )}
       </div>
 
       <div className="p-5">

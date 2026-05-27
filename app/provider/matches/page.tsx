@@ -760,9 +760,11 @@ export default function ProviderMatchesPage() {
 
   const handleReachOut = useCallback(
     (family: Profile) => {
-      // Allow all providers to reach out - verification is soft-nudged in the drawer
+      // Check if this is viewing existing outreach (contacted) vs new outreach
+      const isViewingExisting = contactedIds.has(family.id);
 
-      if (!isProfileShareable(providerProfile)) {
+      // Only check profile completeness for NEW outreach, not viewing existing
+      if (!isViewingExisting && !isProfileShareable(providerProfile)) {
         const gaps = getProfileCompletionGaps(providerProfile);
         setProfileGapWarning(gaps);
         setTimeout(() => gapWarningRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
@@ -770,22 +772,26 @@ export default function ProviderMatchesPage() {
       }
       setProfileGapWarning(null);
       setSendError(null);
-      try {
-        const saved = localStorage.getItem(DEFAULT_NOTE_KEY);
-        if (saved) {
-          setReachOutNote(saved);
-          setSaveAsDefault(true);
-        } else {
+
+      // Only load saved message for new outreach
+      if (!isViewingExisting) {
+        try {
+          const saved = localStorage.getItem(DEFAULT_NOTE_KEY);
+          if (saved) {
+            setReachOutNote(saved);
+            setSaveAsDefault(true);
+          } else {
+            setReachOutNote("");
+            setSaveAsDefault(false);
+          }
+        } catch {
           setReachOutNote("");
           setSaveAsDefault(false);
         }
-      } catch {
-        setReachOutNote("");
-        setSaveAsDefault(false);
       }
       setDrawerFamily(family);
     },
-    [providerProfile],
+    [providerProfile, contactedIds],
   );
 
   const handleCloseDrawer = useCallback(() => {

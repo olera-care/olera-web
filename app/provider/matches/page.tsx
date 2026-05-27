@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
@@ -614,10 +615,7 @@ export default function ProviderMatchesPage() {
     status: "pending" | "accepted" | "declined";
     reply_message?: string | null;
     replied_at?: string | null;
-    reminder_sent?: boolean;
   }>>(new Map());
-  // Track which connections have had reminders sent (local state, persisted via DB)
-  const [reminderSentIds, setReminderSentIds] = useState<Set<string>>(new Set());
   const [archivedConnectionIds, setArchivedConnectionIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -683,8 +681,6 @@ export default function ProviderMatchesPage() {
   const [profileGapWarning, setProfileGapWarning] = useState<string[] | null>(null);
   const gapWarningRef = useRef<HTMLDivElement>(null);
 
-  // Reminder sending state
-  const [sendingReminderId, setSendingReminderId] = useState<string | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -759,9 +755,12 @@ export default function ProviderMatchesPage() {
 
   const handleReachOut = useCallback(
     (family: Profile) => {
-      // Allow all providers to reach out - verification is soft-nudged in the drawer
+      // Check if this is viewing existing outreach (contacted AND has connection data)
+      const hasConnectionData = connectionData.has(family.id);
+      const isViewingExisting = contactedIds.has(family.id) && hasConnectionData;
 
-      if (!isProfileShareable(providerProfile)) {
+      // Only check profile completeness for NEW outreach, not viewing existing
+      if (!isViewingExisting && !isProfileShareable(providerProfile)) {
         const gaps = getProfileCompletionGaps(providerProfile);
         setProfileGapWarning(gaps);
         setTimeout(() => gapWarningRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
@@ -769,22 +768,26 @@ export default function ProviderMatchesPage() {
       }
       setProfileGapWarning(null);
       setSendError(null);
-      try {
-        const saved = localStorage.getItem(DEFAULT_NOTE_KEY);
-        if (saved) {
-          setReachOutNote(saved);
-          setSaveAsDefault(true);
-        } else {
+
+      // Only load saved message for new outreach
+      if (!isViewingExisting) {
+        try {
+          const saved = localStorage.getItem(DEFAULT_NOTE_KEY);
+          if (saved) {
+            setReachOutNote(saved);
+            setSaveAsDefault(true);
+          } else {
+            setReachOutNote("");
+            setSaveAsDefault(false);
+          }
+        } catch {
           setReachOutNote("");
           setSaveAsDefault(false);
         }
-      } catch {
-        setReachOutNote("");
-        setSaveAsDefault(false);
       }
       setDrawerFamily(family);
     },
-    [providerProfile],
+    [providerProfile, contactedIds, connectionData],
   );
 
   const handleCloseDrawer = useCallback(() => {
@@ -793,44 +796,6 @@ export default function ProviderMatchesPage() {
       setSendError(null);
     }
   }, [sending]);
-
-  // Handle sending a follow-up reminder (48-hour rule, max 1 per family)
-  const handleSendReminder = useCallback(
-    async (connectionId: string) => {
-      if (!profileId || !isSupabaseConfigured() || sendingReminderId) return;
-
-      setSendingReminderId(connectionId);
-
-      try {
-        const supabase = createClient();
-
-        // Update the connection metadata to mark reminder as sent
-        const { error } = await supabase
-          .from("connections")
-          .update({
-            metadata: {
-              provider_initiated: true,
-              reminder_sent: true,
-              reminder_sent_at: new Date().toISOString(),
-            },
-          })
-          .eq("id", connectionId);
-
-        if (error) throw error;
-
-        // Update local state
-        setReminderSentIds((prev) => new Set([...prev, connectionId]));
-
-        // Optionally trigger a notification to the family (fire-and-forget)
-        // This could be expanded with an API route similar to notify-reach-out
-      } catch (err) {
-        console.error("[olera] Failed to send reminder:", err);
-      } finally {
-        setSendingReminderId(null);
-      }
-    },
-    [profileId, sendingReminderId],
-  );
 
   // Handle archiving a declined connection (removes from view)
   const handleArchiveConnection = useCallback(
@@ -863,8 +828,8 @@ export default function ProviderMatchesPage() {
   );
 
   const handleSendFromDrawer = useCallback(
-    async (toProfileId: string, message: string, shouldSaveAsDefault: boolean) => {
-      if (!profileId || !isSupabaseConfigured()) return;
+    async (toProfileId: string, message: string, shouldSaveAsDefault: boolean): Promise<boolean> => {
+      if (!profileId || !isSupabaseConfigured()) return false;
 
       setSending(true);
       setSendError(null);
@@ -872,7 +837,7 @@ export default function ProviderMatchesPage() {
       try {
         const supabase = createClient();
 
-        const { error: insertError } = await supabase
+        const { data: insertedConn, error: insertError } = await supabase
           .from("connections")
           .insert({
             from_profile_id: profileId,
@@ -881,7 +846,9 @@ export default function ProviderMatchesPage() {
             status: "pending",
             message: message.trim() || null,
             metadata: { provider_initiated: true },
-          });
+          })
+          .select("id, created_at")
+          .single();
 
         if (insertError) {
           if (
@@ -889,9 +856,10 @@ export default function ProviderMatchesPage() {
             insertError.message.includes("duplicate") ||
             insertError.message.includes("unique")
           ) {
+            // Already contacted - close drawer, don't show success
             setContactedIds((prev) => new Set([...prev, toProfileId]));
             setDrawerFamily(null);
-            return;
+            return false;
           }
           throw new Error(insertError.message);
         }
@@ -929,16 +897,34 @@ export default function ProviderMatchesPage() {
           }
         }
 
-        // Mark as contacted and close drawer
+        // Mark as contacted (drawer will show success state and close itself)
         setContactedIds((prev) => new Set([...prev, toProfileId]));
-        setDrawerFamily(null);
+
+        // Optimistically add to connectionData so MyOutreach updates immediately
+        if (insertedConn) {
+          setConnectionData((prev) => {
+            const updated = new Map(prev);
+            updated.set(toProfileId, {
+              id: insertedConn.id,
+              message: message.trim() || null,
+              created_at: insertedConn.created_at,
+              status: "pending",
+              reply_message: null,
+              replied_at: null,
+            });
+            return updated;
+          });
+        }
+
         setReachOutNote("");
+        return true;
       } catch (err: unknown) {
         const msg =
           err && typeof err === "object" && "message" in err
             ? (err as { message: string }).message
             : String(err);
         setSendError(`Something went wrong: ${msg}`);
+        return false;
       } finally {
         setSending(false);
       }
@@ -1012,9 +998,7 @@ export default function ProviderMatchesPage() {
           status: "pending" | "accepted" | "declined";
           reply_message?: string | null;
           replied_at?: string | null;
-          reminder_sent?: boolean;
         }>();
-        const reminderIds = new Set<string>();
 
         (fullConnectionsRes.data || []).forEach((conn: {
           id: string;
@@ -1027,7 +1011,6 @@ export default function ProviderMatchesPage() {
           const meta = conn.metadata as {
             reply_message?: string;
             replied_at?: string;
-            reminder_sent?: boolean;
           } | null;
 
           connDataMap.set(conn.to_profile_id, {
@@ -1037,16 +1020,10 @@ export default function ProviderMatchesPage() {
             status: conn.status as "pending" | "accepted" | "declined",
             reply_message: meta?.reply_message || null,
             replied_at: meta?.replied_at || null,
-            reminder_sent: meta?.reminder_sent || false,
           });
-
-          if (meta?.reminder_sent) {
-            reminderIds.add(conn.id);
-          }
         });
 
         setConnectionData(connDataMap);
-        setReminderSentIds(reminderIds);
 
         // Reach-out counts per family
         const familyIds = fetchedFamilies.map((f) => f.id);
@@ -1171,9 +1148,18 @@ export default function ProviderMatchesPage() {
     };
   }, [families, contactedIds]);
 
+  // Helper to get outreach status for a family
+  const getOutreachStatus = useCallback((familyId: string): "pending" | "connected" | "declined" | null => {
+    const conn = connectionData.get(familyId);
+    if (!conn) return null;
+    if (conn.status === "accepted") return "connected";
+    return conn.status; // "pending" or "declined"
+  }, [connectionData]);
+
   // Filter + sort families based on active tab and modal filters
+  // Note: We keep contacted families in the list (sorted to bottom) instead of filtering them out
   const filteredFamilies = useMemo(() => {
-    let result = families.filter((f) => !contactedIds.has(f.id));
+    let result = [...families]; // Keep all families
 
     // Apply modal filters: urgency
     if (modalFilters.urgency.length > 0) {
@@ -1318,13 +1304,38 @@ export default function ProviderMatchesPage() {
         return (freshnessScore * 0.45) + (matchScore * 0.30) + (urgencyScore * 0.25);
       };
 
+      // First, separate contacted from uncontacted
+      const aContacted = contactedIds.has(a.id);
+      const bContacted = contactedIds.has(b.id);
+
+      // Uncontacted families come first
+      if (!aContacted && bContacted) return -1;
+      if (aContacted && !bContacted) return 1;
+
+      // If both contacted, sort by status: pending > connected > declined
+      if (aContacted && bContacted) {
+        const statusOrder: Record<string, number> = { pending: 0, connected: 1, declined: 2 };
+        const aStatus = getOutreachStatus(a.id) || "declined";
+        const bStatus = getOutreachStatus(b.id) || "declined";
+        const statusDiff = (statusOrder[aStatus] ?? 3) - (statusOrder[bStatus] ?? 3);
+        if (statusDiff !== 0) return statusDiff;
+        // Same status: sort by most recent outreach first
+        const aConn = connectionData.get(a.id);
+        const bConn = connectionData.get(b.id);
+        if (aConn && bConn) {
+          return new Date(bConn.created_at).getTime() - new Date(aConn.created_at).getTime();
+        }
+        return 0;
+      }
+
+      // Both uncontacted: use score-based sorting
       const scoreA = computeScore(a, metaA);
       const scoreB = computeScore(b, metaB);
       return scoreB - scoreA;
     });
 
     return sorted;
-  }, [families, contactedIds, modalFilters, activeTab, providerCareTypes, providerProfile]);
+  }, [families, contactedIds, connectionData, getOutreachStatus, modalFilters, activeTab, providerCareTypes, providerProfile]);
 
   // Paginate filtered families
   const totalPages = Math.ceil(filteredFamilies.length / PAGE_SIZE);
@@ -1407,9 +1418,6 @@ export default function ProviderMatchesPage() {
               families={families}
               connectionData={connectionData}
               archivedIds={archivedConnectionIds}
-              reminderSentIds={reminderSentIds}
-              onSendReminder={handleSendReminder}
-              sendingReminderId={sendingReminderId}
               isOpen={isOutreachOpen}
               onToggle={() => setIsOutreachOpen(!isOutreachOpen)}
             />
@@ -1418,7 +1426,7 @@ export default function ProviderMatchesPage() {
           {/* Discovery Banner */}
           <div className="mb-6">
             <DiscoveryBanner
-              familyCount={families.filter((f) => !contactedIds.has(f.id)).length}
+              familyCount={families.length}
               firstName={firstName}
             />
           </div>
@@ -1457,28 +1465,30 @@ export default function ProviderMatchesPage() {
           ) : filteredFamilies.length === 0 ? (
             // Empty state - different message based on tab
             activeTab === "near_you" ? (
-              <div className="text-center py-16 px-8">
-                <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center mx-auto mb-5">
-                  <svg className="w-7 h-7 text-primary-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                  </svg>
-                </div>
-                <h3 className="text-[17px] font-display font-bold text-gray-900 mb-1.5">
+              <div className="text-center py-12 px-8">
+                <Image
+                  src="/Near-you-img.png"
+                  alt="No families nearby"
+                  width={180}
+                  height={180}
+                  className="mx-auto mb-6"
+                />
+                <h3 className="text-[17px] font-display font-bold text-gray-900 mb-2">
                   No families in {providerProfile?.city || "your area"} yet
                 </h3>
-                <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed mb-5">
-                  We&apos;ll notify you when someone posts nearby. In the meantime, browse all families.
+                <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed mb-6">
+                  New families post every day. Check back soon, or browse all families looking for care.
                 </p>
                 <button
                   type="button"
                   onClick={() => setActiveTab("best_matches")}
                   className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
                 >
-                  Browse all families
+                  Browse All Families
                 </button>
               </div>
             ) : (
+              // Filter mismatch - no families match current filters
               <div className="text-center py-16 px-8">
                 <div className="w-12 h-12 rounded-2xl bg-warm-50 border border-warm-100/60 flex items-center justify-center mx-auto mb-4">
                   <svg className="w-6 h-6 text-warm-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -1531,6 +1541,7 @@ export default function ProviderMatchesPage() {
                       hasFullAccess={hasFullAccess}
                       providerCareTypes={providerCareTypes}
                       contacted={contactedIds.has(family.id)}
+                      outreachStatus={getOutreachStatus(family.id) || undefined}
                       reachOutCount={reachOutCounts.get(family.id) || 0}
                       onReachOut={handleReachOut}
                       animationDelay={index * 40}
@@ -1572,9 +1583,6 @@ export default function ProviderMatchesPage() {
               families={families}
               connectionData={connectionData}
               archivedIds={archivedConnectionIds}
-              reminderSentIds={reminderSentIds}
-              onSendReminder={handleSendReminder}
-              sendingReminderId={sendingReminderId}
               isOpen={isOutreachOpen}
               onToggle={() => setIsOutreachOpen(!isOutreachOpen)}
             />
@@ -1583,20 +1591,36 @@ export default function ProviderMatchesPage() {
       </div>
 
       {/* ── Reach Out Drawer ── */}
-      <ReachOutDrawer
-        family={drawerFamily}
-        isOpen={!!drawerFamily}
-        onClose={handleCloseDrawer}
-        onSend={handleSendFromDrawer}
-        defaultMessage={reachOutNote}
-        providerProfile={providerProfile}
-        providerCareTypes={providerCareTypes}
-        providerPaymentMethods={providerPaymentMethods}
-        sending={sending}
-        sendError={sendError}
-        isVerified={isVerified}
-        onVerifyClick={handleVerifyFromDrawer}
-      />
+      {(() => {
+        // Determine if viewing existing outreach
+        // Only use view mode if we have BOTH contactedIds entry AND connection data
+        const conn = drawerFamily ? connectionData.get(drawerFamily.id) : undefined;
+        const isViewMode = drawerFamily && contactedIds.has(drawerFamily.id) && !!conn;
+        const viewOutreachStatus = conn
+          ? conn.status === "accepted" ? "connected" : conn.status as "pending" | "declined"
+          : undefined;
+
+        return (
+          <ReachOutDrawer
+            family={drawerFamily}
+            isOpen={!!drawerFamily}
+            onClose={handleCloseDrawer}
+            onSend={handleSendFromDrawer}
+            defaultMessage={reachOutNote}
+            providerProfile={providerProfile}
+            providerCareTypes={providerCareTypes}
+            providerPaymentMethods={providerPaymentMethods}
+            sending={sending}
+            sendError={sendError}
+            isVerified={isVerified}
+            onVerifyClick={handleVerifyFromDrawer}
+            mode={isViewMode ? "view" : "compose"}
+            sentMessage={isViewMode ? (conn?.message || undefined) : undefined}
+            sentAt={isViewMode ? conn?.created_at : undefined}
+            outreachStatus={viewOutreachStatus}
+          />
+        );
+      })()}
 
       {/* ── Verification Modal ── */}
       <VerificationMethodModal

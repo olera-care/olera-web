@@ -94,7 +94,7 @@ export default function DashboardPage() {
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="animate-pulse bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6"
+                className="animate-pulse bg-white rounded-2xl border border-gray-200/80 p-6"
               >
                 <div className="h-5 w-40 bg-gray-200 rounded mb-4" />
                 <div className="space-y-3">
@@ -106,7 +106,7 @@ export default function DashboardPage() {
           </div>
           {/* Sidebar skeleton */}
           <div className="lg:col-span-1">
-            <div className="animate-pulse bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+            <div className="animate-pulse bg-white rounded-2xl border border-gray-200/80 p-6">
               <div className="h-5 w-44 bg-gray-200 rounded mb-6" />
               <div className="flex justify-center mb-6">
                 <div className="w-[100px] h-[100px] rounded-full bg-gray-100" />
@@ -795,7 +795,7 @@ function NotificationPreferencesCard({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-gray-200/80 p-6">
       <h3 className="text-lg font-display font-bold text-gray-900 mb-1">Email preferences</h3>
       <p className="text-sm text-gray-400 mb-5">Control which emails you receive from Olera.</p>
 
@@ -889,7 +889,7 @@ function CollapsibleProfileCompleteness({
   };
 
   return (
-    <div className="bg-gradient-to-b from-white to-vanilla-50 rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+    <div className="bg-gradient-to-b from-white to-vanilla-50 rounded-2xl border border-gray-200/80 overflow-hidden">
       {/* Header - always visible, clickable to toggle */}
       <button
         type="button"

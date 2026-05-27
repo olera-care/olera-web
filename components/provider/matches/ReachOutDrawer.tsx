@@ -49,11 +49,18 @@ function avatarGradient(name: string): string {
 
 function timeAgo(dateStr: string | undefined): string {
   if (!dateStr) return "Recently";
+
   const now = Date.now();
   const then = new Date(dateStr).getTime();
+
+  // Handle invalid dates
+  if (isNaN(then)) return "Recently";
+
   const diffMs = now - then;
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
+  // Handle future dates or same-day posts
+  if (diffDays < 0) return "Today";
   if (diffDays === 0) return "Today";
   if (diffDays === 1) return "1 day ago";
   if (diffDays < 7) return `${diffDays} days ago`;
@@ -406,11 +413,15 @@ export default function ReachOutDrawer({
     return `${paymentMethods.slice(0, 3).join(", ")} +${paymentMethods.length - 3} more`;
   };
 
-  // Generate AI message
+  // Generate AI message with timeout
   const generateMessage = useCallback(async () => {
     if (!family || !providerProfile) return;
 
     setIsGenerating(true);
+
+    // Create abort controller with 15 second timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
       const response = await fetch("/api/matches/generate-message", {
@@ -425,7 +436,10 @@ export default function ReachOutDrawer({
           providerLocation,
           profileState,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         const data = await response.json();
@@ -455,8 +469,10 @@ export default function ReachOutDrawer({
           providerName,
         }));
       }
-    } catch {
-      // Fallback to local generation
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      // Fallback to local generation (handles timeout and network errors)
       setMessage(generateDefaultMessage({
         firstName,
         careTypes,
@@ -561,9 +577,9 @@ ${providerName}`;
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <h2 id="drawer-title" className="text-lg font-semibold text-gray-900">{displayName}</h2>
+        <h2 id="drawer-title" className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
         {location && (
-          <p className="text-sm text-gray-600">{location}</p>
+          <p className="text-sm text-gray-600 truncate">{location}</p>
         )}
       </div>
       <div className="text-right shrink-0">

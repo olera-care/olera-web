@@ -760,8 +760,9 @@ export default function ProviderMatchesPage() {
 
   const handleReachOut = useCallback(
     (family: Profile) => {
-      // Check if this is viewing existing outreach (contacted) vs new outreach
-      const isViewingExisting = contactedIds.has(family.id);
+      // Check if this is viewing existing outreach (contacted AND has connection data)
+      const hasConnectionData = connectionData.has(family.id);
+      const isViewingExisting = contactedIds.has(family.id) && hasConnectionData;
 
       // Only check profile completeness for NEW outreach, not viewing existing
       if (!isViewingExisting && !isProfileShareable(providerProfile)) {
@@ -791,7 +792,7 @@ export default function ProviderMatchesPage() {
       }
       setDrawerFamily(family);
     },
-    [providerProfile, contactedIds],
+    [providerProfile, contactedIds, connectionData],
   );
 
   const handleCloseDrawer = useCallback(() => {
@@ -1651,8 +1652,9 @@ export default function ProviderMatchesPage() {
       {/* ── Reach Out Drawer ── */}
       {(() => {
         // Determine if viewing existing outreach
-        const isViewMode = drawerFamily && contactedIds.has(drawerFamily.id);
+        // Only use view mode if we have BOTH contactedIds entry AND connection data
         const conn = drawerFamily ? connectionData.get(drawerFamily.id) : undefined;
+        const isViewMode = drawerFamily && contactedIds.has(drawerFamily.id) && !!conn;
         const viewOutreachStatus = conn
           ? conn.status === "accepted" ? "connected" : conn.status as "pending" | "declined"
           : undefined;

@@ -208,7 +208,10 @@ function OutreachLink({
               {label === "pending" && canSendReminder(connection, reminderSentIds || new Set()) && onSendReminder && (
                 <button
                   type="button"
-                  onClick={() => onSendReminder(connection.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSendReminder(connection.id);
+                  }}
                   disabled={sendingReminderId === connection.id}
                   className="text-[11px] text-primary-600 hover:text-primary-700 disabled:opacity-50"
                 >

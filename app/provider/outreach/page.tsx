@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -31,6 +31,12 @@ interface OutreachItem {
 
 function formatDate(dateStr: string): { display: string; relative: string } {
   const date = new Date(dateStr);
+
+  // Handle invalid dates
+  if (isNaN(date.getTime())) {
+    return { display: "Unknown", relative: "Unknown" };
+  }
+
   const now = Date.now();
   const diffMs = now - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -42,7 +48,8 @@ function formatDate(dateStr: string): { display: string; relative: string } {
   });
 
   let relative: string;
-  if (diffDays === 0) relative = "Today";
+  if (diffDays < 0) relative = "Today"; // Future date edge case
+  else if (diffDays === 0) relative = "Today";
   else if (diffDays === 1) relative = "Yesterday";
   else if (diffDays < 7) relative = `${diffDays} days ago`;
   else if (diffDays < 14) relative = "1 week ago";
@@ -291,10 +298,16 @@ function EmptyState({ status }: { status: OutreachStatus }) {
 // Main Page
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function OutreachPage() {
+// Validate status parameter
+function isValidStatus(status: string | null): status is OutreachStatus {
+  return status === "pending" || status === "connected" || status === "declined";
+}
+
+function OutreachPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialStatus = (searchParams.get("status") as OutreachStatus) || "pending";
+  const statusParam = searchParams.get("status");
+  const initialStatus: OutreachStatus = isValidStatus(statusParam) ? statusParam : "pending";
 
   const [activeTab, setActiveTab] = useState<OutreachStatus>(initialStatus);
   const [outreachItems, setOutreachItems] = useState<OutreachItem[]>([]);
@@ -310,6 +323,7 @@ export default function OutreachPage() {
 
   // Nudge state
   const [nudgingId, setNudgingId] = useState<string | null>(null);
+  const [nudgeError, setNudgeError] = useState<string | null>(null);
 
   // Update URL when tab changes
   const handleTabChange = useCallback((tab: OutreachStatus) => {
@@ -432,6 +446,7 @@ export default function OutreachPage() {
   // Handle nudge
   const handleNudge = useCallback(async (connectionId: string) => {
     setNudgingId(connectionId);
+    setNudgeError(null);
     try {
       const res = await fetch("/api/connections/reminder", {
         method: "POST",
@@ -440,7 +455,8 @@ export default function OutreachPage() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to send reminder");
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send reminder");
       }
 
       // Update local state
@@ -451,6 +467,9 @@ export default function OutreachPage() {
       );
     } catch (err) {
       console.error("Nudge failed:", err);
+      setNudgeError(err instanceof Error ? err.message : "Failed to send reminder");
+      // Clear error after 5 seconds
+      setTimeout(() => setNudgeError(null), 5000);
     } finally {
       setNudgingId(null);
     }
@@ -523,6 +542,15 @@ export default function OutreachPage() {
         </div>
       </div>
 
+      {/* Nudge Error Toast */}
+      {nudgeError && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+          <div className="px-4 py-3 bg-red-50 border border-red-100 rounded-xl shadow-lg">
+            <p className="text-sm text-red-700">{nudgeError}</p>
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {loading ? (
@@ -563,5 +591,34 @@ export default function OutreachPage() {
         outreachStatus={selectedItem?.status}
       />
     </div>
+  );
+}
+
+// Loading fallback for Suspense
+function OutreachPageLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50/50">
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-4" />
+          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
+          <div className="h-4 w-64 bg-gray-200 rounded animate-pulse" />
+        </div>
+      </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex items-center justify-center py-16">
+          <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Wrap in Suspense for useSearchParams
+export default function OutreachPage() {
+  return (
+    <Suspense fallback={<OutreachPageLoading />}>
+      <OutreachPageContent />
+    </Suspense>
   );
 }

@@ -77,17 +77,6 @@ function timeAgo(isoDate: string | undefined | null): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
-function formatDate(isoDate: string): string {
-  const date = new Date(isoDate);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 // Calculate response time between two dates
 function responseTime(sentAt: string, repliedAt: string): string {
   const sent = new Date(sentAt).getTime();
@@ -561,8 +550,8 @@ export default function AdminOutreachPage() {
           <StatCard label="Active Providers" value={data.totals.providers} />
           <StatCard label="Total Sent" value={data.totals.sent} />
           <StatCard label="Accepted" value={data.totals.accepted} color="emerald" highlight />
-          <StatCard label="Declined" value={data.totals.declined} color="gray" />
           <StatCard label="Pending" value={data.totals.pending} color="amber" />
+          <StatCard label="Declined" value={data.totals.declined} color="gray" />
           <StatCard label="Accept Rate" value={`${acceptRate}%`} color="emerald" />
         </div>
       )}

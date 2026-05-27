@@ -68,7 +68,7 @@ function memberSince(dateStr: string | undefined): string {
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
-function formatWhoNeedsCare(value: string | undefined): string | null {
+function formatWhoNeedsCare(value: string | undefined, age: number | undefined): string | null {
   if (!value) return null;
   const mapping: Record<string, string> = {
     self: "Self",
@@ -84,7 +84,8 @@ function formatWhoNeedsCare(value: string | undefined): string | null {
     my_spouse: "Spouse",
     someone_else: "Family member",
   };
-  return mapping[value] || value;
+  const who = mapping[value] || value;
+  return age ? `${who}, ${age} years old` : who;
 }
 
 // Parse who needs care into structured format for description generation
@@ -327,7 +328,7 @@ export default function ReachOutDrawer({
   const familyQuote = meta?.about_situation;
   const paymentMethods = meta?.payment_methods || [];
   const publishedAt = meta?.care_post?.published_at || family?.created_at;
-  const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient);
+  const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient, meta?.age);
   const whoNeedsCareParsed = parseWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient);
 
   // Map timeline to urgency text for description generation
@@ -389,12 +390,20 @@ export default function ReachOutDrawer({
 
   const getCareNeedsLabel = (): string | null => {
     if (careNeeds.length === 0) return null;
-    return careNeeds.join(", ");
+    // Limit to 4 items to avoid very long inline text
+    if (careNeeds.length <= 4) {
+      return careNeeds.join(", ");
+    }
+    return `${careNeeds.slice(0, 4).join(", ")} +${careNeeds.length - 4} more`;
   };
 
   const getPaymentLabel = (): string | null => {
     if (paymentMethods.length === 0) return null;
-    return paymentMethods.join(", ");
+    // Limit to 3 items for payment methods
+    if (paymentMethods.length <= 3) {
+      return paymentMethods.join(", ");
+    }
+    return `${paymentMethods.slice(0, 3).join(", ")} +${paymentMethods.length - 3} more`;
   };
 
   // Generate AI message

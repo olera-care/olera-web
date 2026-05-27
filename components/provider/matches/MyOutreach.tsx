@@ -88,7 +88,7 @@ export default function MyOutreach({
         <div className="flex items-center gap-2">
           <span className="text-[15px] font-semibold text-gray-900">My Outreach</span>
           {totalCount > 0 && (
-            <span className="text-[13px] font-medium text-gray-400">({totalCount})</span>
+            <span className="text-[13px] font-medium text-gray-500">({totalCount})</span>
           )}
         </div>
         <svg
@@ -105,7 +105,7 @@ export default function MyOutreach({
         style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-gray-100 px-5 py-3 space-y-2">
+          <div className="border-t border-gray-100 px-5 py-4 space-y-3">
             <OutreachLink
               count={pendingItems.length}
               label="pending"
@@ -141,7 +141,7 @@ function OutreachLink({
   return (
     <Link
       href={`/provider/outreach?status=${status}`}
-      className="block text-[14px] text-gray-700 underline underline-offset-2 hover:text-gray-900 transition-colors"
+      className="block text-[15px] font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900 transition-colors py-0.5"
     >
       {count} {label}
     </Link>

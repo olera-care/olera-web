@@ -23,6 +23,11 @@ const PROVIDER_EVENT_TYPES = [
   "provider_picker_clicked",
   "dashboard_arrival",
   "provider_saved",
+  // Provider outreach tracking (Find Families page)
+  "matches_page_viewed",      // Provider opens Find Families page
+  "matches_card_clicked",     // Provider clicks a family card
+  "matches_message_generated", // Provider clicks AI generate button
+  "matches_outreach_sent",    // Provider sends outreach message
 ] as const;
 
 const FAMILY_EVENT_TYPES = [

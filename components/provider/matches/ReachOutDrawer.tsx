@@ -10,7 +10,7 @@ interface ReachOutDrawerProps {
   family: Profile | null;
   isOpen: boolean;
   onClose: () => void;
-  onSend: (familyId: string, message: string, saveAsDefault: boolean) => Promise<boolean>;
+  onSend: (familyId: string, message: string, saveAsDefault: boolean, usedAi: boolean) => Promise<boolean>;
   defaultMessage?: string;
   providerProfile?: Profile | null;
   /** @deprecated Not used in redesigned drawer */
@@ -31,6 +31,8 @@ interface ReachOutDrawerProps {
   sentAt?: string;
   /** Status of the outreach (for view mode) */
   outreachStatus?: "pending" | "connected" | "declined";
+  /** Callback when AI message generation succeeds - for analytics tracking */
+  onAIGenerate?: (familyId: string, tone: string) => void;
 }
 
 // ── Helpers ──
@@ -341,11 +343,13 @@ export default function ReachOutDrawer({
   sentMessage,
   sentAt,
   outreachStatus,
+  onAIGenerate,
 }: ReachOutDrawerProps) {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [usedAi, setUsedAi] = useState(false); // Track if current message used AI generation
   const [step, setStep] = useState<"profile" | "message">("profile");
   const [showSuccess, setShowSuccess] = useState(false);
   const isViewMode = mode === "view";
@@ -539,8 +543,13 @@ export default function ReachOutDrawer({
         const data = await response.json();
         if (data.message && data.message.trim()) {
           setMessage(data.message);
+          setUsedAi(true); // Mark as AI-generated only on success
+          // Track AI generation event AFTER successful generation
+          if (onAIGenerate) {
+            onAIGenerate(family.id, "default");
+          }
         } else {
-          // API returned empty message, fall back to local generation
+          // API returned empty message, fall back to local generation (not AI)
           setMessage(generateDefaultMessage({
             firstName,
             careTypes,
@@ -550,9 +559,10 @@ export default function ReachOutDrawer({
             profileState,
             providerName,
           }));
+          // Don't set usedAi or track - this is template, not AI
         }
       } else {
-        // Fallback to local generation
+        // Fallback to local generation (not AI)
         setMessage(generateDefaultMessage({
           firstName,
           careTypes,
@@ -562,11 +572,12 @@ export default function ReachOutDrawer({
           profileState,
           providerName,
         }));
+        // Don't set usedAi or track - this is template, not AI
       }
     } catch {
       clearTimeout(timeoutId);
 
-      // Fallback to local generation (handles timeout and network errors)
+      // Fallback to local generation (handles timeout and network errors - not AI)
       setMessage(generateDefaultMessage({
         firstName,
         careTypes,
@@ -576,10 +587,11 @@ export default function ReachOutDrawer({
         profileState,
         providerName,
       }));
+      // Don't set usedAi or track - this is template, not AI
     } finally {
       setIsGenerating(false);
     }
-  }, [family, providerProfile, firstName, careTypes, careNeeds, meta?.timeline, meta?.who_needs_care, providerName, providerLocation, profileState]);
+  }, [family, providerProfile, firstName, careTypes, careNeeds, meta?.timeline, meta?.who_needs_care, providerName, providerLocation, profileState, onAIGenerate]);
 
   // Simple starter message - no API call, fast and personal
   const getStarterMessage = useCallback(() => {
@@ -606,6 +618,7 @@ ${providerName}`;
         setIsGenerating(false);
         setShowSuccess(false);
         setCopiedField(null);
+        setUsedAi(false); // Reset AI tracking for new conversation
       }
 
       if (isViewMode) {
@@ -683,7 +696,7 @@ ${providerName}`;
 
   const handleSend = async () => {
     if (!family || !message.trim() || sending) return;
-    const success = await onSend(family.id, message.trim(), saveAsDefault);
+    const success = await onSend(family.id, message.trim(), saveAsDefault, usedAi);
     // Only show success state if send actually succeeded
     if (success) {
       setShowSuccess(true);

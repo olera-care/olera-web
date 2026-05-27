@@ -106,6 +106,27 @@ const URGENCY_ORDER: Record<string, number> = {
 const DEFAULT_NOTE_KEY = "olera_default_reachout_note";
 const PAGE_SIZE = 12;
 
+// ── Activity Tracking ──
+
+function trackMatchesEvent(
+  providerId: string,
+  eventType: "matches_page_viewed" | "matches_card_clicked" | "matches_message_generated" | "matches_outreach_sent",
+  metadata?: Record<string, unknown>
+) {
+  fetch("/api/activity/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      actor_type: "provider",
+      provider_id: providerId,
+      event_type: eventType,
+      metadata,
+    }),
+  }).catch(() => {
+    // Fire-and-forget - don't block UI
+  });
+}
+
 // ── Inline keyframes ──
 
 const floatKeyframes = `
@@ -759,6 +780,15 @@ export default function ProviderMatchesPage() {
       const hasConnectionData = connectionData.has(family.id);
       const isViewingExisting = contactedIds.has(family.id) && hasConnectionData;
 
+      // Track card click event
+      if (providerProfile?.slug) {
+        trackMatchesEvent(providerProfile.slug, "matches_card_clicked", {
+          family_id: family.id,
+          family_name: family.display_name,
+          is_viewing_existing: isViewingExisting,
+        });
+      }
+
       // Only check profile completeness for NEW outreach, not viewing existing
       if (!isViewingExisting && !isProfileShareable(providerProfile)) {
         const gaps = getProfileCompletionGaps(providerProfile);
@@ -828,7 +858,7 @@ export default function ProviderMatchesPage() {
   );
 
   const handleSendFromDrawer = useCallback(
-    async (toProfileId: string, message: string, shouldSaveAsDefault: boolean): Promise<boolean> => {
+    async (toProfileId: string, message: string, shouldSaveAsDefault: boolean, usedAi: boolean): Promise<boolean> => {
       if (!profileId || !isSupabaseConfigured()) return false;
 
       setSending(true);
@@ -845,7 +875,7 @@ export default function ProviderMatchesPage() {
             type: "request",
             status: "pending",
             message: message.trim() || null,
-            metadata: { provider_initiated: true },
+            metadata: { provider_initiated: true, used_ai: usedAi },
           })
           .select("id, created_at")
           .single();
@@ -870,6 +900,15 @@ export default function ProviderMatchesPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ toProfileId }),
         }).catch(() => {});
+
+        // Track outreach sent event with accurate AI usage flag
+        if (providerProfile?.slug && insertedConn) {
+          trackMatchesEvent(providerProfile.slug, "matches_outreach_sent", {
+            family_id: toProfileId,
+            connection_id: insertedConn.id,
+            used_ai: usedAi,
+          });
+        }
 
         // Increment free_responses_used only for free tier (not trial)
         if (membership && membership.status === "free") {
@@ -1060,6 +1099,17 @@ export default function ProviderMatchesPage() {
   useEffect(() => {
     fetchFamilies();
   }, [fetchFamilies]);
+
+  // Track page view on mount (once per session)
+  const hasTrackedPageView = useRef(false);
+  useEffect(() => {
+    if (providerProfile?.slug && !hasTrackedPageView.current) {
+      hasTrackedPageView.current = true;
+      trackMatchesEvent(providerProfile.slug, "matches_page_viewed", {
+        tab: activeTab,
+      });
+    }
+  }, [providerProfile?.slug, activeTab]);
 
   // Poll for updates every 45 seconds (family profile changes, new listings)
   // Pass isBackgroundRefresh=true to avoid showing loading skeleton during refresh
@@ -1618,6 +1668,14 @@ export default function ProviderMatchesPage() {
             sentMessage={isViewMode ? (conn?.message || undefined) : undefined}
             sentAt={isViewMode ? conn?.created_at : undefined}
             outreachStatus={viewOutreachStatus}
+            onAIGenerate={(familyId, tone) => {
+              if (providerProfile?.slug) {
+                trackMatchesEvent(providerProfile.slug, "matches_message_generated", {
+                  family_id: familyId,
+                  tone,
+                });
+              }
+            }}
           />
         );
       })()}

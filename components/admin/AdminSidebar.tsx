@@ -31,6 +31,7 @@ const navSections: NavSection[] = [
       { label: "Activity Center", href: "/admin/activity" },
       { label: "Demand", href: "/admin/demand" },
       { label: "Leads", href: "/admin/leads" },
+      { label: "Outreach", href: "/admin/outreach" },
       { label: "Questions", href: "/admin/questions" },
     ],
   },

@@ -607,6 +607,22 @@ ${providerName}`;
     };
   }, []);
 
+  // Auto-resize textarea to fit content
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea || isViewMode) return;
+
+    // Reset height to auto to get accurate scrollHeight
+    textarea.style.height = "auto";
+
+    // Calculate new height (min 120px, max 400px)
+    const minHeight = 120;
+    const maxHeight = 400;
+    const newHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight);
+
+    textarea.style.height = `${newHeight}px`;
+  }, [message, isViewMode]);
+
   const handleSend = async () => {
     if (!family || !message.trim() || sending) return;
     await onSend(family.id, message.trim(), saveAsDefault);
@@ -797,7 +813,7 @@ ${providerName}`;
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           disabled={isGenerating}
-          className={`w-full min-h-[160px] px-4 py-3.5 text-base leading-relaxed bg-white border border-gray-200 rounded-xl resize-y focus:outline-none focus:ring-2 focus:ring-[#2a7a6e]/40 focus:border-[#2a7a6e] transition-all placeholder:text-gray-400 ${
+          className={`w-full min-h-[120px] max-h-[400px] px-4 py-3.5 text-base leading-relaxed bg-white border border-gray-200 rounded-xl resize-y overflow-y-auto focus:outline-none focus:ring-2 focus:ring-[#2a7a6e]/40 focus:border-[#2a7a6e] transition-colors placeholder:text-gray-400 ${
             isGenerating ? "opacity-50 animate-pulse" : ""
           }`}
           placeholder={isGenericFirstName ? "Hi! I'd love to help with your care needs..." : `Hi ${firstName}! I'd love to help with your care needs...`}

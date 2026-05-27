@@ -122,6 +122,103 @@ function formatWhoNeedsCare(value: string | undefined, age: number | undefined):
   return age ? `${who}, ${age} years old` : who;
 }
 
+// Parse who needs care into structured format for description generation
+function parseWhoNeedsCare(value: string | undefined): { relationship: string; isSelf: boolean } | null {
+  if (!value) return null;
+  const lower = value.toLowerCase().replace(/_/g, " ");
+  if (lower === "self" || lower === "myself") {
+    return { relationship: "themselves", isSelf: true };
+  }
+  const mapping: Record<string, string> = {
+    parent: "parent",
+    "my parent": "parent",
+    spouse: "spouse",
+    "my spouse": "spouse",
+    other: "family member",
+    "someone else": "family member",
+  };
+  const relationship = mapping[lower] || value;
+  return { relationship, isSelf: false };
+}
+
+// Generate a rich description when user hasn't written one (same as FamilyMatchCard)
+function generateDescription(params: {
+  name: string;
+  who: { relationship: string; isSelf: boolean } | null;
+  age: number | undefined;
+  careType: string | null;
+  careNeeds: string[];
+  location: string;
+  urgency: string | undefined;
+}): string | null {
+  const { name, who, age, careType, careNeeds, location, urgency } = params;
+
+  // Need at least some meaningful data to generate
+  if (!who && !careType && careNeeds.length === 0 && !location) return null;
+
+  // Use first name for personalization (or skip if generic)
+  const firstName = name && name !== "Family" && name.toLowerCase() !== "care seeker"
+    ? name.split(" ")[0]
+    : null;
+
+  const sentences: string[] = [];
+
+  // ── First sentence: Who + care type + location ──
+  let s1 = "";
+  if (urgency === "exploring") {
+    s1 = firstName ? `${firstName} is exploring` : "Exploring";
+    s1 += careType ? ` ${careType} options` : " care options";
+  } else {
+    s1 = firstName ? `${firstName} is looking for` : "Looking for";
+    s1 += careType ? ` ${careType}` : " care";
+  }
+
+  if (who) {
+    if (who.isSelf) {
+      s1 += age ? ` for themselves (age ${age})` : " for themselves";
+    } else {
+      const recipientDesc = age ? `${age}-year-old ${who.relationship}` : who.relationship;
+      s1 += ` for their ${recipientDesc}`;
+    }
+  }
+
+  if (location) s1 += ` in ${location}`;
+  sentences.push(s1 + ".");
+
+  // ── Second sentence: Care needs + timeline ──
+  if (careNeeds.length > 0 || (urgency && urgency !== "exploring")) {
+    let s2 = "They're";
+
+    if (careNeeds.length > 0) {
+      const needsList = [...careNeeds].map(n => n.toLowerCase());
+      if (needsList.length === 1) {
+        s2 += ` looking for help with ${needsList[0]}`;
+      } else if (needsList.length === 2) {
+        s2 += ` looking for help with ${needsList[0]} and ${needsList[1]}`;
+      } else {
+        const last = needsList.pop();
+        s2 += ` looking for help with ${needsList.join(", ")}, and ${last}`;
+      }
+
+      if (urgency && urgency !== "exploring") {
+        const timelineText = urgency === "ASAP"
+          ? "ideally starting as soon as possible"
+          : `hoping to start ${urgency}`;
+        s2 += `, ${timelineText}`;
+      }
+    } else if (urgency && urgency !== "exploring") {
+      const timelineText = urgency === "ASAP"
+        ? "hoping to start as soon as possible"
+        : `hoping to start ${urgency}`;
+      s2 += ` ${timelineText}`;
+    }
+
+    sentences.push(s2 + ".");
+  }
+
+  return sentences.length > 0 ? sentences.join(" ") : null;
+}
+
 // Timeline badge configuration - aligned with FamilyMatchCard labels
 const TIMELINE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
   as_soon_as_possible: { label: "Needs care ASAP", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-500" },
@@ -281,8 +378,35 @@ export default function ReachOutDrawer({
   const paymentMethods = meta?.payment_methods || [];
   const publishedAt = meta?.care_post?.published_at || family?.created_at;
   const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient, meta?.age);
+  const whoNeedsCareParsed = parseWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient);
   const schedulePref = formatSchedulePref(meta?.schedule_preference);
   const contactPref = formatContactPref(meta?.contact_preference);
+
+  // Map timeline to urgency text for description generation
+  const urgencyMap: Record<string, string> = {
+    as_soon_as_possible: "ASAP",
+    immediate: "ASAP",
+    within_a_month: "in about a month",
+    within_1_month: "in about a month",
+    in_a_few_months: "in a few months",
+    within_3_months: "in a few months",
+    just_researching: "exploring",
+    exploring: "exploring",
+  };
+  const urgency = meta?.timeline ? urgencyMap[meta.timeline as string] : undefined;
+
+  // Generate description if user hasn't written one
+  const generatedDescription = !familyQuote ? generateDescription({
+    name: displayName,
+    who: whoNeedsCareParsed,
+    age: meta?.age,
+    careType: primaryCareType || null,
+    careNeeds,
+    location,
+    urgency,
+  }) : null;
+
+  const displayDescription = familyQuote || generatedDescription;
 
   // Calculate profile state
   const completeness = family ? calculateCompleteness(family, meta) : 0;
@@ -466,7 +590,7 @@ export default function ReachOutDrawer({
             This family is just getting started. A warm, no-pressure introduction works best here.
           </p>
         </div>
-      ) : familyQuote ? (
+      ) : displayDescription ? (
         <div>
           <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
             About their situation
@@ -474,9 +598,9 @@ export default function ReachOutDrawer({
           <p
             className={`text-[14px] text-gray-700 leading-relaxed ${!quoteExpanded ? 'line-clamp-3' : ''}`}
           >
-            "{familyQuote}"
+            {familyQuote ? `"${displayDescription}"` : displayDescription}
           </p>
-          {familyQuote.length > 150 && !quoteExpanded && (
+          {displayDescription.length > 150 && !quoteExpanded && (
             <button
               type="button"
               onClick={() => setQuoteExpanded(true)}

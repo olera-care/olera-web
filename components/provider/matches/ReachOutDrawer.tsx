@@ -834,7 +834,7 @@ ${providerName}`;
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           disabled={isGenerating}
-          className={`w-full min-h-[280px] lg:min-h-[160px] max-h-[500px] lg:max-h-[400px] px-4 py-3.5 text-base leading-relaxed bg-white border border-gray-200 rounded-xl resize-y overflow-y-auto focus:outline-none focus:ring-2 focus:ring-[#2a7a6e]/40 focus:border-[#2a7a6e] transition-colors placeholder:text-gray-400 ${
+          className={`w-full min-h-[280px] lg:min-h-[160px] max-h-[500px] lg:max-h-[400px] px-4 py-3.5 text-base leading-relaxed bg-white border border-gray-200 rounded-xl resize-y overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary-600/40 focus:border-primary-600 transition-colors placeholder:text-gray-400 ${
             isGenerating ? "opacity-50 animate-pulse" : ""
           }`}
           placeholder={isGenericFirstName ? "Hi! I'd love to help with your care needs..." : `Hi ${firstName}! I'd love to help with your care needs...`}
@@ -851,7 +851,7 @@ ${providerName}`;
         {isGenerating && (
           <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/60">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-white/90 rounded-lg shadow-sm">
-              <svg className="w-4 h-4 animate-spin text-[#2a7a6e]" fill="none" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 animate-spin text-primary-600" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
@@ -868,7 +868,7 @@ ${providerName}`;
             type="checkbox"
             checked={saveAsDefault}
             onChange={(e) => setSaveAsDefault(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 text-[#2a7a6e] focus:ring-[#2a7a6e]/30 focus:ring-offset-0"
+            className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600/30 focus:ring-offset-0"
           />
           <span className="text-sm text-gray-500">Save as default</span>
         </label>
@@ -876,7 +876,7 @@ ${providerName}`;
           type="button"
           onClick={() => generateMessage()}
           disabled={isGenerating}
-          className="text-sm font-medium text-[#2a7a6e] hover:text-[#1f5c54] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+          className="text-sm font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
         >
           {isGenerating ? (
             <>
@@ -975,7 +975,7 @@ ${providerName}`;
         <button
           type="button"
           onClick={handleDone}
-          className="flex-1 px-4 py-3 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] transition-colors"
+          className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"
         >
           Done
         </button>
@@ -995,7 +995,7 @@ ${providerName}`;
         {!isVerified ? (
           <button
             onClick={onVerifyClick}
-            className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
+            className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
@@ -1006,7 +1006,7 @@ ${providerName}`;
           <button
             onClick={handleSend}
             disabled={!message.trim() || sending || isGenerating}
-            className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {sending ? (
               <>
@@ -1030,7 +1030,7 @@ ${providerName}`;
       <p className="text-sm text-center text-gray-500 mt-3">
         {isGenericFirstName ? "They" : firstName} will see your profile{" "}
         <span className="text-gray-400">·</span>{" "}
-        <Link href="/provider/profile" className="font-medium text-[#2a7a6e] hover:text-[#1f5c54]">
+        <Link href="/provider/profile" className="font-medium text-primary-600 hover:text-primary-700">
           Edit
         </Link>
       </p>
@@ -1043,7 +1043,7 @@ ${providerName}`;
       {outreachStatus === "connected" ? (
         <Link
           href="/provider/inbox"
-          className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
+          className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
@@ -1149,7 +1149,7 @@ ${providerName}`;
                 ) : step === "profile" ? (
                   <button
                     onClick={handleConnect}
-                    className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
+                    className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
@@ -1223,7 +1223,7 @@ ${providerName}`;
                 ) : step === "profile" ? (
                   <button
                     onClick={handleConnect}
-                    className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
+                    className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />

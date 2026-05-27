@@ -613,12 +613,15 @@ ${providerName}`;
     const textarea = textareaRef.current;
     if (!textarea || isViewMode || step !== "message") return;
 
+    // Get CSS min/max heights (respects responsive breakpoints)
+    const computedStyle = window.getComputedStyle(textarea);
+    const minHeight = parseInt(computedStyle.minHeight) || 160;
+    const maxHeight = parseInt(computedStyle.maxHeight) || 400;
+
     // Reset height to auto to get accurate scrollHeight
     textarea.style.height = "auto";
 
-    // Calculate new height (min 120px, max 400px)
-    const minHeight = 120;
-    const maxHeight = 400;
+    // Calculate new height within CSS bounds
     const newHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight);
 
     textarea.style.height = `${newHeight}px`;
@@ -807,20 +810,29 @@ ${providerName}`;
   // ── Message Section (Compose Mode) ──
   const MessageSectionCompose = (
     <div className="space-y-4">
-      {/* Textarea */}
+      {/* Textarea with resize indicator */}
       <div className="relative">
         <textarea
           ref={textareaRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           disabled={isGenerating}
-          className={`w-full min-h-[120px] max-h-[400px] px-4 py-3.5 text-base leading-relaxed bg-white border border-gray-200 rounded-xl resize-y overflow-y-auto focus:outline-none focus:ring-2 focus:ring-[#2a7a6e]/40 focus:border-[#2a7a6e] transition-colors placeholder:text-gray-400 ${
+          className={`w-full min-h-[280px] lg:min-h-[160px] max-h-[500px] lg:max-h-[400px] px-4 py-3.5 text-base leading-relaxed bg-white border border-gray-200 rounded-xl resize-y overflow-y-auto focus:outline-none focus:ring-2 focus:ring-[#2a7a6e]/40 focus:border-[#2a7a6e] transition-colors placeholder:text-gray-400 ${
             isGenerating ? "opacity-50 animate-pulse" : ""
           }`}
           placeholder={isGenericFirstName ? "Hi! I'd love to help with your care needs..." : `Hi ${firstName}! I'd love to help with your care needs...`}
         />
+        {/* Resize grip indicator */}
+        <div className="absolute bottom-1.5 right-1.5 pointer-events-none text-gray-300">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="1.5" />
+            <circle cx="18" cy="12" r="1.5" />
+            <circle cx="12" cy="18" r="1.5" />
+            <circle cx="18" cy="18" r="1.5" />
+          </svg>
+        </div>
         {isGenerating && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/60">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-white/90 rounded-lg shadow-sm">
               <svg className="w-4 h-4 animate-spin text-[#2a7a6e]" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

@@ -579,13 +579,23 @@ I came across your profile and wanted to reach out.
 ${providerName}`;
   }, [personalGreeting, providerName]);
 
-  // Initialize message when drawer opens
+  // Track previous family to detect fresh drawer opens vs. mid-session updates
+  const prevFamilyIdRef = useRef<string | null>(null);
+
+  // Initialize message when drawer opens (fresh open only, not mid-session mode changes)
   useEffect(() => {
     if (isOpen && family) {
-      setSaveAsDefault(false);
-      setQuoteExpanded(false);
-      setIsGenerating(false);
-      setShowSuccess(false);
+      const isFreshOpen = prevFamilyIdRef.current !== family.id;
+      prevFamilyIdRef.current = family.id;
+
+      // Only reset these on fresh drawer open, not when isViewMode changes mid-session
+      if (isFreshOpen) {
+        setSaveAsDefault(false);
+        setQuoteExpanded(false);
+        setIsGenerating(false);
+        setShowSuccess(false);
+        setCopiedField(null);
+      }
 
       if (isViewMode) {
         // View mode: show sent message (step doesn't matter - we show both profile and message)
@@ -600,6 +610,11 @@ ${providerName}`;
           setMessage(getStarterMessage());
         }
       }
+    }
+
+    // Reset tracking when drawer closes
+    if (!isOpen) {
+      prevFamilyIdRef.current = null;
     }
   }, [isOpen, family, defaultMessage, getStarterMessage, isViewMode, sentMessage]);
 
@@ -941,6 +956,37 @@ ${providerName}`;
     </div>
   ) : null;
 
+  // ── Status Badge Section (View mode - prominent placement) ──
+  const StatusBadgeSection = isViewMode && outreachStatus ? (
+    <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl border border-gray-100">
+      <div className="flex items-center gap-2">
+        {outreachStatus === "pending" && (
+          <>
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-sm font-medium text-gray-700">Awaiting response</span>
+          </>
+        )}
+        {outreachStatus === "connected" && (
+          <>
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span className="text-sm font-medium text-gray-700">Connected</span>
+          </>
+        )}
+        {outreachStatus === "declined" && (
+          <>
+            <span className="w-2 h-2 rounded-full bg-gray-400" />
+            <span className="text-sm font-medium text-gray-500">Declined</span>
+          </>
+        )}
+      </div>
+      {sentAt && (
+        <span className="text-xs text-gray-400">
+          Sent {timeAgo(sentAt)}
+        </span>
+      )}
+    </div>
+  ) : null;
+
   // ── Scrollable Content (Profile step for compose mode) ──
   const ScrollableContent = ProfileSection;
 
@@ -1037,31 +1083,8 @@ ${providerName}`;
   // ── Message Section (View Mode) ──
   const MessageSectionView = (
     <div className="space-y-4">
-      {/* Section header with status */}
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-lg font-semibold text-gray-900">Your message</p>
-        {outreachStatus && (
-          <>
-            {outreachStatus === "pending" && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium bg-amber-50 text-amber-700 border border-amber-100">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                Awaiting response
-              </span>
-            )}
-            {outreachStatus === "connected" && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                Connected
-              </span>
-            )}
-            {outreachStatus === "declined" && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium bg-gray-50 text-gray-500 border border-gray-100">
-                Declined
-              </span>
-            )}
-          </>
-        )}
-      </div>
+      {/* Section header */}
+      <p className="text-lg font-semibold text-gray-900">Your message</p>
 
       {/* Timestamp */}
       {sentAt && (
@@ -1276,8 +1299,9 @@ ${providerName}`;
               {/* Mobile scrollable content */}
               <div className="flex-1 overflow-y-auto px-5 py-5">
                 {isViewMode ? (
-                  // View mode: show contact info (if connected), profile, and message together
+                  // View mode: show status badge, contact info (if connected), profile, and message together
                   <div className="space-y-6">
+                    {StatusBadgeSection}
                     {ContactInfoSection}
                     {ProfileSection}
                     <div className="border-t border-gray-100 pt-6">
@@ -1351,8 +1375,9 @@ ${providerName}`;
               {/* Desktop scrollable content */}
               <div className="flex-1 overflow-y-auto px-6 py-6">
                 {isViewMode ? (
-                  // View mode: show contact info (if connected), profile, and message together
+                  // View mode: show status badge, contact info (if connected), profile, and message together
                   <div className="space-y-6">
+                    {StatusBadgeSection}
                     {ContactInfoSection}
                     {ProfileSection}
                     <div className="border-t border-gray-100 pt-6">

@@ -105,7 +105,7 @@ export default function MyOutreach({
         style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-gray-100 px-5 py-3 space-y-1">
+          <div className="border-t border-gray-100 px-5 py-3 flex flex-wrap items-center gap-x-4 gap-y-1">
             <OutreachLink
               count={pendingItems.length}
               label="pending"
@@ -128,7 +128,7 @@ export default function MyOutreach({
   );
 }
 
-// Status row with clickable link to outreach page - just count, no names
+// Simple underlined link to outreach page
 function OutreachLink({
   count,
   label,
@@ -138,24 +138,12 @@ function OutreachLink({
   label: string;
   status: "pending" | "connected" | "declined";
 }) {
-  // Status indicator colors
-  const dotColor = status === "pending"
-    ? "bg-amber-400"
-    : status === "connected"
-    ? "bg-emerald-400"
-    : "bg-gray-300";
-
   return (
     <Link
       href={`/provider/outreach?status=${status}`}
-      className="flex items-center gap-2 py-1.5 text-[14px] text-gray-700 hover:text-gray-900 transition-colors group"
+      className="text-[14px] text-gray-700 underline underline-offset-2 hover:text-gray-900 transition-colors"
     >
-      <span className={`w-2 h-2 rounded-full ${dotColor}`} />
-      <span className="font-medium">{count}</span>
-      <span className="text-gray-500 group-hover:text-gray-600">{label}</span>
-      <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-400 ml-auto" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-      </svg>
+      {count} {label}
     </Link>
   );
 }

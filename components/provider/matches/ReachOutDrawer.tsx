@@ -858,34 +858,27 @@ ${providerName}`;
 
   // ── Contact Info Section (Connected state only) ──
   const ContactInfoSection = outreachStatus === "connected" && (familyPhone || familyEmail) ? (
-    <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+    <div className="bg-primary-50 border border-primary-100 rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
-          <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
+          <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
         </div>
-        <p className="text-sm font-semibold text-emerald-800">Contact Information</p>
+        <p className="text-sm font-semibold text-primary-800">Contact Information</p>
       </div>
       <div className="space-y-3">
         {/* Phone */}
         {familyPhone && (
-          <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-emerald-100">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs text-gray-500 mb-0.5">Phone</p>
-                <p className="text-[15px] font-semibold text-gray-900 truncate">{familyPhone}</p>
-              </div>
+          <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-primary-100">
+            <div className="min-w-0">
+              <p className="text-xs text-gray-500 mb-0.5">Phone</p>
+              <p className="text-[15px] font-semibold text-gray-900 truncate">{familyPhone}</p>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <a
                 href={`tel:${familyPhone}`}
-                className="p-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                className="p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
                 aria-label="Call"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -897,7 +890,7 @@ ${providerName}`;
                 onClick={() => copyToClipboard(familyPhone, "phone")}
                 className={`p-2 rounded-lg border transition-colors ${
                   copiedField === "phone"
-                    ? "bg-emerald-100 border-emerald-200 text-emerald-700"
+                    ? "bg-primary-100 border-primary-200 text-primary-700"
                     : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
                 }`}
                 aria-label={copiedField === "phone" ? "Copied!" : "Copy phone"}
@@ -918,22 +911,15 @@ ${providerName}`;
 
         {/* Email */}
         {familyEmail && (
-          <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-emerald-100">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs text-gray-500 mb-0.5">Email</p>
-                <p className="text-[15px] font-semibold text-gray-900 truncate">{familyEmail}</p>
-              </div>
+          <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-primary-100">
+            <div className="min-w-0">
+              <p className="text-xs text-gray-500 mb-0.5">Email</p>
+              <p className="text-[15px] font-semibold text-gray-900 truncate">{familyEmail}</p>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <a
                 href={`mailto:${familyEmail}`}
-                className="p-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                className="p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
                 aria-label="Send email"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -945,7 +931,7 @@ ${providerName}`;
                 onClick={() => copyToClipboard(familyEmail, "email")}
                 className={`p-2 rounded-lg border transition-colors ${
                   copiedField === "email"
-                    ? "bg-emerald-100 border-emerald-200 text-emerald-700"
+                    ? "bg-primary-100 border-primary-200 text-primary-700"
                     : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
                 }`}
                 aria-label={copiedField === "email" ? "Copied!" : "Copy email"}
@@ -1259,8 +1245,8 @@ ${providerName}`;
       {/* Drawer */}
       <div
         className={`fixed z-[70] bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-300 ease-out
-          inset-x-0 bottom-0 max-h-[95dvh] rounded-t-2xl pb-[env(safe-area-inset-bottom)]
-          lg:inset-y-0 lg:top-0 lg:right-0 lg:left-auto lg:bottom-0 lg:w-[640px] lg:max-w-[calc(100vw-24px)] lg:h-screen lg:max-h-none lg:rounded-none lg:pb-0
+          inset-x-0 bottom-0 h-[95dvh] rounded-t-2xl pb-[env(safe-area-inset-bottom)]
+          lg:inset-y-0 lg:top-0 lg:right-0 lg:left-auto lg:bottom-0 lg:w-[640px] lg:max-w-[calc(100vw-24px)] lg:h-screen lg:rounded-none lg:pb-0
           ${isOpen ? "translate-y-0 lg:translate-x-0" : "translate-y-full lg:translate-y-0 lg:translate-x-full"}`}
         role="dialog"
         aria-modal="true"

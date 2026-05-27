@@ -25,7 +25,7 @@ export default function ProfileCompletenessSidebar({
   });
 
   return (
-    <div className="bg-gradient-to-b from-white to-vanilla-50 rounded-2xl border border-gray-200/80 shadow-sm p-6">
+    <div className="bg-gradient-to-b from-white to-vanilla-50 rounded-2xl border border-gray-200/80 p-6">
       {/* Header */}
       <h3 className="text-lg font-display font-bold text-gray-900 mb-5">
         Profile completeness

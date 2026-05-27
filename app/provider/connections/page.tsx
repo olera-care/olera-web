@@ -1049,18 +1049,13 @@ function migrateLeadsViewedData(providerProfileId: string): void {
 
 interface ConnectionWithProfile extends Connection {
   fromProfile?: Profile | null;
-  toProfile?: Profile | null;
-  /** For provider-initiated requests, family is in toProfile */
-  _familyProfile?: Profile | null;
 }
 
 function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: string): LeadDetail {
   const meta = conn.metadata as Record<string, unknown> | undefined;
   const thread = (meta?.thread as Array<{ from_profile_id: string; text: string; created_at: string }>) || [];
   const isArchived = meta?.archived === true;
-  // For provider-initiated requests (type="request"), family is in toProfile
-  // For family-initiated inquiries (type="inquiry"), family is in fromProfile
-  const familyProfile = conn._familyProfile || conn.fromProfile;
+  const familyProfile = conn.fromProfile;
 
   // Parse the message JSON for care details
   let careDetails: Record<string, unknown> = {};
@@ -1073,7 +1068,6 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   // For provider-initiated requests, also check family profile metadata for care info
   // IMPORTANT: Prefer fresh profile data over stale message JSON for up-to-date info
   const familyMeta = (familyProfile?.metadata || {}) as Record<string, unknown>;
-  const isProviderInitiated = conn.type === "request" && meta?.provider_initiated;
 
   // Name: prefer fresh profile display_name, fall back to message JSON for backward compat
   const profileDisplayName = familyProfile?.display_name || "";
@@ -1145,7 +1139,7 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   // Build activity timeline
   const activity: ActivityEvent[] = [
     {
-      label: isProviderInitiated ? "Connection accepted" : "Lead received",
+      label: "Lead received",
       date: `${timeAgo(conn.created_at)} · Via Olera`,
     },
   ];
@@ -1320,51 +1314,23 @@ export default function ProviderLeadsPage() {
       const supabase = createClient();
       const profileId = providerProfile.id;
 
-      // Fetch TWO types of connections that should appear as leads:
-      // 1. Family-initiated inquiries (type="inquiry") where provider is recipient
-      // 2. Provider-initiated requests (type="request") that were accepted by family
-      const [inquiriesResult, acceptedRequestsResult] = await Promise.all([
-        // Query 1: Family-initiated inquiries (existing behavior)
-        supabase
-          .from("connections")
-          .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
-          .eq("to_profile_id", profileId)
-          .eq("type", "inquiry")
-          .in("status", ["pending", "accepted"])
-          .order("created_at", { ascending: false }),
-
-        // Query 2: Accepted provider-initiated requests (NEW - these should also be leads)
-        supabase
-          .from("connections")
-          .select("*, toProfile:to_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
-          .eq("from_profile_id", profileId)
-          .eq("type", "request")
-          .eq("status", "accepted")
-          .order("created_at", { ascending: false }),
-      ]);
+      // Fetch family-initiated inquiries only
+      // Provider-initiated outreach is handled separately on the Outreach page
+      const inquiriesResult = await supabase
+        .from("connections")
+        .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
+        .eq("to_profile_id", profileId)
+        .eq("type", "inquiry")
+        .in("status", ["pending", "accepted"])
+        .order("created_at", { ascending: false });
 
       if (inquiriesResult.error) {
-        console.error("Failed to fetch inquiry leads:", inquiriesResult.error);
+        console.error("Failed to fetch leads:", inquiriesResult.error);
         if (isInitialLoad) setIsLoading(false);
         return;
       }
 
-      if (acceptedRequestsResult.error) {
-        console.error("Failed to fetch accepted request leads:", acceptedRequestsResult.error);
-        // Continue with just inquiries if this fails
-      }
-
-      // Combine and deduplicate connections
-      const inquiries = (inquiriesResult.data || []) as ConnectionWithProfile[];
-      const acceptedRequests = ((acceptedRequestsResult.data || []) as ConnectionWithProfile[]).map((conn) => ({
-        ...conn,
-        _familyProfile: conn.toProfile, // Mark family profile for mapping
-      }));
-
-      const allConnections = [...inquiries, ...acceptedRequests];
-      const uniqueConnections = allConnections.filter(
-        (conn, index, self) => self.findIndex((c) => c.id === conn.id) === index
-      );
+      const uniqueConnections = (inquiriesResult.data || []) as ConnectionWithProfile[];
 
       // Map connections to leads, filtering out hidden ones
       const mappedLeads = uniqueConnections

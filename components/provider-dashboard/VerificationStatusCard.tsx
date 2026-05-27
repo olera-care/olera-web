@@ -55,7 +55,7 @@ export default function VerificationStatusCard({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden">
       {/* Header */}
       <div className={`px-5 py-4 border-b border-gray-100 ${wasRejected ? "bg-gradient-to-r from-amber-50/50 to-white" : "bg-gradient-to-r from-primary-50/50 to-white"}`}>
         <div className="flex items-center gap-3">

@@ -616,11 +616,11 @@ export default function ReachOutDrawer({
 
   // ── Message Composition Content (used in right column on desktop, step 2 on mobile) ──
   const MessageContent = (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Header */}
-      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-3">
-        Your Message
-      </p>
+      <h3 className="text-base font-semibold text-gray-900 mb-4">
+        Your message
+      </h3>
 
       {/* Textarea */}
       <div className="flex-1 min-h-0">
@@ -833,17 +833,6 @@ export default function ReachOutDrawer({
         {/* DESKTOP LAYOUT (two-column) */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <div className="hidden lg:flex lg:flex-row lg:h-full">
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-5 right-5 p-1 z-10"
-            aria-label="Close drawer"
-          >
-            <svg className="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          </button>
-
           {/* LEFT COLUMN: Scrollable family profile */}
           <div className="w-[420px] border-r border-gray-100 overflow-y-auto">
             <div className="p-6">
@@ -851,9 +840,9 @@ export default function ReachOutDrawer({
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Sticky message section */}
+          {/* RIGHT COLUMN: Message section - centered vertically */}
           <div className="flex-1 flex flex-col min-w-0">
-            <div className="flex-1 overflow-y-auto p-6 pr-14">
+            <div className="flex-1 flex flex-col justify-center p-6 overflow-y-auto">
               {MessageContent}
             </div>
 

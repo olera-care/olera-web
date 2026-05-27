@@ -105,7 +105,7 @@ export default function MyOutreach({
         style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-gray-100 px-5 py-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+          <div className="border-t border-gray-100 px-5 py-3 space-y-2">
             <OutreachLink
               count={pendingItems.length}
               label="pending"
@@ -141,7 +141,7 @@ function OutreachLink({
   return (
     <Link
       href={`/provider/outreach?status=${status}`}
-      className="text-[14px] text-gray-700 underline underline-offset-2 hover:text-gray-900 transition-colors"
+      className="block text-[14px] text-gray-700 underline underline-offset-2 hover:text-gray-900 transition-colors"
     >
       {count} {label}
     </Link>

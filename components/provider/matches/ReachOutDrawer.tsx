@@ -72,6 +72,8 @@ function timeAgo(dateStr: string | undefined): string {
 function memberSince(dateStr: string | undefined): string {
   if (!dateStr) return "";
   const date = new Date(dateStr);
+  // Handle invalid dates
+  if (isNaN(date.getTime())) return "";
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
@@ -469,7 +471,7 @@ export default function ReachOutDrawer({
           providerName,
         }));
       }
-    } catch (error) {
+    } catch {
       clearTimeout(timeoutId);
 
       // Fallback to local generation (handles timeout and network errors)

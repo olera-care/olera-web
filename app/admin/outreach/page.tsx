@@ -1,175 +1,363 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-type DateRange = "7d" | "30d" | "90d";
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
 
-interface FunnelMetrics {
-  views: number;
-  clicks: number;
-  sent: number;
-  accepted: number;
-  declined: number;
-}
-
-interface Rates {
-  viewToClick: number;
-  clickToSend: number;
-  acceptRate: number;
-  declineRate: number;
-}
-
-interface AIUsage {
-  generated: number;
-  percentOfSent: number;
-}
+type FilterTab = "all" | "has_responses" | "pending_only";
 
 interface OutreachItem {
   id: string;
-  status: string;
+  status: "pending" | "accepted" | "declined";
   message: string | null;
   created_at: string;
+  family: {
+    id: string;
+    name: string;
+    location: string;
+  };
+  reply_message?: string | null;
+  replied_at?: string | null;
+}
+
+interface ProviderOutreach {
   provider: {
     id: string;
     name: string;
     slug: string;
     location: string;
-    image_url: string | null;
-  } | null;
-  family: {
-    id: string;
-    name: string;
-    slug: string;
-    location: string;
-    image_url: string | null;
-  } | null;
+  };
+  stats: {
+    total: number;
+    pending: number;
+    accepted: number;
+    declined: number;
+  };
+  outreach: OutreachItem[];
 }
 
 interface OutreachData {
-  funnel: FunnelMetrics;
-  rates: Rates;
-  aiUsage: AIUsage;
-  recentOutreach: OutreachItem[];
-  total: number;
-  days: number;
+  providers: ProviderOutreach[];
+  totals: {
+    providers: number;
+    sent: number;
+    accepted: number;
+    declined: number;
+    pending: number;
+  };
 }
 
-function formatTimeAgo(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diffMs = now - then;
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays === 1) return "1d ago";
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-  return `${Math.floor(diffDays / 30)}mo ago`;
+interface TabCount {
+  all: number;
+  has_responses: number;
+  pending_only: number;
 }
 
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "accepted":
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          Accepted
-        </span>
-      );
-    case "declined":
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-gray-500 bg-gray-100 rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-          Declined
-        </span>
-      );
-    default:
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-50 rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-          Pending
-        </span>
-      );
-  }
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+function timeAgo(isoDate: string | undefined): string {
+  if (!isoDate) return "—";
+  const days = Math.floor((Date.now() - new Date(isoDate).getTime()) / (1000 * 60 * 60 * 24));
+  if (days === 0) return "Today";
+  if (days === 1) return "1d ago";
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return `${Math.floor(days / 30)}mo ago`;
 }
 
-function FunnelCard({
+function formatDate(isoDate: string): string {
+  const date = new Date(isoDate);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stat Card Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+function StatCard({
   label,
   value,
-  rate,
-  showArrow,
-  tooltip,
+  highlight,
+  color,
 }: {
   label: string;
-  value: number;
-  rate?: number;
-  showArrow?: boolean;
-  tooltip?: string;
+  value: number | string;
+  highlight?: boolean;
+  color?: "emerald" | "amber" | "gray";
 }) {
-  // Format rate with better precision for small values
-  const formatRate = (r: number): string => {
-    if (r === 0) return "0%";
-    if (r < 1) return `${r.toFixed(1)}%`;
-    if (r < 10) return `${r.toFixed(1)}%`;
-    return `${Math.round(r)}%`;
+  const colorClasses = {
+    emerald: "text-emerald-600",
+    amber: "text-amber-600",
+    gray: "text-gray-500",
   };
 
   return (
-    <div className="relative bg-white rounded-xl border border-gray-100 px-4 py-4 group">
-      {showArrow && (
-        <div className="absolute -right-3 top-1/2 -translate-y-1/2 text-gray-300 z-10">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+    <div
+      className={`rounded-xl border px-4 py-3 ${
+        highlight
+          ? "border-emerald-200 bg-emerald-50/50"
+          : "border-gray-200 bg-white"
+      }`}
+    >
+      <div className={`text-2xl font-semibold tabular-nums ${color ? colorClasses[color] : "text-gray-900"}`}>
+        {typeof value === "number" ? value.toLocaleString() : value}
+      </div>
+      <div className="mt-0.5 text-xs text-gray-500">{label}</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Status Badge Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+function StatusBadge({ status }: { status: "pending" | "accepted" | "declined" }) {
+  const config = {
+    accepted: {
+      bg: "bg-emerald-50",
+      text: "text-emerald-700",
+      dot: "bg-emerald-500",
+      label: "Accepted",
+    },
+    declined: {
+      bg: "bg-gray-100",
+      text: "text-gray-600",
+      dot: "bg-gray-400",
+      label: "Declined",
+    },
+    pending: {
+      bg: "bg-amber-50",
+      text: "text-amber-700",
+      dot: "bg-amber-500 animate-pulse",
+      label: "Pending",
+    },
+  };
+
+  const { bg, text, dot, label } = config[status];
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded-full ${bg} ${text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+      {label}
+    </span>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Provider Row Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ProviderRow({
+  data,
+  isExpanded,
+  onToggle,
+}: {
+  data: ProviderOutreach;
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  const { provider, stats, outreach } = data;
+  const router = useRouter();
+
+  return (
+    <div className="border-b border-gray-100 last:border-b-0">
+      {/* Row Header */}
+      <div
+        className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+        onClick={onToggle}
+      >
+        {/* Expand Icon */}
+        <div className="w-5 shrink-0">
+          <svg
+            className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
           </svg>
         </div>
-      )}
-      <div className="text-2xl font-semibold text-gray-900 tabular-nums">
-        {value.toLocaleString()}
+
+        {/* Provider Info */}
+        <div className="flex-[2] min-w-0">
+          <Link
+            href={`/admin/directory/${provider.slug}`}
+            onClick={(e) => e.stopPropagation()}
+            className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate block"
+          >
+            {provider.name}
+          </Link>
+          {provider.location && (
+            <p className="text-sm text-gray-500 truncate">{provider.location}</p>
+          )}
+        </div>
+
+        {/* Stats */}
+        <div className="flex-1 text-center">
+          <p className="text-sm font-semibold text-gray-900 tabular-nums">{stats.total}</p>
+          <p className="text-xs text-gray-400">Sent</p>
+        </div>
+        <div className="flex-1 text-center">
+          <p className="text-sm font-semibold text-emerald-600 tabular-nums">{stats.accepted}</p>
+          <p className="text-xs text-gray-400">Accepted</p>
+        </div>
+        <div className="flex-1 text-center">
+          <p className="text-sm font-semibold text-gray-500 tabular-nums">{stats.declined}</p>
+          <p className="text-xs text-gray-400">Declined</p>
+        </div>
+        <div className="flex-1 text-center">
+          <p className="text-sm font-semibold text-amber-600 tabular-nums">{stats.pending}</p>
+          <p className="text-xs text-gray-400">Pending</p>
+        </div>
+
+        {/* Last Activity */}
+        <div className="w-24 text-right">
+          <p className="text-sm text-gray-400">
+            {outreach.length > 0 ? timeAgo(outreach[0].created_at) : "—"}
+          </p>
+        </div>
       </div>
-      <div className="text-sm text-gray-500 mt-0.5 flex items-center gap-1">
-        {label}
-        {tooltip && (
-          <span className="relative">
-            <svg className="w-3.5 h-3.5 text-gray-300 cursor-help" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-            </svg>
-            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-              {tooltip}
-            </span>
-          </span>
-        )}
-      </div>
-      {rate !== undefined && rate > 0 && (
-        <div className="text-xs text-gray-400 mt-1 tabular-nums">{formatRate(rate)}</div>
+
+      {/* Expanded Content - Individual Outreach Items */}
+      {isExpanded && (
+        <div className="bg-gray-50/50 border-t border-gray-100">
+          {outreach.length === 0 ? (
+            <p className="px-5 py-4 text-sm text-gray-400 italic">No outreach yet</p>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {outreach.map((item) => (
+                <div key={item.id} className="px-5 py-4 pl-14">
+                  {/* Family + Status Header */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/admin/care-seekers/${item.family.id}`)}
+                        className="text-sm font-medium text-gray-900 hover:text-primary-600 transition-colors text-left"
+                      >
+                        → {item.family.name}
+                      </button>
+                      {item.family.location && (
+                        <p className="text-xs text-gray-500 mt-0.5">{item.family.location}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <StatusBadge status={item.status} />
+                      <span className="text-xs text-gray-400">{timeAgo(item.created_at)}</span>
+                    </div>
+                  </div>
+
+                  {/* Message Thread */}
+                  <div className="space-y-2">
+                    {/* Provider's message */}
+                    {item.message && (
+                      <div className="bg-blue-50 rounded-lg px-3 py-2.5 border border-blue-100">
+                        <p className="text-[11px] font-medium text-blue-600 mb-1 uppercase tracking-wide">
+                          Provider&apos;s Message
+                        </p>
+                        <p className="text-sm text-blue-900 whitespace-pre-wrap leading-relaxed">
+                          {item.message}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Family's reply */}
+                    {item.status === "accepted" && item.reply_message && (
+                      <div className="bg-emerald-50 rounded-lg px-3 py-2.5 border border-emerald-100">
+                        <p className="text-[11px] font-medium text-emerald-600 mb-1 uppercase tracking-wide">
+                          Family&apos;s Reply
+                          {item.replied_at && (
+                            <span className="font-normal ml-2 normal-case">· {formatDate(item.replied_at)}</span>
+                          )}
+                        </p>
+                        <p className="text-sm text-emerald-900 whitespace-pre-wrap leading-relaxed">
+                          {item.reply_message}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Status context */}
+                    {item.status === "accepted" && !item.reply_message && (
+                      <p className="text-xs text-emerald-600 italic pl-1">
+                        ✓ Family accepted — conversation can continue via contact info
+                      </p>
+                    )}
+                    {item.status === "declined" && (
+                      <p className="text-xs text-gray-500 italic pl-1">
+                        Family declined this connection request
+                      </p>
+                    )}
+                    {item.status === "pending" && (
+                      <p className="text-xs text-amber-600 italic pl-1">
+                        Awaiting family response...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Page
+// ─────────────────────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 20;
+
 export default function AdminOutreachPage() {
   const [data, setData] = useState<OutreachData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [range, setRange] = useState<DateRange>("30d");
-  const [page, setPage] = useState(0);
 
-  const PAGE_SIZE = 25;
+  // Filters
+  const [filter, setFilter] = useState<FilterTab>("all");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  // Pagination
+  const [page, setPage] = useState(1);
+
+  // Expanded state
+  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
+
+  // Debounce search
+  useEffect(() => {
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [search]);
+
+  // Reset page on filter change
+  useEffect(() => {
+    setPage(1);
+  }, [filter]);
+
+  // Fetch data
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const days = range === "7d" ? 7 : range === "90d" ? 90 : 30;
-      const res = await fetch(
-        `/api/admin/outreach?days=${days}&limit=${PAGE_SIZE}&offset=${page * PAGE_SIZE}`
-      );
-
+      const res = await fetch("/api/admin/outreach");
       if (res.ok) {
         const json = await res.json();
         setData(json);
@@ -181,46 +369,79 @@ export default function AdminOutreachPage() {
     } finally {
       setLoading(false);
     }
-  }, [range, page]);
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Reset to first page when range changes
-  useEffect(() => {
-    setPage(0);
-  }, [range]);
+  // Filter and search providers
+  const filteredProviders = data?.providers.filter((p) => {
+    // Search filter
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      const matchesName = p.provider.name.toLowerCase().includes(q);
+      const matchesLocation = p.provider.location.toLowerCase().includes(q);
+      const matchesFamily = p.outreach.some((o) => o.family.name.toLowerCase().includes(q));
+      if (!matchesName && !matchesLocation && !matchesFamily) return false;
+    }
+
+    // Tab filter
+    switch (filter) {
+      case "has_responses":
+        return p.stats.accepted > 0 || p.stats.declined > 0;
+      case "pending_only":
+        return p.stats.pending > 0 && p.stats.accepted === 0 && p.stats.declined === 0;
+      default:
+        return true;
+    }
+  }) ?? [];
+
+  // Tab counts
+  const tabCounts: TabCount = data ? {
+    all: data.providers.length,
+    has_responses: data.providers.filter((p) => p.stats.accepted > 0 || p.stats.declined > 0).length,
+    pending_only: data.providers.filter((p) => p.stats.pending > 0 && p.stats.accepted === 0 && p.stats.declined === 0).length,
+  } : { all: 0, has_responses: 0, pending_only: 0 };
+
+  // Pagination
+  const totalPages = Math.ceil(filteredProviders.length / PAGE_SIZE);
+  const paginatedProviders = filteredProviders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // Toggle provider expansion
+  const toggleProvider = (providerId: string) => {
+    setExpandedProviders((prev) => {
+      const next = new Set(prev);
+      if (next.has(providerId)) {
+        next.delete(providerId);
+      } else {
+        next.add(providerId);
+      }
+      return next;
+    });
+  };
+
+  // Calculate accept rate
+  const acceptRate = data && data.totals.sent > 0
+    ? Math.round((data.totals.accepted / data.totals.sent) * 100)
+    : 0;
+
+  const tabs: { value: FilterTab; label: string; count: number }[] = [
+    { value: "all", label: "All Providers", count: tabCounts.all },
+    { value: "has_responses", label: "Has Responses", count: tabCounts.has_responses },
+    { value: "pending_only", label: "Pending Only", count: tabCounts.pending_only },
+  ];
 
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
-            Provider Outreach
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Track provider engagement with Find Families
-          </p>
-        </div>
-
-        {/* Date range selector */}
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-          {(["7d", "30d", "90d"] as DateRange[]).map((r) => (
-            <button
-              key={r}
-              onClick={() => setRange(r)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                range === r
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {r === "7d" ? "7 days" : r === "30d" ? "30 days" : "90 days"}
-            </button>
-          ))}
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
+          Provider Outreach
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Track providers reaching out to families via Find Families
+        </p>
       </div>
 
       {error && (
@@ -229,168 +450,146 @@ export default function AdminOutreachPage() {
         </div>
       )}
 
-      {loading && !data ? (
-        <div className="flex items-center justify-center py-24">
-          <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+      {/* Summary Stats */}
+      {data && (
+        <div className="grid grid-cols-6 gap-3 mb-6">
+          <StatCard label="Active Providers" value={data.totals.providers} />
+          <StatCard label="Total Sent" value={data.totals.sent} />
+          <StatCard label="Accepted" value={data.totals.accepted} color="emerald" highlight />
+          <StatCard label="Declined" value={data.totals.declined} color="gray" />
+          <StatCard label="Pending" value={data.totals.pending} color="amber" />
+          <StatCard label="Accept Rate" value={`${acceptRate}%`} color="emerald" />
         </div>
-      ) : data ? (
-        <>
-          {/* Funnel Metrics */}
-          <div className="grid grid-cols-5 gap-3 mb-6">
-            <FunnelCard
-              label="Views"
-              value={data.funnel.views}
-              showArrow
-              tooltip="Total page views (not unique)"
-            />
-            <FunnelCard
-              label="Clicks"
-              value={data.funnel.clicks}
-              rate={data.rates.viewToClick}
-              showArrow
-              tooltip="Family card clicks"
-            />
-            <FunnelCard
-              label="Sent"
-              value={data.funnel.sent}
-              rate={data.rates.clickToSend}
-              showArrow
-              tooltip="Outreach messages sent"
-            />
-            <FunnelCard
-              label="Accepted"
-              value={data.funnel.accepted}
-              rate={data.rates.acceptRate}
-              tooltip="Families who accepted"
-            />
-            <FunnelCard
-              label="Declined"
-              value={data.funnel.declined}
-              rate={data.rates.declineRate}
-              tooltip="Families who declined"
-            />
-          </div>
+      )}
 
-          {/* AI Usage */}
-          <div className="mb-8 px-4 py-3 bg-blue-50/50 border border-blue-100 rounded-xl">
-            <p className="text-sm text-blue-800">
-              <span className="font-semibold">AI-Assisted Messages:</span>{" "}
-              {data.aiUsage.generated} of {data.funnel.sent} sent messages ({data.aiUsage.percentOfSent}%)
-              were written with AI help
+      {/* Filter Tabs + Search */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <div className="flex gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setFilter(tab.value)}
+              className={[
+                "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                filter === tab.value
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+              ].join(" ")}
+            >
+              {tab.label}
+              <span
+                className={[
+                  "ml-1.5 px-1.5 py-0.5 rounded text-xs",
+                  filter === tab.value
+                    ? "bg-white/20 text-white"
+                    : "bg-gray-200 text-gray-500",
+                ].join(" ")}
+              >
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search providers or families..."
+            className="w-64 pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
+          />
+        </div>
+      </div>
+
+      {/* Provider List */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {/* Table Header */}
+        <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <div className="w-5" /> {/* Expand icon space */}
+          <div className="flex-[2]">Provider</div>
+          <div className="flex-1 text-center">Sent</div>
+          <div className="flex-1 text-center">Accepted</div>
+          <div className="flex-1 text-center">Declined</div>
+          <div className="flex-1 text-center">Pending</div>
+          <div className="w-24 text-right">Last Active</div>
+        </div>
+
+        {/* Loading / Empty / List */}
+        {loading ? (
+          <div className="p-8 text-center">
+            <div className="inline-block w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+          </div>
+        ) : paginatedProviders.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+              </svg>
+            </div>
+            <p className="text-gray-900 font-medium">
+              {debouncedSearch ? "No matching providers" : "No outreach yet"}
+            </p>
+            <p className="text-sm text-gray-500 mt-1">
+              {debouncedSearch
+                ? "Try a different search term"
+                : "When providers reach out to families, they'll appear here."
+              }
             </p>
           </div>
-
-          {/* Recent Outreach Table */}
-          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden relative">
-            {/* Loading overlay during pagination */}
-            {loading && data && (
-              <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
-              </div>
-            )}
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h2 className="text-base font-semibold text-gray-900">
-                Recent Outreach
-              </h2>
-            </div>
-
-            {data.recentOutreach.length === 0 ? (
-              <div className="text-center py-16 text-sm text-gray-400">
-                No outreach in this period
-              </div>
-            ) : (
-              <>
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <th className="px-5 py-3">Provider</th>
-                      <th className="px-5 py-3">Family</th>
-                      <th className="px-5 py-3">Status</th>
-                      <th className="px-5 py-3">When</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {data.recentOutreach.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-5 py-3">
-                          {item.provider ? (
-                            <div>
-                              <Link
-                                href={`/admin/directory/${item.provider.slug}`}
-                                className="text-sm font-medium text-gray-900 hover:text-primary-600 transition-colors"
-                              >
-                                {item.provider.name}
-                              </Link>
-                              {item.provider.location && (
-                                <p className="text-xs text-gray-400 mt-0.5">
-                                  {item.provider.location}
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400">Unknown</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3">
-                          {item.family ? (
-                            <div>
-                              <Link
-                                href={`/admin/care-seekers/${item.family.id}`}
-                                className="text-sm font-medium text-gray-900 hover:text-primary-600 transition-colors"
-                              >
-                                {item.family.name}
-                              </Link>
-                              {item.family.location && (
-                                <p className="text-xs text-gray-400 mt-0.5">
-                                  {item.family.location}
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400">Unknown</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3">
-                          {getStatusBadge(item.status)}
-                        </td>
-                        <td className="px-5 py-3 text-sm text-gray-500">
-                          {formatTimeAgo(item.created_at)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                {/* Pagination */}
-                {data.total > PAGE_SIZE && (
-                  <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100">
-                    <p className="text-sm text-gray-500">
-                      {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, data.total)} of{" "}
-                      {data.total}
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setPage((p) => Math.max(0, p - 1))}
-                        disabled={page === 0}
-                        className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        Previous
-                      </button>
-                      <button
-                        onClick={() => setPage((p) => p + 1)}
-                        disabled={(page + 1) * PAGE_SIZE >= data.total}
-                        className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+        ) : (
+          <div>
+            {paginatedProviders.map((provider) => (
+              <ProviderRow
+                key={provider.provider.id}
+                data={provider}
+                isExpanded={expandedProviders.has(provider.provider.id)}
+                onToggle={() => toggleProvider(provider.provider.id)}
+              />
+            ))}
           </div>
-        </>
-      ) : null}
+        )}
+      </div>
+
+      {/* Pagination */}
+      {!loading && filteredProviders.length > 0 && (
+        <div className="flex items-center justify-between mt-6 px-2">
+          <p className="text-sm text-gray-500">
+            {filteredProviders.length <= PAGE_SIZE
+              ? `${filteredProviders.length} provider${filteredProviders.length === 1 ? "" : "s"}`
+              : `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, filteredProviders.length)} of ${filteredProviders.length}`
+            }
+          </p>
+          {totalPages > 1 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

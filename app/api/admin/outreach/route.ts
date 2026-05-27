@@ -1,20 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 /**
  * GET /api/admin/outreach
  *
- * Returns provider outreach analytics for the Find Families feature:
- * - Funnel metrics: page views → card clicks → messages sent → accepted/declined
- * - AI usage stats
- * - Recent outreach list with provider/family details
+ * Returns provider outreach data - which providers are reaching out to families,
+ * and how those families are responding.
  *
- * Query params:
- * - days: number of days to look back (default: 30)
- * - limit: max recent outreach to return (default: 50)
- * - offset: pagination offset (default: 0)
+ * Response structure:
+ * - providers: list of providers who have sent outreach, with their stats and outreach items
+ * - totals: aggregate counts across all providers
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const user = await getAuthUser();
     if (!user) {
@@ -26,86 +23,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const days = parseInt(searchParams.get("days") || "30", 10);
-    const limit = parseInt(searchParams.get("limit") || "50", 10);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
-
     const db = getServiceClient();
 
-    // Calculate date range
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - days);
-    const cutoffIso = cutoffDate.toISOString();
-
-    // ── Fetch funnel metrics from provider_activity ──
-    // Note: These are engagement counts (not unique users) to show activity volume.
-    // A provider viewing the page 3 times = 3 views. This shows total engagement.
-    const [
-      pageViewsRes,
-      cardClicksRes,
-    ] = await Promise.all([
-      // Page views (total engagement, not unique)
-      db
-        .from("provider_activity")
-        .select("*", { count: "exact", head: true })
-        .eq("event_type", "matches_page_viewed")
-        .gte("created_at", cutoffIso),
-
-      // Card clicks (total engagement, not unique)
-      db
-        .from("provider_activity")
-        .select("*", { count: "exact", head: true })
-        .eq("event_type", "matches_card_clicked")
-        .gte("created_at", cutoffIso),
-    ]);
-
-    // ── Fetch outreach metrics from connections ──
-    // Provider-initiated outreach = connections with type='request' and metadata->provider_initiated = true
-    // AI usage is now tracked in connection metadata (used_ai: true) for accurate sent-message tracking
-    const [
-      outreachSentRes,
-      outreachAcceptedRes,
-      outreachDeclinedRes,
-      aiAssistedRes,
-    ] = await Promise.all([
-      // Total outreach sent
-      db
-        .from("connections")
-        .select("*", { count: "exact", head: true })
-        .eq("type", "request")
-        .contains("metadata", { provider_initiated: true })
-        .gte("created_at", cutoffIso),
-
-      // Accepted
-      db
-        .from("connections")
-        .select("*", { count: "exact", head: true })
-        .eq("type", "request")
-        .eq("status", "accepted")
-        .contains("metadata", { provider_initiated: true })
-        .gte("created_at", cutoffIso),
-
-      // Declined
-      db
-        .from("connections")
-        .select("*", { count: "exact", head: true })
-        .eq("type", "request")
-        .eq("status", "declined")
-        .contains("metadata", { provider_initiated: true })
-        .gte("created_at", cutoffIso),
-
-      // AI-assisted outreach (messages where AI generation was used)
-      db
-        .from("connections")
-        .select("*", { count: "exact", head: true })
-        .eq("type", "request")
-        .contains("metadata", { provider_initiated: true, used_ai: true })
-        .gte("created_at", cutoffIso),
-    ]);
-
-    // ── Fetch recent outreach with provider/family details ──
-    const { data: recentOutreach, error: outreachError, count: totalOutreach } = await db
+    // Fetch all provider-initiated outreach with both profiles
+    const { data: connections, error: connError } = await db
       .from("connections")
       .select(`
         id,
@@ -113,96 +34,142 @@ export async function GET(request: NextRequest) {
         message,
         metadata,
         created_at,
-        from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, slug, city, state, image_url),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, city, state, image_url, metadata)
-      `, { count: "exact" })
+        from_profile:business_profiles!connections_from_profile_id_fkey(
+          id,
+          display_name,
+          slug,
+          city,
+          state
+        ),
+        to_profile:business_profiles!connections_to_profile_id_fkey(
+          id,
+          display_name,
+          city,
+          state
+        )
+      `)
       .eq("type", "request")
       .contains("metadata", { provider_initiated: true })
-      .gte("created_at", cutoffIso)
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .order("created_at", { ascending: false });
 
-    if (outreachError) {
-      console.error("[admin/outreach] Failed to fetch outreach:", outreachError);
+    if (connError) {
+      console.error("[admin/outreach] Failed to fetch connections:", connError);
       return NextResponse.json({ error: "Failed to fetch outreach data" }, { status: 500 });
     }
 
-    // ── Calculate funnel metrics ──
-    const funnel = {
-      views: pageViewsRes.count ?? 0,
-      clicks: cardClicksRes.count ?? 0,
-      sent: outreachSentRes.count ?? 0,
-      accepted: outreachAcceptedRes.count ?? 0,
-      declined: outreachDeclinedRes.count ?? 0,
-    };
-
-    // Calculate conversion rates with one decimal precision for accuracy
-    const calcRate = (numerator: number, denominator: number): number => {
-      if (denominator === 0) return 0;
-      const rate = (numerator / denominator) * 100;
-      // Keep one decimal place for precision, round to integer if >= 10%
-      return rate >= 10 ? Math.round(rate) : Math.round(rate * 10) / 10;
-    };
-
-    const rates = {
-      viewToClick: calcRate(funnel.clicks, funnel.views),
-      clickToSend: calcRate(funnel.sent, funnel.clicks),
-      acceptRate: calcRate(funnel.accepted, funnel.sent),
-      declineRate: calcRate(funnel.declined, funnel.sent),
-    };
-
-    // AI usage stats - based on actual sent messages that used AI (not generation attempts)
-    const aiAssisted = aiAssistedRes.count ?? 0;
-    const aiUsage = {
-      generated: aiAssisted,
-      percentOfSent: calcRate(aiAssisted, funnel.sent),
-    };
-
-    // Format recent outreach for response
+    // Type the profile data
     type ProfileData = {
       id: string;
       display_name: string;
-      slug: string;
+      slug?: string;
       city: string | null;
       state: string | null;
-      image_url: string | null;
-      metadata?: Record<string, unknown> | null;
     };
 
-    const formattedOutreach = (recentOutreach ?? []).map((conn) => {
-      // Supabase returns single objects for FK joins (not arrays)
-      const fromProfile = conn.from_profile as unknown as ProfileData | null;
-      const toProfile = conn.to_profile as unknown as ProfileData | null;
+    type ConnectionWithMetadata = {
+      id: string;
+      status: string;
+      message: string | null;
+      metadata: { reply_message?: string; replied_at?: string } | null;
+      created_at: string;
+      from_profile: ProfileData | null;
+      to_profile: ProfileData | null;
+    };
 
-      return {
+    // Group connections by provider
+    const providerMap = new Map<string, {
+      provider: {
+        id: string;
+        name: string;
+        slug: string;
+        location: string;
+      };
+      outreach: {
+        id: string;
+        status: "pending" | "accepted" | "declined";
+        message: string | null;
+        created_at: string;
+        family: {
+          id: string;
+          name: string;
+          location: string;
+        };
+        reply_message?: string | null;
+        replied_at?: string | null;
+      }[];
+    }>();
+
+    // Process each connection
+    for (const conn of (connections || []) as unknown as ConnectionWithMetadata[]) {
+      const fromProfile = conn.from_profile;
+      const toProfile = conn.to_profile;
+
+      if (!fromProfile || !toProfile) continue;
+
+      const providerId = fromProfile.id;
+      const meta = conn.metadata;
+
+      // Initialize provider entry if not exists
+      if (!providerMap.has(providerId)) {
+        providerMap.set(providerId, {
+          provider: {
+            id: fromProfile.id,
+            name: fromProfile.display_name,
+            slug: fromProfile.slug || fromProfile.id,
+            location: [fromProfile.city, fromProfile.state].filter(Boolean).join(", "),
+          },
+          outreach: [],
+        });
+      }
+
+      // Map status - database uses "accepted" but we want to keep it consistent
+      const status = conn.status === "accepted" ? "accepted"
+        : conn.status === "declined" ? "declined"
+        : "pending";
+
+      // Add outreach item
+      providerMap.get(providerId)!.outreach.push({
         id: conn.id,
-        status: conn.status,
+        status: status as "pending" | "accepted" | "declined",
         message: conn.message,
         created_at: conn.created_at,
-        provider: fromProfile ? {
-          id: fromProfile.id,
-          name: fromProfile.display_name,
-          slug: fromProfile.slug,
-          location: [fromProfile.city, fromProfile.state].filter(Boolean).join(", "),
-          image_url: fromProfile.image_url,
-        } : null,
-        family: toProfile ? {
+        family: {
           id: toProfile.id,
           name: toProfile.display_name,
-          slug: toProfile.slug,
           location: [toProfile.city, toProfile.state].filter(Boolean).join(", "),
-          image_url: toProfile.image_url,
-        } : null,
-      };
-    });
+        },
+        reply_message: meta?.reply_message || null,
+        replied_at: meta?.replied_at || null,
+      });
+    }
+
+    // Convert to array and calculate stats
+    const providers = Array.from(providerMap.values()).map((entry) => ({
+      provider: entry.provider,
+      stats: {
+        total: entry.outreach.length,
+        pending: entry.outreach.filter((o) => o.status === "pending").length,
+        accepted: entry.outreach.filter((o) => o.status === "accepted").length,
+        declined: entry.outreach.filter((o) => o.status === "declined").length,
+      },
+      outreach: entry.outreach,
+    }));
+
+    // Sort by total outreach (most active first)
+    providers.sort((a, b) => b.stats.total - a.stats.total);
+
+    // Calculate totals
+    const totals = {
+      providers: providers.length,
+      sent: providers.reduce((sum, p) => sum + p.stats.total, 0),
+      accepted: providers.reduce((sum, p) => sum + p.stats.accepted, 0),
+      declined: providers.reduce((sum, p) => sum + p.stats.declined, 0),
+      pending: providers.reduce((sum, p) => sum + p.stats.pending, 0),
+    };
 
     return NextResponse.json({
-      funnel,
-      rates,
-      aiUsage,
-      recentOutreach: formattedOutreach,
-      total: totalOutreach ?? 0,
-      days,
+      providers,
+      totals,
     });
   } catch (err) {
     console.error("[admin/outreach] Error:", err);

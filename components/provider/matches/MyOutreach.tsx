@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import type { Profile } from "@/lib/types";
 
 // Connection data from parent
@@ -139,10 +140,10 @@ export default function MyOutreach({
       >
         <div className="overflow-hidden">
           <div className="border-t border-gray-100 px-5 py-4 space-y-2">
-            {/* Status counts - will link to /provider/outreach when that page exists */}
             <OutreachLink
               count={pendingItems.length}
               label="pending"
+              status="pending"
               items={pendingItems}
               reminderSentIds={reminderSentIds}
               onSendReminder={onSendReminder}
@@ -151,11 +152,13 @@ export default function MyOutreach({
             <OutreachLink
               count={activeItems.length}
               label="connected"
+              status="connected"
               items={activeItems}
             />
             <OutreachLink
               count={archivedItems.length}
               label="declined"
+              status="declined"
               items={archivedItems}
             />
           </div>
@@ -165,10 +168,11 @@ export default function MyOutreach({
   );
 }
 
-// Status row with optional item list
+// Status row with clickable link to outreach page
 function OutreachLink({
   count,
   label,
+  status,
   items,
   reminderSentIds,
   onSendReminder,
@@ -176,17 +180,20 @@ function OutreachLink({
 }: {
   count: number;
   label: string;
+  status: "pending" | "connected" | "declined";
   items: Array<{ family: Profile; connection: ConnectionInfo }>;
   reminderSentIds?: Set<string>;
   onSendReminder?: (connectionId: string) => void;
   sendingReminderId?: string | null;
 }) {
-  // For now, just display. Will become a Link to /provider/outreach when that page exists
   return (
     <div>
-      <span className="text-[14px] text-gray-900 font-medium">
+      <Link
+        href={`/provider/outreach?status=${status}`}
+        className="text-[14px] text-gray-900 font-medium underline decoration-gray-300 underline-offset-2 hover:decoration-gray-500 hover:text-gray-700 transition-colors"
+      >
         {count} {label}
-      </span>
+      </Link>
       {/* Show items inline if any exist */}
       {items.length > 0 && (
         <div className="mt-2 ml-3 space-y-1.5">

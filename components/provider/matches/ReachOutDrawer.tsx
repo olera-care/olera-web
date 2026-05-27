@@ -22,6 +22,14 @@ interface ReachOutDrawerProps {
   isVerified?: boolean;
   /** Callback when unverified provider clicks send - opens verification modal */
   onVerifyClick?: () => void;
+  /** Mode: "compose" for new outreach, "view" for viewing sent outreach */
+  mode?: "compose" | "view";
+  /** The message that was sent (for view mode) */
+  sentMessage?: string;
+  /** When the message was sent (for view mode) */
+  sentAt?: string;
+  /** Status of the outreach (for view mode) */
+  outreachStatus?: "pending" | "connected" | "declined";
 }
 
 // ── Helpers ──
@@ -328,11 +336,16 @@ export default function ReachOutDrawer({
   sendError,
   isVerified = true,
   onVerifyClick,
+  mode = "compose",
+  sentMessage,
+  sentAt,
+  outreachStatus,
 }: ReachOutDrawerProps) {
   const [message, setMessage] = useState("");
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [step, setStep] = useState<"profile" | "message">("profile");
+  const isViewMode = mode === "view";
   const [quoteExpanded, setQuoteExpanded] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -543,18 +556,24 @@ ${providerName}`;
   useEffect(() => {
     if (isOpen && family) {
       setSaveAsDefault(false);
-      setStep("profile");
       setQuoteExpanded(false);
       setIsGenerating(false);
 
-      if (defaultMessage) {
-        setMessage(defaultMessage);
+      if (isViewMode) {
+        // View mode: show sent message (step doesn't matter - we show both profile and message)
+        setMessage(sentMessage || "");
       } else {
-        // Use simple starter - no API call, instant
-        setMessage(getStarterMessage());
+        // Compose mode: start at profile step
+        setStep("profile");
+        if (defaultMessage) {
+          setMessage(defaultMessage);
+        } else {
+          // Use simple starter - no API call, instant
+          setMessage(getStarterMessage());
+        }
       }
     }
-  }, [isOpen, family, defaultMessage, getStarterMessage]);
+  }, [isOpen, family, defaultMessage, getStarterMessage, isViewMode, sentMessage]);
 
   // Close on Escape
   useEffect(() => {
@@ -652,8 +671,8 @@ ${providerName}`;
     </div>
   );
 
-  // ── Scrollable Content (Profile + At a glance + Message) ──
-  const ScrollableContent = (
+  // ── Profile Section (About + At a glance) ──
+  const ProfileSection = (
     <div className="space-y-6">
       {/* About Their Situation */}
       {profileState === "minimal" ? (
@@ -750,8 +769,26 @@ ${providerName}`;
     </div>
   );
 
+  // ── Scrollable Content (Profile step for compose mode) ──
+  const ScrollableContent = ProfileSection;
+
   // ── Message Section ──
-  const MessageSection = (
+  // Format sent date for view mode
+  const formatSentDate = (dateStr: string | undefined): string => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  // ── Message Section (Compose Mode) ──
+  const MessageSectionCompose = (
     <div className="space-y-4">
       {/* Textarea */}
       <div className="relative">
@@ -816,8 +853,55 @@ ${providerName}`;
     </div>
   );
 
-  // ── Sticky Footer Content ──
-  const StickyFooter = (
+  // ── Message Section (View Mode) ──
+  const MessageSectionView = (
+    <div className="space-y-4">
+      {/* Section header with status */}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-lg font-semibold text-gray-900">Your message</p>
+        {outreachStatus && (
+          <>
+            {outreachStatus === "pending" && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium bg-amber-50 text-amber-700 border border-amber-100">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                Awaiting response
+              </span>
+            )}
+            {outreachStatus === "connected" && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                Connected
+              </span>
+            )}
+            {outreachStatus === "declined" && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium bg-gray-50 text-gray-500 border border-gray-100">
+                Declined
+              </span>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Timestamp */}
+      {sentAt && (
+        <p className="text-sm text-gray-500">
+          Sent {formatSentDate(sentAt)}
+        </p>
+      )}
+
+      {/* Read-only message display */}
+      <div className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-4">
+        <p className="text-[15px] text-gray-700 leading-relaxed whitespace-pre-wrap">
+          {message || "No message content"}
+        </p>
+      </div>
+    </div>
+  );
+
+  const MessageSection = isViewMode ? MessageSectionView : MessageSectionCompose;
+
+  // ── Sticky Footer Content (Compose Mode) ──
+  const StickyFooterCompose = (
     <>
       {sendError && (
         <div className="mb-3 px-3 py-2 bg-rose-50 border border-rose-100 rounded-lg">
@@ -870,6 +954,33 @@ ${providerName}`;
     </>
   );
 
+  // ── Sticky Footer Content (View Mode) ──
+  const StickyFooterView = (
+    <div className="space-y-3">
+      {outreachStatus === "connected" ? (
+        <Link
+          href="/provider/inbox"
+          className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+          </svg>
+          Continue in Inbox
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-full px-4 py-3.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center"
+        >
+          Close
+        </button>
+      )}
+    </div>
+  );
+
+  const StickyFooter = isViewMode ? StickyFooterView : StickyFooterCompose;
+
   return (
     <>
       {/* Overlay */}
@@ -892,7 +1003,7 @@ ${providerName}`;
         aria-labelledby="drawer-title"
       >
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* MOBILE LAYOUT (two-step flow) */}
+        {/* MOBILE LAYOUT (two-step flow for compose, single view for view mode) */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <div className="lg:hidden flex flex-col h-full">
           {/* Mobile drag handle */}
@@ -902,7 +1013,10 @@ ${providerName}`;
 
           {/* Mobile sticky header */}
           <div className="shrink-0 px-5 pb-4 border-b border-gray-100">
-            {step === "message" ? (
+            {isViewMode ? (
+              // View mode: always show family header
+              StickyHeader
+            ) : step === "message" ? (
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleBack}
@@ -913,7 +1027,9 @@ ${providerName}`;
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                   </svg>
                 </button>
-                <span className="text-lg font-semibold text-gray-900">{isGenericFirstName ? "Your message" : `Message to ${firstName}`}</span>
+                <span className="text-lg font-semibold text-gray-900">
+                  {isGenericFirstName ? "Your message" : `Message to ${firstName}`}
+                </span>
               </div>
             ) : (
               StickyHeader
@@ -922,12 +1038,25 @@ ${providerName}`;
 
           {/* Mobile scrollable content */}
           <div className="flex-1 overflow-y-auto px-5 py-5">
-            {step === "profile" ? ScrollableContent : MessageSection}
+            {isViewMode ? (
+              // View mode: show both profile and message together
+              <div className="space-y-6">
+                {ProfileSection}
+                <div className="border-t border-gray-100 pt-6">
+                  {MessageSection}
+                </div>
+              </div>
+            ) : (
+              // Compose mode: two-step flow
+              step === "profile" ? ScrollableContent : MessageSection
+            )}
           </div>
 
           {/* Mobile sticky footer */}
           <div className="shrink-0 border-t border-gray-100 px-5 pt-4 pb-4 bg-white">
-            {step === "profile" ? (
+            {isViewMode ? (
+              StickyFooter
+            ) : step === "profile" ? (
               <button
                 onClick={handleConnect}
                 className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"
@@ -944,12 +1073,15 @@ ${providerName}`;
         </div>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* DESKTOP LAYOUT (two-step flow, same as mobile) */}
+        {/* DESKTOP LAYOUT (two-step flow for compose, single view for view mode) */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <div className="hidden lg:flex lg:flex-col lg:h-full">
           {/* Desktop sticky header */}
           <div className="shrink-0 px-6 py-5 border-b border-gray-100">
-            {step === "message" ? (
+            {isViewMode ? (
+              // View mode: always show family header
+              StickyHeader
+            ) : step === "message" ? (
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleBack}
@@ -960,7 +1092,9 @@ ${providerName}`;
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                   </svg>
                 </button>
-                <span className="text-lg font-semibold text-gray-900">{isGenericFirstName ? "Your message" : `Message to ${firstName}`}</span>
+                <span className="text-lg font-semibold text-gray-900">
+                  {isGenericFirstName ? "Your message" : `Message to ${firstName}`}
+                </span>
               </div>
             ) : (
               StickyHeader
@@ -969,12 +1103,25 @@ ${providerName}`;
 
           {/* Desktop scrollable content */}
           <div className="flex-1 overflow-y-auto px-6 py-6">
-            {step === "profile" ? ScrollableContent : MessageSection}
+            {isViewMode ? (
+              // View mode: show both profile and message together
+              <div className="space-y-6">
+                {ProfileSection}
+                <div className="border-t border-gray-100 pt-6">
+                  {MessageSection}
+                </div>
+              </div>
+            ) : (
+              // Compose mode: two-step flow
+              step === "profile" ? ScrollableContent : MessageSection
+            )}
           </div>
 
           {/* Desktop sticky footer */}
           <div className="shrink-0 border-t border-gray-100 px-6 pt-4 pb-5 bg-white">
-            {step === "profile" ? (
+            {isViewMode ? (
+              StickyFooter
+            ) : step === "profile" ? (
               <button
                 onClick={handleConnect}
                 className="w-full px-4 py-3.5 bg-[#2a7a6e] text-white text-sm font-semibold rounded-xl hover:bg-[#236860] active:bg-[#1f5c54] transition-all flex items-center justify-center gap-2"

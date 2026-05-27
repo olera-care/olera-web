@@ -232,7 +232,7 @@ function PendingQuestionCard({
           handleInteraction();
           onReply(question);
         }}
-        className="w-full text-left bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden active:bg-vanilla-50/60 transition-colors relative"
+        className="w-full text-left bg-white rounded-2xl border border-gray-200/80 overflow-hidden active:bg-vanilla-50/60 transition-colors relative"
       >
         {/* New indicator dot */}
         {isNew && !hasBeenViewed && (
@@ -283,7 +283,7 @@ function PendingQuestionCard({
 
   return (
     <div
-      className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden hover:border-gray-300/80 transition-colors relative"
+      className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden hover:border-gray-300/80 transition-colors relative"
       onClick={handleInteraction}
     >
       {/* New indicator dot */}
@@ -352,7 +352,7 @@ function PublishedQuestionCard({
   const isPendingVerification = question.answer_status === "pending";
 
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-colors ${
+    <div className={`bg-white rounded-2xl border overflow-hidden transition-colors ${
       isPendingVerification
         ? "border-amber-200 hover:border-amber-300"
         : "border-gray-200/80 hover:border-gray-300/80"
@@ -711,7 +711,7 @@ function QnASidebar({ publishedCount, providerSlug }: { publishedCount: number; 
     <div className="hidden lg:block">
       <div className="sticky top-24">
         {/* ── Unified Sidebar Card ── */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm">
+        <div className="bg-white rounded-2xl border border-gray-200/80">
 
           {/* ── Section 1: Visibility Score ── */}
           <div className="p-6">
@@ -1208,7 +1208,7 @@ export default function ProviderQnAPage() {
                 ))}
               </div>
             ) : (
-              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm lg:min-h-[420px] flex items-center justify-center">
+              <div className="bg-white rounded-2xl border border-gray-200/80 lg:min-h-[420px] flex items-center justify-center">
                 <EmptyState filter={activeFilter} />
               </div>
             )}

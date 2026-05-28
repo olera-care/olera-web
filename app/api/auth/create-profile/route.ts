@@ -7,6 +7,7 @@ import { generateUniqueSlug } from "@/lib/slug";
 import { validateDisplayName, sanitizeCareTypes } from "@/lib/validation";
 import { isBlockedEmailDomain } from "@/lib/email-validation";
 import { scoreClaimTrust, extractDomainFromWebsite } from "@/lib/claim-trust";
+import { calculateProfileCompletenessPercentage } from "@/components/portal/profile/completeness";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -466,6 +467,19 @@ export async function POST(request: Request) {
           }
         }
 
+        // Calculate profile completeness with the updated data
+        const updatedCareTypes = sanitizedCareNeeds.length > 0 ? sanitizedCareNeeds : sanitizedCareTypes;
+        const completeness = calculateProfileCompletenessPercentage(
+          {
+            display_name: sanitizedDisplayName,
+            city: city || null,
+            care_types: updatedCareTypes,
+            metadata: mergedMeta,
+          },
+          user.email
+        );
+        mergedMeta.profile_completeness = completeness;
+
         const { error: updateErr } = await db
           .from("business_profiles")
           .update({
@@ -473,7 +487,7 @@ export async function POST(request: Request) {
             city: city || null,
             state: state || null,
             zip: zip || null,
-            care_types: sanitizedCareNeeds.length > 0 ? sanitizedCareNeeds : sanitizedCareTypes,
+            care_types: updatedCareTypes,
             metadata: mergedMeta,
           })
           .eq("id", existingFamilyProfile.id);
@@ -508,6 +522,19 @@ export async function POST(request: Request) {
           }
         }
 
+        // Calculate initial profile completeness
+        const newCareTypes = sanitizedCareNeeds.length > 0 ? sanitizedCareNeeds : sanitizedCareTypes;
+        const completeness = calculateProfileCompletenessPercentage(
+          {
+            display_name: sanitizedDisplayName,
+            city: city || null,
+            care_types: newCareTypes,
+            metadata: newFamilyMeta,
+          },
+          user.email
+        );
+        newFamilyMeta.profile_completeness = completeness;
+
         const { data: newProfile, error: insertErr } = await db
           .from("business_profiles")
           .insert({
@@ -518,7 +545,7 @@ export async function POST(request: Request) {
             city: city || null,
             state: state || null,
             zip: zip || null,
-            care_types: sanitizedCareNeeds.length > 0 ? sanitizedCareNeeds : sanitizedCareTypes,
+            care_types: newCareTypes,
             claim_state: "claimed",
             verification_state: "unverified",
             source: "user_created",

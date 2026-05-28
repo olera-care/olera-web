@@ -217,21 +217,43 @@ function OutreachPageContent() {
 
         setOutreachItems(items);
 
-        // Fetch interested providers count for each family
+        // Fetch interested providers count for each family — use server API to bypass RLS
         const familyIds = items.map((item) => item.family.id);
         if (familyIds.length > 0) {
-          const { data: reachOuts } = await supabase
-            .from("connections")
-            .select("to_profile_id")
-            .in("to_profile_id", familyIds)
-            .eq("type", "request")
-            .in("status", ["pending", "accepted"]);
+          try {
+            const counts = new Map<string, number>();
+            const CHUNK_SIZE = 400; // Stay under API's 500 limit
 
-          const counts = new Map<string, number>();
-          (reachOuts || []).forEach((r: { to_profile_id: string }) => {
-            counts.set(r.to_profile_id, (counts.get(r.to_profile_id) || 0) + 1);
-          });
-          setReachOutCounts(counts);
+            // Chunk requests if there are many families
+            const chunks: string[][] = [];
+            for (let i = 0; i < familyIds.length; i += CHUNK_SIZE) {
+              chunks.push(familyIds.slice(i, i + CHUNK_SIZE));
+            }
+
+            // Fetch counts for all chunks (parallel for speed)
+            const chunkResults = await Promise.all(
+              chunks.map(async (chunk) => {
+                const res = await fetch("/api/matches/reach-out-counts", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ familyIds: chunk }),
+                });
+                return res.json();
+              })
+            );
+
+            // Merge all chunk results into single map
+            for (const result of chunkResults) {
+              for (const [familyId, count] of Object.entries(result.counts || {})) {
+                counts.set(familyId, count as number);
+              }
+            }
+
+            setReachOutCounts(counts);
+          } catch {
+            // Non-critical — fall back to empty counts
+            console.error("[olera] Failed to fetch reach-out counts");
+          }
         }
       } catch (err) {
         console.error("Failed to fetch outreach:", err);

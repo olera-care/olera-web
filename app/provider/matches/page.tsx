@@ -955,6 +955,13 @@ export default function ProviderMatchesPage() {
           });
         }
 
+        // Optimistically increment reach-out count for this family
+        setReachOutCounts((prev) => {
+          const updated = new Map(prev);
+          updated.set(toProfileId, (prev.get(toProfileId) || 0) + 1);
+          return updated;
+        });
+
         setReachOutNote("");
         return true;
       } catch (err: unknown) {
@@ -1064,21 +1071,45 @@ export default function ProviderMatchesPage() {
 
         setConnectionData(connDataMap);
 
-        // Reach-out counts per family
+        // Reach-out counts per family — use server API to bypass RLS
+        // (RLS only allows providers to see their own connections, but we need
+        // aggregate counts of ALL providers interested in each family)
         const familyIds = fetchedFamilies.map((f) => f.id);
         if (familyIds.length > 0) {
-          const { data: reachOuts } = await supabase
-            .from("connections")
-            .select("to_profile_id")
-            .in("to_profile_id", familyIds)
-            .eq("type", "request")
-            .in("status", ["pending", "accepted"]);
+          try {
+            const counts = new Map<string, number>();
+            const CHUNK_SIZE = 400; // Stay under API's 500 limit
 
-          const counts = new Map<string, number>();
-          (reachOuts || []).forEach((r: { to_profile_id: string }) => {
-            counts.set(r.to_profile_id, (counts.get(r.to_profile_id) || 0) + 1);
-          });
-          setReachOutCounts(counts);
+            // Chunk requests if there are many families
+            const chunks: string[][] = [];
+            for (let i = 0; i < familyIds.length; i += CHUNK_SIZE) {
+              chunks.push(familyIds.slice(i, i + CHUNK_SIZE));
+            }
+
+            // Fetch counts for all chunks (parallel for speed)
+            const chunkResults = await Promise.all(
+              chunks.map(async (chunk) => {
+                const res = await fetch("/api/matches/reach-out-counts", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ familyIds: chunk }),
+                });
+                return res.json();
+              })
+            );
+
+            // Merge all chunk results into single map
+            for (const result of chunkResults) {
+              for (const [familyId, count] of Object.entries(result.counts || {})) {
+                counts.set(familyId, count as number);
+              }
+            }
+
+            setReachOutCounts(counts);
+          } catch {
+            // Non-critical — fall back to empty counts
+            console.error("[olera] Failed to fetch reach-out counts");
+          }
         }
       } catch (err) {
         console.error("[olera] matches fetch failed:", err);

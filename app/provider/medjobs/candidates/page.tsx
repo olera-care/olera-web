@@ -275,7 +275,7 @@ export default function ProviderCandidateBrowsePage() {
     <div className="min-h-screen bg-gray-50/50">
       {/* Header */}
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6 sm:py-8">
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
               Hire Caregivers
@@ -350,7 +350,7 @@ export default function ProviderCandidateBrowsePage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Active filter chips */}
         {activeFilterCount > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-4">

@@ -388,7 +388,12 @@ export default function ProviderDetailPanel({
                         <div>
                           <p className="text-sm text-gray-500">Needs</p>
                           <p className="text-[14px] font-medium text-gray-700">
-                            {careTypes[0] || "Care"}{timeline ? ` ${timeline.toLowerCase().startsWith("in") || timeline.toLowerCase().startsWith("within") ? timeline.toLowerCase() : `in ${timeline.toLowerCase()}`}` : ""}
+                            {careTypes[0] || "Care"}
+                            {timeline && (
+                              timeline === "Immediately" ? " immediately" :
+                              timeline === "Just exploring" ? " (exploring)" :
+                              ` ${timeline.toLowerCase()}`
+                            )}
                           </p>
                         </div>
                       )}

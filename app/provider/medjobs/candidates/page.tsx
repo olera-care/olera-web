@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
@@ -11,7 +12,6 @@ import CandidateFiltersModal, {
   type CandidateFiltersState,
 } from "@/components/medjobs/CandidateFiltersModal";
 import Pagination from "@/components/ui/Pagination";
-import { useCitySearch } from "@/hooks/use-city-search";
 
 const PAGE_SIZE = 12;
 
@@ -28,13 +28,6 @@ export default function ProviderCandidateBrowsePage() {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [contacted, setContacted] = useState<Set<string>>(new Set());
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
-
-  // Search state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-  const { results: cityResults, isLoading: citySearchLoading, preload } = useCitySearch(searchQuery, { limit: 5 });
 
   // Fetch existing interviews to know which candidates have been contacted
   useEffect(() => {
@@ -112,22 +105,9 @@ export default function ProviderCandidateBrowsePage() {
     fetchCandidates(1);
   }, [fetchCandidates]);
 
-  // Close search dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
-        setSearchOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const handleApplyFilters = useCallback((newFilters: CandidateFiltersState) => {
     setFilters(newFilters);
-    setCurrentPage(1); // Reset to page 1 when filters change
-    // Sync search bar with location from modal
-    setSearchQuery(newFilters.city ? `${newFilters.city}, ${newFilters.state}` : "");
+    setCurrentPage(1);
   }, []);
 
   const handlePageChange = (page: number) => {
@@ -135,28 +115,14 @@ export default function ProviderCandidateBrowsePage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleCitySelect = (city: string, state: string) => {
-    setFilters((prev) => ({ ...prev, city, state }));
-    setSearchQuery(city ? `${city}, ${state}` : "");
-    setSearchOpen(false);
-  };
-
-  const handleClearSearch = () => {
-    setSearchQuery("");
-    setFilters((prev) => ({ ...prev, city: "", state: "" }));
-    searchInputRef.current?.focus();
-  };
-
   const handleRemoveFilter = (key: string, value?: string) => {
     if (key === "location") {
       setFilters((prev) => ({ ...prev, city: "", state: "" }));
-      setSearchQuery("");
     } else if (key === "hoursPerWeek" || key === "track") {
       setFilters((prev) => ({ ...prev, [key]: "" }));
     } else if (key === "hasVideo") {
       setFilters((prev) => ({ ...prev, hasVideo: false }));
     } else if (key === "certifications" || key === "availability" || key === "languages") {
-      // Array filter types
       if (value) {
         setFilters((prev) => ({
           ...prev,
@@ -168,30 +134,40 @@ export default function ProviderCandidateBrowsePage() {
 
   const handleClearAllFilters = () => {
     setFilters(DEFAULT_CANDIDATE_FILTERS);
-    setSearchQuery("");
   };
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const activeFilterCount = countActiveCandidateFilters(filters);
 
   return (
-    <main className="min-h-screen bg-gray-50/50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Page header */}
-        <div className="mb-6">
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">
-            Hire caregivers
-          </h1>
-          <p className="text-sm lg:text-[15px] text-gray-500">
-            Pre-vetted students pursuing careers in healthcare — ready to provide quality care in your area
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-50/50">
+      {/* Header - matches Outreach pattern */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-6 sm:py-8">
+            {/* Back link */}
+            <Link
+              href="/provider/matches"
+              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors mb-4"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+              Find Families
+            </Link>
 
-        {/* Tabs + Search + Filters row */}
-        <div className="border-b border-gray-200 mb-4">
-          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
+              Hire Caregivers
+            </h1>
+            <p className="text-[15px] text-gray-500 mt-1">
+              Pre-vetted students pursuing careers in healthcare
+            </p>
+          </div>
+
+          {/* Tabs row */}
+          <div className="flex items-center justify-between gap-4 -mb-px">
             {/* Tabs */}
-            <div className="flex items-center gap-6 lg:gap-8 shrink-0">
+            <div className="flex items-center gap-6 lg:gap-8">
               <button
                 type="button"
                 onClick={() => setActiveTab("all")}
@@ -222,101 +198,28 @@ export default function ProviderCandidateBrowsePage() {
               </button>
             </div>
 
-            {/* Search + Filters (desktop) */}
-            <div className="hidden sm:flex items-center gap-3">
-              {/* Search input */}
-              <div ref={searchContainerRef} className="relative">
-                <div className="relative">
-                  <svg
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setSearchOpen(true);
-                    }}
-                    onFocus={() => {
-                      preload();
-                      setSearchOpen(true);
-                    }}
-                    placeholder="City or ZIP..."
-                    className="w-44 lg:w-52 pl-9 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 placeholder:text-gray-400 transition-all"
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={handleClearSearch}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 transition-colors"
-                      aria-label="Clear search"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-
-                {/* Search dropdown */}
-                {searchOpen && (cityResults.length > 0 || citySearchLoading) && (
-                  <div className="absolute top-[calc(100%+4px)] left-0 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50 max-h-48 overflow-y-auto">
-                    {citySearchLoading && cityResults.length === 0 ? (
-                      <div className="px-4 py-3 text-sm text-gray-500">Searching...</div>
-                    ) : (
-                      cityResults.map((result, idx) => (
-                        <button
-                          key={`${result.city}-${result.state}-${idx}`}
-                          type="button"
-                          onClick={() => handleCitySelect(result.city, result.state)}
-                          className="w-full px-4 py-2.5 text-left hover:bg-gray-50 text-sm text-gray-900 transition-colors"
-                        >
-                          <span className="font-medium">{result.city}</span>
-                          <span className="text-gray-500">, {result.state}</span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Filters button */}
-              <button
-                type="button"
-                onClick={() => setIsFiltersModalOpen(true)}
-                className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                </svg>
-                Filters
-                {activeFilterCount > 0 && (
-                  <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-primary-600 rounded-full">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </button>
-            </div>
+            {/* Filters button (desktop) */}
+            <button
+              type="button"
+              onClick={() => setIsFiltersModalOpen(true)}
+              className="hidden sm:flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+              </svg>
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-primary-600 rounded-full">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
           </div>
         </div>
+      </div>
 
+      {/* Content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Active filter chips */}
         {activeFilterCount > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -518,7 +421,7 @@ export default function ProviderCandidateBrowsePage() {
           </span>
         )}
       </button>
-    </main>
+    </div>
   );
 }
 

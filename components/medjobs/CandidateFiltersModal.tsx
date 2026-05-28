@@ -198,7 +198,7 @@ export default function CandidateFiltersModal({
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
               <p className="text-sm text-gray-500 mt-0.5">
-                Narrow down your caregiver search
+                Filters apply to both tabs
               </p>
             </div>
             <button
@@ -228,100 +228,143 @@ export default function CandidateFiltersModal({
 
             {/* Certifications filter */}
             <FilterSection title="Certifications">
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
                 {CERTIFICATION_OPTIONS.map((option) => (
-                  <ChipButton
+                  <label
                     key={option.value}
-                    label={option.label}
-                    isSelected={localFilters.certifications.includes(option.value)}
-                    onClick={() => toggleArrayFilter("certifications", option.value)}
-                  />
+                    className="flex items-center gap-3 cursor-pointer group"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={localFilters.certifications.includes(option.value)}
+                      onChange={() => toggleArrayFilter("certifications", option.value)}
+                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    />
+                    <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
+                      {option.label}
+                    </span>
+                  </label>
                 ))}
               </div>
             </FilterSection>
 
             {/* Availability filter */}
             <FilterSection title="Availability">
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
                 {AVAILABILITY_OPTIONS.map((option) => (
-                  <ChipButton
+                  <label
                     key={option.value}
-                    label={option.label}
-                    isSelected={localFilters.availability.includes(option.value)}
-                    onClick={() => toggleArrayFilter("availability", option.value)}
-                  />
+                    className="flex items-center gap-3 cursor-pointer group"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={localFilters.availability.includes(option.value)}
+                      onChange={() => toggleArrayFilter("availability", option.value)}
+                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    />
+                    <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
+                      {option.label}
+                    </span>
+                  </label>
                 ))}
               </div>
             </FilterSection>
 
             {/* Hours per week filter */}
             <FilterSection title="Hours per week">
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
                 {HOURS_OPTIONS.map((option) => (
-                  <ChipButton
+                  <label
                     key={option.value}
-                    label={option.label}
-                    isSelected={localFilters.hoursPerWeek === option.value}
-                    onClick={() =>
-                      setLocalFilters((prev) => ({
-                        ...prev,
-                        hoursPerWeek: prev.hoursPerWeek === option.value ? "" : option.value,
-                      }))
-                    }
-                  />
+                    className="flex items-center gap-3 cursor-pointer group"
+                  >
+                    <input
+                      type="radio"
+                      name="hoursPerWeek"
+                      checked={localFilters.hoursPerWeek === option.value}
+                      onChange={() =>
+                        setLocalFilters((prev) => ({
+                          ...prev,
+                          hoursPerWeek: prev.hoursPerWeek === option.value ? "" : option.value,
+                        }))
+                      }
+                      className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                    />
+                    <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
+                      {option.label}
+                    </span>
+                  </label>
                 ))}
               </div>
             </FilterSection>
 
             {/* Career track filter */}
-            <FilterSection title="Career track">
-              <div className="flex flex-wrap gap-2">
+            <FilterSection title="Career Track">
+              <div className="space-y-2">
                 {TRACK_OPTIONS.map((option) => (
-                  <ChipButton
+                  <label
                     key={option.value}
-                    label={option.label}
-                    isSelected={localFilters.track === option.value}
-                    onClick={() =>
-                      setLocalFilters((prev) => ({
-                        ...prev,
-                        track: prev.track === option.value ? "" : option.value,
-                      }))
-                    }
-                  />
+                    className="flex items-center gap-3 cursor-pointer group"
+                  >
+                    <input
+                      type="radio"
+                      name="track"
+                      checked={localFilters.track === option.value}
+                      onChange={() =>
+                        setLocalFilters((prev) => ({
+                          ...prev,
+                          track: prev.track === option.value ? "" : option.value,
+                        }))
+                      }
+                      className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                    />
+                    <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
+                      {option.label}
+                    </span>
+                  </label>
                 ))}
               </div>
             </FilterSection>
 
             {/* Languages filter */}
             <FilterSection title="Languages">
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
                 {LANGUAGE_OPTIONS.map((option) => (
-                  <ChipButton
+                  <label
                     key={option.value}
-                    label={option.label}
-                    isSelected={localFilters.languages.includes(option.value)}
-                    onClick={() => toggleArrayFilter("languages", option.value)}
-                  />
+                    className="flex items-center gap-3 cursor-pointer group"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={localFilters.languages.includes(option.value)}
+                      onChange={() => toggleArrayFilter("languages", option.value)}
+                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    />
+                    <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
+                      {option.label}
+                    </span>
+                  </label>
                 ))}
               </div>
             </FilterSection>
 
-            {/* Has video toggle */}
+            {/* Has video filter */}
             <FilterSection title="Video">
-              <label className="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
-                <div>
-                  <span className="text-sm font-medium text-gray-900">Has intro video</span>
-                  <p className="text-xs text-gray-500 mt-0.5">Only show candidates with videos</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={localFilters.hasVideo}
-                  onChange={(e) =>
-                    setLocalFilters((prev) => ({ ...prev, hasVideo: e.target.checked }))
-                  }
-                  className="w-5 h-5 rounded border-gray-300 accent-primary-600 focus:ring-primary-500"
-                />
-              </label>
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={localFilters.hasVideo}
+                    onChange={(e) =>
+                      setLocalFilters((prev) => ({ ...prev, hasVideo: e.target.checked }))
+                    }
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                  />
+                  <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
+                    Has intro video
+                  </span>
+                </label>
+              </div>
             </FilterSection>
           </div>
 
@@ -339,7 +382,7 @@ export default function CandidateFiltersModal({
               onClick={handleApply}
               className="px-6 py-2.5 text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
             >
-              Apply{activeFilterCount > 0 && ` (${activeFilterCount})`}
+              Apply
             </button>
           </div>
         </div>
@@ -414,32 +457,6 @@ function FilterSection({
   );
 }
 
-function ChipButton({
-  label,
-  isSelected,
-  onClick,
-}: {
-  label: string;
-  isSelected: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`
-        px-3 py-1.5 rounded-lg text-sm font-medium transition-all
-        ${isSelected
-          ? "bg-primary-100 text-primary-700 border border-primary-300"
-          : "bg-gray-100 text-gray-600 border border-transparent hover:bg-gray-200"
-        }
-      `}
-    >
-      {label}
-    </button>
-  );
-}
-
 function LocationFilter({
   city,
   state,
@@ -453,6 +470,7 @@ function LocationFilter({
   const [isOpen, setIsOpen] = useState(false);
   const [stateDropdownOpen, setStateDropdownOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const stateRef = useRef<HTMLDivElement>(null);
 
   const { results, isLoading, preload } = useCitySearch(query, { limit: 6 });
 
@@ -463,6 +481,17 @@ function LocationFilter({
       setQuery(displayValue);
     }
   }, [city, state, isOpen, query]);
+
+  // Close state dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (stateRef.current && !stateRef.current.contains(e.target as Node)) {
+        setStateDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSelect = (selectedCity: { city: string; state: string; full: string }) => {
     setQuery(selectedCity.full);
@@ -555,7 +584,7 @@ function LocationFilter({
 
       {/* State dropdown (when no city selected) */}
       {!city && (
-        <div className="relative">
+        <div ref={stateRef} className="relative">
           <button
             type="button"
             onClick={() => setStateDropdownOpen(!stateDropdownOpen)}
@@ -585,7 +614,7 @@ function LocationFilter({
               {state && (
                 <button
                   type="button"
-                  onMouseDown={() => handleStateSelect("")}
+                  onClick={() => handleStateSelect("")}
                   className="w-full px-3 py-2.5 text-left text-sm text-gray-500 hover:bg-gray-50 transition-colors border-b border-gray-100"
                 >
                   Clear selection
@@ -595,7 +624,7 @@ function LocationFilter({
                 <button
                   key={s.value}
                   type="button"
-                  onMouseDown={() => handleStateSelect(s.value)}
+                  onClick={() => handleStateSelect(s.value)}
                   className={`
                     w-full px-3 py-2.5 text-left text-sm transition-colors
                     ${state === s.value

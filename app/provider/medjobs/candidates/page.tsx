@@ -125,6 +125,7 @@ export default function ProviderCandidateBrowsePage() {
 
   const handleApplyFilters = useCallback((newFilters: CandidateFiltersState) => {
     setFilters(newFilters);
+    setCurrentPage(1); // Reset to page 1 when filters change
   }, []);
 
   const handlePageChange = (page: number) => {
@@ -152,11 +153,14 @@ export default function ProviderCandidateBrowsePage() {
       setFilters((prev) => ({ ...prev, [key]: "" }));
     } else if (key === "hasVideo") {
       setFilters((prev) => ({ ...prev, hasVideo: false }));
-    } else if (value) {
-      setFilters((prev) => ({
-        ...prev,
-        [key]: (prev[key as keyof CandidateFiltersState] as string[]).filter((v) => v !== value),
-      }));
+    } else if (key === "certifications" || key === "availability" || key === "languages") {
+      // Array filter types
+      if (value) {
+        setFilters((prev) => ({
+          ...prev,
+          [key]: prev[key].filter((v) => v !== value),
+        }));
+      }
     }
   };
 
@@ -260,6 +264,7 @@ export default function ProviderCandidateBrowsePage() {
                       type="button"
                       onClick={handleClearSearch}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 transition-colors"
+                      aria-label="Clear search"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

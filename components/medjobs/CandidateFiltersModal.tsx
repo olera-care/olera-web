@@ -585,7 +585,7 @@ function LocationFilter({
               {state && (
                 <button
                   type="button"
-                  onClick={() => handleStateSelect("")}
+                  onMouseDown={() => handleStateSelect("")}
                   className="w-full px-3 py-2.5 text-left text-sm text-gray-500 hover:bg-gray-50 transition-colors border-b border-gray-100"
                 >
                   Clear selection
@@ -595,7 +595,7 @@ function LocationFilter({
                 <button
                   key={s.value}
                   type="button"
-                  onClick={() => handleStateSelect(s.value)}
+                  onMouseDown={() => handleStateSelect(s.value)}
                   className={`
                     w-full px-3 py-2.5 text-left text-sm transition-colors
                     ${state === s.value

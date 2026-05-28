@@ -965,6 +965,32 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   // Phone: prefer fresh profile, fall back to message
   const phone = familyProfile?.phone || (careDetails.seeker_phone as string) || undefined;
 
+  // Archive metadata from database
+  const archivedAt = meta?.archived_at as string | undefined;
+  const archiveReason = meta?.archive_reason as string | undefined;
+
+  // Format archive date if present
+  let archivedDate: string | undefined;
+  if (isArchived && archivedAt) {
+    archivedDate = new Date(archivedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  // Map archive reason code to display label
+  const archiveReasonLabel = archiveReason ? ({
+    already_connected: "Already connected",
+    not_a_fit: "Not a good fit",
+    not_accepting: "Not accepting new clients",
+    unable_to_reach: "Unable to reach",
+    other: "Other",
+  }[archiveReason] || archiveReason) : undefined;
+
+  // Compute what the status would be if not archived (for restore)
+  // This is based on reply state, not stored status
+  let preArchiveStatus: LeadStatus = "new";
+  if (hasProviderReply || markedReplied) {
+    preArchiveStatus = "replied";
+  }
+
   return {
     id: conn.id,
     connectionId: conn.id,
@@ -995,7 +1021,12 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     paymentMethods,
     // System
     activity,
-  };
+    // Archive info (from database metadata)
+    archivedDate,
+    archiveReason: archiveReasonLabel,
+    // Store computed pre-archive status for restore (used by handleRestoreLead)
+    _previousStatus: isArchived ? preArchiveStatus : undefined,
+  } as LeadDetail & { _previousStatus?: LeadStatus };
 }
 
 // ── Page ──
@@ -1166,7 +1197,7 @@ export default function ProviderLeadsPage() {
     setIsDrawerOpen(false);
   }, []);
 
-  const handleArchiveLead = useCallback((leadId: string, reason: string) => {
+  const handleArchiveLead = useCallback(async (leadId: string, reason: string) => {
     const reasonLabel = {
       already_connected: "Already connected",
       not_a_fit: "Not a good fit",
@@ -1175,29 +1206,145 @@ export default function ProviderLeadsPage() {
       other: "Other",
     }[reason] || reason;
 
+    // Find the lead to get connectionId and preserve previous status
+    const lead = leads.find((l) => l.id === leadId);
+    const connectionId = lead?.connectionId || leadId;
+    const previousStatus = lead?.status || "new";
+
+    // Optimistic UI update
     setLeads((prev) =>
       prev.map((l) =>
         l.id === leadId
-          ? { ...l, status: "archived" as LeadStatus, archivedDate: "Feb 26, 2026", archiveReason: reasonLabel }
+          ? {
+              ...l,
+              status: "archived" as LeadStatus,
+              archivedDate: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+              archiveReason: reasonLabel,
+              // Store previous status for restore
+              _previousStatus: previousStatus,
+            }
           : l
       )
     );
-  }, []);
 
-  const handleRestoreLead = useCallback((leadId: string) => {
+    // Persist to database via API
+    try {
+      const response = await fetch("/api/connections/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId,
+          action: "archive",
+          archiveReason: reason,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("[archive] API failed:", await response.text());
+        // Revert optimistic update on failure
+        setLeads((prev) =>
+          prev.map((l) =>
+            l.id === leadId
+              ? { ...l, status: previousStatus as LeadStatus, archivedDate: undefined, archiveReason: undefined }
+              : l
+          )
+        );
+      }
+    } catch (err) {
+      console.error("[archive] Failed:", err);
+      // Revert optimistic update on failure
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.id === leadId
+            ? { ...l, status: previousStatus as LeadStatus, archivedDate: undefined, archiveReason: undefined }
+            : l
+        )
+      );
+    }
+  }, [leads]);
+
+  const handleRestoreLead = useCallback(async (leadId: string) => {
+    // Find the lead to get connectionId and previous status
+    const lead = leads.find((l) => l.id === leadId);
+    const connectionId = lead?.connectionId || leadId;
+    // Use stored previous status, or fall back to "new"
+    const previousStatus = (lead as LeadDetail & { _previousStatus?: LeadStatus })?._previousStatus || "new";
+
+    // Optimistic UI update - restore to previous status
     setLeads((prev) =>
       prev.map((l) =>
         l.id === leadId
-          ? { ...l, status: "new" as LeadStatus, archivedDate: undefined, archiveReason: undefined }
+          ? { ...l, status: previousStatus as LeadStatus, archivedDate: undefined, archiveReason: undefined }
           : l
       )
     );
-  }, []);
 
-  const handleDeleteLead = useCallback((leadId: string) => {
+    // Persist to database via API
+    try {
+      const response = await fetch("/api/connections/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId,
+          action: "unarchive",
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("[restore] API failed:", await response.text());
+        // Revert optimistic update on failure
+        setLeads((prev) =>
+          prev.map((l) =>
+            l.id === leadId
+              ? { ...l, status: "archived" as LeadStatus }
+              : l
+          )
+        );
+      }
+    } catch (err) {
+      console.error("[restore] Failed:", err);
+      // Revert optimistic update on failure
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.id === leadId
+            ? { ...l, status: "archived" as LeadStatus }
+            : l
+        )
+      );
+    }
+  }, [leads]);
+
+  const handleDeleteLead = useCallback(async (leadId: string) => {
+    // Find the lead to get connectionId
+    const lead = leads.find((l) => l.id === leadId);
+    const connectionId = lead?.connectionId || leadId;
+
+    // Optimistic UI update - remove from list
     setLeads((prev) => prev.filter((l) => l.id !== leadId));
     setSelectedLeadId(null);
-  }, []);
+
+    // Persist to database via API
+    try {
+      const response = await fetch("/api/connections/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId,
+          action: "delete",
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("[delete] API failed:", await response.text());
+        // On failure, refetch to restore the lead
+        fetchLeads(false);
+      }
+    } catch (err) {
+      console.error("[delete] Failed:", err);
+      // On failure, refetch to restore the lead
+      fetchLeads(false);
+    }
+  }, [leads, fetchLeads]);
 
   const handleMarkAsReplied = useCallback(async (leadId: string) => {
     // Update local state immediately

@@ -54,6 +54,9 @@ interface LeadDetail {
   archiveReason?: string;
   messagedAt?: string;
   connectionId?: string;
+  // Profile metadata
+  profileCompleteness?: number;
+  memberSince?: string;
 }
 
 // ── Types ──
@@ -424,6 +427,45 @@ function LeadDetailDrawer({
   ) : null;
 
   // ── Care Details Section ──
+  // Format who needs care with age (like ReachOutDrawer)
+  const whoNeedsCareDisplay = lead.careRecipient
+    ? lead.careRecipientAge
+      ? `${lead.careRecipient}, ${lead.careRecipientAge} years old`
+      : lead.careRecipient
+    : null;
+
+  // Format preferences (contact + schedule combined like ReachOutDrawer)
+  const getPreferencesDisplay = () => {
+    const parts: string[] = [];
+
+    // Contact preference
+    if (lead.contactPreference) {
+      const contactMap: Record<string, string> = {
+        phone: "Prefers calls",
+        email: "Prefers email",
+        either: "Call or email",
+      };
+      parts.push(contactMap[lead.contactPreference] || lead.contactPreference);
+    }
+
+    // Schedule preference
+    if (lead.schedulePreference) {
+      const scheduleMap: Record<string, string> = {
+        mornings: "Mornings",
+        afternoons: "Afternoons",
+        evenings: "Evenings",
+        overnight: "Overnight",
+        full_time: "Full-time / Live-in",
+        flexible: "Flexible",
+      };
+      parts.push(scheduleMap[lead.schedulePreference] || lead.schedulePreference);
+    }
+
+    return parts.length > 0 ? parts.join(" · ") : null;
+  };
+
+  const preferencesDisplay = getPreferencesDisplay();
+
   const CareDetailsSection = (
     <div>
       <p className="text-lg font-semibold text-gray-900 mb-3">Care details</p>
@@ -448,30 +490,34 @@ function LeadDetailDrawer({
             <p className="text-base font-medium text-gray-700">{lead.careNeeds.join(", ")}</p>
           </div>
         )}
-        {lead.careRecipient && (
+        {whoNeedsCareDisplay && (
           <div>
             <p className="text-sm text-gray-500">Who needs care</p>
-            <p className="text-base font-medium text-gray-700">{lead.careRecipient}</p>
+            <p className="text-base font-medium text-gray-700">{whoNeedsCareDisplay}</p>
           </div>
         )}
-        {lead.schedulePreference && (
+        {preferencesDisplay && (
           <div>
             <p className="text-sm text-gray-500">Preferences</p>
-            <p className="text-base font-medium text-gray-700">
-              {lead.schedulePreference === "mornings" ? "Mornings" :
-               lead.schedulePreference === "afternoons" ? "Afternoons" :
-               lead.schedulePreference === "evenings" ? "Evenings" :
-               lead.schedulePreference === "overnight" ? "Overnight" :
-               lead.schedulePreference === "full_time" ? "Full-time / Live-in" :
-               lead.schedulePreference === "flexible" ? "Flexible" :
-               lead.schedulePreference}
-            </p>
+            <p className="text-base font-medium text-gray-700">{preferencesDisplay}</p>
           </div>
         )}
         {lead.paymentMethods && lead.paymentMethods.length > 0 && (
           <div>
             <p className="text-sm text-gray-500">Can pay via</p>
             <p className="text-base font-medium text-gray-700">{lead.paymentMethods.join(", ")}</p>
+          </div>
+        )}
+        {lead.profileCompleteness !== undefined && (
+          <div>
+            <p className="text-sm text-gray-500">Profile</p>
+            <p className="text-base font-medium text-gray-700">{lead.profileCompleteness}% complete</p>
+          </div>
+        )}
+        {lead.memberSince && (
+          <div>
+            <p className="text-sm text-gray-500">Member since</p>
+            <p className="text-base font-medium text-gray-700">{lead.memberSince}</p>
           </div>
         )}
       </div>
@@ -994,6 +1040,31 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     preArchiveStatus = "replied";
   }
 
+  // Calculate profile completeness (same weights as components/portal/profile/completeness.ts)
+  let profileCompleteness = 0;
+  const hasRealName = fullName && fullName.toLowerCase() !== "care seeker";
+  if (familyProfile?.image_url) profileCompleteness += 2;
+  if (fullName) profileCompleteness += 5;
+  if (hasRealName) profileCompleteness += 5;
+  if (familyProfile?.city) profileCompleteness += 8;
+  if (email) profileCompleteness += 10;
+  if (phone) profileCompleteness += 12;
+  if (familyMeta.contact_preference) profileCompleteness += 2;
+  if (familyMeta.relationship_to_recipient || familyMeta.who_needs_care) profileCompleteness += 10;
+  if (careRecipientAge) profileCompleteness += 2;
+  if (aboutSituation || familyProfile?.description) profileCompleteness += 4;
+  if (profileCareTypes.length > 0) profileCompleteness += 8;
+  if (profileCareNeeds.length > 0) profileCompleteness += 6;
+  if (timeline) profileCompleteness += 12;
+  if (schedulePreference) profileCompleteness += 2;
+  if (paymentMethods && paymentMethods.length > 0) profileCompleteness += 12;
+  profileCompleteness = Math.min(profileCompleteness, 100);
+
+  // Format member since date
+  const memberSince = familyProfile?.created_at
+    ? new Date(familyProfile.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
+    : undefined;
+
   return {
     id: conn.id,
     connectionId: conn.id,
@@ -1027,6 +1098,9 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     // Archive info (from database metadata)
     archivedDate,
     archiveReason: archiveReasonLabel,
+    // Profile metadata
+    profileCompleteness,
+    memberSince,
     // Store computed pre-archive status for restore (used by handleRestoreLead)
     _previousStatus: isArchived ? preArchiveStatus : undefined,
   } as LeadDetail & { _previousStatus?: LeadStatus };

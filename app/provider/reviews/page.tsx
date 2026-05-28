@@ -405,34 +405,28 @@ function StatsCard({
   }
 
   return (
-    <div>
-      <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-5">
-        Your Activity
-      </h2>
+    <div className="space-y-4">
+      <h3 className="text-base font-display font-bold text-gray-900">
+        Your activity
+      </h3>
 
-      {/* Stats grid - matches profile page styling */}
-      <div className="grid grid-cols-2 gap-4 mb-5">
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
           <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">{totalSent}</p>
           <p className="text-sm text-gray-500">requests sent</p>
+          <button
+            type="button"
+            onClick={onViewAll}
+            className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            View all requests
+          </button>
         </div>
         <div className="space-y-1">
           <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">{thisMonth}</p>
           <p className="text-sm text-gray-500">this month</p>
         </div>
       </div>
-
-      {/* View all link with hover animation */}
-      <button
-        type="button"
-        onClick={onViewAll}
-        className="text-[13px] text-primary-600 hover:text-primary-700 font-semibold transition-colors inline-flex items-center gap-1.5 group"
-      >
-        View all requests
-        <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-        </svg>
-      </button>
     </div>
   );
 }

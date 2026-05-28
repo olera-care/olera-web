@@ -566,13 +566,16 @@ export default function ConversationPanel({
           ) : null}
         </div>
 
-        {/* Show Details toggle — hidden when panel is already open (close button on panel handles that) */}
-        {onToggleDetail && !detailOpen && (
+        {/* Show Details toggle — visible on all screen sizes, hidden when panel is already open on desktop */}
+        {onToggleDetail && (
           <button
             onClick={onToggleDetail}
-            className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors ${detailOpen ? "lg:hidden" : ""}`}
           >
-            Show Details
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+            <span className="hidden sm:inline">Details</span>
           </button>
         )}
       </div>

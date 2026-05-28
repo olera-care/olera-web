@@ -939,7 +939,7 @@ function InboxContent() {
         />
       )}
 
-      {/* Right panel — provider details (animated width) */}
+      {/* Right panel — provider details (animated width) - Desktop only */}
       {otherProfile && (
         <div
           className={`hidden lg:flex shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${
@@ -955,6 +955,35 @@ function InboxContent() {
             onVerifyClick={openVerificationModal}
           />
         </div>
+      )}
+
+      {/* Mobile bottom sheet — Details drawer */}
+      {otherProfile && detailOpen && (
+        <>
+          {/* Overlay */}
+          <div
+            className="lg:hidden fixed inset-0 z-[60] bg-black/50 transition-opacity duration-300"
+            onClick={() => setDetailOpen(false)}
+          />
+          {/* Drawer */}
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-[70] bg-white rounded-t-2xl shadow-2xl max-h-[85dvh] flex flex-col animate-in slide-in-from-bottom duration-300">
+            {/* Drag handle */}
+            <div className="pt-3 pb-2 flex justify-center shrink-0">
+              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+            </div>
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto">
+              <ProviderDetailPanel
+                profile={otherProfile}
+                onClose={() => setDetailOpen(false)}
+                className="flex flex-col h-full border-l-0"
+                variant={roleFilter === "provider" ? "provider" : "family"}
+                isVerified={verification.isVerified}
+                onVerifyClick={openVerificationModal}
+              />
+            </div>
+          </div>
+        </>
       )}
     </div>
 

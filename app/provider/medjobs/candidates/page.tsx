@@ -167,33 +167,47 @@ export default function ProviderCandidateBrowsePage() {
           {/* Tabs row */}
           <div className="flex items-center justify-between gap-4 -mb-px">
             {/* Tabs */}
-            <div className="flex items-center gap-6 lg:gap-8">
+            <div className="flex items-center gap-6">
               <button
                 type="button"
                 onClick={() => setActiveTab("all")}
-                className={`relative pb-3 text-[15px] transition-colors whitespace-nowrap ${
+                className={`relative pb-3 text-[15px] font-medium transition-colors ${
                   activeTab === "all"
-                    ? "font-semibold text-gray-900"
-                    : "font-normal text-gray-400 hover:text-gray-600"
+                    ? "text-gray-900"
+                    : "text-gray-500 hover:text-gray-700"
                 }`}
               >
-                All{total > 0 ? ` (${total})` : ""}
+                All
+                {total > 0 && (
+                  <span className={`ml-1.5 text-[13px] ${
+                    activeTab === "all" ? "text-gray-900" : "text-gray-400"
+                  }`}>
+                    ({total})
+                  </span>
+                )}
                 {activeTab === "all" && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-gray-900" />
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
                 )}
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("contacted")}
-                className={`relative pb-3 text-[15px] transition-colors whitespace-nowrap ${
+                className={`relative pb-3 text-[15px] font-medium transition-colors ${
                   activeTab === "contacted"
-                    ? "font-semibold text-gray-900"
-                    : "font-normal text-gray-400 hover:text-gray-600"
+                    ? "text-gray-900"
+                    : "text-gray-500 hover:text-gray-700"
                 }`}
               >
-                Contacted{contacted.size > 0 ? ` (${contacted.size})` : ""}
+                Contacted
+                {contacted.size > 0 && (
+                  <span className={`ml-1.5 text-[13px] ${
+                    activeTab === "contacted" ? "text-gray-900" : "text-gray-400"
+                  }`}>
+                    ({contacted.size})
+                  </span>
+                )}
                 {activeTab === "contacted" && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-gray-900" />
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
                 )}
               </button>
             </div>

@@ -382,7 +382,7 @@ export default function CandidateFiltersModal({
               onClick={handleApply}
               className="px-6 py-2.5 text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
             >
-              Apply
+              Apply{activeFilterCount > 0 && ` (${activeFilterCount})`}
             </button>
           </div>
         </div>

@@ -1107,16 +1107,16 @@ ${context}${urgencyNote}. I'd love to help.
 
   // ── Message Section (View Mode) ──
   const MessageSectionView = (
-    <div className="space-y-4">
-      {/* Section header */}
-      <p className="text-lg font-semibold text-gray-900">Your message</p>
-
-      {/* Timestamp */}
-      {sentAt && (
-        <p className="text-sm text-gray-500">
-          Sent {formatSentDate(sentAt)}
-        </p>
-      )}
+    <div className="space-y-3">
+      {/* Section header + timestamp (compact) */}
+      <div>
+        <p className="text-lg font-semibold text-gray-900">Your message</p>
+        {sentAt && (
+          <p className="text-sm text-gray-500 mt-0.5">
+            Sent {formatSentDate(sentAt)}
+          </p>
+        )}
+      </div>
 
       {/* Read-only message display */}
       <div className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-4">

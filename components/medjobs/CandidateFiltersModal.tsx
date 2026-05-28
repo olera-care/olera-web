@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { INTENDED_SCHOOL_LABELS } from "@/lib/medjobs-helpers";
+import { LocationFilterDropdown } from "@/components/ui/LocationFilterDropdown";
 
 // ============================================================
 // Filter Options
@@ -165,14 +166,6 @@ export default function CandidateFiltersModal({
     };
   }, [isOpen]);
 
-  // Filter cities based on search
-  const filteredCities = candidateCounts?.byCity?.filter((c) =>
-    citySearch
-      ? c.city.toLowerCase().includes(citySearch.toLowerCase()) ||
-        c.state.toLowerCase().includes(citySearch.toLowerCase())
-      : true
-  ) ?? [];
-
   const handleCityToggle = useCallback((cityKey: string) => {
     setLocalFilters((prev) => ({
       ...prev,
@@ -245,59 +238,15 @@ export default function CandidateFiltersModal({
 
           {/* Filter sections */}
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
-            {/* Location filter - searchable multi-select */}
+            {/* Location filter - collapsed dropdown with multi-select */}
             {(candidateCounts?.byCity?.length ?? 0) > 0 && (
-              <FilterSection title="Location">
-                <div className="space-y-3">
-                  {/* Search input */}
-                  <div className="relative">
-                    <svg
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                    </svg>
-                    <input
-                      type="text"
-                      value={citySearch}
-                      onChange={(e) => setCitySearch(e.target.value)}
-                      placeholder="Search cities..."
-                      className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100 placeholder:text-gray-400"
-                    />
-                  </div>
-
-                  {/* City list */}
-                  <div className="max-h-48 overflow-y-auto space-y-1 -mx-1 px-1">
-                    {filteredCities.length === 0 ? (
-                      <p className="text-sm text-gray-400 py-2 text-center">No cities found</p>
-                    ) : (
-                      filteredCities.map((c) => {
-                        const cityKey = `${c.city}|${c.state}`;
-                        return (
-                          <label
-                            key={cityKey}
-                            className="flex items-center gap-3 cursor-pointer group py-1"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={localFilters.cities.includes(cityKey)}
-                              onChange={() => handleCityToggle(cityKey)}
-                              className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                            />
-                            <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
-                              {c.city}{c.state ? `, ${c.state}` : ""}
-                            </span>
-                            <span className="text-sm text-gray-400">({c.count})</span>
-                          </label>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              </FilterSection>
+              <LocationFilterDropdown
+                cities={candidateCounts?.byCity ?? []}
+                selectedCities={localFilters.cities}
+                onToggle={handleCityToggle}
+                citySearch={citySearch}
+                onSearchChange={setCitySearch}
+              />
             )}
 
             {/* Certifications filter */}

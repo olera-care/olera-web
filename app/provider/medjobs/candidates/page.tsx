@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
-import CandidateFilters, { DEFAULT_CANDIDATE_FILTERS } from "@/components/medjobs/CandidateFilters";
-import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
+import CandidateFiltersModal, {
+  DEFAULT_CANDIDATE_FILTERS,
+  countActiveCandidateFilters,
+  CANDIDATE_FILTER_LABELS,
+  type CandidateFiltersState,
+} from "@/components/medjobs/CandidateFiltersModal";
 import Pagination from "@/components/ui/Pagination";
+import { useCitySearch } from "@/hooks/use-city-search";
 
 const PAGE_SIZE = 12;
 
@@ -19,9 +24,17 @@ export default function ProviderCandidateBrowsePage() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [filters, setFilters] = useState<CandidateFilterValues>(DEFAULT_CANDIDATE_FILTERS);
+  const [filters, setFilters] = useState<CandidateFiltersState>(DEFAULT_CANDIDATE_FILTERS);
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [contacted, setContacted] = useState<Set<string>>(new Set());
+  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const { results: cityResults, isLoading: citySearchLoading, preload } = useCitySearch(searchQuery, { limit: 5 });
 
   // Fetch existing interviews to know which candidates have been contacted
   useEffect(() => {
@@ -62,7 +75,7 @@ export default function ProviderCandidateBrowsePage() {
         const params = new URLSearchParams({
           page: String(page - 1), // API uses 0-indexed pages
           pageSize: String(PAGE_SIZE),
-          sort: filters.sort,
+          sort: "newest",
         });
         if (filters.city) params.set("city", filters.city);
         if (filters.state) params.set("state", filters.state);
@@ -99,19 +112,61 @@ export default function ProviderCandidateBrowsePage() {
     fetchCandidates(1);
   }, [fetchCandidates]);
 
-  const handleFilterChange = useCallback(
-    (newFilters: CandidateFilterValues) => {
-      setFilters(newFilters);
-    },
-    []
-  );
+  // Close search dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleApplyFilters = useCallback((newFilters: CandidateFiltersState) => {
+    setFilters(newFilters);
+  }, []);
 
   const handlePageChange = (page: number) => {
     fetchCandidates(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleCitySelect = (city: string, state: string) => {
+    setFilters((prev) => ({ ...prev, city, state }));
+    setSearchQuery(city ? `${city}, ${state}` : "");
+    setSearchOpen(false);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setFilters((prev) => ({ ...prev, city: "", state: "" }));
+    searchInputRef.current?.focus();
+  };
+
+  const handleRemoveFilter = (key: string, value?: string) => {
+    if (key === "location") {
+      setFilters((prev) => ({ ...prev, city: "", state: "" }));
+      setSearchQuery("");
+    } else if (key === "hoursPerWeek" || key === "track") {
+      setFilters((prev) => ({ ...prev, [key]: "" }));
+    } else if (key === "hasVideo") {
+      setFilters((prev) => ({ ...prev, hasVideo: false }));
+    } else if (value) {
+      setFilters((prev) => ({
+        ...prev,
+        [key]: (prev[key as keyof CandidateFiltersState] as string[]).filter((v) => v !== value),
+      }));
+    }
+  };
+
+  const handleClearAllFilters = () => {
+    setFilters(DEFAULT_CANDIDATE_FILTERS);
+    setSearchQuery("");
+  };
+
   const totalPages = Math.ceil(total / PAGE_SIZE);
+  const activeFilterCount = countActiveCandidateFilters(filters);
 
   return (
     <main className="min-h-screen bg-gray-50/50">
@@ -126,15 +181,15 @@ export default function ProviderCandidateBrowsePage() {
           </p>
         </div>
 
-        {/* Tabs row */}
-        <div className="border-b border-gray-200 mb-6">
-          <div className="flex items-center justify-between">
+        {/* Tabs + Search + Filters row */}
+        <div className="border-b border-gray-200 mb-4">
+          <div className="flex items-center justify-between gap-4">
             {/* Tabs */}
-            <div className="flex items-center gap-6 lg:gap-8">
+            <div className="flex items-center gap-6 lg:gap-8 shrink-0">
               <button
                 type="button"
                 onClick={() => setActiveTab("all")}
-                className={`relative pb-3 text-[15px] transition-colors ${
+                className={`relative pb-3 text-[15px] transition-colors whitespace-nowrap ${
                   activeTab === "all"
                     ? "font-semibold text-gray-900"
                     : "font-normal text-gray-400 hover:text-gray-600"
@@ -148,7 +203,7 @@ export default function ProviderCandidateBrowsePage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("contacted")}
-                className={`relative pb-3 text-[15px] transition-colors ${
+                className={`relative pb-3 text-[15px] transition-colors whitespace-nowrap ${
                   activeTab === "contacted"
                     ? "font-semibold text-gray-900"
                     : "font-normal text-gray-400 hover:text-gray-600"
@@ -160,16 +215,173 @@ export default function ProviderCandidateBrowsePage() {
                 )}
               </button>
             </div>
+
+            {/* Search + Filters (desktop) */}
+            <div className="hidden sm:flex items-center gap-3">
+              {/* Search input */}
+              <div ref={searchContainerRef} className="relative">
+                <div className="relative">
+                  <svg
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setSearchOpen(true);
+                    }}
+                    onFocus={() => {
+                      preload();
+                      setSearchOpen(true);
+                    }}
+                    placeholder="City or ZIP..."
+                    className="w-44 lg:w-52 pl-9 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 placeholder:text-gray-400 transition-all"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={handleClearSearch}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                {/* Search dropdown */}
+                {searchOpen && (cityResults.length > 0 || citySearchLoading) && (
+                  <div className="absolute top-[calc(100%+4px)] left-0 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50 max-h-48 overflow-y-auto">
+                    {citySearchLoading && cityResults.length === 0 ? (
+                      <div className="px-4 py-3 text-sm text-gray-500">Searching...</div>
+                    ) : (
+                      cityResults.map((result, idx) => (
+                        <button
+                          key={`${result.city}-${result.state}-${idx}`}
+                          type="button"
+                          onClick={() => handleCitySelect(result.city, result.state)}
+                          className="w-full px-4 py-2.5 text-left hover:bg-gray-50 text-sm text-gray-900 transition-colors"
+                        >
+                          <span className="font-medium">{result.city}</span>
+                          <span className="text-gray-500">, {result.state}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Filters button */}
+              <button
+                type="button"
+                onClick={() => setIsFiltersModalOpen(true)}
+                className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                </svg>
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-primary-600 rounded-full">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <CandidateFilters
-          filters={filters}
-          onChange={handleFilterChange}
-          showSort
-          totalResults={total}
-        />
+        {/* Active filter chips */}
+        {activeFilterCount > 0 && (
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            {/* Location chip */}
+            {(filters.city || filters.state) && (
+              <FilterChip
+                label={filters.city ? `${filters.city}, ${filters.state}` : filters.state}
+                onRemove={() => handleRemoveFilter("location")}
+              />
+            )}
+
+            {/* Certifications chips */}
+            {filters.certifications.map((cert) => (
+              <FilterChip
+                key={cert}
+                label={CANDIDATE_FILTER_LABELS.certifications[cert] || cert}
+                onRemove={() => handleRemoveFilter("certifications", cert)}
+              />
+            ))}
+
+            {/* Availability chips */}
+            {filters.availability.map((avail) => (
+              <FilterChip
+                key={avail}
+                label={CANDIDATE_FILTER_LABELS.availability[avail] || avail}
+                onRemove={() => handleRemoveFilter("availability", avail)}
+              />
+            ))}
+
+            {/* Hours chip */}
+            {filters.hoursPerWeek && (
+              <FilterChip
+                label={CANDIDATE_FILTER_LABELS.hoursPerWeek[filters.hoursPerWeek] || filters.hoursPerWeek}
+                onRemove={() => handleRemoveFilter("hoursPerWeek")}
+              />
+            )}
+
+            {/* Track chip */}
+            {filters.track && (
+              <FilterChip
+                label={CANDIDATE_FILTER_LABELS.track[filters.track] || filters.track}
+                onRemove={() => handleRemoveFilter("track")}
+              />
+            )}
+
+            {/* Languages chips */}
+            {filters.languages.map((lang) => (
+              <FilterChip
+                key={lang}
+                label={CANDIDATE_FILTER_LABELS.languages[lang] || lang}
+                onRemove={() => handleRemoveFilter("languages", lang)}
+              />
+            ))}
+
+            {/* Has video chip */}
+            {filters.hasVideo && (
+              <FilterChip
+                label="Has video"
+                onRemove={() => handleRemoveFilter("hasVideo")}
+              />
+            )}
+
+            {/* Clear all */}
+            <button
+              type="button"
+              onClick={handleClearAllFilters}
+              className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors ml-1"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
 
         {/* Results */}
         {loading ? (
@@ -274,6 +486,52 @@ export default function ProviderCandidateBrowsePage() {
           );
         })()}
       </div>
+
+      {/* Filters Modal */}
+      <CandidateFiltersModal
+        isOpen={isFiltersModalOpen}
+        onClose={() => setIsFiltersModalOpen(false)}
+        filters={filters}
+        onApply={handleApplyFilters}
+      />
+
+      {/* Mobile FAB for Filters */}
+      <button
+        type="button"
+        onClick={() => setIsFiltersModalOpen(true)}
+        className="sm:hidden fixed bottom-6 right-6 z-40 w-14 h-14 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+        aria-label="Open filters"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+        </svg>
+        {activeFilterCount > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 bg-white text-primary-600 text-xs font-bold rounded-full flex items-center justify-center shadow-sm">
+            {activeFilterCount}
+          </span>
+        )}
+      </button>
     </main>
+  );
+}
+
+// Filter chip component
+function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onRemove}
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition-colors group"
+    >
+      <span>{label}</span>
+      <svg
+        className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
   );
 }

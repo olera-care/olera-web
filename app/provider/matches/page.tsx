@@ -1191,10 +1191,20 @@ export default function ProviderMatchesPage() {
     const byPayment: Record<string, number> = {};
     const byWhoNeedsCare: Record<string, number> = {};
     const bySchedule: Record<string, number> = {};
+    const cityMap: Record<string, { city: string; state: string; count: number }> = {};
     let completeProfiles = 0;
 
     for (const family of nonContactedFamilies) {
       const meta = family.metadata as FamilyMetadata;
+
+      // City/Location
+      if (family.city) {
+        const cityKey = `${family.city}|${family.state || ""}`;
+        if (!cityMap[cityKey]) {
+          cityMap[cityKey] = { city: family.city, state: family.state || "", count: 0 };
+        }
+        cityMap[cityKey].count++;
+      }
 
       // Urgency/Timeline
       const timeline = meta?.timeline || "exploring";
@@ -1235,7 +1245,11 @@ export default function ProviderMatchesPage() {
       }
     }
 
+    // Convert cityMap to sorted array (by count descending)
+    const byCity = Object.values(cityMap).sort((a, b) => b.count - a.count);
+
     return {
+      byCity,
       byUrgency,
       byCareType,
       byPayment,
@@ -1258,6 +1272,14 @@ export default function ProviderMatchesPage() {
   // Note: We keep contacted families in the list (sorted to bottom) instead of filtering them out
   const filteredFamilies = useMemo(() => {
     let result = [...families]; // Keep all families
+
+    // Apply modal filters: cities
+    if (modalFilters.cities.length > 0) {
+      result = result.filter((f) => {
+        const cityKey = `${f.city || ""}|${f.state || ""}`;
+        return modalFilters.cities.includes(cityKey);
+      });
+    }
 
     // Apply modal filters: urgency
     if (modalFilters.urgency.length > 0) {

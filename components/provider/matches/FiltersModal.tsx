@@ -54,6 +54,7 @@ const SCHEDULE_OPTIONS = [
 
 export interface FiltersState {
   distance: string;
+  cities: string[];
   urgency: string[];
   careTypes: string[];
   paymentMethods: string[];
@@ -64,6 +65,7 @@ export interface FiltersState {
 
 export const DEFAULT_FILTERS_STATE: FiltersState = {
   distance: "any",
+  cities: [],
   urgency: [],
   careTypes: [],
   paymentMethods: [],
@@ -78,6 +80,7 @@ interface FiltersModalProps {
   filters: FiltersState;
   onApply: (filters: FiltersState) => void;
   familyCounts?: {
+    byCity: { city: string; state: string; count: number }[];
     byUrgency: Record<string, number>;
     byCareType: Record<string, number>;
     byPayment: Record<string, number>;
@@ -101,10 +104,14 @@ export default function FiltersModal({
   // Local state for editing (apply on confirm)
   const [localFilters, setLocalFilters] = useState<FiltersState>(filters);
 
+  // City search state
+  const [citySearch, setCitySearch] = useState("");
+
   // Sync local state when modal opens
   useEffect(() => {
     if (isOpen) {
       setLocalFilters(filters);
+      setCitySearch("");
     }
   }, [isOpen, filters]);
 
@@ -132,6 +139,23 @@ export default function FiltersModal({
 
   const handleDistanceChange = useCallback((value: string) => {
     setLocalFilters((prev) => ({ ...prev, distance: value }));
+  }, []);
+
+  // Filter cities based on search
+  const filteredCities = familyCounts?.byCity?.filter((c) =>
+    citySearch
+      ? c.city.toLowerCase().includes(citySearch.toLowerCase()) ||
+        c.state.toLowerCase().includes(citySearch.toLowerCase())
+      : true
+  ) ?? [];
+
+  const handleCityToggle = useCallback((cityKey: string) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      cities: prev.cities.includes(cityKey)
+        ? prev.cities.filter((c) => c !== cityKey)
+        : [...prev.cities, cityKey],
+    }));
   }, []);
 
   const handleUrgencyToggle = useCallback((value: string) => {
@@ -185,6 +209,7 @@ export default function FiltersModal({
 
   const handleClear = useCallback(() => {
     setLocalFilters(DEFAULT_FILTERS_STATE);
+    setCitySearch("");
   }, []);
 
   const handleApply = useCallback(() => {
@@ -194,6 +219,7 @@ export default function FiltersModal({
 
   const activeFilterCount =
     (localFilters.distance !== "any" ? 1 : 0) +
+    localFilters.cities.length +
     localFilters.urgency.length +
     localFilters.careTypes.length +
     localFilters.paymentMethods.length +
@@ -262,6 +288,61 @@ export default function FiltersModal({
                       </span>
                     </label>
                   ))}
+                </div>
+              </FilterSection>
+            )}
+
+            {/* Location filter - searchable multi-select */}
+            {(familyCounts?.byCity?.length ?? 0) > 0 && (
+              <FilterSection title="Location">
+                <div className="space-y-3">
+                  {/* Search input */}
+                  <div className="relative">
+                    <svg
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={citySearch}
+                      onChange={(e) => setCitySearch(e.target.value)}
+                      placeholder="Search cities..."
+                      className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100 placeholder:text-gray-400"
+                    />
+                  </div>
+
+                  {/* City list */}
+                  <div className="max-h-48 overflow-y-auto space-y-1 -mx-1 px-1">
+                    {filteredCities.length === 0 ? (
+                      <p className="text-sm text-gray-400 py-2 text-center">No cities found</p>
+                    ) : (
+                      filteredCities.map((c) => {
+                        const cityKey = `${c.city}|${c.state}`;
+                        return (
+                          <label
+                            key={cityKey}
+                            className="flex items-center gap-3 cursor-pointer group py-1"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={localFilters.cities.includes(cityKey)}
+                              onChange={() => handleCityToggle(cityKey)}
+                              className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                            />
+                            <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
+                              {c.city}{c.state ? `, ${c.state}` : ""}
+                            </span>
+                            <span className="text-sm text-gray-400">({c.count})</span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
               </FilterSection>
             )}
@@ -533,6 +614,7 @@ function FilterSection({
 export function countActiveFilters(filters: FiltersState): number {
   return (
     (filters.distance !== "any" ? 1 : 0) +
+    filters.cities.length +
     filters.urgency.length +
     filters.careTypes.length +
     filters.paymentMethods.length +

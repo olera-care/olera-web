@@ -3,7 +3,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Select from "@/components/ui/Select";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { markLeadAsRead } from "@/hooks/useUnreadLeadsCount";
@@ -14,6 +13,7 @@ import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import { formatRedactedName } from "@/lib/utils/pii-redaction";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import VerifyToUnlockPrompt from "@/components/provider/VerifyToUnlockPrompt";
+import Pagination from "@/components/ui/Pagination";
 
 // ── Lead types (previously from mock file) ──
 
@@ -57,8 +57,7 @@ interface LeadDetail {
 
 // ── Types ──
 
-type StatusFilter = "all" | "new" | "replied" | "archived";
-type SortOption = "best_match" | "most_recent" | "most_urgent";
+type StatusFilter = "active" | "archived";
 type LeadStatus = "new" | "replied" | "no_reply" | "archived";
 type Urgency = "immediate" | "within_1_month" | "exploring";
 type ContactMethod = "phone" | "email" | "either";
@@ -66,17 +65,11 @@ type ContactMethod = "phone" | "email" | "either";
 // ── Config ──
 
 const FILTER_TABS: { id: StatusFilter; label: string }[] = [
-  { id: "all", label: "All leads" },
-  { id: "new", label: "New" },
-  { id: "replied", label: "Replied" },
+  { id: "active", label: "Active" },
   { id: "archived", label: "Archived" },
 ];
 
-const SORT_OPTIONS: { id: SortOption; label: string }[] = [
-  { id: "best_match", label: "Best match" },
-  { id: "most_recent", label: "Most recent" },
-  { id: "most_urgent", label: "Most urgent" },
-];
+const PAGE_SIZE = 15;
 
 const URGENCY_LABELS: Record<Urgency, string> = {
   immediate: "Immediate",
@@ -390,8 +383,8 @@ function LeadDetailDrawer({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
               </button>
-              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
-                <span className="text-sm font-bold text-gray-600">{lead.initials}</span>
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
+                <span className="text-sm font-semibold text-white">{lead.initials}</span>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -481,7 +474,7 @@ function LeadDetailDrawer({
           {/* ── Inline message composer / persistent sent state ── */}
           {(showComposer || lead.messagedAt) && (
             <div className="px-4 lg:px-6 pt-5 pb-2">
-              <div className={`rounded-2xl overflow-hidden ${(messageSent || lead.messagedAt) ? "border border-primary-100/60 bg-primary-50/30" : "border border-gray-200 bg-white shadow-sm"}`}>
+              <div className={`rounded-2xl overflow-hidden ${(messageSent || lead.messagedAt) ? "border border-primary-100/60 bg-primary-50/30" : "border border-gray-200 bg-white"}`}>
                 {(messageSent || lead.messagedAt) ? (
                   /* ── Persistent confirmation state with actions ── */
                   <div className="px-6 py-8 flex flex-col items-center justify-center gap-3">
@@ -566,7 +559,7 @@ function LeadDetailDrawer({
                         type="button"
                         onClick={handleSendMessage}
                         disabled={sendingMessage || !messageText.trim() || !lead.connectionId}
-                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         {sendingMessage ? (
                           <>
@@ -848,7 +841,7 @@ function LeadDetailDrawer({
                     <button
                       type="button"
                       onClick={handleDelete}
-                      className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl bg-red-600 text-[14px] font-semibold text-white shadow-sm hover:bg-red-700 transition-all duration-150 active:scale-[0.98]"
+                      className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl bg-red-600 text-[14px] font-semibold text-white hover:bg-red-700 transition-colors"
                     >
                       Yes, Delete Forever
                     </button>
@@ -870,7 +863,7 @@ function LeadDetailDrawer({
                 <button
                   type="button"
                   onClick={handleRestore}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white hover:bg-primary-700 transition-colors min-h-[48px]"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
@@ -945,7 +938,7 @@ function LeadDetailDrawer({
                   <button
                     type="button"
                     onClick={handleArchive}
-                    className="w-full mt-4 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-[15px] font-semibold text-white shadow-sm hover:bg-gray-800 transition-all duration-150 active:scale-[0.98]"
+                    className="w-full mt-4 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-[15px] font-semibold text-white hover:bg-gray-800 transition-colors"
                   >
                     Archive Lead
                   </button>
@@ -970,7 +963,7 @@ function LeadDetailDrawer({
               <button
                 type="button"
                 onClick={() => { setShowComposer(true); scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white hover:bg-primary-700 transition-colors min-h-[48px]"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
@@ -981,7 +974,7 @@ function LeadDetailDrawer({
               <button
                 type="button"
                 onClick={onVerifyClick}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white hover:bg-primary-700 transition-colors min-h-[48px]"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
@@ -1243,12 +1236,12 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
 export default function ProviderLeadsPage() {
   const providerProfile = useProviderProfile();
   const { isLoading: authLoading, refreshAccountData } = useAuth();
-  const [activeFilter, setActiveFilter] = useState<StatusFilter>("all");
-  const [sortBy, setSortBy] = useState<SortOption>("best_match");
+  const [activeFilter, setActiveFilter] = useState<StatusFilter>("active");
   const [leads, setLeads] = useState<LeadDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   // Track which lead's drawer should reopen after verification
   const [pendingLeadId, setPendingLeadId] = useState<string | null>(null);
   const fetchedRef = useRef(false);
@@ -1503,15 +1496,30 @@ export default function ProviderLeadsPage() {
   const filteredLeads = useMemo(() => {
     if (activeFilter === "archived") {
       return leads.filter((l) => l.status === "archived");
-    } else if (activeFilter === "new") {
-      return leads.filter((l) => l.isNew && l.status !== "archived");
-    } else if (activeFilter === "replied") {
-      return leads.filter((l) => l.status === "replied");
-    } else {
-      // "all" - show everything except archived
-      return leads.filter((l) => l.status !== "archived");
     }
+    // "active" - show everything except archived
+    return leads.filter((l) => l.status !== "archived");
   }, [activeFilter, leads]);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter]);
+
+  // Paginate filtered leads
+  const totalPages = Math.ceil(filteredLeads.length / PAGE_SIZE);
+
+  // Reset to last valid page if current page exceeds total (e.g., after data refresh)
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedLeads = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return filteredLeads.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredLeads, currentPage]);
 
   // Loading state
   if (isLoading) {
@@ -1607,139 +1615,143 @@ export default function ProviderLeadsPage() {
           </div>
         </div>
 
-        {/* Desktop sort dropdown */}
-        <div className="hidden lg:flex items-center shrink-0">
-          <span className="text-sm text-gray-400 mr-2">Sort by:</span>
-          <Select
-            options={SORT_OPTIONS.map(opt => ({ value: opt.id, label: opt.label }))}
-            value={sortBy}
-            onChange={(val) => setSortBy(val as SortOption)}
-            size="sm"
-            className="w-40"
-          />
-        </div>
       </div>
 
       {/* ── Leads list ── */}
       {filteredLeads.length > 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+        <>
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
           {/* Table header - desktop only */}
-          <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_0.8fr_0.8fr] gap-6 px-8 py-3.5 border-b border-gray-200/80 bg-gray-50/40">
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Name</span>
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Email</span>
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Phone</span>
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Location</span>
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Status</span>
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Date</span>
+          <div className="hidden lg:grid grid-cols-[1.8fr_1.5fr_1fr_1fr_0.8fr_0.8fr] gap-5 px-6 py-3 border-b border-gray-100 bg-gray-50/50">
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Name</span>
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Contact</span>
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Care Type</span>
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Location</span>
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Received</span>
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Status</span>
           </div>
 
           {/* Lead rows */}
-          {filteredLeads.map((lead, idx) => (
+          {paginatedLeads.map((lead, idx) => (
             <div
               key={lead.id}
               onClick={() => openDrawer(lead)}
               className={[
                 "group transition-colors duration-150 cursor-pointer",
                 "lg:hover:bg-vanilla-50/80",
-                idx < filteredLeads.length - 1 ? "border-b border-gray-100 lg:border-gray-200/60" : "",
+                idx < paginatedLeads.length - 1 ? "border-b border-gray-100 lg:border-gray-200/60" : "",
               ].join(" ")}
             >
-              {/* Mobile card layout - redesigned for clarity */}
+              {/* Mobile card layout */}
               <div className="lg:hidden px-4 py-4 active:bg-vanilla-50/60">
-                <div className="flex items-start gap-3.5">
+                <div className="flex items-start gap-3">
                   {/* Avatar */}
-                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center ring-2 ring-white shadow-sm shrink-0`}>
-                    <span className="text-sm font-bold text-gray-600">{lead.initials}</span>
+                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
+                    <span className="text-sm font-semibold text-white">{lead.initials}</span>
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    {/* Name row */}
+                    {/* Name + Status badge */}
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-[15px] font-semibold text-gray-900 truncate">
+                      <h3 className="text-base font-semibold text-gray-900 truncate">
                         {isVerified ? lead.name : formatRedactedName(lead.name)}
                       </h3>
-                      {lead.isNew && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
+                      {lead.isNew ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-medium bg-sky-50 text-sky-700 border border-sky-100 shrink-0">
                           New
+                        </span>
+                      ) : lead.status === "replied" && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-100 shrink-0">
+                          Replied
                         </span>
                       )}
                     </div>
 
-                    {/* Contact info - hidden for unverified */}
-                    <div className="space-y-0.5 mb-2">
+                    {/* Contact info */}
+                    <div className="mb-1.5">
                       {isVerified ? (
-                        <>
-                          <p className="text-sm text-gray-600 truncate">{lead.email || "—"}</p>
-                          {lead.phone && <p className="text-sm text-gray-500 truncate">{lead.phone}</p>}
-                        </>
+                        <p className="text-sm text-gray-600 truncate">{lead.email || "—"}</p>
                       ) : (
-                        <p className="text-sm text-gray-400 italic">Verify to see contact info</p>
+                        <p className="text-sm text-gray-400">Verify to see contact info</p>
                       )}
                     </div>
 
-                    {/* Meta row - location + date */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 text-xs font-medium text-gray-600">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                        </svg>
-                        {lead.location}
-                      </span>
-                      <span className="text-xs text-gray-400">{lead.date}</span>
+                    {/* Meta row - care type, location, date */}
+                    <div className="flex items-center gap-1.5 text-[13px] text-gray-500">
+                      {lead.careType?.[0] && (
+                        <>
+                          <span className="font-medium text-gray-600">{lead.careType[0]}</span>
+                          <span className="text-gray-300">·</span>
+                        </>
+                      )}
+                      <span>{lead.location}</span>
+                      <span className="text-gray-300">·</span>
+                      <span className="text-gray-400">{lead.date}</span>
                     </div>
                   </div>
 
                   {/* Chevron */}
-                  <svg className="w-5 h-5 text-gray-300 shrink-0 mt-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-300 shrink-0 mt-2.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                   </svg>
                 </div>
               </div>
 
               {/* Desktop table layout */}
-              <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_0.8fr_0.8fr] gap-6 items-center px-8 py-5">
+              <div className="hidden lg:grid grid-cols-[1.8fr_1.5fr_1fr_1fr_0.8fr_0.8fr] gap-5 items-center px-6 py-4">
                 {/* Name */}
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
-                    <span className="text-sm font-bold text-gray-600">{lead.initials}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
+                    <span className="text-sm font-semibold text-white">{lead.initials}</span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2.5">
-                      <p className="text-[15px] font-semibold text-gray-900 truncate">
-                        {isVerified ? lead.name : formatRedactedName(lead.name)}
-                      </p>
-                      {lead.isNew && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
-                          New
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  <p className="text-[15px] font-semibold text-gray-900 truncate">
+                    {isVerified ? lead.name : formatRedactedName(lead.name)}
+                  </p>
                 </div>
 
-                {/* Email - hidden for unverified */}
-                <span className="text-[14px] text-gray-600 truncate">
-                  {isVerified ? (lead.email || "—") : "••••••••"}
-                </span>
+                {/* Contact - email + phone stacked */}
+                <div className="min-w-0">
+                  {isVerified ? (
+                    <>
+                      <p className="text-[14px] text-gray-700 truncate">{lead.email || "—"}</p>
+                      {lead.phone && (
+                        <p className="text-[13px] text-gray-500 truncate mt-0.5">{lead.phone}</p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-[14px] text-gray-400">••••••••</p>
+                  )}
+                </div>
 
-                {/* Phone - hidden for unverified */}
+                {/* Care Type */}
                 <span className="text-[14px] text-gray-600 truncate">
-                  {isVerified ? (lead.phone || "Via inbox") : "••••••••"}
+                  {lead.careType?.[0] || "—"}
                 </span>
 
                 {/* Location */}
                 <span className="text-[14px] text-gray-500 truncate">{lead.location}</span>
 
-                {/* Status */}
-                <span className="text-[14px] text-gray-600">{STATUS_LABELS[lead.status]}</span>
+                {/* Received */}
+                <span className="text-[14px] text-gray-400">{lead.date}</span>
 
-                {/* Date */}
+                {/* Status badge */}
                 <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-gray-400">{lead.date}</span>
+                  {lead.isNew ? (
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[12px] font-medium bg-sky-50 text-sky-700 border border-sky-100">
+                      New
+                    </span>
+                  ) : lead.status === "replied" ? (
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[12px] font-medium bg-amber-50 text-amber-700 border border-amber-100">
+                      Replied
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[12px] font-medium bg-gray-50 text-gray-500 border border-gray-200">
+                      {STATUS_LABELS[lead.status]}
+                    </span>
+                  )}
                   {/* Chevron - appears on hover */}
-                  <svg className="w-5 h-5 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-150 -mr-1" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-150" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                   </svg>
                 </div>
@@ -1747,12 +1759,27 @@ export default function ProviderLeadsPage() {
             </div>
           ))}
         </div>
+
+        {/* Pagination */}
+        {filteredLeads.length > PAGE_SIZE && (
+          <div className="mt-6">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredLeads.length}
+              itemsPerPage={PAGE_SIZE}
+              onPageChange={setCurrentPage}
+              itemLabel="leads"
+            />
+          </div>
+        )}
+        </>
       ) : (
         /* ── Empty state ── */
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
           <div className="flex flex-col items-center text-center py-24 px-8">
             <div className="relative mb-8">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-warm-50 to-vanilla-100 border border-warm-100/60 flex items-center justify-center shadow-sm">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-warm-50 to-vanilla-100 border border-warm-100/60 flex items-center justify-center">
                 <svg className="w-10 h-10 text-warm-300" fill="none" stroke="currentColor" strokeWidth={1.2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
                 </svg>
@@ -1774,7 +1801,7 @@ export default function ProviderLeadsPage() {
             {activeFilter !== "archived" && (
               <Link
                 href="/provider/matches"
-                className="mt-8 inline-flex items-center gap-2.5 px-6 py-3 rounded-xl bg-gray-900 text-white text-sm font-semibold shadow-sm hover:bg-gray-800 transition-all duration-200 hover:shadow-md"
+                className="mt-8 inline-flex items-center gap-2.5 px-6 py-3 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-colors"
               >
                 Reach out to families looking for care
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

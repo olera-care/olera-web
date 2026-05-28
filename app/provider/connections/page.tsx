@@ -195,6 +195,11 @@ function LeadDetailDrawer({
 
   const handleArchive = () => {
     if (!lead || !archiveReason) return;
+    // If "already_connected", auto-mark as replied before archiving
+    // (they've communicated outside Olera, so it's effectively replied)
+    if (archiveReason === "already_connected" && lead.status === "new") {
+      onMarkAsReplied?.(lead.id);
+    }
     setArchived(true);
     onArchive(lead.id, archiveReason);
     setTimeout(() => {
@@ -234,13 +239,35 @@ function LeadDetailDrawer({
   if (!lead) return null;
 
   // ── Sticky Header Content ──
+  // Status tag matches list view styling
+  const statusTag = lead.status === "archived" ? (
+    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
+      Archived
+    </span>
+  ) : lead.isNew ? (
+    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">
+      New
+    </span>
+  ) : lead.status === "replied" ? (
+    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-amber-50 text-amber-700 border border-amber-100 shrink-0">
+      Replied
+    </span>
+  ) : (
+    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
+      Viewed
+    </span>
+  );
+
   const StickyHeader = (
     <div className="flex items-center gap-3">
       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center text-base font-semibold text-white shrink-0`}>
         {lead.initials}
       </div>
       <div className="min-w-0 flex-1">
-        <h2 className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
+          {statusTag}
+        </div>
         {lead.location && (
           <p className="text-sm text-gray-600 truncate">{lead.location}</p>
         )}
@@ -254,30 +281,8 @@ function LeadDetailDrawer({
     </div>
   );
 
-  // ── Status Badge Section ──
-  // Only shown for non-archived leads (LeadStatus: "new" | "replied" | "archived")
-  const StatusBadgeSection = lead.status !== "archived" ? (
-    <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl border border-gray-100">
-      <div className="flex items-center gap-2">
-        <span className={`w-2 h-2 rounded-full ${
-          lead.status === "new" ? "bg-emerald-400" : "bg-primary-400"
-        }`} />
-        <span className="text-sm font-medium text-gray-700">
-          {lead.status === "new" ? "New Lead" : "Replied"}
-        </span>
-      </div>
-      {lead.status === "new" && (
-        <button
-          onClick={() => onMarkAsReplied?.(lead.id)}
-          className="text-xs font-medium text-primary-600 hover:text-primary-700"
-        >
-          Mark as Replied
-        </button>
-      )}
-    </div>
-  ) : null;
-
   // ── Contact Information Section ──
+  // Includes "Mark as Replied" action when lead is not yet replied
   const ContactInfoSection = isVerified ? (
     (lead.email || lead.phone) ? (
       <div className="bg-primary-50 border border-primary-100 rounded-xl p-4">
@@ -369,6 +374,16 @@ function LeadDetailDrawer({
             </div>
           )}
         </div>
+        {/* Mark as Replied action - only show for non-replied, non-archived leads */}
+        {lead.status !== "replied" && lead.status !== "archived" && (
+          <button
+            type="button"
+            onClick={() => onMarkAsReplied?.(lead.id)}
+            className="mt-3 text-sm font-medium text-primary-700 hover:text-primary-800 transition-colors"
+          >
+            Mark as Replied
+          </button>
+        )}
       </div>
     ) : (
       <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
@@ -471,7 +486,6 @@ function LeadDetailDrawer({
   const ScrollableContent = (
     <div className="space-y-6">
       {ArchivedBanner}
-      {StatusBadgeSection}
       {ContactInfoSection}
       {AboutSituationSection}
       {CareDetailsSection}

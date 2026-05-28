@@ -400,7 +400,7 @@ export default function AccountSettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+    <div className="min-h-screen bg-gray-50/50">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-6">
         <div className="mb-5">
           <h2 className="text-2xl font-display font-bold text-gray-900">

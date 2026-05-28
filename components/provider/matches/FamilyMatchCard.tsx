@@ -459,11 +459,11 @@ export default function FamilyMatchCard({
     onReachOut(family);
   };
 
-  // Status badge config for contacted families
+  // Status badge config for contacted families (matches lead drawer tag pattern)
   const statusBadge = contacted && outreachStatus ? {
-    pending: { label: "Awaiting response", bgClass: "bg-amber-50", textClass: "text-amber-700", borderClass: "border-amber-100", dotClass: "bg-amber-400" },
-    connected: { label: "Connected", bgClass: "bg-emerald-50", textClass: "text-emerald-700", borderClass: "border-emerald-100", dotClass: "bg-emerald-400" },
-    declined: { label: "Declined", bgClass: "bg-gray-50", textClass: "text-gray-500", borderClass: "border-gray-200", dotClass: "" },
+    pending: { label: "Pending", bgClass: "bg-amber-50", textClass: "text-amber-700", borderClass: "border-amber-100" },
+    connected: { label: "Connected", bgClass: "bg-emerald-50", textClass: "text-emerald-700", borderClass: "border-emerald-100" },
+    declined: { label: "Declined", bgClass: "bg-gray-50", textClass: "text-gray-500", borderClass: "border-gray-200" },
   }[outreachStatus] : null;
 
   return (
@@ -506,8 +506,7 @@ export default function FamilyMatchCard({
 
         {/* Status badge for contacted families */}
         {statusBadge && (
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium ${statusBadge.bgClass} ${statusBadge.textClass} border ${statusBadge.borderClass}`}>
-            {statusBadge.dotClass && <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dotClass}`} />}
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none ${statusBadge.bgClass} ${statusBadge.textClass} border ${statusBadge.borderClass}`}>
             {statusBadge.label}
           </span>
         )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import CandidateCard from "@/components/medjobs/CandidateCard";
@@ -357,24 +358,26 @@ export default function ProviderCandidateBrowsePage() {
 
           if (filteredCandidates.length === 0 && activeTab === "contacted") {
             return (
-              <div className="text-center py-20">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                  <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                  </svg>
-                </div>
-                <p className="text-gray-500 text-sm font-medium">
-                  No candidates contacted yet.
-                </p>
-                <p className="text-gray-400 text-sm mt-1">
-                  Browse caregivers and schedule interviews to get started.
+              <div className="flex flex-col items-center justify-center py-12 px-8 text-center">
+                <Image
+                  src="/interview.png"
+                  alt="No interviews scheduled"
+                  width={180}
+                  height={180}
+                  className="mb-6"
+                />
+                <h3 className="text-[17px] font-display font-bold text-gray-900 mb-2">
+                  No interviews scheduled yet
+                </h3>
+                <p className="text-[15px] text-gray-500 max-w-sm leading-relaxed mb-6">
+                  Browse caregivers and schedule interviews to connect with pre-vetted healthcare students.
                 </p>
                 <button
                   type="button"
                   onClick={() => setActiveTab("all")}
-                  className="mt-4 inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-700"
+                  className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
                 >
-                  View all caregivers &rarr;
+                  Browse caregivers
                 </button>
               </div>
             );

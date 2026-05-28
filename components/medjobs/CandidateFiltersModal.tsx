@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { US_STATES } from "@/lib/us-states";
 import { INTENDED_SCHOOL_LABELS } from "@/lib/medjobs-helpers";
 import { useCitySearch } from "@/hooks/use-city-search";
 
@@ -512,7 +513,9 @@ function LocationFilter({
 }) {
   const [query, setQuery] = useState(city ? `${city}, ${state}` : "");
   const [isOpen, setIsOpen] = useState(false);
+  const [stateDropdownOpen, setStateDropdownOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const stateRef = useRef<HTMLDivElement>(null);
 
   const { results, isLoading, preload } = useCitySearch(query, { limit: 6 });
 
@@ -523,6 +526,17 @@ function LocationFilter({
       setQuery(displayValue);
     }
   }, [city, state, isOpen, query]);
+
+  // Close state dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (stateRef.current && !stateRef.current.contains(e.target as Node)) {
+        setStateDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSelect = (selectedCity: { city: string; state: string; full: string }) => {
     setQuery(selectedCity.full);
@@ -536,71 +550,138 @@ function LocationFilter({
     inputRef.current?.focus();
   };
 
-  return (
-    <div className="relative">
-      <svg
-        className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-        />
-      </svg>
-      <input
-        ref={inputRef}
-        type="text"
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setIsOpen(true);
-        }}
-        onFocus={() => {
-          preload();
-          setIsOpen(true);
-        }}
-        onBlur={() => setTimeout(() => setIsOpen(false), 150)}
-        placeholder="City or ZIP..."
-        className="w-full pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 placeholder:text-gray-400 transition-all"
-      />
-      {query && (
-        <button
-          type="button"
-          onClick={handleClear}
-          className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      )}
+  const handleStateSelect = (stateCode: string) => {
+    onChange("", stateCode);
+    setStateDropdownOpen(false);
+  };
 
-      {isOpen && (results.length > 0 || isLoading) && (
-        <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50 max-h-48 overflow-y-auto">
-          {isLoading && results.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-gray-500">Searching...</div>
-          ) : (
-            results.map((result, idx) => (
-              <button
-                key={`${result.city}-${result.state}-${idx}`}
-                type="button"
-                onMouseDown={() => handleSelect(result)}
-                className="w-full px-4 py-2.5 text-left hover:bg-gray-50 text-sm text-gray-900 transition-colors"
-              >
-                <span className="font-medium">{result.city}</span>
-                <span className="text-gray-500">, {result.state}</span>
-              </button>
-            ))
+  return (
+    <div className="space-y-3">
+      {/* City search */}
+      <div className="relative">
+        <svg
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+        </svg>
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setIsOpen(true);
+          }}
+          onFocus={() => {
+            preload();
+            setIsOpen(true);
+          }}
+          onBlur={() => setTimeout(() => setIsOpen(false), 150)}
+          placeholder="City or ZIP..."
+          className="w-full pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 placeholder:text-gray-400 transition-all"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
+        {isOpen && (results.length > 0 || isLoading) && (
+          <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50 max-h-48 overflow-y-auto">
+            {isLoading && results.length === 0 ? (
+              <div className="px-4 py-3 text-sm text-gray-500">Searching...</div>
+            ) : (
+              results.map((result, idx) => (
+                <button
+                  key={`${result.city}-${result.state}-${idx}`}
+                  type="button"
+                  onMouseDown={() => handleSelect(result)}
+                  className="w-full px-4 py-2.5 text-left hover:bg-gray-50 text-sm text-gray-900 transition-colors"
+                >
+                  <span className="font-medium">{result.city}</span>
+                  <span className="text-gray-500">, {result.state}</span>
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* State dropdown (when no city selected) */}
+      {!city && (
+        <div ref={stateRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setStateDropdownOpen(!stateDropdownOpen)}
+            className={`
+              flex items-center justify-between w-full px-3.5 py-2.5
+              bg-white border rounded-xl text-sm
+              transition-all
+              ${state
+                ? "border-primary-400 text-gray-900 font-medium"
+                : "border-gray-200 text-gray-500 hover:border-gray-300"
+              }
+            `}
+          >
+            <span>{state ? US_STATES.find((s) => s.value === state)?.label || state : "Or select a state"}</span>
+            <svg
+              className={`w-4 h-4 text-gray-400 transition-transform ${stateDropdownOpen ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {stateDropdownOpen && (
+            <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white rounded-xl shadow-lg border border-gray-200 z-50 max-h-48 overflow-y-auto">
+              {state && (
+                <button
+                  type="button"
+                  onClick={() => handleStateSelect("")}
+                  className="w-full px-3 py-2.5 text-left text-sm text-gray-500 hover:bg-gray-50 transition-colors border-b border-gray-100"
+                >
+                  Clear selection
+                </button>
+              )}
+              {US_STATES.map((s) => (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => handleStateSelect(s.value)}
+                  className={`
+                    w-full px-3 py-2.5 text-left text-sm transition-colors
+                    ${state === s.value
+                      ? "bg-primary-50 text-primary-700 font-medium"
+                      : "text-gray-900 hover:bg-gray-50"
+                    }
+                  `}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
           )}
         </div>
       )}

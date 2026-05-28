@@ -966,7 +966,7 @@ function InboxContent() {
             onClick={() => setDetailOpen(false)}
           />
           {/* Drawer */}
-          <div className="lg:hidden fixed inset-x-0 bottom-0 z-[70] bg-white rounded-t-2xl shadow-2xl max-h-[85dvh] flex flex-col animate-in slide-in-from-bottom duration-300">
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-[70] bg-white rounded-t-2xl shadow-2xl max-h-[85dvh] flex flex-col animate-in slide-in-from-bottom duration-300 pb-[env(safe-area-inset-bottom)]">
             {/* Drag handle */}
             <div className="pt-3 pb-2 flex justify-center shrink-0">
               <div className="w-10 h-1 bg-gray-300 rounded-full" />

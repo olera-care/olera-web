@@ -97,29 +97,29 @@ export default function CandidateCard({
             {candidate.display_name}
           </h3>
           <p className="text-sm text-gray-500 mt-0.5 truncate">
-            {meta.university || "University not specified"}
+            {location || "Location not specified"}
           </p>
         </div>
       </div>
 
       {/* Key info — clean two-line layout */}
       <div className="space-y-2 mb-4">
-        {/* Track + Location - show for all users */}
-        <div className="flex items-center gap-3 text-sm">
+        {/* Track + University */}
+        <div className="flex items-center gap-2 text-sm">
           {trackLabel && (
             <span className="font-medium text-gray-900">{trackLabel}</span>
           )}
-          {trackLabel && location && (
+          {trackLabel && meta.university && (
             <span className="text-gray-300">·</span>
           )}
-          {location && (
-            <span className="text-gray-500">{location}</span>
+          {meta.university && (
+            <span className="text-gray-500 truncate">{meta.university}</span>
           )}
         </div>
 
-        {/* Availability - show for all users */}
+        {/* Availability + Hours */}
         {(availLabel || hoursLabel) && (
-          <div className="flex items-center gap-3 text-sm text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
             {availLabel && <span>{availLabel}</span>}
             {availLabel && hoursLabel && (
               <span className="text-gray-300">·</span>

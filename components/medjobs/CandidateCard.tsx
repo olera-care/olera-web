@@ -5,10 +5,42 @@ import Image from "next/image";
 import type { CandidateData } from "./CandidateRow";
 import {
   getTrackLabel,
-  formatAvailability,
   formatHoursPerWeek,
   hasVideo,
 } from "@/lib/medjobs-helpers";
+
+// Format availability with truncation: "Evenings, Weekends, +2 more"
+function formatAvailabilityTruncated(
+  meta: { availability_types?: string[]; availability_type?: string }
+): { display: string; count: number } | null {
+  const labels: Record<string, string> = {
+    in_between_classes: "Between classes",
+    evenings: "Evenings",
+    weekends: "Weekends",
+    overnights: "Overnights",
+  };
+
+  let types: string[] = [];
+
+  if (meta.availability_types && meta.availability_types.length > 0) {
+    types = meta.availability_types;
+  } else if (meta.availability_type) {
+    return { display: meta.availability_type.replace(/_/g, " "), count: 1 };
+  } else {
+    return null;
+  }
+
+  const mapped = types.map((t) => labels[t] || t);
+  const MAX_SHOWN = 2;
+
+  if (mapped.length <= MAX_SHOWN) {
+    return { display: mapped.join(", "), count: mapped.length };
+  }
+
+  const shown = mapped.slice(0, MAX_SHOWN);
+  const remaining = mapped.length - MAX_SHOWN;
+  return { display: `${shown.join(", ")}, +${remaining} more`, count: mapped.length };
+}
 
 // Softer, more muted colors for avatar fallbacks
 const AVATAR_COLORS = [
@@ -47,7 +79,7 @@ export default function CandidateCard({
 }: CandidateCardProps) {
   const meta = candidate.metadata;
   const trackLabel = getTrackLabel(meta);
-  const availLabel = formatAvailability(meta);
+  const availInfo = formatAvailabilityTruncated(meta);
   const hoursLabel = formatHoursPerWeek(meta);
   const certs = meta.certifications || [];
   const videoAvailable = hasVideo(meta);
@@ -102,33 +134,29 @@ export default function CandidateCard({
         </div>
       </div>
 
-      {/* Key info — clean two-line layout */}
-      <div className="space-y-2 mb-4">
-        {/* Track + University */}
-        {(trackLabel || meta.university) && (
-          <div className="flex items-center gap-2 text-sm">
-            {trackLabel && (
-              <span className="font-medium text-gray-900">{trackLabel}</span>
-            )}
-            {trackLabel && meta.university && (
-              <span className="text-gray-300">·</span>
-            )}
-            {meta.university && (
-              <span className="text-gray-500 truncate">{meta.university}</span>
-            )}
-          </div>
-        )}
+      {/* Key info — fixed two-line layout for consistent card height */}
+      <div className="space-y-2 mb-4 min-h-[52px]">
+        {/* Track + University — always render line for consistent height */}
+        <div className="flex items-center gap-2 text-sm min-h-[20px]">
+          {trackLabel && (
+            <span className="font-medium text-gray-900 shrink-0">{trackLabel}</span>
+          )}
+          {trackLabel && meta.university && (
+            <span className="text-gray-300 shrink-0">·</span>
+          )}
+          {meta.university && (
+            <span className="text-gray-500 truncate">{meta.university}</span>
+          )}
+        </div>
 
-        {/* Availability + Hours */}
-        {(availLabel || hoursLabel) && (
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            {availLabel && <span>{availLabel}</span>}
-            {availLabel && hoursLabel && (
-              <span className="text-gray-300">·</span>
-            )}
-            {hoursLabel && <span>{hoursLabel}</span>}
-          </div>
-        )}
+        {/* Availability + Hours — always render line for consistent height */}
+        <div className="flex items-center gap-2 text-sm text-gray-500 min-h-[20px]">
+          {availInfo && <span className="truncate">{availInfo.display}</span>}
+          {availInfo && hoursLabel && (
+            <span className="text-gray-300 shrink-0">·</span>
+          )}
+          {hoursLabel && <span className="shrink-0">{hoursLabel}</span>}
+        </div>
       </div>
 
       {/* Spacer */}

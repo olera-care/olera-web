@@ -235,9 +235,18 @@ export function LocationFilterDropdown({
 
           {/* City list */}
           <div className="max-h-52 overflow-y-auto">
-            {filteredCities.length === 0 ? (
+            {filteredCities.length === 0 && citySearch.trim() ? (
+              // Show the search term with 0 count when no matches found
+              <div className="w-full px-3 py-2.5 text-left text-[15px] flex items-center justify-between text-gray-400">
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 rounded border-2 border-gray-200" aria-hidden="true" />
+                  <span>{citySearch.trim()}</span>
+                </div>
+                <span className="text-sm">(0)</span>
+              </div>
+            ) : filteredCities.length === 0 ? (
               <div className="px-3 py-4 text-sm text-gray-400 text-center">
-                No cities found
+                No locations available
               </div>
             ) : (
               filteredCities.map((c) => {

@@ -171,7 +171,6 @@ function LeadDetailDrawer({
   onArchive,
   onRestore,
   onDelete,
-  onMessage,
   onContactReveal,
   isVerified = true,
   onVerifyClick,
@@ -182,64 +181,42 @@ function LeadDetailDrawer({
   onArchive: (leadId: string, reason: string) => void;
   onRestore: (leadId: string) => void;
   onDelete: (leadId: string) => void;
-  onMessage: (leadId: string) => void;
   onContactReveal?: (leadId: string, contactType: "email" | "phone") => void;
   isVerified?: boolean;
   onVerifyClick?: () => void;
 }) {
   const router = useRouter();
-  const [showComposer, setShowComposer] = useState(false);
-  const [messageSent, setMessageSent] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
   const [archiveReason, setArchiveReason] = useState<string | null>(null);
   const [archiveOtherText, setArchiveOtherText] = useState("");
   const [archived, setArchived] = useState(false);
   const [restored, setRestored] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [sendingMessage, setSendingMessage] = useState(false);
-  const [sendError, setSendError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Display name: full name if verified, redacted if not
   const displayName = lead ? (isVerified ? lead.name : formatRedactedName(lead.name)) : "";
-  const firstName = lead?.name.split(" ")[0] ?? "";
 
-  // Generate pre-filled template from lead data
-  const careRecipientLabel = lead?.careRecipient ? `your ${lead.careRecipient.toLowerCase()}` : "your loved one";
-  const defaultTemplate = `Hi ${firstName},\n\nThank you for reaching out about care for ${careRecipientLabel}. I'd love to learn more about the needs and discuss how we can help.\n\nWould you be available for a brief call this week to talk through the details?\n\nWarm regards`;
-  const [messageText, setMessageText] = useState(defaultTemplate);
-
-  // Reset composer state when drawer closes or lead changes
+  // Reset state when drawer closes or lead changes
   useEffect(() => {
     if (!isOpen) {
-      setShowComposer(false);
-      setMessageSent(false);
       setShowArchive(false);
       setArchiveReason(null);
       setArchiveOtherText("");
       setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
-      setSendingMessage(false);
-      setSendError(null);
     }
   }, [isOpen]);
 
   useEffect(() => {
     if (lead) {
-      const fn = lead.name.split(" ")[0];
-      const recipientLabel = lead.careRecipient ? `your ${lead.careRecipient.toLowerCase()}` : "your loved one";
-      setMessageText(`Hi ${fn},\n\nThank you for reaching out about care for ${recipientLabel}. I'd love to learn more about the needs and discuss how we can help.\n\nWould you be available for a brief call this week to talk through the details?\n\nWarm regards`);
-      setShowComposer(false);
-      setMessageSent(false);
       setShowArchive(false);
       setArchiveReason(null);
       setArchiveOtherText("");
       setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
-      setSendingMessage(false);
-      setSendError(null);
     }
   }, [lead]);
 
@@ -247,9 +224,7 @@ function LeadDetailDrawer({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (showComposer) {
-          setShowComposer(false);
-        } else if (showArchive) {
+        if (showArchive) {
           setShowArchive(false);
           setArchiveReason(null);
           setArchiveOtherText("");
@@ -268,37 +243,13 @@ function LeadDetailDrawer({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [isOpen, onClose, showComposer, showArchive, showDeleteConfirm]);
+  }, [isOpen, onClose, showArchive, showDeleteConfirm]);
 
-  const handleSendMessage = async () => {
-    if (!lead || !lead.connectionId || !messageText.trim()) return;
-
-    setSendingMessage(true);
-    setSendError(null);
-
-    try {
-      const res = await fetch("/api/connections/message", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          connectionId: lead.connectionId,
-          text: messageText.trim(),
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to send message");
-      }
-
-      setMessageSent(true);
-      onMessage(lead.id);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to send message";
-      setSendError(msg);
-    } finally {
-      setSendingMessage(false);
-    }
+  // Navigate to inbox to continue conversation
+  const handleContinueInInbox = () => {
+    if (!lead) return;
+    router.push(`/provider/inbox?id=${lead.connectionId || lead.id}`);
+    onClose();
   };
 
   const handleArchive = () => {
@@ -470,120 +421,6 @@ function LeadDetailDrawer({
 
         {/* ── Scrollable middle ── */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto">
-
-          {/* ── Inline message composer / persistent sent state ── */}
-          {(showComposer || lead.messagedAt) && (
-            <div className="px-4 lg:px-6 pt-5 pb-2">
-              <div className={`rounded-2xl overflow-hidden ${(messageSent || lead.messagedAt) ? "border border-primary-100/60 bg-primary-50/30" : "border border-gray-200 bg-white"}`}>
-                {(messageSent || lead.messagedAt) ? (
-                  /* ── Persistent confirmation state with actions ── */
-                  <div className="px-6 py-8 flex flex-col items-center justify-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-primary-600 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                      </svg>
-                    </div>
-                    <p className="text-[15px] font-semibold text-gray-900">Message sent</p>
-                    <p className="text-[13px] text-gray-500">{firstName} will receive your message shortly</p>
-
-                    {/* Action buttons */}
-                    <div className="flex items-center gap-3 w-full mt-2">
-                      <button
-                        type="button"
-                        onClick={() => { onClose(); router.push(`/provider/inbox?id=${lead.connectionId || lead.id}`); }}
-                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary-200 bg-white text-[14px] font-semibold text-primary-600 hover:bg-primary-50 hover:border-primary-300 transition-all duration-150 active:scale-[0.98]"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-                        </svg>
-                        Continue in Inbox
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setShowComposer(false); setMessageSent(false); setShowArchive(true); }}
-                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 bg-white text-[14px] font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-                        </svg>
-                        Archive
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  /* ── Composer form ── */
-                  <div>
-                    {/* Header */}
-                    <div className="flex items-start justify-between px-5 pt-4 pb-3">
-                      <div>
-                        <h3 className="text-[15px] font-semibold text-gray-900">Message {firstName}</h3>
-                        <p className="text-[13px] text-gray-400 mt-0.5">
-                          {lead.contactPreference ? `${CONTACT_METHOD_LABELS[lead.contactPreference]} \u00b7 ` : ""}Pre-filled template
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowComposer(false)}
-                        className="text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-150 pt-0.5"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-
-                    {/* Textarea */}
-                    <div className="px-5 pb-4">
-                      <textarea
-                        value={messageText}
-                        onChange={(e) => setMessageText(e.target.value)}
-                        rows={8}
-                        disabled={sendingMessage}
-                        className="w-full rounded-xl border border-primary-200 bg-primary-50/20 px-4 py-3.5 text-base text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
-                      />
-                    </div>
-
-                    {/* Error message */}
-                    {sendError && (
-                      <div className="px-5 pb-3">
-                        <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                          </svg>
-                          <span>{sendError}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Send button */}
-                    <div className="px-5 pb-5">
-                      <button
-                        type="button"
-                        onClick={handleSendMessage}
-                        disabled={sendingMessage || !messageText.trim() || !lead.connectionId}
-                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                      >
-                        {sendingMessage ? (
-                          <>
-                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                            Sending...
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                            </svg>
-                            Send Message
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* ── Archived banner ── */}
           {lead.status === "archived" && lead.archivedDate && (
@@ -873,7 +710,7 @@ function LeadDetailDrawer({
               </div>
             )}
           </div>
-        ) : (showComposer || (lead.messagedAt && !showArchive)) ? null : showArchive ? (
+        ) : showArchive ? (
           /* Archive reason selector */
           <div className="shrink-0 border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
             {archived ? (
@@ -962,13 +799,13 @@ function LeadDetailDrawer({
             {isVerified ? (
               <button
                 type="button"
-                onClick={() => { setShowComposer(true); scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
+                onClick={handleContinueInInbox}
                 className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white hover:bg-primary-700 transition-colors min-h-[48px]"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
                 </svg>
-                Message
+                Continue in Inbox
               </button>
             ) : (
               <button
@@ -979,7 +816,7 @@ function LeadDetailDrawer({
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
                 </svg>
-                Verify to respond
+                Verify to continue
               </button>
             )}
           </div>
@@ -1431,16 +1268,6 @@ export default function ProviderLeadsPage() {
     setSelectedLeadId(null);
   }, []);
 
-  const handleMessageLead = useCallback((leadId: string) => {
-    setLeads((prev) =>
-      prev.map((l) =>
-        l.id === leadId
-          ? { ...l, messagedAt: "Just now", status: "replied" as LeadStatus }
-          : l
-      )
-    );
-  }, []);
-
   // WhatsApp opt-in: show banner if provider has phone, hasn't opted in, and hasn't dismissed
   const providerMeta = (providerProfile?.metadata || {}) as Record<string, unknown>;
   const showWhatsAppBanner =
@@ -1826,7 +1653,6 @@ export default function ProviderLeadsPage() {
         onArchive={handleArchiveLead}
         onRestore={handleRestoreLead}
         onDelete={handleDeleteLead}
-        onMessage={handleMessageLead}
         onContactReveal={(leadId, contactType) => {
           if (!providerProfile) return;
           fetch("/api/activity/track", {

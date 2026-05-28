@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
+import DiscordJoinLink from "@/components/young-caregivers/DiscordJoinLink";
+import PageEngagementTracker from "@/components/young-caregivers/PageEngagementTracker";
 
 export const metadata: Metadata = {
   title: "Young Caregiver Community | Olera",
@@ -20,6 +21,7 @@ const yc = {
 export default function YoungCaregiversPage() {
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#ffffff" }}>
+      <PageEngagementTracker />
       {/* ---- Hero ---- */}
       <section
         className="relative overflow-hidden"
@@ -42,10 +44,7 @@ export default function YoungCaregiversPage() {
                 A free, private group chat for young people doing the same. Vent, ask questions, or just talk to people who get it.
               </p>
               <div className="flex items-start">
-                <Link
-                  href="https://discord.com/invite/R8Mkj5VJsk"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <DiscordJoinLink
                   className="inline-flex items-center justify-center py-3 px-8 rounded-full font-bold text-base active:scale-[0.98] transition-all duration-200 hover:brightness-110"
                   style={{
                     backgroundColor: yc.accent,
@@ -54,7 +53,7 @@ export default function YoungCaregiversPage() {
                   }}
                 >
                   Join the community
-                </Link>
+                </DiscordJoinLink>
               </div>
               <div className="mt-3 flex items-center gap-3">
                 <div className="flex -space-x-2">
@@ -138,10 +137,7 @@ export default function YoungCaregiversPage() {
             <p className="text-lg mb-6" style={{ color: "rgba(255,252,241,0.75)" }}>
               Connect with caregivers who understand. No fees, no judgment, just support.
             </p>
-            <Link
-              href="https://discord.com/invite/R8Mkj5VJsk"
-              target="_blank"
-              rel="noopener noreferrer"
+            <DiscordJoinLink
               className="inline-flex items-center justify-center py-4 px-14 rounded-full font-bold text-lg hover:scale-105 active:scale-[0.98] transition-all duration-200"
               style={{
                 backgroundColor: yc.accent,
@@ -150,7 +146,7 @@ export default function YoungCaregiversPage() {
               }}
             >
               Find your people &rarr;
-            </Link>
+            </DiscordJoinLink>
           </div>
       </section>
 

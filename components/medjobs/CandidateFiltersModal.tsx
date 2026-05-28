@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { INTENDED_SCHOOL_LABELS } from "@/lib/medjobs-helpers";
 import { useCitySearch } from "@/hooks/use-city-search";
 
 // ============================================================
@@ -30,17 +31,10 @@ const HOURS_OPTIONS = [
   { value: "20+", label: "20+ hrs/wk" },
 ];
 
-const TRACK_OPTIONS = [
-  { value: "medical_school", label: "Medical School" },
-  { value: "nursing_school", label: "Nursing School" },
-  { value: "pa_school", label: "PA School" },
-  { value: "pt_school", label: "PT School" },
-  { value: "ot_school", label: "OT School" },
-  { value: "pharmacy_school", label: "Pharmacy School" },
-  { value: "dental_school", label: "Dental School" },
-  { value: "other_health", label: "Other Health Field" },
-  { value: "undecided", label: "Undecided" },
-];
+const TRACK_OPTIONS = Object.entries(INTENDED_SCHOOL_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 const LANGUAGE_OPTIONS = [
   { value: "English", label: "English" },

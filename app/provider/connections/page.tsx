@@ -388,6 +388,16 @@ function LeadDetailDrawer({
     ) : (
       <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
         <p className="text-sm text-gray-500">No contact information provided yet</p>
+        {/* Mark as Replied action - still available even without contact info */}
+        {lead.status !== "replied" && lead.status !== "archived" && (
+          <button
+            type="button"
+            onClick={() => onMarkAsReplied?.(lead.id)}
+            className="mt-3 text-sm font-medium text-primary-700 hover:text-primary-800 transition-colors"
+          >
+            Mark as Replied
+          </button>
+        )}
       </div>
     )
   ) : (

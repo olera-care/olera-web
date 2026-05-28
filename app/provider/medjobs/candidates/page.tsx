@@ -63,8 +63,8 @@ export default function ProviderCandidateBrowsePage() {
   const fetchAllCandidates = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch without pagination to get all candidates
-      const res = await fetch("/api/medjobs/candidates?pageSize=500&sort=newest");
+      // Fetch all candidates with loadAll=true (bypasses 50 limit)
+      const res = await fetch("/api/medjobs/candidates?loadAll=true&sort=newest");
       const data = await res.json();
       setAllCandidates(data.candidates || []);
     } catch (err) {

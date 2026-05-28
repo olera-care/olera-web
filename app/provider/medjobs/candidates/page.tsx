@@ -11,6 +11,7 @@ import CandidateFiltersModal, {
   countActiveCandidateFilters,
   CANDIDATE_FILTER_LABELS,
   type CandidateFiltersState,
+  type CandidateCounts,
 } from "@/components/medjobs/CandidateFiltersModal";
 import Pagination from "@/components/ui/Pagination";
 
@@ -29,6 +30,7 @@ export default function ProviderCandidateBrowsePage() {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [contacted, setContacted] = useState<Set<string>>(new Set());
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
+  const [candidateCounts, setCandidateCounts] = useState<CandidateCounts | undefined>(undefined);
 
   // Fetch existing interviews to know which candidates have been contacted
   useEffect(() => {
@@ -142,21 +144,10 @@ export default function ProviderCandidateBrowsePage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* Header - matches Outreach pattern */}
+      {/* Header */}
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6 sm:py-8">
-            {/* Back link */}
-            <Link
-              href="/provider/matches"
-              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors mb-4"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-              </svg>
-              Find Families
-            </Link>
-
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
               Hire Caregivers
             </h1>
@@ -234,7 +225,7 @@ export default function ProviderCandidateBrowsePage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Active filter chips */}
         {activeFilterCount > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -420,6 +411,7 @@ export default function ProviderCandidateBrowsePage() {
         onClose={() => setIsFiltersModalOpen(false)}
         filters={filters}
         onApply={handleApplyFilters}
+        candidateCounts={candidateCounts}
       />
 
       {/* Mobile FAB for Filters */}

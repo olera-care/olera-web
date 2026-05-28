@@ -122,7 +122,7 @@ export default function GuideBottomSheet({
   // Handle escape key (disabled during submitting/enrichment)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape" && sheetState !== "submitting" && sheetState !== "enrichment") {
+      if (e.key === "Escape" && sheetState !== "submitting") {
         onClose();
       }
     },
@@ -440,10 +440,10 @@ export default function GuideBottomSheet({
 
   const sheetContent = (
     <div className="fixed inset-0 z-[60] md:hidden">
-      {/* Backdrop */}
+      {/* Backdrop - tap outside to close (disabled only during submitting) */}
       <div
         className="absolute inset-0 bg-black/40 animate-fade-in"
-        onClick={sheetState === "submitting" || sheetState === "enrichment" ? undefined : onClose}
+        onClick={sheetState === "submitting" ? undefined : onClose}
       />
 
       {/* Bottom Sheet */}
@@ -460,19 +460,7 @@ export default function GuideBottomSheet({
           <div className="w-10 h-1 rounded-full bg-gray-300" />
         </div>
 
-        {/* Close button - hidden during enrichment and success (users can tap outside to close) */}
-        {sheetState !== "enrichment" && sheetState !== "success" && (
-          <button
-            onClick={onClose}
-            disabled={sheetState === "submitting"}
-            className="absolute top-3 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors z-10 disabled:opacity-50"
-            aria-label="Close"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        )}
+        {/* Close button removed - users can tap outside (backdrop) to close */}
 
         {/* Content */}
         <div className="px-5 pb-5 flex-1 overflow-y-auto">
@@ -482,7 +470,7 @@ export default function GuideBottomSheet({
           {sheetState === "email_capture" && (
             <>
               {/* Header */}
-              <div className="mb-5 pr-8">
+              <div className="mb-5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

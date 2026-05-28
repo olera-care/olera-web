@@ -23,6 +23,11 @@ const PROVIDER_EVENT_TYPES = [
   "provider_picker_clicked",
   "dashboard_arrival",
   "provider_saved",
+  // Provider outreach tracking (Find Families page)
+  "matches_page_viewed",      // Provider opens Find Families page
+  "matches_card_clicked",     // Provider clicks a family card
+  "matches_message_generated", // Provider clicks AI generate button
+  "matches_outreach_sent",    // Provider sends outreach message
 ] as const;
 
 const FAMILY_EVENT_TYPES = [
@@ -79,6 +84,9 @@ const ANONYMOUS_EVENT_TYPES = [
   "enrichment_step_completed", // User completed a specific step (metadata.step: 1-6)
   "enrichment_step_skipped",   // User skipped from a specific step (metadata.step: 1-6)
   "enrichment_completed",      // User finished all 6 steps
+  // Go Live step (step 7) — profile publication from enrichment flow
+  "enrichment_profile_published",  // User clicked "Go live" in enrichment flow
+  "enrichment_go_live_skipped",    // User clicked "Maybe later" in enrichment flow
 ] as const;
 
 function getServiceDb() {

@@ -742,6 +742,8 @@ export async function GET(request: NextRequest) {
                   completion_sequence: newSeq,
                   // Also set legacy flag for backward compat
                   profile_incomplete_reminder_sent: true,
+                  // Store calculated completeness for accurate display in Find Families
+                  profile_completeness: completeness.percentage,
                 },
               })
               .eq("id", family.id);
@@ -908,6 +910,8 @@ export async function GET(request: NextRequest) {
                   publish_sequence: newSeq,
                   // Also set legacy flag for backward compat
                   go_live_reminder_sent: true,
+                  // Store calculated completeness for accurate display in Find Families
+                  profile_completeness: completeness.percentage,
                 },
               })
               .eq("id", family.id);

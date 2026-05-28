@@ -7,6 +7,7 @@ import { useProviderVerification } from "@/lib/hooks/useProviderVerification";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import VerifyToUnlockPrompt from "@/components/provider/VerifyToUnlockPrompt";
+import Pagination from "@/components/ui/Pagination";
 
 // ── Types ──
 
@@ -28,6 +29,10 @@ interface Question {
 }
 
 import { markQuestionAsRead, migrateQnaReadData } from "@/hooks/useUnreadQnACount";
+
+// ── Constants ──
+
+const PAGE_SIZE = 10;
 
 // ── Helpers ──
 
@@ -232,7 +237,7 @@ function PendingQuestionCard({
           handleInteraction();
           onReply(question);
         }}
-        className="w-full text-left bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden active:bg-vanilla-50/60 transition-colors relative"
+        className="w-full text-left bg-white rounded-2xl border border-gray-200/80 overflow-hidden active:bg-vanilla-50/60 transition-colors relative"
       >
         {/* New indicator dot */}
         {isNew && !hasBeenViewed && (
@@ -258,7 +263,7 @@ function PendingQuestionCard({
 
           {/* Publish button */}
           <div className="mt-3">
-            <div className="w-full py-3.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-center shadow-[0_1px_3px_rgba(6,182,212,0.3),0_1px_2px_rgba(6,182,212,0.2)]">
+            <div className="w-full py-3.5 rounded-xl bg-primary-600 text-center">
               <span className="text-[15px] font-semibold text-white">Publish response</span>
             </div>
           </div>
@@ -283,7 +288,7 @@ function PendingQuestionCard({
 
   return (
     <div
-      className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden hover:border-gray-300/80 transition-colors relative"
+      className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden hover:border-gray-300/80 transition-colors relative"
       onClick={handleInteraction}
     >
       {/* New indicator dot */}
@@ -321,7 +326,7 @@ function PendingQuestionCard({
             type="button"
             onClick={handleSubmit}
             disabled={!answer.trim() || isSubmitting}
-            className="w-full lg:w-auto px-6 py-3.5 lg:py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-[15px] lg:text-[14px] font-semibold text-white shadow-[0_1px_3px_rgba(6,182,212,0.3),0_1px_2px_rgba(6,182,212,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(6,182,212,0.35),0_1px_3px_rgba(6,182,212,0.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99] min-h-[48px] lg:min-h-0"
+            className="w-full lg:w-auto px-6 py-3.5 lg:py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-[15px] lg:text-[14px] font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:scale-[0.99] min-h-[48px] lg:min-h-0"
           >
             {isSubmitting ? (
               <span className="inline-flex items-center gap-2">
@@ -352,7 +357,7 @@ function PublishedQuestionCard({
   const isPendingVerification = question.answer_status === "pending";
 
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-colors ${
+    <div className={`bg-white rounded-2xl border overflow-hidden transition-colors ${
       isPendingVerification
         ? "border-amber-200 hover:border-amber-300"
         : "border-gray-200/80 hover:border-gray-300/80"
@@ -590,7 +595,7 @@ function BottomSheet({
             type="button"
             onClick={handleSubmit}
             disabled={!answer.trim() || isSubmitting}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-[15px] font-semibold text-white shadow-[0_1px_3px_rgba(6,182,212,0.3),0_1px_2px_rgba(6,182,212,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(6,182,212,0.35),0_1px_3px_rgba(6,182,212,0.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99] min-h-[48px]"
+            className="w-full py-3.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-[15px] font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:scale-[0.99] min-h-[48px]"
           >
             {isSubmitting ? (
               <span className="inline-flex items-center justify-center gap-2">
@@ -711,7 +716,7 @@ function QnASidebar({ publishedCount, providerSlug }: { publishedCount: number; 
     <div className="hidden lg:block">
       <div className="sticky top-24">
         {/* ── Unified Sidebar Card ── */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm">
+        <div className="bg-white rounded-2xl border border-gray-200/80">
 
           {/* ── Section 1: Visibility Score ── */}
           <div className="p-6">
@@ -903,6 +908,7 @@ export default function ProviderQnAPage() {
   const { refreshAccountData } = useAuth();
   const providerProfile = useProviderProfile();
   const [activeFilter, setActiveFilter] = useState<TabFilter>("pending");
+  const [currentPage, setCurrentPage] = useState(1);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -1016,6 +1022,25 @@ export default function ProviderQnAPage() {
     const statusToMatch = activeFilter === "published" ? "answered" : "pending";
     return questions.filter((q) => q.status === statusToMatch);
   }, [activeFilter, questions]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredQuestions.length / PAGE_SIZE) || 1;
+  const paginatedQuestions = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return filteredQuestions.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredQuestions, currentPage]);
+
+  // Reset page when filter changes or if current page exceeds total pages
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter]);
+
+  // Ensure currentPage doesn't exceed totalPages (e.g., after answering questions)
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const counts = useMemo(() => ({
     pending: questions.filter((q) => q.status === "pending").length,
@@ -1186,7 +1211,7 @@ export default function ProviderQnAPage() {
           <div>
             {filteredQuestions.length > 0 ? (
               <div className="space-y-4">
-                {filteredQuestions.map((question) => (
+                {paginatedQuestions.map((question) => (
                   question.status === "pending" ? (
                     <PendingQuestionCard
                       key={question.id}
@@ -1208,8 +1233,23 @@ export default function ProviderQnAPage() {
                 ))}
               </div>
             ) : (
-              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm lg:min-h-[420px] flex items-center justify-center">
+              <div className="bg-white rounded-2xl border border-gray-200/80 lg:min-h-[420px] flex items-center justify-center">
                 <EmptyState filter={activeFilter} />
+              </div>
+            )}
+
+            {/* Pagination */}
+            {filteredQuestions.length > PAGE_SIZE && (
+              <div className="pt-4">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredQuestions.length}
+                  itemsPerPage={PAGE_SIZE}
+                  onPageChange={setCurrentPage}
+                  itemLabel="questions"
+                  showItemCount={true}
+                />
               </div>
             )}
           </div>

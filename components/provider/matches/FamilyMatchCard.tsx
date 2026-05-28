@@ -4,15 +4,20 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { Profile, FamilyMetadata } from "@/lib/types";
 
+type OutreachStatus = "pending" | "connected" | "declined";
+
 interface FamilyMatchCardProps {
   family: Profile;
   hasFullAccess: boolean;
   providerCareTypes: string[];
-  providerPaymentMethods: string[];
   contacted?: boolean;
+  /** Status of existing outreach (if contacted) */
+  outreachStatus?: OutreachStatus;
   reachOutCount?: number;
   onReachOut: (family: Profile) => void;
   animationDelay?: number;
+  /** For outreach page: when the message was sent (replaces "Posted X ago") */
+  sentAt?: string;
 }
 
 // ── Helpers ──
@@ -54,6 +59,38 @@ function timeAgo(dateStr: string): string {
   if (diffDays < 14) return "1 week ago";
   if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
   return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? "s" : ""} ago`;
+}
+
+function formatContactPref(pref: string): string {
+  const map: Record<string, string> = {
+    call: "calls",
+    phone: "calls",
+    text: "texts",
+    sms: "texts",
+    email: "email",
+  };
+  return map[pref.toLowerCase()] || pref;
+}
+
+function formatSchedulePref(pref: string): string {
+  const map: Record<string, string> = {
+    mornings: "Mornings",
+    morning: "Mornings",
+    afternoons: "Afternoons",
+    afternoon: "Afternoons",
+    evenings: "Evenings",
+    evening: "Evenings",
+    overnight: "Overnight",
+    night: "Overnight",
+    full_time: "Full-time",
+    fulltime: "Full-time",
+    part_time: "Part-time",
+    parttime: "Part-time",
+    flexible: "Flexible",
+    weekends: "Weekends",
+    weekdays: "Weekdays",
+  };
+  return map[pref.toLowerCase()] || pref;
 }
 
 function activityAgo(dateStr: string | null | undefined): { label: string; color: "green" | "amber" | "gray" } {
@@ -146,71 +183,219 @@ function calculateCompleteness(family: Profile, meta: FamilyMetadata | null): nu
   return Math.min(100, score);
 }
 
-// Timeline badge configuration
-const TIMELINE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
-  // New values
-  as_soon_as_possible: { label: "Immediate", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-500" },
-  within_a_month: { label: "Within a month", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
-  in_a_few_months: { label: "In a few months", color: "text-teal-600", bg: "bg-teal-50", border: "border-teal-200", dot: "bg-teal-500" },
-  just_researching: { label: "Just researching", color: "text-gray-600", bg: "bg-gray-100", border: "border-gray-300", dot: "bg-gray-500" },
-  // Legacy values (map to new display)
-  immediate: { label: "Immediate", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-500" },
-  within_1_month: { label: "Within a month", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
-  within_3_months: { label: "In a few months", color: "text-teal-600", bg: "bg-teal-50", border: "border-teal-200", dot: "bg-teal-500" },
-  exploring: { label: "Just researching", color: "text-gray-600", bg: "bg-gray-100", border: "border-gray-300", dot: "bg-gray-500" },
+// Timeline configuration - amber for active needs, gray for exploring
+const TIMELINE_CONFIG: Record<string, { urgency: string; textColor: string; dotColor: string }> = {
+  // New values - amber for all active needs
+  as_soon_as_possible: { urgency: "ASAP", textColor: "text-amber-600", dotColor: "bg-amber-500" },
+  within_a_month: { urgency: "in ~1 month", textColor: "text-amber-600", dotColor: "bg-amber-500" },
+  in_a_few_months: { urgency: "in 2-3 months", textColor: "text-amber-600", dotColor: "bg-amber-500" },
+  just_researching: { urgency: "exploring", textColor: "text-gray-500", dotColor: "bg-gray-400" },
+  // Legacy values
+  immediate: { urgency: "ASAP", textColor: "text-amber-600", dotColor: "bg-amber-500" },
+  within_1_month: { urgency: "in ~1 month", textColor: "text-amber-600", dotColor: "bg-amber-500" },
+  within_3_months: { urgency: "in 2-3 months", textColor: "text-amber-600", dotColor: "bg-amber-500" },
+  exploring: { urgency: "exploring", textColor: "text-gray-500", dotColor: "bg-gray-400" },
 };
 
-// Who needs care display
-function formatWhoNeedsCare(value: string | undefined): string | null {
+// Build timeline label with optional care type
+// "Needs Home Care ASAP" or "Needs care in ~1 month" (fallback)
+function buildTimelineLabel(careType: string | undefined, urgency: string): string {
+  if (urgency === "exploring") {
+    return careType ? `Exploring ${careType}` : "Just exploring";
+  }
+  return careType ? `Needs ${careType} ${urgency}` : `Needs care ${urgency}`;
+}
+
+// Who needs care - returns relationship label for conversational format
+function formatWhoNeedsCare(value: string | undefined): { relationship: string; isSelf: boolean } | null {
   if (!value) return null;
-  const mapping: Record<string, string> = {
-    myself: "For themselves",
-    my_parent: "For a parent",
-    my_spouse: "For a spouse",
-    someone_else: "For someone",
+  const mapping: Record<string, { relationship: string; isSelf: boolean }> = {
+    // Enrichment flow values (keys)
+    self: { relationship: "themselves", isSelf: true },
+    parent: { relationship: "parent", isSelf: false },
+    spouse: { relationship: "spouse", isSelf: false },
+    other: { relationship: "someone", isSelf: false },
+    // Display values (as saved by sync-intent-to-profile)
+    "Myself": { relationship: "themselves", isSelf: true },
+    "My parent": { relationship: "parent", isSelf: false },
+    "My spouse": { relationship: "spouse", isSelf: false },
+    "Someone else": { relationship: "someone", isSelf: false },
+    // Legacy underscore values
+    myself: { relationship: "themselves", isSelf: true },
+    my_parent: { relationship: "parent", isSelf: false },
+    my_spouse: { relationship: "spouse", isSelf: false },
+    someone_else: { relationship: "someone", isSelf: false },
   };
   return mapping[value] || null;
 }
 
-// Completeness color config
-function getCompletenessColors(percent: number): { dot: string; text: string; border: string } {
-  if (percent >= 70) return { dot: "#2a7a6e", text: "#2a7a6e", border: "#2a7a6e" };
-  if (percent >= 30) return { dot: "#b86e1a", text: "#b86e1a", border: "#b86e1a" };
-  return { dot: "#a8b8b4", text: "#a8b8b4", border: "#a8b8b4" };
+// Build conversational care seeking phrase
+function buildCarePhrase(who: { relationship: string; isSelf: boolean } | null, age: number | undefined): string | null {
+  if (!who && !age) return null;
+
+  if (who?.isSelf) {
+    // "Seeking care for themselves, age 34"
+    return age ? `Seeking care for themselves, age ${age}` : "Seeking care for themselves";
+  } else if (who) {
+    // "Seeking care for their 78-year-old parent"
+    return age ? `Seeking care for their ${age}-year-old ${who.relationship}` : `Seeking care for their ${who.relationship}`;
+  } else if (age) {
+    // Just age, no relationship
+    return `Age ${age}`;
+  }
+  return null;
 }
+
+// Generate a rich, personalized description when user hasn't written one
+function generateDescription(params: {
+  name: string;
+  who: { relationship: string; isSelf: boolean } | null;
+  age: number | undefined;
+  careType: string | null;
+  careNeeds: string[];
+  location: string;
+  urgency: string | undefined;
+  paymentMethods: string[];
+}): string | null {
+  const { name, who, age, careType, careNeeds, location, urgency, paymentMethods } = params;
+
+  // Need at least some meaningful data to generate
+  if (!who && !careType && careNeeds.length === 0 && !location) return null;
+
+  // Use first name for personalization (or skip if generic)
+  const firstName = name && name !== "Family" && name.toLowerCase() !== "care seeker"
+    ? name.split(" ")[0]
+    : null;
+
+  const sentences: string[] = [];
+
+  // ── First sentence: Who + care type + location ──
+  // "Sarah is looking for Home Care for their 78-year-old parent in Austin, TX."
+  let s1 = "";
+  if (urgency === "exploring") {
+    s1 = firstName ? `${firstName} is exploring` : "Exploring";
+    s1 += careType ? ` ${careType} options` : " care options";
+  } else {
+    s1 = firstName ? `${firstName} is looking for` : "Looking for";
+    s1 += careType ? ` ${careType}` : " care";
+  }
+
+  if (who) {
+    if (who.isSelf) {
+      s1 += age ? ` for themselves (age ${age})` : " for themselves";
+    } else {
+      const recipientDesc = age ? `${age}-year-old ${who.relationship}` : who.relationship;
+      s1 += ` for their ${recipientDesc}`;
+    }
+  }
+
+  if (location) s1 += ` in ${location}`;
+  sentences.push(s1 + ".");
+
+  // ── Second sentence: Care needs + timeline ──
+  // "They're looking for help with mobility and companionship, ideally starting as soon as possible."
+  if (careNeeds.length > 0 || (urgency && urgency !== "exploring")) {
+    let s2 = firstName ? "They're" : "They're";
+
+    if (careNeeds.length > 0) {
+      const needsList = [...careNeeds].map(n => n.toLowerCase());
+      if (needsList.length === 1) {
+        s2 += ` looking for help with ${needsList[0]}`;
+      } else if (needsList.length === 2) {
+        s2 += ` looking for help with ${needsList[0]} and ${needsList[1]}`;
+      } else {
+        const last = needsList.pop();
+        s2 += ` looking for help with ${needsList.join(", ")}, and ${last}`;
+      }
+
+      if (urgency && urgency !== "exploring") {
+        const timelineText = urgency === "ASAP"
+          ? "ideally starting as soon as possible"
+          : `hoping to start ${urgency}`;
+        s2 += `, ${timelineText}`;
+      }
+    } else if (urgency && urgency !== "exploring") {
+      const timelineText = urgency === "ASAP"
+        ? "hoping to start as soon as possible"
+        : `hoping to start ${urgency}`;
+      s2 += ` ${timelineText}`;
+    }
+
+    sentences.push(s2 + ".");
+  }
+
+  // ── Third sentence: Payment (if available) ──
+  if (paymentMethods.length > 0) {
+    const methods = paymentMethods.slice(0, 2);
+    let s3 = "Can pay via ";
+    if (methods.length === 1) {
+      s3 += methods[0];
+    } else {
+      s3 += `${methods[0]} or ${methods[1]}`;
+    }
+    sentences.push(s3 + ".");
+  }
+
+  return sentences.length > 0 ? sentences.join(" ") : null;
+}
+
 
 export default function FamilyMatchCard({
   family,
   hasFullAccess,
   providerCareTypes,
-  providerPaymentMethods,
   contacted = false,
+  outreachStatus,
   reachOutCount = 0,
   onReachOut,
   animationDelay = 0,
+  sentAt,
 }: FamilyMatchCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
 
   const meta = (family.metadata || {}) as FamilyMetadata;
   const displayName = family.display_name || "Family";
   const initials = getInitials(displayName);
   const location = [family.city, family.state].filter(Boolean).join(", ");
-  const timeline = meta?.timeline ? TIMELINE_CONFIG[meta.timeline] : null;
-  const careNeeds = meta?.care_needs || family.care_types || [];
+  const timelineConfig = meta?.timeline ? TIMELINE_CONFIG[meta.timeline] : null;
   const paymentMethods = meta?.payment_methods || [];
   const publishedAt = meta?.care_post?.published_at || family.created_at;
   const lastActiveAt = meta?.last_active_at;
   const familyDescription = meta?.about_situation?.trim();
 
-  // Calculate profile completeness and determine card state
-  const completeness = calculateCompleteness(family, meta);
-  const cardState: "full" | "partial" | "minimal" =
-    completeness >= 70 ? "full" :
-    completeness >= 30 ? "partial" : "minimal";
+  // Extract additional metadata fields
+  const age = meta?.age;
+  const contactPreference = meta?.contact_preference;
+  const schedulePreference = meta?.schedule_preference;
 
-  // Completeness chip colors
-  const completenessColors = getCompletenessColors(completeness);
+  // Care type (e.g., "Home Care", "Assisted Living") - shown in timeline
+  const careType = family.care_types?.[0] || null;
+
+  // Build timeline label with care type: "Needs Home Care ASAP"
+  const timelineLabel = timelineConfig
+    ? buildTimelineLabel(careType || undefined, timelineConfig.urgency)
+    : null;
+
+  // Care needs only (not care types - those are in timeline now)
+  const careNeeds = useMemo(() => {
+    const raw = meta?.care_needs || [];
+    const seen = new Set<string>();
+    return raw.filter((need) => {
+      const lower = need.toLowerCase();
+      if (seen.has(lower)) return false;
+      seen.add(lower);
+      return true;
+    });
+  }, [meta?.care_needs]);
+
+  // Calculate profile completeness and determine card state
+  // Aligned with cron threshold: ≥60% is "ready", <60% is "building"
+  const completeness = calculateCompleteness(family, meta);
+  const cardState: "full" | "partial" =
+    completeness >= 60 ? "full" : "partial";
 
   // Tooltip hover handlers
   const handleTooltipMouseEnter = () => {
@@ -239,44 +424,111 @@ export default function FamilyMatchCard({
     );
   }, [careNeeds, providerCareTypes]);
 
-  // Who needs care display
+  // Who needs care - conversational format
   const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient);
+  const carePhrase = buildCarePhrase(whoNeedsCare, age);
+
+  // Description: use user's own description, or generate a rich one from metadata
+  const generatedDescription = useMemo(() => {
+    if (familyDescription) return null; // Don't generate if user has their own
+    return generateDescription({
+      name: displayName,
+      who: whoNeedsCare,
+      age,
+      careType,
+      careNeeds,
+      location,
+      urgency: timelineConfig?.urgency,
+      paymentMethods,
+    });
+  }, [familyDescription, displayName, whoNeedsCare, age, careType, careNeeds, location, timelineConfig?.urgency, paymentMethods]);
+
+  const displayDescription = familyDescription || generatedDescription;
+
+  // Check if description is truncated
+  useEffect(() => {
+    const el = descriptionRef.current;
+    if (el) {
+      setIsDescriptionTruncated(el.scrollHeight > el.clientHeight);
+    }
+  }, [displayDescription]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!contacted) {
-      onReachOut(family);
-    }
+    // Always call onReachOut - parent will handle view vs compose mode
+    onReachOut(family);
   };
+
+  // Status badge config for contacted families
+  const statusBadge = contacted && outreachStatus ? {
+    pending: { label: "Awaiting response", bgClass: "bg-amber-50", textClass: "text-amber-700", borderClass: "border-amber-100", dotClass: "bg-amber-400" },
+    connected: { label: "Connected", bgClass: "bg-emerald-50", textClass: "text-emerald-700", borderClass: "border-emerald-100", dotClass: "bg-emerald-400" },
+    declined: { label: "Declined", bgClass: "bg-gray-50", textClass: "text-gray-500", borderClass: "border-gray-200", dotClass: "" },
+  }[outreachStatus] : null;
 
   return (
     <div
-      className={`group bg-white rounded-[14px] border overflow-hidden ${
+      className={`group bg-white rounded-[14px] border overflow-hidden cursor-pointer ${
         contacted
-          ? "border-[#e4edea] opacity-60 cursor-default"
-          : "border-[#e4edea] hover:border-[#a8d4cf] cursor-pointer card-hover-shadow"
+          ? "border-[#d4e4df] hover:border-[#b8d4cd] card-hover-shadow"
+          : "border-[#e4edea] hover:border-[#a8d4cf] card-hover-shadow"
       }`}
       style={{
         animation: `fadeSlideUp 0.4s ease-out ${animationDelay}ms both`,
       }}
       onClick={handleClick}
     >
+      {/* META BAR */}
+      <div className="px-5 py-3 flex items-center justify-between gap-3">
+        <span className="text-[13px]">
+          {sentAt ? (
+            // Outreach mode: show when message was sent + interest count
+            <>
+              <span className="text-gray-500">Sent</span>{" "}
+              <span className="font-semibold text-gray-700">{timeAgo(sentAt)}</span>
+              <span className="mx-1.5 text-gray-500">·</span>
+              <span className="text-gray-500">Interested providers:</span>
+              {" "}
+              <span className="font-semibold text-gray-700">{reachOutCount}</span>
+            </>
+          ) : (
+            // Discovery mode: show when family posted + interest count
+            <>
+              <span className="text-gray-500">Posted</span>{" "}
+              <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
+              <span className="mx-1.5 text-gray-500">·</span>
+              <span className="text-gray-500">Interested providers:</span>
+              {" "}
+              <span className="font-semibold text-gray-700">{reachOutCount}</span>
+            </>
+          )}
+        </span>
+
+        {/* Status badge for contacted families */}
+        {statusBadge && (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium ${statusBadge.bgClass} ${statusBadge.textClass} border ${statusBadge.borderClass}`}>
+            {statusBadge.dotClass && <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dotClass}`} />}
+            {statusBadge.label}
+          </span>
+        )}
+      </div>
+
       <div className="p-5">
-        {/* TOP ROW: Avatar + Name/Location + Timeline */}
-        <div className="flex items-start gap-3 mb-4">
+        {/* NAME ROW - Avatar + Name/Location stacked */}
+        <div className="flex items-center gap-3 mb-3">
           {/* Avatar with optional online dot */}
           <div className="relative shrink-0">
             {family.image_url ? (
               <Image
                 src={family.image_url}
                 alt={displayName}
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-[11px] object-cover"
+                width={44}
+                height={44}
+                className="w-11 h-11 rounded-xl object-cover"
               />
             ) : (
               <div
-                className="w-10 h-10 rounded-[11px] flex items-center justify-center text-sm font-semibold text-white"
+                className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-semibold text-white"
                 style={{ background: avatarGradient(displayName) }}
               >
                 {initials}
@@ -284,253 +536,181 @@ export default function FamilyMatchCard({
             )}
             {/* Online indicator dot */}
             {isOnline && (
-              <span className="absolute -bottom-0.5 -right-0.5 w-[9px] h-[9px] bg-[#38b068] rounded-full border-[1.5px] border-white" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#38b068] rounded-full border-2 border-white" />
             )}
           </div>
 
-          {/* Name + Location + Time */}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-[14.5px] font-medium text-gray-900 truncate leading-tight">
+          {/* Name + Location stacked */}
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold text-gray-900 leading-snug truncate">
               {hasFullAccess ? displayName : displayName.split(" ")[0]}
             </h3>
-            <p className="text-xs text-gray-500 truncate mt-0.5">
-              {hasFullAccess ? location : (family.city || "Nearby")} · {timeAgo(publishedAt)}
+            <p className="text-sm font-medium text-gray-600">
+              {hasFullAccess ? location : (family.city || "Nearby")}
             </p>
           </div>
-
-          {/* Timeline badge */}
-          {timeline && (
-            <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${timeline.border} ${timeline.color} ${timeline.bg}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${timeline.dot}`} />
-              {timeline.label}
-            </span>
-          )}
         </div>
 
-        {/* FAMILY DESCRIPTION QUOTE */}
-        {familyDescription && (
-          <>
+        {/* INLINE SPECS - Always show for scannability */}
+        {(carePhrase || contactPreference || schedulePreference) && (
+          <p className="text-[13px] sm:text-sm text-gray-600 mb-4 leading-relaxed">
+            {carePhrase && <span>{carePhrase}</span>}
+            {carePhrase && (contactPreference || schedulePreference) && <span className="text-gray-400"> · </span>}
+            {contactPreference && <span>Prefers {formatContactPref(contactPreference)}</span>}
+            {contactPreference && schedulePreference && <span className="text-gray-400"> · </span>}
+            {schedulePreference && <span>{formatSchedulePref(schedulePreference)}</span>}
+          </p>
+        )}
+
+        {/* FAMILY DESCRIPTION - User's own or auto-generated from metadata */}
+        {displayDescription && (
+          <div className="mb-4">
             <p
-              className="text-[13px] text-gray-500 italic leading-[1.6] mb-4"
+              ref={descriptionRef}
+              className="text-[14px] sm:text-[15px] text-gray-700 leading-[1.7]"
               style={{
                 display: "-webkit-box",
-                WebkitLineClamp: 2,
+                WebkitLineClamp: 3,
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
               }}
             >
-              &ldquo;{familyDescription}&rdquo;
+              {displayDescription}
             </p>
-            <div className="border-t border-gray-100 mb-4" />
-          </>
-        )}
-
-        {/* FULL STATE: Match highlight block */}
-        {cardState === "full" && matchingServices.length > 0 && (
-          <div className="bg-teal-50/60 border border-teal-100/60 rounded-lg px-3.5 py-3 mb-4 flex items-start gap-2.5">
-            <svg className="w-5 h-5 text-[#2a7a6e] shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-            </svg>
-            <p className="text-sm text-gray-700">
-              Looking for <span className="font-semibold">{matchingServices.length} service{matchingServices.length > 1 ? "s" : ""} you offer</span> — {matchingServices.join(" & ")}
-            </p>
-          </div>
-        )}
-
-        {/* PARTIAL STATE: Match Details */}
-        {cardState === "partial" && careNeeds.length > 0 && (
-          <div className="mb-4">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-              Match Details
-            </p>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-[#2a7a6e] shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg>
-              <p className="text-sm text-gray-700">
-                Looking for <span className="font-semibold">{careNeeds.slice(0, 2).join(", ")}</span>
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* OPPORTUNITY LINE (Partial + Minimal only) */}
-        {cardState === "partial" && (
-          <div className="bg-amber-50/70 border border-amber-100/60 rounded-lg px-3.5 py-3 mb-4">
-            <p className="text-sm text-amber-900/80 leading-relaxed">
-              <span className="font-semibold">✦ Still filling in their profile.</span> Families at this stage are open — reach out first and build the relationship early.
-            </p>
-          </div>
-        )}
-        {cardState === "minimal" && (
-          <div className="bg-amber-50/70 border border-amber-100/60 rounded-lg px-3.5 py-3 mb-4">
-            <p className="text-sm text-amber-900/80 leading-relaxed">
-              <span className="font-semibold">✦ Early in their journey.</span> The provider who reaches out first — warmly, with no pressure — builds the relationship that leads to a placement.
-            </p>
-          </div>
-        )}
-
-        {/* TAGS ROW (Full + Partial only) */}
-        {cardState !== "minimal" && (careNeeds.length > 0 || whoNeedsCare) && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {careNeeds.slice(0, 3).map((need) => (
-              <span
-                key={need}
-                className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full border border-gray-200/60"
+            {isDescriptionTruncated && (
+              <button
+                type="button"
+                className="text-[14px] font-medium text-gray-900 underline underline-offset-2 mt-1 hover:text-gray-700"
+                onClick={(e) => e.stopPropagation()}
               >
-                {need}
-              </span>
-            ))}
-            {whoNeedsCare && (
-              <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full border border-gray-200/60">
-                {whoNeedsCare}
-              </span>
+                more
+              </button>
             )}
           </div>
         )}
 
-        {/* PAYS WITH ROW (Full only) */}
-        {cardState === "full" && paymentMethods.length > 0 && (
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-xs text-gray-500 shrink-0">Pays with:</span>
-            <div className="flex flex-wrap gap-1.5">
-              {paymentMethods.slice(0, 3).map((method) => (
+        {/* TIMELINE - "Needs Home Care ASAP" or "Needs care in ~1 month" */}
+        {timelineConfig && timelineLabel && (
+          <p className={`flex items-center gap-1.5 text-[13px] font-medium mb-3 ${timelineConfig.textColor}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${timelineConfig.dotColor}`} />
+            {timelineLabel}
+          </p>
+        )}
+
+        {/* TAGS ROW - Care needs only */}
+        {careNeeds.length > 0 && (
+          <div className="relative mb-4">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 pr-6">
+              {careNeeds.map((need) => (
                 <span
-                  key={method}
-                  className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full border border-gray-200/60"
+                  key={need}
+                  className="inline-flex items-center px-3 py-1.5 text-[13px] font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-200 whitespace-nowrap shrink-0"
                 >
-                  {method}
+                  {need}
                 </span>
               ))}
             </div>
+            {/* Scroll indicator */}
+            {careNeeds.length > 2 && (
+              <div className="absolute right-0 top-0 bottom-1 w-10 bg-gradient-to-l from-white via-white/90 pointer-events-none flex items-center justify-end pr-1">
+                <span className="text-gray-400 text-lg font-light">&rsaquo;</span>
+              </div>
+            )}
           </div>
         )}
-      </div>
 
-      {/* BOTTOM ROW */}
-      <div className="px-5 py-3.5 border-t border-gray-100 flex items-center justify-between">
-        {/* Completeness chip with tooltip */}
-        <div className="relative flex items-center gap-1.5">
-          <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ backgroundColor: completenessColors.dot }}
-          />
-          <span
-            className="text-sm font-medium"
-            style={{ color: completenessColors.text }}
-          >
-            {completeness}% complete
-          </span>
-          <button
-            type="button"
-            className="relative flex items-center justify-center w-[15px] h-[15px] rounded-full border text-[9px] font-medium leading-none transition-colors hover:bg-gray-50"
-            style={{ borderColor: completenessColors.border, color: completenessColors.text }}
-            onMouseEnter={handleTooltipMouseEnter}
-            onMouseLeave={handleTooltipMouseLeave}
-            onClick={(e) => e.stopPropagation()}
-            aria-label="View shared details"
-          >
-            i
-          </button>
-
-          {/* Tooltip - Dynamic content based on profile state */}
-          {showTooltip && (
-            <div
-              className="absolute bottom-full left-0 mb-2 z-50"
-              style={{ minWidth: "220px", maxWidth: "260px" }}
-            >
-              <div
-                className="relative bg-[#141918] text-white rounded-[7px] px-3 py-2.5 shadow-lg"
-                style={{ fontSize: "11px", lineHeight: "1.6" }}
-              >
-                {/* FULL PROFILE */}
-                {cardState === "full" && (
-                  <>
-                    <p className="text-[9px] font-semibold text-white/50 uppercase tracking-wider mb-1">
-                      Match quality
-                    </p>
-                    <p className="text-white/90 mb-2.5">
-                      {matchingServices.length > 0 ? (
-                        <>Strong match — needs {matchingServices.length} {matchingServices.length === 1 ? "service" : "services"} you offer.</>
-                      ) : (
-                        <>Strong match — detailed profile shared.</>
-                      )}
-                    </p>
-                    <div className="border-t border-white/10 pt-2.5">
-                      <p className="text-[9px] font-semibold text-white/50 uppercase tracking-wider mb-1">
-                        Tip
-                      </p>
-                      <p className="text-white/70">
-                        Reference their care needs in your message — they&apos;ve shared enough for a personalized intro.
-                      </p>
-                    </div>
-                  </>
-                )}
-
-                {/* PARTIAL PROFILE */}
-                {cardState === "partial" && (
-                  <>
-                    <p className="text-[9px] font-semibold text-white/50 uppercase tracking-wider mb-1">
-                      Match quality
-                    </p>
-                    <p className="text-white/90 mb-2.5">
-                      Potential match — still filling in their profile.
-                    </p>
-                    <div className="border-t border-white/10 pt-2.5">
-                      <p className="text-[9px] font-semibold text-white/50 uppercase tracking-wider mb-1">
-                        Tip
-                      </p>
-                      <p className="text-white/70">
-                        Ask what matters most to them. Families at this stage are open to conversation.
-                      </p>
-                    </div>
-                  </>
-                )}
-
-                {/* MINIMAL PROFILE */}
-                {cardState === "minimal" && (
-                  <>
-                    <p className="text-[9px] font-semibold text-white/50 uppercase tracking-wider mb-1">
-                      Match quality
-                    </p>
-                    <p className="text-white/90 mb-2.5">
-                      New lead — just getting started.
-                    </p>
-                    <div className="border-t border-white/10 pt-2.5">
-                      <p className="text-[9px] font-semibold text-white/50 uppercase tracking-wider mb-1">
-                        Tip
-                      </p>
-                      <p className="text-white/70">
-                        Keep it warm and pressure-free. Early outreach builds trust before they&apos;ve talked to anyone else.
-                      </p>
-                    </div>
-                  </>
-                )}
-
-                {/* Arrow pointing down-left */}
-                <div
-                  className="absolute -bottom-1.5 left-3 w-0 h-0"
-                  style={{
-                    borderLeft: "6px solid transparent",
-                    borderRight: "6px solid transparent",
-                    borderTop: "6px solid #141918",
-                  }}
-                />
+        {/* TRUST SIGNALS - Stacked on mobile, side by side on desktop */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-[13px] pt-3 border-t border-gray-100">
+          {/* Payment methods - scrollable, shown first on mobile */}
+          {paymentMethods.length > 0 && (
+            <div className="flex items-center gap-1.5 min-w-0 order-first sm:order-last text-[13px]">
+              <span className="text-gray-500 shrink-0">Can pay via</span>
+              <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+                {paymentMethods.map((method, i) => (
+                  <span key={method} className="font-semibold text-gray-700 whitespace-nowrap shrink-0">
+                    {i > 0 && <span className="text-gray-500 font-normal mr-1">·</span>}
+                    {method}
+                  </span>
+                ))}
               </div>
             </div>
           )}
-        </div>
 
-        {/* Competition indicator */}
-        {reachOutCount === 0 ? (
-          <span className="text-sm font-medium text-[#2a7a6e]">
-            ✦ Be the first to connect
-          </span>
-        ) : (
-          <span className="text-sm text-gray-400">
-            {reachOutCount} provider{reachOutCount !== 1 ? "s" : ""} contacted
-          </span>
-        )}
+          {/* Profile completeness */}
+          <div
+            className="relative shrink-0"
+            onMouseEnter={handleTooltipMouseEnter}
+            onMouseLeave={handleTooltipMouseLeave}
+          >
+            <span className="text-[13px]">
+              <span className="text-gray-500">Profile</span>
+              {" "}
+              <span className="font-semibold text-gray-700">{completeness}% complete</span>
+            </span>
+
+            {/* Tooltip */}
+            {showTooltip && (
+              <div
+                className="absolute bottom-full left-0 mb-2 z-50"
+                style={{ minWidth: "220px", maxWidth: "260px" }}
+              >
+                <div
+                  className="relative bg-[#141918] text-white rounded-lg px-3.5 py-3 shadow-xl"
+                  style={{ fontSize: "12px", lineHeight: "1.6" }}
+                >
+                  {cardState === "full" && (
+                    <>
+                      <p className="text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+                        Match quality
+                      </p>
+                      <p className="text-white/90 mb-2.5">
+                        {matchingServices.length > 0 ? (
+                          <>Strong match — needs {matchingServices.length} {matchingServices.length === 1 ? "service" : "services"} you offer.</>
+                        ) : (
+                          <>Strong match — detailed profile shared.</>
+                        )}
+                      </p>
+                      <div className="border-t border-white/10 pt-2.5">
+                        <p className="text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+                          Tip
+                        </p>
+                        <p className="text-white/70">
+                          Reference their care needs in your message.
+                        </p>
+                      </div>
+                    </>
+                  )}
+                  {cardState === "partial" && (
+                    <>
+                      <p className="text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+                        Match quality
+                      </p>
+                      <p className="text-white/90 mb-2.5">
+                        New to Olera — still building their profile.
+                      </p>
+                      <div className="border-t border-white/10 pt-2.5">
+                        <p className="text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
+                          Tip
+                        </p>
+                        <p className="text-white/70">
+                          Keep it warm and friendly. Early outreach builds trust.
+                        </p>
+                      </div>
+                    </>
+                  )}
+                  <div
+                    className="absolute -bottom-1.5 left-4 w-0 h-0"
+                    style={{
+                      borderLeft: "6px solid transparent",
+                      borderRight: "6px solid transparent",
+                      borderTop: "6px solid #141918",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Animation keyframes and hover styles */}

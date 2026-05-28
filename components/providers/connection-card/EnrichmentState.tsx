@@ -11,6 +11,8 @@ import {
   trackEnrichmentStepCompleted,
   trackEnrichmentStepSkipped,
   trackEnrichmentCompleted,
+  trackEnrichmentGoLive,
+  trackEnrichmentGoLiveSkipped,
   type EnrichmentStep as EnrichmentStepNumber,
 } from "@/lib/analytics/enrichment-tracking";
 
@@ -510,15 +512,8 @@ export default function EnrichmentState({
         throw new Error("Failed to publish");
       }
 
-      // Log go_live event (fire-and-forget)
-      fetch("/api/activity/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_type: "profile_published",
-          metadata: { source: "enrichment_flow", provider_id: providerId },
-        }),
-      }).catch(() => {});
+      // Track Go Live event (writes to provider_activity for funnel analytics)
+      trackEnrichmentGoLive(trackingParams);
 
       // Track completion
       trackEnrichmentCompleted(trackingParams);
@@ -531,21 +526,14 @@ export default function EnrichmentState({
       setPublishError("Couldn't publish. Please try again.");
       setPublishing(false);
     }
-  }, [onSave, getAllData, trackingParams, providerId]);
+  }, [onSave, getAllData, trackingParams]);
 
   // Handle "Maybe later" - save data without publishing
   const handleMaybeLater = useCallback(() => {
     trackEnrichmentCompleted(trackingParams);
 
-    // Log skip event
-    fetch("/api/activity/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        event_type: "go_live_skipped",
-        metadata: { source: "enrichment_flow", provider_id: providerId },
-      }),
-    }).catch(() => {});
+    // Track Go Live skipped (writes to provider_activity for funnel analytics)
+    trackEnrichmentGoLiveSkipped(trackingParams);
 
     // Save enrichment data and complete
     const userSelectedCareType = !prefilledCareType && careType;
@@ -555,7 +543,7 @@ export default function EnrichmentState({
     } else {
       onSkip();
     }
-  }, [trackingParams, providerId, prefilledCareType, careType, recipient, timeline, careNeed, paymentMethod, name, phone, onSave, onSkip, getAllData]);
+  }, [trackingParams, prefilledCareType, careType, recipient, timeline, careNeed, paymentMethod, name, phone, onSave, onSkip, getAllData]);
 
   return (
     <div>

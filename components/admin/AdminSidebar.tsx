@@ -31,6 +31,7 @@ const navSections: NavSection[] = [
       { label: "Activity Center", href: "/admin/activity" },
       { label: "Demand", href: "/admin/demand" },
       { label: "Leads", href: "/admin/leads" },
+      { label: "Outreach", href: "/admin/outreach" },
       { label: "Questions", href: "/admin/questions" },
     ],
   },
@@ -430,6 +431,21 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
                 })}
               </div>
             )}
+          </div>
+
+          {/* Young Caregivers section */}
+          <div key="young-caregivers" className="mt-1">
+            <Link
+              href="/admin/young-caregivers"
+              className={[
+                "w-full flex items-center px-2.5 py-1.5 rounded-md text-sm font-semibold transition-colors duration-100",
+                isActive("/admin/young-caregivers")
+                  ? "bg-gray-100 text-gray-900"
+                  : "text-gray-800 hover:bg-gray-50",
+              ].join(" ")}
+            >
+              Young Caregivers
+            </Link>
           </div>
         </nav>
 

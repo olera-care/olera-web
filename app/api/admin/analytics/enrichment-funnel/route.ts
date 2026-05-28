@@ -33,8 +33,8 @@ const ENRICHMENT_EVENT_TYPES = [
   "enrichment_step_completed",
   "enrichment_step_skipped",
   "enrichment_completed",
-  "profile_published",   // Go Live: clicked "Get started"
-  "go_live_skipped",     // Go Live: clicked "Maybe later"
+  "enrichment_profile_published",   // Go Live: clicked "Go live"
+  "enrichment_go_live_skipped",     // Go Live: clicked "Maybe later"
 ];
 
 export async function GET(request: Request) {
@@ -139,24 +139,18 @@ function calculateEnrichmentFunnel(events: EnrichmentEvent[]): FunnelMetrics {
   // Group events by session to track unique user journeys
   const sessionMap = new Map<string, EnrichmentEvent[]>();
 
-  // Also track Go Live events by profile_id (they don't have session_id)
+  // Track Go Live events (step 7) - these now have session_id like other enrichment events
   let goLiveCompleted = 0;
   let goLiveSkipped = 0;
 
   for (const event of events) {
-    // Go Live events don't have session_id, count them separately
-    // Only count events from the enrichment flow (not from nudge emails, portal, etc.)
-    if (event.event_type === "profile_published") {
-      if (event.metadata?.source === "enrichment_flow") {
-        goLiveCompleted++;
-      }
+    // Count Go Live events separately (step 7)
+    if (event.event_type === "enrichment_profile_published") {
+      goLiveCompleted++;
       continue;
     }
-    if (event.event_type === "go_live_skipped") {
-      // go_live_skipped only comes from enrichment flow, but check anyway
-      if (event.metadata?.source === "enrichment_flow") {
-        goLiveSkipped++;
-      }
+    if (event.event_type === "enrichment_go_live_skipped") {
+      goLiveSkipped++;
       continue;
     }
 

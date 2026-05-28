@@ -7,6 +7,8 @@
  * - PATCH /api/connections/update-intent
  */
 
+import { calculateProfileCompletenessPercentage } from "@/components/portal/profile/completeness";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseClient = any;
 
@@ -89,11 +91,12 @@ const paymentMap: Record<string, string> = {
 export async function syncIntentToProfile(
   db: SupabaseClient,
   profileId: string,
-  intent: IntentData
+  intent: IntentData,
+  email?: string | null
 ): Promise<void> {
   const { data: currentProfile } = await db
     .from("business_profiles")
-    .select("metadata, care_types, phone, city, state, display_name")
+    .select("metadata, care_types, phone, city, state, display_name, email, image_url, description")
     .eq("id", profileId)
     .single();
 
@@ -191,6 +194,21 @@ export async function syncIntentToProfile(
   if (intent.providerState && !currentProfile.state && !updates.state) {
     updates.state = intent.providerState;
   }
+
+  // Recalculate profile completeness with merged data
+  const mergedProfileData = {
+    display_name: (updates.display_name as string) ?? currentProfile.display_name,
+    image_url: currentProfile.image_url,
+    city: (updates.city as string) ?? currentProfile.city,
+    phone: (updates.phone as string) ?? currentProfile.phone,
+    description: currentProfile.description,
+    care_types: (updates.care_types as string[]) ?? currentProfile.care_types,
+    metadata: currentMeta,
+  };
+  const profileEmail = email ?? currentProfile.email;
+  const newCompleteness = calculateProfileCompletenessPercentage(mergedProfileData, profileEmail);
+  currentMeta.profile_completeness = newCompleteness;
+  updates.metadata = currentMeta;
 
   await db
     .from("business_profiles")

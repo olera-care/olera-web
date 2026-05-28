@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { LocationFilterDropdown } from "@/components/ui/LocationFilterDropdown";
 
 // Filter options configuration
 const DISTANCE_OPTIONS = [
@@ -54,6 +55,7 @@ const SCHEDULE_OPTIONS = [
 
 export interface FiltersState {
   distance: string;
+  cities: string[];
   urgency: string[];
   careTypes: string[];
   paymentMethods: string[];
@@ -64,6 +66,7 @@ export interface FiltersState {
 
 export const DEFAULT_FILTERS_STATE: FiltersState = {
   distance: "any",
+  cities: [],
   urgency: [],
   careTypes: [],
   paymentMethods: [],
@@ -78,6 +81,7 @@ interface FiltersModalProps {
   filters: FiltersState;
   onApply: (filters: FiltersState) => void;
   familyCounts?: {
+    byCity: { city: string; state: string; count: number }[];
     byUrgency: Record<string, number>;
     byCareType: Record<string, number>;
     byPayment: Record<string, number>;
@@ -101,10 +105,14 @@ export default function FiltersModal({
   // Local state for editing (apply on confirm)
   const [localFilters, setLocalFilters] = useState<FiltersState>(filters);
 
+  // City search state
+  const [citySearch, setCitySearch] = useState("");
+
   // Sync local state when modal opens
   useEffect(() => {
     if (isOpen) {
       setLocalFilters(filters);
+      setCitySearch("");
     }
   }, [isOpen, filters]);
 
@@ -132,6 +140,15 @@ export default function FiltersModal({
 
   const handleDistanceChange = useCallback((value: string) => {
     setLocalFilters((prev) => ({ ...prev, distance: value }));
+  }, []);
+
+  const handleCityToggle = useCallback((cityKey: string) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      cities: prev.cities.includes(cityKey)
+        ? prev.cities.filter((c) => c !== cityKey)
+        : [...prev.cities, cityKey],
+    }));
   }, []);
 
   const handleUrgencyToggle = useCallback((value: string) => {
@@ -185,6 +202,7 @@ export default function FiltersModal({
 
   const handleClear = useCallback(() => {
     setLocalFilters(DEFAULT_FILTERS_STATE);
+    setCitySearch("");
   }, []);
 
   const handleApply = useCallback(() => {
@@ -194,6 +212,7 @@ export default function FiltersModal({
 
   const activeFilterCount =
     (localFilters.distance !== "any" ? 1 : 0) +
+    localFilters.cities.length +
     localFilters.urgency.length +
     localFilters.careTypes.length +
     localFilters.paymentMethods.length +
@@ -264,6 +283,17 @@ export default function FiltersModal({
                   ))}
                 </div>
               </FilterSection>
+            )}
+
+            {/* Location filter - collapsed dropdown with multi-select */}
+            {(familyCounts?.byCity?.length ?? 0) > 0 && (
+              <LocationFilterDropdown
+                cities={familyCounts?.byCity ?? []}
+                selectedCities={localFilters.cities}
+                onToggle={handleCityToggle}
+                citySearch={citySearch}
+                onSearchChange={setCitySearch}
+              />
             )}
 
             {/* Urgency filter */}
@@ -533,6 +563,7 @@ function FilterSection({
 export function countActiveFilters(filters: FiltersState): number {
   return (
     (filters.distance !== "any" ? 1 : 0) +
+    filters.cities.length +
     filters.urgency.length +
     filters.careTypes.length +
     filters.paymentMethods.length +

@@ -83,14 +83,12 @@ export default function ProviderCandidateBrowsePage() {
   const filteredCandidates = useMemo(() => {
     let result = allCandidates;
 
-    // Location filter
-    if (filters.city) {
-      result = result.filter((c) =>
-        c.city?.toLowerCase().includes(filters.city.toLowerCase())
-      );
-    }
-    if (filters.state && !filters.city) {
-      result = result.filter((c) => c.state === filters.state);
+    // Location filter (multi-select cities)
+    if (filters.cities.length > 0) {
+      result = result.filter((c) => {
+        const cityKey = `${c.city || ""}|${c.state || ""}`;
+        return filters.cities.includes(cityKey);
+      });
     }
 
     // Track filter
@@ -157,6 +155,7 @@ export default function ProviderCandidateBrowsePage() {
 
   // Compute counts for filter badges (from ALL candidates, not filtered)
   const candidateCounts = useMemo<CandidateCounts>(() => {
+    const cityMap: Record<string, { city: string; state: string; count: number }> = {};
     const byCertification: Record<string, number> = {};
     const byAvailability: Record<string, number> = {};
     const byHours: Record<string, number> = {};
@@ -166,6 +165,15 @@ export default function ProviderCandidateBrowsePage() {
 
     for (const candidate of allCandidates) {
       const meta = candidate.metadata as StudentMetadata;
+
+      // City/Location
+      if (candidate.city) {
+        const cityKey = `${candidate.city}|${candidate.state || ""}`;
+        if (!cityMap[cityKey]) {
+          cityMap[cityKey] = { city: candidate.city, state: candidate.state || "", count: 0 };
+        }
+        cityMap[cityKey].count++;
+      }
 
       // Certifications
       for (const cert of meta?.certifications || []) {
@@ -208,7 +216,11 @@ export default function ProviderCandidateBrowsePage() {
       }
     }
 
+    // Convert cityMap to sorted array (by count descending)
+    const byCity = Object.values(cityMap).sort((a, b) => b.count - a.count);
+
     return {
+      byCity,
       byCertification,
       byAvailability,
       byHours,
@@ -249,13 +261,11 @@ export default function ProviderCandidateBrowsePage() {
   };
 
   const handleRemoveFilter = (key: string, value?: string) => {
-    if (key === "location") {
-      setFilters((prev) => ({ ...prev, city: "", state: "" }));
-    } else if (key === "hoursPerWeek" || key === "track") {
+    if (key === "hoursPerWeek" || key === "track") {
       setFilters((prev) => ({ ...prev, [key]: "" }));
     } else if (key === "hasVideo") {
       setFilters((prev) => ({ ...prev, hasVideo: false }));
-    } else if (key === "certifications" || key === "availability" || key === "languages") {
+    } else if (key === "cities" || key === "certifications" || key === "availability" || key === "languages") {
       if (value) {
         setFilters((prev) => ({
           ...prev,
@@ -354,13 +364,17 @@ export default function ProviderCandidateBrowsePage() {
         {/* Active filter chips */}
         {activeFilterCount > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-4">
-            {/* Location chip */}
-            {(filters.city || filters.state) && (
-              <FilterChip
-                label={filters.city ? `${filters.city}, ${filters.state}` : filters.state}
-                onRemove={() => handleRemoveFilter("location")}
-              />
-            )}
+            {/* Location chips */}
+            {filters.cities.map((cityKey) => {
+              const [city, state] = cityKey.split("|");
+              return (
+                <FilterChip
+                  key={cityKey}
+                  label={state ? `${city}, ${state}` : city}
+                  onRemove={() => handleRemoveFilter("cities", cityKey)}
+                />
+              );
+            })}
 
             {/* Certifications chips */}
             {filters.certifications.map((cert) => (

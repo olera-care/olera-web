@@ -495,34 +495,51 @@ function MatchesSkeleton() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-5">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="bg-white rounded-2xl border border-warm-100/60 overflow-hidden">
-                <div className="p-7">
-                  <div className="flex items-start gap-4 mb-5">
-                    <div className="w-14 h-14 rounded-2xl bg-warm-100 shrink-0" />
-                    <div className="flex-1">
-                      <div className="h-5 w-40 bg-warm-100 rounded mb-2" />
+              <div key={i} className="bg-white rounded-[14px] border border-warm-100/60 overflow-hidden">
+                {/* Meta bar */}
+                <div className="px-5 py-3 flex items-center justify-between">
+                  <div className="h-3.5 w-36 bg-warm-50 rounded" />
+                  <div className="h-3.5 w-28 bg-warm-50 rounded" />
+                </div>
+
+                <div className="p-5">
+                  {/* Avatar + Name/Location */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-11 h-11 rounded-xl bg-warm-100 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="h-5 w-32 bg-warm-100 rounded mb-1.5" />
                       <div className="h-3.5 w-24 bg-warm-50 rounded" />
                     </div>
-                    <div className="h-7 w-24 bg-warm-50 rounded-full" />
                   </div>
-                  <div className="grid grid-cols-3 gap-px bg-warm-100/60 rounded-xl overflow-hidden mb-5">
-                    {[0, 1, 2].map((j) => (
-                      <div key={j} className="bg-warm-50/50 py-3 px-4">
-                        <div className="h-4 w-20 bg-warm-100 rounded mx-auto" />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="space-y-2 mb-5 pl-4 border-l-2 border-warm-100">
+
+                  {/* Inline specs */}
+                  <div className="h-3.5 w-56 bg-warm-50 rounded mb-4" />
+
+                  {/* Description */}
+                  <div className="space-y-2 mb-4">
                     <div className="h-3.5 bg-warm-50 rounded w-full" />
-                    <div className="h-3.5 bg-warm-50 rounded w-4/5" />
+                    <div className="h-3.5 bg-warm-50 rounded w-11/12" />
+                    <div className="h-3.5 bg-warm-50 rounded w-3/4" />
                   </div>
-                  <div className="flex gap-2.5">
-                    <div className="h-8 w-24 bg-warm-50 rounded-full" />
-                    <div className="h-8 w-28 bg-warm-50 rounded-full" />
+
+                  {/* Timeline */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-warm-100" />
+                    <div className="h-3.5 w-40 bg-warm-50 rounded" />
                   </div>
-                </div>
-                <div className="bg-warm-50/40 px-7 py-4">
-                  <div className="h-4 w-48 bg-warm-100/60 rounded" />
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="h-7 w-24 bg-warm-50 rounded-lg" />
+                    <div className="h-7 w-20 bg-warm-50 rounded-lg" />
+                    <div className="h-7 w-28 bg-warm-50 rounded-lg" />
+                  </div>
+
+                  {/* Trust signals footer */}
+                  <div className="flex items-center justify-between pt-3 border-t border-warm-100/60">
+                    <div className="h-3.5 w-28 bg-warm-50 rounded" />
+                    <div className="h-3.5 w-32 bg-warm-50 rounded" />
+                  </div>
                 </div>
               </div>
             ))}
@@ -1174,10 +1191,20 @@ export default function ProviderMatchesPage() {
     const byPayment: Record<string, number> = {};
     const byWhoNeedsCare: Record<string, number> = {};
     const bySchedule: Record<string, number> = {};
+    const cityMap: Record<string, { city: string; state: string; count: number }> = {};
     let completeProfiles = 0;
 
     for (const family of nonContactedFamilies) {
       const meta = family.metadata as FamilyMetadata;
+
+      // City/Location
+      if (family.city) {
+        const cityKey = `${family.city}|${family.state || ""}`;
+        if (!cityMap[cityKey]) {
+          cityMap[cityKey] = { city: family.city, state: family.state || "", count: 0 };
+        }
+        cityMap[cityKey].count++;
+      }
 
       // Urgency/Timeline
       const timeline = meta?.timeline || "exploring";
@@ -1218,7 +1245,11 @@ export default function ProviderMatchesPage() {
       }
     }
 
+    // Convert cityMap to sorted array (by count descending)
+    const byCity = Object.values(cityMap).sort((a, b) => b.count - a.count);
+
     return {
+      byCity,
       byUrgency,
       byCareType,
       byPayment,
@@ -1241,6 +1272,14 @@ export default function ProviderMatchesPage() {
   // Note: We keep contacted families in the list (sorted to bottom) instead of filtering them out
   const filteredFamilies = useMemo(() => {
     let result = [...families]; // Keep all families
+
+    // Apply modal filters: cities
+    if (modalFilters.cities.length > 0) {
+      result = result.filter((f) => {
+        const cityKey = `${f.city || ""}|${f.state || ""}`;
+        return modalFilters.cities.includes(cityKey);
+      });
+    }
 
     // Apply modal filters: urgency
     if (modalFilters.urgency.length > 0) {

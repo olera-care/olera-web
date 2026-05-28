@@ -821,13 +821,7 @@ ${context}${urgencyNote}. I'd love to help.
   const ProfileSection = (
     <div className="space-y-6">
       {/* About Their Situation */}
-      {profileState === "minimal" ? (
-        <div className="px-4 py-3 bg-amber-50/60 border-l-2 border-amber-300 rounded-r-lg">
-          <p className="text-sm text-amber-800/90 leading-relaxed">
-            This family is just getting started. A warm, no-pressure introduction works best here.
-          </p>
-        </div>
-      ) : displayDescription ? (
+      {displayDescription ? (
         <div>
           <p className="text-lg font-semibold text-gray-900 mb-2">
             About their situation
@@ -850,8 +844,7 @@ ${context}${urgencyNote}. I'd love to help.
       ) : null}
 
       {/* Care details - consolidated section */}
-      {profileState !== "minimal" && (
-        <div className={displayDescription ? "mt-2" : ""}>
+      <div className={displayDescription ? "mt-2" : ""}>
           <p className="text-lg font-semibold text-gray-900 mb-3">
             Care details
           </p>
@@ -911,7 +904,6 @@ ${context}${urgencyNote}. I'd love to help.
             )}
           </div>
         </div>
-      )}
     </div>
   );
 

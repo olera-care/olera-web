@@ -105,17 +105,19 @@ export default function CandidateCard({
       {/* Key info — clean two-line layout */}
       <div className="space-y-2 mb-4">
         {/* Track + University */}
-        <div className="flex items-center gap-2 text-sm">
-          {trackLabel && (
-            <span className="font-medium text-gray-900">{trackLabel}</span>
-          )}
-          {trackLabel && meta.university && (
-            <span className="text-gray-300">·</span>
-          )}
-          {meta.university && (
-            <span className="text-gray-500 truncate">{meta.university}</span>
-          )}
-        </div>
+        {(trackLabel || meta.university) && (
+          <div className="flex items-center gap-2 text-sm">
+            {trackLabel && (
+              <span className="font-medium text-gray-900">{trackLabel}</span>
+            )}
+            {trackLabel && meta.university && (
+              <span className="text-gray-300">·</span>
+            )}
+            {meta.university && (
+              <span className="text-gray-500 truncate">{meta.university}</span>
+            )}
+          </div>
+        )}
 
         {/* Availability + Hours */}
         {(availLabel || hoursLabel) && (

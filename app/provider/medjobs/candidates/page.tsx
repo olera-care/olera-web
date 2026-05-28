@@ -18,7 +18,7 @@ const PAGE_SIZE = 12;
 type FilterTab = "all" | "contacted";
 
 export default function ProviderCandidateBrowsePage() {
-  const { activeProfile, user } = useAuth();
+  const { user } = useAuth();
 
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,6 +126,8 @@ export default function ProviderCandidateBrowsePage() {
   const handleApplyFilters = useCallback((newFilters: CandidateFiltersState) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to page 1 when filters change
+    // Sync search bar with location from modal
+    setSearchQuery(newFilters.city ? `${newFilters.city}, ${newFilters.state}` : "");
   }, []);
 
   const handlePageChange = (page: number) => {

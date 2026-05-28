@@ -7,6 +7,105 @@
 
 ## Current Focus
 
+### 2026-05-28 (Thu) — Cold-outreach Phase 3: all 4 auth DNS records LIVE, DKIM authenticating. **Next: mail-tester verify → Smartlead.**
+
+**Context:** Picked up from Monday's reclaim. Goal: finish Phase 3 (auth DNS) so we can start Smartlead warmup.
+
+**DONE this session (Phase 3 complete):**
+- **All 4 Cloudflare DNS records added on `findmedjobs.co`** (Type · Name · Content):
+  - `MX` · `@` · `smtp.google.com` (pri 1) — added Mon already
+  - `TXT` · `@` · `v=spf1 include:_spf.google.com ~all`
+  - `TXT` · `_dmarc` · `v=DMARC1; p=none; rua=mailto:team@findmedjobs.co`
+  - `TXT` · `google._domainkey` · `v=DKIM1; k=rsa; p=MIIBIjANBgk...` (full 2048-bit key, generated in admin → Apps → Google Workspace → Gmail → Authenticate email; Cloudflare auto-chunks the long value per DNS spec)
+- **Verified all 4 propagating globally** via `dig @1.1.1.1` — DKIM/SPF/DMARC TXTs serving + MX returning `smtp.google.com`.
+- **DKIM authentication started in admin console** — status flipped to "Authenticating email with DKIM" with STOP AUTHENTICATION button visible (confirms active state; the "click Start authentication" instructional text is static and doesn't reflect state).
+- **DKIM 72h post-reactivation gate cleared automatically** — Google requires 24-72h after Gmail re-enable before issuing DKIM keys. Mon ~10:40pm reactivation → Thu ~3:20pm = ~65h, cleared just in time.
+
+**Decisions made (with why):**
+- **DMARC `rua=mailto:team@findmedjobs.co` left in place even though `team@` doesn't exist** — DMARC still validates; only reports bounce. Easy fix later (edit record to `partnerships@` OR create `team@` alias forwarding to `tj@`). Not a deliverability blocker. Flagged in Notion as a tidy-up.
+- **DKIM 2048-bit, not 1024.** Stronger; no real downside; modern best practice. Google offered both — always pick the longer key when available.
+- **Frozen pre-mail-tester verification.** Sending a test mail proves end-to-end auth (SPF/DKIM/DMARC pass at receiver) — important enough to do fresh-headed, not at session-end fatigue. Once we send the first message from findmedjobs.co, the domain's reputation clock starts; want to do it cleanly with the right test pattern (real-looking subject/body, not "test test test").
+
+**⏸️ RESUME HERE (in priority order) →**
+1. **Mail-tester end-to-end verify** (5 min, MUST do first before any other sending):
+   - https://mail-tester.com → get unique test address (don't refresh until step c)
+   - Sign into mail.google.com as `logan@findmedjobs.co` (need saved password; if lost, admin.google.com → Users → Logan → Reset password)
+   - Send a normal-looking email (real subject + 2-3 sentences of plausible body; avoid "test" content — mail-tester penalizes it)
+   - Click "Then check your score" on mail-tester
+   - **Goal: 10/10 with SPF ✓ / DKIM ✓ / DMARC ✓ all green.** Anything red → fix before next send.
+2. **Repeat mail-tester for `partnerships@`** (separate test address, same flow).
+3. **Smartlead account signup** — smartlead.ai → Basic plan $39/mo → Settings → API → grab `SMARTLEAD_API_KEY` → drop in `.env.local` (activates `lib/smartlead.ts`).
+4. **Enable IMAP on both mailboxes** (Smartlead requires it for reply ingestion): in each mailbox's Gmail, Settings → See all settings → Forwarding and POP/IMAP → Enable IMAP → Save.
+5. **Connect both mailboxes to Smartlead** via Google OAuth, warmup **ON / Normal ramp (~4wk long pole)**, custom link-tracking CNAME `track.findmedjobs.co` (Smartlead will provide the target value), open-tracking **OFF**.
+6. **Then:** Logan sign-off on D2 launch-flow → build reply/bounce → CRM webhook (route through `log_email_replied`/`log_email_bounced`, G4 single-writer — NOT direct DB writes).
+
+**Open follow-ups (low-pri, don't block):**
+- DMARC `rua=` tidy-up (team@→partnerships@ or create team@ alias).
+- Decide mailbox #3 within a few days for warmup parallelism (held off this session at 2 mailboxes).
+- Audit the old "DS" user that briefly appeared in the tenant (now only Logan/Olera Team/TJ show).
+- **"Olera Team" display name on `partnerships@`** — puts brand on burnable domain (recognition vs spam-association tradeoff). Quick rename if we decide to fully insulate.
+- Apex redirect for findmedjobs.co (avoid throwaway-spam look — a landing page or 301 to olera.care).
+
+**Context refs:** memory `project_email_deliverability`; Notion *Smartlead Setup Runbook* + *Domain Reclaim* page (now updated with full Phase 3 status); `docs/medjobs/OPERATIONAL_BRIEF.md` (D2, G4).
+
+---
+
+### 2026-05-25 (Mon) — Cold-outreach: DNS unblocked, ghost GWS tenant reclaimed, 2 mailboxes live. **Next: DKIM + warmup.**
+
+**Context:** Continuation of the self-managed `findmedjobs.co` on-ramp. Cleared the registry blocker, hit the ghost Google Workspace tenant, reclaimed it via admin password recovery, reactivated billing, created mailboxes. Long manual slog — almost entirely on TJ's side (GoDaddy/Cloudflare/Google UIs); Claude diagnosed + walked each step.
+
+**DONE this session (the whole reclaim saga):**
+- **Phase 1 DNS — COMPLETE.** Root cause of last session's blocker confirmed: **GoDaddy Domain Lock** (`clientUpdateProhibited`). TJ turned it OFF (Registration Settings → Transfer card → Domain Lock toggle), redid the NS change to `decker`/`mary.ns.cloudflare.com`. Registry committed (`whois` Updated Date → 2026-05-25, Domain Status `ok`, NS = Cloudflare). Cloudflare confirmed authoritative + sent "now active (Free plan)" email. The expired CloudNS stub (`127.0.0.1`) is gone.
+- **Committed `lib/smartlead.ts` + `.env.example`** as one unit — `03361d66 Add dormant Smartlead outbound engine (env-gated)`. (Two parallel commit attempts collided on a `HEAD.lock`; cleared it, one clean commit landed.)
+- **Phase 2 GWS — ghost tenant reclaimed.** New-tenant signup hit **"domain already in use"** (the predicted ghost). Evidence (TJ's screenshots): old tenant `tj@findmedjobs.co` (NOT `admin@`), Business Starter, created ~Jun 24 2025, payment failed Jul–Aug, **canceled Oct 4 2025** (non-payment), now purged. **Decision: reclaim into THIS old tenant (NOT olera.care)** — it's already an isolated separate tenant on findmedjobs.co = exactly the burnable setup we wanted; reclaim work is identical regardless of destination, so adding to olera.care saves nothing and welds cold-sending onto the crown jewel. Google support (case via olera.care's paid support) said DNS-verify during signup releases it, but the signup UI kept dead-ending. **Path that worked: admin password recovery** — `accounts.google.com/signin/recovery` for `tj@findmedjobs.co` → "Couldn't sign you in" (no other admin) → recovery succeeded (got "Welcome to your new account") → hit a transient **"unusual traffic"** block (VPN on — `149.40.56.10` exit; killed VPN + normal window fixed it) → into admin console.
+- **Subscription reactivated.** admin.google.com → Billing → Buy or upgrade → **Business Starter ($8.40/user/mo)**, active. (Org name shows "Medjobs".)
+- **2 mailboxes created (decided 2-not-3):** `logan@findmedjobs.co` ("Logan DuBose" — real teammate), `partnerships@findmedjobs.co` ("Olera Team"). Plus `tj@` admin. **Right-sizing call:** Logan alone covers next steps (auth DNS is domain-wide), but warmup is a ~4wk per-mailbox clock that can't be rushed + never send cold from a single mailbox (SPOF) → warm 2 in parallel now. Held the 3rd unless volume exceeds ~1k/mo. **Flagged but TJ kept:** "Olera Team" display name puts the brand on the burnable domain (recognition vs spam-association tradeoff; quick rename later if desired).
+- **Notion:** created child page under Smartlead Setup Runbook — "Domain Reclaim — Google Support Case (findmedjobs.co stuck in dead tenant) (2026-05-25)" with the dead-tenant timeline, decision, paste-ready support message.
+
+**⏸️ RESUME HERE (Phase 3 auth DNS, then warmup) →**
+1. **3 Cloudflare DNS records — likely still NOT added** (TJ was about to, then broke for the night): `findmedjobs.co` → DNS → Add:
+   - **MX** · name `@` · `smtp.google.com` · priority `1`
+   - **TXT** · name `@` · `v=spf1 include:_spf.google.com ~all`
+   - **TXT** · name `_dmarc` · `v=DMARC1; p=none; rua=mailto:team@findmedjobs.co`
+   - (TXT: paste value w/o wrapping quotes; CF adds them.)
+2. **DKIM — pending.** admin.google.com → **Apps → Google Workspace → Gmail → Authenticate email** → select `findmedjobs.co` → **Generate new record** (2048-bit) → paste host (`google._domainkey`) + value → Claude formats the Cloudflare TXT → then **Start authentication** in that screen.
+3. **Verify** all 4 via mail-tester.com; consider an apex redirect (avoid throwaway-spam look).
+4. **Phase 4 — Smartlead:** connect both mailboxes via Google OAuth (enable IMAP first), **warmup ON / Normal ramp (~4wk long pole)**, link-tracking CNAME `track.findmedjobs.co`, open-tracking OFF. Need `SMARTLEAD_API_KEY` in env to activate `lib/smartlead.ts`.
+5. **Then:** Logan sign-off on D2 launch-flow → build reply/bounce → CRM webhook (route through `log_email_replied`/`log_email_bounced`, G4 single-writer — NOT direct DB writes).
+6. **Open follow-ups:** decide mailbox #3 within a few days (warmup parallelism); audit the old "DS" user that appeared in the tenant (only Logan/Olera Team/TJ show now); save the 2 mailbox passwords for Smartlead.
+
+**Context refs:** memory `project_email_deliverability`; Notion *Smartlead Setup Runbook* + new *Domain Reclaim* child page + *Smartlead×MedJobs Integration Plan*; `docs/medjobs/OPERATIONAL_BRIEF.md` (D2, G4).
+
+---
+
+### 2026-05-24 (Sun) — Cold-outreach unblock: pivoted Zapmail → self-managed (Cloudflare + GWS), `lib/smartlead.ts` built
+
+**Context:** Resumed the paused Zapmail/Smartlead on-ramp (findmedjobs.co). Diagnosed the "Workspace Already Exists" block, then **pivoted off Zapmail entirely** to a self-managed stack.
+
+**Diagnosis (the block was NOT propagation lag):** `findmedjobs.co` NS delegation to CloudNS (pns61–64) is correct at the GoDaddy registry, but CloudNS serves an **expired-zone stub** — `dig @pns61.cloudns.net` returns `A 127.0.0.1`, `MX 0 localhost`, `TXT "expired"`, no SOA/NS. That orphaned/expired zone (from a prior lapsed connection) is what Zapmail trips on; only Zapmail support can delete it. Google Workspace ruled out: the old `tj@findmedjobs.co` GWS was canceled (non-payment, Oct 2025) and is gone — domain is clean, in no active Workspace.
+
+**THE PIVOT — Zapmail → Path B (self-managed):** Rather than wait on a 3rd-party provisioning queue, go self-owned on `findmedjobs.co`. TJ already runs his domains on **Cloudflare** + pairs with Claude, so the managed-provider's "auto-DNS for a non-dev" rationale (calibrated for the old 45-mailbox/55k vision) no longer holds at the **right-sized 3-mailbox/~1k-mo** scale. Reject `joinolera.care` as a cold domain — it's Olera-branded (brand-exposure, not a DMARC-subdomain issue since separate apex); cold domains must be burnable.
+
+**Shipped this session:**
+- **`lib/smartlead.ts`** (NEW) — outbound engine mirroring `lib/email.ts`: lazy, **env-gated, fail-explicit** (no `SMARTLEAD_API_KEY` → every call `{ ok:false }`, never throws; fully dormant until key set). Funcs: `createCampaign`/`saveSequence`/`attachEmailAccounts`/`addLeads`/`setCampaignSchedule`/`setCampaignStatus`/`listEmailAccounts`/`getCampaign` + `isSmartleadConfigured()`. Typed (`SmartleadResult<T>` etc.). **Mutates zero CRM state.** Header note: verify Smartlead v1 endpoint shapes before go-live.
+- **`.env.example`** — added `SMARTLEAD_API_KEY` (+ optional `SMARTLEAD_BASE_URL`).
+- **Notion** — "Smartlead Setup Runbook" now leads with a dated **"DECISION (2026-05-24): Path B — self-managed"** banner + the 5-phase Cloudflare/GWS/Smartlead steps (supersedes the Zapmail/managed-provider approach). Created then repurposed the "Zapmail Support" child page (paste-ready email to support@zapmail.ai — optional now that we're going self-managed).
+- **Memory:** `feedback_pressure_test_inherited_plans` (general resume habit — don't inherit a plan's assumptions uncritically; re-derive when a premise shifts).
+
+**Deliberately NOT built:** the reply/bounce → CRM webhook. It activates **D2 (inbound reply ingestion)** — gated on **Logan's sign-off on the launch-flow**, and must route through existing `log_email_replied`/`log_email_bounced` handlers (G4 single-writer), NOT direct DB writes. Clear next code step once Logan signs off. (Code map from Explore agent: `app/api/admin/student-outreach/[id]/route.ts` handlers; webhook pattern in `app/api/resend/webhook/route.ts` + `lib/resend-events.ts`; discipline in `docs/medjobs/OPERATIONAL_BRIEF.md` G1–G10 / D2.)
+
+**Phase 1 DONE (this session):** `findmedjobs.co` added to **Cloudflare** (Free, `tj@olera.care`'s account). Deleted all 12 imported junk records (the expired-stub `127.0.0.1`/`::1`/`localhost`/`"expired"` set). GoDaddy NS repointed CloudNS (pns61–64) → **Cloudflare (`decker.ns.cloudflare.com` + `mary.ns.cloudflare.com`)**, saved. **Propagation pending** at save time — registry/whois still showed CloudNS (normal `.co` lag, minutes–1h). DS Records/DNSSEC: confirm off (was empty/expired stub — low risk). Once `dig NS findmedjobs.co @1.1.1.1` returns the Cloudflare NS, the broken CloudNS zone is fully gone.
+
+**⛔ BLOCKER discovered (end of session) — NS change did NOT commit at the registry.** After saving Cloudflare NS (`decker`/`mary.ns.cloudflare.com`) in GoDaddy, gave it 15+ min — still not propagated. Diagnosed via `whois findmedjobs.co`: **registry `Updated Date` is still `2026-05-23` (yesterday)** = the change never reached the registry; still lists CloudNS (pns61–64); domain still resolves `127.0.0.1` via the old stub. **Root-cause hypothesis: the domain carries `clientUpdateProhibited` status** (a GoDaddy Domain Lock / Domain Protection flag) which blocks nameserver updates at the registry even when the UI accepts the Save. (Other possible cause: GoDaddy NS-change email confirmation not clicked.)
+
+**Resume here (DNS first — everything else is blocked on it) →**
+- **(A) Confirm GoDaddy's own UI state:** GoDaddy → findmedjobs.co → DNS → Nameservers. Does it show `decker`/`mary.ns.cloudflare.com` or did it revert to CloudNS? (Tells us if GoDaddy accepted it at all.)
+- **(B) Turn OFF the domain lock:** GoDaddy → findmedjobs.co → Registration Settings → Domain Lock / Domain Protection → disable. Then redo DNS → Nameservers → Change Nameservers (custom: `decker.ns.cloudflare.com` + `mary.ns.cloudflare.com`) → Save. Also check email for a GoDaddy "confirm nameserver change" message.
+- **(C) Verify commit:** `whois findmedjobs.co | grep -i "Updated Date\|Name Server"` — Updated Date should flip to today + NS should show cloudflare. Then `dig +short NS findmedjobs.co @1.1.1.1` returns the Cloudflare pair = active.
+- **Then Phase 2 — Google Workspace:** sign up at workspace.google.com, domain `findmedjobs.co`, Business Starter (~$7/user/mo); admin distinct from sending boxes (e.g. `admin@`/`tj@`); create 3 sending mailboxes `logan@`/`partnerships@`/`team@` with real names + photos. ⚠️ if GWS says "domain already in use" the old canceled tenant resurfaced — handle then. Domain-verify TXT goes in Cloudflare (needs CF active first). (3) **Phase 3 — auth DNS in Cloudflare BEFORE any send:** MX `smtp.google.com` (pri 1), SPF `v=spf1 include:_spf.google.com ~all`, DKIM (`google._domainkey` from Admin), DMARC `_dmarc` `v=DMARC1; p=none; rua=mailto:dmarc@findmedjobs.co`; verify via mail-tester.com; add apex redirect (avoid throwaway-spam look). (4) **Phase 4 — Smartlead:** connect 3 mailboxes via Google OAuth (enable IMAP), warmup ON Normal (~4wk long pole), custom link-tracking CNAME `track.findmedjobs.co`, open-tracking OFF. Then: Logan sign-off on D2 launch-flow → build reply/bounce webhook. **Uncommitted:** `lib/smartlead.ts` + `.env.example` on `save/email-deliverability-session` (offered to commit as one G6 unit). Memory: `project_email_deliverability`, `feedback_pressure_test_inherited_plans`.
+
+---
+
 ### 2026-05-21→22 — Email deliverability: shipped to prod + cold-outreach strategy right-sized
 
 **Shipped to PRODUCTION (3-PR fix, promoted via #862, carried forward in later promotions):**

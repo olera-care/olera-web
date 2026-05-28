@@ -188,7 +188,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
           <div className="space-y-6">
 
             {/* ─── HERO CARD: Identity Only ─── */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
+            <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row gap-5 sm:gap-6">
                 {/* Photo */}
                 <div className="flex-shrink-0 flex justify-center sm:justify-start">
@@ -310,7 +310,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
 
             {/* ─── RESUME CARD: All Content Sections with Dividers ─── */}
             {/* Section order optimized for provider screening: practical filters first, personality later */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
 
               {/* ── Video Section ── */}
               {videoAvailable && (
@@ -671,7 +671,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
           {/* ─── RIGHT COLUMN: Sticky CTA Sidebar (Desktop Only) ─── */}
           <div className="hidden lg:block">
             <div className="sticky top-6">
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
+              <div className="bg-white rounded-2xl border border-gray-200 p-6">
                 <CandidateDetailClientWrapper
                   studentId={profile.id}
                   studentName={filtered.displayName}

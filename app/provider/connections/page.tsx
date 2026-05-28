@@ -1187,7 +1187,7 @@ export default function ProviderLeadsPage() {
       // Provider-initiated outreach is handled separately on the Outreach page
       const inquiriesResult = await supabase
         .from("connections")
-        .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
+        .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata, image_url, created_at)")
         .eq("to_profile_id", profileId)
         .eq("type", "inquiry")
         .in("status", ["pending", "accepted"])

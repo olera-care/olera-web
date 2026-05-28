@@ -193,14 +193,17 @@ function LeadDetailDrawer({
     onClose();
   };
 
-  const handleArchive = () => {
+  const handleArchive = async () => {
     if (!lead || !archiveReason) return;
+    setArchived(true);
+
     // If "already_connected", auto-mark as replied before archiving
     // (they've communicated outside Olera, so it's effectively replied)
+    // Await to prevent race condition with archive metadata update
     if (archiveReason === "already_connected" && lead.status === "new") {
-      onMarkAsReplied?.(lead.id);
+      await onMarkAsReplied?.(lead.id);
     }
-    setArchived(true);
+
     onArchive(lead.id, archiveReason);
     setTimeout(() => {
       setArchived(false);

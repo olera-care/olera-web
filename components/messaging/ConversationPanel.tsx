@@ -46,6 +46,7 @@ interface ThreadMessage {
   created_at: string;
   type?: string;
   next_step?: string;
+  is_auto_reply?: boolean;
 }
 
 // ── Helpers ──
@@ -566,13 +567,16 @@ export default function ConversationPanel({
           ) : null}
         </div>
 
-        {/* Show Details toggle — hidden when panel is already open (close button on panel handles that) */}
-        {onToggleDetail && !detailOpen && (
+        {/* Show Details toggle — visible on all screen sizes, hidden when panel is already open on desktop */}
+        {onToggleDetail && (
           <button
             onClick={onToggleDetail}
-            className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors ${detailOpen ? "lg:hidden" : ""}`}
           >
-            Show Details
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+            <span className="hidden sm:inline">Details</span>
           </button>
         )}
       </div>
@@ -822,6 +826,14 @@ export default function ConversationPanel({
                       {isLastInGroup && (
                         <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{msgTime}</p>
                       )}
+                      {msg.is_auto_reply && (
+                        <p className="text-[11px] text-gray-400 mt-1 mr-1 italic flex items-center justify-end gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
+                          </svg>
+                          Sent automatically by Olera
+                        </p>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -855,6 +867,14 @@ export default function ConversationPanel({
                       </div>
                       {isLastInGroup && (
                         <p className="text-xs text-gray-400 mt-1.5 ml-1">{msgTime}</p>
+                      )}
+                      {msg.is_auto_reply && (
+                        <p className="text-[11px] text-gray-400 mt-1 ml-1 italic flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
+                          </svg>
+                          Automatically sent by Olera
+                        </p>
                       )}
                     </div>
                   </div>

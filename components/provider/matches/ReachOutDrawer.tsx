@@ -764,6 +764,23 @@ ${context}${urgencyNote}. I'd love to help.
   const memberSinceValue = family.created_at ? memberSince(family.created_at) : null;
 
   // ── Sticky Header Content ──
+  // Status tag for view mode (matches lead detail drawer pattern)
+  const statusTag = isViewMode && outreachStatus ? (
+    outreachStatus === "pending" ? (
+      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-amber-50 text-amber-700 border border-amber-100 shrink-0">
+        Pending
+      </span>
+    ) : outreachStatus === "connected" ? (
+      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">
+        Connected
+      </span>
+    ) : outreachStatus === "declined" ? (
+      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
+        Declined
+      </span>
+    ) : null
+  ) : null;
+
   const StickyHeader = (
     <div className="flex items-center gap-3">
       {family.image_url ? (
@@ -783,15 +800,18 @@ ${context}${urgencyNote}. I'd love to help.
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <h2 id="drawer-title" className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
+        <div className="flex items-center gap-2">
+          <h2 id="drawer-title" className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
+          {statusTag}
+        </div>
         {location && (
           <p className="text-sm text-gray-600 truncate">{location}</p>
         )}
       </div>
       <div className="text-right shrink-0">
         <p className="text-sm">
-          <span className="text-gray-500">Posted</span>{" "}
-          <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
+          <span className="text-gray-500">{isViewMode && sentAt ? "Sent" : "Posted"}</span>{" "}
+          <span className="font-semibold text-gray-700">{isViewMode && sentAt ? timeAgo(sentAt) : timeAgo(publishedAt)}</span>
         </p>
       </div>
     </div>
@@ -992,37 +1012,6 @@ ${context}${urgencyNote}. I'd love to help.
     </div>
   ) : null;
 
-  // ── Status Badge Section (View mode - prominent placement) ──
-  const StatusBadgeSection = isViewMode && outreachStatus ? (
-    <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl border border-gray-100">
-      <div className="flex items-center gap-2">
-        {outreachStatus === "pending" && (
-          <>
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-sm font-medium text-gray-700">Awaiting response</span>
-          </>
-        )}
-        {outreachStatus === "connected" && (
-          <>
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="text-sm font-medium text-gray-700">Connected</span>
-          </>
-        )}
-        {outreachStatus === "declined" && (
-          <>
-            <span className="w-2 h-2 rounded-full bg-gray-400" />
-            <span className="text-sm font-medium text-gray-500">Declined</span>
-          </>
-        )}
-      </div>
-      {sentAt && (
-        <span className="text-xs text-gray-400">
-          Sent {timeAgo(sentAt)}
-        </span>
-      )}
-    </div>
-  ) : null;
-
   // ── Scrollable Content (Profile step for compose mode) ──
   const ScrollableContent = ProfileSection;
 
@@ -1118,16 +1107,16 @@ ${context}${urgencyNote}. I'd love to help.
 
   // ── Message Section (View Mode) ──
   const MessageSectionView = (
-    <div className="space-y-4">
-      {/* Section header */}
-      <p className="text-lg font-semibold text-gray-900">Your message</p>
-
-      {/* Timestamp */}
-      {sentAt && (
-        <p className="text-sm text-gray-500">
-          Sent {formatSentDate(sentAt)}
-        </p>
-      )}
+    <div className="space-y-3">
+      {/* Section header + timestamp (compact) */}
+      <div>
+        <p className="text-lg font-semibold text-gray-900">Your message</p>
+        {sentAt && (
+          <p className="text-sm text-gray-500 mt-0.5">
+            Sent {formatSentDate(sentAt)}
+          </p>
+        )}
+      </div>
 
       {/* Read-only message display */}
       <div className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-4">
@@ -1335,9 +1324,8 @@ ${context}${urgencyNote}. I'd love to help.
               {/* Mobile scrollable content */}
               <div className="flex-1 overflow-y-auto px-5 py-5">
                 {isViewMode ? (
-                  // View mode: show status badge, contact info (if connected), profile, and message together
+                  // View mode: contact info (if connected), profile, and message together
                   <div className="space-y-6">
-                    {StatusBadgeSection}
                     {ContactInfoSection}
                     {ProfileSection}
                     <div className="border-t border-gray-100 pt-6">
@@ -1411,9 +1399,8 @@ ${context}${urgencyNote}. I'd love to help.
               {/* Desktop scrollable content */}
               <div className="flex-1 overflow-y-auto px-6 py-6">
                 {isViewMode ? (
-                  // View mode: show status badge, contact info (if connected), profile, and message together
+                  // View mode: contact info (if connected), profile, and message together
                   <div className="space-y-6">
-                    {StatusBadgeSection}
                     {ContactInfoSection}
                     {ProfileSection}
                     <div className="border-t border-gray-100 pt-6">

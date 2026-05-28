@@ -805,7 +805,7 @@ export default function MobileStickyBottomCTA({
         footer={hook.isNonFamilyProfile ? undefined : sheetFooter}
         size="lg"
         hideHeader={hook.cardState === "connected"}
-        hideCloseButton={hook.cardState === "connected"}
+        hideCloseButton={hook.cardState === "connected" || hook.cardState === "enrichment"}
       >
         {/* ── Non-family profile block ── */}
         {hook.isNonFamilyProfile && (

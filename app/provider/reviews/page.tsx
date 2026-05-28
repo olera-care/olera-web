@@ -410,16 +410,15 @@ function StatsCard({
         Your Activity
       </h2>
 
-      {/* Stats grid - horizontal on mobile, stacked labels */}
-      <div className="flex items-baseline gap-6 mb-5">
-        <div>
-          <p className="text-3xl font-display font-bold text-gray-900 tracking-tight">{totalSent}</p>
-          <p className="text-sm text-gray-500 mt-0.5">requests sent</p>
+      {/* Stats grid - matches profile page styling */}
+      <div className="grid grid-cols-2 gap-4 mb-5">
+        <div className="space-y-1">
+          <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">{totalSent}</p>
+          <p className="text-sm text-gray-500">requests sent</p>
         </div>
-        <div className="h-8 w-px bg-gray-200" />
-        <div>
-          <p className="text-3xl font-display font-bold text-gray-900 tracking-tight">{thisMonth}</p>
-          <p className="text-sm text-gray-500 mt-0.5">this month</p>
+        <div className="space-y-1">
+          <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">{thisMonth}</p>
+          <p className="text-sm text-gray-500">this month</p>
         </div>
       </div>
 
@@ -1546,16 +1545,6 @@ export default function ProviderReviewsPage() {
             />
           )}
 
-          {/* Mobile: Stats card at top */}
-          <div className="lg:hidden mb-4">
-            <StatsCard
-              totalSent={totalSent}
-              thisMonth={thisMonth}
-              isLoading={isLoadingRequests}
-              onViewAll={() => setShowSentModal(true)}
-            />
-          </div>
-
           {/* Content grid */}
           <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-stretch">
             {/* Main content card - overflow-hidden for hero image clipping */}
@@ -1605,11 +1594,6 @@ export default function ProviderReviewsPage() {
               {/* Video panel */}
               <VideoPanel />
             </div>
-          </div>
-
-          {/* Mobile video */}
-          <div className="lg:hidden mt-6">
-            <VideoPanel />
           </div>
         </div>
       </div>

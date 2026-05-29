@@ -128,6 +128,7 @@ export async function GET(req: NextRequest) {
       { count: "exact" }
     )
     .in("type", ["inquiry", "request"])
+    .not("metadata", "cs", JSON.stringify({ archived: true }))
     .order("created_at", { ascending: false });
 
   // Date filters

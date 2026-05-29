@@ -7,7 +7,47 @@
 
 ## Current Focus
 
-### 2026-05-29 (Fri) — Cold-outreach Phase 4: mail-tester 10/10, Smartlead live, **logan@ connected**. Partnerships@ + warmup config pending.
+### 2026-05-29 (Fri, PM) — Cold-outreach Phase 4 COMPLETE: both mailboxes warming, Base subscription live, custom tracking domain verified. **Only #5 (D2 webhook) remains — gated on ~4wk warmup + Logan sign-off.**
+
+**Context:** Resumed Friday-morning's mid-flight stop. Goal: finish all dashboard setup so both mailboxes are warming in parallel and the trial clock can't bite. Achieved — every pre-campaign setup item is now done.
+
+**DONE this session (all of resume items #1–#4):**
+- **`logan@` warmup ENABLED.** Friday-AM config had NOT landed (flight cut it off — list showed Warmup Enabled=No, 0/15, reputation NA). General tab: Msg/day 15, time gap 5 min, saved. Warm Up tab: Smartlead defaults kept (40 total / +5/day rampup / 20% reply / randomise 3–40) + **"weekday-only" checked** → clicked **Enable warmup**. Toggle flipped ON, alert "mailbox will soon start receiving warmup emails."
+- **`partnerships@` CONNECTED + warming.** Add Account → Google OAuth → **instant connect, no blocked-app wall** (the tenant-wide OAuth trust from Friday AM held — the popup showed the same client ID `1021517043376-ipe8289dof3t2v9apjpae8hs2q9abetp`). Same per-mailbox config + Enable warmup. Overview confirms "Warmup ✓ Enabled on Friday, May 29, 2026."
+- **Subscription: Base ($32/mo annual rate, billed MONTHLY) ACTIVE.** Trial banner gone. Plan lineup had changed since Friday's "Basic $39/mo" → now Base/Pro/Smart/Prime. Chose **Base** (6K sends/mo = ~9× headroom over our ~660/mo; Foundation warmup pool fine for 2 mailboxes; Pro's "CRM Access" is *Smartlead's* CRM, irrelevant — D2 routes via API to our Supabase). Chose **Monthly** not annual: don't lock $384/yr on an unvalidated channel; switch to annual (saves 17%) after ~60–90d proof.
+- **Custom tracking domain `track.findmedjobs.co` VERIFIED on both mailboxes.** It's a **per-mailbox** setting (General tab "Use a custom tracking domain"), not global — my Friday "global setting" note was wrong. Smartlead target = **`open.sleadtrack.com`**. Added Cloudflare CNAME (`track` → `open.sleadtrack.com`, **DNS-only/grey-cloud**), entered `track.findmedjobs.co` on each mailbox → **CNAME Verified** both. Keeps link-tracking on our domain, not Smartlead's shared `sl-tracking.com`. Set now (not at campaign time) so the tracking link warms during the 4wk window.
+
+**Decisions made (with why):**
+- **Walked back Friday's planned warmup numbers (20/+2/30%) → kept Smartlead's defaults (40/+5/20%).** Their suggested values are industry-standard tuning for fresh mailboxes; with rampup ON, 40 is a *ceiling* reached gradually, not day-1 volume. Forcing my conservative numbers was unnecessary churn. Only active change: weekday-only ON (human pattern).
+- **Base + Monthly** (see above) — right-sized to actual volume, lower-regret on an exploration-phase channel.
+- **Custom tracking domain set during warmup, not at launch** — the tracking link warms alongside the mailboxes (Smartlead even has a "Warmup the Custom Domain Tracking Link" option), so it's not a cold URL on day 1 of campaigns.
+
+**⏸️ RESUME HERE → only #5 left (do NOT start until warmup clears + Logan signs off):**
+1. **D2 reply/bounce → CRM webhook.** ~4wk warmup clock started today on both mailboxes (≈ late June). Discipline reminders that MUST hold:
+   - **Route through a Supabase Edge Function**, NOT a Vercel API route (Resend's GCP POSTs hit Vercel Bot Protection 403; same risk for Smartlead). Pattern: `supabase/functions/resend-webhook/index.ts`; see deprecation note in `app/api/resend/webhook/route.ts:1-25`.
+   - **G4 single-writer**: webhook hits `log_email_replied` (route.ts:194) / `log_email_bounced` (route.ts:197) action handlers — never the DB directly. Already built in `app/api/admin/student-outreach/[id]/route.ts`.
+   - **D2 gate**: Logan's sign-off on the launch-flow required before this ships (docs/medjobs/OPERATIONAL_BRIEF.md Appendix B).
+
+**Health checks to glance at over the next 1–2 weeks (not blocking, just watch):**
+- Both mailboxes' Overview → warmup "Sent / Landed in inbox / Saved from spam" should start populating (weekdays only). Healthy = high inbox %, low spam-save %.
+- Reputation should climb off `NA`.
+
+**Open follow-ups (low-pri, don't block):**
+- DMARC `rua=team@` tidy-up (team@ doesn't exist; reports bounce only, harmless).
+- Decide mailbox #3 — held at 2 unless volume exceeds ~1k/mo.
+- "Olera Team" display name on partnerships@ — brand-on-burnable-domain tradeoff; quick rename if we insulate.
+- Apex redirect for findmedjobs.co (avoid throwaway-spam look — 301 to olera.care or thin landing).
+- Pre-launch: real signatures on both mailboxes (left blank for now).
+- Watch Base's **2,000-contact storage cap** — that's the Pro upgrade trigger (not send volume), if the prospect list loaded exceeds 2K.
+- Harmless leftovers: wrong-popular Smartlead OAuth client trusted in admin; IMAP on tj@ (not in Smartlead).
+
+**Repo state:** Branch `save/email-deliverability-session` (clean; all work external — Smartlead dashboard + Cloudflare). No code changes this session.
+
+**Context refs:** memory `project_email_deliverability`; Notion *Smartlead Setup Runbook* + *Domain Reclaim*; `docs/medjobs/OPERATIONAL_BRIEF.md` (D2, G4).
+
+---
+
+### 2026-05-29 (Fri, AM) — Cold-outreach Phase 4: mail-tester 10/10, Smartlead live, **logan@ connected**. Partnerships@ + warmup config pending.
 
 **Context:** Picked up from Thursday's Phase 3 finish. Goal: prove domain auth end-to-end, then get both mailboxes connected to Smartlead and warming up. Stopped mid-flow when TJ had to catch a flight — logan@ is connected but per-mailbox config (General + Warm Up tabs) may not have been completed before stop, and partnerships@ OAuth has not been initiated yet.
 

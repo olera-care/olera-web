@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
-import { connectionRequestEmail } from "@/lib/email-templates";
+import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 import { generateProviderSlug } from "@/lib/slugify";
 import { classifyDeletionReason } from "@/lib/classify-deletion-reason";
 
@@ -429,7 +428,7 @@ export async function PATCH(
       });
     }
 
-    // If email was added (empty → non-empty), send deferred lead notifications
+    // If email was added (empty → non-empty), send deferred notifications for leads AND questions
     const emailAdded = "email" in updates
       && updates.email
       && !current.email;
@@ -446,100 +445,43 @@ export async function PATCH(
           .eq("source_provider_id", providerId);
         console.log("[deferred-email] business_profiles sync:", syncErr ? `ERROR: ${syncErr.message}` : "OK");
 
-        // Find pending connections flagged as needing provider email
-        const { data: bp, error: bpErr } = await db
+        // Find linked business_profile
+        const { data: bp } = await db
           .from("business_profiles")
-          .select("id")
+          .select("id, slug, metadata")
           .eq("source_provider_id", providerId)
           .limit(1)
-          .single();
-        console.log("[deferred-email] business_profile lookup:", bp?.id ?? "NOT FOUND", bpErr?.message ?? "");
+          .maybeSingle();
 
-        if (bp) {
-          const { data: flaggedConnections, error: connErr } = await db
-            .from("connections")
-            .select("id, message, from_profile:business_profiles!connections_from_profile_id_fkey(display_name)")
-            .eq("to_profile_id", bp.id)
-            .eq("status", "pending")
-            .contains("metadata", { needs_provider_email: true });
-          console.log("[deferred-email] flagged connections:", flaggedConnections?.length ?? 0, connErr?.message ?? "");
+        // Use the shared function to send deferred notifications
+        const profileMeta = (bp?.metadata as Record<string, unknown>) || {};
+        const providerSlug = bp?.slug || current.slug || providerId;
 
-          if (flaggedConnections && flaggedConnections.length > 0) {
-            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-            const careTypeMap: Record<string, string> = {
-              home_care: "Home Care",
-              home_health: "Home Health Care",
-              assisted_living: "Assisted Living",
-              memory_care: "Memory Care",
-            };
-
-            for (const conn of flaggedConnections) {
-              try {
-                // Parse intent data from message
-                let careType: string | null = null;
-                let additionalNotes: string | null = null;
-                let familyName = "A family";
-                try {
-                  const msg = JSON.parse(conn.message || "{}");
-                  careType = msg.care_type ? (careTypeMap[msg.care_type] || msg.care_type) : null;
-                  additionalNotes = msg.additional_notes || null;
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const fromProfile = (conn as any).from_profile as { display_name: string } | null;
-                  familyName = fromProfile?.display_name || `${msg.seeker_first_name || ""} ${msg.seeker_last_name || ""}`.trim() || "A family";
-                } catch { /* use defaults */ }
-
-                await sendEmail({
-                  to: newEmail,
-                  subject: `A family is looking for care from ${current.provider_name || "your organization"}`,
-                  html: connectionRequestEmail({
-                    providerName: current.provider_name || "Provider",
-                    familyName,
-                    careType,
-                    message: additionalNotes,
-                    viewUrl: `${siteUrl}/provider/connections`,
-                  }),
-                  emailType: "connection_request",
-                  recipientType: "provider",
-                  providerId,
-                });
-
-                // Clear the flag on this connection
-                const { data: connData } = await db
-                  .from("connections")
-                  .select("metadata")
-                  .eq("id", conn.id)
-                  .single();
-
-                if (connData?.metadata) {
-                  const meta = connData.metadata as Record<string, unknown>;
-                  delete meta.needs_provider_email;
-                  meta.email_sent_at = new Date().toISOString();
-                  await db
-                    .from("connections")
-                    .update({ metadata: meta })
-                    .eq("id", conn.id);
-                }
-              } catch (emailErr) {
-                console.error(`Failed to send deferred lead email for connection ${conn.id}:`, emailErr);
-              }
-            }
-
-            await logAuditAction({
-              adminUserId: adminUser.id,
-              action: "deferred_lead_emails_sent",
-              targetType: "directory_provider",
-              targetId: providerId,
-              details: {
-                provider_name: current.provider_name,
-                email: newEmail,
-                connections_notified: flaggedConnections.length,
-              },
-            });
-          }
+        // Build additional slug variants for question lookup
+        // Questions may be stored with different provider_id values
+        const additionalSlugVariants: string[] = [];
+        // Always include the olera-providers provider_id
+        if (providerId !== providerSlug) {
+          additionalSlugVariants.push(providerId);
         }
+        // Include olera-providers slug if different
+        if (current.slug && current.slug !== providerSlug && current.slug !== providerId) {
+          additionalSlugVariants.push(current.slug);
+        }
+
+        const result = await sendDeferredNotificationsForProvider({
+          profileId: bp?.id || "",
+          email: newEmail,
+          providerName: current.provider_name || "Provider",
+          providerSlug,
+          additionalSlugVariants,
+          leadsUnsubscribed: !!profileMeta.leads_unsubscribed,
+        });
+
+        console.log("[deferred-email] Notifications sent:", result);
       } catch (deferredErr) {
         // Non-blocking — the provider update succeeded, deferred emails are best-effort
-        console.error("Failed to send deferred lead notifications:", deferredErr);
+        console.error("Failed to send deferred notifications:", deferredErr);
       }
     }
 

@@ -261,13 +261,16 @@ export async function GET(req: NextRequest) {
   }
 
   // Categorize leads for tab counts (computed once per lead)
+  // Leads with deleted/archived providers are NOT categorized - they only appear in "All"
+  // This ensures "No Email" count matches Overview and Leads pages
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
   const now = Date.now();
 
-  type Category = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
+  type Category = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email" | null;
 
   const categorizedLeads = allLeads.map((lead) => {
     const hasProviderEmail = !!lead.provider_email;
+    const providerIsActive = lead.provider_status === "active";
     const providerNudgedRecently = lead.provider_nudged_at
       ? now - new Date(lead.provider_nudged_at).getTime() < SEVEN_DAYS_MS
       : false;
@@ -282,10 +285,12 @@ export async function GET(req: NextRequest) {
         : false);
 
     // Order matters: responded takes priority (goal achieved), then check actionability
-    // Provider nudge takes priority over family nudge (waiting on provider response)
+    // Provider must be active to be in any actionable category
+    // Deleted/archived providers → null (only appears in "All")
     let category: Category;
     if (lead.responded) category = "responded";
-    else if (!hasProviderEmail) category = "no_email";
+    else if (!providerIsActive) category = null; // Deleted/archived - not actionable
+    else if (!hasProviderEmail) category = "no_email"; // Active but no email
     else if (providerNudgedRecently) category = "provider_nudged";
     else if (familyNudgedRecently) category = "family_nudged";
     else category = "needs_attention";
@@ -294,6 +299,7 @@ export async function GET(req: NextRequest) {
   });
 
   // Compute counts for each category
+  // Leads with null category (deleted/archived providers) only appear in "All"
   const counts = {
     all: allLeads.length,
     needs_attention: 0,
@@ -304,7 +310,9 @@ export async function GET(req: NextRequest) {
   };
 
   for (const { category } of categorizedLeads) {
-    counts[category]++;
+    if (category !== null) {
+      counts[category]++;
+    }
   }
 
   // Apply filter

@@ -301,7 +301,7 @@ export default function FiltersModal({
                         value={option.value}
                         checked={localSort === option.value}
                         onChange={() => setLocalSort(option.value)}
-                        className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-200"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
                       />
                       <span className="text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -327,7 +327,7 @@ export default function FiltersModal({
                         value={option.value}
                         checked={localFilters.distance === option.value}
                         onChange={() => handleDistanceChange(option.value)}
-                        className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-200"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
                       />
                       <span className="text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -363,7 +363,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.urgency.includes(option.value)}
                         onChange={() => handleUrgencyToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -391,7 +391,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.careTypes.includes(option.value)}
                         onChange={() => handleCareTypeToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -419,7 +419,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.paymentMethods.includes(option.value)}
                         onChange={() => handlePaymentToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -447,7 +447,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.whoNeedsCare.includes(option.value)}
                         onChange={() => handleWhoNeedsCareToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -475,7 +475,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.schedule.includes(option.value)}
                         onChange={() => handleScheduleToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -498,7 +498,7 @@ export default function FiltersModal({
                     name="profileQuality"
                     checked={localFilters.profileQuality === "all"}
                     onChange={() => handleProfileQualityChange("all")}
-                    className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-200"
+                    className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
                   />
                   <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                     All profiles
@@ -513,7 +513,7 @@ export default function FiltersModal({
                     name="profileQuality"
                     checked={localFilters.profileQuality === "complete"}
                     onChange={() => handleProfileQualityChange("complete")}
-                    className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-200"
+                    className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
                   />
                   <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                     Complete profiles only (80%+)

@@ -16,12 +16,12 @@ import {
   DEFAULT_FILTERS,
 } from "@/components/provider/matches/MatchesFilterBar";
 import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
-import FiltersModal, { type FiltersState, DEFAULT_FILTERS_STATE, countActiveFilters } from "@/components/provider/matches/FiltersModal";
+import FiltersModal, { type FiltersState, DEFAULT_FILTERS_STATE, countActiveFilters, type SortOption, SORT_OPTIONS } from "@/components/provider/matches/FiltersModal";
 import MyOutreach from "@/components/provider/matches/MyOutreach";
+import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
 
 // Tab types for the matches view
 type MatchesTab = "best_matches" | "near_you";
-import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
 import Pagination from "@/components/ui/Pagination";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
@@ -244,12 +244,32 @@ function MatchesTabs({
   onTabChange,
   activeFilterCount,
   onFiltersClick,
+  sortOption,
+  onSortChange,
 }: {
   activeTab: MatchesTab;
   onTabChange: (tab: MatchesTab) => void;
   activeFilterCount: number;
   onFiltersClick: () => void;
+  sortOption: SortOption;
+  onSortChange: (sort: SortOption) => void;
 }) {
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setIsSortOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const currentSortLabel = SORT_OPTIONS.find((o) => o.value === sortOption)?.label || "Recommended";
+
   return (
     <div className="border-b border-gray-200">
       <div className="flex items-center justify-between">
@@ -279,22 +299,70 @@ function MatchesTabs({
           })}
         </div>
 
-        {/* Filters button - desktop */}
-        <button
-          type="button"
-          onClick={onFiltersClick}
-          className="hidden sm:flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-          </svg>
-          Filters
-          {activeFilterCount > 0 && (
-            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-primary-600 rounded-full">
-              {activeFilterCount}
-            </span>
+        {/* Sort + Filters - desktop */}
+        <div className="hidden sm:flex items-center gap-2">
+          {/* Sort dropdown - only on Best Matches tab */}
+          {activeTab === "best_matches" && (
+            <div className="relative" ref={sortRef}>
+              <button
+                type="button"
+                onClick={() => setIsSortOpen(!isSortOpen)}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                <span className="text-gray-400">Sort:</span>
+                <span>{currentSortLabel}</span>
+                <svg className={`w-4 h-4 text-gray-400 transition-transform ${isSortOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+              </button>
+
+              {/* Dropdown */}
+              {isSortOpen && (
+                <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg border border-gray-200 shadow-lg z-50 py-1">
+                  {SORT_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        onSortChange(option.value);
+                        setIsSortOpen(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center justify-between ${
+                        sortOption === option.value
+                          ? "text-primary-600 bg-primary-50 font-medium"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {option.label}
+                      {sortOption === option.value && (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
-        </button>
+
+          {/* Filters button */}
+          <button
+            type="button"
+            onClick={onFiltersClick}
+            className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+            </svg>
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-primary-600 rounded-full">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -860,6 +928,7 @@ export default function ProviderMatchesPage() {
   });
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<MatchesTab>("best_matches");
+  const [sortOption, setSortOption] = useState<SortOption>("recommended");
   // Shared state for MyOutreach (syncs mobile + desktop instances)
   const [isOutreachOpen, setIsOutreachOpen] = useState(false);
 
@@ -1341,10 +1410,10 @@ export default function ProviderMatchesPage() {
     return () => clearInterval(interval);
   }, [fetchFamilies]);
 
-  // Reset to page 1 when filters or tab changes
+  // Reset to page 1 when filters, tab, or sort changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters, modalFilters, activeTab]);
+  }, [filters, modalFilters, activeTab, sortOption]);
 
   // Persist filter preferences to localStorage
   useEffect(() => {
@@ -1578,37 +1647,21 @@ export default function ProviderMatchesPage() {
         return new Date(dateB).getTime() - new Date(dateA).getTime();
       }
 
-      // best_matches: composite score balancing match + urgency + freshness
-      // This prevents stale posts from dominating just because they match well
-      const computeScore = (profile: Profile, meta: FamilyMetadata | undefined) => {
-        // Service match score (0-100): how many services overlap
-        const needs = meta?.care_needs || profile.care_types || [];
-        const matchCount = computeMatchingServices(needs, providerCareTypes);
-        const maxPossible = Math.max(needs.length, 1);
-        const matchScore = (matchCount / maxPossible) * 100;
+      // Helper: get recency (newest first)
+      const getRecency = (profile: Profile, meta: FamilyMetadata | undefined) => {
+        const publishedAt = meta?.care_post?.published_at || profile.created_at;
+        return new Date(publishedAt).getTime();
+      };
 
-        // Urgency score (0-100): immediate is most valuable
+      // Helper: get urgency score
+      const getUrgencyScore = (meta: FamilyMetadata | undefined) => {
         const urgencyScores: Record<string, number> = {
           immediate: 100,
           within_1_month: 75,
           within_3_months: 50,
           exploring: 25,
         };
-        const urgencyScore = urgencyScores[meta?.timeline || "exploring"] ?? 25;
-
-        // Freshness score (0-100): decays over time
-        const publishedAt = meta?.care_post?.published_at || profile.created_at;
-        const daysAgo = (Date.now() - new Date(publishedAt).getTime()) / (1000 * 60 * 60 * 24);
-        let freshnessScore: number;
-        if (daysAgo <= 1) freshnessScore = 100;
-        else if (daysAgo <= 7) freshnessScore = 85;
-        else if (daysAgo <= 14) freshnessScore = 70;
-        else if (daysAgo <= 30) freshnessScore = 50;
-        else if (daysAgo <= 60) freshnessScore = 30;
-        else freshnessScore = 10;
-
-        // Weighted composite: freshness 45%, match 30%, urgency 25%
-        return (freshnessScore * 0.45) + (matchScore * 0.30) + (urgencyScore * 0.25);
+        return urgencyScores[meta?.timeline || "exploring"] ?? 25;
       };
 
       // Second priority: separate contacted from uncontacted
@@ -1635,14 +1688,51 @@ export default function ProviderMatchesPage() {
         return 0;
       }
 
-      // Both uncontacted: use score-based sorting
+      // Both uncontacted: sort based on sortOption
+      if (sortOption === "newest") {
+        // Pure recency sort
+        return getRecency(b, metaB) - getRecency(a, metaA);
+      }
+
+      if (sortOption === "urgent") {
+        // Sort by urgency first, then recency
+        const urgencyDiff = getUrgencyScore(metaB) - getUrgencyScore(metaA);
+        if (urgencyDiff !== 0) return urgencyDiff;
+        return getRecency(b, metaB) - getRecency(a, metaA);
+      }
+
+      // Default "recommended": composite score balancing match + urgency + freshness
+      const computeScore = (profile: Profile, meta: FamilyMetadata | undefined) => {
+        // Service match score (0-100): how many services overlap
+        const needs = meta?.care_needs || profile.care_types || [];
+        const matchCount = computeMatchingServices(needs, providerCareTypes);
+        const maxPossible = Math.max(needs.length, 1);
+        const matchScore = (matchCount / maxPossible) * 100;
+
+        const urgencyScore = getUrgencyScore(meta);
+
+        // Freshness score (0-100): decays over time
+        const publishedAt = meta?.care_post?.published_at || profile.created_at;
+        const daysAgo = (Date.now() - new Date(publishedAt).getTime()) / (1000 * 60 * 60 * 24);
+        let freshnessScore: number;
+        if (daysAgo <= 1) freshnessScore = 100;
+        else if (daysAgo <= 7) freshnessScore = 85;
+        else if (daysAgo <= 14) freshnessScore = 70;
+        else if (daysAgo <= 30) freshnessScore = 50;
+        else if (daysAgo <= 60) freshnessScore = 30;
+        else freshnessScore = 10;
+
+        // Weighted composite: freshness 45%, match 30%, urgency 25%
+        return (freshnessScore * 0.45) + (matchScore * 0.30) + (urgencyScore * 0.25);
+      };
+
       const scoreA = computeScore(a, metaA);
       const scoreB = computeScore(b, metaB);
       return scoreB - scoreA;
     });
 
     return sorted;
-  }, [families, contactedIds, connectionData, getOutreachStatus, modalFilters, activeTab, providerCareTypes, providerProfile]);
+  }, [families, contactedIds, connectionData, getOutreachStatus, modalFilters, activeTab, sortOption, providerCareTypes, providerProfile]);
 
   // Paginate filtered families
   const totalPages = Math.ceil(filteredFamilies.length / PAGE_SIZE);
@@ -1744,6 +1834,8 @@ export default function ProviderMatchesPage() {
             onTabChange={setActiveTab}
             activeFilterCount={countActiveFilters(modalFilters)}
             onFiltersClick={() => setIsFiltersModalOpen(true)}
+            sortOption={sortOption}
+            onSortChange={setSortOption}
           />
 
           {/* Active filter chips */}
@@ -1940,6 +2032,9 @@ export default function ProviderMatchesPage() {
         onApply={setModalFilters}
         familyCounts={familyCounts}
         hasProviderCoordinates={!!(providerProfile?.lat && providerProfile?.lng)}
+        sortOption={sortOption}
+        onSortChange={setSortOption}
+        showSort={activeTab === "best_matches"}
       />
 
       {/* ── Mobile FAB for Filters ── */}

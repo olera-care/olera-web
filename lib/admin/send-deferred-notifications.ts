@@ -212,7 +212,8 @@ export async function sendDeferredNotificationsForProvider(
   // Track which questions we've already processed to avoid duplicates
   const processedQuestionIds = new Set<string>();
 
-  for (const slug of slugVariants) {
+  // Convert Set to Array for iteration (avoids TypeScript downlevelIteration issues)
+  for (const slug of Array.from(slugVariants)) {
     const { data: pendingQuestions } = await db
       .from("provider_questions")
       .select("id, question, asker_name, metadata")

@@ -674,7 +674,7 @@ function NearYouEmptyState({
         <h3 className="text-xl font-display font-bold text-gray-900 mb-1">
           No families in {city} yet
         </h3>
-        <p className="text-sm text-gray-500">
+        <p className="text-base text-gray-500">
           While you wait, grow your presence on Olera
         </p>
       </div>
@@ -691,15 +691,15 @@ function NearYouEmptyState({
               </div>
 
               {/* Text */}
-              <p className="text-[13px] font-semibold text-gray-900 mb-0.5">
+              <p className="text-[15px] font-semibold text-gray-900 mb-0.5">
                 {action.title}
               </p>
-              <p className="text-[12px] text-gray-500 leading-snug mb-3">
+              <p className="text-sm text-gray-500 leading-snug mb-3">
                 {action.description}
               </p>
 
               {/* CTA */}
-              <span className={`inline-flex items-center justify-center gap-1 text-[12px] font-semibold ${
+              <span className={`inline-flex items-center justify-center gap-1 text-sm font-semibold ${
                 action.isCopied
                   ? "text-emerald-600"
                   : "text-primary-600 group-hover:text-primary-700"

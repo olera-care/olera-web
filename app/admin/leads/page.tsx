@@ -139,6 +139,7 @@ interface ConnectionProfile {
   phone?: string;
   metadata?: Record<string, unknown>;
   care_types?: string[];
+  is_active?: boolean;
 }
 
 interface Lead {
@@ -566,7 +567,11 @@ export default function AdminLeadsPage() {
       ) : (
         <div className="space-y-1">
           {leads.map((lead) => {
-            const needsEmail = lead.metadata?.needs_provider_email === true;
+            // Check live provider email status instead of stale metadata flag
+            const providerIsActive = lead.to_profile?.is_active !== false;
+            const providerHasNoEmail = !lead.to_profile?.email;
+            const needsEmail = providerIsActive && providerHasNoEmail;
+            const providerIsArchived = lead.to_profile?.is_active === false;
             const providerEditorId = lead.to_profile?.source_provider_id;
             const providerSlug = (lead.to_profile as ConnectionProfile & { slug?: string })?.slug;
             const providerEngagement = engagement[providerSlug || providerEditorId || lead.to_profile?.id || ""];
@@ -662,6 +667,9 @@ export default function AdminLeadsPage() {
                         )}
                         {needsEmail && (
                           <span className="font-medium text-gray-900">Needs email</span>
+                        )}
+                        {providerIsArchived && providerHasNoEmail && (
+                          <span className="text-gray-400 italic">Provider archived</span>
                         )}
                         {providerEngagement && (
                           <div className="flex items-center gap-1" title={

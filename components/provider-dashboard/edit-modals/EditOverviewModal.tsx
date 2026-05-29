@@ -157,10 +157,11 @@ export default function EditOverviewModal({
           placeholder="123 Main Street"
         />
 
-        <div className="grid grid-cols-3 gap-4">
+        {/* City/State/ZIP - City on own row on mobile, proportional grid on desktop */}
+        <div className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-[2fr_1fr_1fr] sm:gap-4">
           {/* City picker with autocomplete */}
           <div className="relative" ref={cityDropdownRef}>
-            <label htmlFor="city" className="block text-base font-semibold text-gray-900 mb-2">
+            <label htmlFor="city" className="block text-[13px] font-semibold text-gray-700 mb-1.5">
               City
             </label>
             <div className="relative">
@@ -178,7 +179,7 @@ export default function EditOverviewModal({
                   setShowCityDropdown(true);
                 }}
                 placeholder="Start typing a city..."
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors duration-200 min-h-[44px]"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 hover:border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-400 transition-colors duration-200"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                 <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,13 +191,13 @@ export default function EditOverviewModal({
 
             {/* City dropdown */}
             {showCityDropdown && cityResults.length > 0 && (
-              <div className="absolute z-50 w-full mt-1 bg-white rounded-xl border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-white rounded-lg border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
                 {cityResults.map((result, index) => (
                   <button
                     key={`${result.city}-${result.state}-${index}`}
                     type="button"
                     onClick={() => handleCitySelect(result)}
-                    className="w-full px-4 py-3 text-left text-base text-gray-900 hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl flex items-center gap-2"
+                    className="w-full px-4 py-2.5 text-left text-base text-gray-900 hover:bg-gray-50 transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center gap-2"
                   >
                     <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -209,20 +210,23 @@ export default function EditOverviewModal({
             )}
           </div>
 
-          {/* State - editable, but auto-populated from city selection */}
-          <Input
-            label="State"
-            value={state}
-            onChange={(e) => setState((e.target as HTMLInputElement).value)}
-            placeholder="State"
-          />
+          {/* State/ZIP row on mobile */}
+          <div className="grid grid-cols-2 gap-4 sm:contents">
+            {/* State - editable, but auto-populated from city selection */}
+            <Input
+              label="State"
+              value={state}
+              onChange={(e) => setState((e.target as HTMLInputElement).value)}
+              placeholder="State"
+            />
 
-          <Input
-            label="ZIP Code"
-            value={zip}
-            onChange={(e) => setZip((e.target as HTMLInputElement).value)}
-            placeholder="ZIP"
-          />
+            <Input
+              label="ZIP Code"
+              value={zip}
+              onChange={(e) => setZip((e.target as HTMLInputElement).value)}
+              placeholder="ZIP"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

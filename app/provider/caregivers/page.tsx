@@ -130,7 +130,7 @@ function ProviderCaregiversContent() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FAFAF8]">
+    <main className="min-h-screen bg-gray-50/50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Interviews</h1>

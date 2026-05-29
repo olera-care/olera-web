@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { LocationFilterDropdown } from "@/components/ui/LocationFilterDropdown";
 
 // Filter options configuration
 const DISTANCE_OPTIONS = [
@@ -54,6 +55,7 @@ const SCHEDULE_OPTIONS = [
 
 export interface FiltersState {
   distance: string;
+  cities: string[];
   urgency: string[];
   careTypes: string[];
   paymentMethods: string[];
@@ -62,8 +64,18 @@ export interface FiltersState {
   profileQuality: "all" | "complete";
 }
 
+// Sort options for Best Matches tab
+export type SortOption = "recommended" | "newest" | "urgent";
+
+export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "recommended", label: "Recommended" },
+  { value: "newest", label: "Newest First" },
+  { value: "urgent", label: "Most Urgent" },
+];
+
 export const DEFAULT_FILTERS_STATE: FiltersState = {
   distance: "any",
+  cities: [],
   urgency: [],
   careTypes: [],
   paymentMethods: [],
@@ -78,6 +90,7 @@ interface FiltersModalProps {
   filters: FiltersState;
   onApply: (filters: FiltersState) => void;
   familyCounts?: {
+    byCity: { city: string; state: string; count: number }[];
     byUrgency: Record<string, number>;
     byCareType: Record<string, number>;
     byPayment: Record<string, number>;
@@ -88,6 +101,12 @@ interface FiltersModalProps {
   };
   /** Whether the provider has coordinates for distance filtering. If false, distance filter is hidden. */
   hasProviderCoordinates?: boolean;
+  /** Sort option for Best Matches tab (mobile only) */
+  sortOption?: SortOption;
+  /** Callback when sort option changes */
+  onSortChange?: (sort: SortOption) => void;
+  /** Whether to show sort options (only on Best Matches tab) */
+  showSort?: boolean;
 }
 
 export default function FiltersModal({
@@ -97,16 +116,26 @@ export default function FiltersModal({
   onApply,
   familyCounts,
   hasProviderCoordinates = true,
+  sortOption = "recommended",
+  onSortChange,
+  showSort = false,
 }: FiltersModalProps) {
   // Local state for editing (apply on confirm)
   const [localFilters, setLocalFilters] = useState<FiltersState>(filters);
+  // Local sort state (applies on confirm, like filters)
+  const [localSort, setLocalSort] = useState<SortOption>(sortOption);
+
+  // City search state
+  const [citySearch, setCitySearch] = useState("");
 
   // Sync local state when modal opens
   useEffect(() => {
     if (isOpen) {
       setLocalFilters(filters);
+      setLocalSort(sortOption);
+      setCitySearch("");
     }
-  }, [isOpen, filters]);
+  }, [isOpen, filters, sortOption]);
 
   // Handle escape key
   useEffect(() => {
@@ -132,6 +161,15 @@ export default function FiltersModal({
 
   const handleDistanceChange = useCallback((value: string) => {
     setLocalFilters((prev) => ({ ...prev, distance: value }));
+  }, []);
+
+  const handleCityToggle = useCallback((cityKey: string) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      cities: prev.cities.includes(cityKey)
+        ? prev.cities.filter((c) => c !== cityKey)
+        : [...prev.cities, cityKey],
+    }));
   }, []);
 
   const handleUrgencyToggle = useCallback((value: string) => {
@@ -185,21 +223,29 @@ export default function FiltersModal({
 
   const handleClear = useCallback(() => {
     setLocalFilters(DEFAULT_FILTERS_STATE);
+    setLocalSort("recommended");
+    setCitySearch("");
   }, []);
 
   const handleApply = useCallback(() => {
     onApply(localFilters);
+    // Apply sort change if handler provided
+    if (onSortChange && localSort !== sortOption) {
+      onSortChange(localSort);
+    }
     onClose();
-  }, [localFilters, onApply, onClose]);
+  }, [localFilters, localSort, sortOption, onApply, onSortChange, onClose]);
 
   const activeFilterCount =
     (localFilters.distance !== "any" ? 1 : 0) +
+    localFilters.cities.length +
     localFilters.urgency.length +
     localFilters.careTypes.length +
     localFilters.paymentMethods.length +
     localFilters.whoNeedsCare.length +
     localFilters.schedule.length +
-    (localFilters.profileQuality !== "all" ? 1 : 0);
+    (localFilters.profileQuality !== "all" ? 1 : 0) +
+    (showSort && localSort !== "recommended" ? 1 : 0);
 
   if (!isOpen) return null;
 
@@ -240,6 +286,32 @@ export default function FiltersModal({
 
           {/* Filter sections */}
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+            {/* Sort options - only shown on Best Matches tab (mobile) */}
+            {showSort && (
+              <FilterSection title="Sort By">
+                <div className="space-y-2">
+                  {SORT_OPTIONS.map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex items-center gap-3 cursor-pointer group"
+                    >
+                      <input
+                        type="radio"
+                        name="sortOption"
+                        value={option.value}
+                        checked={localSort === option.value}
+                        onChange={() => setLocalSort(option.value)}
+                        className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
+                      />
+                      <span className="text-[15px] text-gray-700 group-hover:text-gray-900">
+                        {option.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </FilterSection>
+            )}
+
             {/* Distance filter - only shown when provider has coordinates */}
             {hasProviderCoordinates && (
               <FilterSection title="Distance">
@@ -255,7 +327,7 @@ export default function FiltersModal({
                         value={option.value}
                         checked={localFilters.distance === option.value}
                         onChange={() => handleDistanceChange(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
                       />
                       <span className="text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -264,6 +336,17 @@ export default function FiltersModal({
                   ))}
                 </div>
               </FilterSection>
+            )}
+
+            {/* Location filter - collapsed dropdown with multi-select */}
+            {(familyCounts?.byCity?.length ?? 0) > 0 && (
+              <LocationFilterDropdown
+                cities={familyCounts?.byCity ?? []}
+                selectedCities={localFilters.cities}
+                onToggle={handleCityToggle}
+                citySearch={citySearch}
+                onSearchChange={setCitySearch}
+              />
             )}
 
             {/* Urgency filter */}
@@ -280,7 +363,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.urgency.includes(option.value)}
                         onChange={() => handleUrgencyToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -308,7 +391,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.careTypes.includes(option.value)}
                         onChange={() => handleCareTypeToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -336,7 +419,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.paymentMethods.includes(option.value)}
                         onChange={() => handlePaymentToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -364,7 +447,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.whoNeedsCare.includes(option.value)}
                         onChange={() => handleWhoNeedsCareToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -392,7 +475,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.schedule.includes(option.value)}
                         onChange={() => handleScheduleToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -415,7 +498,7 @@ export default function FiltersModal({
                     name="profileQuality"
                     checked={localFilters.profileQuality === "all"}
                     onChange={() => handleProfileQualityChange("all")}
-                    className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                    className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
                   />
                   <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                     All profiles
@@ -430,7 +513,7 @@ export default function FiltersModal({
                     name="profileQuality"
                     checked={localFilters.profileQuality === "complete"}
                     onChange={() => handleProfileQualityChange("complete")}
-                    className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                    className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
                   />
                   <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                     Complete profiles only (80%+)
@@ -533,6 +616,7 @@ function FilterSection({
 export function countActiveFilters(filters: FiltersState): number {
   return (
     (filters.distance !== "any" ? 1 : 0) +
+    filters.cities.length +
     filters.urgency.length +
     filters.careTypes.length +
     filters.paymentMethods.length +

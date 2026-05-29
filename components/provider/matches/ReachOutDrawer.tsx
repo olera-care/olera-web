@@ -33,6 +33,8 @@ interface ReachOutDrawerProps {
   outreachStatus?: "pending" | "connected" | "declined";
   /** Callback when AI message generation succeeds - for analytics tracking */
   onAIGenerate?: (familyId: string, tone: string) => void;
+  /** Profile status for inactive family handling */
+  profileStatus?: "active" | "paused" | "deleted";
 }
 
 // ── Helpers ──
@@ -344,6 +346,7 @@ export default function ReachOutDrawer({
   sentAt,
   outreachStatus,
   onAIGenerate,
+  profileStatus = "active",
 }: ReachOutDrawerProps) {
   const router = useRouter();
   const [message, setMessage] = useState("");
@@ -764,6 +767,23 @@ ${context}${urgencyNote}. I'd love to help.
   const memberSinceValue = family.created_at ? memberSince(family.created_at) : null;
 
   // ── Sticky Header Content ──
+  // Status tag for view mode (matches lead detail drawer pattern)
+  const statusTag = isViewMode && outreachStatus ? (
+    outreachStatus === "pending" ? (
+      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-amber-50 text-amber-700 border border-amber-100 shrink-0">
+        Pending
+      </span>
+    ) : outreachStatus === "connected" ? (
+      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">
+        Connected
+      </span>
+    ) : outreachStatus === "declined" ? (
+      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
+        Declined
+      </span>
+    ) : null
+  ) : null;
+
   const StickyHeader = (
     <div className="flex items-center gap-3">
       {family.image_url ? (
@@ -783,15 +803,18 @@ ${context}${urgencyNote}. I'd love to help.
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <h2 id="drawer-title" className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
+        <div className="flex items-center gap-2">
+          <h2 id="drawer-title" className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
+          {statusTag}
+        </div>
         {location && (
           <p className="text-sm text-gray-600 truncate">{location}</p>
         )}
       </div>
       <div className="text-right shrink-0">
         <p className="text-sm">
-          <span className="text-gray-500">Posted</span>{" "}
-          <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
+          <span className="text-gray-500">{isViewMode && sentAt ? "Sent" : "Posted"}</span>{" "}
+          <span className="font-semibold text-gray-700">{isViewMode && sentAt ? timeAgo(sentAt) : timeAgo(publishedAt)}</span>
         </p>
       </div>
     </div>
@@ -801,13 +824,7 @@ ${context}${urgencyNote}. I'd love to help.
   const ProfileSection = (
     <div className="space-y-6">
       {/* About Their Situation */}
-      {profileState === "minimal" ? (
-        <div className="px-4 py-3 bg-amber-50/60 border-l-2 border-amber-300 rounded-r-lg">
-          <p className="text-sm text-amber-800/90 leading-relaxed">
-            This family is just getting started. A warm, no-pressure introduction works best here.
-          </p>
-        </div>
-      ) : displayDescription ? (
+      {displayDescription ? (
         <div>
           <p className="text-lg font-semibold text-gray-900 mb-2">
             About their situation
@@ -830,8 +847,7 @@ ${context}${urgencyNote}. I'd love to help.
       ) : null}
 
       {/* Care details - consolidated section */}
-      {profileState !== "minimal" && (
-        <div className={displayDescription ? "mt-2" : ""}>
+      <div className={displayDescription ? "mt-2" : ""}>
           <p className="text-lg font-semibold text-gray-900 mb-3">
             Care details
           </p>
@@ -889,9 +905,25 @@ ${context}${urgencyNote}. I'd love to help.
                 <p className="text-base font-medium text-gray-700">{memberSinceValue}</p>
               </div>
             )}
+
+            {/* Profile status */}
+            <div>
+              <p className="text-sm text-gray-500">Profile status</p>
+              <p className={`text-base font-medium flex items-center gap-1.5 ${
+                profileStatus === "active" ? "text-emerald-600"
+                  : profileStatus === "paused" ? "text-amber-600"
+                  : "text-gray-500"
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${
+                  profileStatus === "active" ? "bg-emerald-500"
+                    : profileStatus === "paused" ? "bg-amber-500" : "bg-gray-400"
+                }`} />
+                {profileStatus === "active" ? "Profile Active"
+                  : profileStatus === "paused" ? "Profile Paused" : "Profile Deleted"}
+              </p>
+            </div>
           </div>
         </div>
-      )}
     </div>
   );
 
@@ -992,37 +1024,6 @@ ${context}${urgencyNote}. I'd love to help.
     </div>
   ) : null;
 
-  // ── Status Badge Section (View mode - prominent placement) ──
-  const StatusBadgeSection = isViewMode && outreachStatus ? (
-    <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl border border-gray-100">
-      <div className="flex items-center gap-2">
-        {outreachStatus === "pending" && (
-          <>
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-sm font-medium text-gray-700">Awaiting response</span>
-          </>
-        )}
-        {outreachStatus === "connected" && (
-          <>
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="text-sm font-medium text-gray-700">Connected</span>
-          </>
-        )}
-        {outreachStatus === "declined" && (
-          <>
-            <span className="w-2 h-2 rounded-full bg-gray-400" />
-            <span className="text-sm font-medium text-gray-500">Declined</span>
-          </>
-        )}
-      </div>
-      {sentAt && (
-        <span className="text-xs text-gray-400">
-          Sent {timeAgo(sentAt)}
-        </span>
-      )}
-    </div>
-  ) : null;
-
   // ── Scrollable Content (Profile step for compose mode) ──
   const ScrollableContent = ProfileSection;
 
@@ -1118,16 +1119,16 @@ ${context}${urgencyNote}. I'd love to help.
 
   // ── Message Section (View Mode) ──
   const MessageSectionView = (
-    <div className="space-y-4">
-      {/* Section header */}
-      <p className="text-lg font-semibold text-gray-900">Your message</p>
-
-      {/* Timestamp */}
-      {sentAt && (
-        <p className="text-sm text-gray-500">
-          Sent {formatSentDate(sentAt)}
-        </p>
-      )}
+    <div className="space-y-3">
+      {/* Section header + timestamp (compact) */}
+      <div>
+        <p className="text-lg font-semibold text-gray-900">Your message</p>
+        {sentAt && (
+          <p className="text-sm text-gray-500 mt-0.5">
+            Sent {formatSentDate(sentAt)}
+          </p>
+        )}
+      </div>
 
       {/* Read-only message display */}
       <div className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-4">
@@ -1190,6 +1191,8 @@ ${context}${urgencyNote}. I'd love to help.
   );
 
   // ── Sticky Footer Content (Compose Mode) ──
+  const isInactive = profileStatus !== "active";
+
   const StickyFooterCompose = (
     <>
       {sendError && (
@@ -1197,8 +1200,23 @@ ${context}${urgencyNote}. I'd love to help.
           <p className="text-sm text-rose-600">{sendError}</p>
         </div>
       )}
+      {isInactive && (
+        <div className="mb-3 px-3 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <p className="text-sm text-gray-600">
+            <span className="font-medium">This family&apos;s profile is no longer active.</span>{" "}
+            They may have found care or their needs changed.
+          </p>
+        </div>
+      )}
       <div>
-        {!isVerified ? (
+        {isInactive ? (
+          <button
+            disabled
+            className="w-full px-4 py-3.5 bg-gray-100 text-gray-400 text-sm font-semibold rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            Cannot message inactive profile
+          </button>
+        ) : !isVerified ? (
           <button
             onClick={onVerifyClick}
             className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
@@ -1233,13 +1251,15 @@ ${context}${urgencyNote}. I'd love to help.
           </button>
         )}
       </div>
-      <p className="text-sm text-center text-gray-500 mt-3">
-        {isGenericFirstName ? "They" : firstName} will see your profile{" "}
-        <span className="text-gray-400">·</span>{" "}
-        <Link href="/provider/profile" className="font-medium text-primary-600 hover:text-primary-700">
-          Edit
-        </Link>
-      </p>
+      {!isInactive && (
+        <p className="text-sm text-center text-gray-500 mt-3">
+          {isGenericFirstName ? "They" : firstName} will see your profile{" "}
+          <span className="text-gray-400">·</span>{" "}
+          <Link href="/provider/profile" className="font-medium text-primary-600 hover:text-primary-700">
+            Edit
+          </Link>
+        </p>
+      )}
     </>
   );
 
@@ -1335,9 +1355,8 @@ ${context}${urgencyNote}. I'd love to help.
               {/* Mobile scrollable content */}
               <div className="flex-1 overflow-y-auto px-5 py-5">
                 {isViewMode ? (
-                  // View mode: show status badge, contact info (if connected), profile, and message together
+                  // View mode: contact info (if connected), profile, and message together
                   <div className="space-y-6">
-                    {StatusBadgeSection}
                     {ContactInfoSection}
                     {ProfileSection}
                     <div className="border-t border-gray-100 pt-6">
@@ -1411,9 +1430,8 @@ ${context}${urgencyNote}. I'd love to help.
               {/* Desktop scrollable content */}
               <div className="flex-1 overflow-y-auto px-6 py-6">
                 {isViewMode ? (
-                  // View mode: show status badge, contact info (if connected), profile, and message together
+                  // View mode: contact info (if connected), profile, and message together
                   <div className="space-y-6">
-                    {StatusBadgeSection}
                     {ContactInfoSection}
                     {ProfileSection}
                     <div className="border-t border-gray-100 pt-6">

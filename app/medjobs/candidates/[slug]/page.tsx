@@ -232,7 +232,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
           <div className="space-y-6">
 
             {/* ─── HERO CARD: Identity Only ─── */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
+            <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row gap-5 sm:gap-6">
                 {/* Photo - always show actual photo */}
                 <div className="flex-shrink-0 flex justify-center sm:justify-start">
@@ -330,7 +330,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
 
             {/* ─── RESUME CARD: All Content Sections with Dividers ─── */}
             {/* Section order optimized for provider screening: practical filters first, personality later */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden">
 
               {/* ── Video Section ── */}
               {videoAvailable && (
@@ -718,7 +718,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
           {/* ─── RIGHT COLUMN: Sticky CTA Sidebar (Desktop Only) ─── */}
           <div className="hidden lg:block">
             <div className="sticky top-6">
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6">
                 <ContactSection
                   candidate={{
                     id: profile.id,

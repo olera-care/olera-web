@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Select from "@/components/ui/Select";
+import Image from "next/image";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { markLeadAsRead } from "@/hooks/useUnreadLeadsCount";
@@ -14,6 +14,7 @@ import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import { formatRedactedName } from "@/lib/utils/pii-redaction";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import VerifyToUnlockPrompt from "@/components/provider/VerifyToUnlockPrompt";
+import Pagination from "@/components/ui/Pagination";
 
 // ── Lead types (previously from mock file) ──
 
@@ -53,49 +54,26 @@ interface LeadDetail {
   archiveReason?: string;
   messagedAt?: string;
   connectionId?: string;
+  // Profile metadata
+  profileCompleteness?: number;
+  memberSince?: string;
 }
 
 // ── Types ──
 
-type StatusFilter = "all" | "new" | "replied" | "archived";
-type SortOption = "best_match" | "most_recent" | "most_urgent";
-type LeadStatus = "new" | "replied" | "no_reply" | "archived";
+type StatusFilter = "active" | "archived";
+type LeadStatus = "new" | "replied" | "archived";
 type Urgency = "immediate" | "within_1_month" | "exploring";
 type ContactMethod = "phone" | "email" | "either";
 
 // ── Config ──
 
 const FILTER_TABS: { id: StatusFilter; label: string }[] = [
-  { id: "all", label: "All leads" },
-  { id: "new", label: "New" },
-  { id: "replied", label: "Replied" },
+  { id: "active", label: "Active" },
   { id: "archived", label: "Archived" },
 ];
 
-const SORT_OPTIONS: { id: SortOption; label: string }[] = [
-  { id: "best_match", label: "Best match" },
-  { id: "most_recent", label: "Most recent" },
-  { id: "most_urgent", label: "Most urgent" },
-];
-
-const URGENCY_LABELS: Record<Urgency, string> = {
-  immediate: "Immediate",
-  within_1_month: "Within 1 month",
-  exploring: "Exploring",
-};
-
-const STATUS_LABELS: Record<LeadStatus, string> = {
-  new: "New",
-  replied: "Replied",
-  no_reply: "No reply",
-  archived: "Archived",
-};
-
-const CONTACT_METHOD_LABELS: Record<ContactMethod, string> = {
-  phone: "Prefers phone",
-  email: "Prefers email",
-  either: "Phone or email",
-};
+const PAGE_SIZE = 15;
 
 // ── Avatar gradients (deterministic by name) ──
 
@@ -116,59 +94,6 @@ function avatarGradient(name: string): string {
   return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
 }
 
-// ── Collapsible section ──
-
-function CollapsibleSection({
-  title,
-  defaultOpen = true,
-  children,
-}: {
-  title: string;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-}) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  return (
-    <div className="border-b border-gray-100 last:border-b-0">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 lg:px-6 py-4 text-left hover:bg-gray-50/50 transition-colors duration-150 min-h-[48px]"
-      >
-        <span className="text-[15px] font-semibold text-gray-900">{title}</span>
-        <svg
-          className={`w-4 h-4 text-gray-400 transition-transform duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] ${
-            isOpen ? "rotate-180" : ""
-          }`}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-        </svg>
-      </button>
-      <div
-        className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]"
-        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
-      >
-        <div className="overflow-hidden">
-          <div
-            className={`px-4 lg:px-6 pb-5 transition-[opacity,transform] ${
-              isOpen
-                ? "duration-300 delay-100 opacity-100 translate-y-0"
-                : "duration-200 opacity-0 translate-y-1"
-            }`}
-          >
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Lead detail drawer ──
 
 function LeadDetailDrawer({
@@ -178,8 +103,8 @@ function LeadDetailDrawer({
   onArchive,
   onRestore,
   onDelete,
-  onMessage,
   onContactReveal,
+  onMarkAsReplied,
   isVerified = true,
   onVerifyClick,
 }: {
@@ -189,64 +114,53 @@ function LeadDetailDrawer({
   onArchive: (leadId: string, reason: string) => void;
   onRestore: (leadId: string) => void;
   onDelete: (leadId: string) => void;
-  onMessage: (leadId: string) => void;
   onContactReveal?: (leadId: string, contactType: "email" | "phone") => void;
+  onMarkAsReplied?: (leadId: string) => void;
   isVerified?: boolean;
   onVerifyClick?: () => void;
 }) {
   const router = useRouter();
-  const [showComposer, setShowComposer] = useState(false);
-  const [messageSent, setMessageSent] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
   const [archiveReason, setArchiveReason] = useState<string | null>(null);
   const [archiveOtherText, setArchiveOtherText] = useState("");
   const [archived, setArchived] = useState(false);
   const [restored, setRestored] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [sendingMessage, setSendingMessage] = useState(false);
-  const [sendError, setSendError] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [copiedField, setCopiedField] = useState<"phone" | "email" | null>(null);
 
   // Display name: full name if verified, redacted if not
   const displayName = lead ? (isVerified ? lead.name : formatRedactedName(lead.name)) : "";
-  const firstName = lead?.name.split(" ")[0] ?? "";
 
-  // Generate pre-filled template from lead data
-  const careRecipientLabel = lead?.careRecipient ? `your ${lead.careRecipient.toLowerCase()}` : "your loved one";
-  const defaultTemplate = `Hi ${firstName},\n\nThank you for reaching out about care for ${careRecipientLabel}. I'd love to learn more about the needs and discuss how we can help.\n\nWould you be available for a brief call this week to talk through the details?\n\nWarm regards`;
-  const [messageText, setMessageText] = useState(defaultTemplate);
+  // Copy to clipboard with feedback
+  const copyToClipboard = (text: string, field: "phone" | "email") => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    onContactReveal?.(lead?.id || "", field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
-  // Reset composer state when drawer closes or lead changes
+  // Reset state when drawer closes or lead changes
   useEffect(() => {
     if (!isOpen) {
-      setShowComposer(false);
-      setMessageSent(false);
       setShowArchive(false);
       setArchiveReason(null);
       setArchiveOtherText("");
       setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
-      setSendingMessage(false);
-      setSendError(null);
+      setCopiedField(null);
     }
   }, [isOpen]);
 
   useEffect(() => {
     if (lead) {
-      const fn = lead.name.split(" ")[0];
-      const recipientLabel = lead.careRecipient ? `your ${lead.careRecipient.toLowerCase()}` : "your loved one";
-      setMessageText(`Hi ${fn},\n\nThank you for reaching out about care for ${recipientLabel}. I'd love to learn more about the needs and discuss how we can help.\n\nWould you be available for a brief call this week to talk through the details?\n\nWarm regards`);
-      setShowComposer(false);
-      setMessageSent(false);
       setShowArchive(false);
       setArchiveReason(null);
       setArchiveOtherText("");
       setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
-      setSendingMessage(false);
-      setSendError(null);
+      setCopiedField(null);
     }
   }, [lead]);
 
@@ -254,9 +168,7 @@ function LeadDetailDrawer({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (showComposer) {
-          setShowComposer(false);
-        } else if (showArchive) {
+        if (showArchive) {
           setShowArchive(false);
           setArchiveReason(null);
           setArchiveOtherText("");
@@ -275,42 +187,26 @@ function LeadDetailDrawer({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [isOpen, onClose, showComposer, showArchive, showDeleteConfirm]);
+  }, [isOpen, onClose, showArchive, showDeleteConfirm]);
 
-  const handleSendMessage = async () => {
-    if (!lead || !lead.connectionId || !messageText.trim()) return;
-
-    setSendingMessage(true);
-    setSendError(null);
-
-    try {
-      const res = await fetch("/api/connections/message", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          connectionId: lead.connectionId,
-          text: messageText.trim(),
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to send message");
-      }
-
-      setMessageSent(true);
-      onMessage(lead.id);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to send message";
-      setSendError(msg);
-    } finally {
-      setSendingMessage(false);
-    }
+  // Navigate to inbox to continue conversation
+  const handleContinueInInbox = () => {
+    if (!lead) return;
+    router.push(`/provider/inbox?id=${lead.connectionId || lead.id}`);
+    onClose();
   };
 
-  const handleArchive = () => {
+  const handleArchive = async () => {
     if (!lead || !archiveReason) return;
     setArchived(true);
+
+    // If "already_connected", auto-mark as replied before archiving
+    // (they've communicated outside Olera, so it's effectively replied)
+    // Await to prevent race condition with archive metadata update
+    if (archiveReason === "already_connected" && lead.status === "new") {
+      await onMarkAsReplied?.(lead.id);
+    }
+
     onArchive(lead.id, archiveReason);
     setTimeout(() => {
       setArchived(false);
@@ -348,649 +244,561 @@ function LeadDetailDrawer({
 
   if (!lead) return null;
 
+  // ── Sticky Header Content ──
+  // Status tag matches list view styling
+  const statusTag = lead.status === "archived" ? (
+    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
+      Archived
+    </span>
+  ) : lead.isNew ? (
+    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">
+      New
+    </span>
+  ) : lead.status === "replied" ? (
+    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-amber-50 text-amber-700 border border-amber-100 shrink-0">
+      Replied
+    </span>
+  ) : (
+    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
+      Viewed
+    </span>
+  );
+
+  const StickyHeader = (
+    <div className="flex items-center gap-3">
+      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center text-base font-semibold text-white shrink-0`}>
+        {lead.initials}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
+          {statusTag}
+        </div>
+        {lead.location && (
+          <p className="text-sm text-gray-600 truncate">{lead.location}</p>
+        )}
+      </div>
+      <div className="text-right shrink-0">
+        <p className="text-sm">
+          <span className="text-gray-500">Received</span>{" "}
+          <span className="font-semibold text-gray-700">{lead.date}</span>
+        </p>
+      </div>
+    </div>
+  );
+
+  // ── Contact Information Section ──
+  // Includes "Mark as Replied" action when lead is not yet replied
+  const ContactInfoSection = isVerified ? (
+    (lead.email || lead.phone) ? (
+      <div className="bg-primary-50 border border-primary-100 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
+            <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+          <p className="text-sm font-semibold text-primary-800">Contact Information</p>
+        </div>
+        <div className="space-y-3">
+          {lead.phone && (
+            <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-primary-100">
+              <div className="min-w-0">
+                <p className="text-xs text-gray-500 mb-0.5">Phone</p>
+                <p className="text-[15px] font-semibold text-gray-900 truncate">{lead.phone}</p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <a
+                  href={`tel:${lead.phone}`}
+                  className="p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+                  aria-label="Call"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                  </svg>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(lead.phone!, "phone")}
+                  className={`p-2 rounded-lg border transition-colors ${
+                    copiedField === "phone"
+                      ? "bg-primary-100 border-primary-200 text-primary-700"
+                      : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  }`}
+                  aria-label={copiedField === "phone" ? "Copied!" : "Copy phone"}
+                >
+                  {copiedField === "phone" ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+          {lead.email && (
+            <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-primary-100">
+              <div className="min-w-0">
+                <p className="text-xs text-gray-500 mb-0.5">Email</p>
+                <p className="text-[15px] font-semibold text-gray-900 truncate">{lead.email}</p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <a
+                  href={`mailto:${lead.email}`}
+                  className="p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+                  aria-label="Send email"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                  </svg>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(lead.email!, "email")}
+                  className={`p-2 rounded-lg border transition-colors ${
+                    copiedField === "email"
+                      ? "bg-primary-100 border-primary-200 text-primary-700"
+                      : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  }`}
+                  aria-label={copiedField === "email" ? "Copied!" : "Copy email"}
+                >
+                  {copiedField === "email" ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        {/* Mark as Replied action - only show for non-replied, non-archived leads */}
+        {lead.status !== "replied" && lead.status !== "archived" && (
+          <button
+            type="button"
+            onClick={() => onMarkAsReplied?.(lead.id)}
+            className="mt-3 text-sm font-medium text-primary-700 hover:text-primary-800 transition-colors"
+          >
+            Mark as Replied
+          </button>
+        )}
+      </div>
+    ) : (
+      <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+        <p className="text-sm text-gray-500">No contact information provided yet</p>
+        {/* Mark as Replied action - still available even without contact info */}
+        {lead.status !== "replied" && lead.status !== "archived" && (
+          <button
+            type="button"
+            onClick={() => onMarkAsReplied?.(lead.id)}
+            className="mt-3 text-sm font-medium text-primary-700 hover:text-primary-800 transition-colors"
+          >
+            Mark as Replied
+          </button>
+        )}
+      </div>
+    )
+  ) : (
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+      <VerifyToUnlockPrompt
+        action="see contact info"
+        onVerifyClick={onVerifyClick || (() => {})}
+        variant="block"
+      />
+    </div>
+  );
+
+  // ── About Situation Section ──
+  const AboutSituationSection = lead.aboutSituation ? (
+    <div>
+      <p className="text-lg font-semibold text-gray-900 mb-2">About their situation</p>
+      <p className="text-base text-gray-700 leading-relaxed">
+        &ldquo;{lead.aboutSituation}&rdquo;
+      </p>
+    </div>
+  ) : null;
+
+  // ── Care Details Section ──
+  // Format who needs care with age (like ReachOutDrawer)
+  const whoNeedsCareDisplay = lead.careRecipient
+    ? lead.careRecipientAge
+      ? `${lead.careRecipient}, ${lead.careRecipientAge} years old`
+      : lead.careRecipient
+    : null;
+
+  // Format preferences (contact + schedule combined like ReachOutDrawer)
+  const getPreferencesDisplay = () => {
+    const parts: string[] = [];
+
+    // Contact preference
+    if (lead.contactPreference) {
+      const contactMap: Record<string, string> = {
+        phone: "Prefers calls",
+        email: "Prefers email",
+        either: "Call or email",
+      };
+      parts.push(contactMap[lead.contactPreference] || lead.contactPreference);
+    }
+
+    // Schedule preference
+    if (lead.schedulePreference) {
+      const scheduleMap: Record<string, string> = {
+        mornings: "Mornings",
+        afternoons: "Afternoons",
+        evenings: "Evenings",
+        overnight: "Overnight",
+        full_time: "Full-time / Live-in",
+        flexible: "Flexible",
+      };
+      parts.push(scheduleMap[lead.schedulePreference] || lead.schedulePreference);
+    }
+
+    return parts.length > 0 ? parts.join(" · ") : null;
+  };
+
+  const preferencesDisplay = getPreferencesDisplay();
+
+  const CareDetailsSection = (
+    <div>
+      <p className="text-lg font-semibold text-gray-900 mb-3">Care details</p>
+      <div className="space-y-3">
+        {(lead.timeline || (lead.careType && lead.careType.length > 0)) && (
+          <div>
+            <p className="text-sm text-gray-500">Needs</p>
+            <p className="text-base font-medium text-gray-700">
+              {lead.careType?.[0] || "Care"}{lead.timeline ? ` in ${
+                lead.timeline === "asap" || lead.timeline === "immediate" ? "immediately" :
+                lead.timeline === "within_month" || lead.timeline === "within_1_month" ? "~1 month" :
+                lead.timeline === "few_months" || lead.timeline === "within_3_months" ? "~3 months" :
+                lead.timeline === "exploring" || lead.timeline === "researching" ? "(exploring)" :
+                lead.timeline
+              }` : ""}
+            </p>
+          </div>
+        )}
+        {lead.careNeeds && lead.careNeeds.length > 0 && (
+          <div>
+            <p className="text-sm text-gray-500">Help with</p>
+            <p className="text-base font-medium text-gray-700">{lead.careNeeds.join(", ")}</p>
+          </div>
+        )}
+        {whoNeedsCareDisplay && (
+          <div>
+            <p className="text-sm text-gray-500">Who needs care</p>
+            <p className="text-base font-medium text-gray-700">{whoNeedsCareDisplay}</p>
+          </div>
+        )}
+        {preferencesDisplay && (
+          <div>
+            <p className="text-sm text-gray-500">Preferences</p>
+            <p className="text-base font-medium text-gray-700">{preferencesDisplay}</p>
+          </div>
+        )}
+        {lead.paymentMethods && lead.paymentMethods.length > 0 && (
+          <div>
+            <p className="text-sm text-gray-500">Can pay via</p>
+            <p className="text-base font-medium text-gray-700">{lead.paymentMethods.join(", ")}</p>
+          </div>
+        )}
+        {lead.profileCompleteness !== undefined && (
+          <div>
+            <p className="text-sm text-gray-500">Profile</p>
+            <p className="text-base font-medium text-gray-700">{lead.profileCompleteness}% complete</p>
+          </div>
+        )}
+        {lead.memberSince && (
+          <div>
+            <p className="text-sm text-gray-500">Member since</p>
+            <p className="text-base font-medium text-gray-700">{lead.memberSince}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // ── Archived Banner ──
+  const ArchivedBanner = lead.status === "archived" && lead.archivedDate ? (
+    <div className="flex items-start gap-3.5 rounded-2xl bg-gray-50 border border-gray-100 px-5 py-4">
+      <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+        </svg>
+      </div>
+      <div>
+        <p className="text-[15px] font-semibold text-gray-800">Archived on {lead.archivedDate}</p>
+        {lead.archiveReason && (
+          <p className="text-[13px] text-gray-400 mt-0.5">Reason: {lead.archiveReason}</p>
+        )}
+      </div>
+    </div>
+  ) : null;
+
+  // ── Scrollable Content ──
+  const ScrollableContent = (
+    <div className="space-y-6">
+      {ArchivedBanner}
+      {ContactInfoSection}
+      {AboutSituationSection}
+      {CareDetailsSection}
+    </div>
+  );
+
+  // ── Active Footer (Archive + Continue in Inbox) ──
+  const ActiveFooter = (
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => setShowArchive(true)}
+        className="px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+        </svg>
+        Archive
+      </button>
+      {isVerified ? (
+        <button
+          type="button"
+          onClick={handleContinueInInbox}
+          className="flex-1 px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+          </svg>
+          Continue in Inbox
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onVerifyClick}
+          className="flex-1 px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+          </svg>
+          Verify to continue
+        </button>
+      )}
+    </div>
+  );
+
+  // ── Archived Footer (Delete + Restore) ──
+  const ArchivedFooter = restored ? (
+    <div className="flex flex-col items-center justify-center gap-3 py-2">
+      <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center">
+        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+        </svg>
+      </div>
+      <p className="text-[15px] font-semibold text-gray-900">Lead restored</p>
+      <p className="text-[13px] text-gray-500">Moved back to active leads</p>
+    </div>
+  ) : showDeleteConfirm ? (
+    <div className="rounded-2xl border border-red-200 bg-red-50/50 px-5 py-5">
+      <div className="flex items-start gap-3.5">
+        <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+          <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-[15px] font-semibold text-gray-900">Delete permanently?</p>
+          <p className="text-[13px] text-gray-500 mt-1 leading-relaxed">This will permanently remove this lead and any message history. This action can&apos;t be undone.</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 mt-4">
+        <button
+          type="button"
+          onClick={() => setShowDeleteConfirm(false)}
+          className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl border border-gray-200 bg-white text-[14px] font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl bg-red-600 text-[14px] font-semibold text-white hover:bg-red-700 transition-colors"
+        >
+          Yes, Delete Forever
+        </button>
+      </div>
+    </div>
+  ) : (
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => setShowDeleteConfirm(true)}
+        className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+        </svg>
+        Delete
+      </button>
+      <button
+        type="button"
+        onClick={handleRestore}
+        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary-600 text-sm font-semibold text-white hover:bg-primary-700 transition-colors"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+        </svg>
+        Restore
+      </button>
+    </div>
+  );
+
+  // ── Archive Flow Footer ──
+  const ArchiveFlowFooter = archived ? (
+    <div className="flex flex-col items-center justify-center gap-3 py-2">
+      <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center">
+        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+        </svg>
+      </div>
+      <p className="text-[15px] font-semibold text-gray-900">Lead archived</p>
+    </div>
+  ) : (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-[15px] font-semibold text-gray-900">Why are you archiving?</h3>
+        <button
+          type="button"
+          onClick={() => { setShowArchive(false); setArchiveReason(null); setArchiveOtherText(""); }}
+          className="text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-150"
+        >
+          Cancel
+        </button>
+      </div>
+      <div className="space-y-2.5">
+        {ARCHIVE_REASONS.map((reason) => (
+          <button
+            key={reason.value}
+            type="button"
+            onClick={() => setArchiveReason(reason.value)}
+            className={`w-full flex items-start gap-3.5 px-4 py-3.5 rounded-xl border text-left transition-all duration-150 ${
+              archiveReason === reason.value
+                ? "border-primary-200 bg-primary-50/30"
+                : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
+            }`}
+          >
+            <div className={`mt-0.5 w-[18px] h-[18px] rounded-full border-2 shrink-0 flex items-center justify-center transition-colors duration-150 ${
+              archiveReason === reason.value ? "border-primary-500" : "border-gray-300"
+            }`}>
+              {archiveReason === reason.value && (
+                <div className="w-2 h-2 rounded-full bg-primary-500" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[15px] font-medium text-gray-800">{reason.label}</p>
+              {reason.description && (
+                <p className="text-[13px] text-gray-400 mt-0.5">{reason.description}</p>
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+      {archiveReason === "other" && (
+        <textarea
+          value={archiveOtherText}
+          onChange={(e) => setArchiveOtherText(e.target.value)}
+          placeholder="Tell us more (optional)"
+          rows={2}
+          className="w-full mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
+        />
+      )}
+      {archiveReason && (
+        <button
+          type="button"
+          onClick={handleArchive}
+          className="w-full mt-4 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-[15px] font-semibold text-white hover:bg-gray-800 transition-colors"
+        >
+          Archive Lead
+        </button>
+      )}
+    </div>
+  );
+
+  // Determine which footer to show
+  const StickyFooter = lead.status === "archived"
+    ? ArchivedFooter
+    : showArchive
+    ? ArchiveFlowFooter
+    : ActiveFooter;
+
   return (
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 z-30 bg-black/50 transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[60] bg-black/50 transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
+        aria-hidden="true"
       />
 
-      {/* Bottom sheet on mobile, side drawer on desktop */}
+      {/* Drawer */}
       <div
-        className={`fixed z-40 bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-300 ease-out
-          /* Mobile: bottom sheet - use dvh for proper mobile Safari support */
-          inset-x-0 bottom-0 max-h-[90dvh] rounded-t-3xl pb-[env(safe-area-inset-bottom)]
-          /* Desktop: side drawer */
-          lg:inset-y-0 lg:top-16 lg:right-0 lg:left-auto lg:bottom-auto lg:w-[640px] lg:max-w-[calc(100vw-24px)] lg:h-[calc(100dvh-64px)] lg:max-h-none lg:rounded-none lg:pb-0
-          ${isOpen
-            ? "translate-y-0 lg:translate-x-0"
-            : "translate-y-full lg:translate-y-0 lg:translate-x-full"
-          }`}
+        className={`fixed z-[70] bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-300 ease-out
+          inset-x-0 bottom-0 h-[95dvh] rounded-t-2xl pb-[env(safe-area-inset-bottom)]
+          lg:inset-y-0 lg:top-0 lg:right-0 lg:left-auto lg:bottom-0 lg:w-[640px] lg:max-w-[calc(100vw-24px)] lg:h-screen lg:rounded-none lg:pb-0
+          ${isOpen ? "translate-y-0 lg:translate-x-0" : "translate-y-full lg:translate-y-0 lg:translate-x-full"}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="drawer-title"
       >
-        {/* Mobile drag handle */}
-        <div className="lg:hidden pt-3 pb-2 flex justify-center shrink-0">
-          <div className="w-10 h-1 bg-gray-300 rounded-full" />
-        </div>
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* MOBILE LAYOUT */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <div className="lg:hidden flex flex-col h-full">
+          {/* Mobile drag handle */}
+          <div className="pt-3 pb-2 flex justify-center shrink-0">
+            <div className="w-10 h-1 bg-gray-300 rounded-full" />
+          </div>
 
-        {/* ── Fixed header ── */}
-        <div className="shrink-0 border-b border-gray-100">
-          {/* Lead identity + close button */}
-          <div className="px-4 lg:px-6 pt-2 lg:pt-6 pb-4">
-            <div className="flex items-start gap-3 lg:gap-4">
-              {/* Close button — desktop only, top right */}
-              <button
-                type="button"
-                onClick={onClose}
-                className="hidden lg:flex absolute right-6 top-6 w-8 h-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors duration-150"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
-                <span className="text-sm font-bold text-gray-600">{lead.initials}</span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg lg:text-xl font-display font-bold text-gray-900 tracking-tight truncate">
-                    {displayName}
-                  </h2>
-                  {lead.isNew && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
-                      New
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm lg:text-[15px] text-gray-500 mt-0.5">{lead.subtitle}</p>
-              </div>
-              {/* Mobile close button - top right */}
-              <button
-                type="button"
-                onClick={onClose}
-                className="lg:hidden w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
-                aria-label="Close"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+          {/* Mobile sticky header */}
+          <div className="shrink-0 px-5 pb-4 border-b border-gray-100">
+            {StickyHeader}
+          </div>
 
-            {/* Context pills - horizontal scroll on mobile */}
-            <div className="flex items-center gap-2 mt-3 overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 lg:flex-wrap scrollbar-hide">
-              {/* Urgency or Archived badge */}
-              {lead.status === "archived" ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-medium text-gray-500 whitespace-nowrap shrink-0">
-                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-                  </svg>
-                  Archived
-                </span>
-              ) : (
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 ${
-                lead.urgency === "immediate"
-                  ? "bg-red-50 text-red-700 border border-red-100"
-                  : lead.urgency === "within_1_month"
-                  ? "bg-amber-50 text-amber-700 border border-amber-100"
-                  : "bg-blue-50 text-blue-700 border border-blue-100"
-              }`}>
-                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                  lead.urgency === "immediate" ? "bg-red-400" : lead.urgency === "within_1_month" ? "bg-amber-400" : "bg-blue-400"
-                }`} />
-                {URGENCY_LABELS[lead.urgency]}
-              </span>
-              )}
-              {/* Location */}
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-medium text-gray-600 whitespace-nowrap shrink-0">
-                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                </svg>
-                {lead.location}
-              </span>
-              {/* Date */}
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-medium text-gray-600 whitespace-nowrap shrink-0">
-                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-                {lead.date}
-              </span>
-              {/* Contact preference */}
-              {lead.contactPreference && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-medium text-gray-600 whitespace-nowrap shrink-0">
-                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    {lead.contactPreference === "phone" ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                    )}
-                  </svg>
-                  {CONTACT_METHOD_LABELS[lead.contactPreference]}
-                </span>
-              )}
-            </div>
+          {/* Mobile scrollable content */}
+          <div className="flex-1 overflow-y-auto px-5 py-5">
+            {ScrollableContent}
+          </div>
+
+          {/* Mobile sticky footer */}
+          <div className="shrink-0 border-t border-gray-100 px-5 pt-4 pb-4 bg-white">
+            {StickyFooter}
           </div>
         </div>
 
-        {/* ── Scrollable middle ── */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* DESKTOP LAYOUT */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <div className="hidden lg:flex lg:flex-col lg:h-full">
+          {/* Desktop sticky header */}
+          <div className="shrink-0 px-6 py-5 border-b border-gray-100">
+            {StickyHeader}
+          </div>
 
-          {/* ── Inline message composer / persistent sent state ── */}
-          {(showComposer || lead.messagedAt) && (
-            <div className="px-4 lg:px-6 pt-5 pb-2">
-              <div className={`rounded-2xl overflow-hidden ${(messageSent || lead.messagedAt) ? "border border-primary-100/60 bg-primary-50/30" : "border border-gray-200 bg-white shadow-sm"}`}>
-                {(messageSent || lead.messagedAt) ? (
-                  /* ── Persistent confirmation state with actions ── */
-                  <div className="px-6 py-8 flex flex-col items-center justify-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-primary-600 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                      </svg>
-                    </div>
-                    <p className="text-[15px] font-semibold text-gray-900">Message sent</p>
-                    <p className="text-[13px] text-gray-500">{firstName} will receive your message shortly</p>
+          {/* Desktop scrollable content */}
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            {ScrollableContent}
+          </div>
 
-                    {/* Action buttons */}
-                    <div className="flex items-center gap-3 w-full mt-2">
-                      <button
-                        type="button"
-                        onClick={() => { onClose(); router.push(`/provider/inbox?id=${lead.connectionId || lead.id}`); }}
-                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary-200 bg-white text-[14px] font-semibold text-primary-600 hover:bg-primary-50 hover:border-primary-300 transition-all duration-150 active:scale-[0.98]"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-                        </svg>
-                        Continue in Inbox
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setShowComposer(false); setMessageSent(false); setShowArchive(true); }}
-                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 bg-white text-[14px] font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-                        </svg>
-                        Archive
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  /* ── Composer form ── */
-                  <div>
-                    {/* Header */}
-                    <div className="flex items-start justify-between px-5 pt-4 pb-3">
-                      <div>
-                        <h3 className="text-[15px] font-semibold text-gray-900">Message {firstName}</h3>
-                        <p className="text-[13px] text-gray-400 mt-0.5">
-                          {lead.contactPreference ? `${CONTACT_METHOD_LABELS[lead.contactPreference]} \u00b7 ` : ""}Pre-filled template
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowComposer(false)}
-                        className="text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-150 pt-0.5"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-
-                    {/* Textarea */}
-                    <div className="px-5 pb-4">
-                      <textarea
-                        value={messageText}
-                        onChange={(e) => setMessageText(e.target.value)}
-                        rows={8}
-                        disabled={sendingMessage}
-                        className="w-full rounded-xl border border-primary-200 bg-primary-50/20 px-4 py-3.5 text-base text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
-                      />
-                    </div>
-
-                    {/* Error message */}
-                    {sendError && (
-                      <div className="px-5 pb-3">
-                        <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                          </svg>
-                          <span>{sendError}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Send button */}
-                    <div className="px-5 pb-5">
-                      <button
-                        type="button"
-                        onClick={handleSendMessage}
-                        disabled={sendingMessage || !messageText.trim() || !lead.connectionId}
-                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
-                      >
-                        {sendingMessage ? (
-                          <>
-                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                            Sending...
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                            </svg>
-                            Send Message
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── Archived banner ── */}
-          {lead.status === "archived" && lead.archivedDate && (
-            <div className="px-4 lg:px-6 pt-5 pb-2">
-              <div className="flex items-start gap-3.5 rounded-2xl bg-gray-50 border border-gray-100 px-5 py-4">
-                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-[15px] font-semibold text-gray-800">Archived on {lead.archivedDate}</p>
-                  {lead.archiveReason && (
-                    <p className="text-[13px] text-gray-400 mt-0.5">Reason: {lead.archiveReason}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 1. Contact Information — hidden for unverified providers */}
-          {isVerified ? (
-            (lead.email || lead.phone) ? (
-              <CollapsibleSection title="Contact Information">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
-                  {/* Email */}
-                  <div>
-                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Email</p>
-                    {lead.email ? (
-                      <div className="flex items-center gap-2">
-                        <p className="text-[15px] text-gray-800 truncate">{lead.email}</p>
-                        <button
-                          type="button"
-                          onClick={() => { navigator.clipboard.writeText(lead.email!); onContactReveal?.(lead.id, "email"); }}
-                          className="w-6 h-6 flex items-center justify-center rounded text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors duration-150 shrink-0"
-                          title="Copy email"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                          </svg>
-                        </button>
-                      </div>
-                    ) : (
-                      <p className="text-[15px] text-gray-400 italic">Not provided</p>
-                    )}
-                  </div>
-                  {/* Phone */}
-                  <div>
-                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Phone</p>
-                    {lead.phone ? (
-                      <div className="flex items-center gap-2">
-                        <p className="text-[15px] text-gray-800 truncate">{lead.phone}</p>
-                        <button
-                          type="button"
-                          onClick={() => { navigator.clipboard.writeText(lead.phone!); onContactReveal?.(lead.id, "phone"); }}
-                          className="w-6 h-6 flex items-center justify-center rounded text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors duration-150 shrink-0"
-                          title="Copy phone"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                          </svg>
-                        </button>
-                      </div>
-                    ) : (
-                      <p className="text-[15px] text-gray-400 italic">Not provided</p>
-                    )}
-                  </div>
-                </div>
-              </CollapsibleSection>
-            ) : (
-              <CollapsibleSection title="Contact Information">
-                <p className="text-[15px] text-gray-400 italic">No contact information provided yet</p>
-              </CollapsibleSection>
-            )
-          ) : (
-            /* Unverified: show verify prompt instead of contact info */
-            <CollapsibleSection title="Contact Information">
-              <VerifyToUnlockPrompt
-                action="see contact info"
-                onVerifyClick={onVerifyClick || (() => {})}
-                variant="block"
-              />
-            </CollapsibleSection>
-          )}
-
-          {/* 2. Care Preferences — who needs care, type tags, needs tags */}
-          <CollapsibleSection title="Care Preferences">
-            {(lead.careRecipient || (lead.careType && lead.careType.length > 0) || (lead.careNeeds && lead.careNeeds.length > 0)) ? (
-              <div className="space-y-5">
-                {lead.careRecipient && (
-                  <div>
-                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Who needs care</p>
-                    <p className="text-[15px] text-gray-800">{lead.careRecipient}</p>
-                  </div>
-                )}
-                {lead.careType && lead.careType.length > 0 && (
-                  <div>
-                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">Type of care</p>
-                    <div className="flex flex-wrap gap-2">
-                      {lead.careType.map((type) => (
-                        <span key={type} className="inline-flex px-3.5 py-1.5 rounded-full bg-primary-50/60 border border-primary-100/40 text-[13px] font-medium text-primary-700">
-                          {type}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {lead.careNeeds && lead.careNeeds.length > 0 && (
-                  <div>
-                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">Care needs</p>
-                    <div className="flex flex-wrap gap-2">
-                      {lead.careNeeds.map((need) => (
-                        <span key={need} className="inline-flex px-3.5 py-1.5 rounded-full bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
-                          {need}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-[15px] text-gray-400 italic">No care preferences specified yet</p>
-            )}
-          </CollapsibleSection>
-
-          {/* 3. Timing & Schedule */}
-          <CollapsibleSection title="Timing & Schedule">
-            {(lead.timeline || lead.schedulePreference) ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
-                {lead.timeline && (
-                  <div>
-                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">When needed</p>
-                    <p className="text-[15px] text-gray-800">
-                      {lead.timeline === "asap" || lead.timeline === "immediate" ? "Immediately" :
-                       lead.timeline === "within_month" || lead.timeline === "within_1_month" ? "Within a month" :
-                       lead.timeline === "few_months" || lead.timeline === "within_3_months" ? "In a few months" :
-                       lead.timeline === "exploring" || lead.timeline === "researching" ? "Just exploring" :
-                       lead.timeline}
-                    </p>
-                  </div>
-                )}
-                {lead.schedulePreference && (
-                  <div>
-                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Schedule preference</p>
-                    <p className="text-[15px] text-gray-800">
-                      {lead.schedulePreference === "mornings" ? "Mornings" :
-                       lead.schedulePreference === "afternoons" ? "Afternoons" :
-                       lead.schedulePreference === "evenings" ? "Evenings" :
-                       lead.schedulePreference === "overnight" ? "Overnight" :
-                       lead.schedulePreference === "full_time" ? "Full-time / Live-in" :
-                       lead.schedulePreference === "flexible" ? "Flexible" :
-                       lead.schedulePreference}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-[15px] text-gray-400 italic">No timing preferences specified yet</p>
-            )}
-          </CollapsibleSection>
-
-          {/* 4. Payment */}
-          <CollapsibleSection title="Payment">
-            {lead.paymentMethods && lead.paymentMethods.length > 0 ? (
-              <div>
-                <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">Payment methods</p>
-                <div className="flex flex-wrap gap-2">
-                  {lead.paymentMethods.map((method) => (
-                    <span key={method} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700">
-                      {method}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="text-[15px] text-gray-400 italic">No payment information yet</p>
-            )}
-          </CollapsibleSection>
-
-          {/* 5. About / Situation — blockquote style */}
-          <CollapsibleSection title="About">
-            {lead.aboutSituation ? (
-              <div className="border-l-[3px] border-primary-300 bg-primary-50/40 rounded-r-xl rounded-l-sm px-5 py-4">
-                <p className="text-[15px] text-gray-700 leading-relaxed">
-                  {lead.aboutSituation}
-                </p>
-              </div>
-            ) : (
-              <p className="text-[15px] text-gray-400 italic">No additional details shared</p>
-            )}
-          </CollapsibleSection>
-
-          {/* 6. Activity — vertical timeline, collapsed by default */}
-          <CollapsibleSection title="Activity" defaultOpen={false}>
-            {lead.activity && lead.activity.length > 0 ? (
-              <div className="relative pl-5">
-                {/* Timeline line */}
-                <div className="absolute left-[5px] top-1.5 bottom-1.5 w-px bg-gray-200" />
-
-                <div className="space-y-5">
-                  {lead.activity.map((event, idx) => (
-                    <div key={idx} className="relative">
-                      {/* Timeline dot */}
-                      <div className="absolute -left-5 top-1.5 w-[9px] h-[9px] rounded-full bg-gray-300" />
-                      <div>
-                        <p className="text-[15px] font-medium text-gray-800">{event.label}</p>
-                        <p className="text-[13px] text-gray-400 mt-0.5">{event.date}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="text-[15px] text-gray-400 italic">No activity yet</p>
-            )}
-          </CollapsibleSection>
+          {/* Desktop sticky footer */}
+          <div className="shrink-0 border-t border-gray-100 px-6 pt-4 pb-5 bg-white">
+            {StickyFooter}
+          </div>
         </div>
-
-        {/* ── Fixed footer ── */}
-        {lead.status === "archived" ? (
-          /* Archived lead footer — Delete + Restore */
-          <div className="shrink-0 border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
-            {restored ? (
-              <div className="px-4 lg:px-6 py-6 lg:py-8 flex flex-col items-center justify-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                </div>
-                <p className="text-[15px] font-semibold text-gray-900">Lead restored</p>
-                <p className="text-[13px] text-gray-500">Moved back to active leads</p>
-              </div>
-            ) : showDeleteConfirm ? (
-              <div className="px-4 lg:px-6 py-4 lg:py-5">
-                <div className="rounded-2xl border border-red-200 bg-red-50/50 px-5 py-5">
-                  <div className="flex items-start gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
-                      <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-semibold text-gray-900">Delete permanently?</p>
-                      <p className="text-[13px] text-gray-500 mt-1 leading-relaxed">This will permanently remove this lead and any message history. This action can&apos;t be undone.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 mt-4">
-                    <button
-                      type="button"
-                      onClick={() => setShowDeleteConfirm(false)}
-                      className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl border border-gray-200 bg-white text-[14px] font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDelete}
-                      className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl bg-red-600 text-[14px] font-semibold text-white shadow-sm hover:bg-red-700 transition-all duration-150 active:scale-[0.98]"
-                    >
-                      Yes, Delete Forever
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="px-4 lg:px-6 py-4 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl border border-gray-200 text-sm lg:text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                  </svg>
-                  Delete
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRestore}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
-                  </svg>
-                  Restore
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (showComposer || (lead.messagedAt && !showArchive)) ? null : showArchive ? (
-          /* Archive reason selector */
-          <div className="shrink-0 border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
-            {archived ? (
-              <div className="px-4 lg:px-6 py-6 lg:py-8 flex flex-col items-center justify-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                </div>
-                <p className="text-[15px] font-semibold text-gray-900">Lead archived</p>
-              </div>
-            ) : (
-              <div className="px-4 lg:px-6 py-4 lg:py-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-[15px] font-semibold text-gray-900">Why are you archiving?</h3>
-                  <button
-                    type="button"
-                    onClick={() => { setShowArchive(false); setArchiveReason(null); setArchiveOtherText(""); }}
-                    className="text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-150"
-                  >
-                    Cancel
-                  </button>
-                </div>
-                <div className="space-y-2.5">
-                  {ARCHIVE_REASONS.map((reason) => (
-                    <button
-                      key={reason.value}
-                      type="button"
-                      onClick={() => setArchiveReason(reason.value)}
-                      className={`w-full flex items-start gap-3.5 px-4 py-3.5 rounded-xl border text-left transition-all duration-150 ${
-                        archiveReason === reason.value
-                          ? "border-primary-200 bg-primary-50/30"
-                          : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
-                      }`}
-                    >
-                      <div className={`mt-0.5 w-[18px] h-[18px] rounded-full border-2 shrink-0 flex items-center justify-center transition-colors duration-150 ${
-                        archiveReason === reason.value ? "border-primary-500" : "border-gray-300"
-                      }`}>
-                        {archiveReason === reason.value && (
-                          <div className="w-2 h-2 rounded-full bg-primary-500" />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[15px] font-medium text-gray-800">{reason.label}</p>
-                        {reason.description && (
-                          <p className="text-[13px] text-gray-400 mt-0.5">{reason.description}</p>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-                {archiveReason === "other" && (
-                  <textarea
-                    value={archiveOtherText}
-                    onChange={(e) => setArchiveOtherText(e.target.value)}
-                    placeholder="Tell us more (optional)"
-                    rows={2}
-                    className="w-full mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
-                  />
-                )}
-                {archiveReason && (
-                  <button
-                    type="button"
-                    onClick={handleArchive}
-                    className="w-full mt-4 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-[15px] font-semibold text-white shadow-sm hover:bg-gray-800 transition-all duration-150 active:scale-[0.98]"
-                  >
-                    Archive Lead
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Default footer buttons — active leads */
-          <div className="shrink-0 border-t border-gray-100 px-4 lg:px-6 py-4 flex items-center gap-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
-            <button
-              type="button"
-              onClick={() => setShowArchive(true)}
-              className="inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl border border-gray-200 text-sm lg:text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-              </svg>
-              Archive
-            </button>
-            {isVerified ? (
-              <button
-                type="button"
-                onClick={() => { setShowComposer(true); scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-                </svg>
-                Message
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onVerifyClick}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                </svg>
-                Verify to respond
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </>
   );
@@ -1053,7 +861,7 @@ interface ConnectionWithProfile extends Connection {
 
 function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: string): LeadDetail {
   const meta = conn.metadata as Record<string, unknown> | undefined;
-  const thread = (meta?.thread as Array<{ from_profile_id: string; text: string; created_at: string }>) || [];
+  const thread = (meta?.thread as Array<{ from_profile_id: string; text: string; created_at: string; is_auto_reply?: boolean }>) || [];
   const isArchived = meta?.archived === true;
   const familyProfile = conn.fromProfile;
 
@@ -1123,18 +931,19 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   const rawContactPref = familyMeta.contact_preference as string | undefined;
   const contactPreference = rawContactPref ? contactPrefMap[rawContactPref] : undefined;
 
-  // Determine status
-  const hasProviderReply = thread.some((msg) => msg.from_profile_id === providerProfileId);
+  // Determine status - exclude automated replies, only count manual provider responses
+  // Also check for manually marked as replied via drawer action
+  const hasProviderReply = thread.some(
+    (msg) => msg.from_profile_id === providerProfileId && !msg.is_auto_reply
+  );
+  const markedReplied = meta?.marked_replied === true;
   let status: LeadStatus = "new";
   if (isArchived) {
     status = "archived";
-  } else if (hasProviderReply) {
+  } else if (hasProviderReply || markedReplied) {
     status = "replied";
-  } else if (conn.status === "pending" && thread.length === 0) {
-    status = "new";
-  } else {
-    status = "no_reply";
   }
+  // If no manual provider reply and not manually marked, status stays "new"
 
   // Build activity timeline
   const activity: ActivityEvent[] = [
@@ -1205,6 +1014,57 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   // Phone: prefer fresh profile, fall back to message
   const phone = familyProfile?.phone || (careDetails.seeker_phone as string) || undefined;
 
+  // Archive metadata from database
+  const archivedAt = meta?.archived_at as string | undefined;
+  const archiveReason = meta?.archive_reason as string | undefined;
+
+  // Format archive date if present
+  let archivedDate: string | undefined;
+  if (isArchived && archivedAt) {
+    archivedDate = new Date(archivedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  // Map archive reason code to display label
+  const archiveReasonLabel = archiveReason ? ({
+    already_connected: "Already connected",
+    not_a_fit: "Not a good fit",
+    not_accepting: "Not accepting new clients",
+    unable_to_reach: "Unable to reach",
+    other: "Other",
+  }[archiveReason] || archiveReason) : undefined;
+
+  // Compute what the status would be if not archived (for restore)
+  // This is based on reply state, not stored status
+  let preArchiveStatus: LeadStatus = "new";
+  if (hasProviderReply || markedReplied) {
+    preArchiveStatus = "replied";
+  }
+
+  // Calculate profile completeness (same weights as components/portal/profile/completeness.ts)
+  let profileCompleteness = 0;
+  const hasRealName = fullName && fullName.toLowerCase() !== "care seeker";
+  if (familyProfile?.image_url) profileCompleteness += 2;
+  if (fullName) profileCompleteness += 5;
+  if (hasRealName) profileCompleteness += 5;
+  if (familyProfile?.city) profileCompleteness += 8;
+  if (email) profileCompleteness += 10;
+  if (phone) profileCompleteness += 12;
+  if (familyMeta.contact_preference) profileCompleteness += 2;
+  if (familyMeta.relationship_to_recipient || familyMeta.who_needs_care) profileCompleteness += 10;
+  if (careRecipientAge) profileCompleteness += 2;
+  if (aboutSituation || familyProfile?.description) profileCompleteness += 4;
+  if (profileCareTypes.length > 0) profileCompleteness += 8;
+  if (profileCareNeeds.length > 0) profileCompleteness += 6;
+  if (timeline) profileCompleteness += 12;
+  if (schedulePreference) profileCompleteness += 2;
+  if (paymentMethods && paymentMethods.length > 0) profileCompleteness += 12;
+  profileCompleteness = Math.min(profileCompleteness, 100);
+
+  // Format member since date
+  const memberSince = familyProfile?.created_at
+    ? new Date(familyProfile.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
+    : undefined;
+
   return {
     id: conn.id,
     connectionId: conn.id,
@@ -1235,20 +1095,29 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     paymentMethods,
     // System
     activity,
-  };
+    // Archive info (from database metadata)
+    archivedDate,
+    archiveReason: archiveReasonLabel,
+    // Profile metadata
+    profileCompleteness,
+    memberSince,
+    // Store computed pre-archive status for restore (used by handleRestoreLead)
+    _previousStatus: isArchived ? preArchiveStatus : undefined,
+  } as LeadDetail & { _previousStatus?: LeadStatus };
 }
 
 // ── Page ──
 
 export default function ProviderLeadsPage() {
+  const router = useRouter();
   const providerProfile = useProviderProfile();
   const { isLoading: authLoading, refreshAccountData } = useAuth();
-  const [activeFilter, setActiveFilter] = useState<StatusFilter>("all");
-  const [sortBy, setSortBy] = useState<SortOption>("best_match");
+  const [activeFilter, setActiveFilter] = useState<StatusFilter>("active");
   const [leads, setLeads] = useState<LeadDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   // Track which lead's drawer should reopen after verification
   const [pendingLeadId, setPendingLeadId] = useState<string | null>(null);
   const fetchedRef = useRef(false);
@@ -1318,7 +1187,7 @@ export default function ProviderLeadsPage() {
       // Provider-initiated outreach is handled separately on the Outreach page
       const inquiriesResult = await supabase
         .from("connections")
-        .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
+        .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata, image_url, created_at)")
         .eq("to_profile_id", profileId)
         .eq("type", "inquiry")
         .in("status", ["pending", "accepted"])
@@ -1405,7 +1274,7 @@ export default function ProviderLeadsPage() {
     setIsDrawerOpen(false);
   }, []);
 
-  const handleArchiveLead = useCallback((leadId: string, reason: string) => {
+  const handleArchiveLead = useCallback(async (leadId: string, reason: string) => {
     const reasonLabel = {
       already_connected: "Already connected",
       not_a_fit: "Not a good fit",
@@ -1414,39 +1283,187 @@ export default function ProviderLeadsPage() {
       other: "Other",
     }[reason] || reason;
 
+    // Find the lead to get connectionId and preserve previous status
+    const lead = leads.find((l) => l.id === leadId);
+    const connectionId = lead?.connectionId || leadId;
+    const previousStatus = lead?.status || "new";
+
+    // Optimistic UI update
     setLeads((prev) =>
       prev.map((l) =>
         l.id === leadId
-          ? { ...l, status: "archived" as LeadStatus, archivedDate: "Feb 26, 2026", archiveReason: reasonLabel }
+          ? {
+              ...l,
+              status: "archived" as LeadStatus,
+              archivedDate: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+              archiveReason: reasonLabel,
+              // Store previous status for restore
+              _previousStatus: previousStatus,
+            }
           : l
       )
     );
-  }, []);
 
-  const handleRestoreLead = useCallback((leadId: string) => {
+    // Persist to database via API
+    try {
+      const response = await fetch("/api/connections/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId,
+          action: "archive",
+          archiveReason: reason,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("[archive] API failed:", await response.text());
+        // Revert optimistic update on failure
+        setLeads((prev) =>
+          prev.map((l) =>
+            l.id === leadId
+              ? { ...l, status: previousStatus as LeadStatus, archivedDate: undefined, archiveReason: undefined }
+              : l
+          )
+        );
+      }
+    } catch (err) {
+      console.error("[archive] Failed:", err);
+      // Revert optimistic update on failure
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.id === leadId
+            ? { ...l, status: previousStatus as LeadStatus, archivedDate: undefined, archiveReason: undefined }
+            : l
+        )
+      );
+    }
+  }, [leads]);
+
+  const handleRestoreLead = useCallback(async (leadId: string) => {
+    // Find the lead to get connectionId and previous status
+    const lead = leads.find((l) => l.id === leadId);
+    const connectionId = lead?.connectionId || leadId;
+    // Use stored previous status, or fall back to "new"
+    const previousStatus = (lead as LeadDetail & { _previousStatus?: LeadStatus })?._previousStatus || "new";
+
+    // Optimistic UI update - restore to previous status
     setLeads((prev) =>
       prev.map((l) =>
         l.id === leadId
-          ? { ...l, status: "new" as LeadStatus, archivedDate: undefined, archiveReason: undefined }
+          ? { ...l, status: previousStatus as LeadStatus, archivedDate: undefined, archiveReason: undefined }
           : l
       )
     );
-  }, []);
 
-  const handleDeleteLead = useCallback((leadId: string) => {
+    // Persist to database via API
+    try {
+      const response = await fetch("/api/connections/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId,
+          action: "unarchive",
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("[restore] API failed:", await response.text());
+        // Revert optimistic update on failure
+        setLeads((prev) =>
+          prev.map((l) =>
+            l.id === leadId
+              ? { ...l, status: "archived" as LeadStatus }
+              : l
+          )
+        );
+      }
+    } catch (err) {
+      console.error("[restore] Failed:", err);
+      // Revert optimistic update on failure
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.id === leadId
+            ? { ...l, status: "archived" as LeadStatus }
+            : l
+        )
+      );
+    }
+  }, [leads]);
+
+  const handleDeleteLead = useCallback(async (leadId: string) => {
+    // Find the lead to get connectionId
+    const lead = leads.find((l) => l.id === leadId);
+    const connectionId = lead?.connectionId || leadId;
+
+    // Optimistic UI update - remove from list
     setLeads((prev) => prev.filter((l) => l.id !== leadId));
     setSelectedLeadId(null);
-  }, []);
 
-  const handleMessageLead = useCallback((leadId: string) => {
+    // Persist to database via API
+    try {
+      const response = await fetch("/api/connections/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId,
+          action: "delete",
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("[delete] API failed:", await response.text());
+        // On failure, refetch to restore the lead
+        fetchLeads(false);
+      }
+    } catch (err) {
+      console.error("[delete] Failed:", err);
+      // On failure, refetch to restore the lead
+      fetchLeads(false);
+    }
+  }, [leads, fetchLeads]);
+
+  const handleMarkAsReplied = useCallback(async (leadId: string) => {
+    // Update local state immediately
     setLeads((prev) =>
       prev.map((l) =>
-        l.id === leadId
-          ? { ...l, messagedAt: "Just now", status: "replied" as LeadStatus }
-          : l
+        l.id === leadId ? { ...l, status: "replied" as LeadStatus } : l
       )
     );
-  }, []);
+
+    // Persist to backend (update connection metadata)
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        // Find the connection ID for this lead
+        const lead = leads.find((l) => l.id === leadId);
+        const connectionId = lead?.connectionId || leadId;
+
+        // Get current connection to preserve metadata
+        const { data: conn } = await supabase
+          .from("connections")
+          .select("metadata")
+          .eq("id", connectionId)
+          .single();
+
+        if (conn) {
+          const existingMeta = (conn.metadata || {}) as Record<string, unknown>;
+          await supabase
+            .from("connections")
+            .update({
+              metadata: {
+                ...existingMeta,
+                marked_replied: true,
+                marked_replied_at: new Date().toISOString(),
+              },
+            })
+            .eq("id", connectionId);
+        }
+      } catch (err) {
+        console.error("[markAsReplied] Failed:", err);
+      }
+    }
+  }, [leads]);
 
   // WhatsApp opt-in: show banner if provider has phone, hasn't opted in, and hasn't dismissed
   const providerMeta = (providerProfile?.metadata || {}) as Record<string, unknown>;
@@ -1503,286 +1520,324 @@ export default function ProviderLeadsPage() {
   const filteredLeads = useMemo(() => {
     if (activeFilter === "archived") {
       return leads.filter((l) => l.status === "archived");
-    } else if (activeFilter === "new") {
-      return leads.filter((l) => l.isNew && l.status !== "archived");
-    } else if (activeFilter === "replied") {
-      return leads.filter((l) => l.status === "replied");
-    } else {
-      // "all" - show everything except archived
-      return leads.filter((l) => l.status !== "archived");
     }
+    // "active" - show everything except archived
+    return leads.filter((l) => l.status !== "archived");
   }, [activeFilter, leads]);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter]);
+
+  // Paginate filtered leads
+  const totalPages = Math.ceil(filteredLeads.length / PAGE_SIZE);
+
+  // Reset to last valid page if current page exceeds total (e.g., after data refresh)
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedLeads = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return filteredLeads.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredLeads, currentPage]);
 
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 w-32 bg-warm-100 rounded-lg mb-2" />
-            <div className="h-4 w-72 bg-warm-50 rounded mb-8" />
-            <div className="h-12 w-full max-w-md bg-vanilla-50 border border-warm-100/60 rounded-xl mb-5" />
-            <div className="space-y-4">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="bg-white rounded-2xl border border-warm-100/60 p-5">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-warm-100 shrink-0" />
-                    <div className="flex-1">
-                      <div className="h-5 w-32 bg-warm-100 rounded mb-2" />
-                      <div className="h-3 w-48 bg-warm-50 rounded" />
-                    </div>
+      <div className="min-h-screen bg-gray-50/50">
+        {/* Header skeleton */}
+        <div className="bg-white border-b border-gray-100">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="py-6 sm:py-8 animate-pulse">
+              <div className="h-4 w-24 bg-gray-100 rounded mb-4" />
+              <div className="h-8 w-32 bg-gray-200 rounded mb-2" />
+              <div className="h-4 w-56 bg-gray-100 rounded" />
+            </div>
+            <div className="flex gap-6 pb-3">
+              <div className="h-5 w-16 bg-gray-100 rounded" />
+              <div className="h-5 w-20 bg-gray-100 rounded" />
+            </div>
+          </div>
+        </div>
+        {/* Content skeleton */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="space-y-3 animate-pulse">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gray-200 shrink-0" />
+                  <div className="flex-1">
+                    <div className="h-4 w-32 bg-gray-200 rounded mb-2" />
+                    <div className="h-3 w-48 bg-gray-100 rounded" />
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
     );
   }
 
+  // Calculate counts for tabs
+  const activeCount = leads.filter((l) => l.status !== "archived").length;
+  const archivedCount = leads.filter((l) => l.status === "archived").length;
+  const tabCounts: Record<StatusFilter, number> = {
+    active: activeCount,
+    archived: archivedCount,
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* ── Page header ── */}
-      <div className="mb-5 lg:mb-8">
-        <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
-          Leads
-        </h1>
-        <p className="text-sm lg:text-[15px] text-gray-500 mt-1 lg:mt-1.5 leading-relaxed">
-          Families who found you and connected.
-        </p>
-      </div>
-
-      {/* ── WhatsApp opt-in banner ── */}
-      {showWhatsAppBanner && (
-        <div className="mb-4 lg:mb-5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-xl shrink-0" aria-hidden="true">💬</span>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-emerald-900">Get lead alerts on WhatsApp</p>
-              <p className="text-xs text-emerald-700 mt-0.5">Instant notifications when families reach out — no more missed leads in email.</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
+    <div className="min-h-screen bg-gray-50/50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-6 sm:py-8">
+            {/* Back button - navigates to previous page */}
             <button
               type="button"
-              onClick={dismissWhatsAppBanner}
-              className="text-xs text-emerald-600 hover:text-emerald-800 px-2 py-1.5"
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors mb-4"
             >
-              Dismiss
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+              Back
             </button>
-            <button
-              type="button"
-              onClick={handleWhatsAppOptIn}
-              disabled={whatsappOptingIn}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-            >
-              {whatsappOptingIn ? "Enabling..." : "Enable"}
-            </button>
-          </div>
-        </div>
-      )}
 
-      {/* ── Filter tabs + Sort ── */}
-      <div className="flex items-center justify-between gap-3 mb-4 lg:mb-5">
-        {/* Filter tabs - horizontal scroll on mobile */}
-        <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 flex-1 scrollbar-hide">
-          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max">
+            <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
+              My Leads
+            </h1>
+            <p className="text-[15px] text-gray-500 mt-1">
+              Families who reached out to you
+            </p>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-6 -mb-px">
             {FILTER_TABS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveFilter(tab.id)}
-                className={[
-                  "px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center",
+                className={`relative pb-3 text-[15px] font-medium transition-colors ${
                   activeFilter === tab.id
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700",
-                ].join(" ")}
+                    ? "text-gray-900"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
               >
                 {tab.label}
+                {tabCounts[tab.id] > 0 && (
+                  <span className={`ml-1.5 text-[13px] ${
+                    activeFilter === tab.id ? "text-gray-900" : "text-gray-400"
+                  }`}>
+                    ({tabCounts[tab.id]})
+                  </span>
+                )}
+                {activeFilter === tab.id && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
+                )}
               </button>
             ))}
           </div>
         </div>
-
-        {/* Desktop sort dropdown */}
-        <div className="hidden lg:flex items-center shrink-0">
-          <span className="text-sm text-gray-400 mr-2">Sort by:</span>
-          <Select
-            options={SORT_OPTIONS.map(opt => ({ value: opt.id, label: opt.label }))}
-            value={sortBy}
-            onChange={(val) => setSortBy(val as SortOption)}
-            size="sm"
-            className="w-40"
-          />
-        </div>
       </div>
+
+      {/* Content */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* ── WhatsApp opt-in banner ── */}
+        {showWhatsAppBanner && (
+          <div className="mb-6 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="text-xl shrink-0" aria-hidden="true">💬</span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-emerald-900">Get lead alerts on WhatsApp</p>
+                <p className="text-xs text-emerald-700 mt-0.5">Instant notifications when families reach out — no more missed leads.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={dismissWhatsAppBanner}
+                className="text-xs text-emerald-600 hover:text-emerald-800 px-2 py-1.5"
+              >
+                Dismiss
+              </button>
+              <button
+                type="button"
+                onClick={handleWhatsAppOptIn}
+                disabled={whatsappOptingIn}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {whatsappOptingIn ? "Enabling..." : "Enable"}
+              </button>
+            </div>
+          </div>
+        )}
 
       {/* ── Leads list ── */}
       {filteredLeads.length > 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-          {/* Table header - desktop only */}
-          <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_0.8fr_0.8fr] gap-6 px-8 py-3.5 border-b border-gray-200/80 bg-gray-50/40">
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Name</span>
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Email</span>
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Phone</span>
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Location</span>
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Status</span>
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Date</span>
-          </div>
-
-          {/* Lead rows */}
-          {filteredLeads.map((lead, idx) => (
+        <>
+          {/* Lead cards */}
+          <div className="space-y-3">
+          {paginatedLeads.map((lead) => (
             <div
               key={lead.id}
               onClick={() => openDrawer(lead)}
-              className={[
-                "group transition-colors duration-150 cursor-pointer",
-                "lg:hover:bg-vanilla-50/80",
-                idx < filteredLeads.length - 1 ? "border-b border-gray-100 lg:border-gray-200/60" : "",
-              ].join(" ")}
+              className="group bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors duration-150 cursor-pointer"
             >
-              {/* Mobile card layout - redesigned for clarity */}
+              {/* Mobile card layout */}
               <div className="lg:hidden px-4 py-4 active:bg-vanilla-50/60">
-                <div className="flex items-start gap-3.5">
+                <div className="flex items-start gap-3">
                   {/* Avatar */}
-                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center ring-2 ring-white shadow-sm shrink-0`}>
-                    <span className="text-sm font-bold text-gray-600">{lead.initials}</span>
+                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
+                    <span className="text-sm font-semibold text-white">{lead.initials}</span>
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    {/* Name row */}
+                    {/* Name + Status badge */}
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-[15px] font-semibold text-gray-900 truncate">
+                      <h3 className="text-base font-semibold text-gray-900 truncate">
                         {isVerified ? lead.name : formatRedactedName(lead.name)}
                       </h3>
-                      {lead.isNew && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
+                      {/* Status badge - New (green), Replied (amber), Archived/Viewed (gray) */}
+                      {lead.isNew ? (
+                        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">
                           New
+                        </span>
+                      ) : lead.status === "replied" ? (
+                        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-amber-50 text-amber-700 border border-amber-100 shrink-0">
+                          Replied
+                        </span>
+                      ) : lead.status === "archived" ? (
+                        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
+                          Archived
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
+                          Viewed
                         </span>
                       )}
                     </div>
 
-                    {/* Contact info - hidden for unverified */}
-                    <div className="space-y-0.5 mb-2">
-                      {isVerified ? (
-                        <>
-                          <p className="text-sm text-gray-600 truncate">{lead.email || "—"}</p>
-                          {lead.phone && <p className="text-sm text-gray-500 truncate">{lead.phone}</p>}
-                        </>
-                      ) : (
-                        <p className="text-sm text-gray-400 italic">Verify to see contact info</p>
-                      )}
-                    </div>
+                    {/* Email - truncated */}
+                    <p className="text-sm text-gray-600 truncate mb-1">
+                      {isVerified ? (lead.email || "—") : "Verify to see contact info"}
+                    </p>
 
-                    {/* Meta row - location + date */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 text-xs font-medium text-gray-600">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                        </svg>
-                        {lead.location}
-                      </span>
-                      <span className="text-xs text-gray-400">{lead.date}</span>
-                    </div>
+                    {/* Care type - own line, truncated */}
+                    {lead.careType?.[0] && (
+                      <p className="text-[13px] font-medium text-gray-600 truncate mb-0.5">
+                        {lead.careType[0]}
+                      </p>
+                    )}
+
+                    {/* Location · Date */}
+                    <p className="text-[13px] text-gray-500 truncate">
+                      {lead.location}
+                      <span className="text-gray-300 mx-1.5">·</span>
+                      <span className="text-gray-400">{lead.date}</span>
+                    </p>
                   </div>
-
-                  {/* Chevron */}
-                  <svg className="w-5 h-5 text-gray-300 shrink-0 mt-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                  </svg>
                 </div>
               </div>
 
               {/* Desktop table layout */}
-              <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_0.8fr_0.8fr] gap-6 items-center px-8 py-5">
+              <div className="hidden lg:grid grid-cols-[1.8fr_1.5fr_1fr_1fr_0.8fr_0.8fr] gap-5 items-center px-6 py-4">
                 {/* Name */}
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
-                    <span className="text-sm font-bold text-gray-600">{lead.initials}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
+                    <span className="text-sm font-semibold text-white">{lead.initials}</span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2.5">
-                      <p className="text-[15px] font-semibold text-gray-900 truncate">
-                        {isVerified ? lead.name : formatRedactedName(lead.name)}
-                      </p>
-                      {lead.isNew && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
-                          New
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  <p className="text-[15px] font-semibold text-gray-900 truncate">
+                    {isVerified ? lead.name : formatRedactedName(lead.name)}
+                  </p>
                 </div>
 
-                {/* Email - hidden for unverified */}
-                <span className="text-[14px] text-gray-600 truncate">
+                {/* Contact - email only (phone shown in drawer) */}
+                <p className="text-[14px] font-medium text-gray-700 truncate min-w-0">
                   {isVerified ? (lead.email || "—") : "••••••••"}
-                </span>
+                </p>
 
-                {/* Phone - hidden for unverified */}
-                <span className="text-[14px] text-gray-600 truncate">
-                  {isVerified ? (lead.phone || "Via inbox") : "••••••••"}
+                {/* Care Type */}
+                <span className="text-[14px] font-medium text-gray-700 truncate">
+                  {lead.careType?.[0] || "—"}
                 </span>
 
                 {/* Location */}
-                <span className="text-[14px] text-gray-500 truncate">{lead.location}</span>
+                <span className="text-[14px] font-medium text-gray-700 truncate">{lead.location}</span>
 
-                {/* Status */}
-                <span className="text-[14px] text-gray-600">{STATUS_LABELS[lead.status]}</span>
+                {/* Received */}
+                <span className="text-[14px] text-gray-400">{lead.date}</span>
 
-                {/* Date */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-gray-400">{lead.date}</span>
-                  {/* Chevron - appears on hover */}
-                  <svg className="w-5 h-5 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-150 -mr-1" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                  </svg>
-                </div>
+                {/* Status badge - New (green), Replied (amber), Archived/Viewed (gray) */}
+                {lead.isNew ? (
+                  <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-[12px] font-medium leading-none bg-emerald-50 text-emerald-700 border border-emerald-100">
+                    New
+                  </span>
+                ) : lead.status === "replied" ? (
+                  <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-[12px] font-medium leading-none bg-amber-50 text-amber-700 border border-amber-100">
+                    Replied
+                  </span>
+                ) : lead.status === "archived" ? (
+                  <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-[12px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200">
+                    Archived
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-[12px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200">
+                    Viewed
+                  </span>
+                )}
               </div>
             </div>
           ))}
         </div>
+
+        {/* Pagination */}
+        {filteredLeads.length > PAGE_SIZE && (
+          <div className="mt-6">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredLeads.length}
+              itemsPerPage={PAGE_SIZE}
+              onPageChange={setCurrentPage}
+              itemLabel="leads"
+            />
+          </div>
+        )}
+        </>
       ) : (
         /* ── Empty state ── */
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-          <div className="flex flex-col items-center text-center py-24 px-8">
-            <div className="relative mb-8">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-warm-50 to-vanilla-100 border border-warm-100/60 flex items-center justify-center shadow-sm">
-                <svg className="w-10 h-10 text-warm-300" fill="none" stroke="currentColor" strokeWidth={1.2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                </svg>
-              </div>
-              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-primary-100 border-2 border-white flex items-center justify-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary-400" />
-              </div>
-            </div>
-
-            <h3 className="text-xl font-display font-bold text-gray-900 tracking-tight">
-              {activeFilter === "archived" ? "No archived leads" : "No leads yet"}
-            </h3>
-            <p className="text-[15px] text-gray-500 mt-2.5 leading-relaxed max-w-md">
-              {activeFilter === "archived"
-                ? "Leads you archive will appear here."
-                : "When families find your profile and reach out, they\u2019ll appear here. Start connecting to get the conversation going."}
-            </p>
-
-            {activeFilter !== "archived" && (
-              <Link
-                href="/provider/matches"
-                className="mt-8 inline-flex items-center gap-2.5 px-6 py-3 rounded-xl bg-gray-900 text-white text-sm font-semibold shadow-sm hover:bg-gray-800 transition-all duration-200 hover:shadow-md"
-              >
-                Reach out to families looking for care
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                </svg>
-              </Link>
-            )}
-          </div>
+        <div className="flex flex-col items-center justify-center py-12 px-8 text-center">
+          <Image
+            src={activeFilter === "archived" ? "/Declined.png" : "/Pending.png"}
+            alt={activeFilter === "archived" ? "No archived leads" : "No leads yet"}
+            width={180}
+            height={180}
+            className="mb-6"
+          />
+          <h3 className="text-[17px] font-display font-bold text-gray-900 mb-2">
+            {activeFilter === "archived" ? "No archived leads" : "No leads yet"}
+          </h3>
+          <p className="text-[15px] text-gray-500 max-w-sm leading-relaxed">
+            {activeFilter === "archived"
+              ? "Leads you archive will appear here."
+              : "When families find your profile and reach out, they'll appear here."}
+          </p>
+          {activeFilter !== "archived" && (
+            <Link
+              href="/provider/matches"
+              className="mt-6 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
+            >
+              Find Families
+            </Link>
+          )}
         </div>
       )}
     </div>
@@ -1795,7 +1850,7 @@ export default function ProviderLeadsPage() {
         onArchive={handleArchiveLead}
         onRestore={handleRestoreLead}
         onDelete={handleDeleteLead}
-        onMessage={handleMessageLead}
+        onMarkAsReplied={handleMarkAsReplied}
         onContactReveal={(leadId, contactType) => {
           if (!providerProfile) return;
           fetch("/api/activity/track", {

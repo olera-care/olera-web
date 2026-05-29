@@ -151,7 +151,7 @@ export default function CompareBottomSheet({
   // Handle escape key (disabled during submitting/enrichment)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape" && footerState !== "submitting" && footerState !== "enrichment") {
+      if (e.key === "Escape" && footerState !== "submitting") {
         onClose();
       }
     },
@@ -667,10 +667,10 @@ export default function CompareBottomSheet({
 
   const sheetContent = (
     <div className="fixed inset-0 z-[60] md:hidden">
-      {/* Backdrop */}
+      {/* Backdrop - tap outside to close (disabled only during submitting) */}
       <div
         className="absolute inset-0 bg-black/40 animate-fade-in"
-        onClick={footerState === "submitting" || footerState === "enrichment" ? undefined : onClose}
+        onClick={footerState === "submitting" ? undefined : onClose}
       />
 
       {/* Bottom Sheet */}
@@ -803,21 +803,11 @@ export default function CompareBottomSheet({
           </div>
         ) : (
           <>
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              disabled={footerState === "submitting"}
-              className="absolute top-3 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors z-10 disabled:opacity-50"
-              aria-label="Close"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            {/* Close button removed - users can tap outside (backdrop) to close */}
 
             {/* Header */}
             <div className="px-5 pb-4 shrink-0 border-b border-gray-100">
-              <h2 className="text-[22px] font-bold text-gray-900 leading-tight pr-10">
+              <h2 className="text-[22px] font-bold text-gray-900 leading-tight">
                 Compare {allProviders.length} provider{allProviders.length !== 1 ? "s" : ""}
               </h2>
               <p className="text-[15px] text-gray-500 mt-1">

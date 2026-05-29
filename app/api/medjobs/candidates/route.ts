@@ -50,7 +50,11 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const page = Math.max(0, parseInt(searchParams.get("page") || "0"));
-    const pageSize = Math.min(50, Math.max(1, parseInt(searchParams.get("pageSize") || "12")));
+    // Allow loadAll=true to bypass the 50 limit (for client-side filtering like Find Families)
+    const loadAll = searchParams.get("loadAll") === "true";
+    const pageSize = loadAll
+      ? 1000  // Large enough for all candidates
+      : Math.min(50, Math.max(1, parseInt(searchParams.get("pageSize") || "12")));
     const state = searchParams.get("state");
     const city = searchParams.get("city");
     const programTrack = searchParams.get("programTrack");

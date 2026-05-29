@@ -206,7 +206,7 @@ export default function InterviewCalendar({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm p-8">
+      <div className="bg-white rounded-2xl border border-gray-200/80 p-8">
         <div className="flex items-center justify-center py-12">
           <div className="flex items-center gap-3 text-gray-400">
             <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -224,7 +224,7 @@ export default function InterviewCalendar({
     <div className="space-y-6">
       {/* Upgrade banner for exhausted providers with pending requests */}
       {pendingInboundCount > 0 && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 flex items-center justify-between gap-4 shadow-sm">
+        <div className="bg-white border border-gray-200/80 rounded-2xl p-5 sm:p-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <div className="w-11 h-11 rounded-full bg-[#199087]/10 flex items-center justify-center shrink-0">
               <span className="text-lg font-semibold text-[#199087]">{pendingInboundCount}</span>
@@ -257,7 +257,7 @@ export default function InterviewCalendar({
       )}
 
       {/* Calendar card */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden">
         {/* Header with month nav */}
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -418,21 +418,25 @@ export default function InterviewCalendar({
 
       {/* Empty state */}
       {interviews.length === 0 && (
-        <div className="bg-white rounded-2xl shadow-sm p-8 sm:p-12 text-center">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gray-100 flex items-center justify-center">
-            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No interviews scheduled</h3>
-          <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+        <div className="flex flex-col items-center justify-center py-12 px-8 text-center">
+          <Image
+            src="/interview.png"
+            alt="No interviews scheduled"
+            width={180}
+            height={180}
+            className="mb-6"
+          />
+          <h3 className="text-[17px] font-display font-bold text-gray-900 mb-2">
+            No interviews scheduled yet
+          </h3>
+          <p className="text-[15px] text-gray-500 max-w-sm leading-relaxed mb-6">
             {perspective === "provider"
-              ? "When you schedule interviews with caregivers, they'll appear here on your calendar."
+              ? "Browse caregivers and schedule interviews to connect with pre-vetted healthcare students."
               : "When you request or receive interview invitations, they'll appear here on your calendar."}
           </p>
           <Link
             href={perspective === "provider" ? "/provider/medjobs/candidates" : "/portal/medjobs/jobs"}
-            className="inline-flex px-5 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-medium text-white transition-colors"
+            className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
           >
             {perspective === "provider" ? "Browse caregivers" : "Browse open jobs"}
           </Link>

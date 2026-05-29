@@ -16,15 +16,16 @@ import {
   DEFAULT_FILTERS,
 } from "@/components/provider/matches/MatchesFilterBar";
 import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
-import FiltersModal, { type FiltersState, DEFAULT_FILTERS_STATE, countActiveFilters } from "@/components/provider/matches/FiltersModal";
+import FiltersModal, { type FiltersState, DEFAULT_FILTERS_STATE, countActiveFilters, type SortOption } from "@/components/provider/matches/FiltersModal";
 import MyOutreach from "@/components/provider/matches/MyOutreach";
+import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
 
 // Tab types for the matches view
 type MatchesTab = "best_matches" | "near_you";
-import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
 import Pagination from "@/components/ui/Pagination";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
+import { Star, Briefcase, LinkSimple, Check } from "@phosphor-icons/react";
 
 
 // ── Timeline config ──
@@ -102,6 +103,21 @@ const URGENCY_ORDER: Record<string, number> = {
   within_3_months: 2,
   exploring: 3,
 };
+
+// Profile status type for inactive family handling
+type ProfileStatus = "active" | "paused" | "deleted";
+
+function getProfileStatus(family: Profile): ProfileStatus {
+  const meta = family.metadata as FamilyMetadata;
+  // Deleted: has care_post_deleted flag and no active care_post
+  if (meta?.care_post_deleted && !meta?.care_post) return "deleted";
+  // Paused: has care_post with paused status
+  if (meta?.care_post?.status === "paused") return "paused";
+  // Active: has care_post with active status
+  if (meta?.care_post?.status === "active") return "active";
+  // Default to deleted if no care_post exists
+  return "deleted";
+}
 
 const DEFAULT_NOTE_KEY = "olera_default_reachout_note";
 const PAGE_SIZE = 12;
@@ -495,34 +511,51 @@ function MatchesSkeleton() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-5">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="bg-white rounded-2xl border border-warm-100/60 overflow-hidden">
-                <div className="p-7">
-                  <div className="flex items-start gap-4 mb-5">
-                    <div className="w-14 h-14 rounded-2xl bg-warm-100 shrink-0" />
-                    <div className="flex-1">
-                      <div className="h-5 w-40 bg-warm-100 rounded mb-2" />
+              <div key={i} className="bg-white rounded-[14px] border border-warm-100/60 overflow-hidden">
+                {/* Meta bar */}
+                <div className="px-5 py-3 flex items-center justify-between">
+                  <div className="h-3.5 w-36 bg-warm-50 rounded" />
+                  <div className="h-3.5 w-28 bg-warm-50 rounded" />
+                </div>
+
+                <div className="p-5">
+                  {/* Avatar + Name/Location */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-11 h-11 rounded-xl bg-warm-100 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="h-5 w-32 bg-warm-100 rounded mb-1.5" />
                       <div className="h-3.5 w-24 bg-warm-50 rounded" />
                     </div>
-                    <div className="h-7 w-24 bg-warm-50 rounded-full" />
                   </div>
-                  <div className="grid grid-cols-3 gap-px bg-warm-100/60 rounded-xl overflow-hidden mb-5">
-                    {[0, 1, 2].map((j) => (
-                      <div key={j} className="bg-warm-50/50 py-3 px-4">
-                        <div className="h-4 w-20 bg-warm-100 rounded mx-auto" />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="space-y-2 mb-5 pl-4 border-l-2 border-warm-100">
+
+                  {/* Inline specs */}
+                  <div className="h-3.5 w-56 bg-warm-50 rounded mb-4" />
+
+                  {/* Description */}
+                  <div className="space-y-2 mb-4">
                     <div className="h-3.5 bg-warm-50 rounded w-full" />
-                    <div className="h-3.5 bg-warm-50 rounded w-4/5" />
+                    <div className="h-3.5 bg-warm-50 rounded w-11/12" />
+                    <div className="h-3.5 bg-warm-50 rounded w-3/4" />
                   </div>
-                  <div className="flex gap-2.5">
-                    <div className="h-8 w-24 bg-warm-50 rounded-full" />
-                    <div className="h-8 w-28 bg-warm-50 rounded-full" />
+
+                  {/* Timeline */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-warm-100" />
+                    <div className="h-3.5 w-40 bg-warm-50 rounded" />
                   </div>
-                </div>
-                <div className="bg-warm-50/40 px-7 py-4">
-                  <div className="h-4 w-48 bg-warm-100/60 rounded" />
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="h-7 w-24 bg-warm-50 rounded-lg" />
+                    <div className="h-7 w-20 bg-warm-50 rounded-lg" />
+                    <div className="h-7 w-28 bg-warm-50 rounded-lg" />
+                  </div>
+
+                  {/* Trust signals footer */}
+                  <div className="flex items-center justify-between pt-3 border-t border-warm-100/60">
+                    <div className="h-3.5 w-28 bg-warm-50 rounded" />
+                    <div className="h-3.5 w-32 bg-warm-50 rounded" />
+                  </div>
                 </div>
               </div>
             ))}
@@ -558,6 +591,143 @@ function MatchesEmptyState() {
           they&apos;ll appear here. Check back soon.
         </p>
       </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Near You Empty State (with growth actions)
+// ---------------------------------------------------------------------------
+
+function NearYouEmptyState({
+  city,
+  providerSlug,
+}: {
+  city: string;
+  providerSlug: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://olera.care";
+  const profileUrl = `${siteOrigin}/provider/${providerSlug}`;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = profileUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const actions = [
+    {
+      icon: Star,
+      iconBg: "bg-amber-50",
+      iconColor: "text-amber-500",
+      title: "Collect Reviews",
+      description: "Request reviews from your clients",
+      href: "/provider/reviews",
+      cta: "Get Reviews",
+    },
+    {
+      icon: Briefcase,
+      iconBg: "bg-sky-50",
+      iconColor: "text-sky-500",
+      title: "Hire Caregivers",
+      description: "Find qualified care professionals",
+      href: "/provider/medjobs/candidates",
+      cta: "Browse",
+    },
+    {
+      icon: LinkSimple,
+      iconBg: "bg-emerald-50",
+      iconColor: "text-emerald-500",
+      title: "Share Profile",
+      description: "Get direct inquiries from families",
+      onClick: handleCopyLink,
+      cta: copied ? "Copied!" : "Copy Link",
+      isCopied: copied,
+    },
+  ];
+
+  return (
+    <div className="py-8 px-4">
+      {/* Illustration + Header */}
+      <div className="text-center mb-6">
+        <Image
+          src="/Near-you-img.png"
+          alt="No families nearby"
+          width={120}
+          height={120}
+          className="mx-auto mb-4"
+        />
+        <h3 className="text-xl font-display font-bold text-gray-900 mb-1">
+          No families in {city} yet
+        </h3>
+        <p className="text-base text-gray-500">
+          While you wait, grow your presence on Olera
+        </p>
+      </div>
+
+      {/* Action Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto mb-8">
+        {actions.map((action) => {
+          const Icon = action.icon;
+          const content = (
+            <div className="bg-white border border-gray-200/80 rounded-xl p-4 hover:border-gray-300 hover:shadow-sm transition-all group text-center">
+              {/* Icon */}
+              <div className={`w-9 h-9 rounded-xl ${action.iconBg} flex items-center justify-center mb-3 mx-auto`}>
+                <Icon weight="fill" className={`w-[18px] h-[18px] ${action.iconColor}`} />
+              </div>
+
+              {/* Text */}
+              <p className="text-[15px] font-semibold text-gray-900 mb-0.5">
+                {action.title}
+              </p>
+              <p className="text-sm text-gray-500 leading-snug mb-3">
+                {action.description}
+              </p>
+
+              {/* CTA */}
+              <span className={`inline-flex items-center justify-center gap-1 text-sm font-semibold ${
+                action.isCopied
+                  ? "text-emerald-600"
+                  : "text-primary-600 group-hover:text-primary-700"
+              }`}>
+                {action.isCopied && <Check weight="bold" className="w-3.5 h-3.5" />}
+                {action.cta}
+              </span>
+            </div>
+          );
+
+          if (action.href) {
+            return (
+              <Link key={action.title} href={action.href}>
+                {content}
+              </Link>
+            );
+          }
+
+          return (
+            <button
+              key={action.title}
+              type="button"
+              onClick={action.onClick}
+            >
+              {content}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -690,6 +860,7 @@ export default function ProviderMatchesPage() {
   });
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<MatchesTab>("best_matches");
+  const [sortOption, setSortOption] = useState<SortOption>("recommended");
   // Shared state for MyOutreach (syncs mobile + desktop instances)
   const [isOutreachOpen, setIsOutreachOpen] = useState(false);
 
@@ -955,6 +1126,13 @@ export default function ProviderMatchesPage() {
           });
         }
 
+        // Optimistically increment reach-out count for this family
+        setReachOutCounts((prev) => {
+          const updated = new Map(prev);
+          updated.set(toProfileId, (prev.get(toProfileId) || 0) + 1);
+          return updated;
+        });
+
         setReachOutNote("");
         return true;
       } catch (err: unknown) {
@@ -1017,8 +1195,6 @@ export default function ProviderMatchesPage() {
         }
 
         const fetchedFamilies = (familiesRes.data as Profile[]) || [];
-        setFamilies(fetchedFamilies);
-        setTotalCount(familiesRes.count || fetchedFamilies.length);
 
         // Derive contactedIds and respondedIds from fullConnectionsRes (eliminates 2 redundant queries)
         const connections = fullConnectionsRes.data || [];
@@ -1064,21 +1240,66 @@ export default function ProviderMatchesPage() {
 
         setConnectionData(connDataMap);
 
-        // Reach-out counts per family
+        // Fetch inactive families that provider has already connected with
+        // These are families whose profiles are paused/deleted but provider has outreach history
+        const connectedIds = connections.map((c: { to_profile_id: string }) => c.to_profile_id);
+        const activeFamilyIds = new Set(fetchedFamilies.map((f) => f.id));
+        const missingIds = connectedIds.filter((id: string) => !activeFamilyIds.has(id));
+
+        if (missingIds.length > 0) {
+          const { data: inactiveFamilies } = await supabase
+            .from("business_profiles")
+            .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at")
+            .in("id", missingIds);
+
+          if (inactiveFamilies && inactiveFamilies.length > 0) {
+            // Append inactive families to the list
+            fetchedFamilies.push(...(inactiveFamilies as Profile[]));
+          }
+        }
+
+        setFamilies(fetchedFamilies);
+        setTotalCount(familiesRes.count || fetchedFamilies.length);
+
+        // Reach-out counts per family — use server API to bypass RLS
+        // (RLS only allows providers to see their own connections, but we need
+        // aggregate counts of ALL providers interested in each family)
         const familyIds = fetchedFamilies.map((f) => f.id);
         if (familyIds.length > 0) {
-          const { data: reachOuts } = await supabase
-            .from("connections")
-            .select("to_profile_id")
-            .in("to_profile_id", familyIds)
-            .eq("type", "request")
-            .in("status", ["pending", "accepted"]);
+          try {
+            const counts = new Map<string, number>();
+            const CHUNK_SIZE = 400; // Stay under API's 500 limit
 
-          const counts = new Map<string, number>();
-          (reachOuts || []).forEach((r: { to_profile_id: string }) => {
-            counts.set(r.to_profile_id, (counts.get(r.to_profile_id) || 0) + 1);
-          });
-          setReachOutCounts(counts);
+            // Chunk requests if there are many families
+            const chunks: string[][] = [];
+            for (let i = 0; i < familyIds.length; i += CHUNK_SIZE) {
+              chunks.push(familyIds.slice(i, i + CHUNK_SIZE));
+            }
+
+            // Fetch counts for all chunks (parallel for speed)
+            const chunkResults = await Promise.all(
+              chunks.map(async (chunk) => {
+                const res = await fetch("/api/matches/reach-out-counts", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ familyIds: chunk }),
+                });
+                return res.json();
+              })
+            );
+
+            // Merge all chunk results into single map
+            for (const result of chunkResults) {
+              for (const [familyId, count] of Object.entries(result.counts || {})) {
+                counts.set(familyId, count as number);
+              }
+            }
+
+            setReachOutCounts(counts);
+          } catch {
+            // Non-critical — fall back to empty counts
+            console.error("[olera] Failed to fetch reach-out counts");
+          }
         }
       } catch (err) {
         console.error("[olera] matches fetch failed:", err);
@@ -1121,10 +1342,10 @@ export default function ProviderMatchesPage() {
     return () => clearInterval(interval);
   }, [fetchFamilies]);
 
-  // Reset to page 1 when filters or tab changes
+  // Reset to page 1 when filters, tab, or sort changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters, modalFilters, activeTab]);
+  }, [filters, modalFilters, activeTab, sortOption]);
 
   // Persist filter preferences to localStorage
   useEffect(() => {
@@ -1143,10 +1364,20 @@ export default function ProviderMatchesPage() {
     const byPayment: Record<string, number> = {};
     const byWhoNeedsCare: Record<string, number> = {};
     const bySchedule: Record<string, number> = {};
+    const cityMap: Record<string, { city: string; state: string; count: number }> = {};
     let completeProfiles = 0;
 
     for (const family of nonContactedFamilies) {
       const meta = family.metadata as FamilyMetadata;
+
+      // City/Location
+      if (family.city) {
+        const cityKey = `${family.city}|${family.state || ""}`;
+        if (!cityMap[cityKey]) {
+          cityMap[cityKey] = { city: family.city, state: family.state || "", count: 0 };
+        }
+        cityMap[cityKey].count++;
+      }
 
       // Urgency/Timeline
       const timeline = meta?.timeline || "exploring";
@@ -1187,7 +1418,11 @@ export default function ProviderMatchesPage() {
       }
     }
 
+    // Convert cityMap to sorted array (by count descending)
+    const byCity = Object.values(cityMap).sort((a, b) => b.count - a.count);
+
     return {
+      byCity,
       byUrgency,
       byCareType,
       byPayment,
@@ -1210,6 +1445,14 @@ export default function ProviderMatchesPage() {
   // Note: We keep contacted families in the list (sorted to bottom) instead of filtering them out
   const filteredFamilies = useMemo(() => {
     let result = [...families]; // Keep all families
+
+    // Apply modal filters: cities
+    if (modalFilters.cities.length > 0) {
+      result = result.filter((f) => {
+        const cityKey = `${f.city || ""}|${f.state || ""}`;
+        return modalFilters.cities.includes(cityKey);
+      });
+    }
 
     // Apply modal filters: urgency
     if (modalFilters.urgency.length > 0) {
@@ -1309,10 +1552,25 @@ export default function ProviderMatchesPage() {
       }
     }
 
+    // Filter out uncontacted inactive families (they shouldn't see profiles they never contacted)
+    result = result.filter((f) => {
+      const status = getProfileStatus(f);
+      // Keep all active families
+      if (status === "active") return true;
+      // Keep inactive families only if provider has contacted them
+      return contactedIds.has(f.id);
+    });
+
     // Sort based on active tab
     const sorted = [...result].sort((a, b) => {
       const metaA = a.metadata as FamilyMetadata;
       const metaB = b.metadata as FamilyMetadata;
+
+      // First priority: active families before inactive
+      const aActive = getProfileStatus(a) === "active";
+      const bActive = getProfileStatus(b) === "active";
+      if (aActive && !bActive) return -1;
+      if (!aActive && bActive) return 1;
 
       if (activeTab === "near_you") {
         // Near You: sort by recency
@@ -1321,44 +1579,28 @@ export default function ProviderMatchesPage() {
         return new Date(dateB).getTime() - new Date(dateA).getTime();
       }
 
-      // best_matches: composite score balancing match + urgency + freshness
-      // This prevents stale posts from dominating just because they match well
-      const computeScore = (profile: Profile, meta: FamilyMetadata | undefined) => {
-        // Service match score (0-100): how many services overlap
-        const needs = meta?.care_needs || profile.care_types || [];
-        const matchCount = computeMatchingServices(needs, providerCareTypes);
-        const maxPossible = Math.max(needs.length, 1);
-        const matchScore = (matchCount / maxPossible) * 100;
+      // Helper: get recency (newest first)
+      const getRecency = (profile: Profile, meta: FamilyMetadata | undefined) => {
+        const publishedAt = meta?.care_post?.published_at || profile.created_at;
+        return new Date(publishedAt).getTime();
+      };
 
-        // Urgency score (0-100): immediate is most valuable
+      // Helper: get urgency score
+      const getUrgencyScore = (meta: FamilyMetadata | undefined) => {
         const urgencyScores: Record<string, number> = {
           immediate: 100,
           within_1_month: 75,
           within_3_months: 50,
           exploring: 25,
         };
-        const urgencyScore = urgencyScores[meta?.timeline || "exploring"] ?? 25;
-
-        // Freshness score (0-100): decays over time
-        const publishedAt = meta?.care_post?.published_at || profile.created_at;
-        const daysAgo = (Date.now() - new Date(publishedAt).getTime()) / (1000 * 60 * 60 * 24);
-        let freshnessScore: number;
-        if (daysAgo <= 1) freshnessScore = 100;
-        else if (daysAgo <= 7) freshnessScore = 85;
-        else if (daysAgo <= 14) freshnessScore = 70;
-        else if (daysAgo <= 30) freshnessScore = 50;
-        else if (daysAgo <= 60) freshnessScore = 30;
-        else freshnessScore = 10;
-
-        // Weighted composite: freshness 45%, match 30%, urgency 25%
-        return (freshnessScore * 0.45) + (matchScore * 0.30) + (urgencyScore * 0.25);
+        return urgencyScores[meta?.timeline || "exploring"] ?? 25;
       };
 
-      // First, separate contacted from uncontacted
+      // Second priority: separate contacted from uncontacted
       const aContacted = contactedIds.has(a.id);
       const bContacted = contactedIds.has(b.id);
 
-      // Uncontacted families come first
+      // Uncontacted families come first (within active families)
       if (!aContacted && bContacted) return -1;
       if (aContacted && !bContacted) return 1;
 
@@ -1378,14 +1620,51 @@ export default function ProviderMatchesPage() {
         return 0;
       }
 
-      // Both uncontacted: use score-based sorting
+      // Both uncontacted: sort based on sortOption
+      if (sortOption === "newest") {
+        // Pure recency sort
+        return getRecency(b, metaB) - getRecency(a, metaA);
+      }
+
+      if (sortOption === "urgent") {
+        // Sort by urgency first, then recency
+        const urgencyDiff = getUrgencyScore(metaB) - getUrgencyScore(metaA);
+        if (urgencyDiff !== 0) return urgencyDiff;
+        return getRecency(b, metaB) - getRecency(a, metaA);
+      }
+
+      // Default "recommended": composite score balancing match + urgency + freshness
+      const computeScore = (profile: Profile, meta: FamilyMetadata | undefined) => {
+        // Service match score (0-100): how many services overlap
+        const needs = meta?.care_needs || profile.care_types || [];
+        const matchCount = computeMatchingServices(needs, providerCareTypes);
+        const maxPossible = Math.max(needs.length, 1);
+        const matchScore = (matchCount / maxPossible) * 100;
+
+        const urgencyScore = getUrgencyScore(meta);
+
+        // Freshness score (0-100): decays over time
+        const publishedAt = meta?.care_post?.published_at || profile.created_at;
+        const daysAgo = (Date.now() - new Date(publishedAt).getTime()) / (1000 * 60 * 60 * 24);
+        let freshnessScore: number;
+        if (daysAgo <= 1) freshnessScore = 100;
+        else if (daysAgo <= 7) freshnessScore = 85;
+        else if (daysAgo <= 14) freshnessScore = 70;
+        else if (daysAgo <= 30) freshnessScore = 50;
+        else if (daysAgo <= 60) freshnessScore = 30;
+        else freshnessScore = 10;
+
+        // Weighted composite: freshness 45%, match 30%, urgency 25%
+        return (freshnessScore * 0.45) + (matchScore * 0.30) + (urgencyScore * 0.25);
+      };
+
       const scoreA = computeScore(a, metaA);
       const scoreB = computeScore(b, metaB);
       return scoreB - scoreA;
     });
 
     return sorted;
-  }, [families, contactedIds, connectionData, getOutreachStatus, modalFilters, activeTab, providerCareTypes, providerProfile]);
+  }, [families, contactedIds, connectionData, getOutreachStatus, modalFilters, activeTab, sortOption, providerCareTypes, providerProfile]);
 
   // Paginate filtered families
   const totalPages = Math.ceil(filteredFamilies.length / PAGE_SIZE);
@@ -1515,28 +1794,10 @@ export default function ProviderMatchesPage() {
           ) : filteredFamilies.length === 0 ? (
             // Empty state - different message based on tab
             activeTab === "near_you" ? (
-              <div className="text-center py-12 px-8">
-                <Image
-                  src="/Near-you-img.png"
-                  alt="No families nearby"
-                  width={180}
-                  height={180}
-                  className="mx-auto mb-6"
-                />
-                <h3 className="text-[17px] font-display font-bold text-gray-900 mb-2">
-                  No families in {providerProfile?.city || "your area"} yet
-                </h3>
-                <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed mb-6">
-                  New families post every day. Check back soon, or browse all families looking for care.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("best_matches")}
-                  className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
-                >
-                  Browse All Families
-                </button>
-              </div>
+              <NearYouEmptyState
+                city={providerProfile?.city || "your area"}
+                providerSlug={providerProfile?.slug || ""}
+              />
             ) : (
               // Filter mismatch - no families match current filters
               <div className="text-center py-16 px-8">
@@ -1595,6 +1856,7 @@ export default function ProviderMatchesPage() {
                       reachOutCount={reachOutCounts.get(family.id) || 0}
                       onReachOut={handleReachOut}
                       animationDelay={index * 40}
+                      profileStatus={getProfileStatus(family)}
                     />
                   ))}
                 </div>
@@ -1649,6 +1911,7 @@ export default function ProviderMatchesPage() {
         const viewOutreachStatus = conn
           ? conn.status === "accepted" ? "connected" : conn.status as "pending" | "declined"
           : undefined;
+        const drawerProfileStatus = drawerFamily ? getProfileStatus(drawerFamily) : "active";
 
         return (
           <ReachOutDrawer
@@ -1668,6 +1931,7 @@ export default function ProviderMatchesPage() {
             sentMessage={isViewMode ? (conn?.message || undefined) : undefined}
             sentAt={isViewMode ? conn?.created_at : undefined}
             outreachStatus={viewOutreachStatus}
+            profileStatus={drawerProfileStatus}
             onAIGenerate={(familyId, tone) => {
               if (providerProfile?.slug) {
                 trackMatchesEvent(providerProfile.slug, "matches_message_generated", {
@@ -1698,6 +1962,9 @@ export default function ProviderMatchesPage() {
         onApply={setModalFilters}
         familyCounts={familyCounts}
         hasProviderCoordinates={!!(providerProfile?.lat && providerProfile?.lng)}
+        sortOption={sortOption}
+        onSortChange={setSortOption}
+        showSort={activeTab === "best_matches"}
       />
 
       {/* ── Mobile FAB for Filters ── */}

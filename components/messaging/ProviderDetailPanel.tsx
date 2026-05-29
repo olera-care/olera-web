@@ -366,83 +366,97 @@ export default function ProviderDetailPanel({
             defaultOpen={false}
           >
             <div className="space-y-3.5">
-              {/* ===== FAMILY PROFILE CONTENT ===== */}
+              {/* ===== FAMILY PROFILE CONTENT (matches Lead drawer design) ===== */}
               {isFamily && (
                 <>
-                  {/* Care Recipient */}
-                  {(meta.relationship_to_recipient || meta.age) && (
-                    <DetailRow
-                      label="Care Recipient"
-                      value={
-                        <span>
-                          {meta.relationship_to_recipient || "Not specified"}
-                          {meta.age && `, ${meta.age} years old`}
-                        </span>
-                      }
-                    />
-                  )}
-
-                  {/* Looking For (care types) */}
-                  {careTypes.length > 0 && (
-                    <div>
-                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">Looking For</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {careTypes.map((ct) => (
-                          <Chip key={ct}>{ct}</Chip>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Help Needed (care needs) */}
-                  {careNeeds.length > 0 && (
-                    <div>
-                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">Help Needed</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {careNeeds.map((need) => (
-                          <Chip key={need} variant="primary">{need}</Chip>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Timing */}
-                  {(timeline || schedule) && (
-                    <div className="space-y-2.5">
-                      {timeline && <DetailRow label="When" value={timeline} />}
-                      {schedule && <DetailRow label="Schedule" value={schedule} />}
-                    </div>
-                  )}
-
-                  {/* Payment */}
-                  {paymentMethods.length > 0 && (
-                    <div>
-                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">Payment</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {paymentMethods.map((method) => (
-                          <Chip key={method}>{method}</Chip>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* About */}
+                  {/* About their situation */}
                   {aboutSituation && (
-                    <DetailRow
-                      label="About"
-                      value={aboutSituation}
-                    />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 mb-2">About their situation</p>
+                      <p className="text-[14px] text-gray-700 leading-relaxed">
+                        &ldquo;{aboutSituation}&rdquo;
+                      </p>
+                    </div>
                   )}
 
-                  {/* Contact preference */}
-                  {contactPref && (
-                    <DetailRow label="Prefers" value={contactPref} />
-                  )}
+                  {/* Care details */}
+                  <div className={aboutSituation ? "pt-2" : ""}>
+                    <p className="text-sm font-semibold text-gray-900 mb-3">Care details</p>
+                    <div className="space-y-3">
+                      {/* Needs (care type + timeline) */}
+                      {(timeline || careTypes.length > 0) && (
+                        <div>
+                          <p className="text-sm text-gray-500">Needs</p>
+                          <p className="text-[14px] font-medium text-gray-700">
+                            {careTypes[0] || "Care"}
+                            {timeline && (
+                              timeline === "Immediately" ? " immediately" :
+                              timeline === "Just exploring" ? " (exploring)" :
+                              ` ${timeline.toLowerCase()}`
+                            )}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Help with (care needs) */}
+                      {careNeeds.length > 0 && (
+                        <div>
+                          <p className="text-sm text-gray-500">Help with</p>
+                          <p className="text-[14px] font-medium text-gray-700">{careNeeds.join(", ")}</p>
+                        </div>
+                      )}
+
+                      {/* Who needs care */}
+                      {(meta.relationship_to_recipient || meta.who_needs_care) && (
+                        <div>
+                          <p className="text-sm text-gray-500">Who needs care</p>
+                          <p className="text-[14px] font-medium text-gray-700">
+                            {meta.relationship_to_recipient || meta.who_needs_care || "Not specified"}
+                            {meta.age && `, ${meta.age} years old`}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Preferences (contact + schedule) */}
+                      {(contactPref || schedule) && (
+                        <div>
+                          <p className="text-sm text-gray-500">Preferences</p>
+                          <p className="text-[14px] font-medium text-gray-700">
+                            {[contactPref, schedule].filter(Boolean).join(" · ")}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Payment */}
+                      {paymentMethods.length > 0 && (
+                        <div>
+                          <p className="text-sm text-gray-500">Can pay via</p>
+                          <p className="text-[14px] font-medium text-gray-700">{paymentMethods.join(", ")}</p>
+                        </div>
+                      )}
+
+                      {/* Profile completeness */}
+                      <div>
+                        <p className="text-sm text-gray-500">Profile</p>
+                        <p className="text-[14px] font-medium text-gray-700">{completeness}% complete</p>
+                      </div>
+
+                      {/* Member since */}
+                      {profile.created_at && (
+                        <div>
+                          <p className="text-sm text-gray-500">Member since</p>
+                          <p className="text-[14px] font-medium text-gray-700">
+                            {new Date(profile.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
                   {/* Contact info - hidden for unverified providers */}
                   {(profile.phone || profile.email) && (
-                    <div>
-                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">Contact</p>
+                    <div className="pt-2">
+                      <p className="text-sm font-semibold text-gray-900 mb-3">Contact information</p>
                       {shouldRedactPII ? (
                         <VerifyToUnlockPrompt
                           action="see contact info"
@@ -450,22 +464,26 @@ export default function ProviderDetailPanel({
                           variant="block"
                         />
                       ) : (
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                           {profile.phone && (
-                            <p className="text-[14px] text-gray-700 flex items-center gap-2">
-                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                              </svg>
-                              {profile.phone}
-                            </p>
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                                </svg>
+                              </div>
+                              <p className="text-[14px] font-medium text-gray-700">{profile.phone}</p>
+                            </div>
                           )}
                           {profile.email && (
-                            <p className="text-[14px] text-gray-700 flex items-center gap-2">
-                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                              </svg>
-                              {profile.email}
-                            </p>
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                                </svg>
+                              </div>
+                              <p className="text-[14px] font-medium text-gray-700">{profile.email}</p>
+                            </div>
                           )}
                         </div>
                       )}

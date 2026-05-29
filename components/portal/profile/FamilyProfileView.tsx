@@ -84,7 +84,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
     const res = await fetch("/api/care-post/publish", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "publish" }),
+      body: JSON.stringify({ action: "publish", source: "profile_page" }),
     });
     if (!res.ok) throw new Error("Failed to publish");
     // Refresh in background - don't block UI

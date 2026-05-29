@@ -241,8 +241,8 @@ export default function EnrichmentState({
   isAlreadyLive = false,
 }: EnrichmentStateProps) {
   void _careTypes; // Suppress unused variable warning
-  void priceRange; // No longer shown in compact banner
-  void successSubtitle; // No longer shown in compact banner
+  void providerImage; // Props kept for API compatibility
+  void providerImages; // Props kept for API compatibility
 
   // Pre-fill care type from provider category
   const prefilledCareType = providerCategory ? CATEGORY_TO_CARE_TYPE[providerCategory] || null : null;
@@ -291,16 +291,8 @@ export default function EnrichmentState({
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
 
-  // Compute display values for compact banner
+  // Compute display values for success banner
   const displayTitle = successTitle ?? `Connected with ${providerName}`;
-
-  // Get images for avatar display (multi-provider or single)
-  // Use length check to properly fall back to single providerImage when providerImages is empty
-  const filteredImages = providerImages?.filter(Boolean) as string[] | undefined;
-  const avatarImages = (filteredImages && filteredImages.length > 0)
-    ? filteredImages
-    : (providerImage ? [providerImage] : []);
-  const additionalCount = avatarImages.length > 1 ? avatarImages.length - 1 : 0;
 
   // Preload cities on mount
   useEffect(() => {
@@ -505,7 +497,7 @@ export default function EnrichmentState({
       const res = await fetch("/api/care-post/publish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "publish" }),
+        body: JSON.stringify({ action: "publish", source: "enrichment_flow" }),
       });
 
       if (!res.ok) {
@@ -545,77 +537,43 @@ export default function EnrichmentState({
     }
   }, [trackingParams, prefilledCareType, careType, recipient, timeline, careNeed, paymentMethod, name, phone, onSave, onSkip, getAllData]);
 
+  // Compute price display for banner
+  const priceDisplay = priceRange || successSubtitle;
+
   return (
     <div>
-      {/* Success banner removed from enrichment flow entirely.
-          Rationale: The user just connected - they know. Each step should focus on ONE thing.
-          The final "Go to inbox" screen is the real confirmation. */}
-      {false && !hideSuccessBanner && (
-        <div className="mb-4 bg-emerald-50/60 rounded-full px-3 py-2 border border-emerald-100 inline-flex items-center gap-2">
-          {/* Avatar section: single avatar + "+N" for multi-provider */}
-          {avatarImages.length > 0 ? (
-            <div className="flex items-center shrink-0">
-              {/* Primary provider avatar */}
-              <div className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-100 shrink-0">
-                <Image
-                  src={avatarImages[0]}
-                  alt=""
-                  width={24}
-                  height={24}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {/* "+N" badge for additional providers */}
-              {additionalCount > 0 && (
-                <div
-                  className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 shrink-0 flex items-center justify-center"
-                  style={{ marginLeft: "-8px" }}
-                >
-                  <span className="text-[10px] font-semibold text-gray-600">
-                    +{additionalCount}
-                  </span>
-                </div>
+      {/* Success banner - shown on steps 1-6, hidden on Go Live step */}
+      {step !== "goLive" && !hideSuccessBanner && (
+        <div className="mb-4 bg-emerald-50/70 rounded-xl px-4 py-3 border border-emerald-100">
+          <div className="flex items-center gap-2.5">
+            {/* Checkmark icon */}
+            <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-white"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+
+            {/* Text content */}
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-semibold text-gray-900 truncate">
+                {displayTitle}
+              </p>
+              {priceDisplay && (
+                <p className="text-[12px] text-gray-600 truncate">
+                  {priceDisplay}
+                </p>
               )}
             </div>
-          ) : (
-            /* Fallback: checkmark icon if no images */
-            <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-emerald-600"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </div>
-          )}
-
-          {/* Checkmark + text */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            {avatarImages.length > 0 && (
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-emerald-600 shrink-0"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            )}
-            <p className="text-[13px] font-medium text-gray-700 truncate">
-              {displayTitle}
-            </p>
           </div>
         </div>
       )}

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { calculateProfileCompletenessPercentage } from "@/components/portal/profile/completeness";
 
 /**
  * Lightweight relationship enrichment for the empathic_single arm.
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
   // Find the family profile and merge the relationship into metadata.
   const { data: profile, error: profErr } = await db
     .from("business_profiles")
-    .select("id, metadata")
+    .select("id, metadata, display_name, image_url, city, phone, description, care_types, email")
     .eq("account_id", account.id)
     .eq("type", "family")
     .maybeSingle();
@@ -87,6 +88,21 @@ export async function POST(req: Request) {
     relationship_to_recipient: relationshipDisplayName(rel),
     relationship_code: rel,
   };
+
+  // Recalculate profile completeness with new relationship data
+  const newCompleteness = calculateProfileCompletenessPercentage(
+    {
+      display_name: profile.display_name,
+      image_url: profile.image_url,
+      city: profile.city,
+      phone: profile.phone,
+      description: profile.description,
+      care_types: profile.care_types,
+      metadata: mergedMetadata,
+    },
+    profile.email
+  );
+  mergedMetadata.profile_completeness = newCompleteness;
 
   const { error: updateErr } = await db
     .from("business_profiles")

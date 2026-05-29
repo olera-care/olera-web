@@ -684,9 +684,9 @@ function NearYouEmptyState({
         {actions.map((action) => {
           const Icon = action.icon;
           const content = (
-            <div className="bg-white border border-gray-200/80 rounded-xl p-4 hover:border-gray-300 hover:shadow-sm transition-all group">
+            <div className="bg-white border border-gray-200/80 rounded-xl p-4 hover:border-gray-300 hover:shadow-sm transition-all group text-center">
               {/* Icon */}
-              <div className={`w-9 h-9 rounded-xl ${action.iconBg} flex items-center justify-center mb-3`}>
+              <div className={`w-9 h-9 rounded-xl ${action.iconBg} flex items-center justify-center mb-3 mx-auto`}>
                 <Icon weight="fill" className={`w-[18px] h-[18px] ${action.iconColor}`} />
               </div>
 
@@ -699,7 +699,7 @@ function NearYouEmptyState({
               </p>
 
               {/* CTA */}
-              <span className={`inline-flex items-center gap-1 text-[12px] font-semibold ${
+              <span className={`inline-flex items-center justify-center gap-1 text-[12px] font-semibold ${
                 action.isCopied
                   ? "text-emerald-600"
                   : "text-primary-600 group-hover:text-primary-700"
@@ -723,7 +723,6 @@ function NearYouEmptyState({
               key={action.title}
               type="button"
               onClick={action.onClick}
-              className="text-left"
             >
               {content}
             </button>

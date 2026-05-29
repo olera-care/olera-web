@@ -7,6 +7,58 @@
 
 ## Current Focus
 
+### 2026-05-29 (Fri) — Cold-outreach Phase 4: mail-tester 10/10, Smartlead live, **logan@ connected**. Partnerships@ + warmup config pending.
+
+**Context:** Picked up from Thursday's Phase 3 finish. Goal: prove domain auth end-to-end, then get both mailboxes connected to Smartlead and warming up. Stopped mid-flow when TJ had to catch a flight — logan@ is connected but per-mailbox config (General + Warm Up tabs) may not have been completed before stop, and partnerships@ OAuth has not been initiated yet.
+
+**DONE this session (every gate before warmup-running cleared):**
+- **Mail-tester 10/10 verification** on `tj@findmedjobs.co` — "Wow! Perfect, you can send"; **SPF ✓ / DKIM ✓ / DMARC ✓** all green ("You're properly authenticated"). SpamAssassin clean. Not blocklisted. Domain auth proven end-to-end. (Skipped a separate partnerships@ run — auth records are domain-wide, redundant.)
+- **Smartlead Basic ($39/mo) account created** as `tj@olera.care` (operator identity stays on crown jewel; findmedjobs.co is sending identity only). Admin API key generated (`olera-medjobs-prod`), in `~/Desktop/olera-web/.env.local` as `SMARTLEAD_API_KEY=...` (44 chars, prefix `5b41`). Saved to 1Password.
+- **`lib/smartlead.ts` validated against live API** — read-only smoke test via `node --env-file=... -e '...'` calling `GET /api/v1/email-accounts` returned HTTP 200 with `[]` (empty array, as expected with no mailboxes connected yet). Header caveat "verify endpoint shapes before going live" is now satisfied for the read path. Mutation paths (createCampaign etc.) will validate as we use them.
+- **IMAP confirmed enabled on `tj@`/`partnerships@`/`logan@findmedjobs.co`** — Workspace has IMAP on at the org level by default (admin enables it tenant-wide; per-user Enable/Disable radio is hidden in that case, only the sub-options like Auto-Expunge appear). Sub-options visible = IMAP operational. No clicks needed. (TJ enabled IMAP on tj@ at my initial direction — slight error on my part; tj@ isn't going into Smartlead since it's the admin account, but enabling IMAP on it is harmless.)
+- **Password resets** on `logan@` and `partnerships@` via admin.google.com → Users → Reset password (auto-generate, "Ask for password change at next sign-in" UNCHECKED to avoid friction); both saved to 1Password under their own entries.
+- **🔑 Workspace OAuth block resolved.** Logan's first OAuth attempt hit "This app is blocked — This app tried to access sensitive info in your Google Account." Root cause: Google Workspace has **two layers of OAuth governance** — (1) unrestricted/sensitive scopes governed by per-OU "Unconfigured third-party apps" setting (which TJ already had on "Allow users to access any third-party apps"), and (2) **restricted scopes** (Gmail full-mailbox access, Drive full-access) which require **explicit per-app trust regardless of the global setting**. Smartlead needs Gmail full-mailbox access = restricted scope = always blocked until explicitly trusted.
+  - First attempt at fix: searched "Smartlead" in admin.google.com → Security → API Controls → App Access Control → Configure new app, picked the **most-popular Smartlead.ai entry** (Medium 50-100 orgs adoption, client ID `30893954003-fksf7ojapenqgsaumc8fd1qgaq0ahby6...`) → applied to Medjobs OU, **Trusted: Can access all Google services** → Finish. Retried OAuth — **STILL BLOCKED.** (Wait of 60s didn't help.)
+  - Read Smartlead's official helpcenter article (https://helpcenter.smartlead.ai/en/articles/18-gmailgoogle-oauth-1-click-authentication) → discovered Smartlead's OAuth client ID is **dynamically displayed in their connect-mailbox UI** ("A pop-up will appear showing the Client ID used by Smartlead. Copy this Client ID — you will need to paste it into your Google Admin Console"). TJ pulled it: **`1021517043376-ipe8289dof3t2v9apjpae8hs2q9abetp.apps.googleusercontent.com`** — DIFFERENT from the one we trusted by popularity. Added as a 2nd Configured app (Trusted), kept the first one harmlessly. Retried — **Email Connection Success: `logan@findmedjobs.co` connected successfully.** Propagation was instant once the right client was trusted.
+
+**Decisions made (with why):**
+- **Used `tj@findmedjobs.co` for the mail-tester run instead of `logan@`** — auth records authenticate the domain, not the mailbox; tj@ was already signed in from the DKIM admin work; saved a password reset round-trip. Same 10/10 result as logan@ would have given.
+- **Smartlead account identity = `tj@olera.care`, not findmedjobs.co.** Operator identity stays on crown jewel; findmedjobs.co is sending-only. Keeps login + receipts with the rest of Olera's SaaS.
+- **Trust the wrong-popular Smartlead OAuth client AND the correct one in admin console.** Wrong one is a legitimate Smartlead OAuth client (just not the one our flow hits), trusting it is harmless, removing it is unnecessary churn. Future-proofs against Smartlead routing through it.
+- **GUIDANCE FOR THE FUTURE:** When trusting a third-party OAuth app in Google Workspace and multiple vendor entries appear in Google's OAuth catalog (Smartlead had 3 Web-Verified Smartlead.ai entries), **don't pick by popularity** — grab the exact client ID from the vendor's own connect-mailbox UI. Smartlead's docs explicitly call this out; other cold-mail/CRM vendors will too.
+- **Skipped open-tracking pixel debate in advance:** when we hit campaign creation, open-tracking will be OFF (pixel hurts deliverability + Gmail privacy proxies make data unreliable), link-tracking will be ON via custom CNAME `track.findmedjobs.co`. Not configured yet — Smartlead's tracking-domain setting is global, separate flow.
+
+**⏸️ RESUME HERE (in priority order) →**
+
+1. **Verify `logan@` per-mailbox config landed** — TJ may have only seen the "Email Connection Success" modal and not finished:
+   - **General tab:** Message Per Day **15** (default, keep), Minimum time gap **5** min, signature blank for now, BCC to CRM blank. Save.
+   - **Warm Up tab (the important one):** Warm Up Enabled **ON**, Total Warmup Emails per Day **20** to start, Daily ramp-up **+2/day (Normal preset)**, Reply rate **30%**, Random reply rate ON, Weekday only ON. Save. Logan's status should flip to "Warming up" in Email Accounts list.
+2. **Connect `partnerships@findmedjobs.co`** — Smartlead → Email Accounts → Add Account → Google OAuth → sign in as partnerships@. Should be **instant now** — the Workspace admin trust we added covers the whole tenant, not just logan@. Same per-mailbox + Warm Up config as logan@ (From Name: "Olera Team", everything else identical).
+3. **Verify Smartlead Basic subscription is actually active.** Trial banner showed "Your Trial expires in 6 days — Subscribe Now" during connection. Either (a) payment still processing, (b) trial overlay until billing tick, (c) UI lag. Check Settings → Subscription before any campaign work — Smartlead Basic must be live or warmup may be throttled at trial limits.
+4. **Custom tracking domain `track.findmedjobs.co`** (Smartlead global setting, not per-mailbox): Smartlead → Settings → Custom Tracking Domain → gives you a target CNAME value → add CNAME in Cloudflare on `findmedjobs.co` (Type CNAME, Name `track`, Target = Smartlead's value, Proxy OFF/DNS-only) → validate in Smartlead. Keep link-tracking siloed to our domain, not Smartlead's shared `sl-tracking.com`.
+5. **Then** (gated on Logan sign-off + warmup health): build D2 reply/bounce → CRM webhook. Discipline reminders that MUST be respected when this is built:
+   - **Route through Supabase Edge Function**, NOT a Vercel API route. Resend's GCP-origin POSTs hit Vercel Bot Protection 403; same risk class for Smartlead. The existing pattern is `supabase/functions/resend-webhook/index.ts` (deprecation note in `app/api/resend/webhook/route.ts:1-25` explains the architectural lesson).
+   - **G4 single-writer**: webhook must hit `log_email_replied` (route.ts:194), `log_email_bounced` (route.ts:197) action handlers — never the DB directly. These actions already exist in `app/api/admin/student-outreach/[id]/route.ts`. The receiving end of the future webhook is already built.
+   - **D2 gate** — Logan's sign-off on the launch-flow is required before this ships (per docs/medjobs/OPERATIONAL_BRIEF.md Appendix B).
+
+**Open follow-ups (low-pri, don't block):**
+- Smartlead trial banner verification (#3 above — actually a soft blocker for warmup throughput; check before launching campaigns).
+- DMARC `rua=team@` tidy-up (team@ doesn't exist; bounces reports only, harmless).
+- Decide mailbox #3 (3rd cold sender) — held at 2 unless volume exceeds ~1k/mo.
+- "Olera Team" display name on partnerships@ — brand on burnable domain tradeoff; quick rename if we decide to insulate fully.
+- Apex redirect for findmedjobs.co (avoid throwaway-spam look — 301 to olera.care or a thin landing page).
+- The wrong-popular Smartlead OAuth client (`30893954003-fksf7...`) we trusted preemptively — leave it; harmless.
+- IMAP enabled on `tj@findmedjobs.co` though tj@ won't be in Smartlead — harmless leftover from initial misdirection.
+
+**Repo state:**
+- Branch: `save/email-deliverability-session` (clean, no uncommitted changes — all session work was external: admin consoles + Smartlead dashboard + 1 line addition to `~/Desktop/olera-web/.env.local`).
+- `lib/smartlead.ts` (committed in `03361d66`) confirmed working against live API.
+- No code changes this session.
+
+**Context refs:** memory `project_email_deliverability`; Notion *Smartlead Setup Runbook* + *Domain Reclaim*; `docs/medjobs/OPERATIONAL_BRIEF.md` (D2, G4); Smartlead helpcenter article #18 (the OAuth client ID dynamic-pop-up doc).
+
+---
+
 ### 2026-05-28 (Thu) — Cold-outreach Phase 3: all 4 auth DNS records LIVE, DKIM authenticating. **Next: mail-tester verify → Smartlead.**
 
 **Context:** Picked up from Monday's reclaim. Goal: finish Phase 3 (auth DNS) so we can start Smartlead warmup.

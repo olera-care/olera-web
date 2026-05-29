@@ -48,11 +48,32 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // For needs_email filter: fetch provider IDs that actually have no email
+    // This checks the live business_profiles.email field, not a stale metadata flag
+    // Include all provider types: provider, organization, caregiver (exclude family)
+    let noEmailProviderIds: string[] | null = null;
+    if (needsEmail) {
+      const { data: noEmailProviders } = await db
+        .from("business_profiles")
+        .select("id")
+        .in("type", ["provider", "organization", "caregiver"])
+        .is("email", null);
+
+      noEmailProviderIds = (noEmailProviders ?? []).map((p) => p.id);
+      if (noEmailProviderIds.length === 0) {
+        // No providers without email, return empty result
+        return NextResponse.json(countOnly ? { count: 0 } : { connections: [], total: 0, engagement: {} });
+      }
+    }
+
     // Build base filter helper
     function applyFilters(q: typeof query) {
       if (status) q = q.eq("status", status);
       if (type) q = q.eq("type", type);
-      if (needsEmail) q = q.contains("metadata", { needs_provider_email: true });
+      // Filter by providers with no email (using live data, not stale flag)
+      if (noEmailProviderIds) {
+        q = q.in("to_profile_id", noEmailProviderIds);
+      }
       // Show archived OR non-archived
       if (showArchived) {
         q = q.contains("metadata", { archived: true });
@@ -101,7 +122,7 @@ export async function GET(request: NextRequest) {
         metadata,
         created_at,
         from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type, email, phone, metadata, care_types),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id, email, phone)
       `)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);

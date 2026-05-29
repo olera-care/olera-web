@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
-import { matchesLiveEmail } from "@/lib/email-templates";
+import { matchesLiveEmail, reachOutAutoDeclinedEmail } from "@/lib/email-templates";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 
 function getServiceDb() {
@@ -157,6 +157,141 @@ export async function POST(request: Request) {
     if (updateError) {
       console.error("Care post update error:", updateError);
       return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+    }
+
+    // Auto-decline pending reach-out requests when family deactivates/deletes profile
+    if (action === "deactivate" || action === "delete") {
+      const serviceDb = getServiceDb();
+      if (serviceDb) {
+        // Find all pending connections TO this family (provider reach-outs)
+        const { data: pendingConnections } = await serviceDb
+          .from("connections")
+          .select("id, from_profile_id")
+          .eq("to_profile_id", profile.id)
+          .eq("type", "request")
+          .eq("status", "pending");
+
+        if (pendingConnections && pendingConnections.length > 0) {
+          // Auto-decline with reason - merge with existing metadata
+          const declineMetadata = {
+            declined_reason: action === "delete" ? "profile_deleted" : "profile_deactivated",
+            auto_declined_at: new Date().toISOString(),
+          };
+
+          // Track which connections were successfully declined (for email notifications)
+          const declinedProviderIds: string[] = [];
+
+          for (const conn of pendingConnections) {
+            try {
+              // Fetch existing connection to preserve metadata
+              const { data: existing, error: fetchError } = await serviceDb
+                .from("connections")
+                .select("metadata")
+                .eq("id", conn.id)
+                .single();
+
+              if (fetchError) {
+                console.error(`[care-post/publish] Failed to fetch connection ${conn.id}:`, fetchError);
+                continue;
+              }
+
+              const { error: updateError } = await serviceDb
+                .from("connections")
+                .update({
+                  status: "declined",
+                  metadata: {
+                    ...(existing?.metadata || {}),
+                    ...declineMetadata,
+                  },
+                })
+                .eq("id", conn.id);
+
+              if (updateError) {
+                console.error(`[care-post/publish] Failed to decline connection ${conn.id}:`, updateError);
+                continue;
+              }
+
+              // Only add to email list if update succeeded
+              declinedProviderIds.push(conn.from_profile_id);
+            } catch (err) {
+              console.error(`[care-post/publish] Error processing connection ${conn.id}:`, err);
+            }
+          }
+
+          // Send notification emails to providers whose connections were actually declined
+          if (declinedProviderIds.length > 0) {
+            (async () => {
+            try {
+              // Fetch provider profiles with their account info
+              const { data: providerProfiles } = await serviceDb
+                .from("business_profiles")
+                .select("id, display_name, account_id")
+                .in("id", declinedProviderIds);
+
+              if (!providerProfiles?.length) return;
+
+              const accountIds = providerProfiles
+                .map((p: { account_id: string | null }) => p.account_id)
+                .filter(Boolean) as string[];
+
+              if (!accountIds.length) return;
+
+              // Get accounts with user_id
+              const { data: accounts } = await serviceDb
+                .from("accounts")
+                .select("id, user_id")
+                .in("id", accountIds);
+
+              if (!accounts?.length) return;
+
+              // Get user emails via admin API - fetch each user by ID
+              // This is more reliable than listUsers() which is paginated and returns all users
+              const userIds = accounts.map((a: { user_id: string }) => a.user_id);
+              const userMap = new Map<string, string>();
+
+              for (const userId of userIds) {
+                try {
+                  const { data: userData } = await serviceDb.auth.admin.getUserById(userId);
+                  if (userData?.user?.email) {
+                    userMap.set(userId, userData.user.email);
+                  }
+                } catch {
+                  // Skip users we can't fetch
+                }
+              }
+
+              const accountToUser = new Map(
+                accounts.map((a: { id: string; user_id: string }) => [a.id, a.user_id])
+              );
+
+              const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+              const familyCity = profile.city || "your area";
+
+              for (const provider of providerProfiles) {
+                const userId = accountToUser.get(provider.account_id);
+                const email = userId ? userMap.get(userId) : null;
+
+                if (email) {
+                  await sendEmail({
+                    to: email,
+                    subject: "A family closed their care profile",
+                    html: reachOutAutoDeclinedEmail({
+                      providerName: provider.display_name || "there",
+                      familyCity,
+                      viewUrl: `${siteUrl}/provider/matches`,
+                    }),
+                    emailType: "reach_out_auto_declined",
+                    recipientType: "provider",
+                  });
+                }
+              }
+            } catch (emailErr) {
+              console.error("[care-post/publish] auto-decline emails failed:", emailErr);
+            }
+          })();
+          }
+        }
+      }
     }
 
     // Track profile_published event to seeker_activity (family-centric analytics)

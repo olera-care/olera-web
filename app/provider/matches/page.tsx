@@ -103,6 +103,21 @@ const URGENCY_ORDER: Record<string, number> = {
   exploring: 3,
 };
 
+// Profile status type for inactive family handling
+type ProfileStatus = "active" | "paused" | "deleted";
+
+function getProfileStatus(family: Profile): ProfileStatus {
+  const meta = family.metadata as FamilyMetadata;
+  // Deleted: has care_post_deleted flag and no active care_post
+  if (meta?.care_post_deleted && !meta?.care_post) return "deleted";
+  // Paused: has care_post with paused status
+  if (meta?.care_post?.status === "paused") return "paused";
+  // Active: has care_post with active status
+  if (meta?.care_post?.status === "active") return "active";
+  // Default to deleted if no care_post exists
+  return "deleted";
+}
+
 const DEFAULT_NOTE_KEY = "olera_default_reachout_note";
 const PAGE_SIZE = 12;
 
@@ -1041,8 +1056,6 @@ export default function ProviderMatchesPage() {
         }
 
         const fetchedFamilies = (familiesRes.data as Profile[]) || [];
-        setFamilies(fetchedFamilies);
-        setTotalCount(familiesRes.count || fetchedFamilies.length);
 
         // Derive contactedIds and respondedIds from fullConnectionsRes (eliminates 2 redundant queries)
         const connections = fullConnectionsRes.data || [];
@@ -1087,6 +1100,27 @@ export default function ProviderMatchesPage() {
         });
 
         setConnectionData(connDataMap);
+
+        // Fetch inactive families that provider has already connected with
+        // These are families whose profiles are paused/deleted but provider has outreach history
+        const connectedIds = connections.map((c: { to_profile_id: string }) => c.to_profile_id);
+        const activeFamilyIds = new Set(fetchedFamilies.map((f) => f.id));
+        const missingIds = connectedIds.filter((id: string) => !activeFamilyIds.has(id));
+
+        if (missingIds.length > 0) {
+          const { data: inactiveFamilies } = await supabase
+            .from("business_profiles")
+            .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at")
+            .in("id", missingIds);
+
+          if (inactiveFamilies && inactiveFamilies.length > 0) {
+            // Append inactive families to the list
+            fetchedFamilies.push(...(inactiveFamilies as Profile[]));
+          }
+        }
+
+        setFamilies(fetchedFamilies);
+        setTotalCount(familiesRes.count || fetchedFamilies.length);
 
         // Reach-out counts per family — use server API to bypass RLS
         // (RLS only allows providers to see their own connections, but we need
@@ -1379,10 +1413,25 @@ export default function ProviderMatchesPage() {
       }
     }
 
+    // Filter out uncontacted inactive families (they shouldn't see profiles they never contacted)
+    result = result.filter((f) => {
+      const status = getProfileStatus(f);
+      // Keep all active families
+      if (status === "active") return true;
+      // Keep inactive families only if provider has contacted them
+      return contactedIds.has(f.id);
+    });
+
     // Sort based on active tab
     const sorted = [...result].sort((a, b) => {
       const metaA = a.metadata as FamilyMetadata;
       const metaB = b.metadata as FamilyMetadata;
+
+      // First priority: active families before inactive
+      const aActive = getProfileStatus(a) === "active";
+      const bActive = getProfileStatus(b) === "active";
+      if (aActive && !bActive) return -1;
+      if (!aActive && bActive) return 1;
 
       if (activeTab === "near_you") {
         // Near You: sort by recency
@@ -1424,11 +1473,11 @@ export default function ProviderMatchesPage() {
         return (freshnessScore * 0.45) + (matchScore * 0.30) + (urgencyScore * 0.25);
       };
 
-      // First, separate contacted from uncontacted
+      // Second priority: separate contacted from uncontacted
       const aContacted = contactedIds.has(a.id);
       const bContacted = contactedIds.has(b.id);
 
-      // Uncontacted families come first
+      // Uncontacted families come first (within active families)
       if (!aContacted && bContacted) return -1;
       if (aContacted && !bContacted) return 1;
 
@@ -1665,6 +1714,7 @@ export default function ProviderMatchesPage() {
                       reachOutCount={reachOutCounts.get(family.id) || 0}
                       onReachOut={handleReachOut}
                       animationDelay={index * 40}
+                      profileStatus={getProfileStatus(family)}
                     />
                   ))}
                 </div>
@@ -1719,6 +1769,7 @@ export default function ProviderMatchesPage() {
         const viewOutreachStatus = conn
           ? conn.status === "accepted" ? "connected" : conn.status as "pending" | "declined"
           : undefined;
+        const drawerProfileStatus = drawerFamily ? getProfileStatus(drawerFamily) : "active";
 
         return (
           <ReachOutDrawer
@@ -1738,6 +1789,7 @@ export default function ProviderMatchesPage() {
             sentMessage={isViewMode ? (conn?.message || undefined) : undefined}
             sentAt={isViewMode ? conn?.created_at : undefined}
             outreachStatus={viewOutreachStatus}
+            profileStatus={drawerProfileStatus}
             onAIGenerate={(familyId, tone) => {
               if (providerProfile?.slug) {
                 trackMatchesEvent(providerProfile.slug, "matches_message_generated", {

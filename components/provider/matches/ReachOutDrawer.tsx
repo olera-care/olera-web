@@ -33,6 +33,8 @@ interface ReachOutDrawerProps {
   outreachStatus?: "pending" | "connected" | "declined";
   /** Callback when AI message generation succeeds - for analytics tracking */
   onAIGenerate?: (familyId: string, tone: string) => void;
+  /** Profile status for inactive family handling */
+  profileStatus?: "active" | "paused" | "deleted";
 }
 
 // ── Helpers ──
@@ -344,6 +346,7 @@ export default function ReachOutDrawer({
   sentAt,
   outreachStatus,
   onAIGenerate,
+  profileStatus = "active",
 }: ReachOutDrawerProps) {
   const router = useRouter();
   const [message, setMessage] = useState("");
@@ -902,6 +905,23 @@ ${context}${urgencyNote}. I'd love to help.
                 <p className="text-base font-medium text-gray-700">{memberSinceValue}</p>
               </div>
             )}
+
+            {/* Profile status */}
+            <div>
+              <p className="text-sm text-gray-500">Profile status</p>
+              <p className={`text-base font-medium flex items-center gap-1.5 ${
+                profileStatus === "active" ? "text-emerald-600"
+                  : profileStatus === "paused" ? "text-amber-600"
+                  : "text-gray-500"
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${
+                  profileStatus === "active" ? "bg-emerald-500"
+                    : profileStatus === "paused" ? "bg-amber-500" : "bg-gray-400"
+                }`} />
+                {profileStatus === "active" ? "Profile Active"
+                  : profileStatus === "paused" ? "Profile Paused" : "Profile Deleted"}
+              </p>
+            </div>
           </div>
         </div>
     </div>
@@ -1171,6 +1191,8 @@ ${context}${urgencyNote}. I'd love to help.
   );
 
   // ── Sticky Footer Content (Compose Mode) ──
+  const isInactive = profileStatus !== "active";
+
   const StickyFooterCompose = (
     <>
       {sendError && (
@@ -1178,8 +1200,23 @@ ${context}${urgencyNote}. I'd love to help.
           <p className="text-sm text-rose-600">{sendError}</p>
         </div>
       )}
+      {isInactive && (
+        <div className="mb-3 px-3 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <p className="text-sm text-gray-600">
+            <span className="font-medium">This family&apos;s profile is no longer active.</span>{" "}
+            They may have found care or their needs changed.
+          </p>
+        </div>
+      )}
       <div>
-        {!isVerified ? (
+        {isInactive ? (
+          <button
+            disabled
+            className="w-full px-4 py-3.5 bg-gray-100 text-gray-400 text-sm font-semibold rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            Cannot message inactive profile
+          </button>
+        ) : !isVerified ? (
           <button
             onClick={onVerifyClick}
             className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
@@ -1214,13 +1251,15 @@ ${context}${urgencyNote}. I'd love to help.
           </button>
         )}
       </div>
-      <p className="text-sm text-center text-gray-500 mt-3">
-        {isGenericFirstName ? "They" : firstName} will see your profile{" "}
-        <span className="text-gray-400">·</span>{" "}
-        <Link href="/provider/profile" className="font-medium text-primary-600 hover:text-primary-700">
-          Edit
-        </Link>
-      </p>
+      {!isInactive && (
+        <p className="text-sm text-center text-gray-500 mt-3">
+          {isGenericFirstName ? "They" : firstName} will see your profile{" "}
+          <span className="text-gray-400">·</span>{" "}
+          <Link href="/provider/profile" className="font-medium text-primary-600 hover:text-primary-700">
+            Edit
+          </Link>
+        </p>
+      )}
     </>
   );
 

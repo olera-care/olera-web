@@ -49,10 +49,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Build base filter helper
+    // Note: needsEmail filter is applied in-memory after fetching (like Analytics)
+    // because PostgREST doesn't support filtering on joined columns directly
     function applyFilters(q: typeof query) {
       if (status) q = q.eq("status", status);
       if (type) q = q.eq("type", type);
-      if (needsEmail) q = q.contains("metadata", { needs_provider_email: true });
       // Show archived OR non-archived
       if (showArchived) {
         q = q.contains("metadata", { archived: true });
@@ -72,6 +73,92 @@ export async function GET(request: NextRequest) {
         );
       }
       return q;
+    }
+
+    // Helper to check if a connection's provider needs email
+    // Matches Analytics approach: check live to_profile.email field
+    const providerNeedsEmail = (conn: {
+      to_profile: { email?: string | null; is_active?: boolean }[] | { email?: string | null; is_active?: boolean } | null;
+    }) => {
+      // Supabase may return to_profile as array or single object depending on join
+      const provider = Array.isArray(conn.to_profile) ? conn.to_profile[0] : conn.to_profile;
+      // Skip if no provider profile (deleted) or inactive
+      if (!provider || provider.is_active === false) return false;
+      // Provider needs email if email is null or empty
+      return !provider.email;
+    };
+
+    // When needsEmail filter is active, we must fetch all results and filter in memory
+    // because PostgREST doesn't support filtering on joined columns
+    if (needsEmail) {
+      // Fetch all connections with profile data (up to reasonable limit)
+      let query = db
+        .from("connections")
+        .select(`
+          id,
+          type,
+          status,
+          message,
+          metadata,
+          created_at,
+          from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type, email, phone, metadata, care_types),
+          to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id, email, is_active)
+        `)
+        .order("created_at", { ascending: false })
+        .limit(10000);
+
+      query = applyFilters(query);
+      const { data: allConnections, error } = await query;
+
+      if (error) {
+        console.error("Failed to fetch leads:", error);
+        return NextResponse.json({ error: "Failed to fetch leads" }, { status: 500 });
+      }
+
+      // Filter in memory for providers needing email
+      const filtered = (allConnections ?? []).filter(providerNeedsEmail);
+
+      if (countOnly) {
+        return NextResponse.json({ count: filtered.length });
+      }
+
+      // Apply pagination in memory
+      const total = filtered.length;
+      const paginatedConnections = filtered.slice(offset, offset + limit);
+
+      // Enrich with provider engagement data (same as non-needsEmail path)
+      let engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }> = {};
+      try {
+        const providerSlugs = [...new Set(
+          paginatedConnections
+            .map((c) => {
+              const tp = c.to_profile as { slug?: string; source_provider_id?: string; id?: string } | null;
+              return tp?.slug || tp?.source_provider_id || tp?.id || null;
+            })
+            .filter(Boolean) as string[]
+        )];
+
+        if (providerSlugs.length > 0) {
+          const { data: events } = await db
+            .from("provider_activity")
+            .select("provider_id, event_type")
+            .in("provider_id", providerSlugs)
+            .in("event_type", ["email_click", "lead_opened", "contact_revealed"]);
+
+          for (const slug of providerSlugs) {
+            const providerEvents = (events ?? []).filter((e) => e.provider_id === slug);
+            engagement[slug] = {
+              email_clicked: providerEvents.some((e) => e.event_type === "email_click"),
+              lead_opened: providerEvents.some((e) => e.event_type === "lead_opened"),
+              contact_revealed: providerEvents.some((e) => e.event_type === "contact_revealed"),
+            };
+          }
+        }
+      } catch {
+        // Non-blocking — engagement data is supplementary
+      }
+
+      return NextResponse.json({ connections: paginatedConnections, total, engagement });
     }
 
     if (countOnly) {
@@ -101,7 +188,7 @@ export async function GET(request: NextRequest) {
         metadata,
         created_at,
         from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type, email, phone, metadata, care_types),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id, email, is_active)
       `)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);

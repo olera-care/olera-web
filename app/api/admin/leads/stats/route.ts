@@ -29,11 +29,11 @@ export async function GET(request: NextRequest) {
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
     const queryStart = priorFrom ?? from ?? null;
 
-    // Pull all non-archived leads in range+prior; we'll compute both metrics
-    // from the same result set.
+    // Pull all non-archived leads in range+prior WITH provider profile data
+    // so we can check live email status (matches Analytics approach)
     let q = db
       .from("connections")
-      .select("created_at, metadata")
+      .select("created_at, metadata, to_profile:business_profiles!connections_to_profile_id_fkey(email, is_active)")
       .order("created_at", { ascending: true })
       .limit(50000)
       .not("metadata", "cs", JSON.stringify({ archived: true }));
@@ -48,9 +48,16 @@ export async function GET(request: NextRequest) {
 
     const allRows = rows ?? [];
 
+    // Check live provider email status (like Analytics does)
+    // instead of using stale metadata.needs_provider_email flag
     const isNeedsEmail = (r: (typeof allRows)[number]) => {
-      const meta = r.metadata as Record<string, unknown> | null | undefined;
-      return meta?.needs_provider_email === true;
+      // Supabase may return to_profile as array or single object depending on join
+      const toProfile = r.to_profile as { email?: string | null; is_active?: boolean }[] | { email?: string | null; is_active?: boolean } | null;
+      const provider = Array.isArray(toProfile) ? toProfile[0] : toProfile;
+      // Skip if no provider profile (deleted) or inactive
+      if (!provider || provider.is_active === false) return false;
+      // Provider needs email if email is null or empty
+      return !provider.email;
     };
 
     const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t < to : true);

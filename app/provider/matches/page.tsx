@@ -25,6 +25,7 @@ import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
 import Pagination from "@/components/ui/Pagination";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
+import { Star, Users, LinkSimple, Check } from "@phosphor-icons/react";
 
 
 // ── Timeline config ──
@@ -590,6 +591,156 @@ function MatchesEmptyState() {
           they&apos;ll appear here. Check back soon.
         </p>
       </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Near You Empty State (with growth actions)
+// ---------------------------------------------------------------------------
+
+function NearYouEmptyState({
+  city,
+  providerSlug,
+  onBrowseAll,
+}: {
+  city: string;
+  providerSlug: string;
+  onBrowseAll: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const profileUrl = `https://olera.care/provider/${providerSlug}`;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = profileUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const actions = [
+    {
+      icon: Star,
+      iconBg: "bg-amber-50",
+      iconColor: "text-amber-500",
+      title: "Collect Reviews",
+      description: "Request reviews from your clients",
+      href: "/provider/reviews",
+      cta: "Get Reviews",
+    },
+    {
+      icon: Users,
+      iconBg: "bg-sky-50",
+      iconColor: "text-sky-500",
+      title: "Hire Caregivers",
+      description: "Find qualified care professionals",
+      href: "/provider/caregivers",
+      cta: "Browse",
+    },
+    {
+      icon: LinkSimple,
+      iconBg: "bg-emerald-50",
+      iconColor: "text-emerald-500",
+      title: "Share Profile",
+      description: "Get direct inquiries from families",
+      onClick: handleCopyLink,
+      cta: copied ? "Copied!" : "Copy Link",
+      isCopied: copied,
+    },
+  ];
+
+  return (
+    <div className="py-10 px-4">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h3 className="text-[17px] font-display font-bold text-gray-900 mb-1.5">
+          No families in {city} yet
+        </h3>
+        <p className="text-sm text-gray-500">
+          While you wait, grow your presence on Olera
+        </p>
+      </div>
+
+      {/* Action Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto mb-8">
+        {actions.map((action) => {
+          const Icon = action.icon;
+          const content = (
+            <div className="bg-white border border-gray-200/80 rounded-xl p-4 hover:border-gray-300 hover:shadow-sm transition-all group">
+              {/* Icon */}
+              <div className={`w-9 h-9 rounded-lg ${action.iconBg} flex items-center justify-center mb-3`}>
+                <Icon weight="fill" className={`w-[18px] h-[18px] ${action.iconColor}`} />
+              </div>
+
+              {/* Text */}
+              <p className="text-[13px] font-semibold text-gray-900 mb-0.5">
+                {action.title}
+              </p>
+              <p className="text-[12px] text-gray-500 leading-snug mb-3">
+                {action.description}
+              </p>
+
+              {/* CTA */}
+              <span className={`inline-flex items-center gap-1 text-[12px] font-semibold ${
+                action.isCopied
+                  ? "text-emerald-600"
+                  : "text-primary-600 group-hover:text-primary-700"
+              }`}>
+                {action.isCopied && <Check weight="bold" className="w-3.5 h-3.5" />}
+                {action.cta}
+              </span>
+            </div>
+          );
+
+          if (action.href) {
+            return (
+              <Link key={action.title} href={action.href}>
+                {content}
+              </Link>
+            );
+          }
+
+          return (
+            <button
+              key={action.title}
+              type="button"
+              onClick={action.onClick}
+              className="text-left"
+            >
+              {content}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Divider with "or" */}
+      <div className="flex items-center gap-3 max-w-xs mx-auto mb-6">
+        <div className="flex-1 h-px bg-gray-200" />
+        <span className="text-xs text-gray-400">or</span>
+        <div className="flex-1 h-px bg-gray-200" />
+      </div>
+
+      {/* Browse All CTA */}
+      <div className="text-center">
+        <button
+          type="button"
+          onClick={onBrowseAll}
+          className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+        >
+          Browse all families →
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -1634,28 +1785,11 @@ export default function ProviderMatchesPage() {
           ) : filteredFamilies.length === 0 ? (
             // Empty state - different message based on tab
             activeTab === "near_you" ? (
-              <div className="text-center py-12 px-8">
-                <Image
-                  src="/Near-you-img.png"
-                  alt="No families nearby"
-                  width={180}
-                  height={180}
-                  className="mx-auto mb-6"
-                />
-                <h3 className="text-[17px] font-display font-bold text-gray-900 mb-2">
-                  No families in {providerProfile?.city || "your area"} yet
-                </h3>
-                <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed mb-6">
-                  New families post every day. Check back soon, or browse all families looking for care.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("best_matches")}
-                  className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
-                >
-                  Browse All Families
-                </button>
-              </div>
+              <NearYouEmptyState
+                city={providerProfile?.city || "your area"}
+                providerSlug={providerProfile?.slug || ""}
+                onBrowseAll={() => setActiveTab("best_matches")}
+              />
             ) : (
               // Filter mismatch - no families match current filters
               <div className="text-center py-16 px-8">

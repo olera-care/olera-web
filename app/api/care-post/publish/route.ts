@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
@@ -99,35 +100,36 @@ export async function POST(request: Request) {
       if (!metadata.matches_live_email_sent) {
         metadata.matches_live_email_sent = true;
 
-        // Fire-and-forget: send email in background, don't block API response
+        // Send email in background using waitUntil for reliable delivery
         // Note: Family email is in auth.users (user.email), not business_profiles
         const recipientEmail = user.email;
         if (recipientEmail) {
-          // Start async email send without awaiting
-          (async () => {
-            try {
-              const { data: bp } = await supabase
-                .from("business_profiles")
-                .select("display_name, city")
-                .eq("id", profile.id)
-                .single();
+          waitUntil(
+            (async () => {
+              try {
+                const { data: bp } = await supabase
+                  .from("business_profiles")
+                  .select("display_name, city")
+                  .eq("id", profile.id)
+                  .single();
 
-              const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-              await sendEmail({
-                to: recipientEmail,
-                subject: `Your care profile is live — providers in ${bp?.city || "your area"} can find you`,
-                html: matchesLiveEmail({
-                  familyName: bp?.display_name || "there",
-                  city: bp?.city || "your area",
-                  matchesUrl: `${siteUrl}/portal/profile`,
-                }),
-                emailType: "matches_live",
-                recipientType: "family",
-              });
-            } catch (emailErr) {
-              console.error("[care-post/publish] matches live email failed:", emailErr);
-            }
-          })();
+                const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+                await sendEmail({
+                  to: recipientEmail,
+                  subject: `Your care profile is live — providers in ${bp?.city || "your area"} can find you`,
+                  html: matchesLiveEmail({
+                    familyName: bp?.display_name || "there",
+                    city: bp?.city || "your area",
+                    matchesUrl: `${siteUrl}/portal/profile`,
+                  }),
+                  emailType: "matches_live",
+                  recipientType: "family",
+                });
+              } catch (emailErr) {
+                console.error("[care-post/publish] matches live email failed:", emailErr);
+              }
+            })()
+          );
         }
       }
     } else if (action === "delete") {
@@ -220,75 +222,77 @@ export async function POST(request: Request) {
 
           // Send notification emails to providers whose connections were actually declined
           if (declinedProviderIds.length > 0) {
-            (async () => {
-            try {
-              // Fetch provider profiles with their account info
-              const { data: providerProfiles } = await serviceDb
-                .from("business_profiles")
-                .select("id, display_name, account_id")
-                .in("id", declinedProviderIds);
-
-              if (!providerProfiles?.length) return;
-
-              const accountIds = providerProfiles
-                .map((p: { account_id: string | null }) => p.account_id)
-                .filter(Boolean) as string[];
-
-              if (!accountIds.length) return;
-
-              // Get accounts with user_id
-              const { data: accounts } = await serviceDb
-                .from("accounts")
-                .select("id, user_id")
-                .in("id", accountIds);
-
-              if (!accounts?.length) return;
-
-              // Get user emails via admin API - fetch each user by ID
-              // This is more reliable than listUsers() which is paginated and returns all users
-              const userIds = accounts.map((a: { user_id: string }) => a.user_id);
-              const userMap = new Map<string, string>();
-
-              for (const userId of userIds) {
+            // Use waitUntil for reliable email delivery after response is sent
+            const familyCity = profile.city || "your area";
+            waitUntil(
+              (async () => {
                 try {
-                  const { data: userData } = await serviceDb.auth.admin.getUserById(userId);
-                  if (userData?.user?.email) {
-                    userMap.set(userId, userData.user.email);
+                  // Fetch provider profiles with their account info
+                  const { data: providerProfiles } = await serviceDb
+                    .from("business_profiles")
+                    .select("id, display_name, account_id")
+                    .in("id", declinedProviderIds);
+
+                  if (!providerProfiles?.length) return;
+
+                  const accountIds = providerProfiles
+                    .map((p: { account_id: string | null }) => p.account_id)
+                    .filter(Boolean) as string[];
+
+                  if (!accountIds.length) return;
+
+                  // Get accounts with user_id
+                  const { data: accounts } = await serviceDb
+                    .from("accounts")
+                    .select("id, user_id")
+                    .in("id", accountIds);
+
+                  if (!accounts?.length) return;
+
+                  // Get user emails via admin API - fetch each user by ID
+                  // This is more reliable than listUsers() which is paginated and returns all users
+                  const userMap = new Map<string, string>();
+
+                  for (const userId of accounts.map((a: { user_id: string }) => a.user_id)) {
+                    try {
+                      const { data: userData } = await serviceDb.auth.admin.getUserById(userId);
+                      if (userData?.user?.email) {
+                        userMap.set(userId, userData.user.email);
+                      }
+                    } catch {
+                      // Skip users we can't fetch
+                    }
                   }
-                } catch {
-                  // Skip users we can't fetch
+
+                  const accountToUser = new Map(
+                    accounts.map((a: { id: string; user_id: string }) => [a.id, a.user_id])
+                  );
+
+                  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+                  for (const provider of providerProfiles) {
+                    const userId = accountToUser.get(provider.account_id);
+                    const email = userId ? userMap.get(userId) : null;
+
+                    if (email) {
+                      await sendEmail({
+                        to: email,
+                        subject: "A family closed their care profile",
+                        html: reachOutAutoDeclinedEmail({
+                          providerName: provider.display_name || "there",
+                          familyCity,
+                          viewUrl: `${siteUrl}/provider/matches`,
+                        }),
+                        emailType: "reach_out_auto_declined",
+                        recipientType: "provider",
+                      });
+                    }
+                  }
+                } catch (emailErr) {
+                  console.error("[care-post/publish] auto-decline emails failed:", emailErr);
                 }
-              }
-
-              const accountToUser = new Map(
-                accounts.map((a: { id: string; user_id: string }) => [a.id, a.user_id])
-              );
-
-              const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-              const familyCity = profile.city || "your area";
-
-              for (const provider of providerProfiles) {
-                const userId = accountToUser.get(provider.account_id);
-                const email = userId ? userMap.get(userId) : null;
-
-                if (email) {
-                  await sendEmail({
-                    to: email,
-                    subject: "A family closed their care profile",
-                    html: reachOutAutoDeclinedEmail({
-                      providerName: provider.display_name || "there",
-                      familyCity,
-                      viewUrl: `${siteUrl}/provider/matches`,
-                    }),
-                    emailType: "reach_out_auto_declined",
-                    recipientType: "provider",
-                  });
-                }
-              }
-            } catch (emailErr) {
-              console.error("[care-post/publish] auto-decline emails failed:", emailErr);
-            }
-          })();
+              })()
+            );
           }
         }
       }
@@ -301,19 +305,22 @@ export async function POST(request: Request) {
       const serviceDb = getServiceDb();
       if (serviceDb) {
         const publishedAt = (metadata.care_post as Record<string, unknown>)?.published_at;
-        serviceDb.from("seeker_activity").insert({
-          profile_id: profile.id,
-          event_type: "profile_published",
-          metadata: {
-            source: source || "profile_page", // Default to profile_page if not specified
-            published_at: publishedAt,
-            completeness: completeness.percentage,
-          },
-        }).then(({ error }) => {
-          if (error) {
-            console.error("[care-post/publish] seeker_activity tracking failed:", error);
-          }
-        });
+        waitUntil(
+          (async () => {
+            const { error } = await serviceDb.from("seeker_activity").insert({
+              profile_id: profile.id,
+              event_type: "profile_published",
+              metadata: {
+                source: source || "profile_page", // Default to profile_page if not specified
+                published_at: publishedAt,
+                completeness: completeness.percentage,
+              },
+            });
+            if (error) {
+              console.error("[care-post/publish] seeker_activity tracking failed:", error);
+            }
+          })()
+        );
       }
     }
 

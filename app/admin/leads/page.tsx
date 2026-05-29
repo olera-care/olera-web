@@ -568,10 +568,12 @@ export default function AdminLeadsPage() {
         <div className="space-y-1">
           {leads.map((lead) => {
             // Check live provider email status instead of stale metadata flag
-            const providerIsActive = lead.to_profile?.is_active !== false;
+            // Provider must exist AND be active to be actionable
+            const providerIsActive = !!lead.to_profile && lead.to_profile.is_active !== false;
             const providerHasNoEmail = !lead.to_profile?.email;
             const needsEmail = providerIsActive && providerHasNoEmail;
-            const providerIsArchived = lead.to_profile?.is_active === false;
+            // Provider is unavailable if deleted (no profile) or archived (is_active === false)
+            const providerUnavailable = !lead.to_profile || lead.to_profile.is_active === false;
             const providerEditorId = lead.to_profile?.source_provider_id;
             const providerSlug = (lead.to_profile as ConnectionProfile & { slug?: string })?.slug;
             const providerEngagement = engagement[providerSlug || providerEditorId || lead.to_profile?.id || ""];
@@ -668,8 +670,8 @@ export default function AdminLeadsPage() {
                         {needsEmail && (
                           <span className="font-medium text-gray-900">Needs email</span>
                         )}
-                        {providerIsArchived && providerHasNoEmail && (
-                          <span className="text-gray-400 italic">Provider archived</span>
+                        {providerUnavailable && providerHasNoEmail && (
+                          <span className="text-gray-400 italic">Provider unavailable</span>
                         )}
                         {providerEngagement && (
                           <div className="flex items-center gap-1" title={

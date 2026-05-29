@@ -256,7 +256,7 @@ export async function GET(req: NextRequest) {
       response_time_hours: responseTimeHours ? Math.round(responseTimeHours * 10) / 10 : null,
       provider_response: providerResponse,
       cta_variant: ctaVariant,
-      provider_is_active: conn.to_profile?.is_active !== false, // true if active or null (missing profile)
+      provider_is_active: !!conn.to_profile && conn.to_profile.is_active !== false, // false if deleted or archived
     });
   }
 

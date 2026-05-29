@@ -25,7 +25,7 @@ import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
 import Pagination from "@/components/ui/Pagination";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
-import { Star, Users, LinkSimple, Check } from "@phosphor-icons/react";
+import { Star, Briefcase, LinkSimple, Check } from "@phosphor-icons/react";
 
 
 // ── Timeline config ──
@@ -608,7 +608,8 @@ function NearYouEmptyState({
   onBrowseAll: () => void;
 }) {
   const [copied, setCopied] = useState(false);
-  const profileUrl = `https://olera.care/provider/${providerSlug}`;
+  const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://olera.care";
+  const profileUrl = providerSlug ? `${siteOrigin}/provider/${providerSlug}` : "";
 
   const handleCopyLink = async () => {
     try {
@@ -639,7 +640,7 @@ function NearYouEmptyState({
       cta: "Get Reviews",
     },
     {
-      icon: Users,
+      icon: Briefcase,
       iconBg: "bg-sky-50",
       iconColor: "text-sky-500",
       title: "Hire Caregivers",
@@ -647,7 +648,8 @@ function NearYouEmptyState({
       href: "/provider/caregivers",
       cta: "Browse",
     },
-    {
+    // Only show Share Profile if provider has a slug
+    ...(providerSlug ? [{
       icon: LinkSimple,
       iconBg: "bg-emerald-50",
       iconColor: "text-emerald-500",
@@ -656,7 +658,7 @@ function NearYouEmptyState({
       onClick: handleCopyLink,
       cta: copied ? "Copied!" : "Copy Link",
       isCopied: copied,
-    },
+    }] : []),
   ];
 
   return (
@@ -672,13 +674,15 @@ function NearYouEmptyState({
       </div>
 
       {/* Action Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto mb-8">
+      <div className={`grid grid-cols-1 gap-3 max-w-xl mx-auto mb-8 ${
+        actions.length === 2 ? "sm:grid-cols-2 sm:max-w-sm" : "sm:grid-cols-3"
+      }`}>
         {actions.map((action) => {
           const Icon = action.icon;
           const content = (
             <div className="bg-white border border-gray-200/80 rounded-xl p-4 hover:border-gray-300 hover:shadow-sm transition-all group">
               {/* Icon */}
-              <div className={`w-9 h-9 rounded-lg ${action.iconBg} flex items-center justify-center mb-3`}>
+              <div className={`w-9 h-9 rounded-xl ${action.iconBg} flex items-center justify-center mb-3`}>
                 <Icon weight="fill" className={`w-[18px] h-[18px] ${action.iconColor}`} />
               </div>
 

@@ -2882,6 +2882,7 @@ interface ResponseLead {
   provider_slug: string;
   provider_completeness: ProfileCompleteness;
   provider_nudged_at: string | null;
+  provider_is_active: boolean; // Whether provider profile is active (not archived/deleted)
   // Lead info
   message_preview: string;
   created_at: string;
@@ -3423,6 +3424,8 @@ function ResponseLeadsList({
                             <div className="text-[11px] text-gray-400 truncate max-w-[200px]" title={lead.provider_email}>
                               {lead.provider_email}
                             </div>
+                          ) : lead.provider_is_active === false ? (
+                            <div className="text-[11px] text-gray-400 italic">archived</div>
                           ) : (
                             <div className="text-[11px] text-amber-500 italic">no email</div>
                           )}
@@ -3475,6 +3478,8 @@ function ResponseLeadsList({
                                 ✕
                               </button>
                             </form>
+                          ) : !lead.provider_email && lead.provider_is_active === false ? (
+                            <span className="text-gray-400 italic">Provider archived</span>
                           ) : !lead.provider_email ? (
                             <span>
                               {lead.provider_completeness.percentage}% ·{" "}

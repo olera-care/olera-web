@@ -51,6 +51,7 @@ interface ResponseLead {
   response_time_hours: number | null;
   provider_response: string | null; // First non-auto-reply message from provider
   cta_variant: string | null;
+  provider_is_active: boolean; // Whether provider profile is active (not archived/deleted)
 }
 
 type ThreadMessage = {
@@ -120,7 +121,8 @@ export async function GET(req: NextRequest) {
         state,
         description,
         care_types,
-        metadata
+        metadata,
+        is_active
       )
     `,
       { count: "exact" }
@@ -254,6 +256,7 @@ export async function GET(req: NextRequest) {
       response_time_hours: responseTimeHours ? Math.round(responseTimeHours * 10) / 10 : null,
       provider_response: providerResponse,
       cta_variant: ctaVariant,
+      provider_is_active: conn.to_profile?.is_active !== false, // true if active or null (missing profile)
     });
   }
 

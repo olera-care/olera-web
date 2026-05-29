@@ -51,7 +51,7 @@ interface ResponseLead {
   response_time_hours: number | null;
   provider_response: string | null; // First non-auto-reply message from provider
   cta_variant: string | null;
-  provider_is_active: boolean; // Whether provider profile is active (not archived/deleted)
+  provider_status: "active" | "archived" | "deleted"; // Provider profile status
 }
 
 type ThreadMessage = {
@@ -256,7 +256,7 @@ export async function GET(req: NextRequest) {
       response_time_hours: responseTimeHours ? Math.round(responseTimeHours * 10) / 10 : null,
       provider_response: providerResponse,
       cta_variant: ctaVariant,
-      provider_is_active: !!conn.to_profile && conn.to_profile.is_active !== false, // false if deleted or archived
+      provider_status: !conn.to_profile ? "deleted" : conn.to_profile.is_active === false ? "archived" : "active",
     });
   }
 

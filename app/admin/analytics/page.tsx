@@ -2882,7 +2882,7 @@ interface ResponseLead {
   provider_slug: string;
   provider_completeness: ProfileCompleteness;
   provider_nudged_at: string | null;
-  provider_is_active: boolean; // Whether provider profile is active (not archived/deleted)
+  provider_status: "active" | "archived" | "deleted"; // Provider profile status
   // Lead info
   message_preview: string;
   created_at: string;
@@ -3424,8 +3424,10 @@ function ResponseLeadsList({
                             <div className="text-[11px] text-gray-400 truncate max-w-[200px]" title={lead.provider_email}>
                               {lead.provider_email}
                             </div>
-                          ) : !lead.provider_is_active ? (
-                            <div className="text-[11px] text-gray-400 italic">unavailable</div>
+                          ) : lead.provider_status === "deleted" ? (
+                            <div className="text-[11px] text-gray-400 italic">deleted</div>
+                          ) : lead.provider_status === "archived" ? (
+                            <div className="text-[11px] text-gray-400 italic">archived</div>
                           ) : (
                             <div className="text-[11px] text-amber-500 italic">no email</div>
                           )}
@@ -3478,8 +3480,10 @@ function ResponseLeadsList({
                                 ✕
                               </button>
                             </form>
-                          ) : !lead.provider_email && !lead.provider_is_active ? (
-                            <span className="text-gray-400 italic">Provider unavailable</span>
+                          ) : !lead.provider_email && lead.provider_status === "deleted" ? (
+                            <span className="text-gray-400 italic">Provider deleted</span>
+                          ) : !lead.provider_email && lead.provider_status === "archived" ? (
+                            <span className="text-gray-400 italic">Provider archived</span>
                           ) : !lead.provider_email ? (
                             <span>
                               {lead.provider_completeness.percentage}% ·{" "}

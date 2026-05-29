@@ -572,8 +572,9 @@ export default function AdminLeadsPage() {
             const providerIsActive = !!lead.to_profile && lead.to_profile.is_active !== false;
             const providerHasNoEmail = !lead.to_profile?.email;
             const needsEmail = providerIsActive && providerHasNoEmail;
-            // Provider is unavailable if deleted (no profile) or archived (is_active === false)
-            const providerUnavailable = !lead.to_profile || lead.to_profile.is_active === false;
+            // Determine specific provider status for display
+            const providerIsDeleted = !lead.to_profile;
+            const providerIsArchived = !!lead.to_profile && lead.to_profile.is_active === false;
             const providerEditorId = lead.to_profile?.source_provider_id;
             const providerSlug = (lead.to_profile as ConnectionProfile & { slug?: string })?.slug;
             const providerEngagement = engagement[providerSlug || providerEditorId || lead.to_profile?.id || ""];
@@ -670,8 +671,11 @@ export default function AdminLeadsPage() {
                         {needsEmail && (
                           <span className="font-medium text-gray-900">Needs email</span>
                         )}
-                        {providerUnavailable && providerHasNoEmail && (
-                          <span className="text-gray-400 italic">Provider unavailable</span>
+                        {providerIsDeleted && providerHasNoEmail && (
+                          <span className="text-gray-400 italic">Provider deleted</span>
+                        )}
+                        {providerIsArchived && providerHasNoEmail && (
+                          <span className="text-gray-400 italic">Provider archived</span>
                         )}
                         {providerEngagement && (
                           <div className="flex items-center gap-1" title={

@@ -609,7 +609,7 @@ function NearYouEmptyState({
 }) {
   const [copied, setCopied] = useState(false);
   const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://olera.care";
-  const profileUrl = providerSlug ? `${siteOrigin}/provider/${providerSlug}` : "";
+  const profileUrl = `${siteOrigin}/provider/${providerSlug}`;
 
   const handleCopyLink = async () => {
     try {
@@ -648,8 +648,7 @@ function NearYouEmptyState({
       href: "/provider/caregivers",
       cta: "Browse",
     },
-    // Only show Share Profile if provider has a slug
-    ...(providerSlug ? [{
+    {
       icon: LinkSimple,
       iconBg: "bg-emerald-50",
       iconColor: "text-emerald-500",
@@ -658,7 +657,7 @@ function NearYouEmptyState({
       onClick: handleCopyLink,
       cta: copied ? "Copied!" : "Copy Link",
       isCopied: copied,
-    }] : []),
+    },
   ];
 
   return (
@@ -674,9 +673,7 @@ function NearYouEmptyState({
       </div>
 
       {/* Action Cards */}
-      <div className={`grid grid-cols-1 gap-3 max-w-xl mx-auto mb-8 ${
-        actions.length === 2 ? "sm:grid-cols-2 sm:max-w-sm" : "sm:grid-cols-3"
-      }`}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto mb-8">
         {actions.map((action) => {
           const Icon = action.icon;
           const content = (

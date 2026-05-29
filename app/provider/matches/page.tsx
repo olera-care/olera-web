@@ -601,11 +601,9 @@ function MatchesEmptyState() {
 function NearYouEmptyState({
   city,
   providerSlug,
-  onBrowseAll,
 }: {
   city: string;
   providerSlug: string;
-  onBrowseAll: () => void;
 }) {
   const [copied, setCopied] = useState(false);
   const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://olera.care";
@@ -728,24 +726,6 @@ function NearYouEmptyState({
             </button>
           );
         })}
-      </div>
-
-      {/* Divider with "or" */}
-      <div className="flex items-center gap-3 max-w-xs mx-auto mb-6">
-        <div className="flex-1 h-px bg-gray-200" />
-        <span className="text-xs text-gray-400">or</span>
-        <div className="flex-1 h-px bg-gray-200" />
-      </div>
-
-      {/* Browse All CTA */}
-      <div className="text-center">
-        <button
-          type="button"
-          onClick={onBrowseAll}
-          className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-        >
-          Browse all families →
-        </button>
       </div>
     </div>
   );
@@ -1795,7 +1775,6 @@ export default function ProviderMatchesPage() {
               <NearYouEmptyState
                 city={providerProfile?.city || "your area"}
                 providerSlug={providerProfile?.slug || ""}
-                onBrowseAll={() => setActiveTab("best_matches")}
               />
             ) : (
               // Filter mismatch - no families match current filters

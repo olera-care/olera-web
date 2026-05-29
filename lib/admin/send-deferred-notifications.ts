@@ -216,10 +216,12 @@ export async function sendDeferredNotificationsForProvider(
 
   // Convert Set to Array for iteration (avoids TypeScript downlevelIteration issues)
   for (const slug of Array.from(slugVariants)) {
+    // Only fetch pending questions (not answered, archived, or rejected)
     const { data: pendingQuestions } = await db
       .from("provider_questions")
       .select("id, question, asker_name, metadata")
-      .eq("provider_id", slug);
+      .eq("provider_id", slug)
+      .eq("status", "pending");
 
     // Filter to only those without email_sent_at and not already processed
     const unnotifiedQuestions = (pendingQuestions ?? []).filter((q) => {

@@ -385,6 +385,11 @@ export interface FamilyMetadata {
     status: "draft" | "active" | "paused";
     published_at?: string;
   };
+  care_post_deleted?: {
+    deleted_at: string;
+    reasons?: string[];
+    published_at?: string;
+  };
   benefits_results?: {
     answers?: Record<string, unknown>;
     results?: Record<string, unknown>;

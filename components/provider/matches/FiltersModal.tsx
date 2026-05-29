@@ -64,6 +64,15 @@ export interface FiltersState {
   profileQuality: "all" | "complete";
 }
 
+// Sort options for Best Matches tab
+export type SortOption = "recommended" | "newest" | "urgent";
+
+export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "recommended", label: "Recommended" },
+  { value: "newest", label: "Newest First" },
+  { value: "urgent", label: "Most Urgent" },
+];
+
 export const DEFAULT_FILTERS_STATE: FiltersState = {
   distance: "any",
   cities: [],
@@ -92,6 +101,12 @@ interface FiltersModalProps {
   };
   /** Whether the provider has coordinates for distance filtering. If false, distance filter is hidden. */
   hasProviderCoordinates?: boolean;
+  /** Sort option for Best Matches tab (mobile only) */
+  sortOption?: SortOption;
+  /** Callback when sort option changes */
+  onSortChange?: (sort: SortOption) => void;
+  /** Whether to show sort options (only on Best Matches tab) */
+  showSort?: boolean;
 }
 
 export default function FiltersModal({
@@ -101,9 +116,14 @@ export default function FiltersModal({
   onApply,
   familyCounts,
   hasProviderCoordinates = true,
+  sortOption = "recommended",
+  onSortChange,
+  showSort = false,
 }: FiltersModalProps) {
   // Local state for editing (apply on confirm)
   const [localFilters, setLocalFilters] = useState<FiltersState>(filters);
+  // Local sort state (applies on confirm, like filters)
+  const [localSort, setLocalSort] = useState<SortOption>(sortOption);
 
   // City search state
   const [citySearch, setCitySearch] = useState("");
@@ -112,9 +132,10 @@ export default function FiltersModal({
   useEffect(() => {
     if (isOpen) {
       setLocalFilters(filters);
+      setLocalSort(sortOption);
       setCitySearch("");
     }
-  }, [isOpen, filters]);
+  }, [isOpen, filters, sortOption]);
 
   // Handle escape key
   useEffect(() => {
@@ -202,13 +223,18 @@ export default function FiltersModal({
 
   const handleClear = useCallback(() => {
     setLocalFilters(DEFAULT_FILTERS_STATE);
+    setLocalSort("recommended");
     setCitySearch("");
   }, []);
 
   const handleApply = useCallback(() => {
     onApply(localFilters);
+    // Apply sort change if handler provided
+    if (onSortChange && localSort !== sortOption) {
+      onSortChange(localSort);
+    }
     onClose();
-  }, [localFilters, onApply, onClose]);
+  }, [localFilters, localSort, sortOption, onApply, onSortChange, onClose]);
 
   const activeFilterCount =
     (localFilters.distance !== "any" ? 1 : 0) +
@@ -218,7 +244,8 @@ export default function FiltersModal({
     localFilters.paymentMethods.length +
     localFilters.whoNeedsCare.length +
     localFilters.schedule.length +
-    (localFilters.profileQuality !== "all" ? 1 : 0);
+    (localFilters.profileQuality !== "all" ? 1 : 0) +
+    (showSort && localSort !== "recommended" ? 1 : 0);
 
   if (!isOpen) return null;
 
@@ -259,6 +286,32 @@ export default function FiltersModal({
 
           {/* Filter sections */}
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+            {/* Sort options - only shown on Best Matches tab (mobile) */}
+            {showSort && (
+              <FilterSection title="Sort By">
+                <div className="space-y-2">
+                  {SORT_OPTIONS.map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex items-center gap-3 cursor-pointer group"
+                    >
+                      <input
+                        type="radio"
+                        name="sortOption"
+                        value={option.value}
+                        checked={localSort === option.value}
+                        onChange={() => setLocalSort(option.value)}
+                        className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
+                      />
+                      <span className="text-[15px] text-gray-700 group-hover:text-gray-900">
+                        {option.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </FilterSection>
+            )}
+
             {/* Distance filter - only shown when provider has coordinates */}
             {hasProviderCoordinates && (
               <FilterSection title="Distance">
@@ -274,7 +327,7 @@ export default function FiltersModal({
                         value={option.value}
                         checked={localFilters.distance === option.value}
                         onChange={() => handleDistanceChange(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
                       />
                       <span className="text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -310,7 +363,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.urgency.includes(option.value)}
                         onChange={() => handleUrgencyToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -338,7 +391,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.careTypes.includes(option.value)}
                         onChange={() => handleCareTypeToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -366,7 +419,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.paymentMethods.includes(option.value)}
                         onChange={() => handlePaymentToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -394,7 +447,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.whoNeedsCare.includes(option.value)}
                         onChange={() => handleWhoNeedsCareToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -422,7 +475,7 @@ export default function FiltersModal({
                         type="checkbox"
                         checked={localFilters.schedule.includes(option.value)}
                         onChange={() => handleScheduleToggle(option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -445,7 +498,7 @@ export default function FiltersModal({
                     name="profileQuality"
                     checked={localFilters.profileQuality === "all"}
                     onChange={() => handleProfileQualityChange("all")}
-                    className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                    className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
                   />
                   <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                     All profiles
@@ -460,7 +513,7 @@ export default function FiltersModal({
                     name="profileQuality"
                     checked={localFilters.profileQuality === "complete"}
                     onChange={() => handleProfileQualityChange("complete")}
-                    className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                    className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
                   />
                   <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                     Complete profiles only (80%+)

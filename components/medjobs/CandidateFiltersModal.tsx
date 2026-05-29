@@ -263,7 +263,7 @@ export default function CandidateFiltersModal({
                         type="checkbox"
                         checked={localFilters.certifications.includes(option.value)}
                         onChange={() => toggleArrayFilter("certifications", option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -291,7 +291,7 @@ export default function CandidateFiltersModal({
                         type="checkbox"
                         checked={localFilters.availability.includes(option.value)}
                         onChange={() => toggleArrayFilter("availability", option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -325,7 +325,7 @@ export default function CandidateFiltersModal({
                             hoursPerWeek: prev.hoursPerWeek === option.value ? "" : option.value,
                           }))
                         }
-                        className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -359,7 +359,7 @@ export default function CandidateFiltersModal({
                             track: prev.track === option.value ? "" : option.value,
                           }))
                         }
-                        className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -387,7 +387,7 @@ export default function CandidateFiltersModal({
                         type="checkbox"
                         checked={localFilters.languages.includes(option.value)}
                         onChange={() => toggleArrayFilter("languages", option.value)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                       />
                       <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                         {option.label}
@@ -411,7 +411,7 @@ export default function CandidateFiltersModal({
                     onChange={(e) =>
                       setLocalFilters((prev) => ({ ...prev, hasVideo: e.target.checked }))
                     }
-                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    className="w-4 h-4 accent-gray-900 border-gray-300 rounded focus:ring-gray-200"
                   />
                   <span className="flex-1 text-[15px] text-gray-700 group-hover:text-gray-900">
                     Has intro video

@@ -179,7 +179,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
           await fetch("/api/care-post/publish", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "publish" }),
+            body: JSON.stringify({ action: "publish", source: "benefits_flow" }),
           });
 
           await refreshAccountData();

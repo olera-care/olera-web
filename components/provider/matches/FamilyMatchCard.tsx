@@ -5,6 +5,7 @@ import Image from "next/image";
 import type { Profile, FamilyMetadata } from "@/lib/types";
 
 type OutreachStatus = "pending" | "connected" | "declined";
+type ProfileStatus = "active" | "paused" | "deleted";
 
 interface FamilyMatchCardProps {
   family: Profile;
@@ -18,6 +19,8 @@ interface FamilyMatchCardProps {
   animationDelay?: number;
   /** For outreach page: when the message was sent (replaces "Posted X ago") */
   sentAt?: string;
+  /** Profile status for inactive family handling */
+  profileStatus?: ProfileStatus;
 }
 
 // ── Helpers ──
@@ -350,6 +353,7 @@ export default function FamilyMatchCard({
   onReachOut,
   animationDelay = 0,
   sentAt,
+  profileStatus = "active",
 }: FamilyMatchCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
@@ -466,12 +470,22 @@ export default function FamilyMatchCard({
     declined: { label: "Declined", bgClass: "bg-gray-50", textClass: "text-gray-500", borderClass: "border-gray-200" },
   }[outreachStatus] : null;
 
+  // Profile status badge for inactive families
+  const profileStatusBadge = profileStatus !== "active" ? {
+    paused: { label: "Profile Paused", bgClass: "bg-amber-50", textClass: "text-amber-700", borderClass: "border-amber-100" },
+    deleted: { label: "No Longer Active", bgClass: "bg-gray-50", textClass: "text-gray-500", borderClass: "border-gray-200" },
+  }[profileStatus] : null;
+
+  const isInactive = profileStatus !== "active";
+
   return (
     <div
-      className={`group bg-white rounded-[14px] border overflow-hidden cursor-pointer ${
-        contacted
-          ? "border-[#d4e4df] hover:border-[#b8d4cd] card-hover-shadow"
-          : "border-[#e4edea] hover:border-[#a8d4cf] card-hover-shadow"
+      className={`group rounded-[14px] border overflow-hidden cursor-pointer ${
+        isInactive
+          ? "bg-gray-50/50 opacity-80 border-gray-200 hover:border-gray-300 card-hover-shadow"
+          : contacted
+            ? "bg-white border-[#d4e4df] hover:border-[#b8d4cd] card-hover-shadow"
+            : "bg-white border-[#e4edea] hover:border-[#a8d4cf] card-hover-shadow"
       }`}
       style={{
         animation: `fadeSlideUp 0.4s ease-out ${animationDelay}ms both`,
@@ -504,12 +518,19 @@ export default function FamilyMatchCard({
           )}
         </span>
 
-        {/* Status badge for contacted families */}
-        {statusBadge && (
-          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none ${statusBadge.bgClass} ${statusBadge.textClass} border ${statusBadge.borderClass}`}>
-            {statusBadge.label}
-          </span>
-        )}
+        {/* Badges: show both profile status and outreach status when relevant */}
+        <div className="flex items-center gap-2">
+          {profileStatusBadge && (
+            <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none ${profileStatusBadge.bgClass} ${profileStatusBadge.textClass} border ${profileStatusBadge.borderClass}`}>
+              {profileStatusBadge.label}
+            </span>
+          )}
+          {statusBadge && (
+            <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none ${statusBadge.bgClass} ${statusBadge.textClass} border ${statusBadge.borderClass}`}>
+              {statusBadge.label}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="p-5">

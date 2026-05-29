@@ -676,6 +676,24 @@ export function reachOutAcceptedEmail(opts: {
   `);
 }
 
+/** Email to provider when a family closes their profile (auto-decline pending reach-outs) */
+export function reachOutAutoDeclinedEmail(opts: {
+  providerName: string;
+  familyCity: string;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family closed their profile</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.providerName}, a family in ${opts.familyCity} that you reached out to has closed their care profile on Olera.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      This sometimes happens when families find care or their needs change. Keep reaching out to other families — new care seekers join every day.
+    </p>
+    <div>${button("Find Families", opts.viewUrl)}</div>
+  `);
+}
+
 /** Document checklist email for benefits applications */
 export function checklistEmail(opts: {
   programName: string;

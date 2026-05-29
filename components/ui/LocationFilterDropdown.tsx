@@ -183,7 +183,7 @@ export function LocationFilterDropdown({
               <span
                 key={cityKey}
                 role="listitem"
-                className="inline-flex items-center gap-1 px-2 py-1 bg-primary-50 text-primary-700 text-sm rounded-lg"
+                className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-900 text-sm rounded-lg"
               >
                 {city}{state ? `, ${state}` : ""}
                 <button
@@ -193,7 +193,7 @@ export function LocationFilterDropdown({
                     onToggle(cityKey);
                   }}
                   aria-label={`Remove ${city}${state ? `, ${state}` : ""}`}
-                  className="p-0.5 hover:bg-primary-100 rounded transition-colors"
+                  className="p-0.5 hover:bg-gray-200 rounded transition-colors"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -263,7 +263,7 @@ export function LocationFilterDropdown({
                       w-full px-3 py-2.5 text-left text-[15px] transition-colors
                       flex items-center justify-between
                       ${isSelected
-                        ? "bg-primary-50 text-primary-700"
+                        ? "bg-gray-100 text-gray-900"
                         : "text-gray-700 hover:bg-gray-50"
                       }
                     `}
@@ -273,7 +273,7 @@ export function LocationFilterDropdown({
                         className={`
                           w-4 h-4 rounded border-2 flex items-center justify-center transition-colors
                           ${isSelected
-                            ? "bg-primary-600 border-primary-600"
+                            ? "bg-gray-900 border-gray-900"
                             : "border-gray-300"
                           }
                         `}

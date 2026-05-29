@@ -497,7 +497,7 @@ export default function EnrichmentState({
       const res = await fetch("/api/care-post/publish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "publish" }),
+        body: JSON.stringify({ action: "publish", source: "enrichment_flow" }),
       });
 
       if (!res.ok) {

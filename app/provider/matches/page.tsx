@@ -645,7 +645,7 @@ function NearYouEmptyState({
       iconColor: "text-sky-500",
       title: "Hire Caregivers",
       description: "Find qualified care professionals",
-      href: "/provider/caregivers",
+      href: "/provider/medjobs/candidates",
       cta: "Browse",
     },
     {
@@ -661,10 +661,17 @@ function NearYouEmptyState({
   ];
 
   return (
-    <div className="py-10 px-4">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h3 className="text-[17px] font-display font-bold text-gray-900 mb-1.5">
+    <div className="py-8 px-4">
+      {/* Illustration + Header */}
+      <div className="text-center mb-6">
+        <Image
+          src="/Near-you-img.png"
+          alt="No families nearby"
+          width={120}
+          height={120}
+          className="mx-auto mb-4"
+        />
+        <h3 className="text-xl font-display font-bold text-gray-900 mb-1">
           No families in {city} yet
         </h3>
         <p className="text-sm text-gray-500">

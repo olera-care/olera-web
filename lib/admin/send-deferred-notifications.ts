@@ -129,7 +129,9 @@ export async function sendDeferredNotificationsForProvider(
           const msg = JSON.parse(conn.message || "{}");
           careType = msg.care_type ? (careTypeMap[msg.care_type] || msg.care_type) : null;
           additionalNotes = msg.additional_notes || null;
-          const fromProfile = (conn as { from_profile?: { display_name: string } | null }).from_profile;
+          // Normalize from_profile (Supabase joins return arrays)
+          const rawFromProfile = (conn as { from_profile?: { display_name: string }[] | { display_name: string } | null }).from_profile;
+          const fromProfile = Array.isArray(rawFromProfile) ? rawFromProfile[0] ?? null : rawFromProfile;
           familyName = fromProfile?.display_name || `${msg.seeker_first_name || ""} ${msg.seeker_last_name || ""}`.trim() || "A family";
         } catch { /* use defaults */ }
 

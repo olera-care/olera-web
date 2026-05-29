@@ -31,9 +31,11 @@ export async function GET(request: NextRequest) {
 
     // Pull all non-archived leads in range+prior WITH provider profile data
     // so we can check live email status (matches Analytics approach)
+    // Filter to inquiry/request types only (same as Analytics) for consistent counts
     let q = db
       .from("connections")
       .select("created_at, metadata, to_profile:business_profiles!connections_to_profile_id_fkey(email, is_active)")
+      .in("type", ["inquiry", "request"])
       .order("created_at", { ascending: true })
       .limit(50000)
       .not("metadata", "cs", JSON.stringify({ archived: true }));

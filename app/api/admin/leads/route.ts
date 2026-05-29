@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
     // because PostgREST doesn't support filtering on joined columns
     if (needsEmail) {
       // Fetch all connections with profile data (up to reasonable limit)
+      // Filter to inquiry/request types only (same as Analytics) for consistent counts
       let query = db
         .from("connections")
         .select(`
@@ -104,6 +105,7 @@ export async function GET(request: NextRequest) {
           from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type, email, phone, metadata, care_types),
           to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id, email, is_active)
         `)
+        .in("type", ["inquiry", "request"])
         .order("created_at", { ascending: false })
         .limit(10000);
 

@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { matchesLiveEmail } from "@/lib/email-templates";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
+
+function getServiceDb() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return null;
+  return createClient(url, serviceKey);
+}
 
 /**
  * POST /api/care-post/publish
@@ -23,9 +31,10 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { action, reasons } = body as {
+    const { action, reasons, source } = body as {
       action: "publish" | "deactivate" | "delete";
       reasons?: string[];
+      source?: "enrichment_flow" | "profile_page" | "quick_wizard" | "benefits_flow";
     };
 
     if (!action || !["publish", "deactivate", "delete"].includes(action)) {
@@ -55,6 +64,11 @@ export async function POST(request: Request) {
 
     const metadata = (profile.metadata || {}) as Record<string, unknown>;
 
+    // Track if this is the first time publishing (for analytics - only track first publish)
+    // Use dedicated flag that's never reset, so re-activations aren't double-counted
+    // Also check matches_live_email_sent to handle users who published before this flag existed
+    const hasBeenPublishedBefore = Boolean(metadata.profile_publication_tracked) || Boolean(metadata.matches_live_email_sent);
+
     // Calculate and store profile completeness at publish time
     const completeness = calculateFamilyCompleteness(
       {
@@ -75,6 +89,11 @@ export async function POST(request: Request) {
         status: "active",
         published_at: new Date().toISOString(),
       };
+
+      // Mark first publish for analytics tracking (flag is never reset)
+      if (!hasBeenPublishedBefore) {
+        metadata.profile_publication_tracked = true;
+      }
 
       // F1: Send "Your care profile is live" email — fire once only
       if (!metadata.matches_live_email_sent) {
@@ -138,6 +157,29 @@ export async function POST(request: Request) {
     if (updateError) {
       console.error("Care post update error:", updateError);
       return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+    }
+
+    // Track profile_published event to seeker_activity (family-centric analytics)
+    // This enables queries like "which family profiles came through enrichment flow"
+    // Only track the first publish, not re-activations (flag is never reset)
+    if (action === "publish" && !hasBeenPublishedBefore) {
+      const serviceDb = getServiceDb();
+      if (serviceDb) {
+        const publishedAt = (metadata.care_post as Record<string, unknown>)?.published_at;
+        serviceDb.from("seeker_activity").insert({
+          profile_id: profile.id,
+          event_type: "profile_published",
+          metadata: {
+            source: source || "profile_page", // Default to profile_page if not specified
+            published_at: publishedAt,
+            completeness: completeness.percentage,
+          },
+        }).then(({ error }) => {
+          if (error) {
+            console.error("[care-post/publish] seeker_activity tracking failed:", error);
+          }
+        });
+      }
     }
 
     return NextResponse.json({ success: true, care_post: metadata.care_post });

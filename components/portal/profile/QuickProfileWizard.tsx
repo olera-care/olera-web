@@ -450,24 +450,14 @@ export default function QuickProfileWizard({
       const res = await fetch("/api/care-post/publish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "publish" }),
+        body: JSON.stringify({ action: "publish", source: "quick_wizard" }),
       });
 
       if (!res.ok) {
         throw new Error("Failed to publish");
       }
 
-      // Log go_live event
-      fetch("/api/activity/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          actor_type: "family",
-          profile_id: profile.id,
-          event_type: "profile_published",
-          metadata: { source: "quick_wizard" },
-        }),
-      }).catch(() => {});
+      // Note: profile_published tracking is now handled server-side in the publish API
 
       await refreshAccountData();
       onSaved(); // Dismiss nudge and close wizard

@@ -33,7 +33,7 @@ const PROVIDER_EVENT_TYPES = [
 const FAMILY_EVENT_TYPES = [
   "connection_sent",
   "profile_enriched",
-  "profile_published",
+  "profile_published",       // Family published their profile (source: enrichment_flow | profile_page)
   "go_live_skipped",
   "email_click",
   "question_asked",

@@ -36,12 +36,21 @@ export async function GET(request: NextRequest) {
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
     const queryStart = priorFrom ?? from ?? null;
 
-    // One query — pull everything in range+prior with metadata so we can
+    // Pre-fetch provider slugs with no email (live check, not stale flag)
+    const [{ data: bpNoEmail }, { data: iosNoEmail }] = await Promise.all([
+      db.from("business_profiles").select("slug").in("type", ["organization", "caregiver"]).is("email", null),
+      db.from("olera-providers").select("slug").is("email", null).not("deleted", "is", true),
+    ]);
+    const noEmailSlugs = new Set<string>();
+    for (const p of bpNoEmail ?? []) if (p.slug) noEmailSlugs.add(p.slug);
+    for (const p of iosNoEmail ?? []) if (p.slug) noEmailSlugs.add(p.slug);
+
+    // One query — pull everything in range+prior with provider_id so we can
     // compute both the needs-email KPI and the total-volume series from
     // the same result set.
     let q = db
       .from("provider_questions")
-      .select("created_at, status, metadata")
+      .select("created_at, status, provider_id")
       .order("created_at", { ascending: true })
       .limit(50000);
     if (queryStart) q = q.gte("created_at", queryStart.toISOString());
@@ -55,9 +64,9 @@ export async function GET(request: NextRequest) {
 
     const allRows = rows ?? [];
 
+    // Check if provider actually has no email (live data, not stale metadata flag)
     const isNeedsEmail = (r: (typeof allRows)[number]) => {
-      const meta = r.metadata as Record<string, unknown> | null | undefined;
-      return meta?.needs_provider_email === true && r.status !== "archived" && r.status !== "rejected";
+      return r.status !== "archived" && r.status !== "rejected" && noEmailSlugs.has(r.provider_id);
     };
 
     const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t < to : true);

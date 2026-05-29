@@ -43,13 +43,30 @@ export async function GET(request: NextRequest) {
       searchSlugs = Array.from(slugs);
     }
 
+    // For needs_email filter: fetch provider slugs that actually have no email (live check)
+    // This checks the actual email field, not a stale metadata flag
+    let noEmailSlugs: string[] | null = null;
+    if (needsEmail) {
+      const [{ data: bpNoEmail }, { data: iosNoEmail }] = await Promise.all([
+        db.from("business_profiles").select("slug").in("type", ["organization", "caregiver"]).is("email", null),
+        db.from("olera-providers").select("slug").is("email", null).not("deleted", "is", true),
+      ]);
+      const slugSet = new Set<string>();
+      for (const p of bpNoEmail ?? []) if (p.slug) slugSet.add(p.slug);
+      for (const p of iosNoEmail ?? []) if (p.slug) slugSet.add(p.slug);
+      noEmailSlugs = Array.from(slugSet);
+      if (noEmailSlugs.length === 0) {
+        return NextResponse.json(countOnly ? { count: 0 } : { questions: [], count: 0, tabCounts: { pending: 0, needs_email: 0, archived: 0 } });
+      }
+    }
+
     // Fast path: return only the count (used by admin dashboard overview)
     if (countOnly) {
       let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true });
       if (status) countQuery = countQuery.eq("status", status);
       if (providerId) countQuery = countQuery.eq("provider_id", providerId);
-      if (needsEmail) {
-        countQuery = countQuery.contains("metadata", { needs_provider_email: true });
+      if (noEmailSlugs) {
+        countQuery = countQuery.in("provider_id", noEmailSlugs);
         countQuery = countQuery.neq("status", "archived").neq("status", "rejected");
       }
       if (searchSlugs) {
@@ -74,8 +91,8 @@ export async function GET(request: NextRequest) {
 
     if (status) query = query.eq("status", status);
     if (providerId) query = query.eq("provider_id", providerId);
-    if (needsEmail) {
-      query = query.contains("metadata", { needs_provider_email: true });
+    if (noEmailSlugs) {
+      query = query.in("provider_id", noEmailSlugs);
       query = query.neq("status", "archived").neq("status", "rejected");
     }
     if (searchSlugs) {
@@ -177,9 +194,31 @@ export async function GET(request: NextRequest) {
     }));
 
     // Fetch tab counts for pending, needs_email, and archived
+    // For needs_email count, we need to check actual provider emails (not stale flag)
+    // Fetch no-email slugs if not already done
+    let noEmailSlugsForCount = noEmailSlugs;
+    if (!noEmailSlugsForCount) {
+      const [{ data: bpNoEmail }, { data: iosNoEmail }] = await Promise.all([
+        db.from("business_profiles").select("slug").in("type", ["organization", "caregiver"]).is("email", null),
+        db.from("olera-providers").select("slug").is("email", null).not("deleted", "is", true),
+      ]);
+      const slugSet = new Set<string>();
+      for (const p of bpNoEmail ?? []) if (p.slug) slugSet.add(p.slug);
+      for (const p of iosNoEmail ?? []) if (p.slug) slugSet.add(p.slug);
+      noEmailSlugsForCount = Array.from(slugSet);
+    }
+
+    // Build needs_email count query using actual provider email check
+    let needsEmailCountQuery = db.from("provider_questions").select("*", { count: "exact", head: true })
+      .neq("status", "archived")
+      .neq("status", "rejected");
+    if (noEmailSlugsForCount.length > 0) {
+      needsEmailCountQuery = needsEmailCountQuery.in("provider_id", noEmailSlugsForCount);
+    }
+
     const [pendingCount, needsEmailCount, archivedCount] = await Promise.all([
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).neq("status", "archived").neq("status", "rejected"),
+      noEmailSlugsForCount.length > 0 ? needsEmailCountQuery : Promise.resolve({ count: 0 }),
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
     ]);
 

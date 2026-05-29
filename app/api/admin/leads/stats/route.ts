@@ -29,11 +29,19 @@ export async function GET(request: NextRequest) {
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
     const queryStart = priorFrom ?? from ?? null;
 
-    // Pull all non-archived leads in range+prior; we'll compute both metrics
-    // from the same result set.
+    // Pre-fetch provider IDs that have no email (live check, not stale flag)
+    const { data: noEmailProviders } = await db
+      .from("business_profiles")
+      .select("id")
+      .eq("type", "provider")
+      .is("email", null);
+
+    const noEmailProviderIds = new Set((noEmailProviders ?? []).map((p) => p.id));
+
+    // Pull all non-archived leads in range+prior with provider info
     let q = db
       .from("connections")
-      .select("created_at, metadata")
+      .select("created_at, metadata, to_profile_id")
       .order("created_at", { ascending: true })
       .limit(50000)
       .not("metadata", "cs", JSON.stringify({ archived: true }));
@@ -48,9 +56,9 @@ export async function GET(request: NextRequest) {
 
     const allRows = rows ?? [];
 
+    // Check if provider actually has no email (live data, not stale metadata flag)
     const isNeedsEmail = (r: (typeof allRows)[number]) => {
-      const meta = r.metadata as Record<string, unknown> | null | undefined;
-      return meta?.needs_provider_email === true;
+      return r.to_profile_id ? noEmailProviderIds.has(r.to_profile_id) : false;
     };
 
     const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t < to : true);

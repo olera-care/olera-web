@@ -51,7 +51,8 @@ export async function GET(request: NextRequest) {
     // Build base filter helper
     // Note: needsEmail filter is applied in-memory after fetching (like Analytics)
     // because PostgREST doesn't support filtering on joined columns directly
-    function applyFilters(q: typeof query) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function applyFilters(q: any) {
       if (status) q = q.eq("status", status);
       if (type) q = q.eq("type", type);
       // Show archived OR non-archived
@@ -76,14 +77,27 @@ export async function GET(request: NextRequest) {
     }
 
     // Helper to check if a connection's provider needs email
-    // Matches Analytics approach: check live to_profile.email field
+    // Matches Analytics approach exactly:
+    // - Provider must be active
+    // - Provider must have no email
+    // - Provider must NOT have responded (goal already achieved if responded)
+    type ThreadMessage = { from_profile_id: string; is_auto_reply?: boolean };
     const providerNeedsEmail = (conn: {
+      to_profile_id?: string;
       to_profile: { email?: string | null; is_active?: boolean }[] | { email?: string | null; is_active?: boolean } | null;
+      metadata?: Record<string, unknown>;
     }) => {
       // Supabase may return to_profile as array or single object depending on join
       const provider = Array.isArray(conn.to_profile) ? conn.to_profile[0] : conn.to_profile;
       // Skip if no provider profile (deleted) or inactive
       if (!provider || provider.is_active === false) return false;
+      // Skip if provider already responded (goal achieved)
+      const meta = conn.metadata ?? {};
+      const thread = (meta.thread as ThreadMessage[]) || [];
+      const hasResponded = thread.some(
+        (m) => m.from_profile_id === conn.to_profile_id && m.is_auto_reply !== true
+      );
+      if (hasResponded) return false;
       // Provider needs email if email is null or empty
       return !provider.email;
     };
@@ -102,6 +116,7 @@ export async function GET(request: NextRequest) {
           message,
           metadata,
           created_at,
+          to_profile_id,
           from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type, email, phone, metadata, care_types),
           to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id, email, is_active)
         `)

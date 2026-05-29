@@ -30,11 +30,11 @@ export async function GET(request: NextRequest) {
     const queryStart = priorFrom ?? from ?? null;
 
     // Pull all non-archived leads in range+prior WITH provider profile data
-    // so we can check live email status (matches Analytics approach)
+    // so we can check live email status (matches Analytics approach exactly)
     // Filter to inquiry/request types only (same as Analytics) for consistent counts
     let q = db
       .from("connections")
-      .select("created_at, metadata, to_profile:business_profiles!connections_to_profile_id_fkey(email, is_active)")
+      .select("created_at, metadata, to_profile_id, to_profile:business_profiles!connections_to_profile_id_fkey(email, is_active)")
       .in("type", ["inquiry", "request"])
       .order("created_at", { ascending: true })
       .limit(50000)
@@ -50,14 +50,24 @@ export async function GET(request: NextRequest) {
 
     const allRows = rows ?? [];
 
-    // Check live provider email status (like Analytics does)
-    // instead of using stale metadata.needs_provider_email flag
+    // Check live provider email status (matches Analytics approach exactly):
+    // - Provider must be active
+    // - Provider must have no email
+    // - Provider must NOT have responded (goal already achieved if responded)
+    type ThreadMessage = { from_profile_id: string; is_auto_reply?: boolean };
     const isNeedsEmail = (r: (typeof allRows)[number]) => {
       // Supabase may return to_profile as array or single object depending on join
       const toProfile = r.to_profile as { email?: string | null; is_active?: boolean }[] | { email?: string | null; is_active?: boolean } | null;
       const provider = Array.isArray(toProfile) ? toProfile[0] : toProfile;
       // Skip if no provider profile (deleted) or inactive
       if (!provider || provider.is_active === false) return false;
+      // Skip if provider already responded (goal achieved)
+      const meta = (r.metadata as Record<string, unknown>) ?? {};
+      const thread = (meta.thread as ThreadMessage[]) || [];
+      const hasResponded = thread.some(
+        (m) => m.from_profile_id === r.to_profile_id && m.is_auto_reply !== true
+      );
+      if (hasResponded) return false;
       // Provider needs email if email is null or empty
       return !provider.email;
     };

@@ -199,65 +199,71 @@ export async function POST(request: NextRequest) {
     }
 
     // Cross-clear: also send deferred question notifications for this provider
+    // Build list of ALL possible provider identifiers (questions can be stored under any)
     let questionEmailsSent = 0;
-    const providerSlug = profile.slug || profile.source_provider_id;
-    if (providerSlug) {
-      const { data: flaggedQuestions } = await db
-        .from("provider_questions")
-        .select("id, question, asker_name, metadata")
-        .eq("provider_id", providerSlug)
-        .contains("metadata", { needs_provider_email: true });
+    const allProviderIds: string[] = [profileId]; // UUID
+    if (profile.slug) allProviderIds.push(profile.slug);
+    if (profile.source_provider_id && !allProviderIds.includes(profile.source_provider_id)) {
+      allProviderIds.push(profile.source_provider_id);
+    }
+    const canonicalSlug = profile.slug || profile.source_provider_id || profileId;
 
-      if (flaggedQuestions && flaggedQuestions.length > 0) {
-        const { questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } = await import("@/lib/email-templates");
-        for (const q of flaggedQuestions) {
-          try {
-            const meta = (q.metadata as Record<string, unknown>) || {};
-            if (meta.email_sent_at) {
-              delete meta.needs_provider_email;
-              await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
-              continue;
-            }
+    // Find questions under ANY of these identifiers
+    const { data: flaggedQuestions } = await db
+      .from("provider_questions")
+      .select("id, question, asker_name, metadata")
+      .in("provider_id", allProviderIds)
+      .contains("metadata", { needs_provider_email: true });
 
-            const qaVariant = assignQuestionVariant();
-            const qaInbox = questionReceivedInbox({
-              providerName: profile.display_name || "your organization",
-              question: q.question,
-              variant: qaVariant,
-            });
-            const qLogId = await reserveEmailLogId({
-              to: effectiveEmail,
-              subject: qaInbox.subject,
-              emailType: "question_received",
-              recipientType: "provider",
-              providerId: profileId,
-            });
-
-            await sendEmail({
-              to: effectiveEmail,
-              subject: qaInbox.subject,
-              html: questionReceivedEmail({
-                providerName: profile.display_name || "Provider",
-                askerName: q.asker_name || "A family",
-                question: q.question,
-                providerUrl: appendTrackingParams(`${siteUrl}/provider/${providerSlug}/onboard`, qLogId),
-                providerSlug,
-                preheader: qaInbox.preheader,
-              }),
-              emailType: "question_received",
-              recipientType: "provider",
-              providerId: profileId,
-              emailLogId: qLogId ?? undefined,
-              metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
-            });
-
+    if (flaggedQuestions && flaggedQuestions.length > 0) {
+      const { questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } = await import("@/lib/email-templates");
+      for (const q of flaggedQuestions) {
+        try {
+          const meta = (q.metadata as Record<string, unknown>) || {};
+          if (meta.email_sent_at) {
             delete meta.needs_provider_email;
-            meta.email_sent_at = new Date().toISOString();
             await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
-            questionEmailsSent++;
-          } catch (err) {
-            console.error(`Failed to send deferred question email for ${q.id}:`, err);
+            continue;
           }
+
+          const qaVariant = assignQuestionVariant();
+          const qaInbox = questionReceivedInbox({
+            providerName: profile.display_name || "your organization",
+            question: q.question,
+            variant: qaVariant,
+          });
+          const qLogId = await reserveEmailLogId({
+            to: effectiveEmail,
+            subject: qaInbox.subject,
+            emailType: "question_received",
+            recipientType: "provider",
+            providerId: profileId,
+          });
+
+          await sendEmail({
+            to: effectiveEmail,
+            subject: qaInbox.subject,
+            html: questionReceivedEmail({
+              providerName: profile.display_name || "Provider",
+              askerName: q.asker_name || "A family",
+              question: q.question,
+              providerUrl: appendTrackingParams(`${siteUrl}/provider/${canonicalSlug}/onboard`, qLogId),
+              providerSlug: canonicalSlug,
+              preheader: qaInbox.preheader,
+            }),
+            emailType: "question_received",
+            recipientType: "provider",
+            providerId: profileId,
+            emailLogId: qLogId ?? undefined,
+            metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
+          });
+
+          delete meta.needs_provider_email;
+          meta.email_sent_at = new Date().toISOString();
+          await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
+          questionEmailsSent++;
+        } catch (err) {
+          console.error(`Failed to send deferred question email for ${q.id}:`, err);
         }
       }
     }

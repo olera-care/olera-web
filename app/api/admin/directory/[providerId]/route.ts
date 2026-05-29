@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { connectionRequestEmail } from "@/lib/email-templates";
+import { connectionRequestEmail, questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
 import { classifyDeletionReason } from "@/lib/classify-deletion-reason";
 
@@ -537,9 +537,92 @@ export async function PATCH(
             });
           }
         }
+
+        // Also send deferred question notifications for this provider
+        // Build list of ALL possible provider identifiers (questions can be stored under any)
+        const allProviderIds: string[] = [providerId];
+        if (current.slug) allProviderIds.push(current.slug);
+        if (bp?.id && !allProviderIds.includes(bp.id)) allProviderIds.push(bp.id);
+        // Also include auto-generated slug if provider_name exists
+        if (current.provider_name) {
+          const generatedSlug = generateProviderSlug(current.provider_name, current.state);
+          if (generatedSlug && !allProviderIds.includes(generatedSlug)) {
+            allProviderIds.push(generatedSlug);
+          }
+        }
+
+        const { data: flaggedQuestions } = await db
+          .from("provider_questions")
+          .select("id, question, asker_name, metadata")
+          .in("provider_id", allProviderIds)
+          .contains("metadata", { needs_provider_email: true });
+
+        if (flaggedQuestions && flaggedQuestions.length > 0) {
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          const canonicalSlug = current.slug || generateProviderSlug(current.provider_name, current.state) || providerId;
+          let questionEmailsSent = 0;
+
+          for (const q of flaggedQuestions) {
+            try {
+              const meta = (q.metadata as Record<string, unknown>) || {};
+              // Skip if already sent
+              if (meta.email_sent_at) {
+                delete meta.needs_provider_email;
+                await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
+                continue;
+              }
+
+              const qaVariant = assignQuestionVariant();
+              const qaInbox = questionReceivedInbox({
+                providerName: current.provider_name || "your organization",
+                question: q.question,
+                variant: qaVariant,
+              });
+
+              await sendEmail({
+                to: newEmail,
+                subject: qaInbox.subject,
+                html: questionReceivedEmail({
+                  providerName: current.provider_name || "Provider",
+                  askerName: q.asker_name || "A family",
+                  question: q.question,
+                  providerUrl: `${siteUrl}/provider/${canonicalSlug}/onboard`,
+                  providerSlug: canonicalSlug,
+                  preheader: qaInbox.preheader,
+                }),
+                emailType: "question_received",
+                recipientType: "provider",
+                providerId,
+                metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
+              });
+
+              // Clear the flag
+              delete meta.needs_provider_email;
+              meta.email_sent_at = new Date().toISOString();
+              await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
+              questionEmailsSent++;
+            } catch (qErr) {
+              console.error(`Failed to send deferred question email for ${q.id}:`, qErr);
+            }
+          }
+
+          if (questionEmailsSent > 0) {
+            await logAuditAction({
+              adminUserId: adminUser.id,
+              action: "deferred_question_emails_sent",
+              targetType: "directory_provider",
+              targetId: providerId,
+              details: {
+                provider_name: current.provider_name,
+                email: newEmail,
+                questions_notified: questionEmailsSent,
+              },
+            });
+          }
+        }
       } catch (deferredErr) {
         // Non-blocking — the provider update succeeded, deferred emails are best-effort
-        console.error("Failed to send deferred lead notifications:", deferredErr);
+        console.error("Failed to send deferred notifications:", deferredErr);
       }
     }
 

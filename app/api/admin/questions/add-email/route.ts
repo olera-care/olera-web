@@ -135,11 +135,18 @@ export async function POST(request: NextRequest) {
     const displayName = provider?.display_name || iosProvider?.provider_name || providerSlug;
     const providerId = provider?.id || iosProviderId || providerSlug;
 
-    // Find flagged questions for this provider (skip any already sent)
+    // Build list of ALL possible provider identifiers (questions can be stored under any of these)
+    const allProviderIds = new Set<string>([providerSlug]);
+    if (provider?.slug) allProviderIds.add(provider.slug);
+    if (provider?.id) allProviderIds.add(provider.id);
+    if (provider?.source_provider_id) allProviderIds.add(provider.source_provider_id);
+    if (iosProviderId) allProviderIds.add(iosProviderId);
+
+    // Find flagged questions for this provider under ANY identifier (skip any already sent)
     const { data: flaggedQuestions } = await db
       .from("provider_questions")
       .select("id, question, asker_name, asker_email, metadata")
-      .eq("provider_id", providerSlug)
+      .in("provider_id", Array.from(allProviderIds))
       .contains("metadata", { needs_provider_email: true });
 
     let emailsSent = 0;

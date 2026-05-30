@@ -473,7 +473,7 @@ export default function FamilyMatchCard({
   // Profile status badge for inactive families
   const profileStatusBadge = profileStatus !== "active" ? {
     paused: { label: "Profile Paused", bgClass: "bg-amber-50", textClass: "text-amber-700", borderClass: "border-amber-100" },
-    found_care: { label: "Found Care", bgClass: "bg-blue-50", textClass: "text-blue-600", borderClass: "border-blue-100" },
+    found_care: { label: "No Longer Searching", bgClass: "bg-blue-50", textClass: "text-blue-600", borderClass: "border-blue-100" },
     deleted: { label: "No Longer Active", bgClass: "bg-gray-50", textClass: "text-gray-500", borderClass: "border-gray-200" },
   }[profileStatus] : null;
 

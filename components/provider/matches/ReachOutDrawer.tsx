@@ -923,7 +923,7 @@ ${context}${urgencyNote}. I'd love to help.
                 }`} />
                 {profileStatus === "active" ? "Profile Active"
                   : profileStatus === "paused" ? "Profile Paused"
-                  : profileStatus === "found_care" ? "Found Care"
+                  : profileStatus === "found_care" ? "No Longer Searching"
                   : "No Longer Active"}
               </p>
             </div>
@@ -1196,17 +1196,17 @@ ${context}${urgencyNote}. I'd love to help.
   );
 
   // ── Sticky Footer Content (Compose Mode) ──
-  // Messaging rules:
-  // - "deleted" profile → always block (they left the platform)
-  // - "found_care" + connected → allow (established relationship, might need follow-up)
-  // - "found_care" + not connected → block (they found care elsewhere)
+  // Messaging rules (LinkedIn behavior):
+  // - "deleted" profile → block (they left the platform)
+  // - "found_care" (care post closed) + connected → allow (established relationship)
+  // - "found_care" (care post closed) + not connected → block (no relationship)
   // - "paused" → allow (they're still active, just not seeking new connections)
   const isConnected = outreachStatus === "connected";
   const isDeleted = profileStatus === "deleted";
-  const isFoundCare = profileStatus === "found_care";
+  const isNoLongerSearching = profileStatus === "found_care"; // care post closed
   const isPaused = profileStatus === "paused";
-  // Block messaging only if deleted, or found_care without an established connection
-  const isInactive = isDeleted || (isFoundCare && !isConnected);
+  // Block messaging only if deleted, or no longer searching without an established connection
+  const isInactive = isDeleted || (isNoLongerSearching && !isConnected);
 
   const StickyFooterCompose = (
     <>
@@ -1223,10 +1223,10 @@ ${context}${urgencyNote}. I'd love to help.
           </p>
         </div>
       )}
-      {isFoundCare && isConnected && (
+      {isNoLongerSearching && isConnected && (
         <div className="mb-3 px-3 py-3 bg-blue-50 border border-blue-100 rounded-lg">
           <p className="text-sm text-blue-700">
-            <span className="font-medium">This family found care.</span>{" "}
+            <span className="font-medium">This family is no longer searching.</span>{" "}
             You&apos;re still connected — feel free to stay in touch.
           </p>
         </div>
@@ -1234,8 +1234,8 @@ ${context}${urgencyNote}. I'd love to help.
       {isInactive && (
         <div className="mb-3 px-3 py-3 bg-gray-50 border border-gray-200 rounded-lg">
           <p className="text-sm text-gray-600">
-            <span className="font-medium">{isFoundCare ? "This family found care." : "This family\u0027s profile is no longer active."}</span>{" "}
-            {isFoundCare ? "They\u0027ve resolved their care needs." : "They may have left the platform or their needs changed."}
+            <span className="font-medium">{isNoLongerSearching ? "This family is no longer searching." : "This family\u0027s profile is no longer active."}</span>{" "}
+            {isNoLongerSearching ? "They\u0027ve closed their care post." : "They may have left the platform."}
           </p>
         </div>
       )}
@@ -1245,7 +1245,7 @@ ${context}${urgencyNote}. I'd love to help.
             disabled
             className="w-full px-4 py-3.5 bg-gray-100 text-gray-400 text-sm font-semibold rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {isFoundCare ? "Family found care" : "Profile no longer active"}
+            {isNoLongerSearching ? "No longer searching" : "Profile no longer active"}
           </button>
         ) : !isVerified ? (
           <button

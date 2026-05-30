@@ -41,7 +41,7 @@
 
 ---
 
-## 2. Family DELETES Their Care Post (Found Care)
+## 2. Family DELETES Their Care Post (No Longer Searching)
 
 **User Intent:** "I found a caregiver. I don't need more inquiries. But I want to keep my account for future use."
 
@@ -53,7 +53,7 @@
 
 **Blind Spot Found:**
 - Badge says "No Longer Active" which sounds like profile deletion
-- Should say "Found Care" or "Care Need Resolved" to distinguish from profile deletion
+- Should say "No Longer Searching" or "Care Need Resolved" to distinguish from profile deletion
 - Upwork says "Position Filled" - much clearer intent
 
 ---
@@ -110,9 +110,9 @@
 |--------------|-------------------|----------------------|-------------|
 | Active | Any | "Profile Active" (green) | ✅ Enabled |
 | Paused | Any | "Profile Paused" (amber) | ✅ Enabled (with info message) |
-| Found Care | Connected | "Found Care" (blue) | ✅ Enabled (with info message) |
-| Found Care | Pending/Declined | "Found Care" (blue) | ❌ Disabled |
-| Deleted | Any | "No Longer Active" (gray) | ❌ Disabled |
+| Care Post Closed | Connected | "No Longer Searching" (blue) | ✅ Enabled (with info message) |
+| Care Post Closed | Pending/Declined | "No Longer Searching" (blue) | ❌ Disabled |
+| Profile Deleted | Any | "No Longer Active" (gray) | ❌ Disabled |
 
 ---
 
@@ -129,7 +129,7 @@
 2. **"No Longer Active" badge is ambiguous** ✅ FIXED
    - Used for both "deleted care post" and "deleted profile"
    - Should distinguish:
-     - Deleted care post → "Found Care" or "Care Need Resolved"
+     - Deleted care post → "No Longer Searching" or "Care Need Resolved"
      - Deleted profile → "No Longer Active"
    - **Fix applied in:** `FamilyMatchCard.tsx`, `ReachOutDrawer.tsx`
 
@@ -168,7 +168,7 @@ if (status === "paused") return true;
 if (status === "paused") return contactedIds.has(f.id);
 ```
 
-### Fix 2: Add "Found Care" badge for deleted care posts
+### Fix 2: Add "No Longer Searching" badge for deleted care posts
 
 In `FamilyMatchCard.tsx` and `ReachOutDrawer.tsx`:
 
@@ -178,7 +178,7 @@ deleted: { label: "No Longer Active", ... }
 
 // Fix: Check if it's "found care" vs "profile deleted"
 // Need to pass additional info or check metadata.care_post_deleted
-foundCare: { label: "Found Care", bgClass: "bg-blue-50", textClass: "text-blue-600", ... }
+foundCare: { label: "No Longer Searching", bgClass: "bg-blue-50", textClass: "text-blue-600", ... }
 deleted: { label: "No Longer Active", ... }
 ```
 
@@ -204,7 +204,7 @@ const isPaused = profileStatus === "paused";
 | Connection preservation on deletion | ✅ Complete | Soft-delete working |
 | Connected provider visibility | ✅ Complete | Can see inactive families |
 | Non-connected provider visibility | ✅ Complete | Paused/inactive hidden from non-connected |
-| Badges/status indicators | ✅ Complete | "Found Care" vs "No Longer Active" distinction |
+| Badges/status indicators | ✅ Complete | "No Longer Searching" vs "No Longer Active" distinction |
 | Reach-out button state | ✅ Complete | Correctly disabled |
 | Drawer messaging | ✅ Complete | Paused allows messaging, found_care/deleted blocks |
 | Past connections | ✅ Complete | New "Past" tab added |

@@ -1574,7 +1574,7 @@ export default function ProviderMatchesPage() {
 
     // Filter families based on profile status:
     // - Active: show to all providers
-    // - Paused/Found Care/Deleted: show ONLY to providers who have already contacted them
+    // - Paused/No Longer Searching/Deleted: show ONLY to providers who have already contacted them
     // (LinkedIn/Upwork behavior: inactive profiles hidden from non-connected users)
     result = result.filter((f) => {
       const status = getProfileStatus(f);

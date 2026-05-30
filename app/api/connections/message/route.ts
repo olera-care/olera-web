@@ -224,20 +224,22 @@ export async function POST(request: Request) {
             providerId: !isFamily ? recipientProfileId : undefined,
           });
 
-          // Route families to portal inbox, providers to provider welcome with magic link
+          // Route to inbox with auto-select:
+          // - Families → /portal/inbox?id=...
+          // - Claimed providers (have account) → /portal/inbox?role=provider&id=...
+          // - Unclaimed providers → /provider/[slug]/onboard (to claim first)
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
           let viewUrl: string;
+          const isClaimed = !!recipientProfile?.account_id;
 
           if (isFamily) {
-            viewUrl = appendTrackingParams(`${siteUrl}/portal/inbox`, msgEmailLogId);
-          } else {
-            // Generate magic link for provider one-click sign-in
-            const providerSlug = recipientProfile?.slug || recipientProfile?.source_provider_id || recipientProfileId;
+            viewUrl = appendTrackingParams(`${siteUrl}/portal/inbox?id=${connectionId}`, msgEmailLogId);
+          } else if (isClaimed) {
+            // Claimed provider → direct to inbox with magic link
             const redirectPath = appendTrackingParams(
-              `/provider/${providerSlug}/onboard?action=message&actionId=${connectionId}`,
+              `/portal/inbox?role=provider&id=${connectionId}`,
               msgEmailLogId
             );
-            // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
             viewUrl = `${siteUrl}${redirectPath}`;
 
             try {
@@ -253,7 +255,31 @@ export async function POST(request: Request) {
               }
             } catch (linkErr) {
               console.error("Failed to generate provider magic link for message:", linkErr);
-              // Continue with fallback URL (welcome page)
+              // Continue with fallback URL (inbox without magic link)
+            }
+          } else {
+            // Unclaimed provider → onboard page to claim listing first
+            const providerSlug = recipientProfile?.slug || recipientProfile?.source_provider_id || recipientProfileId;
+            const redirectPath = appendTrackingParams(
+              `/provider/${providerSlug}/onboard?action=message&actionId=${connectionId}`,
+              msgEmailLogId
+            );
+            viewUrl = `${siteUrl}${redirectPath}`;
+
+            try {
+              const { data: providerLinkData, error: providerLinkError } = await admin.auth.admin.generateLink({
+                type: "magiclink",
+                email: recipientEmail,
+                options: {
+                  redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
+                },
+              });
+              if (!providerLinkError && providerLinkData?.properties?.action_link) {
+                viewUrl = providerLinkData.properties.action_link;
+              }
+            } catch (linkErr) {
+              console.error("Failed to generate provider magic link for message:", linkErr);
+              // Continue with fallback URL (onboard page)
             }
           }
 

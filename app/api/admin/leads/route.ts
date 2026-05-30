@@ -181,20 +181,24 @@ export async function GET(request: NextRequest) {
     if (countOnly) {
       let countQuery = db
         .from("connections")
-        .select("*", { count: "exact", head: true });
+        .select("*", { count: "exact", head: true })
+        .in("type", ["inquiry", "request"]);
       countQuery = applyFilters(countQuery);
       const { count } = await countQuery;
       return NextResponse.json({ count: count ?? 0 });
     }
 
     // Get total count for pagination
+    // Filter to inquiry/request types to match needsEmail path
     let totalQuery = db
       .from("connections")
-      .select("*", { count: "exact", head: true });
+      .select("*", { count: "exact", head: true })
+      .in("type", ["inquiry", "request"]);
     totalQuery = applyFilters(totalQuery);
     const { count: total } = await totalQuery;
 
     // Fetch connections with joined profile names
+    // Filter to inquiry/request types to match needsEmail path and counts
     let query = db
       .from("connections")
       .select(`
@@ -207,6 +211,7 @@ export async function GET(request: NextRequest) {
         from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type, email, phone, metadata, care_types),
         to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id, email, is_active)
       `)
+      .in("type", ["inquiry", "request"])
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 

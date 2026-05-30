@@ -3,6 +3,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateUniqueSlug } from "@/lib/slug";
 import { isBlockedEmailDomain } from "@/lib/email-validation";
+import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -225,6 +226,18 @@ export async function POST(request: Request) {
 
       console.log("[claim-listing] Created new org profile:", newProfile.id, "for account:", accountId);
 
+      // Send deferred notifications for any pending leads/questions (fire-and-forget)
+      if (user.email) {
+        sendDeferredNotificationsForProvider({
+          profileId: newProfile.id,
+          email: user.email,
+          providerName: orgName,
+          providerSlug: slug,
+        }).catch((err) => {
+          console.error("[claim-listing] deferred notifications failed:", err);
+        });
+      }
+
       return NextResponse.json({
         profileId: newProfile.id,
         verificationState: "verified",
@@ -307,12 +320,14 @@ export async function POST(request: Request) {
 
       // Re-claiming the same listing they already own - update to link source provider
       // User has already verified via OTP, so they get full verified access
+      // Sync user's verified email to ensure they receive lead notifications
       const { error: updateErr } = await db
         .from("business_profiles")
         .update({
           source_provider_id: providerId,
           claim_state: "claimed",
           verification_state: "verified",
+          email: user.email || null,
         })
         .eq("id", existingProfile.id);
 
@@ -322,6 +337,19 @@ export async function POST(request: Request) {
           { error: "Failed to link listing to your profile" },
           { status: 500 }
         );
+      }
+
+      // Send deferred notifications for any pending leads/questions (fire-and-forget)
+      if (user.email) {
+        sendDeferredNotificationsForProvider({
+          profileId: existingProfile.id,
+          email: user.email,
+          providerName: providerName || "Provider",
+          providerSlug: providerSlug || providerId,
+          additionalSlugVariants: providerId ? [providerId] : [],
+        }).catch((err) => {
+          console.error("[claim-listing] deferred notifications failed:", err);
+        });
       }
 
       return NextResponse.json({
@@ -403,6 +431,19 @@ export async function POST(request: Request) {
     }).then(({ error: actErr }: { error: { message: string } | null }) => {
       if (actErr) console.error("[provider_activity] claim_completed (page) insert failed:", actErr);
     });
+
+    // Send deferred notifications for any pending leads/questions (fire-and-forget)
+    if (user.email) {
+      sendDeferredNotificationsForProvider({
+        profileId: newProfile.id,
+        email: user.email,
+        providerName: providerName || "My Business",
+        providerSlug: slug,
+        additionalSlugVariants: providerId ? [providerId] : [],
+      }).catch((err) => {
+        console.error("[claim-listing] deferred notifications failed:", err);
+      });
+    }
 
     return NextResponse.json({
       profileId: newProfile.id,

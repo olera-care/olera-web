@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       .limit(50000)
       .not("metadata", "cs", JSON.stringify({ archived: true }));
     if (queryStart) q = q.gte("created_at", queryStart.toISOString());
-    if (dateTo) q = q.lt("created_at", dateTo);
+    if (dateTo) q = q.lte("created_at", dateTo);
 
     const { data: rows, error } = await q;
     if (error) {
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       return !provider.email;
     };
 
-    const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t < to : true);
+    const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t <= to : true);
     const inPrior = (t: Date) => !!priorFrom && !!from && t >= priorFrom && t < from;
 
     let kpiCurrent = 0;

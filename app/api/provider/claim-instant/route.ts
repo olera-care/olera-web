@@ -6,6 +6,7 @@ import { sendEmail } from "@/lib/email";
 import { claimNotificationEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 import { isBlockedEmailDomain } from "@/lib/email-validation";
+import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 
 /**
  * POST /api/provider/claim-instant
@@ -411,6 +412,17 @@ export async function POST(request: Request) {
       isNewOrg ? "new org" : "claim",
       newProfile.id
     );
+
+    // Send deferred notifications for any pending leads/questions (fire-and-forget)
+    sendDeferredNotificationsForProvider({
+      profileId: newProfile.id,
+      email: normalizedEmail,
+      providerName: isNewOrg ? orgName : (providerName || "My Business"),
+      providerSlug: slug,
+      additionalSlugVariants: providerId ? [providerId] : [],
+    }).catch((err) => {
+      console.error("[claim-instant] deferred notifications failed:", err);
+    });
 
     return NextResponse.json({
       tokenHash: signInLink.properties.hashed_token,

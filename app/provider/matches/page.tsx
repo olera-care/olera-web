@@ -1168,13 +1168,14 @@ export default function ProviderMatchesPage() {
         const supabase = createClient();
 
         // Fetch families + provider's connections in parallel (optimized: 2 queries instead of 4)
+        // Include both active and paused families - paused will be shown at bottom with disabled reach-out
         const [familiesRes, fullConnectionsRes] = await Promise.all([
           supabase
             .from("business_profiles")
             .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at", { count: "exact" })
             .eq("type", "family")
             .eq("is_active", true)
-            .filter("metadata->care_post->>status", "eq", "active")
+            .not("metadata->care_post", "is", null) // Must have a care_post (active or paused)
             .order("created_at", { ascending: false }),
           // Full connection data - we derive contactedIds and respondedIds from this
           supabase
@@ -1552,12 +1553,17 @@ export default function ProviderMatchesPage() {
       }
     }
 
-    // Filter out uncontacted inactive families (they shouldn't see profiles they never contacted)
+    // Filter families based on profile status:
+    // - Active: show to all providers
+    // - Paused: show to all providers (at bottom, reach-out disabled)
+    // - Deleted: show only to providers who have already contacted them
     result = result.filter((f) => {
       const status = getProfileStatus(f);
       // Keep all active families
       if (status === "active") return true;
-      // Keep inactive families only if provider has contacted them
+      // Keep paused families (they'll be shown at bottom with disabled reach-out)
+      if (status === "paused") return true;
+      // Keep deleted families only if provider has contacted them
       return contactedIds.has(f.id);
     });
 
@@ -1566,11 +1572,12 @@ export default function ProviderMatchesPage() {
       const metaA = a.metadata as FamilyMetadata;
       const metaB = b.metadata as FamilyMetadata;
 
-      // First priority: active families before inactive
-      const aActive = getProfileStatus(a) === "active";
-      const bActive = getProfileStatus(b) === "active";
-      if (aActive && !bActive) return -1;
-      if (!aActive && bActive) return 1;
+      // First priority: sort by profile status (active > paused > deleted)
+      const statusOrder: Record<ProfileStatus, number> = { active: 0, paused: 1, deleted: 2 };
+      const aStatus = getProfileStatus(a);
+      const bStatus = getProfileStatus(b);
+      const statusDiff = statusOrder[aStatus] - statusOrder[bStatus];
+      if (statusDiff !== 0) return statusDiff;
 
       if (activeTab === "near_you") {
         // Near You: sort by recency

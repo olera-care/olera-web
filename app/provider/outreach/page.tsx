@@ -13,7 +13,8 @@ import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
-type OutreachStatus = "pending" | "connected" | "declined";
+type OutreachStatus = "pending" | "connected" | "declined" | "past";
+type ProfileStatus = "active" | "paused" | "deleted";
 
 interface OutreachItem {
   id: string; // connection id
@@ -23,6 +24,7 @@ interface OutreachItem {
   status: OutreachStatus;
   replyMessage?: string | null;
   repliedAt?: string | null;
+  profileStatus: ProfileStatus;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -33,7 +35,22 @@ const TABS: { id: OutreachStatus; label: string }[] = [
   { id: "pending", label: "Pending" },
   { id: "connected", label: "Connected" },
   { id: "declined", label: "Declined" },
+  { id: "past", label: "Past" },
 ];
+
+// Helper to determine family profile status from is_active flag and metadata
+function getProfileStatus(family: Profile): ProfileStatus {
+  // Check is_active first - if false, the profile is deleted/deactivated
+  if (family.is_active === false) return "deleted";
+
+  const meta = family.metadata as { care_post?: { status: string }; care_post_deleted?: unknown } | null;
+  // Deleted: has care_post_deleted flag and no active care_post
+  if (meta?.care_post_deleted && !meta?.care_post) return "deleted";
+  // Paused: has care_post with paused status
+  if (meta?.care_post?.status === "paused") return "paused";
+  // Active: default
+  return "active";
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Empty State
@@ -57,6 +74,12 @@ function EmptyState({ status }: { status: OutreachStatus }) {
       image: "/Declined.png",
       title: "No declined outreach",
       description: "Outreach that didn't result in a connection will appear here.",
+      showButton: false,
+    },
+    past: {
+      image: "/Declined.png",
+      title: "No past connections",
+      description: "Connections that ended or were withdrawn will appear here.",
       showButton: false,
     },
   };
@@ -95,7 +118,7 @@ function EmptyState({ status }: { status: OutreachStatus }) {
 
 // Validate status parameter
 function isValidStatus(status: string | null): status is OutreachStatus {
-  return status === "pending" || status === "connected" || status === "declined";
+  return status === "pending" || status === "connected" || status === "declined" || status === "past";
 }
 
 function OutreachPageContent() {
@@ -187,33 +210,79 @@ function OutreachPageContent() {
               email,
               care_types,
               metadata,
-              created_at
+              created_at,
+              is_active
             )
           `)
           .eq("from_profile_id", account.active_profile_id)
           .eq("type", "request")
-          .in("status", ["pending", "accepted", "declined"])
+          .in("status", ["pending", "accepted", "declined", "expired"])
           .order("created_at", { ascending: false });
 
         if (connError) {
           throw new Error(connError.message);
         }
 
-        // Transform to OutreachItem format
-        const items: OutreachItem[] = (connections || [])
-          .filter((conn) => conn.to_profile) // Only include if family profile exists
-          .map((conn) => {
+        // Find connections where family profile wasn't returned (inactive/deleted profiles)
+        // RLS blocks profiles with is_active = false, so we need to fetch them via API
+        const connectionsWithMissingProfiles = (connections || []).filter((conn) => !conn.to_profile);
+        const missingProfileIds = connectionsWithMissingProfiles.map((conn) => conn.to_profile_id);
+
+        // Fetch inactive profiles via server API (bypasses RLS)
+        let inactiveProfilesMap = new Map<string, Profile>();
+        if (missingProfileIds.length > 0) {
+          try {
+            const res = await fetch("/api/matches/inactive-profiles", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ profileIds: missingProfileIds }),
+            });
+            if (res.ok) {
+              const { profiles } = await res.json();
+              for (const profile of profiles || []) {
+                inactiveProfilesMap.set(profile.id, profile);
+              }
+            }
+          } catch {
+            console.error("[olera] Failed to fetch inactive profiles");
+          }
+        }
+
+        // Transform to OutreachItem format - include all connections
+        const items = (connections || [])
+          .map((conn): OutreachItem | null => {
+            // Try to get profile from join, or fallback to inactive map
+            let family: Profile | null = conn.to_profile as unknown as Profile | null;
+            if (!family && inactiveProfilesMap.has(conn.to_profile_id)) {
+              family = inactiveProfilesMap.get(conn.to_profile_id)!;
+            }
+
+            // Skip connections where we still can't get the profile (truly deleted)
+            if (!family) return null;
+
             const meta = conn.metadata as { reply_message?: string; replied_at?: string } | null;
-            return {
+            // Map DB status to UI status
+            let uiStatus: OutreachStatus;
+            if (conn.status === "accepted") {
+              uiStatus = "connected";
+            } else if (conn.status === "expired") {
+              uiStatus = "past";
+            } else {
+              uiStatus = conn.status as OutreachStatus;
+            }
+            const outreachItem: OutreachItem = {
               id: conn.id,
-              family: conn.to_profile as unknown as Profile,
+              family,
               message: conn.message,
               sentAt: conn.created_at,
-              status: conn.status === "accepted" ? "connected" : conn.status as OutreachStatus,
-              replyMessage: meta?.reply_message,
-              repliedAt: meta?.replied_at,
+              status: uiStatus,
+              replyMessage: meta?.reply_message ?? null,
+              repliedAt: meta?.replied_at ?? null,
+              profileStatus: getProfileStatus(family),
             };
-          });
+            return outreachItem;
+          })
+          .filter((item): item is OutreachItem => item !== null);
 
         setOutreachItems(items);
 
@@ -276,6 +345,7 @@ function OutreachPageContent() {
     pending: outreachItems.filter((i) => i.status === "pending").length,
     connected: outreachItems.filter((i) => i.status === "connected").length,
     declined: outreachItems.filter((i) => i.status === "declined").length,
+    past: outreachItems.filter((i) => i.status === "past").length,
   }), [outreachItems]);
 
 
@@ -368,11 +438,13 @@ function OutreachPageContent() {
                 hasFullAccess={true}
                 providerCareTypes={providerProfile?.care_types || []}
                 contacted={true}
-                outreachStatus={item.status}
+                // "past" maps to "declined" for badge display purposes (ended/withdrawn connections)
+                outreachStatus={item.status === "past" ? "declined" : item.status}
                 onReachOut={() => openDrawer(item)}
                 animationDelay={idx * 50}
                 sentAt={item.sentAt}
                 reachOutCount={reachOutCounts.get(item.family.id) || 0}
+                profileStatus={item.profileStatus}
               />
             ))}
           </div>
@@ -389,7 +461,9 @@ function OutreachPageContent() {
         mode="view"
         sentMessage={selectedItem?.message || undefined}
         sentAt={selectedItem?.sentAt}
-        outreachStatus={selectedItem?.status}
+        // "past" maps to "declined" for badge display (ended/withdrawn connections)
+        outreachStatus={selectedItem?.status === "past" ? "declined" : selectedItem?.status}
+        profileStatus={selectedItem?.profileStatus}
       />
     </div>
   );

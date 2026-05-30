@@ -106,11 +106,13 @@
 
 ### ReachOut Drawer (ReachOutDrawer.tsx)
 
-| Family State | Profile Status Section | Send Button |
-|--------------|----------------------|-------------|
-| Active | "Profile Active" (green) | ✅ Enabled |
-| Paused | "Profile Paused" (amber) | ❌ Disabled with message |
-| Deleted | "Profile Deleted" (gray) | ❌ Disabled with message |
+| Family State | Connection Status | Profile Status Section | Send Button |
+|--------------|-------------------|----------------------|-------------|
+| Active | Any | "Profile Active" (green) | ✅ Enabled |
+| Paused | Any | "Profile Paused" (amber) | ✅ Enabled (with info message) |
+| Found Care | Connected | "Found Care" (blue) | ✅ Enabled (with info message) |
+| Found Care | Pending/Declined | "Found Care" (blue) | ❌ Disabled |
+| Deleted | Any | "No Longer Active" (gray) | ❌ Disabled |
 
 ---
 
@@ -136,7 +138,8 @@
 3. **Messaging inactive profiles** ✅ FIXED
    - Currently drawer shows "Cannot message inactive profile" for all inactive states
    - Should allow messaging for "paused" (they're still active, just not accepting new connections)
-   - Only block messaging for deleted profiles
+   - Should allow messaging for "found_care" IF already connected (established relationship)
+   - Only block messaging for deleted profiles or found_care without connection
    - **Fix applied in:** `ReachOutDrawer.tsx`
 
 4. **Past connections tab labeling**

@@ -1196,9 +1196,17 @@ ${context}${urgencyNote}. I'd love to help.
   );
 
   // ── Sticky Footer Content (Compose Mode) ──
-  // Only block messaging for found_care and deleted - paused profiles can still receive messages
-  const isInactive = profileStatus === "found_care" || profileStatus === "deleted";
+  // Messaging rules:
+  // - "deleted" profile → always block (they left the platform)
+  // - "found_care" + connected → allow (established relationship, might need follow-up)
+  // - "found_care" + not connected → block (they found care elsewhere)
+  // - "paused" → allow (they're still active, just not seeking new connections)
+  const isConnected = outreachStatus === "connected";
+  const isDeleted = profileStatus === "deleted";
+  const isFoundCare = profileStatus === "found_care";
   const isPaused = profileStatus === "paused";
+  // Block messaging only if deleted, or found_care without an established connection
+  const isInactive = isDeleted || (isFoundCare && !isConnected);
 
   const StickyFooterCompose = (
     <>
@@ -1215,11 +1223,19 @@ ${context}${urgencyNote}. I'd love to help.
           </p>
         </div>
       )}
+      {isFoundCare && isConnected && (
+        <div className="mb-3 px-3 py-3 bg-blue-50 border border-blue-100 rounded-lg">
+          <p className="text-sm text-blue-700">
+            <span className="font-medium">This family found care.</span>{" "}
+            You&apos;re still connected — feel free to stay in touch.
+          </p>
+        </div>
+      )}
       {isInactive && (
         <div className="mb-3 px-3 py-3 bg-gray-50 border border-gray-200 rounded-lg">
           <p className="text-sm text-gray-600">
-            <span className="font-medium">{profileStatus === "found_care" ? "This family found care." : "This family\u0027s profile is no longer active."}</span>{" "}
-            {profileStatus === "found_care" ? "They\u0027ve resolved their care needs." : "They may have left the platform or their needs changed."}
+            <span className="font-medium">{isFoundCare ? "This family found care." : "This family\u0027s profile is no longer active."}</span>{" "}
+            {isFoundCare ? "They\u0027ve resolved their care needs." : "They may have left the platform or their needs changed."}
           </p>
         </div>
       )}
@@ -1229,7 +1245,7 @@ ${context}${urgencyNote}. I'd love to help.
             disabled
             className="w-full px-4 py-3.5 bg-gray-100 text-gray-400 text-sm font-semibold rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {profileStatus === "found_care" ? "Family found care" : "Profile no longer active"}
+            {isFoundCare ? "Family found care" : "Profile no longer active"}
           </button>
         ) : !isVerified ? (
           <button

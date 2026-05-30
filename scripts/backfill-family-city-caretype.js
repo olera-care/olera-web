@@ -3,7 +3,9 @@
  * Backfill script to fill in missing city and care_types for family profiles
  * by looking up the provider they connected with.
  *
- * Run with: node scripts/backfill-family-city-caretype.js
+ * Run with:
+ *   node scripts/backfill-family-city-caretype.js --dry-run  (preview changes)
+ *   node scripts/backfill-family-city-caretype.js            (apply changes)
  *
  * This fixes profiles where:
  * - city was not auto-filled from provider (8 points)
@@ -11,6 +13,8 @@
  *
  * After filling in the data, it recalculates profile completeness.
  */
+
+const DRY_RUN = process.argv.includes("--dry-run");
 
 require("dotenv").config({ path: ".env.local" });
 const { createClient } = require("@supabase/supabase-js");
@@ -98,6 +102,11 @@ function calculateProfileCompletenessPercentage(profileData, email) {
 }
 
 async function backfillFamilyData() {
+  if (DRY_RUN) {
+    console.log("🔍 DRY RUN MODE - No changes will be made\n");
+  } else {
+    console.log("⚡ LIVE MODE - Changes will be applied\n");
+  }
   console.log("Fetching family profiles with low completeness...\n");
 
   // Fetch family profiles that might be missing city or care_types
@@ -217,28 +226,43 @@ async function backfillFamilyData() {
     };
     updates.metadata = updatedMeta;
 
-    // Apply updates
-    const { error: updateError } = await db
-      .from("business_profiles")
-      .update(updates)
-      .eq("id", profile.id);
-
-    if (updateError) {
-      console.error(`Error updating ${profile.id}:`, updateError);
-      skipped++;
-    } else {
+    // Apply updates (or just log in dry-run mode)
+    if (DRY_RUN) {
       console.log(
-        `Updated ${profile.display_name || profile.id}: ${changes.join(", ")} | completeness: ${oldCompleteness}% → ${newCompleteness}%`
+        `[DRY RUN] Would update ${profile.display_name || profile.id}: ${changes.join(", ")} | completeness: ${oldCompleteness}% → ${newCompleteness}%`
       );
       updated++;
+    } else {
+      const { error: updateError } = await db
+        .from("business_profiles")
+        .update(updates)
+        .eq("id", profile.id);
+
+      if (updateError) {
+        console.error(`Error updating ${profile.id}:`, updateError);
+        skipped++;
+      } else {
+        console.log(
+          `Updated ${profile.display_name || profile.id}: ${changes.join(", ")} | completeness: ${oldCompleteness}% → ${newCompleteness}%`
+        );
+        updated++;
+      }
     }
   }
 
   console.log(`\n${"=".repeat(60)}`);
-  console.log(`Done!`);
-  console.log(`  Updated: ${updated}`);
-  console.log(`  Skipped (no data to fill): ${skipped}`);
-  console.log(`  No connection found: ${noConnection}`);
+  if (DRY_RUN) {
+    console.log(`DRY RUN COMPLETE`);
+    console.log(`  Would update: ${updated}`);
+    console.log(`  Would skip (no data to fill): ${skipped}`);
+    console.log(`  No connection found: ${noConnection}`);
+    console.log(`\nRun without --dry-run to apply changes.`);
+  } else {
+    console.log(`Done!`);
+    console.log(`  Updated: ${updated}`);
+    console.log(`  Skipped (no data to fill): ${skipped}`);
+    console.log(`  No connection found: ${noConnection}`);
+  }
 }
 
 backfillFamilyData().catch(console.error);

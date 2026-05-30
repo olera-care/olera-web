@@ -105,10 +105,10 @@ const URGENCY_ORDER: Record<string, number> = {
 };
 
 // Profile status type for inactive family handling
-// - active: care post published
+// - active: care post published and active
 // - paused: care post paused (evaluating providers)
-// - found_care: care post deleted (found a caregiver), account still exists
-// - deleted: account deleted
+// - found_care: care post closed/deleted, account still exists (labeled "No Longer Searching")
+// - deleted: profile/account deleted
 type ProfileStatus = "active" | "paused" | "found_care" | "deleted";
 
 function getProfileStatus(family: Profile): ProfileStatus {

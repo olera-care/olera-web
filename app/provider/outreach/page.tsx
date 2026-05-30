@@ -14,7 +14,8 @@ import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
 // ─────────────────────────────────────────────────────────────────────────────
 
 type OutreachStatus = "pending" | "connected" | "declined" | "past";
-type ProfileStatus = "active" | "paused" | "deleted";
+// Profile status must match matches/page.tsx and FamilyMatchCard/ReachOutDrawer types
+type ProfileStatus = "active" | "paused" | "found_care" | "deleted";
 
 interface OutreachItem {
   id: string; // connection id
@@ -39,17 +40,20 @@ const TABS: { id: OutreachStatus; label: string }[] = [
 ];
 
 // Helper to determine family profile status from is_active flag and metadata
+// Must match logic in matches/page.tsx for consistency
 function getProfileStatus(family: Profile): ProfileStatus {
-  // Check is_active first - if false, the profile is deleted/deactivated
+  // Check is_active first - if false, the profile/account is deleted
   if (family.is_active === false) return "deleted";
 
   const meta = family.metadata as { care_post?: { status: string }; care_post_deleted?: unknown } | null;
-  // Deleted: has care_post_deleted flag and no active care_post
-  if (meta?.care_post_deleted && !meta?.care_post) return "deleted";
+  // Care post closed: has care_post_deleted flag and no active care_post
+  if (meta?.care_post_deleted && !meta?.care_post) return "found_care";
   // Paused: has care_post with paused status
   if (meta?.care_post?.status === "paused") return "paused";
-  // Active: default
-  return "active";
+  // Active: has care_post with active status
+  if (meta?.care_post?.status === "active") return "active";
+  // Default to found_care (no care_post)
+  return "found_care";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

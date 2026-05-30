@@ -51,6 +51,8 @@ interface ResponseLead {
   response_time_hours: number | null;
   provider_response: string | null; // First non-auto-reply message from provider
   cta_variant: string | null;
+  provider_status: "active" | "archived" | "deleted"; // Provider profile status
+  is_archived: boolean; // Lead itself is archived (metadata.archived)
 }
 
 type ThreadMessage = {
@@ -120,7 +122,8 @@ export async function GET(req: NextRequest) {
         state,
         description,
         care_types,
-        metadata
+        metadata,
+        is_active
       )
     `,
       { count: "exact" }
@@ -254,17 +257,23 @@ export async function GET(req: NextRequest) {
       response_time_hours: responseTimeHours ? Math.round(responseTimeHours * 10) / 10 : null,
       provider_response: providerResponse,
       cta_variant: ctaVariant,
+      provider_status: !conn.to_profile ? "deleted" : conn.to_profile.is_active === false ? "archived" : "active",
+      is_archived: !!meta.archived,
     });
   }
 
   // Categorize leads for tab counts (computed once per lead)
+  // - Archived leads get their own category (visible in All + Archived tab)
+  // - Deleted/archived providers → null (only in All, not actionable)
+  // - This ensures "No Email" count matches Overview and Leads pages
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
   const now = Date.now();
 
-  type Category = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
+  type Category = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email" | "archived" | null;
 
   const categorizedLeads = allLeads.map((lead) => {
     const hasProviderEmail = !!lead.provider_email;
+    const providerIsActive = lead.provider_status === "active";
     const providerNudgedRecently = lead.provider_nudged_at
       ? now - new Date(lead.provider_nudged_at).getTime() < SEVEN_DAYS_MS
       : false;
@@ -278,11 +287,18 @@ export async function GET(req: NextRequest) {
         ? now - new Date(lead.family_publish_nudged_at).getTime() < SEVEN_DAYS_MS
         : false);
 
-    // Order matters: responded takes priority (goal achieved), then check actionability
-    // Provider nudge takes priority over family nudge (waiting on provider response)
+    // Order matters:
+    // 1. Responded leads always go to "responded" (goal achieved)
+    // 2. Archived leads go to "archived" (admin archived this connection)
+    // 3. Deleted/archived providers → null (not actionable, only in All)
+    // 4. Active providers without email → "no_email"
+    // 5. Recently nudged → appropriate nudge category
+    // 6. Everything else → "needs_attention"
     let category: Category;
     if (lead.responded) category = "responded";
-    else if (!hasProviderEmail) category = "no_email";
+    else if (lead.is_archived) category = "archived"; // Lead itself is archived
+    else if (!providerIsActive) category = null; // Provider deleted/archived - not actionable
+    else if (!hasProviderEmail) category = "no_email"; // Active but no email
     else if (providerNudgedRecently) category = "provider_nudged";
     else if (familyNudgedRecently) category = "family_nudged";
     else category = "needs_attention";
@@ -291,6 +307,7 @@ export async function GET(req: NextRequest) {
   });
 
   // Compute counts for each category
+  // Leads with null category (deleted/archived providers) only appear in "All"
   const counts = {
     all: allLeads.length,
     needs_attention: 0,
@@ -298,10 +315,13 @@ export async function GET(req: NextRequest) {
     family_nudged: 0,
     responded: 0,
     no_email: 0,
+    archived: 0,
   };
 
   for (const { category } of categorizedLeads) {
-    counts[category]++;
+    if (category !== null) {
+      counts[category]++;
+    }
   }
 
   // Apply filter

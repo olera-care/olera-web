@@ -105,18 +105,25 @@ const URGENCY_ORDER: Record<string, number> = {
 };
 
 // Profile status type for inactive family handling
-type ProfileStatus = "active" | "paused" | "deleted";
+// - active: care post published and active
+// - paused: care post paused (evaluating providers)
+// - found_care: care post closed/deleted, account still exists (labeled "No Longer Searching")
+// - deleted: profile/account deleted
+type ProfileStatus = "active" | "paused" | "found_care" | "deleted";
 
 function getProfileStatus(family: Profile): ProfileStatus {
+  // First check if profile/account is deleted (is_active = false)
+  if (family.is_active === false) return "deleted";
+
   const meta = family.metadata as FamilyMetadata;
-  // Deleted: has care_post_deleted flag and no active care_post
-  if (meta?.care_post_deleted && !meta?.care_post) return "deleted";
+  // Found care: has care_post_deleted flag (they deleted their care need)
+  if (meta?.care_post_deleted && !meta?.care_post) return "found_care";
   // Paused: has care_post with paused status
   if (meta?.care_post?.status === "paused") return "paused";
   // Active: has care_post with active status
   if (meta?.care_post?.status === "active") return "active";
-  // Default to deleted if no care_post exists
-  return "deleted";
+  // Default to found_care if no care_post exists (edge case)
+  return "found_care";
 }
 
 const DEFAULT_NOTE_KEY = "olera_default_reachout_note";
@@ -803,7 +810,7 @@ export default function ProviderMatchesPage() {
     id: string;
     message: string | null;
     created_at: string;
-    status: "pending" | "accepted" | "declined";
+    status: "pending" | "accepted" | "declined" | "expired";
     reply_message?: string | null;
     replied_at?: string | null;
   }>>(new Map());
@@ -1168,21 +1175,23 @@ export default function ProviderMatchesPage() {
         const supabase = createClient();
 
         // Fetch families + provider's connections in parallel (optimized: 2 queries instead of 4)
+        // Include both active and paused families - paused will be shown at bottom with disabled reach-out
         const [familiesRes, fullConnectionsRes] = await Promise.all([
           supabase
             .from("business_profiles")
             .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at", { count: "exact" })
             .eq("type", "family")
             .eq("is_active", true)
-            .filter("metadata->care_post->>status", "eq", "active")
+            .not("metadata->care_post", "is", null) // Must have a care_post (active or paused)
             .order("created_at", { ascending: false }),
           // Full connection data - we derive contactedIds and respondedIds from this
+          // Include "expired" so providers can see inactive families they previously contacted
           supabase
             .from("connections")
             .select("id, to_profile_id, message, created_at, status, metadata")
             .eq("from_profile_id", profileId)
             .eq("type", "request")
-            .in("status", ["pending", "accepted", "declined"])
+            .in("status", ["pending", "accepted", "declined", "expired"])
             .order("created_at", { ascending: false }),
         ]);
 
@@ -1210,7 +1219,7 @@ export default function ProviderMatchesPage() {
           id: string;
           message: string | null;
           created_at: string;
-          status: "pending" | "accepted" | "declined";
+          status: "pending" | "accepted" | "declined" | "expired";
           reply_message?: string | null;
           replied_at?: string | null;
         }>();
@@ -1232,7 +1241,7 @@ export default function ProviderMatchesPage() {
             id: conn.id,
             message: conn.message,
             created_at: conn.created_at,
-            status: conn.status as "pending" | "accepted" | "declined",
+            status: conn.status as "pending" | "accepted" | "declined" | "expired",
             reply_message: meta?.reply_message || null,
             replied_at: meta?.replied_at || null,
           });
@@ -1242,19 +1251,28 @@ export default function ProviderMatchesPage() {
 
         // Fetch inactive families that provider has already connected with
         // These are families whose profiles are paused/deleted but provider has outreach history
+        // Use server API to bypass RLS (client can't read is_active=false profiles)
         const connectedIds = connections.map((c: { to_profile_id: string }) => c.to_profile_id);
         const activeFamilyIds = new Set(fetchedFamilies.map((f) => f.id));
         const missingIds = connectedIds.filter((id: string) => !activeFamilyIds.has(id));
 
         if (missingIds.length > 0) {
-          const { data: inactiveFamilies } = await supabase
-            .from("business_profiles")
-            .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at")
-            .in("id", missingIds);
-
-          if (inactiveFamilies && inactiveFamilies.length > 0) {
-            // Append inactive families to the list
-            fetchedFamilies.push(...(inactiveFamilies as Profile[]));
+          try {
+            const res = await fetch("/api/matches/inactive-profiles", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ profileIds: missingIds }),
+            });
+            if (res.ok) {
+              const { profiles: inactiveFamilies } = await res.json();
+              if (inactiveFamilies && inactiveFamilies.length > 0) {
+                // Append inactive families to the list
+                fetchedFamilies.push(...(inactiveFamilies as Profile[]));
+              }
+            }
+          } catch {
+            // Non-critical - log but don't fail
+            console.error("[olera] Failed to fetch inactive families");
           }
         }
 
@@ -1438,6 +1456,8 @@ export default function ProviderMatchesPage() {
     const conn = connectionData.get(familyId);
     if (!conn) return null;
     if (conn.status === "accepted") return "connected";
+    // Map "expired" to "declined" for display (connection ended)
+    if (conn.status === "expired") return "declined";
     return conn.status; // "pending" or "declined"
   }, [connectionData]);
 
@@ -1552,12 +1572,15 @@ export default function ProviderMatchesPage() {
       }
     }
 
-    // Filter out uncontacted inactive families (they shouldn't see profiles they never contacted)
+    // Filter families based on profile status:
+    // - Active: show to all providers
+    // - Paused/No Longer Searching/Deleted: show ONLY to providers who have already contacted them
+    // (LinkedIn/Upwork behavior: inactive profiles hidden from non-connected users)
     result = result.filter((f) => {
       const status = getProfileStatus(f);
-      // Keep all active families
+      // Keep all active families - they're in the feed for everyone
       if (status === "active") return true;
-      // Keep inactive families only if provider has contacted them
+      // All other statuses: only show to providers who have already connected
       return contactedIds.has(f.id);
     });
 
@@ -1566,11 +1589,12 @@ export default function ProviderMatchesPage() {
       const metaA = a.metadata as FamilyMetadata;
       const metaB = b.metadata as FamilyMetadata;
 
-      // First priority: active families before inactive
-      const aActive = getProfileStatus(a) === "active";
-      const bActive = getProfileStatus(b) === "active";
-      if (aActive && !bActive) return -1;
-      if (!aActive && bActive) return 1;
+      // First priority: sort by profile status (active > paused > found_care > deleted)
+      const statusOrder: Record<ProfileStatus, number> = { active: 0, paused: 1, found_care: 2, deleted: 3 };
+      const aStatus = getProfileStatus(a);
+      const bStatus = getProfileStatus(b);
+      const statusDiff = statusOrder[aStatus] - statusOrder[bStatus];
+      if (statusDiff !== 0) return statusDiff;
 
       if (activeTab === "near_you") {
         // Near You: sort by recency

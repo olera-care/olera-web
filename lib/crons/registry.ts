@@ -304,7 +304,7 @@ export const CRON_REGISTRY: CronJob[] = [
   {
     id: "cleanup",
     name: "Housekeeping cleanup",
-    description: "Daily: deletes expired verification codes (>1h old) and stale draft connections (pending, no thread activity for 30 days).",
+    description: "Daily: deletes expired verification codes (>1h old). Note: stale connection deletion was removed to preserve leads for re-engagement.",
     recipientCohort: "(No recipients — a cleanup job.)",
     audience: "Data & maintenance",
     fn: "maintenance",

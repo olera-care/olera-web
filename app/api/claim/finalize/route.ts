@@ -12,6 +12,7 @@ import {
   extractDomainFromWebsite,
   type ClaimTrustResult,
 } from "@/lib/claim-trust";
+import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 
 export const maxDuration = 30;
 
@@ -224,6 +225,7 @@ export async function POST(request: Request) {
       const verificationState = trustResult.level === "high" ? "not_required" : "unverified";
 
       // Update existing unclaimed profile
+      // Sync user's verified email to the profile so they receive lead notifications
       const { error: updateErr } = await db
         .from("business_profiles")
         .update({
@@ -232,6 +234,7 @@ export async function POST(request: Request) {
           verification_state: verificationState,
           claim_trust_level: trustResult.level,
           claim_trust_reason: trustResult.reason,
+          email: user.email || null,
         })
         .eq("id", existingProfile.id);
 
@@ -331,6 +334,20 @@ export async function POST(request: Request) {
       .delete()
       .eq("provider_id", providerId)
       .eq("claim_session", claimSession);
+
+    // 5b. Send deferred notifications for any pending leads/questions (fire-and-forget)
+    // Now that the provider has an email, notify them about leads waiting for them
+    if (user.email) {
+      sendDeferredNotificationsForProvider({
+        profileId,
+        email: user.email,
+        providerName: providerDisplayName,
+        providerSlug: profileSlug,
+        additionalSlugVariants: providerId ? [providerId] : [],
+      }).catch((err) => {
+        console.error("[claim/finalize] deferred notifications failed:", err);
+      });
+    }
 
     // 6. Notify admin team about the claim (fire-and-forget)
     try {

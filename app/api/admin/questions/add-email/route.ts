@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
-import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } from "@/lib/email-templates";
+import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 import { generateProviderSlug } from "@/lib/slugify";
-import { generateNotificationUrl } from "@/lib/claim-tokens";
 
 /**
  * POST /api/admin/questions/add-email
  *
- * Add email to a provider and send deferred question notifications.
- * Also clears needs_provider_email flags on any pending leads for the same provider.
+ * Add email to a provider and send deferred question AND lead notifications.
+ *
+ * This uses the unified sendDeferredNotificationsForProvider() which handles:
+ * - Finding all pending leads/questions without email_sent_at
+ * - Sending notifications for both
+ * - Marking them as sent
  *
  * Body: { providerSlug, email }
  */
@@ -41,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Strategy 1: business_profiles by slug
     let provider = await db
       .from("business_profiles")
-      .select("id, display_name, email, source_provider_id, slug")
+      .select("id, display_name, email, source_provider_id, slug, metadata")
       .eq("slug", providerSlug)
       .maybeSingle()
       .then(r => r.data);
@@ -70,13 +72,7 @@ export async function POST(request: NextRequest) {
 
       if (!iosProvider) {
         // Strategy 4: reverse-match auto-generated slug
-        // When olera-providers.slug is null, iosProviderToProfile generates a slug from
-        // provider_name + state (e.g., "acme-home-care-tx"). The stored question
-        // provider_id may be this ephemeral slug. Extract a name prefix to narrow the
-        // DB search, then confirm by regenerating the full slug.
-        // Slug format: "{slugified-name}-{state}" — state is last 2 chars if present
         const slugParts = providerSlug.split("-");
-        // Use first few words as a ILIKE prefix to narrow candidates (avoid full table scan)
         const namePrefix = slugParts.slice(0, 3).join("-");
         const { data: candidates } = await db
           .from("olera-providers")
@@ -100,7 +96,7 @@ export async function POST(request: NextRequest) {
       if (iosProvider) {
         provider = await db
           .from("business_profiles")
-          .select("id, display_name, email, source_provider_id, slug")
+          .select("id, display_name, email, source_provider_id, slug, metadata")
           .eq("source_provider_id", iosProvider.provider_id)
           .maybeSingle()
           .then(r => r.data);
@@ -133,130 +129,57 @@ export async function POST(request: NextRequest) {
 
     // Derive display name and ID from whichever record we found
     const displayName = provider?.display_name || iosProvider?.provider_name || providerSlug;
-    const providerId = provider?.id || iosProviderId || providerSlug;
+    const profileId = provider?.id || iosProviderId || providerSlug;
 
-    // Find flagged questions for this provider (skip any already sent)
-    const { data: flaggedQuestions } = await db
-      .from("provider_questions")
-      .select("id, question, asker_name, asker_email, metadata")
-      .eq("provider_id", providerSlug)
-      .contains("metadata", { needs_provider_email: true });
+    // Check if provider has opted out of lead emails
+    const profileMeta = (provider?.metadata as Record<string, unknown>) || {};
 
-    let emailsSent = 0;
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-
-    if (flaggedQuestions && flaggedQuestions.length > 0) {
-      for (const q of flaggedQuestions) {
-        try {
-          // Skip if this question was already emailed (e.g. via leads add-email)
-          const meta = (q.metadata as Record<string, unknown>) || {};
-          if (meta.email_sent_at) {
-            delete meta.needs_provider_email;
-            await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
-            continue;
-          }
-
-          const qaVariant = assignQuestionVariant();
-          const qaInbox = questionReceivedInbox({
-            providerName: displayName,
-            question: q.question,
-            variant: qaVariant,
-          });
-          const emailLogId = await reserveEmailLogId({
-            to: effectiveEmail,
-            subject: qaInbox.subject,
-            emailType: "question_received",
-            recipientType: "provider",
-            providerId,
-          });
-
-          // Generate one-click URL with signed token for auto-sign-in
-          let providerUrl: string;
-          try {
-            providerUrl = generateNotificationUrl(providerSlug, effectiveEmail, "question", q.id, siteUrl);
-            providerUrl = appendTrackingParams(providerUrl, emailLogId);
-          } catch {
-            providerUrl = appendTrackingParams(`${siteUrl}/provider/${providerSlug}/onboard?action=question&actionId=${q.id}`, emailLogId);
-          }
-
-          await sendEmail({
-            to: effectiveEmail,
-            subject: qaInbox.subject,
-            html: questionReceivedEmail({
-              providerName: displayName,
-              askerName: q.asker_name || "A family",
-              question: q.question,
-              providerUrl,
-              providerSlug,
-              preheader: qaInbox.preheader,
-            }),
-            emailType: "question_received",
-            recipientType: "provider",
-            providerId,
-            emailLogId: emailLogId ?? undefined,
-            metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
-          });
-
-          // Clear the flag
-          delete meta.needs_provider_email;
-          meta.email_sent_at = new Date().toISOString();
-          await db
-            .from("provider_questions")
-            .update({ metadata: meta })
-            .eq("id", q.id);
-
-          emailsSent++;
-        } catch (emailErr) {
-          console.error(`Failed to send deferred question email for ${q.id}:`, emailErr);
-        }
-      }
+    // Build additional slug variants for question lookup
+    // Questions may be stored with different provider_id values
+    // Use Set to avoid duplicates
+    const variantSet = new Set<string>();
+    if (iosProviderId && iosProviderId !== providerSlug) {
+      variantSet.add(iosProviderId);
     }
-
-    // Also clear needs_provider_email flags on any pending leads for this provider
-    let flaggedLeads: { id: string; metadata: Record<string, unknown> | null }[] | null = null;
-    if (provider?.id) {
-      const { data } = await db
-        .from("connections")
-        .select("id, metadata")
-        .eq("to_profile_id", provider.id)
-        .contains("metadata", { needs_provider_email: true });
-      flaggedLeads = data;
+    if (provider?.source_provider_id && provider.source_provider_id !== providerSlug) {
+      variantSet.add(provider.source_provider_id);
     }
-
-    if (flaggedLeads && flaggedLeads.length > 0) {
-      for (const lead of flaggedLeads) {
-        try {
-          const meta = (lead.metadata as Record<string, unknown>) || {};
-          delete meta.needs_provider_email;
-          meta.email_sent_at = new Date().toISOString();
-          await db
-            .from("connections")
-            .update({ metadata: meta })
-            .eq("id", lead.id);
-        } catch (err) {
-          console.error(`Failed to clear lead flag for ${lead.id}:`, err);
-        }
-      }
+    if (provider?.slug && provider.slug !== providerSlug) {
+      variantSet.add(provider.slug);
     }
+    const additionalSlugVariants = Array.from(variantSet);
+
+    // Send deferred notifications using the unified function
+    // Note: For questions-only providers (no business_profile), we still try to send
+    // This handles the case where questions exist but no leads
+    const result = await sendDeferredNotificationsForProvider({
+      profileId: provider?.id || "",  // May be empty for olera-providers-only
+      email: effectiveEmail,
+      providerName: displayName,
+      providerSlug,
+      additionalSlugVariants,
+      leadsUnsubscribed: !!profileMeta.leads_unsubscribed,
+    });
 
     await logAuditAction({
       adminUserId: adminUser.id,
       action: "add_provider_email_via_questions",
       targetType: provider ? "business_profile" : "olera_provider",
-      targetId: providerId,
+      targetId: profileId,
       details: {
         provider_name: displayName,
         provider_slug: providerSlug,
         email: effectiveEmail,
         previous_email: existingEmail || null,
-        question_emails_sent: emailsSent,
-        lead_flags_cleared: flaggedLeads?.length ?? 0,
+        question_emails_sent: result.questionEmailsSent,
+        lead_emails_sent: result.leadEmailsSent,
+        leads_skipped: result.leadsSkipped,
       },
     });
 
     return NextResponse.json({
       success: true,
-      emailsSent,
+      emailsSent: result.leadEmailsSent + result.questionEmailsSent,
     });
   } catch (err) {
     console.error("Add email (questions) error:", err);

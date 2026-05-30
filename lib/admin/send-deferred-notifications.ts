@@ -1,0 +1,312 @@
+import { getServiceClient } from "@/lib/admin";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import { connectionRequestEmail, questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } from "@/lib/email-templates";
+import { generateNotificationUrl } from "@/lib/claim-tokens";
+
+interface NotificationResult {
+  leadEmailsSent: number;
+  questionEmailsSent: number;
+  leadsSkipped: number;
+}
+
+interface SendDeferredNotificationsOptions {
+  /** Business profile ID (UUID). Can be empty for olera-providers-only cases. */
+  profileId: string;
+  /** Provider email to send notifications to */
+  email: string;
+  /** Provider display name */
+  providerName: string;
+  /** Provider slug (for URLs) - primary identifier */
+  providerSlug: string;
+  /**
+   * Additional slug variants to check when finding questions.
+   * Questions may be stored with different provider_id values (source_provider_id,
+   * legacy alphanumeric ID, auto-generated slug, etc.)
+   */
+  additionalSlugVariants?: string[];
+  /** If true, provider has unsubscribed from lead emails */
+  leadsUnsubscribed?: boolean;
+}
+
+/**
+ * Send deferred notifications for a provider.
+ *
+ * Called when a provider's email is added/updated from any surface:
+ * - Leads page "Add Email" button
+ * - Questions page "Add Email" button
+ * - Directory provider edit
+ *
+ * Finds all pending leads and questions that haven't been notified yet
+ * (based on `email_sent_at` not being set) and sends notifications.
+ *
+ * Note: Callers are responsible for audit logging. This function does not
+ * create audit log entries to avoid duplicate logs.
+ */
+export async function sendDeferredNotificationsForProvider(
+  options: SendDeferredNotificationsOptions
+): Promise<NotificationResult> {
+  const {
+    profileId,
+    email,
+    providerName,
+    providerSlug,
+    additionalSlugVariants = [],
+    leadsUnsubscribed,
+  } = options;
+  const db = getServiceClient();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+  const result: NotificationResult = {
+    leadEmailsSent: 0,
+    questionEmailsSent: 0,
+    leadsSkipped: 0,
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 1. Send deferred LEAD notifications
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Only query leads if we have a valid profileId (UUID)
+  if (profileId) {
+    // Find all pending, non-archived inquiry/request connections for this provider
+    const { data: pendingConnections } = await db
+      .from("connections")
+      .select("id, message, metadata, from_profile:business_profiles!connections_from_profile_id_fkey(display_name)")
+      .eq("to_profile_id", profileId)
+      .eq("status", "pending")
+      .in("type", ["inquiry", "request"])
+      .not("metadata", "cs", JSON.stringify({ archived: true }));
+
+    // Filter to only those without email_sent_at (not yet notified)
+    const unnotifiedLeads = (pendingConnections ?? []).filter((conn) => {
+      const meta = (conn.metadata as Record<string, unknown>) || {};
+      return !meta.email_sent_at;
+    });
+
+    const careTypeMap: Record<string, string> = {
+      home_care: "Home Care",
+      home_health: "Home Health Care",
+      assisted_living: "Assisted Living",
+      memory_care: "Memory Care",
+    };
+
+    for (const conn of unnotifiedLeads) {
+      try {
+        // Re-fetch metadata to check if another process already sent this notification
+        // This narrows the race condition window significantly
+        const { data: freshConn } = await db
+          .from("connections")
+          .select("metadata")
+          .eq("id", conn.id)
+          .maybeSingle();
+
+        // Skip if connection was deleted by another process
+        if (!freshConn) {
+          continue;
+        }
+
+        const meta = (freshConn.metadata as Record<string, unknown>) || {};
+
+        // Skip if already sent by another process
+        if (meta.email_sent_at) {
+          continue;
+        }
+
+        // If provider unsubscribed from leads, mark as skipped
+        if (leadsUnsubscribed) {
+          delete meta.needs_provider_email;
+          meta.email_skipped_unsubscribed = true;
+          await db.from("connections").update({ metadata: meta }).eq("id", conn.id);
+          result.leadsSkipped++;
+          continue;
+        }
+
+        // Parse message data
+        let careType: string | null = null;
+        let additionalNotes: string | null = null;
+        let familyName = "A family";
+        try {
+          const msg = JSON.parse(conn.message || "{}");
+          careType = msg.care_type ? (careTypeMap[msg.care_type] || msg.care_type) : null;
+          additionalNotes = msg.additional_notes || null;
+          // Normalize from_profile (Supabase joins return arrays)
+          const rawFromProfile = (conn as { from_profile?: { display_name: string }[] | { display_name: string } | null }).from_profile;
+          const fromProfile = Array.isArray(rawFromProfile) ? rawFromProfile[0] ?? null : rawFromProfile;
+          familyName = fromProfile?.display_name || `${msg.seeker_first_name || ""} ${msg.seeker_last_name || ""}`.trim() || "A family";
+        } catch { /* use defaults */ }
+
+        const emailSubject = `A family is looking for care from ${providerName || "your organization"}`;
+        const emailLogId = await reserveEmailLogId({
+          to: email,
+          subject: emailSubject,
+          emailType: "add_email_notification",
+          recipientType: "provider",
+          providerId: profileId,
+        });
+
+        // Generate one-click URL with signed token
+        let viewUrl: string;
+        try {
+          viewUrl = generateNotificationUrl(providerSlug, email, "lead", conn.id, siteUrl);
+          viewUrl = appendTrackingParams(viewUrl, emailLogId);
+        } catch {
+          viewUrl = appendTrackingParams(`${siteUrl}/provider/${providerSlug}/onboard?action=lead&actionId=${conn.id}`, emailLogId);
+        }
+
+        await sendEmail({
+          to: email,
+          subject: emailSubject,
+          html: connectionRequestEmail({
+            providerName: providerName || "Provider",
+            familyName,
+            careType,
+            message: additionalNotes,
+            viewUrl,
+            providerSlug,
+          }),
+          emailType: "add_email_notification",
+          recipientType: "provider",
+          providerId: profileId,
+          emailLogId: emailLogId ?? undefined,
+        });
+
+        // Mark as sent
+        delete meta.needs_provider_email;
+        meta.email_sent_at = new Date().toISOString();
+        await db.from("connections").update({ metadata: meta }).eq("id", conn.id);
+
+        result.leadEmailsSent++;
+      } catch (err) {
+        console.error(`[send-deferred] Failed to send lead notification for connection ${conn.id}:`, err);
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 2. Send deferred QUESTION notifications
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Build comprehensive list of slug variants to check
+  // Questions may be stored with different provider_id values
+  const slugVariants = new Set<string>([providerSlug]);
+
+  // Add any additional variants passed by caller
+  for (const variant of additionalSlugVariants) {
+    if (variant) slugVariants.add(variant);
+  }
+
+  // Also check if there's a source_provider_id that might be used
+  if (profileId) {
+    const { data: profile } = await db
+      .from("business_profiles")
+      .select("source_provider_id, slug")
+      .eq("id", profileId)
+      .maybeSingle();
+
+    if (profile?.source_provider_id) {
+      slugVariants.add(profile.source_provider_id);
+    }
+    if (profile?.slug && profile.slug !== providerSlug) {
+      slugVariants.add(profile.slug);
+    }
+  }
+
+  // Track which questions we've already processed to avoid duplicates
+  const processedQuestionIds = new Set<string>();
+
+  // Convert Set to Array for iteration (avoids TypeScript downlevelIteration issues)
+  for (const slug of Array.from(slugVariants)) {
+    // Only fetch pending questions (not answered, archived, or rejected)
+    const { data: pendingQuestions } = await db
+      .from("provider_questions")
+      .select("id, question, asker_name, metadata")
+      .eq("provider_id", slug)
+      .eq("status", "pending");
+
+    // Filter to only those without email_sent_at and not already processed
+    const unnotifiedQuestions = (pendingQuestions ?? []).filter((q) => {
+      if (processedQuestionIds.has(q.id)) return false;
+      const meta = (q.metadata as Record<string, unknown>) || {};
+      return !meta.email_sent_at;
+    });
+
+    for (const q of unnotifiedQuestions) {
+      try {
+        // Re-fetch metadata to check if another process already sent this notification
+        const { data: freshQ } = await db
+          .from("provider_questions")
+          .select("metadata")
+          .eq("id", q.id)
+          .maybeSingle();
+
+        // Skip if question was deleted by another process
+        if (!freshQ) {
+          processedQuestionIds.add(q.id);
+          continue;
+        }
+
+        const meta = (freshQ.metadata as Record<string, unknown>) || {};
+
+        // Skip if already sent by another process
+        if (meta.email_sent_at) {
+          processedQuestionIds.add(q.id);
+          continue;
+        }
+
+        const qaVariant = assignQuestionVariant();
+        const qaInbox = questionReceivedInbox({
+          providerName: providerName || "your organization",
+          question: q.question,
+          variant: qaVariant,
+        });
+
+        const emailLogId = await reserveEmailLogId({
+          to: email,
+          subject: qaInbox.subject,
+          emailType: "question_received",
+          recipientType: "provider",
+          providerId: profileId || slug,
+        });
+
+        // Generate one-click URL with signed token
+        let providerUrl: string;
+        try {
+          providerUrl = generateNotificationUrl(slug, email, "question", q.id, siteUrl);
+          providerUrl = appendTrackingParams(providerUrl, emailLogId);
+        } catch {
+          providerUrl = appendTrackingParams(`${siteUrl}/provider/${slug}/onboard?action=question&actionId=${q.id}`, emailLogId);
+        }
+
+        await sendEmail({
+          to: email,
+          subject: qaInbox.subject,
+          html: questionReceivedEmail({
+            providerName: providerName || "Provider",
+            askerName: q.asker_name || "A family",
+            question: q.question,
+            providerUrl,
+            providerSlug: slug,
+            preheader: qaInbox.preheader,
+          }),
+          emailType: "question_received",
+          recipientType: "provider",
+          providerId: profileId || slug,
+          emailLogId: emailLogId ?? undefined,
+          metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
+        });
+
+        // Mark as sent
+        delete meta.needs_provider_email;
+        meta.email_sent_at = new Date().toISOString();
+        await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
+
+        processedQuestionIds.add(q.id);
+        result.questionEmailsSent++;
+      } catch (err) {
+        console.error(`[send-deferred] Failed to send question notification for ${q.id}:`, err);
+      }
+    }
+  }
+
+  return result;
+}

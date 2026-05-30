@@ -139,6 +139,7 @@ interface ConnectionProfile {
   phone?: string;
   metadata?: Record<string, unknown>;
   care_types?: string[];
+  is_active?: boolean;
 }
 
 interface Lead {
@@ -246,8 +247,8 @@ export default function AdminLeadsPage() {
   const [total, setTotal] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Date filter
-  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
+  // Date filter - default to all time to match Overview count
+  const [range, setRange] = useState<DateRangeValue>({ preset: "all", customFrom: "", customTo: "" });
 
   // Engagement data
   const [engagement, setEngagement] = useState<Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }>>({});
@@ -566,7 +567,14 @@ export default function AdminLeadsPage() {
       ) : (
         <div className="space-y-1">
           {leads.map((lead) => {
-            const needsEmail = lead.metadata?.needs_provider_email === true;
+            // Check live provider email status instead of stale metadata flag
+            // Provider must exist AND be active to be actionable
+            const providerIsActive = !!lead.to_profile && lead.to_profile.is_active !== false;
+            const providerHasNoEmail = !lead.to_profile?.email;
+            const needsEmail = providerIsActive && providerHasNoEmail;
+            // Determine specific provider status for display
+            const providerIsDeleted = !lead.to_profile;
+            const providerIsArchived = !!lead.to_profile && lead.to_profile.is_active === false;
             const providerEditorId = lead.to_profile?.source_provider_id;
             const providerSlug = (lead.to_profile as ConnectionProfile & { slug?: string })?.slug;
             const providerEngagement = engagement[providerSlug || providerEditorId || lead.to_profile?.id || ""];
@@ -662,6 +670,12 @@ export default function AdminLeadsPage() {
                         )}
                         {needsEmail && (
                           <span className="font-medium text-gray-900">Needs email</span>
+                        )}
+                        {providerIsDeleted && providerHasNoEmail && (
+                          <span className="text-gray-400 italic">Provider deleted</span>
+                        )}
+                        {providerIsArchived && providerHasNoEmail && (
+                          <span className="text-gray-400 italic">Provider archived</span>
                         )}
                         {providerEngagement && (
                           <div className="flex items-center gap-1" title={

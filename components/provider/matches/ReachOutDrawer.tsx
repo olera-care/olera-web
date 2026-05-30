@@ -34,7 +34,7 @@ interface ReachOutDrawerProps {
   /** Callback when AI message generation succeeds - for analytics tracking */
   onAIGenerate?: (familyId: string, tone: string) => void;
   /** Profile status for inactive family handling */
-  profileStatus?: "active" | "paused" | "deleted";
+  profileStatus?: "active" | "paused" | "found_care" | "deleted";
 }
 
 // ── Helpers ──
@@ -912,14 +912,19 @@ ${context}${urgencyNote}. I'd love to help.
               <p className={`text-base font-medium flex items-center gap-1.5 ${
                 profileStatus === "active" ? "text-emerald-600"
                   : profileStatus === "paused" ? "text-amber-600"
+                  : profileStatus === "found_care" ? "text-blue-600"
                   : "text-gray-500"
               }`}>
                 <span className={`w-2 h-2 rounded-full ${
                   profileStatus === "active" ? "bg-emerald-500"
-                    : profileStatus === "paused" ? "bg-amber-500" : "bg-gray-400"
+                    : profileStatus === "paused" ? "bg-amber-500"
+                    : profileStatus === "found_care" ? "bg-blue-500"
+                    : "bg-gray-400"
                 }`} />
                 {profileStatus === "active" ? "Profile Active"
-                  : profileStatus === "paused" ? "Profile Paused" : "Profile Deleted"}
+                  : profileStatus === "paused" ? "Profile Paused"
+                  : profileStatus === "found_care" ? "No Longer Searching"
+                  : "No Longer Active"}
               </p>
             </div>
           </div>
@@ -1161,7 +1166,7 @@ ${context}${urgencyNote}. I'd love to help.
         alt="Message sent"
         width={180}
         height={180}
-        className="mb-6"
+        className="mb-3"
       />
       <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
         Message sent!
@@ -1171,18 +1176,18 @@ ${context}${urgencyNote}. I'd love to help.
           ? "We'll notify you when they respond."
           : `We'll notify you when ${firstName} responds.`}
       </p>
-      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+      <div className="flex flex-row gap-3 w-full max-w-sm">
         <button
           type="button"
           onClick={handleViewOutreach}
-          className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+          className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors whitespace-nowrap"
         >
           View Outreach
         </button>
         <button
           type="button"
           onClick={handleDone}
-          className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"
+          className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors whitespace-nowrap"
         >
           Done
         </button>
@@ -1191,7 +1196,17 @@ ${context}${urgencyNote}. I'd love to help.
   );
 
   // ── Sticky Footer Content (Compose Mode) ──
-  const isInactive = profileStatus !== "active";
+  // Messaging rules (LinkedIn behavior):
+  // - "deleted" profile → block (they left the platform)
+  // - "found_care" (care post closed) + connected → allow (established relationship)
+  // - "found_care" (care post closed) + not connected → block (no relationship)
+  // - "paused" → allow (they're still active, just not seeking new connections)
+  const isConnected = outreachStatus === "connected";
+  const isDeleted = profileStatus === "deleted";
+  const isNoLongerSearching = profileStatus === "found_care"; // care post closed
+  const isPaused = profileStatus === "paused";
+  // Block messaging only if deleted, or no longer searching without an established connection
+  const isInactive = isDeleted || (isNoLongerSearching && !isConnected);
 
   const StickyFooterCompose = (
     <>
@@ -1200,11 +1215,27 @@ ${context}${urgencyNote}. I'd love to help.
           <p className="text-sm text-rose-600">{sendError}</p>
         </div>
       )}
+      {isPaused && (
+        <div className="mb-3 px-3 py-3 bg-amber-50 border border-amber-100 rounded-lg">
+          <p className="text-sm text-amber-700">
+            <span className="font-medium">This family has paused their search.</span>{" "}
+            You can still send a message — they&apos;ll see it when they resume.
+          </p>
+        </div>
+      )}
+      {isNoLongerSearching && isConnected && (
+        <div className="mb-3 px-3 py-3 bg-blue-50 border border-blue-100 rounded-lg">
+          <p className="text-sm text-blue-700">
+            <span className="font-medium">This family is no longer searching.</span>{" "}
+            You&apos;re still connected — feel free to stay in touch.
+          </p>
+        </div>
+      )}
       {isInactive && (
         <div className="mb-3 px-3 py-3 bg-gray-50 border border-gray-200 rounded-lg">
           <p className="text-sm text-gray-600">
-            <span className="font-medium">This family&apos;s profile is no longer active.</span>{" "}
-            They may have found care or their needs changed.
+            <span className="font-medium">{isNoLongerSearching ? "This family is no longer searching." : "This family\u0027s profile is no longer active."}</span>{" "}
+            {isNoLongerSearching ? "They\u0027ve closed their care post." : "They may have left the platform."}
           </p>
         </div>
       )}
@@ -1214,7 +1245,7 @@ ${context}${urgencyNote}. I'd love to help.
             disabled
             className="w-full px-4 py-3.5 bg-gray-100 text-gray-400 text-sm font-semibold rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Cannot message inactive profile
+            {isNoLongerSearching ? "No longer searching" : "Profile no longer active"}
           </button>
         ) : !isVerified ? (
           <button

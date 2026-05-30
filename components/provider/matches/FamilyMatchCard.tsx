@@ -5,7 +5,7 @@ import Image from "next/image";
 import type { Profile, FamilyMetadata } from "@/lib/types";
 
 type OutreachStatus = "pending" | "connected" | "declined";
-type ProfileStatus = "active" | "paused" | "deleted";
+type ProfileStatus = "active" | "paused" | "found_care" | "deleted";
 
 interface FamilyMatchCardProps {
   family: Profile;
@@ -473,6 +473,7 @@ export default function FamilyMatchCard({
   // Profile status badge for inactive families
   const profileStatusBadge = profileStatus !== "active" ? {
     paused: { label: "Profile Paused", bgClass: "bg-amber-50", textClass: "text-amber-700", borderClass: "border-amber-100" },
+    found_care: { label: "No Longer Searching", bgClass: "bg-blue-50", textClass: "text-blue-600", borderClass: "border-blue-100" },
     deleted: { label: "No Longer Active", bgClass: "bg-gray-50", textClass: "text-gray-500", borderClass: "border-gray-200" },
   }[profileStatus] : null;
 
@@ -492,41 +493,48 @@ export default function FamilyMatchCard({
       }}
       onClick={handleClick}
     >
-      {/* META BAR */}
-      <div className="px-5 py-3 flex items-center justify-between gap-3">
-        <span className="text-[13px]">
+      {/* META BAR - row layout with stacked content on mobile */}
+      <div className="px-5 py-3 flex items-start sm:items-center justify-between gap-3">
+        {/* Time + Interest count - stacked on mobile, inline on desktop */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-x-1.5 text-[13px]">
           {sentAt ? (
             // Outreach mode: show when message was sent + interest count
             <>
-              <span className="text-gray-500">Sent</span>{" "}
-              <span className="font-semibold text-gray-700">{timeAgo(sentAt)}</span>
-              <span className="mx-1.5 text-gray-500">·</span>
-              <span className="text-gray-500">Interested providers:</span>
-              {" "}
-              <span className="font-semibold text-gray-700">{reachOutCount}</span>
+              <span>
+                <span className="text-gray-500">Sent </span>
+                <span className="font-semibold text-gray-700">{timeAgo(sentAt)}</span>
+              </span>
+              <span className="hidden sm:inline text-gray-400 mx-1">·</span>
+              <span>
+                <span className="text-gray-500">Interested providers: </span>
+                <span className="font-semibold text-gray-700">{reachOutCount}</span>
+              </span>
             </>
           ) : (
             // Discovery mode: show when family posted + interest count
             <>
-              <span className="text-gray-500">Posted</span>{" "}
-              <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
-              <span className="mx-1.5 text-gray-500">·</span>
-              <span className="text-gray-500">Interested providers:</span>
-              {" "}
-              <span className="font-semibold text-gray-700">{reachOutCount}</span>
+              <span>
+                <span className="text-gray-500">Posted </span>
+                <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
+              </span>
+              <span className="hidden sm:inline text-gray-400 mx-1">·</span>
+              <span>
+                <span className="text-gray-500">Interested providers: </span>
+                <span className="font-semibold text-gray-700">{reachOutCount}</span>
+              </span>
             </>
           )}
-        </span>
+        </div>
 
-        {/* Badges: show both profile status and outreach status when relevant */}
-        <div className="flex items-center gap-2">
+        {/* Badges: stacked on mobile, row on desktop */}
+        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-2 shrink-0">
           {profileStatusBadge && (
-            <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none ${profileStatusBadge.bgClass} ${profileStatusBadge.textClass} border ${profileStatusBadge.borderClass}`}>
+            <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none whitespace-nowrap ${profileStatusBadge.bgClass} ${profileStatusBadge.textClass} border ${profileStatusBadge.borderClass}`}>
               {profileStatusBadge.label}
             </span>
           )}
           {statusBadge && (
-            <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none ${statusBadge.bgClass} ${statusBadge.textClass} border ${statusBadge.borderClass}`}>
+            <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none whitespace-nowrap ${statusBadge.bgClass} ${statusBadge.textClass} border ${statusBadge.borderClass}`}>
               {statusBadge.label}
             </span>
           )}

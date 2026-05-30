@@ -37,10 +37,10 @@ export async function DELETE() {
       return NextResponse.json({ success: true });
     }
 
-    // Get profiles with metadata to extract enrichment session IDs
+    // Get profiles with metadata to extract enrichment session IDs and check for seeded profiles
     const { data: profiles } = await admin
       .from("business_profiles")
-      .select("id, metadata")
+      .select("id, metadata, source_provider_id")
       .eq("account_id", account.id);
 
     const profileIds = (profiles || []).map((p: { id: string }) => p.id);
@@ -53,18 +53,64 @@ export async function DELETE() {
       .filter((id): id is string => !!id);
 
     if (profileIds.length > 0) {
-      // Delete connections
-      await admin
-        .from("connections")
-        .delete()
-        .or(
-          profileIds
-            .map(
-              (id: string) =>
-                `from_profile_id.eq.${id},to_profile_id.eq.${id}`
-            )
-            .join(",")
-        );
+      // Soft-delete connections instead of hard-deleting
+      // This preserves connection history for the other party
+      for (const profileId of profileIds) {
+        const { data: existingConnections } = await admin
+          .from("connections")
+          .select("id, metadata")
+          .or(`from_profile_id.eq.${profileId},to_profile_id.eq.${profileId}`);
+
+        if (existingConnections && existingConnections.length > 0) {
+          for (const conn of existingConnections) {
+            const existingMeta = (conn.metadata as Record<string, unknown>) || {};
+            await admin
+              .from("connections")
+              .update({
+                metadata: {
+                  ...existingMeta,
+                  profile_deleted: true,
+                  profile_deleted_at: new Date().toISOString(),
+                  deleted_profile_id: profileId,
+                  account_deleted: true,
+                },
+              })
+              .eq("id", conn.id);
+          }
+        }
+      }
+
+      // Soft-delete profiles: set is_active = false and detach from account
+      // Detaching (account_id = null) prevents CASCADE delete when account is removed
+      // For seeded/claimed profiles, reset claim_state to allow reclaiming
+      for (const profileId of profileIds) {
+        const profileData = profiles?.find((p: { id: string }) => p.id === profileId) as {
+          id: string;
+          metadata?: Record<string, unknown>;
+          source_provider_id?: string;
+        } | undefined;
+
+        const updateData: Record<string, unknown> = {
+          is_active: false,
+          account_id: null,
+          metadata: {
+            ...(profileData?.metadata || {}),
+            deleted_at: new Date().toISOString(),
+            deleted_by_account_deletion: true,
+            original_account_id: account.id,
+          },
+        };
+
+        // For seeded profiles, reset claim_state to allow reclaiming
+        if (profileData?.source_provider_id) {
+          updateData.claim_state = "unclaimed";
+        }
+
+        await admin
+          .from("business_profiles")
+          .update(updateData)
+          .eq("id", profileId);
+      }
 
       // Delete provider_activity records by profile_id (for non-anonymous events)
       await admin
@@ -90,11 +136,8 @@ export async function DELETE() {
       }
     }
 
-    // Delete business profiles
-    await admin
-      .from("business_profiles")
-      .delete()
-      .eq("account_id", account.id);
+    // Business profiles are already soft-deleted and detached above
+    // No need to hard-delete them - they're preserved for connection history
 
     // Delete memberships
     await admin

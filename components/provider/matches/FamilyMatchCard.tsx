@@ -493,33 +493,41 @@ export default function FamilyMatchCard({
       }}
       onClick={handleClick}
     >
-      {/* META BAR - stacks on mobile, row on desktop */}
-      <div className="px-5 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-        {/* Time + Interest count */}
-        <div className="flex flex-wrap items-center gap-x-1.5 text-[13px]">
+      {/* META BAR - row layout with stacked content on mobile */}
+      <div className="px-5 py-3 flex items-start sm:items-center justify-between gap-3">
+        {/* Time + Interest count - stacked on mobile, inline on desktop */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-x-1.5 text-[13px]">
           {sentAt ? (
             // Outreach mode: show when message was sent + interest count
             <>
-              <span className="text-gray-500">Sent</span>
-              <span className="font-semibold text-gray-700">{timeAgo(sentAt)}</span>
-              <span className="text-gray-400">·</span>
-              <span className="text-gray-500">Interested:</span>
-              <span className="font-semibold text-gray-700">{reachOutCount}</span>
+              <span>
+                <span className="text-gray-500">Sent </span>
+                <span className="font-semibold text-gray-700">{timeAgo(sentAt)}</span>
+              </span>
+              <span className="hidden sm:inline text-gray-400 mx-1">·</span>
+              <span>
+                <span className="text-gray-500">Interested providers: </span>
+                <span className="font-semibold text-gray-700">{reachOutCount}</span>
+              </span>
             </>
           ) : (
             // Discovery mode: show when family posted + interest count
             <>
-              <span className="text-gray-500">Posted</span>
-              <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
-              <span className="text-gray-400">·</span>
-              <span className="text-gray-500">Interested:</span>
-              <span className="font-semibold text-gray-700">{reachOutCount}</span>
+              <span>
+                <span className="text-gray-500">Posted </span>
+                <span className="font-semibold text-gray-700">{timeAgo(publishedAt)}</span>
+              </span>
+              <span className="hidden sm:inline text-gray-400 mx-1">·</span>
+              <span>
+                <span className="text-gray-500">Interested providers: </span>
+                <span className="font-semibold text-gray-700">{reachOutCount}</span>
+              </span>
             </>
           )}
         </div>
 
-        {/* Badges: show both profile status and outreach status when relevant */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        {/* Badges: stacked on mobile, row on desktop */}
+        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-2 shrink-0">
           {profileStatusBadge && (
             <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[11px] font-medium leading-none whitespace-nowrap ${profileStatusBadge.bgClass} ${profileStatusBadge.textClass} border ${profileStatusBadge.borderClass}`}>
               {profileStatusBadge.label}

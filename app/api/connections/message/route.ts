@@ -198,6 +198,9 @@ export async function POST(request: Request) {
           }
         }
 
+        // Check if provider has claimed their listing (used for routing)
+        const isClaimed = !!recipientProfile?.account_id;
+
         console.log("[message] email resolution:", {
           recipientProfileId,
           recipientType: recipientProfile?.type,
@@ -205,6 +208,7 @@ export async function POST(request: Request) {
           hasEmail: !!recipientEmail,
           emailSource: recipientEmail ? (emailSource === "profile" ? "profile" : "auth") : "none",
           hasAccountId: !!recipientProfile?.account_id,
+          isClaimed,
         });
 
         if (recipientEmail) {
@@ -230,7 +234,6 @@ export async function POST(request: Request) {
           // - Unclaimed providers → /provider/[slug]/onboard (to claim first)
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
           let viewUrl: string;
-          const isClaimed = !!recipientProfile?.account_id;
 
           if (isFamily) {
             viewUrl = appendTrackingParams(`${siteUrl}/portal/inbox?id=${connectionId}`, msgEmailLogId);
@@ -336,8 +339,10 @@ export async function POST(request: Request) {
                 },
                 fallbackBody: `New message from ${senderLabel} on Olera:\n\n"${waPreview}"\n\nReply now: ${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}${
                   recipientProfile?.type === "family"
-                    ? "/portal/inbox"
-                    : `/provider/${recipientProfile?.slug || recipientProfile?.source_provider_id || recipientProfileId}/onboard?action=message&actionId=${connectionId}`
+                    ? `/portal/inbox?id=${connectionId}`
+                    : isClaimed
+                      ? `/portal/inbox?role=provider&id=${connectionId}`
+                      : `/provider/${recipientProfile?.slug || recipientProfile?.source_provider_id || recipientProfileId}/onboard?action=message&actionId=${connectionId}`
                 }`,
                 messageType: "new_message",
                 recipientType: recipientProfile?.type === "family" ? "family" : "provider",

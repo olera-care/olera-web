@@ -159,6 +159,14 @@ export async function POST(request: Request) {
         .filter((m) => m.from_profile_id === recipientProfileId)
         .some((m) => new Date(m.created_at).getTime() > fiveMinAgo);
 
+      console.log("[message] notification check:", {
+        senderProfileId: profileId,
+        recipientProfileId,
+        connectionId,
+        recentRecipientMsg,
+        willSendEmail: !recentRecipientMsg,
+      });
+
       if (!recentRecipientMsg) {
         const [{ data: senderProfile }, { data: recipientProfile }] =
           await Promise.all([
@@ -176,6 +184,8 @@ export async function POST(request: Request) {
 
         // Resolve recipient email: business_profiles.email → accounts → auth.users
         let recipientEmail = recipientProfile?.email;
+        const emailSource = recipientEmail ? "profile" : "none";
+
         if (!recipientEmail && recipientProfile?.account_id) {
           const { data: acct } = await admin
             .from("accounts")
@@ -187,6 +197,15 @@ export async function POST(request: Request) {
             recipientEmail = authUser?.email;
           }
         }
+
+        console.log("[message] email resolution:", {
+          recipientProfileId,
+          recipientType: recipientProfile?.type,
+          recipientName: recipientProfile?.display_name,
+          hasEmail: !!recipientEmail,
+          emailSource: recipientEmail ? (emailSource === "profile" ? "profile" : "auth") : "none",
+          hasAccountId: !!recipientProfile?.account_id,
+        });
 
         if (recipientEmail) {
           const preview =
@@ -238,6 +257,14 @@ export async function POST(request: Request) {
             }
           }
 
+          console.log("[message] sending email notification:", {
+            to: recipientEmail,
+            subject: msgSubject,
+            recipientType: isFamily ? "family" : "provider",
+            senderName: senderProfile?.display_name,
+            emailLogId: msgEmailLogId,
+          });
+
           await sendEmail({
             to: recipientEmail,
             subject: msgSubject,
@@ -252,6 +279,14 @@ export async function POST(request: Request) {
             providerId: !isFamily ? recipientProfileId : undefined,
             emailLogId: msgEmailLogId ?? undefined,
             recipientProfileId,
+          });
+
+          console.log("[message] email sent successfully to:", recipientEmail);
+        } else {
+          console.warn("[message] no email found for recipient:", {
+            recipientProfileId,
+            recipientType: recipientProfile?.type,
+            recipientName: recipientProfile?.display_name,
           });
         }
 

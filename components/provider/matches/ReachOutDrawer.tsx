@@ -1166,7 +1166,7 @@ ${context}${urgencyNote}. I'd love to help.
         alt="Message sent"
         width={180}
         height={180}
-        className="mb-6"
+        className="mb-3"
       />
       <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
         Message sent!
@@ -1176,18 +1176,18 @@ ${context}${urgencyNote}. I'd love to help.
           ? "We'll notify you when they respond."
           : `We'll notify you when ${firstName} responds.`}
       </p>
-      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+      <div className="flex flex-row gap-3 w-full max-w-sm">
         <button
           type="button"
           onClick={handleViewOutreach}
-          className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+          className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors whitespace-nowrap"
         >
           View Outreach
         </button>
         <button
           type="button"
           onClick={handleDone}
-          className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"
+          className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors whitespace-nowrap"
         >
           Done
         </button>

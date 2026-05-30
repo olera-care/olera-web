@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import type { Connection, Profile } from "@/lib/types";
-import { avatarGradient, blurName } from "./ConnectionDetailContent";
+import { avatarGradient, blurName } from "@/lib/connection-display-utils";
 
 export interface ConnectionWithProfile extends Connection {
   fromProfile: Profile | null;

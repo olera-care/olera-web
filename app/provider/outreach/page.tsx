@@ -13,7 +13,7 @@ import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
-type OutreachStatus = "pending" | "connected" | "declined" | "past";
+type OutreachStatus = "pending" | "connected" | "declined";
 // Profile status must match matches/page.tsx and FamilyMatchCard/ReachOutDrawer types
 type ProfileStatus = "active" | "paused" | "found_care" | "deleted";
 
@@ -36,7 +36,6 @@ const TABS: { id: OutreachStatus; label: string }[] = [
   { id: "pending", label: "Pending" },
   { id: "connected", label: "Connected" },
   { id: "declined", label: "Declined" },
-  { id: "past", label: "Past" },
 ];
 
 // Helper to determine family profile status from is_active flag and metadata
@@ -80,12 +79,6 @@ function EmptyState({ status }: { status: OutreachStatus }) {
       description: "Outreach that didn't result in a connection will appear here.",
       showButton: false,
     },
-    past: {
-      image: "/Declined.png",
-      title: "No past connections",
-      description: "Connections that ended or were withdrawn will appear here.",
-      showButton: false,
-    },
   };
 
   const { image, title, description, showButton } = content[status];
@@ -122,7 +115,7 @@ function EmptyState({ status }: { status: OutreachStatus }) {
 
 // Validate status parameter
 function isValidStatus(status: string | null): status is OutreachStatus {
-  return status === "pending" || status === "connected" || status === "declined" || status === "past";
+  return status === "pending" || status === "connected" || status === "declined";
 }
 
 function OutreachPageContent() {
@@ -220,7 +213,7 @@ function OutreachPageContent() {
           `)
           .eq("from_profile_id", account.active_profile_id)
           .eq("type", "request")
-          .in("status", ["pending", "accepted", "declined", "expired"])
+          .in("status", ["pending", "accepted", "declined"])
           .order("created_at", { ascending: false });
 
         if (connError) {
@@ -269,8 +262,6 @@ function OutreachPageContent() {
             let uiStatus: OutreachStatus;
             if (conn.status === "accepted") {
               uiStatus = "connected";
-            } else if (conn.status === "expired") {
-              uiStatus = "past";
             } else {
               uiStatus = conn.status as OutreachStatus;
             }
@@ -349,7 +340,6 @@ function OutreachPageContent() {
     pending: outreachItems.filter((i) => i.status === "pending").length,
     connected: outreachItems.filter((i) => i.status === "connected").length,
     declined: outreachItems.filter((i) => i.status === "declined").length,
-    past: outreachItems.filter((i) => i.status === "past").length,
   }), [outreachItems]);
 
 
@@ -442,8 +432,7 @@ function OutreachPageContent() {
                 hasFullAccess={true}
                 providerCareTypes={providerProfile?.care_types || []}
                 contacted={true}
-                // "past" maps to "declined" for badge display purposes (ended/withdrawn connections)
-                outreachStatus={item.status === "past" ? "declined" : item.status}
+                outreachStatus={item.status}
                 onReachOut={() => openDrawer(item)}
                 animationDelay={idx * 50}
                 sentAt={item.sentAt}
@@ -465,8 +454,7 @@ function OutreachPageContent() {
         mode="view"
         sentMessage={selectedItem?.message || undefined}
         sentAt={selectedItem?.sentAt}
-        // "past" maps to "declined" for badge display (ended/withdrawn connections)
-        outreachStatus={selectedItem?.status === "past" ? "declined" : selectedItem?.status}
+        outreachStatus={selectedItem?.status}
         profileStatus={selectedItem?.profileStatus}
       />
     </div>

@@ -74,10 +74,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch the profiles using service client (bypasses RLS)
-    // Include is_active so we can determine true profile status
+    // Include same fields as main query + is_active for status detection
+    // Fields match: app/provider/matches/page.tsx familiesRes query
     const { data: profiles } = await serviceClient
       .from("business_profiles")
-      .select("id, display_name, image_url, city, state, phone, email, care_types, metadata, created_at, is_active")
+      .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at, is_active, phone, email")
       .in("id", validProfileIds);
 
     return NextResponse.json({ profiles: profiles || [] });

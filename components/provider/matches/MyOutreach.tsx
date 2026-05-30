@@ -9,7 +9,7 @@ interface ConnectionInfo {
   id: string;
   message: string | null;
   created_at: string;
-  status: "pending" | "accepted" | "declined";
+  status: "pending" | "accepted" | "declined" | "expired";
   reply_message?: string | null;
   replied_at?: string | null;
 }
@@ -53,7 +53,8 @@ export default function MyOutreach({
       let category: "pending" | "active" | "archived";
       if (conn.status === "accepted") {
         category = "active";
-      } else if (conn.status === "declined") {
+      } else if (conn.status === "declined" || conn.status === "expired") {
+        // Both declined and expired connections are "archived" (ended)
         category = "archived";
       } else {
         category = "pending";

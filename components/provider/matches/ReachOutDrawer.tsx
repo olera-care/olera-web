@@ -34,7 +34,7 @@ interface ReachOutDrawerProps {
   /** Callback when AI message generation succeeds - for analytics tracking */
   onAIGenerate?: (familyId: string, tone: string) => void;
   /** Profile status for inactive family handling */
-  profileStatus?: "active" | "paused" | "deleted";
+  profileStatus?: "active" | "paused" | "found_care" | "deleted";
 }
 
 // ── Helpers ──
@@ -912,14 +912,19 @@ ${context}${urgencyNote}. I'd love to help.
               <p className={`text-base font-medium flex items-center gap-1.5 ${
                 profileStatus === "active" ? "text-emerald-600"
                   : profileStatus === "paused" ? "text-amber-600"
+                  : profileStatus === "found_care" ? "text-blue-600"
                   : "text-gray-500"
               }`}>
                 <span className={`w-2 h-2 rounded-full ${
                   profileStatus === "active" ? "bg-emerald-500"
-                    : profileStatus === "paused" ? "bg-amber-500" : "bg-gray-400"
+                    : profileStatus === "paused" ? "bg-amber-500"
+                    : profileStatus === "found_care" ? "bg-blue-500"
+                    : "bg-gray-400"
                 }`} />
                 {profileStatus === "active" ? "Profile Active"
-                  : profileStatus === "paused" ? "Profile Paused" : "Profile Deleted"}
+                  : profileStatus === "paused" ? "Profile Paused"
+                  : profileStatus === "found_care" ? "Found Care"
+                  : "No Longer Active"}
               </p>
             </div>
           </div>
@@ -1191,7 +1196,9 @@ ${context}${urgencyNote}. I'd love to help.
   );
 
   // ── Sticky Footer Content (Compose Mode) ──
-  const isInactive = profileStatus !== "active";
+  // Only block messaging for found_care and deleted - paused profiles can still receive messages
+  const isInactive = profileStatus === "found_care" || profileStatus === "deleted";
+  const isPaused = profileStatus === "paused";
 
   const StickyFooterCompose = (
     <>
@@ -1200,11 +1207,19 @@ ${context}${urgencyNote}. I'd love to help.
           <p className="text-sm text-rose-600">{sendError}</p>
         </div>
       )}
+      {isPaused && (
+        <div className="mb-3 px-3 py-3 bg-amber-50 border border-amber-100 rounded-lg">
+          <p className="text-sm text-amber-700">
+            <span className="font-medium">This family has paused their search.</span>{" "}
+            You can still send a message — they&apos;ll see it when they resume.
+          </p>
+        </div>
+      )}
       {isInactive && (
         <div className="mb-3 px-3 py-3 bg-gray-50 border border-gray-200 rounded-lg">
           <p className="text-sm text-gray-600">
-            <span className="font-medium">This family&apos;s profile is no longer active.</span>{" "}
-            They may have found care or their needs changed.
+            <span className="font-medium">{profileStatus === "found_care" ? "This family found care." : "This family\u0027s profile is no longer active."}</span>{" "}
+            {profileStatus === "found_care" ? "They\u0027ve resolved their care needs." : "They may have left the platform or their needs changed."}
           </p>
         </div>
       )}
@@ -1214,7 +1229,7 @@ ${context}${urgencyNote}. I'd love to help.
             disabled
             className="w-full px-4 py-3.5 bg-gray-100 text-gray-400 text-sm font-semibold rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Cannot message inactive profile
+            {profileStatus === "found_care" ? "Family found care" : "Profile no longer active"}
           </button>
         ) : !isVerified ? (
           <button

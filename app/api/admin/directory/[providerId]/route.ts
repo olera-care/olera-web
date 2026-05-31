@@ -428,22 +428,28 @@ export async function PATCH(
       });
     }
 
-    // If email was added (empty → non-empty), send deferred notifications for leads AND questions
-    const emailAdded = "email" in updates
-      && updates.email
-      && !current.email;
+    // If email was changed (added or updated), sync to business_profiles
+    const emailChanged = "email" in updates && updates.email !== current.email;
+    const emailAdded = emailChanged && !current.email; // Was empty, now has value
 
+    // Always sync email to business_profiles when it changes (fix: was only syncing on add)
+    if (emailChanged && updates.email) {
+      const newEmail = updates.email as string;
+      console.log("[email-sync] Email changed for provider:", providerId, "→", newEmail);
+
+      const { error: syncErr } = await db
+        .from("business_profiles")
+        .update({ email: newEmail })
+        .eq("source_provider_id", providerId);
+      console.log("[email-sync] business_profiles sync:", syncErr ? `ERROR: ${syncErr.message}` : "OK");
+    }
+
+    // Only send deferred notifications when email is FIRST added (not when changed)
+    // If provider already had email, notifications were sent before
     if (emailAdded) {
       try {
         const newEmail = updates.email as string;
         console.log("[deferred-email] Email added for provider:", providerId, "→", newEmail);
-
-        // Sync email to business_profiles so future connections aren't flagged
-        const { error: syncErr } = await db
-          .from("business_profiles")
-          .update({ email: newEmail })
-          .eq("source_provider_id", providerId);
-        console.log("[deferred-email] business_profiles sync:", syncErr ? `ERROR: ${syncErr.message}` : "OK");
 
         // Find linked business_profile
         const { data: bp } = await db

@@ -158,6 +158,31 @@ export async function GET(req: NextRequest) {
     to_profile: Array.isArray(c.to_profile) ? c.to_profile[0] ?? null : c.to_profile,
   }));
 
+  // Get source_provider_ids for providers without email in business_profiles
+  // to check olera-providers as fallback (emails may exist there from legacy data)
+  const sourceProviderIds = connections
+    .map((c) => {
+      if (!c.to_profile || c.to_profile.is_active === false || c.to_profile.email) return null;
+      return c.to_profile.source_provider_id;
+    })
+    .filter(Boolean) as string[];
+
+  // Look up emails in olera-providers
+  const oleraEmailMap = new Map<string, string>();
+  if (sourceProviderIds.length > 0) {
+    const { data: oleraProviders } = await db
+      .from("olera-providers")
+      .select("provider_id, email")
+      .in("provider_id", sourceProviderIds)
+      .not("deleted", "is", true);
+
+    for (const p of oleraProviders ?? []) {
+      if (p.email) {
+        oleraEmailMap.set(p.provider_id, p.email);
+      }
+    }
+  }
+
   // Process connections to determine response status and build leads list
   const allLeads: ResponseLead[] = [];
 
@@ -233,6 +258,13 @@ export async function GET(req: NextRequest) {
     const carePost = familyMeta.care_post as { status?: string } | undefined;
     const familyIsPublished = carePost?.status === "active";
 
+    // Get provider email from business_profiles OR olera-providers fallback
+    const bpEmail = conn.to_profile?.email || null;
+    const oleraEmail = conn.to_profile?.source_provider_id
+      ? oleraEmailMap.get(conn.to_profile.source_provider_id) || null
+      : null;
+    const effectiveProviderEmail = bpEmail || oleraEmail;
+
     allLeads.push({
       connection_id: conn.id,
       family_id: conn.from_profile_id || "",
@@ -245,7 +277,7 @@ export async function GET(req: NextRequest) {
       family_publish_nudged_at: familyPublishNudgedAt,
       provider_id: conn.to_profile_id || "",
       provider_name: conn.to_profile?.display_name || "Unknown",
-      provider_email: conn.to_profile?.email || null,
+      provider_email: effectiveProviderEmail,
       provider_phone: conn.to_profile?.phone || null,
       provider_slug: conn.to_profile?.slug || conn.to_profile?.source_provider_id || "",
       provider_completeness: providerCompleteness,

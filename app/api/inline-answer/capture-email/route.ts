@@ -287,12 +287,13 @@ export async function POST(req: Request) {
   // ═══════════════════════════════════════════════════════════════════
   // Lookup provider info and sync to profile so users get 31% completeness
   // (email 10 + name 5 + city 8 + care_types 8 = 31) instead of just 15%
+  // Note: providerId from frontend is the SLUG, not UUID
   if (providerId) {
     try {
       const { data: provider } = await db
         .from("business_profiles")
         .select("city, state, category")
-        .eq("id", providerId)
+        .eq("slug", providerId)
         .single();
 
       if (provider) {

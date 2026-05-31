@@ -7,6 +7,31 @@
 
 ## Current Focus
 
+### 2026-05-30 (Sat) — Spec'd two provider-outreach enrichment tasks (Notion only, no code)
+
+**Context:** Tracing back the May 21 "Provider Outreach System: Testing & Improvements" meeting — TJ's engineering half of the split with Esther. Esther's three CRM bugs (sequence-continues-on-reply, drop address from pre-flight, site/city population) are all **Done**; TJ owns two automation augmentations. Goal of the session: fully spec both before TJ has bandwidth to build (TJ caught a flight at the end).
+
+**The two tasks (Web App board, Owner TJ, P1🔥, Backend, To Do):**
+- 📧 **Auto-fetch provider emails** — https://www.notion.so/3705903a0ffe81d096e7c994ab1565af
+- 🔗 **Auto-fetch provider contact-form URLs** — https://www.notion.so/3705903a0ffe81ffba5aec6da698cb8a
+- Old blank meeting-action-item stubs (Apollo/SNOV titled) → **trashed** (Esther's items left intact).
+
+**Key verified facts (the research that shaped the specs):**
+- **Live system = MedJobs CRM, `student_outreach` (kind='provider'), `/admin/medjobs/*`.** `staffing_outreach` is RETIRED (AdminSidebar v9.0 Phase 7 Commit K). `/admin/outreach` = unrelated `connections`/family-lead domain.
+- **Materialize SNAPSHOTS the directory — no live read-through** (`app/api/admin/medjobs/provider-prospects/materialize/route.ts:111-117`): copies `olera-providers.email/phone/website` into `research_data.general_contact` once, keeps back-ref `research_data.olera_provider_id`. So directory enrichment only helps FUTURE materializations; already-materialized empty rows need a direct `research_data` write. Snapshot does NOT carry contact_form_url.
+- **No email/contact-form fetcher exists** — the city-pipeline skill documents a "Fetch Email & Contact Info" step that was never coded into `enrich-city.js`. These tasks close that gap.
+
+**Decisions made (with why):**
+- **City-pipeline toolchain, NOT Apollo/Snov** (TJ's call): Perplexity Sonar + Google Places + website scrape, batched, env-gated, `CostTracker`/`fetchWithRetry`/`sleep`. Verify via `lib/email-verification.ts` (ZeroBounce) before writing. Scrape-first, Perplexity only for stragglers (Sonar ~$8/1k with search fees).
+- **Trigger = batch pipeline + drawer button** (TJ picked): batch enrich is the workhorse (directory for email; over `student_outreach` rows for contact-form since `olera-providers` has no such column); "Find email / Find contact form" button in `SnapshotCard` General Contact is the per-row escape hatch — rides existing inline-edit path, so no `route.ts` action / touchpoint / enum (G1–G4 clean). NOT auto-on-materialize (latency + blanket cost).
+- **Contact-form persistence: Option A** (write to `research_data.general_contact.contact_form_url` on outreach rows). Option B (directory column) would also need a `materialize` snapshot change — strictly more work.
+
+**Resume next session here →** (1) Build the **email batch pipeline first** (natural first slice), then the contact-form pipeline, then the thin drawer buttons. (2) Both cards have full waterfall + house-pattern + verification criteria. (3) Memory: `project_provider_outreach_enrichment`. (4) Scripts run from `~/Desktop/olera-web` (worktrees lack node_modules); symlink `.env.local`.
+
+**Also created (personal tooling, outside this repo):** `/find-branch` slash command at `~/Desktop/TJ-hq/.claude/skills/find-branch/SKILL.md` — maps branch ↔ worktree path and prints a copy-paste `cd` (worktree codenames ≠ branch names; 150+ of them). Uses `git worktree list | grep` + `ls -dt` (not `stat` — not on PATH in the tool shell). Restart Claude Code to load it into `/` autocomplete.
+
+---
+
 ### 2026-05-22 (Fri) — Comfort Keepers (College Station) engagement kickoff (no code)
 
 **Context:** TJ met with Susan (Comfort Keepers, ~5 yrs, caregiver-recruiting side) — a home care agency, 20 yrs in Bryan-College Station, warm relationship (we've helped them recruit before). First time in Susan's tenure they have **more caregivers than clients**, so the ask flipped: they need family/client lead-gen, not recruiting. Lead volume down (word-of-mouth + past-client referrals dried up); competition ~doubled in 5 yrs (new franchises, Houston entrants, cheap private caregivers); their paid ads skew to recruiting (Meta great for caregivers, weak for family leads); most family leads still organic Google; families increasingly source recs in local FB groups (B-CS women's group) where CK isn't present.

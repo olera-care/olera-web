@@ -7,6 +7,34 @@
 
 ## Current Focus
 
+### 2026-05-31 (Sun) — BLOCKER found: MedJobs directory-provider materialize fails on a vestigial DB constraint (PARKED, pending Logan/Grazie)
+
+**Context:** Started the email-fetcher build by going to `/admin/medjobs/in-basket` → Prospects → PROVIDER PROSPECTS (1/206) to observe the empty-email pre-flight state. Clicking any directory provider ("Start outreach" → materialize) **hard-errors** before the drawer opens:
+> `new row for relation "student_outreach" violates check constraint "student_outreach_kind_provider_link_check"`
+
+**Diagnosis (deep dive, high confidence):** A schema rule contradicts how the app works.
+- **Migration 072** added `student_outreach_kind_provider_link_check`: provider rows MUST have a non-null `provider_business_profile_id` (FK → `business_profiles`). Written when provider prospects were assumed business-profile-backed.
+- **Materialize endpoint** (`app/api/admin/medjobs/provider-prospects/materialize/route.ts:128`) now sources from the **`olera-providers` 75K directory** (no business_profiles row), inserts FK `null`, links via `research_data.olera_provider_id`. → violates 072.
+- **It's a vestige, not a real invariant.** Every other consumer was migrated to the directory model: dedup (`provider-prospects/route.ts:76`), counts (`prospect-counts.ts:114`), drawer load (`[id]/route.ts:522` loads bp only if FK present), and conversion (`handleMakeClient` `[id]/route.ts:2805` **lazily CREATES** the business_profiles row at convert-time then backfills the FK). Only 072's constraint was never relaxed — nothing in migrations 073→096 touches it.
+- **Migration 073** fixed the *sibling* constraint (`stakeholder_type` → NULL ok for providers) but missed this one.
+
+**Proposed fix (NOT applied — parked):** surgical constraint relax —
+```sql
+ALTER TABLE student_outreach DROP CONSTRAINT IF EXISTS student_outreach_kind_provider_link_check;
+ALTER TABLE student_outreach ADD CONSTRAINT student_outreach_kind_provider_link_check
+  CHECK ( kind = 'provider' OR provider_business_profile_id IS NULL );
+```
+(Keeps the half that matters: non-provider rows must keep FK null. Conversion still works — it sets FK non-null, allowed.)
+
+**Open questions / blindspots before touching it:**
+1. **Regression vs latent?** If materialize always inserted null FK and 072 was live, the directory path should've NEVER worked — yet `1/206` is materialized. Did it ever work / when did it break? What IS that 1 row (real bp, or null FK created before the constraint)?
+2. **How are migrations applied to the live Supabase?** Auto-runner on deploy, or hand-pasted SQL? (single shared instance; known drift — schema.sql enums vs prod TEXT+CHECK). **Verify the live constraint via `pg_constraint` before altering — don't trust the file.**
+3. Single instance ⇒ this breaks **production** too, not just the test view.
+
+**Status: PARKED.** Per Slack (#ai-product-development thread, TJ→Logan/Esther/Graize): Esther confirms "the medjobs system has some of these errors"; decision = look into it **after hearing back from Logan & Grazie**, alongside more walkthroughs to get everyone on the same page. Do NOT fix unilaterally. **Resume:** bring this diagnosis to the Logan/Grazie sync; answer Q1/Q2 first; then (if confirmed) ship the constraint relax as migration `097` + run it live. This is **upstream of** the email-fetcher — can't build/test enrichment until materialize works.
+
+---
+
 ### 2026-05-30 (Sat) — Spec'd two provider-outreach enrichment tasks (Notion only, no code)
 
 **Context:** Tracing back the May 21 "Provider Outreach System: Testing & Improvements" meeting — TJ's engineering half of the split with Esther. Esther's three CRM bugs (sequence-continues-on-reply, drop address from pre-flight, site/city population) are all **Done**; TJ owns two automation augmentations. Goal of the session: fully spec both before TJ has bandwidth to build (TJ caught a flight at the end).

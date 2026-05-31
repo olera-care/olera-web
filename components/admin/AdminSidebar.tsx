@@ -73,6 +73,7 @@ const navSections: NavSection[] = [
       // /admin/staffing-outreach route still resolves for any
       // bookmarks during transition.
       { label: "Team", href: "/admin/team" },
+      { label: "Tools", href: "/admin/tools" },
     ],
   },
 ];

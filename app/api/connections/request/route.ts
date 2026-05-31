@@ -463,17 +463,8 @@ async function handleGuestConnection({
     }
   }
 
-  // Sync intent data to profile
-  try {
-    await syncIntentToProfile(db, fromProfileId, {
-      careRecipient: intentData.careRecipient,
-      careType: intentData.careType,
-      urgency: intentData.urgency,
-      additionalNotes: intentData.additionalNotes,
-    });
-  } catch (syncErr) {
-    console.error("Failed to sync intent to profile:", syncErr);
-  }
+  // NOTE: syncIntentToProfile is called AFTER provider info is resolved
+  // so we can include providerCity/providerState for completeness calculation
 
   // Resolve target provider (same logic as authenticated flow)
   let toProfileId: string;
@@ -627,23 +618,19 @@ async function handleGuestConnection({
     // Non-blocking
   }
 
-  // Pre-fill seeker's location from provider's city if seeker has none
-  if (providerCity && fromProfileId) {
-    try {
-      const { data: seekerProfile } = await db
-        .from("business_profiles")
-        .select("city")
-        .eq("id", fromProfileId)
-        .single();
-      if (seekerProfile && !seekerProfile.city) {
-        await db
-          .from("business_profiles")
-          .update({ city: providerCity, state: providerState })
-          .eq("id", fromProfileId);
-      }
-    } catch {
-      // Non-blocking
-    }
+  // Sync intent data to profile (includes city + care type pre-fill and completeness calculation)
+  try {
+    await syncIntentToProfile(db, fromProfileId, {
+      careRecipient: intentData.careRecipient,
+      careType: intentData.careType,
+      urgency: intentData.urgency,
+      additionalNotes: intentData.additionalNotes,
+      providerCity,
+      providerState,
+      providerCategory: providerCategoryForWa,
+    }, normalizedEmail);
+  } catch (syncErr) {
+    console.error("Failed to sync intent to profile:", syncErr);
   }
 
   // Build message payload with all available seeker info
@@ -1982,7 +1969,10 @@ export async function POST(request: Request) {
           careType: intentData.careType,
           urgency: intentData.urgency,
           additionalNotes: intentData.additionalNotes,
-        });
+          providerCity,
+          providerState,
+          providerCategory: providerCategoryAuth,
+        }, user.email);
       } catch (syncErr) {
         // Non-blocking — connection was created, profile sync is best-effort
         console.error("Failed to sync intent to profile:", syncErr);

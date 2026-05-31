@@ -23,6 +23,8 @@ export interface IntentData {
   providerCity?: string | null;
   /** Provider's state — used to pre-fill seeker location if empty */
   providerState?: string | null;
+  /** Provider's category — used to pre-fill seeker care_types if empty */
+  providerCategory?: string | null;
   // Extended enrichment fields (post-CTA flow)
   /** Care need selected in enrichment (maps to metadata.care_needs[]) */
   careNeed?: string | null;
@@ -63,6 +65,38 @@ const careTypeMap: Record<string, string> = {
   memory_care: "Memory Care",
   nursing_home: "Nursing Home",
   independent_living: "Independent Living",
+};
+
+/** Maps provider category → enrichment care type value (used to auto-fill seeker care_types) */
+const categoryToCareType: Record<string, string> = {
+  // Database format (from profile.category)
+  home_care_agency: "home_care",
+  home_health_agency: "home_health",
+  hospice_agency: "home_health",
+  assisted_living: "assisted_living",
+  memory_care: "memory_care",
+  nursing_home: "nursing_home",
+  independent_living: "independent_living",
+  adult_day_care: "home_care",
+  inpatient_hospice: "home_health",
+  rehab_facility: "home_health",
+  wellness_center: "home_care",
+  private_caregiver: "home_care",
+  // Display format (fallback for any providers with display-format categories)
+  "Home Care": "home_care",
+  "Home Care (Non-medical)": "home_care",
+  "Home Health Care": "home_health",
+  "Home Health": "home_health",
+  "Assisted Living": "assisted_living",
+  "Memory Care": "memory_care",
+  "Nursing Home": "nursing_home",
+  "Independent Living": "independent_living",
+  "Hospice": "home_health",
+  "Inpatient Hospice": "home_health",
+  "Adult Day Care": "home_care",
+  "Rehabilitation": "home_health",
+  "Wellness Center": "home_care",
+  "Private Caregiver": "home_care",
 };
 
 /** Maps enrichment careNeed value → profile metadata.care_needs[] display value */
@@ -145,8 +179,11 @@ export async function syncIntentToProfile(
   updates.metadata = currentMeta;
 
   // Map careType → care_types[] (append-only)
-  if (intent.careType && careTypeMap[intent.careType]) {
-    const displayName = careTypeMap[intent.careType];
+  // If no careType provided, fall back to providerCategory to auto-fill
+  const effectiveCareType = intent.careType ||
+    (intent.providerCategory ? categoryToCareType[intent.providerCategory] : null);
+  if (effectiveCareType && careTypeMap[effectiveCareType]) {
+    const displayName = careTypeMap[effectiveCareType];
     if (!currentCareTypes.includes(displayName)) {
       updates.care_types = [...currentCareTypes, displayName];
     }
@@ -179,15 +216,17 @@ export async function syncIntentToProfile(
     updates.display_name = intent.seekerName;
   }
 
-  // Sync seeker city/state from enrichment (only if profile location is empty)
-  if (intent.seekerCity && !currentProfile.city) {
+  // Sync seeker city/state from enrichment - user's explicit input always takes precedence
+  // (This is the user's actual location entered in step 6, should override any auto-fill)
+  if (intent.seekerCity) {
     updates.city = intent.seekerCity;
   }
-  if (intent.seekerState && !currentProfile.state) {
+  if (intent.seekerState) {
     updates.state = intent.seekerState;
   }
 
-  // Pre-fill seeker location from provider's city if seeker has none (fallback)
+  // Pre-fill seeker location from provider's city if seeker has none (fallback for bouncers)
+  // Only applies when: no seekerCity provided AND profile has no city AND no pending city update
   if (intent.providerCity && !currentProfile.city && !updates.city) {
     updates.city = intent.providerCity;
   }

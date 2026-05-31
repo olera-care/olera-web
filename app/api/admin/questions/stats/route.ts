@@ -36,12 +36,10 @@ export async function GET(request: NextRequest) {
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
     const queryStart = priorFrom ?? from ?? null;
 
-    // One query — pull everything in range+prior with metadata so we can
-    // compute both the needs-email KPI and the total-volume series from
-    // the same result set.
+    // Pull questions with provider_id so we can verify provider existence
     let q = db
       .from("provider_questions")
-      .select("created_at, status, metadata")
+      .select("created_at, status, metadata, provider_id")
       .order("created_at", { ascending: true })
       .limit(50000);
     if (queryStart) q = q.gte("created_at", queryStart.toISOString());
@@ -55,9 +53,73 @@ export async function GET(request: NextRequest) {
 
     const allRows = rows ?? [];
 
-    const isNeedsEmail = (r: (typeof allRows)[number]) => {
+    // Get unique provider IDs from questions that might need email
+    const potentialNeedsEmail = allRows.filter((r) => {
       const meta = r.metadata as Record<string, unknown> | null | undefined;
       return meta?.needs_provider_email === true && r.status !== "archived" && r.status !== "rejected";
+    });
+    const providerIds = [...new Set(potentialNeedsEmail.map((r) => r.provider_id).filter(Boolean))];
+
+    // Look up providers in business_profiles (check email and is_active)
+    const { data: bpProviders } = await db
+      .from("business_profiles")
+      .select("slug, email, is_active")
+      .in("slug", providerIds);
+
+    // Look up providers in olera-providers (legacy)
+    const { data: oleraProviders } = await db
+      .from("olera-providers")
+      .select("slug, email")
+      .in("slug", providerIds)
+      .not("deleted", "is", true);
+
+    // Build map of provider status: { exists, hasEmail, isArchived }
+    const providerStatus = new Map<string, { exists: boolean; hasEmail: boolean; isArchived: boolean }>();
+
+    // Initialize all as non-existent
+    for (const id of providerIds) {
+      providerStatus.set(id, { exists: false, hasEmail: false, isArchived: false });
+    }
+
+    // Update from business_profiles (takes precedence)
+    for (const p of bpProviders ?? []) {
+      if (p.slug) {
+        providerStatus.set(p.slug, {
+          exists: true,
+          hasEmail: !!p.email,
+          isArchived: p.is_active === false,
+        });
+      }
+    }
+
+    // Update from olera-providers (only if not already in business_profiles)
+    for (const p of oleraProviders ?? []) {
+      if (p.slug && !providerStatus.get(p.slug)?.exists) {
+        providerStatus.set(p.slug, {
+          exists: true,
+          hasEmail: !!p.email,
+          isArchived: false, // olera-providers uses "deleted" which we already filtered
+        });
+      }
+    }
+
+    // A question truly needs email if:
+    // 1. metadata.needs_provider_email === true
+    // 2. question status is not archived/rejected
+    // 3. provider exists
+    // 4. provider is not archived
+    // 5. provider doesn't already have email
+    const isNeedsEmail = (r: (typeof allRows)[number]) => {
+      const meta = r.metadata as Record<string, unknown> | null | undefined;
+      if (meta?.needs_provider_email !== true) return false;
+      if (r.status === "archived" || r.status === "rejected") return false;
+
+      const status = providerStatus.get(r.provider_id);
+      if (!status?.exists) return false; // Provider doesn't exist
+      if (status.isArchived) return false; // Provider is archived
+      if (status.hasEmail) return false; // Provider already has email
+
+      return true;
     };
 
     const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t < to : true);

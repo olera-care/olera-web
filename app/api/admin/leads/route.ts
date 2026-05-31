@@ -132,8 +132,59 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Failed to fetch leads" }, { status: 500 });
       }
 
+      // Get source_provider_ids for providers without email in business_profiles
+      // to check olera-providers as fallback (emails may exist there from legacy data)
+      const sourceProviderIds = (allConnections ?? [])
+        .map((c) => {
+          const tp = Array.isArray(c.to_profile) ? c.to_profile[0] : c.to_profile;
+          // Only look up if provider exists, is active, and has no email in business_profiles
+          if (!tp || tp.is_active === false || tp.email) return null;
+          return tp.source_provider_id;
+        })
+        .filter(Boolean) as string[];
+
+      // Look up emails in olera-providers
+      const oleraEmailMap = new Map<string, string>();
+      if (sourceProviderIds.length > 0) {
+        const { data: oleraProviders } = await db
+          .from("olera-providers")
+          .select("provider_id, email")
+          .in("provider_id", sourceProviderIds)
+          .not("deleted", "is", true);
+
+        for (const p of oleraProviders ?? []) {
+          if (p.email) {
+            oleraEmailMap.set(p.provider_id, p.email);
+          }
+        }
+      }
+
+      // Enhanced filter that checks both business_profiles AND olera-providers for email
+      const providerNeedsEmailEnhanced = (conn: typeof allConnections[number]) => {
+        const provider = Array.isArray(conn.to_profile) ? conn.to_profile[0] : conn.to_profile;
+        if (!provider || provider.is_active === false) return false;
+
+        // Check if provider already responded
+        const meta = (conn.metadata ?? {}) as Record<string, unknown>;
+        const thread = (meta.thread as ThreadMessage[]) || [];
+        const hasResponded = thread.some(
+          (m) => m.from_profile_id === conn.to_profile_id && m.is_auto_reply !== true
+        );
+        if (hasResponded) return false;
+
+        // Check business_profiles.email first
+        if (provider.email) return false;
+
+        // Check olera-providers.email as fallback
+        if (provider.source_provider_id && oleraEmailMap.has(provider.source_provider_id)) {
+          return false;
+        }
+
+        return true;
+      };
+
       // Filter in memory for providers needing email
-      const filtered = (allConnections ?? []).filter(providerNeedsEmail);
+      const filtered = (allConnections ?? []).filter(providerNeedsEmailEnhanced);
 
       if (countOnly) {
         return NextResponse.json({ count: filtered.length });

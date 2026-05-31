@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
         .neq("status", "archived")
         .neq("status", "rejected")
         .order("created_at", { ascending: false })
-        .limit(5000); // Reasonable limit for admin view
+        .limit(10000); // Match reasonable admin limit
 
       if (searchSlugs) {
         if (searchSlugs.length === 0) return NextResponse.json({ questions: [], count: 0 });

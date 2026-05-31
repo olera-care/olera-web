@@ -7,6 +7,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { validateEmailStrict } from "@/lib/email-validation";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
+import { syncIntentToProfile } from "@/lib/sync-intent-to-profile";
 
 /**
  * POST /api/inline-answer/capture-email
@@ -279,6 +280,32 @@ export async function POST(req: Request) {
 
     // Set active profile
     await db.from("accounts").update({ active_profile_id: familyProfileId }).eq("id", accountId);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 3b. Pre-fill city and care_types from provider (for completeness)
+  // ═══════════════════════════════════════════════════════════════════
+  // Lookup provider info and sync to profile so users get 31% completeness
+  // (email 10 + name 5 + city 8 + care_types 8 = 31) instead of just 15%
+  // Note: providerId from frontend is the SLUG, not UUID
+  if (providerId) {
+    try {
+      const { data: provider } = await db
+        .from("business_profiles")
+        .select("city, state, category")
+        .eq("slug", providerId)
+        .single();
+
+      if (provider) {
+        await syncIntentToProfile(db, familyProfileId, {
+          providerCity: provider.city,
+          providerState: provider.state,
+          providerCategory: provider.category,
+        }, normalizedEmail);
+      }
+    } catch (prefillErr) {
+      console.error("[inline-answer/capture-email] Failed to pre-fill from provider:", prefillErr);
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════

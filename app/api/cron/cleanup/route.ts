@@ -7,7 +7,9 @@ import { withCronRun } from "@/lib/crons/run";
  *
  * Runs daily at 4 AM UTC. Cleans up:
  * - Expired verification codes (older than 1 hour)
- * - Stale draft connections (pending + no thread activity for 30 days)
+ *
+ * NOTE: Previously deleted stale connections after 30 days, but this was removed
+ * because leads need to persist for re-engagement campaigns over weeks/months.
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -28,17 +30,7 @@ export async function GET(request: NextRequest) {
 
     results.expiredCodes = expiredCodes ?? 0;
 
-    // 2. Delete stale pending connections (no activity for 30 days)
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-
-    const { count: staleConnections } = await db
-      .from("connections")
-      .delete({ count: "exact" })
-      .eq("status", "pending")
-      .eq("type", "inquiry")
-      .lt("updated_at", thirtyDaysAgo);
-
-    results.staleConnections = staleConnections ?? 0;
+    // NOTE: Stale connection deletion was removed - leads must persist for re-engagement
 
     console.log("[cron/cleanup] results:", results);
 

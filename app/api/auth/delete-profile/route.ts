@@ -53,7 +53,7 @@ export async function DELETE(request: Request) {
     // Verify profile belongs to this account
     const { data: profile, error: profileError } = await admin
       .from("business_profiles")
-      .select("id, account_id, source_provider_id, claim_state")
+      .select("id, account_id, source_provider_id, claim_state, metadata")
       .eq("id", profileId)
       .single();
 
@@ -90,22 +90,39 @@ export async function DELETE(request: Request) {
 
     const wasActive = account.active_profile_id === profileId;
 
+    // Soft-delete connections instead of hard-deleting
+    // This preserves connection history for the other party (e.g., provider's outreach page)
+    const { data: existingConnections } = await admin
+      .from("connections")
+      .select("id, metadata")
+      .or(`from_profile_id.eq.${profileId},to_profile_id.eq.${profileId}`);
+
+    if (existingConnections && existingConnections.length > 0) {
+      for (const conn of existingConnections) {
+        const existingMeta = (conn.metadata as Record<string, unknown>) || {};
+        await admin
+          .from("connections")
+          .update({
+            metadata: {
+              ...existingMeta,
+              profile_deleted: true,
+              profile_deleted_at: new Date().toISOString(),
+              deleted_profile_id: profileId,
+            },
+          })
+          .eq("id", conn.id);
+      }
+    }
+
     // Handle seeded/claimed profiles: revert to unclaimed instead of hard-deleting
     if (profile.source_provider_id) {
-      // Manually delete connections (UPDATE won't trigger ON DELETE CASCADE)
-      await admin
-        .from("connections")
-        .delete()
-        .or(
-          `from_profile_id.eq.${profileId},to_profile_id.eq.${profileId}`
-        );
-
-      // Revert to unclaimed
+      // Revert to unclaimed (keep profile for directory, just remove ownership)
       const { error: unclaimError } = await admin
         .from("business_profiles")
         .update({
           account_id: null,
           claim_state: "unclaimed",
+          is_active: false, // Hide from RLS until reclaimed
         })
         .eq("id", profileId);
 
@@ -117,16 +134,26 @@ export async function DELETE(request: Request) {
         );
       }
     } else {
-      // User-created profile: hard delete (connections cascade automatically)
-      const { error: deleteError } = await admin
+      // User-created profile: soft delete (set is_active = false, detach from account)
+      // This preserves the profile data for connection history
+      const { error: softDeleteError } = await admin
         .from("business_profiles")
-        .delete()
+        .update({
+          is_active: false,
+          account_id: null, // Detach from account (consistent with seeded profiles)
+          metadata: {
+            ...(profile as { metadata?: Record<string, unknown> }).metadata,
+            deleted_at: new Date().toISOString(),
+            deleted_by_user: true,
+            original_account_id: account.id, // Preserve for audit trail
+          },
+        })
         .eq("id", profileId);
 
-      if (deleteError) {
-        console.error("[delete-profile] delete failed:", deleteError);
+      if (softDeleteError) {
+        console.error("[delete-profile] soft delete failed:", softDeleteError);
         return NextResponse.json(
-          { error: deleteError.message },
+          { error: softDeleteError.message },
           { status: 500 }
         );
       }
@@ -140,6 +167,7 @@ export async function DELETE(request: Request) {
         .from("business_profiles")
         .select("id")
         .eq("account_id", account.id)
+        .eq("is_active", true) // Exclude soft-deleted profiles
         .order("created_at", { ascending: true })
         .limit(1);
 

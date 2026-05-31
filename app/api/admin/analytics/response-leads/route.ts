@@ -51,6 +51,8 @@ interface ResponseLead {
   response_time_hours: number | null;
   provider_response: string | null; // First non-auto-reply message from provider
   cta_variant: string | null;
+  provider_status: "active" | "archived" | "deleted"; // Provider profile status
+  is_archived: boolean; // Lead itself is archived (metadata.archived)
 }
 
 type ThreadMessage = {
@@ -120,7 +122,8 @@ export async function GET(req: NextRequest) {
         state,
         description,
         care_types,
-        metadata
+        metadata,
+        is_active
       )
     `,
       { count: "exact" }
@@ -154,6 +157,31 @@ export async function GET(req: NextRequest) {
     from_profile: Array.isArray(c.from_profile) ? c.from_profile[0] ?? null : c.from_profile,
     to_profile: Array.isArray(c.to_profile) ? c.to_profile[0] ?? null : c.to_profile,
   }));
+
+  // Get source_provider_ids for providers without email in business_profiles
+  // to check olera-providers as fallback (emails may exist there from legacy data)
+  const sourceProviderIds = connections
+    .map((c) => {
+      if (!c.to_profile || c.to_profile.is_active === false || c.to_profile.email) return null;
+      return c.to_profile.source_provider_id;
+    })
+    .filter(Boolean) as string[];
+
+  // Look up emails in olera-providers
+  const oleraEmailMap = new Map<string, string>();
+  if (sourceProviderIds.length > 0) {
+    const { data: oleraProviders } = await db
+      .from("olera-providers")
+      .select("provider_id, email")
+      .in("provider_id", sourceProviderIds)
+      .not("deleted", "is", true);
+
+    for (const p of oleraProviders ?? []) {
+      if (p.email) {
+        oleraEmailMap.set(p.provider_id, p.email);
+      }
+    }
+  }
 
   // Process connections to determine response status and build leads list
   const allLeads: ResponseLead[] = [];
@@ -230,6 +258,13 @@ export async function GET(req: NextRequest) {
     const carePost = familyMeta.care_post as { status?: string } | undefined;
     const familyIsPublished = carePost?.status === "active";
 
+    // Get provider email from business_profiles OR olera-providers fallback
+    const bpEmail = conn.to_profile?.email || null;
+    const oleraEmail = conn.to_profile?.source_provider_id
+      ? oleraEmailMap.get(conn.to_profile.source_provider_id) || null
+      : null;
+    const effectiveProviderEmail = bpEmail || oleraEmail;
+
     allLeads.push({
       connection_id: conn.id,
       family_id: conn.from_profile_id || "",
@@ -242,7 +277,7 @@ export async function GET(req: NextRequest) {
       family_publish_nudged_at: familyPublishNudgedAt,
       provider_id: conn.to_profile_id || "",
       provider_name: conn.to_profile?.display_name || "Unknown",
-      provider_email: conn.to_profile?.email || null,
+      provider_email: effectiveProviderEmail,
       provider_phone: conn.to_profile?.phone || null,
       provider_slug: conn.to_profile?.slug || conn.to_profile?.source_provider_id || "",
       provider_completeness: providerCompleteness,
@@ -254,17 +289,23 @@ export async function GET(req: NextRequest) {
       response_time_hours: responseTimeHours ? Math.round(responseTimeHours * 10) / 10 : null,
       provider_response: providerResponse,
       cta_variant: ctaVariant,
+      provider_status: !conn.to_profile ? "deleted" : conn.to_profile.is_active === false ? "archived" : "active",
+      is_archived: !!meta.archived,
     });
   }
 
   // Categorize leads for tab counts (computed once per lead)
+  // - Archived leads get their own category (visible in All + Archived tab)
+  // - Deleted/archived providers → null (only in All, not actionable)
+  // - This ensures "No Email" count matches Overview and Leads pages
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
   const now = Date.now();
 
-  type Category = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
+  type Category = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email" | "archived" | null;
 
   const categorizedLeads = allLeads.map((lead) => {
     const hasProviderEmail = !!lead.provider_email;
+    const providerIsActive = lead.provider_status === "active";
     const providerNudgedRecently = lead.provider_nudged_at
       ? now - new Date(lead.provider_nudged_at).getTime() < SEVEN_DAYS_MS
       : false;
@@ -278,11 +319,18 @@ export async function GET(req: NextRequest) {
         ? now - new Date(lead.family_publish_nudged_at).getTime() < SEVEN_DAYS_MS
         : false);
 
-    // Order matters: responded takes priority (goal achieved), then check actionability
-    // Provider nudge takes priority over family nudge (waiting on provider response)
+    // Order matters:
+    // 1. Responded leads always go to "responded" (goal achieved)
+    // 2. Archived leads go to "archived" (admin archived this connection)
+    // 3. Deleted/archived providers → null (not actionable, only in All)
+    // 4. Active providers without email → "no_email"
+    // 5. Recently nudged → appropriate nudge category
+    // 6. Everything else → "needs_attention"
     let category: Category;
     if (lead.responded) category = "responded";
-    else if (!hasProviderEmail) category = "no_email";
+    else if (lead.is_archived) category = "archived"; // Lead itself is archived
+    else if (!providerIsActive) category = null; // Provider deleted/archived - not actionable
+    else if (!hasProviderEmail) category = "no_email"; // Active but no email
     else if (providerNudgedRecently) category = "provider_nudged";
     else if (familyNudgedRecently) category = "family_nudged";
     else category = "needs_attention";
@@ -291,6 +339,7 @@ export async function GET(req: NextRequest) {
   });
 
   // Compute counts for each category
+  // Leads with null category (deleted/archived providers) only appear in "All"
   const counts = {
     all: allLeads.length,
     needs_attention: 0,
@@ -298,10 +347,13 @@ export async function GET(req: NextRequest) {
     family_nudged: 0,
     responded: 0,
     no_email: 0,
+    archived: 0,
   };
 
   for (const { category } of categorizedLeads) {
-    counts[category]++;
+    if (category !== null) {
+      counts[category]++;
+    }
   }
 
   // Apply filter

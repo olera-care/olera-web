@@ -463,17 +463,8 @@ async function handleGuestConnection({
     }
   }
 
-  // Sync intent data to profile
-  try {
-    await syncIntentToProfile(db, fromProfileId, {
-      careRecipient: intentData.careRecipient,
-      careType: intentData.careType,
-      urgency: intentData.urgency,
-      additionalNotes: intentData.additionalNotes,
-    });
-  } catch (syncErr) {
-    console.error("Failed to sync intent to profile:", syncErr);
-  }
+  // NOTE: syncIntentToProfile is called AFTER provider info is resolved
+  // so we can include providerCity/providerState for completeness calculation
 
   // Resolve target provider (same logic as authenticated flow)
   let toProfileId: string;
@@ -601,7 +592,7 @@ async function handleGuestConnection({
   try {
     const { data: bp } = await db
       .from("business_profiles")
-      .select("email, display_name, city, state, category, metadata")
+      .select("email, display_name, city, state, category, metadata, source_provider_id")
       .eq("id", toProfileId)
       .single();
     providerCategoryForWa = bp?.category || null;
@@ -613,12 +604,14 @@ async function handleGuestConnection({
     providerLeadsUnsubscribed = !!bpMeta.leads_unsubscribed;
 
     // Fallback to olera-providers for email and location
-    if (!providerEmail || !providerCity) {
+    // Use source_provider_id if available (correct link), otherwise fall back to providerId
+    const iosLookupId = bp?.source_provider_id || providerId;
+    if ((!providerEmail || !providerCity) && iosLookupId) {
       const { data: ios } = await db
         .from("olera-providers")
         .select("email, city, state")
-        .eq("provider_id", providerId)
-        .single();
+        .eq("provider_id", iosLookupId)
+        .maybeSingle();
       providerEmail = providerEmail || ios?.email || null;
       providerCity = providerCity || ios?.city || null;
       providerState = providerState || ios?.state || null;
@@ -627,23 +620,19 @@ async function handleGuestConnection({
     // Non-blocking
   }
 
-  // Pre-fill seeker's location from provider's city if seeker has none
-  if (providerCity && fromProfileId) {
-    try {
-      const { data: seekerProfile } = await db
-        .from("business_profiles")
-        .select("city")
-        .eq("id", fromProfileId)
-        .single();
-      if (seekerProfile && !seekerProfile.city) {
-        await db
-          .from("business_profiles")
-          .update({ city: providerCity, state: providerState })
-          .eq("id", fromProfileId);
-      }
-    } catch {
-      // Non-blocking
-    }
+  // Sync intent data to profile (includes city + care type pre-fill and completeness calculation)
+  try {
+    await syncIntentToProfile(db, fromProfileId, {
+      careRecipient: intentData.careRecipient,
+      careType: intentData.careType,
+      urgency: intentData.urgency,
+      additionalNotes: intentData.additionalNotes,
+      providerCity,
+      providerState,
+      providerCategory: providerCategoryForWa,
+    }, normalizedEmail);
+  } catch (syncErr) {
+    console.error("Failed to sync intent to profile:", syncErr);
   }
 
   // Build message payload with all available seeker info
@@ -890,17 +879,19 @@ async function handleGuestConnection({
     let providerPhone: string | null = null;
     const { data: bpPhone } = await db
       .from("business_profiles")
-      .select("phone")
+      .select("phone, source_provider_id")
       .eq("id", toProfileId)
       .single();
     providerPhone = bpPhone?.phone || null;
 
-    if (!providerPhone) {
+    // Use source_provider_id if available for correct olera-providers lookup
+    const smsIosLookupId = bpPhone?.source_provider_id || providerId;
+    if (!providerPhone && smsIosLookupId) {
       const { data: iosPhone } = await db
         .from("olera-providers")
         .select("phone")
-        .eq("provider_id", providerId)
-        .single();
+        .eq("provider_id", smsIosLookupId)
+        .maybeSingle();
       providerPhone = iosPhone?.phone || null;
     }
 
@@ -924,17 +915,19 @@ async function handleGuestConnection({
     let waPhone: string | null = null;
     const { data: waBp } = await db
       .from("business_profiles")
-      .select("phone, metadata")
+      .select("phone, metadata, source_provider_id")
       .eq("id", toProfileId)
       .single();
     waPhone = waBp?.phone || null;
 
-    if (!waPhone) {
+    // Use source_provider_id if available for correct olera-providers lookup
+    const waIosLookupId = waBp?.source_provider_id || providerId;
+    if (!waPhone && waIosLookupId) {
       const { data: waIos } = await db
         .from("olera-providers")
         .select("phone")
-        .eq("provider_id", providerId)
-        .single();
+        .eq("provider_id", waIosLookupId)
+        .maybeSingle();
       waPhone = waIos?.phone || null;
     }
 
@@ -1511,7 +1504,7 @@ export async function POST(request: Request) {
     try {
       const { data: bp } = await db
         .from("business_profiles")
-        .select("email, display_name, city, state, category, metadata")
+        .select("email, display_name, city, state, category, metadata, source_provider_id")
         .eq("id", toProfileId)
         .single();
       providerEmail = bp?.email || null;
@@ -1523,12 +1516,14 @@ export async function POST(request: Request) {
       providerLeadsUnsubscribedAuth = !!bpMeta.leads_unsubscribed;
 
       // Fallback to olera-providers for email and location
-      if (!providerEmail || !providerCity) {
+      // Use source_provider_id if available (correct link), otherwise fall back to providerId
+      const iosLookupId = bp?.source_provider_id || providerId;
+      if ((!providerEmail || !providerCity) && iosLookupId) {
         const { data: ios } = await db
           .from("olera-providers")
           .select("email, city, state")
-          .eq("provider_id", providerId)
-          .single();
+          .eq("provider_id", iosLookupId)
+          .maybeSingle();
         providerEmail = providerEmail || ios?.email || null;
         providerCity = providerCity || ios?.city || null;
         providerState = providerState || ios?.state || null;
@@ -1982,7 +1977,10 @@ export async function POST(request: Request) {
           careType: intentData.careType,
           urgency: intentData.urgency,
           additionalNotes: intentData.additionalNotes,
-        });
+          providerCity,
+          providerState,
+          providerCategory: providerCategoryAuth,
+        }, user.email);
       } catch (syncErr) {
         // Non-blocking — connection was created, profile sync is best-effort
         console.error("Failed to sync intent to profile:", syncErr);

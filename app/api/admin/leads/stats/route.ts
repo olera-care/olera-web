@@ -29,16 +29,18 @@ export async function GET(request: NextRequest) {
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
     const queryStart = priorFrom ?? from ?? null;
 
-    // Pull all non-archived leads in range+prior; we'll compute both metrics
-    // from the same result set.
+    // Pull all non-archived leads in range+prior WITH provider profile data
+    // so we can check live email status (matches Analytics approach exactly)
+    // Filter to inquiry/request types only (same as Analytics) for consistent counts
     let q = db
       .from("connections")
-      .select("created_at, metadata")
+      .select("created_at, metadata, to_profile_id, to_profile:business_profiles!connections_to_profile_id_fkey(email, is_active, source_provider_id)")
+      .in("type", ["inquiry", "request"])
       .order("created_at", { ascending: true })
       .limit(50000)
       .not("metadata", "cs", JSON.stringify({ archived: true }));
     if (queryStart) q = q.gte("created_at", queryStart.toISOString());
-    if (dateTo) q = q.lt("created_at", dateTo);
+    if (dateTo) q = q.lte("created_at", dateTo);
 
     const { data: rows, error } = await q;
     if (error) {
@@ -48,12 +50,62 @@ export async function GET(request: NextRequest) {
 
     const allRows = rows ?? [];
 
+    // Get source_provider_ids for providers without email in business_profiles
+    // to check olera-providers as fallback (emails may exist there from legacy data)
+    const sourceProviderIds = allRows
+      .map((r) => {
+        const toProfile = r.to_profile as { email?: string | null; is_active?: boolean; source_provider_id?: string }[] | { email?: string | null; is_active?: boolean; source_provider_id?: string } | null;
+        const provider = Array.isArray(toProfile) ? toProfile[0] : toProfile;
+        if (!provider || provider.is_active === false || provider.email) return null;
+        return provider.source_provider_id;
+      })
+      .filter(Boolean) as string[];
+
+    // Look up emails in olera-providers
+    const oleraEmailMap = new Map<string, string>();
+    if (sourceProviderIds.length > 0) {
+      const { data: oleraProviders } = await db
+        .from("olera-providers")
+        .select("provider_id, email")
+        .in("provider_id", sourceProviderIds)
+        .not("deleted", "is", true);
+
+      for (const p of oleraProviders ?? []) {
+        if (p.email) {
+          oleraEmailMap.set(p.provider_id, p.email);
+        }
+      }
+    }
+
+    // Check live provider email status (matches Analytics approach exactly):
+    // - Provider must be active
+    // - Provider must have no email (in business_profiles OR olera-providers)
+    // - Provider must NOT have responded (goal already achieved if responded)
+    type ThreadMessage = { from_profile_id: string; is_auto_reply?: boolean };
     const isNeedsEmail = (r: (typeof allRows)[number]) => {
-      const meta = r.metadata as Record<string, unknown> | null | undefined;
-      return meta?.needs_provider_email === true;
+      // Supabase may return to_profile as array or single object depending on join
+      const toProfile = r.to_profile as { email?: string | null; is_active?: boolean; source_provider_id?: string }[] | { email?: string | null; is_active?: boolean; source_provider_id?: string } | null;
+      const provider = Array.isArray(toProfile) ? toProfile[0] : toProfile;
+      // Skip if no provider profile (deleted) or inactive
+      if (!provider || provider.is_active === false) return false;
+      // Skip if provider already responded (goal achieved)
+      const meta = (r.metadata as Record<string, unknown>) ?? {};
+      const thread = (meta.thread as ThreadMessage[]) || [];
+      const hasResponded = thread.some(
+        (m) => m.from_profile_id === r.to_profile_id && m.is_auto_reply !== true
+      );
+      if (hasResponded) return false;
+      // Check business_profiles.email first
+      if (provider.email) return false;
+      // Check olera-providers.email as fallback
+      if (provider.source_provider_id && oleraEmailMap.has(provider.source_provider_id)) {
+        return false;
+      }
+      // Provider needs email if no email in either table
+      return true;
     };
 
-    const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t < to : true);
+    const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t <= to : true);
     const inPrior = (t: Date) => !!priorFrom && !!from && t >= priorFrom && t < from;
 
     let kpiCurrent = 0;

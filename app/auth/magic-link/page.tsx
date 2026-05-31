@@ -40,6 +40,7 @@ function MagicLinkHandler() {
 
           if (session) {
             // Already logged in, redirect to destination
+            router.refresh();
             router.replace(next);
             return;
           }
@@ -295,7 +296,9 @@ function MagicLinkHandler() {
           finalDestination = next;
         }
 
-        // Redirect immediately — no delay needed since middleware handles new user redirect
+        // Force Next.js to re-render with new auth state before navigation
+        // This ensures the Navbar and other components see the session immediately
+        router.refresh();
         router.replace(finalDestination);
       } catch (err) {
         console.error("Magic link handler error:", err);

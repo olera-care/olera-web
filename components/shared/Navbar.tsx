@@ -126,7 +126,9 @@ export default function Navbar() {
   })();
 
   // Show auth pill as soon as we know a user session exists.
+  // Guard against showing logged-out UI while auth is still loading
   const hasSession = !!user;
+  const showLoggedOutUI = !hasSession && !authLoading;
   // Mode switcher — shown when user has both a family and a provider profile
   const hasFamilyProfile = (profiles || []).some((p) => p.type === "family");
   const hasProviderProfile = (profiles || []).some((p) => p.type === "organization");
@@ -931,7 +933,7 @@ export default function Navbar() {
                         </button>
                         {isUserMenuOpen && signedInDropdown}
                       </div>
-                    ) : (
+                    ) : showLoggedOutUI ? (
                       <div className="relative" ref={userMenuRef}>
                         <button
                           type="button"
@@ -951,6 +953,12 @@ export default function Navbar() {
                           </div>
                         </button>
                         {isUserMenuOpen && unauthDropdown}
+                      </div>
+                    ) : (
+                      /* Loading state - show skeleton while auth is initializing */
+                      <div className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full min-h-[44px]">
+                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+                        <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
                       </div>
                     )}
                   </>
@@ -1006,7 +1014,20 @@ export default function Navbar() {
           {/* Scrollable body */}
           <div className="flex-1 overflow-y-auto px-5 py-4">
             <div className="flex flex-col">
-              {hasSession ? (
+              {authLoading ? (
+                /* Loading state - show skeleton while auth is initializing */
+                <div className="py-4 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 bg-gray-200 rounded-full animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-32" />
+                      <div className="h-3 bg-gray-200 rounded animate-pulse w-24" />
+                    </div>
+                  </div>
+                  <div className="h-10 bg-gray-100 rounded-xl animate-pulse" />
+                  <div className="h-10 bg-gray-100 rounded-xl animate-pulse" />
+                </div>
+              ) : hasSession ? (
                 /* ═══ LOGGED-IN MENU ═══ */
                 <>
                   {/* Identity header */}
@@ -1420,7 +1441,10 @@ export default function Navbar() {
 
           {/* Sticky footer — auth card (logged out) or sign out (logged in) */}
           <div className="shrink-0 px-5 py-4 border-t border-gray-100 bg-white" style={{ paddingBottom: "calc(16px + env(safe-area-inset-bottom, 0px))" }}>
-            {hasSession ? (
+            {authLoading ? (
+              /* Loading state */
+              <div className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+            ) : hasSession ? (
               <button
                 type="button"
                 onClick={() => {

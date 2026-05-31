@@ -45,13 +45,72 @@ export async function GET(request: NextRequest) {
 
     // Fast path: return only the count (used by admin dashboard overview)
     if (countOnly) {
+      // For needs_email, we must verify provider status (exists, not archived, no email)
+      if (needsEmail) {
+        let countQuery = db
+          .from("provider_questions")
+          .select("provider_id")
+          .contains("metadata", { needs_provider_email: true })
+          .neq("status", "archived")
+          .neq("status", "rejected");
+        if (searchSlugs) {
+          if (searchSlugs.length === 0) return NextResponse.json({ count: 0 });
+          countQuery = countQuery.in("provider_id", searchSlugs);
+        }
+        if (dateFrom) countQuery = countQuery.gte("created_at", dateFrom);
+        if (dateTo) countQuery = countQuery.lt("created_at", dateTo);
+
+        const { data: questionsForCount, error: countFetchError } = await countQuery;
+        if (countFetchError) {
+          console.error("Admin questions count error:", countFetchError);
+          return NextResponse.json({ error: "Failed to count questions" }, { status: 500 });
+        }
+
+        // Get unique provider IDs and check their status
+        const providerIds = [...new Set((questionsForCount ?? []).map((q) => q.provider_id).filter(Boolean))];
+
+        // Look up providers in business_profiles
+        const { data: bpProviders } = await db
+          .from("business_profiles")
+          .select("slug, email, is_active")
+          .in("slug", providerIds);
+
+        // Look up providers in olera-providers (legacy)
+        const { data: oleraProviders } = await db
+          .from("olera-providers")
+          .select("slug, email")
+          .in("slug", providerIds)
+          .not("deleted", "is", true);
+
+        // Build provider status map
+        const providerStatus = new Map<string, { exists: boolean; hasEmail: boolean; isArchived: boolean }>();
+        for (const id of providerIds) {
+          providerStatus.set(id, { exists: false, hasEmail: false, isArchived: false });
+        }
+        for (const p of bpProviders ?? []) {
+          if (p.slug) {
+            providerStatus.set(p.slug, { exists: true, hasEmail: !!p.email, isArchived: p.is_active === false });
+          }
+        }
+        for (const p of oleraProviders ?? []) {
+          if (p.slug && !providerStatus.get(p.slug)?.exists) {
+            providerStatus.set(p.slug, { exists: true, hasEmail: !!p.email, isArchived: false });
+          }
+        }
+
+        // Count only questions where provider exists, not archived, and has no email
+        const validCount = (questionsForCount ?? []).filter((q) => {
+          const status = providerStatus.get(q.provider_id);
+          return status?.exists && !status.isArchived && !status.hasEmail;
+        }).length;
+
+        return NextResponse.json({ count: validCount });
+      }
+
+      // Standard count query for non-needs_email filters
       let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true });
       if (status) countQuery = countQuery.eq("status", status);
       if (providerId) countQuery = countQuery.eq("provider_id", providerId);
-      if (needsEmail) {
-        countQuery = countQuery.contains("metadata", { needs_provider_email: true });
-        countQuery = countQuery.neq("status", "archived").neq("status", "rejected");
-      }
       if (searchSlugs) {
         if (searchSlugs.length === 0) return NextResponse.json({ count: 0 });
         countQuery = countQuery.in("provider_id", searchSlugs);
@@ -66,6 +125,122 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ count: count ?? 0 });
     }
 
+    // For needs_email, we need to verify provider status before pagination
+    // to ensure count and results match
+    if (needsEmail) {
+      let needsEmailQuery = db
+        .from("provider_questions")
+        .select("*")
+        .contains("metadata", { needs_provider_email: true })
+        .neq("status", "archived")
+        .neq("status", "rejected")
+        .order("created_at", { ascending: false })
+        .limit(10000); // Match reasonable admin limit
+
+      if (searchSlugs) {
+        if (searchSlugs.length === 0) return NextResponse.json({ questions: [], count: 0 });
+        needsEmailQuery = needsEmailQuery.in("provider_id", searchSlugs);
+      }
+      if (dateFrom) needsEmailQuery = needsEmailQuery.gte("created_at", dateFrom);
+      if (dateTo) needsEmailQuery = needsEmailQuery.lt("created_at", dateTo);
+
+      const { data: allNeedsEmailQuestions, error: needsEmailError } = await needsEmailQuery;
+      if (needsEmailError) {
+        console.error("Admin questions fetch error:", needsEmailError);
+        return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
+      }
+
+      // Get unique provider IDs and check their status
+      const providerIds = [...new Set((allNeedsEmailQuestions ?? []).map((q) => q.provider_id).filter(Boolean))];
+
+      // Look up providers in business_profiles
+      const { data: bpProvidersForFilter } = await db
+        .from("business_profiles")
+        .select("slug, email, is_active")
+        .in("slug", providerIds);
+
+      // Look up providers in olera-providers (legacy)
+      const { data: oleraProvidersForFilter } = await db
+        .from("olera-providers")
+        .select("slug, email")
+        .in("slug", providerIds)
+        .not("deleted", "is", true);
+
+      // Build provider status map
+      const providerStatusMap = new Map<string, { exists: boolean; hasEmail: boolean; isArchived: boolean }>();
+      for (const id of providerIds) {
+        providerStatusMap.set(id, { exists: false, hasEmail: false, isArchived: false });
+      }
+      for (const p of bpProvidersForFilter ?? []) {
+        if (p.slug) {
+          providerStatusMap.set(p.slug, { exists: true, hasEmail: !!p.email, isArchived: p.is_active === false });
+        }
+      }
+      for (const p of oleraProvidersForFilter ?? []) {
+        if (p.slug && !providerStatusMap.get(p.slug)?.exists) {
+          providerStatusMap.set(p.slug, { exists: true, hasEmail: !!p.email, isArchived: false });
+        }
+      }
+
+      // Filter to valid questions only
+      const validQuestions = (allNeedsEmailQuestions ?? []).filter((q) => {
+        const pStatus = providerStatusMap.get(q.provider_id);
+        return pStatus?.exists && !pStatus.isArchived && !pStatus.hasEmail;
+      });
+
+      // Apply pagination manually
+      const questions = validQuestions.slice(offset, offset + limit);
+      const count = validQuestions.length;
+
+      // Continue to enrichment below with these filtered questions
+      // (fall through to the enrichment code)
+      const slugs = [...new Set(questions.map((q) => q.provider_id).filter(Boolean))];
+      let providerNames: Record<string, string> = {};
+      let providerEditorIds: Record<string, string> = {};
+      let providerEmails: Record<string, string> = {};
+      if (slugs.length > 0) {
+        // Try business_profiles first
+        const { data: bpProviders } = await db
+          .from("business_profiles")
+          .select("slug, display_name, source_provider_id, email")
+          .in("slug", slugs);
+        providerNames = Object.fromEntries(
+          (bpProviders ?? []).map((p) => [p.slug, p.display_name])
+        );
+        providerEditorIds = Object.fromEntries(
+          (bpProviders ?? []).filter((p) => p.source_provider_id).map((p) => [p.slug, p.source_provider_id])
+        );
+        for (const p of bpProviders ?? []) {
+          if (p.slug && p.email) providerEmails[p.slug] = p.email;
+        }
+
+        // For slugs not found in business_profiles, try olera-providers
+        const missingSlugs = slugs.filter((s) => !providerNames[s]);
+        if (missingSlugs.length > 0) {
+          const { data: iosProviders } = await db
+            .from("olera-providers")
+            .select("slug, provider_id, provider_name, email")
+            .in("slug", missingSlugs)
+            .not("deleted", "is", true);
+          for (const p of iosProviders ?? []) {
+            if (p.slug && p.provider_name) providerNames[p.slug] = p.provider_name;
+            if (p.slug && p.provider_id) providerEditorIds[p.slug] = p.provider_id;
+            if (p.slug && p.email && !providerEmails[p.slug]) providerEmails[p.slug] = p.email;
+          }
+        }
+      }
+
+      const enriched = questions.map((q) => ({
+        ...q,
+        provider_name: providerNames[q.provider_id] || null,
+        provider_editor_id: providerEditorIds[q.provider_id] || null,
+        provider_email: providerEmails[q.provider_id] || null,
+      }));
+
+      return NextResponse.json({ questions: enriched, count });
+    }
+
+    // Standard query path (non-needs_email)
     let query = db
       .from("provider_questions")
       .select("*", { count: "exact" })
@@ -74,10 +249,6 @@ export async function GET(request: NextRequest) {
 
     if (status) query = query.eq("status", status);
     if (providerId) query = query.eq("provider_id", providerId);
-    if (needsEmail) {
-      query = query.contains("metadata", { needs_provider_email: true });
-      query = query.neq("status", "archived").neq("status", "rejected");
-    }
     if (searchSlugs) {
       if (searchSlugs.length === 0) return NextResponse.json({ questions: [], count: 0 });
       query = query.in("provider_id", searchSlugs);

@@ -8,7 +8,7 @@ import { canEngage } from "@/lib/membership";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import type { Connection, Profile } from "@/lib/types";
-import { parseMessage, avatarGradient, blurName } from "@/components/portal/ConnectionDetailContent";
+import { parseMessage, avatarGradient, blurName } from "@/lib/connection-display-utils";
 import {
   getProviderDisplayStatus,
   PROVIDER_STATUS_CONFIG,

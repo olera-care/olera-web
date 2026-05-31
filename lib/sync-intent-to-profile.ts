@@ -216,15 +216,17 @@ export async function syncIntentToProfile(
     updates.display_name = intent.seekerName;
   }
 
-  // Sync seeker city/state from enrichment (only if profile location is empty)
-  if (intent.seekerCity && !currentProfile.city) {
+  // Sync seeker city/state from enrichment - user's explicit input always takes precedence
+  // (This is the user's actual location entered in step 6, should override any auto-fill)
+  if (intent.seekerCity) {
     updates.city = intent.seekerCity;
   }
-  if (intent.seekerState && !currentProfile.state) {
+  if (intent.seekerState) {
     updates.state = intent.seekerState;
   }
 
-  // Pre-fill seeker location from provider's city if seeker has none (fallback)
+  // Pre-fill seeker location from provider's city if seeker has none (fallback for bouncers)
+  // Only applies when: no seekerCity provided AND profile has no city AND no pending city update
   if (intent.providerCity && !currentProfile.city && !updates.city) {
     updates.city = intent.providerCity;
   }

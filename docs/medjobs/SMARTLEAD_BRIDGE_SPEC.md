@@ -296,12 +296,20 @@ The bridge is outbound-only. Until the D2 webhook ships:
   supersedes pending calls). The `outreach_id` custom field makes the manual
   match trivial.
 
-**Implication:** D2 should ship close behind the bridge. The bridge stores
-everything D2 needs (`campaign_id`, `outreach_id` on each lead); D2 is then a
-thin Supabase Edge Function that maps Smartlead events → `log_email_replied`
-(route.ts:194) / `log_email_bounced` (route.ts:197), **G4 single-writer, never
-direct DB**, routed through an Edge Function not a Vercel route (Vercel Bot
-Protection 403s provider POSTs — the Resend webhook lesson).
+**BUILT (inert):** `supabase/functions/smartlead-webhook/` — maps Smartlead
+reply/bounce events to `email_replied` / `email_bounced` touchpoints, keyed on the
+lead's `custom_fields.outreach_id` (email fallback). No-op until
+`SMARTLEAD_WEBHOOK_SECRET` is set AND Smartlead is pointed at it.
+
+**G4 exception (sanctioned, documented):** the original plan was to route through
+`log_email_replied` / `log_email_bounced`. Not viable — the Vercel WAF that forces
+this off Vercel also blocks an Edge→Vercel callback, and the admin route needs a
+session the webhook can't mint. So the function writes via the service role
+directly: the ONLY non-`route.ts` writer of `student_outreach` state. Kept faithful
+by replicating `insertTouchpoint` + `handleLogReply`/`handleLogTouch` exactly and
+leaning on the derived-state model (the row surfaces in Replies via derivation).
+One divergence: skips `transitionStage`'s `manual_followup` task. Verify the
+Smartlead payload shape before activating.
 
 ---
 
@@ -312,7 +320,7 @@ Protection 403s provider POSTs — the Resend webhook lesson).
 | G1 no new enum values | Reuses `note_added`, `stage_change`; `engine` is a payload field, not a DB enum |
 | G2 no new actions | Extends `schedule_sequence`; **flagged for approval** (§9) |
 | G3 no new tables/migrations | Linkage in `research_data.smartlead` JSONB |
-| G4 single-writer | All CRM mutations via the `schedule_sequence` handler; bridge never writes DB |
+| G4 single-writer | Bridge never writes DB; `schedule_sequence` handler is the writer. **One sanctioned exception:** the D2 Edge Function writes touchpoints/status directly (Vercel WAF makes routing through `route.ts` impossible) — see §10. |
 | G5 every action emits a touchpoint | `note_added{smartlead_enrolled}` + the transition's `stage_change` |
 | G6 one concept per commit | Suggested commits in §12 |
 | G7 don't add silently | This doc; G2 surfaced; no new nouns invented |
@@ -342,7 +350,9 @@ Protection 403s provider POSTs — the Resend webhook lesson).
    email-task skip guard in `planSequence`'s caller. **This is the whole
    interface for v1** — the existing pre-flight trigger now routes cold email
    through Smartlead. No new UI.
-4. **(gated, separate)** D2 Edge Function.
+4. ✅ **BUILT (inert, gated)** — D2 Edge Function `supabase/functions/smartlead-webhook/`.
+   Service-role direct write (sanctioned G4 exception, see §10). Activate only
+   post-warmup + Logan sign-off; verify Smartlead payload shape first.
 
 **Frontend deliberately deferred.** No launch button, no campaigns/monitor page
 in v1. The send is tied to admin activities operators already perform; a

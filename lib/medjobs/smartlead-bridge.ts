@@ -344,13 +344,57 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
+type StageError = { stage: string; message: string };
+
 /**
- * Orchestrate a PAUSED Smartlead campaign from CRM rows.
+ * Provision a fresh campaign: create → attach mailboxes → save sequence.
+ * Shared by the batch (`launchCampaign`) and per-row
+ * (`enrollRowIntoCampusCampaign`) paths so campaign creation never diverges.
+ * Returns the new id (or undefined if create failed) plus non-fatal errors.
+ * Preserves the create→attach→saveSequence order validated against the live API.
+ */
+async function provisionCampaign(
+  name: string,
+  poolIds: number[],
+  steps: SmartleadSequenceStep[],
+): Promise<{ campaign_id?: number; errors: StageError[] }> {
+  const errors: StageError[] = [];
+  const created = await createCampaign(name);
+  if (!created.ok || !created.data) {
+    errors.push({ stage: "createCampaign", message: created.error ?? "no campaign id" });
+    return { errors };
+  }
+  const campaignId = created.data.id;
+  const attached = await attachEmailAccounts(campaignId, poolIds);
+  if (!attached.ok) errors.push({ stage: "attachEmailAccounts", message: attached.error ?? "attach failed" });
+  const saved = await saveSequence(campaignId, steps);
+  if (!saved.ok) errors.push({ stage: "saveSequence", message: saved.error ?? "save failed" });
+  return { campaign_id: campaignId, errors };
+}
+
+/**
+ * Finalize a freshly provisioned campaign: set schedule, then leave it PAUSED.
+ * NEVER START. Called after leads are pushed (the validated order).
+ */
+async function finalizeCampaign(
+  campaignId: number,
+  schedule: Record<string, unknown>,
+): Promise<StageError[]> {
+  const errors: StageError[] = [];
+  const sched = await setCampaignSchedule(campaignId, schedule);
+  if (!sched.ok) errors.push({ stage: "setCampaignSchedule", message: sched.error ?? "schedule failed" });
+  const status = await setCampaignStatus(campaignId, "PAUSED");
+  if (!status.ok) errors.push({ stage: "setCampaignStatus", message: status.error ?? "status failed" });
+  return errors;
+}
+
+/**
+ * Orchestrate a PAUSED Smartlead campaign from a batch of CRM rows.
  *
  * - NEVER calls START — there is no "START" literal in this module. A human
  *   starts the campaign in the Smartlead UI after warmup + Logan sign-off (§8).
  * - Does NOT write back to the CRM — that's the schedule_sequence integration
- *   (step 3, G4 single-writer).
+ *   (G4 single-writer).
  * - Aggregates errors into the report instead of throwing, so a partial
  *   failure is visible, not silent. The campaign id is captured before leads
  *   are pushed so a mid-flight failure leaves a recoverable PAUSED campaign.
@@ -391,25 +435,15 @@ export async function launchCampaign(input: LaunchInput): Promise<LaunchReport> 
     return report;
   }
 
-  // 4. Create the campaign; capture the id immediately.
-  const created = await createCampaign(input.campaignName);
-  if (!created.ok || !created.data) {
-    report.errors.push({ stage: "createCampaign", message: created.error ?? "no campaign id" });
-    return report;
-  }
-  report.campaign_id = created.data.id;
-  const campaignId = created.data.id;
-
-  // 5. Attach warmed mailboxes.
-  const attached = await attachEmailAccounts(campaignId, mb.pool.ids);
-  if (!attached.ok) report.errors.push({ stage: "attachEmailAccounts", message: attached.error ?? "attach failed" });
-
-  // 6. Save the email-only drip sequence.
+  // 4. Provision the campaign (create → attach → sequence); capture id immediately.
   const steps = buildEmailSequence(input.cadenceKey ?? "provider", { adminFirstName: input.adminFirstName });
-  const saved = await saveSequence(campaignId, steps);
-  if (!saved.ok) report.errors.push({ stage: "saveSequence", message: saved.error ?? "save failed" });
+  const prov = await provisionCampaign(input.campaignName, mb.pool.ids, steps);
+  report.errors.push(...prov.errors);
+  if (!prov.campaign_id) return report;
+  report.campaign_id = prov.campaign_id;
+  const campaignId = prov.campaign_id;
 
-  // 7. Push leads in chunks of 100 (the engine doesn't chunk). A failed chunk
+  // 5. Push leads in chunks of 100 (the engine doesn't chunk). A failed chunk
   //    is recorded and its rows are NOT counted as enrolled.
   for (const group of chunk(admitted, LEAD_BATCH_SIZE)) {
     const leads = group.map((row) => rowToLead(row, input.campus));
@@ -422,14 +456,95 @@ export async function launchCampaign(input: LaunchInput): Promise<LaunchReport> 
     }
   }
 
-  // 8. Schedule (weekday business hours by default).
-  const sched = await setCampaignSchedule(campaignId, input.schedule ?? defaultSchedule());
-  if (!sched.ok) report.errors.push({ stage: "setCampaignSchedule", message: sched.error ?? "schedule failed" });
-
-  // 9. Leave it PAUSED. The campaign goes live only by a human, post-warmup.
-  const status = await setCampaignStatus(campaignId, "PAUSED");
-  if (!status.ok) report.errors.push({ stage: "setCampaignStatus", message: status.error ?? "status failed" });
+  // 6. Schedule + leave PAUSED (validated order: after leads).
+  report.errors.push(...(await finalizeCampaign(campaignId, input.schedule ?? defaultSchedule())));
 
   report.ok = report.errors.length === 0;
   return report;
+}
+
+export interface EnrollInput {
+  row: BridgeRow;
+  campus: CampusContext;
+  /** Used only when no campus campaign exists yet (this row is the first). */
+  campaignName: string;
+  /** The campus's existing Smartlead campaign id, looked up by the caller from
+   *  a sibling row's `research_data.smartlead.campaign_id` (approach b). When
+   *  present, the lead is added to it; when absent, a new campaign is provisioned. */
+  existingCampaignId?: number;
+  cadenceKey?: CadenceKey;
+  senderEmails?: string[];
+  adminFirstName?: string;
+  schedule?: Record<string, unknown>;
+}
+
+export interface EnrollResult {
+  ok: boolean;
+  campaign_id?: number;
+  /** True when this call provisioned a new campus campaign (the first row). */
+  created: boolean;
+  enrolled: boolean;
+  /** Set when the row was filtered out before any API call (distinct from an error). */
+  skipped_reason?: SkipReason;
+  mailbox_warnings: string[];
+  errors: StageError[];
+}
+
+/**
+ * Enroll ONE CRM row into its campus's Smartlead campaign — the per-row path
+ * the `schedule_sequence` integration drives. If `existingCampaignId` is given
+ * (a sibling row already created the campus campaign), the lead is appended to
+ * it; otherwise this row is the first and a new PAUSED campaign is provisioned.
+ *
+ * Like `launchCampaign`: never STARTs, never writes the CRM (the caller writes
+ * the linkage + touchpoint through route.ts, G4), aggregates errors.
+ */
+export async function enrollRowIntoCampusCampaign(input: EnrollInput): Promise<EnrollResult> {
+  const result: EnrollResult = { ok: false, created: false, enrolled: false, mailbox_warnings: [], errors: [] };
+
+  // Single-row eligibility (reuses the same filters, incl. already-enrolled).
+  const { eligible, skipped } = selectEligibleRows([input.row]);
+  if (!eligible.length) {
+    result.skipped_reason = skipped[0]?.reason;
+    return result;
+  }
+  const lead = rowToLead(input.row, input.campus);
+
+  // Existing campus campaign → just append this lead.
+  if (input.existingCampaignId) {
+    result.campaign_id = input.existingCampaignId;
+    const added = await addLeads(input.existingCampaignId, [lead]);
+    if (!added.ok) {
+      result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
+      return result;
+    }
+    result.enrolled = true;
+    result.ok = true;
+    return result;
+  }
+
+  // First row for this campus → provision a new PAUSED campaign.
+  const mb = await resolveMailboxPool(input.senderEmails);
+  result.mailbox_warnings = mb.pool.warnings;
+  if (!mb.ok) {
+    result.errors.push({ stage: "resolveMailboxPool", message: mb.error ?? "no mailboxes" });
+    return result;
+  }
+  const steps = buildEmailSequence(input.cadenceKey ?? "provider", { adminFirstName: input.adminFirstName });
+  const prov = await provisionCampaign(input.campaignName, mb.pool.ids, steps);
+  result.errors.push(...prov.errors);
+  if (!prov.campaign_id) return result;
+  result.campaign_id = prov.campaign_id;
+  result.created = true;
+
+  const added = await addLeads(prov.campaign_id, [lead]);
+  if (!added.ok) {
+    result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
+    return result;
+  }
+  result.enrolled = true;
+
+  result.errors.push(...(await finalizeCampaign(prov.campaign_id, input.schedule ?? defaultSchedule())));
+  result.ok = result.errors.length === 0;
+  return result;
 }

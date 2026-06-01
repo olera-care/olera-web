@@ -7,6 +7,40 @@
 
 ## Current Focus
 
+### 2026-06-01 (Mon) — Smartlead cold-email BRIDGE built end-to-end (PR #900 → staging, inert)
+
+**Context:** Resumed the cold-outreach engine (mailboxes `logan@`/`partnerships@findmedjobs.co` warming since 5/29, ~late June ready). Goal: build the software that turns CRM rows into live Smartlead campaigns — the "engine room" — ahead of warmup, then demo it. Branch `medjobs-smartlead-bridge` off `staging`; `lib/smartlead.ts` cherry-picked onto it from `save/email-deliverability-session`.
+
+**Built + committed (PR #900, 9 commits):**
+- `lib/medjobs/smartlead-bridge.ts` — pure helpers (`selectEligibleRows` w/ reasoned skips, `rowToLead` baking `custom_fields.outreach_id` as the D2 join key, `buildEmailSequence` provider email-days 0/3/7 → delays [0,3,4]) + orchestration (`launchCampaign` batch, `enrollRowIntoCampusCampaign` per-row, `resolveMailboxPool`, shared `provisionCampaign`/`finalizeCampaign`). **PAUSED-only — no `START` literal exists.**
+- `lib/student-outreach/email-markdown.ts` — `bodyToHtml` extracted (was private in `email-send.ts`) so Resend + Smartlead render identical HTML.
+- `lib/smartlead.ts` — added `deleteCampaign`.
+- `route.ts` `handleScheduleSequence` — engine branch (config `MEDJOBS_OUTREACH_ENGINE`, optional `body.engine`); smartlead mode enrolls first, queues only call tasks, skips Day-0 Resend fire, writes `research_data.smartlead` linkage + `note_added` touchpoint. `ResearchData.smartlead` type field added (JSONB, no migration).
+- `supabase/functions/smartlead-webhook/` — D2 reply/bounce → touchpoints, INERT until `SMARTLEAD_WEBHOOK_SECRET` set.
+- `docs/medjobs/SMARTLEAD_BRIDGE_SPEC.md` — design doc.
+
+**Validated:** pure helpers via tsx; orchestration mock 15/15 + per-row 14/14; **live PAUSED campaign against the real Smartlead account — every mutation path confirmed (create/attach/sequence/leads/schedule/status=PAUSED), then deleted, account clean.** `tsc` 0 errors.
+
+**Decisions (WHY):**
+- **No new frontend.** Interface = existing pre-flight "Schedule sequence" action; Smartlead is a backend swap chosen by config flag. Cockpit (dashboard) vs engine-room (Claude) — frontend emerges with the team, don't build a UI nobody asked for.
+- **Channel split:** Smartlead owns the EMAIL drip; CRM keeps CALL tasks + stays system of record.
+- **Campus-campaign reuse = approach (b):** per-row enroll looks up the campus's campaign id from a sibling row's `research_data.smartlead.campaign_id` (no new engine surface).
+- **D2 = service-role direct write (sanctioned G4 exception).** Original plan (route through `log_email_replied`) is impossible — the Vercel WAF that forces D2 off Vercel also blocks an Edge→Vercel callback. Kept faithful by replicating `insertTouchpoint`+`handleLogReply` + leaning on derived state. Documented in fn header/README/spec §10.
+- **Logan's role is NOT messaging approval** (that was overthinking) — narrow: sees copy once (his name on it), okays being the sender face. Monday = courtesy walkthrough.
+
+**Demo (live meeting w/ Logan):** connected `tj@findmedjobs.co` to Smartlead as a throwaway demo sender (warmup OFF — do NOT warm; it's the admin acct, not a 3rd cold sender). Campaigns now in account: MOCK `3433423` (no-sender PAUSED), DEMO `3433546` (ACTIVE, sending to tj@/logan@/graize@olera.care — new-mailbox dispatch delay, hadn't landed yet), DEMO-for-Logan `3434880` (PAUSED, tj@ sender). Gmail connector authed to `partnerships@` (DRAFT-ONLY — no send tool); confirmed partnerships@ actively warming via connector inbox read.
+
+**Resume next session here →**
+1. **Push pending** (this quicksave pushes the D2 commit + scratchpad → updates PR #900). PR is TJ-merge-only.
+2. **Logan sign-off** on messaging + the cold-channel **footer/sender-identity/unsubscribe** (the one deferred body piece) + audience read.
+3. **Before activating D2:** verify Smartlead webhook payload shape vs their docs; set `SMARTLEAD_WEBHOOK_SECRET` + register URL in Smartlead.
+4. **Post-warmup (~late June):** set `MEDJOBS_OUTREACH_ENGINE=smartlead` + `SMARTLEAD_SENDER_EMAILS` in prod, then a human clicks START.
+5. **Clean up** demo campaigns (`deleteCampaign` 3433423/3433546/3434880) when team's done; consider disconnecting tj@ from Smartlead.
+6. **3 sibling deliverability tasks** on Web App board (P2/P3): activate provider-notify domain split (#860, `PROVIDER_NOTIFY_FROM` unset in prod), fix complaint-rate instrumentation (reads 0.00%), move provider cold off Loops. + confirm staffing-outreach retired (P4).
+- Refs: memory `project_smartlead_bridge`; Logan one-pager (Notion, updated); spec `docs/medjobs/SMARTLEAD_BRIDGE_SPEC.md`.
+
+---
+
 ### 2026-05-22 (Fri) — Comfort Keepers (College Station) engagement kickoff (no code)
 
 **Context:** TJ met with Susan (Comfort Keepers, ~5 yrs, caregiver-recruiting side) — a home care agency, 20 yrs in Bryan-College Station, warm relationship (we've helped them recruit before). First time in Susan's tenure they have **more caregivers than clients**, so the ask flipped: they need family/client lead-gen, not recruiting. Lead volume down (word-of-mouth + past-client referrals dried up); competition ~doubled in 5 yrs (new franchises, Houston entrants, cheap private caregivers); their paid ads skew to recruiting (Meta great for caregivers, weak for family leads); most family leads still organic Google; families increasingly source recs in local FB groups (B-CS women's group) where CK isn't present.

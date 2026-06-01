@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Badge from "@/components/ui/Badge";
+import DateRangePopover, { type DateRangeValue, resolveRange } from "@/components/admin/DateRangePopover";
 
 // ── Types ──
 
 type MainTab = "all" | "flagged" | "removed";
+type SourceFilter = "all" | "guest" | "family" | "v1.0";
 
 interface AdminReview {
   id: string;
@@ -72,32 +74,60 @@ export default function AdminReviewsPage() {
   const [flaggedCount, setFlaggedCount] = useState(0);
   const [removedCount, setRemovedCount] = useState(0);
   const [stats, setStats] = useState<ReviewStats | null>(null);
+  const [statsError, setStatsError] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRangeValue>({
+    preset: "all",
+    customFrom: "",
+    customTo: "",
+  });
+
+  // Track stats version to trigger child refreshes
+  const [statsVersion, setStatsVersion] = useState(0);
 
   // Fetch stats for summary cards + counts for badges
+  const fetchStats = useCallback(async () => {
+    setStatsError(false);
+    try {
+      const resolved = resolveRange(dateRange);
+      const dateParams = new URLSearchParams();
+      if (resolved.from) dateParams.set("from_date", resolved.from);
+      if (resolved.to) dateParams.set("to_date", resolved.to);
+      const dateQuery = dateParams.toString() ? `&${dateParams.toString()}` : "";
+
+      const [publishedData, visibleOleraData, flaggedOleraData, requestsData, rejectedData, removedData] = await Promise.all([
+        fetch(`/api/admin/reviews?status=published&limit=1${dateQuery}`).then((r) => r.json()),
+        fetch(`/api/admin/olera-reviews?flagged=not_flagged&limit=1${dateQuery}`).then((r) => r.json()),
+        fetch(`/api/admin/olera-reviews?flagged=flagged&limit=1${dateQuery}`).then((r) => r.json()),
+        fetch("/api/admin/review-requests?period=all").then((r) => r.json()),
+        fetch(`/api/admin/reviews?status=rejected&limit=1${dateQuery}`).then((r) => r.json()),
+        fetch(`/api/admin/reviews?status=removed&limit=1${dateQuery}`).then((r) => r.json()),
+      ]);
+
+      const flagged = flaggedOleraData.total ?? 0;
+      const visibleOlera = visibleOleraData.total ?? 0;
+      setFlaggedCount(flagged);
+      setRemovedCount((rejectedData.count ?? 0) + (removedData.count ?? 0));
+      setStats({
+        total_reviews: publishedData.count ?? 0,
+        olera_reviews: visibleOlera,
+        flagged_count: flagged,
+        requests_sent: requestsData.summary?.total_requests ?? 0,
+        providers_requesting: requestsData.summary?.total_providers ?? 0,
+      });
+    } catch {
+      setStatsError(true);
+    }
+  }, [dateRange]);
+
   useEffect(() => {
-    Promise.all([
-      fetch("/api/admin/reviews?status=published&limit=1").then((r) => r.json()), // Only published
-      fetch("/api/admin/olera-reviews?flagged=not_flagged&limit=1").then((r) => r.json()), // Only visible
-      fetch("/api/admin/olera-reviews?flagged=flagged&limit=1").then((r) => r.json()), // Flagged count
-      fetch("/api/admin/review-requests?period=all").then((r) => r.json()),
-      fetch("/api/admin/reviews?status=rejected&limit=1").then((r) => r.json()),
-      fetch("/api/admin/reviews?status=removed&limit=1").then((r) => r.json()),
-    ])
-      .then(([publishedData, visibleOleraData, flaggedOleraData, requestsData, rejectedData, removedData]) => {
-        const flagged = flaggedOleraData.total ?? 0;
-        const visibleOlera = visibleOleraData.total ?? 0;
-        setFlaggedCount(flagged);
-        setRemovedCount((rejectedData.count ?? 0) + (removedData.count ?? 0));
-        setStats({
-          total_reviews: publishedData.count ?? 0,
-          olera_reviews: visibleOlera,
-          flagged_count: flagged,
-          requests_sent: requestsData.summary?.total_requests ?? 0,
-          providers_requesting: requestsData.summary?.total_providers ?? 0,
-        });
-      })
-      .catch(() => {});
-  }, []);
+    fetchStats();
+  }, [fetchStats]);
+
+  // Callback for child components to trigger stats refresh
+  const onStatsChange = useCallback(() => {
+    fetchStats();
+    setStatsVersion((v) => v + 1);
+  }, [fetchStats]);
 
   const mainTabs: { label: string; value: MainTab; badge?: number }[] = [
     { label: "All Reviews", value: "all" },
@@ -107,46 +137,56 @@ export default function AdminReviewsPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Reviews</h1>
-        <p className="text-lg text-gray-600 mt-1">
-          Manage reviews across all sources.
-        </p>
+      {/* Header with date range */}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Reviews</h1>
+          <p className="text-lg text-gray-600 mt-1">
+            Manage reviews across all sources.
+          </p>
+        </div>
+        <DateRangePopover value={dateRange} onChange={setDateRange} />
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Total Reviews</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {stats ? (stats.total_reviews + stats.olera_reviews).toLocaleString() : "-"}
-          </p>
+      {statsError ? (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6 text-sm text-red-700">
+          Failed to load stats. <button onClick={fetchStats} className="underline">Retry</button>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Guest Reviews</p>
-          <p className="text-2xl font-bold text-primary-600">
-            {stats ? stats.olera_reviews.toLocaleString() : "-"}
-          </p>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-sm text-gray-500">Total Reviews</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {stats ? (stats.total_reviews + stats.olera_reviews).toLocaleString() : "-"}
+            </p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-sm text-gray-500">Guest Reviews</p>
+            <p className="text-2xl font-bold text-primary-600">
+              {stats ? stats.olera_reviews.toLocaleString() : "-"}
+            </p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-sm text-gray-500">Flagged</p>
+            <p className="text-2xl font-bold text-amber-600">
+              {stats ? stats.flagged_count.toLocaleString() : "-"}
+            </p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-sm text-gray-500">Requests Sent</p>
+            <p className="text-2xl font-bold text-emerald-600">
+              {stats ? stats.requests_sent.toLocaleString() : "-"}
+            </p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-sm text-gray-500">Providers Requesting</p>
+            <p className="text-2xl font-bold text-violet-600">
+              {stats ? stats.providers_requesting.toLocaleString() : "-"}
+            </p>
+          </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Flagged</p>
-          <p className="text-2xl font-bold text-amber-600">
-            {stats ? stats.flagged_count.toLocaleString() : "-"}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Requests Sent</p>
-          <p className="text-2xl font-bold text-emerald-600">
-            {stats ? stats.requests_sent.toLocaleString() : "-"}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Providers Requesting</p>
-          <p className="text-2xl font-bold text-violet-600">
-            {stats ? stats.providers_requesting.toLocaleString() : "-"}
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* Main tabs */}
       <div className="border-b border-gray-200 mb-6">
@@ -177,22 +217,49 @@ export default function AdminReviewsPage() {
       </div>
 
       {/* Tab content */}
-      {mainTab === "all" && <AllReviewsTab />}
-      {mainTab === "flagged" && <FlaggedTab onFlaggedCountChange={setFlaggedCount} />}
-      {mainTab === "removed" && <RemovedTab onCountChange={setRemovedCount} />}
+      {mainTab === "all" && (
+        <AllReviewsTab
+          dateRange={dateRange}
+          onStatsChange={onStatsChange}
+          key={`all-${statsVersion}`}
+        />
+      )}
+      {mainTab === "flagged" && (
+        <FlaggedTab
+          onFlaggedCountChange={setFlaggedCount}
+          onStatsChange={onStatsChange}
+          dateRange={dateRange}
+          key={`flagged-${statsVersion}`}
+        />
+      )}
+      {mainTab === "removed" && (
+        <RemovedTab
+          onCountChange={setRemovedCount}
+          onStatsChange={onStatsChange}
+          dateRange={dateRange}
+          key={`removed-${statsVersion}`}
+        />
+      )}
     </div>
   );
 }
 
 // ── All Reviews Tab (combines both sources) ──
 
-function AllReviewsTab() {
+interface AllReviewsTabProps {
+  dateRange: DateRangeValue;
+  onStatsChange: () => void;
+}
+
+function AllReviewsTab({ dateRange, onStatsChange }: AllReviewsTabProps) {
   const [reviews, setReviews] = useState<UnifiedReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
+  // Use composite key to avoid collision between sources
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -205,9 +272,13 @@ function AllReviewsTab() {
     setLoading(true);
     setError(null);
     try {
-      // Fetch from both sources in parallel
+      // Build params with date range
       const params = new URLSearchParams();
       if (debouncedSearch) params.set("search", debouncedSearch);
+
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) params.set("from_date", resolved.from);
+      if (resolved.to) params.set("to_date", resolved.to);
 
       const [familyRes, guestRes] = await Promise.all([
         fetch(`/api/admin/reviews?status=published&${params}`),
@@ -264,11 +335,16 @@ function AllReviewsTab() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch]);
+  }, [debouncedSearch, dateRange]);
 
   useEffect(() => {
     fetchReviews();
   }, [fetchReviews]);
+
+  // Filter reviews by source
+  const filteredReviews = sourceFilter === "all"
+    ? reviews
+    : reviews.filter((r) => r.source === sourceFilter);
 
   async function handleRemove(review: UnifiedReview) {
     // Guest reviews are permanently deleted, family reviews are soft-deleted
@@ -297,6 +373,7 @@ function AllReviewsTab() {
 
       if (res.ok) {
         fetchReviews();
+        onStatsChange(); // Refresh stats after action
       } else {
         const data = await res.json().catch(() => ({}));
         setActionError(data.error || "Failed to remove review.");
@@ -308,16 +385,45 @@ function AllReviewsTab() {
     }
   }
 
+  // Helper to create composite key for expand toggle
+  const getReviewKey = (review: UnifiedReview) => `${review.source}-${review.id}`;
+
+  const sourceFilters: { label: string; value: SourceFilter }[] = [
+    { label: "All Sources", value: "all" },
+    { label: "Guest", value: "guest" },
+    { label: "Family", value: "family" },
+    { label: "v1.0", value: "v1.0" },
+  ];
+
   return (
     <div>
-      {/* Search */}
-      <div className="mb-6">
+      {/* Filters row */}
+      <div className="flex flex-wrap items-center gap-4 mb-6">
+        {/* Source filter */}
+        <div className="flex gap-2">
+          {sourceFilters.map((sf) => (
+            <button
+              key={sf.value}
+              onClick={() => setSourceFilter(sf.value)}
+              className={[
+                "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                sourceFilter === sf.value
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+              ].join(" ")}
+            >
+              {sf.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Search */}
         <input
           type="text"
-          placeholder="Search by reviewer name or provider..."
+          placeholder="Search by reviewer or provider..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="flex-1 max-w-md px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
       </div>
 
@@ -337,9 +443,11 @@ function AllReviewsTab() {
         <div className="flex items-center justify-center py-12">
           <div className="text-lg text-gray-500">Loading...</div>
         </div>
-      ) : reviews.length === 0 ? (
+      ) : filteredReviews.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-          <p className="text-gray-500">No reviews found.</p>
+          <p className="text-gray-500">
+            {reviews.length === 0 ? "No reviews found." : "No reviews match the selected filter."}
+          </p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -357,75 +465,77 @@ function AllReviewsTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {reviews.map((review) => (
-                  <tr key={`${review.source}-${review.id}`} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <a
-                        href={`/provider/${review.provider_id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-medium text-primary-600 hover:underline"
-                      >
-                        {review.provider_name}
-                      </a>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm font-medium text-gray-900">{review.reviewer_name}</p>
-                      {review.relationship && (
-                        <p className="text-xs text-gray-500">{review.relationship}</p>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm font-medium text-gray-900">{review.rating}</span>
-                        <span className="text-amber-400">{renderStars(review.rating)}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 max-w-xs">
-                      <button
-                        onClick={() => setExpandedId(expandedId === review.id ? null : review.id)}
-                        className="text-left"
-                      >
-                        <p className="text-sm text-gray-700">
-                          {expandedId === review.id
-                            ? review.comment
-                            : truncate(review.comment, 100)}
-                        </p>
-                        {review.comment.length > 100 && (
-                          <span className="text-xs text-primary-600 hover:underline">
-                            {expandedId === review.id ? "Show less" : "Show more"}
-                          </span>
+                {filteredReviews.map((review) => {
+                  const reviewKey = getReviewKey(review);
+                  const isExpanded = expandedKey === reviewKey;
+                  return (
+                    <tr key={reviewKey} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <a
+                          href={`/provider/${review.provider_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-medium text-primary-600 hover:underline"
+                        >
+                          {review.provider_name}
+                        </a>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-medium text-gray-900">{review.reviewer_name}</p>
+                        {review.relationship && (
+                          <p className="text-xs text-gray-500">{review.relationship}</p>
                         )}
-                      </button>
-                      {review.provider_reply && (
-                        <div className="mt-2 pl-3 border-l-2 border-primary-200">
-                          <p className="text-xs text-gray-500">Provider reply:</p>
-                          <p className="text-xs text-gray-600">{truncate(review.provider_reply, 80)}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm font-medium text-gray-900">{review.rating}</span>
+                          <span className="text-amber-400">{renderStars(review.rating)}</span>
                         </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <SourceBadge source={review.source} />
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                      {new Date(review.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleRemove(review)}
-                        disabled={actionLoading === review.id}
-                        className={[
-                          "px-3 py-1.5 text-sm font-medium rounded-lg disabled:opacity-50 transition-colors",
-                          review.source === "guest"
-                            ? "bg-red-100 text-red-700 hover:bg-red-200"
-                            : "bg-gray-200 text-gray-700 hover:bg-gray-300",
-                        ].join(" ")}
-                      >
-                        {review.source === "guest" ? "Delete" : "Remove"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 max-w-xs">
+                        <button
+                          onClick={() => setExpandedKey(isExpanded ? null : reviewKey)}
+                          className="text-left"
+                        >
+                          <p className="text-sm text-gray-700">
+                            {isExpanded ? review.comment : truncate(review.comment, 100)}
+                          </p>
+                          {review.comment.length > 100 && (
+                            <span className="text-xs text-primary-600 hover:underline">
+                              {isExpanded ? "Show less" : "Show more"}
+                            </span>
+                          )}
+                        </button>
+                        {review.provider_reply && (
+                          <div className="mt-2 pl-3 border-l-2 border-primary-200">
+                            <p className="text-xs text-gray-500">Provider reply:</p>
+                            <p className="text-xs text-gray-600">{truncate(review.provider_reply, 80)}</p>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <SourceBadge source={review.source} />
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                        {new Date(review.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleRemove(review)}
+                          disabled={actionLoading === review.id}
+                          className={[
+                            "px-3 py-1.5 text-sm font-medium rounded-lg disabled:opacity-50 transition-colors",
+                            review.source === "guest"
+                              ? "bg-red-100 text-red-700 hover:bg-red-200"
+                              : "bg-gray-200 text-gray-700 hover:bg-gray-300",
+                          ].join(" ")}
+                        >
+                          {review.source === "guest" ? "Delete" : "Remove"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -437,7 +547,13 @@ function AllReviewsTab() {
 
 // ── Flagged Tab ──
 
-function FlaggedTab({ onFlaggedCountChange }: { onFlaggedCountChange: (count: number) => void }) {
+interface FlaggedTabProps {
+  onFlaggedCountChange: (count: number) => void;
+  onStatsChange: () => void;
+  dateRange: DateRangeValue;
+}
+
+function FlaggedTab({ onFlaggedCountChange, onStatsChange, dateRange }: FlaggedTabProps) {
   const [reviews, setReviews] = useState<OleraReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -449,11 +565,19 @@ function FlaggedTab({ onFlaggedCountChange }: { onFlaggedCountChange: (count: nu
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/olera-reviews?flagged=flagged");
+      const params = new URLSearchParams();
+      params.set("flagged", "flagged");
+
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) params.set("from_date", resolved.from);
+      if (resolved.to) params.set("to_date", resolved.to);
+
+      const res = await fetch(`/api/admin/olera-reviews?${params}`);
       if (res.ok) {
         const data = await res.json();
         setReviews(data.reviews ?? []);
-        onFlaggedCountChange(data.flagged_count ?? 0);
+        // Use total (date-filtered) not flagged_count (all-time)
+        onFlaggedCountChange(data.total ?? 0);
       } else {
         setError("Failed to load flagged reviews. Please try again.");
       }
@@ -462,7 +586,7 @@ function FlaggedTab({ onFlaggedCountChange }: { onFlaggedCountChange: (count: nu
     } finally {
       setLoading(false);
     }
-  }, [onFlaggedCountChange]);
+  }, [onFlaggedCountChange, dateRange]);
 
   useEffect(() => {
     fetchReviews();
@@ -479,6 +603,7 @@ function FlaggedTab({ onFlaggedCountChange }: { onFlaggedCountChange: (count: nu
       });
       if (res.ok) {
         fetchReviews();
+        onStatsChange(); // Refresh stats after action
       } else {
         const data = await res.json().catch(() => ({}));
         setActionError(data.error || "Failed to restore review.");
@@ -501,6 +626,7 @@ function FlaggedTab({ onFlaggedCountChange }: { onFlaggedCountChange: (count: nu
       });
       if (res.ok) {
         fetchReviews();
+        onStatsChange(); // Refresh stats after action
       } else {
         const data = await res.json().catch(() => ({}));
         setActionError(data.error || "Failed to delete review.");
@@ -643,7 +769,13 @@ function FlaggedTab({ onFlaggedCountChange }: { onFlaggedCountChange: (count: nu
 
 // ── Removed Tab (rejected + removed reviews) ──
 
-function RemovedTab({ onCountChange }: { onCountChange: (count: number) => void }) {
+interface RemovedTabProps {
+  onCountChange: (count: number) => void;
+  onStatsChange: () => void;
+  dateRange: DateRangeValue;
+}
+
+function RemovedTab({ onCountChange, onStatsChange, dateRange }: RemovedTabProps) {
   const [reviews, setReviews] = useState<AdminReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -655,10 +787,16 @@ function RemovedTab({ onCountChange }: { onCountChange: (count: number) => void 
     setLoading(true);
     setError(null);
     try {
+      const resolved = resolveRange(dateRange);
+      const dateParams = new URLSearchParams();
+      if (resolved.from) dateParams.set("from_date", resolved.from);
+      if (resolved.to) dateParams.set("to_date", resolved.to);
+      const dateQuery = dateParams.toString() ? `&${dateParams.toString()}` : "";
+
       // Fetch both rejected and removed reviews
       const [rejectedRes, removedRes] = await Promise.all([
-        fetch("/api/admin/reviews?status=rejected"),
-        fetch("/api/admin/reviews?status=removed"),
+        fetch(`/api/admin/reviews?status=rejected${dateQuery}`),
+        fetch(`/api/admin/reviews?status=removed${dateQuery}`),
       ]);
 
       if (!rejectedRes.ok || !removedRes.ok) {
@@ -683,7 +821,7 @@ function RemovedTab({ onCountChange }: { onCountChange: (count: number) => void 
     } finally {
       setLoading(false);
     }
-  }, [onCountChange]);
+  }, [onCountChange, dateRange]);
 
   useEffect(() => {
     fetchReviews();
@@ -700,6 +838,7 @@ function RemovedTab({ onCountChange }: { onCountChange: (count: number) => void 
       });
       if (res.ok) {
         fetchReviews();
+        onStatsChange(); // Refresh stats after action
       } else {
         const data = await res.json().catch(() => ({}));
         setActionError(data.error || "Failed to restore review.");

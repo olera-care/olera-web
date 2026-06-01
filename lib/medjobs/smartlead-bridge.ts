@@ -17,8 +17,19 @@
  * Smartlead sequence steps.
  */
 
-import type { SmartleadLead, SmartleadSequenceStep } from "@/lib/smartlead";
+import {
+  addLeads,
+  attachEmailAccounts,
+  createCampaign,
+  listEmailAccounts,
+  saveSequence,
+  setCampaignSchedule,
+  setCampaignStatus,
+  type SmartleadLead,
+  type SmartleadSequenceStep,
+} from "@/lib/smartlead";
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
+import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
 import { CALENDLY_URL, PROGRAM_URL, getTemplate } from "@/lib/student-outreach/templates";
 import type { Status } from "@/lib/student-outreach/types";
 
@@ -216,30 +227,209 @@ function finalizeTokens(text: string, adminFirstName: string): string {
 }
 
 /**
- * First-pass Markdown → HTML for the Smartlead body, mirroring the
- * **bold** / [label](url) / paragraph semantics of
- * lib/student-outreach/email-send.ts:bodyToHtml.
+ * Markdown → HTML for the Smartlead body. Uses the SHARED renderer
+ * (`email-markdown.ts:bodyToHtml`) so the cold channel produces byte-identical
+ * body HTML to the Resend path — one source of truth.
  *
- * TODO(launch): unify with that renderer (export it from email-send.ts)
- * and bake the footer/signature once the cold-channel sender identity is
- * settled with Logan. The body here intentionally OMITS the Resend footer
- * (Graize + Dr. DuBose signatures, "Reply STOP") because the Smartlead
- * channel sends from logan@findmedjobs.co and uses Smartlead's own
- * unsubscribe — that's an open product decision, not a mechanical port.
+ * TODO(launch): the body is unified, but the footer/signature is still NOT
+ * appended here. The Resend footer (Graize + Dr. DuBose signatures, "Reply
+ * STOP") is built for the olera.care identity; the Smartlead channel sends
+ * from logan@findmedjobs.co with Smartlead's own unsubscribe. The cold-channel
+ * footer + sender identity + unsubscribe mechanism are a product decision for
+ * Logan — settle that, then append the footer here.
  */
 function toSmartleadHtml(body: string, adminFirstName: string): string {
-  return finalizeTokens(body, adminFirstName)
-    .split(/\n\s*\n/)
-    .map((para) => {
-      const html = para
-        .trim()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-        .replace(/\n/g, "<br/>");
-      return `<p>${html}</p>`;
-    })
-    .join("\n");
+  return bodyToHtml(finalizeTokens(body, adminFirstName));
+}
+
+// ── Orchestration (network — drives lib/smartlead) ───────────────────────
+
+/**
+ * Smartlead Base plan TOTAL contact-storage cap. The real ceiling on how many
+ * leads can live across all campaigns — not a send-rate limit. Lead admission
+ * is budgeted against this so we never blow past it silently.
+ */
+export const SMARTLEAD_CONTACT_CAP = 2000;
+
+/** Smartlead caps the per-request batch (~100); the caller must chunk. */
+const LEAD_BATCH_SIZE = 100;
+
+export interface MailboxPool {
+  ids: number[];
+  warnings: string[];
+}
+
+function envSenderEmails(): string[] {
+  return (process.env.SMARTLEAD_SENDER_EMAILS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Resolve the warmed mailbox pool to attach to a campaign. Reads the live
+ * account, filters to the configured sender allowlist (SMARTLEAD_SENDER_EMAILS,
+ * comma-separated), and warns for any mailbox whose warmup isn't ACTIVE. IDs
+ * are resolved at runtime — never hardcoded (they're account state).
+ */
+export async function resolveMailboxPool(
+  senderEmails?: string[],
+): Promise<{ ok: boolean; pool: MailboxPool; error?: string }> {
+  const res = await listEmailAccounts();
+  if (!res.ok || !res.data) {
+    return { ok: false, pool: { ids: [], warnings: [] }, error: res.error ?? "listEmailAccounts failed" };
+  }
+
+  const allow = (senderEmails ?? envSenderEmails()).map((e) => e.trim().toLowerCase()).filter(Boolean);
+  const accounts = res.data;
+  const selected = allow.length
+    ? accounts.filter((a) => allow.includes((a.from_email ?? "").toLowerCase()))
+    : accounts;
+
+  const warnings: string[] = [];
+  if (!allow.length) {
+    warnings.push(`No SMARTLEAD_SENDER_EMAILS allowlist set; using all ${accounts.length} connected mailbox(es).`);
+  }
+  for (const a of selected) {
+    const status = a.warmup_details?.status;
+    if (status !== "ACTIVE") {
+      warnings.push(`Mailbox ${a.from_email} warmup status is ${status ?? "unknown"} (not ACTIVE) — do not START until warm.`);
+    }
+  }
+
+  if (!selected.length) {
+    return { ok: false, pool: { ids: [], warnings }, error: "No mailboxes matched the sender allowlist." };
+  }
+  return { ok: true, pool: { ids: selected.map((a) => a.id), warnings } };
+}
+
+export interface LaunchInput {
+  campaignName: string;
+  campus: CampusContext;
+  rows: BridgeRow[];
+  cadenceKey?: CadenceKey;
+  senderEmails?: string[];
+  adminFirstName?: string;
+  /** Existing total contacts already in the Smartlead account, for 2K-cap
+   *  accounting. Caller supplies; defaults to 0. */
+  existingContactCount?: number;
+  /** Passed verbatim to setCampaignSchedule; defaults to weekday business hours. */
+  schedule?: Record<string, unknown>;
+}
+
+export interface LaunchReport {
+  ok: boolean;
+  campaign_id?: number;
+  enrolled: number;
+  enrolled_outreach_ids: string[];
+  skipped: { outreach_id: string; reason: SkipReason | "over_cap" }[];
+  mailbox_warnings: string[];
+  errors: { stage: string; message: string }[];
+}
+
+function defaultSchedule(): Record<string, unknown> {
+  return {
+    timezone: "America/Chicago",
+    days_of_the_week: [1, 2, 3, 4, 5],
+    start_hour: "09:00",
+    end_hour: "17:00",
+    min_time_btw_emails: 10,
+    max_new_leads_per_day: 20,
+  };
+}
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+/**
+ * Orchestrate a PAUSED Smartlead campaign from CRM rows.
+ *
+ * - NEVER calls START — there is no "START" literal in this module. A human
+ *   starts the campaign in the Smartlead UI after warmup + Logan sign-off (§8).
+ * - Does NOT write back to the CRM — that's the schedule_sequence integration
+ *   (step 3, G4 single-writer).
+ * - Aggregates errors into the report instead of throwing, so a partial
+ *   failure is visible, not silent. The campaign id is captured before leads
+ *   are pushed so a mid-flight failure leaves a recoverable PAUSED campaign.
+ */
+export async function launchCampaign(input: LaunchInput): Promise<LaunchReport> {
+  const report: LaunchReport = {
+    ok: false,
+    enrolled: 0,
+    enrolled_outreach_ids: [],
+    skipped: [],
+    mailbox_warnings: [],
+    errors: [],
+  };
+
+  // 1. Resolve warmed mailboxes (fails closed if the key/account is unavailable).
+  const mb = await resolveMailboxPool(input.senderEmails);
+  report.mailbox_warnings = mb.pool.warnings;
+  if (!mb.ok) {
+    report.errors.push({ stage: "resolveMailboxPool", message: mb.error ?? "no mailboxes" });
+    return report;
+  }
+
+  // 2. Filter eligible rows (reason for every exclusion).
+  const { eligible, skipped } = selectEligibleRows(input.rows);
+  report.skipped = [...skipped];
+
+  // 3. Budget against the 2K storage cap — drop overflow and report it; no silent truncation.
+  const available = Math.max(0, SMARTLEAD_CONTACT_CAP - (input.existingContactCount ?? 0));
+  let admitted = eligible;
+  if (eligible.length > available) {
+    admitted = eligible.slice(0, available);
+    for (const row of eligible.slice(available)) {
+      report.skipped.push({ outreach_id: row.outreach_id, reason: "over_cap" });
+    }
+  }
+  if (!admitted.length) {
+    report.errors.push({ stage: "select", message: "No eligible rows to enroll (after filters + cap)." });
+    return report;
+  }
+
+  // 4. Create the campaign; capture the id immediately.
+  const created = await createCampaign(input.campaignName);
+  if (!created.ok || !created.data) {
+    report.errors.push({ stage: "createCampaign", message: created.error ?? "no campaign id" });
+    return report;
+  }
+  report.campaign_id = created.data.id;
+  const campaignId = created.data.id;
+
+  // 5. Attach warmed mailboxes.
+  const attached = await attachEmailAccounts(campaignId, mb.pool.ids);
+  if (!attached.ok) report.errors.push({ stage: "attachEmailAccounts", message: attached.error ?? "attach failed" });
+
+  // 6. Save the email-only drip sequence.
+  const steps = buildEmailSequence(input.cadenceKey ?? "provider", { adminFirstName: input.adminFirstName });
+  const saved = await saveSequence(campaignId, steps);
+  if (!saved.ok) report.errors.push({ stage: "saveSequence", message: saved.error ?? "save failed" });
+
+  // 7. Push leads in chunks of 100 (the engine doesn't chunk). A failed chunk
+  //    is recorded and its rows are NOT counted as enrolled.
+  for (const group of chunk(admitted, LEAD_BATCH_SIZE)) {
+    const leads = group.map((row) => rowToLead(row, input.campus));
+    const res = await addLeads(campaignId, leads);
+    if (res.ok) {
+      report.enrolled += res.data?.upload_count ?? leads.length;
+      report.enrolled_outreach_ids.push(...group.map((r) => r.outreach_id));
+    } else {
+      report.errors.push({ stage: `addLeads[${group.length}]`, message: res.error ?? "addLeads failed" });
+    }
+  }
+
+  // 8. Schedule (weekday business hours by default).
+  const sched = await setCampaignSchedule(campaignId, input.schedule ?? defaultSchedule());
+  if (!sched.ok) report.errors.push({ stage: "setCampaignSchedule", message: sched.error ?? "schedule failed" });
+
+  // 9. Leave it PAUSED. The campaign goes live only by a human, post-warmup.
+  const status = await setCampaignStatus(campaignId, "PAUSED");
+  if (!status.ok) report.errors.push({ stage: "setCampaignStatus", message: status.error ?? "status failed" });
+
+  report.ok = report.errors.length === 0;
+  return report;
 }

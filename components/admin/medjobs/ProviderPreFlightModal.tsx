@@ -90,17 +90,10 @@ interface Props {
     email?: string | null;
     phone?: string | null;
   } | null;
-  /** v9.x cold-email engine. When "smartlead", the modal renders a
-   *  Smartlead-native preview banner above the existing variant editors
-   *  so admin sees WHAT WILL BE SENT (per-recipient salutations,
-   *  Smartlead-rendered HTML bodies with sample substitutions, Day 0/3/7
-   *  schedule). The body editors stay visible for reference but are
-   *  marked as not affecting Smartlead sends in this mode. */
-  engine?: "resend" | "smartlead";
-  /** v9.x Smartlead preview snapshot — server-precomputed via
-   *  buildSmartleadPreview. Present only when engine === "smartlead" and
-   *  the row has at least one usable recipient. */
-  smartleadPreview?: SmartleadPreviewSnapshot | null;
+  /** Smartlead preview snapshot — server-precomputed via
+   *  buildSmartleadPreview. Always present unless the row has no usable
+   *  recipient (which the pre-flight checklist prevents). */
+  smartleadPreview: SmartleadPreviewSnapshot | null;
   onCancel: () => void;
   onSubmit: (payload: {
     recipients: RecipientPlan[];
@@ -178,12 +171,10 @@ export function ProviderPreFlightModal({
   campusProgramPdfUrl,
   contacts,
   generalContact,
-  engine = "resend",
-  smartleadPreview = null,
+  smartleadPreview,
   onCancel,
   onSubmit,
 }: Props) {
-  const smartleadMode = engine === "smartlead" && smartleadPreview != null;
   // v9 final: surface the Program PDF that will be attached so
   // admin sees the outreach package before launching. Resolution
   // mirrors the server's loadProgramPdfAttachment order:
@@ -434,17 +425,8 @@ export function ProviderPreFlightModal({
               Confirm outreach plan
             </h3>
             <p className="mt-0.5 text-xs text-gray-500">
-              {smartleadMode ? (
-                <>
-                  {organizationName} · Smartlead campaign. Emails ship from
-                  findmedjobs.co (warmed); calls queue to the Calls tab.
-                </>
-              ) : (
-                <>
-                  {organizationName} · per-recipient cadence. Day 0 emails fire
-                  inline; calls queue to the Calls tab.
-                </>
-              )}
+              {organizationName} · Smartlead campaign. Emails ship from
+              findmedjobs.co (warmed); calls queue to the Calls tab.
             </p>
           </div>
           <button
@@ -463,7 +445,7 @@ export function ProviderPreFlightModal({
             </p>
           )}
 
-          {smartleadMode && smartleadPreview && (
+          {smartleadPreview && (
             <SmartleadPreviewSection preview={smartleadPreview} />
           )}
 

@@ -564,21 +564,13 @@ export interface DrawerContext {
   >;
 
   /**
-   * v9.x cold-email engine — drives the Smartlead-native preview in
-   * ProviderPreFlightModal. Resolved server-side from
-   * MEDJOBS_OUTREACH_ENGINE (same source of truth as the route.ts
-   * schedule_sequence engine branch), so the UI matches what the server
-   * will actually do at launch. Defaults to "resend".
-   */
-  outreach_engine: "resend" | "smartlead";
-
-  /**
-   * v9.x Smartlead preview — present only when outreach_engine ===
-   * "smartlead" and the row is a provider with at least one usable
-   * recipient. Precomputed server-side so the modal renders WHAT WILL BE
-   * SENT (per-recipient salutations, Smartlead-rendered HTML bodies with
-   * sample substitutions, Day 0/3/7 schedule, sender pool) without
-   * bundling lib/smartlead into the client.
+   * Smartlead-native preview — what the server will actually send when
+   * admin clicks Launch. Precomputed server-side so the modal renders
+   * recipient roster + rendered body + schedule + sender pool without
+   * bundling `lib/smartlead.ts` into the client. Null only when the row
+   * has no usable recipient (no General Contact email and no Named
+   * Contacts with emails) — the pre-flight checklist gates this before
+   * Launch is reachable.
    */
   smartlead_preview: SmartleadPreviewSnapshot | null;
 }

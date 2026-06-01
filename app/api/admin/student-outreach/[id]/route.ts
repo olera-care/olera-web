@@ -648,57 +648,55 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     }
   }
 
-  // v9.x Smartlead-native preview. Built only when the engine flag is on
-  // AND the row is a provider with at least one usable recipient — the
-  // pre-flight Smartlead panel is provider-only (stakeholder cadences use
-  // a different modal). Same lead-construction path as enrollRowIntoSmartlead
-  // so the preview matches what the server will enroll at launch.
-  const outreachEngine =
-    process.env.MEDJOBS_OUTREACH_ENGINE === "smartlead" ? "smartlead" : "resend";
+  // Smartlead-native preview — what will actually ship at launch. Built
+  // for every MedJobs cadence (provider + stakeholder) when the row has
+  // at least one usable recipient. Same lead-construction path as
+  // enrollRowIntoSmartlead so the preview matches what the server will
+  // enroll. Provider rows: General Contact email comes from
+  // research_data.general_contact override. Stakeholder rows: no
+  // general-contact concept; recipients are Named Contacts only.
+  const previewContacts: NamedContact[] = ((contacts ?? []) as Contact[])
+    .filter(
+      (c) =>
+        c.status === "active" &&
+        c.email != null &&
+        c.email.trim().length > 0 &&
+        c.role !== "General Office" &&
+        c.role !== "General Inbox",
+    )
+    .map((c) => ({
+      contact_id: c.id,
+      email: c.email ?? "",
+      first_name: c.first_name,
+      last_name: c.last_name,
+      title: c.title,
+      role: c.role,
+    }));
+  const gc = row.research_data?.general_contact;
+  const previewRow: BridgeRow = {
+    outreach_id: row.id,
+    kind: row.kind,
+    status: row.status,
+    organization_name: row.organization_name,
+    city: gc?.city ?? (campus?.city ?? null),
+    email: gc?.email ?? null,
+    first_name: null,
+    already_enrolled: typeof row.research_data?.smartlead?.campaign_id === "number",
+    contacts: previewContacts,
+  };
+  const yyyymm = new Date().toISOString().slice(0, 7);
+  const campusName = campus?.name ?? "Unknown Campus";
+  const campusCity = campus?.city ?? null;
+  const cadenceKey: CadenceKey =
+    row.kind === "provider" ? "provider" : row.stakeholder_type;
   let smartleadPreviewSnapshot: DrawerContext["smartlead_preview"] = null;
-  if (outreachEngine === "smartlead" && row.kind === "provider") {
-    const gc = row.research_data?.general_contact;
-    const previewContacts: NamedContact[] = ((contacts ?? []) as Contact[])
-      .filter(
-        (c) =>
-          c.status === "active" &&
-          c.email != null &&
-          c.email.trim().length > 0 &&
-          c.role !== "General Office" &&
-          c.role !== "General Inbox",
-      )
-      .map((c) => ({
-        contact_id: c.id,
-        email: c.email ?? "",
-        first_name: c.first_name,
-        last_name: c.last_name,
-        role: c.role,
-      }));
-    const previewRow: BridgeRow = {
-      outreach_id: row.id,
-      kind: row.kind,
-      status: row.status,
-      organization_name: row.organization_name,
-      city: gc?.city ?? (campus?.city ?? null),
-      email: gc?.email ?? null,
-      first_name: null,
-      already_enrolled: typeof row.research_data?.smartlead?.campaign_id === "number",
-      contacts: previewContacts,
-    };
-    const yyyymm = new Date().toISOString().slice(0, 7);
-    const campusName = campus?.name ?? "Unknown Campus";
-    const campusCity = campus?.city ?? null;
-    // Only render a preview if the row actually has at least one usable
-    // recipient — otherwise the modal still falls back to its Resend-style
-    // editors (admin sees the no-email banner from the existing pre-flight
-    // gate; we don't render an empty Smartlead panel).
-    if (previewRow.email || previewContacts.length > 0) {
-      smartleadPreviewSnapshot = buildSmartleadPreview({
-        row: previewRow,
-        campus: { name: campusName, city: campusCity },
-        campaignName: `MedJobs — ${campusName} — ${yyyymm}`,
-      });
-    }
+  if (previewRow.email || previewContacts.length > 0) {
+    smartleadPreviewSnapshot = buildSmartleadPreview({
+      row: previewRow,
+      campus: { name: campusName, city: campusCity, slug: (campus as { slug?: string | null } | null)?.slug ?? null },
+      campaignName: `MedJobs — ${campusName} — ${yyyymm}`,
+      cadenceKey,
+    });
   }
 
   return {
@@ -720,11 +718,6 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     awaiting_callback_kind: derived.awaiting_callback_kind,
     provider_business_profile: providerBusinessProfile,
     email_engagement: emailEngagement,
-    // v9.x cold-email engine — same source of truth the schedule_sequence
-    // engine branch reads, so the Smartlead-native preview in
-    // ProviderPreFlightModal matches what the server will actually do.
-    outreach_engine:
-      process.env.MEDJOBS_OUTREACH_ENGINE === "smartlead" ? "smartlead" : "resend",
     smartlead_preview: smartleadPreviewSnapshot,
   };
 }
@@ -1757,10 +1750,6 @@ async function handleScheduleSequence(
     // launch so it lands in the timeline alongside Day 0 emails.
     contact_form_outcome?: "submitted" | "skipped" | "not_available";
     contact_form_url?: string | null;
-    /** v9.x cold-email engine. Optional override; defaults to the
-     *  MEDJOBS_OUTREACH_ENGINE config (not an operator toggle). "smartlead"
-     *  routes the email drip through Smartlead instead of Resend. */
-    engine?: "resend" | "smartlead";
   },
   userId: string,
 ) {
@@ -1827,27 +1816,15 @@ async function handleScheduleSequence(
     user_id: userId,
     has_phone: hasPhone,
   });
-  // v9.x cold-email engine. Default is the MEDJOBS_OUTREACH_ENGINE config
-  // (not an operator toggle); body.engine is an optional override for tests /
-  // gradual rollout. "resend" is byte-for-byte the prior behavior.
-  const engine: "resend" | "smartlead" =
-    body.engine ??
-    (process.env.MEDJOBS_OUTREACH_ENGINE === "smartlead" ? "smartlead" : "resend");
+  // Smartlead is the delivery engine for all MedJobs cold outreach. Enroll
+  // the lead into its campus campaign FIRST so any skip (no email / already
+  // enrolled) or API failure aborts BEFORE any CRM mutation — no orphaned
+  // tasks, no half-transitioned row. enrollRowIntoSmartlead throws on skip
+  // or failure and writes the linkage + touchpoint on success.
+  await enrollRowIntoSmartlead(db, row, userId);
 
-  // Smartlead mode: enroll the lead into its campus campaign FIRST, so a skip
-  // (no email / already enrolled) or API failure aborts BEFORE any CRM
-  // mutation — no orphaned tasks, no half-transitioned row. enrollRowIntoSmartlead
-  // throws on skip/failure and writes the linkage + touchpoint on success.
-  if (engine === "smartlead") {
-    await enrollRowIntoSmartlead(db, row, userId);
-  }
-
-  // Task queue: smartlead mode queues ONLY the call tasks (Smartlead owns the
-  // email drip); resend mode queues all tasks as before.
-  const tasksToInsert =
-    engine === "smartlead"
-      ? plan.filter((p) => p.task_type === "outreach_followup_call")
-      : plan;
+  // Smartlead owns the email drip — we only queue CRM-side call tasks.
+  const tasksToInsert = plan.filter((p) => p.task_type === "outreach_followup_call");
   let insertedTasks: Array<{
     id: string;
     task_type: string;
@@ -1886,26 +1863,10 @@ async function handleScheduleSequence(
     .update({ viewed_at: null })
     .eq("id", row.id);
 
-  // v9 Phase 9: inline-fire ALL Day-0 email tasks in parallel (RESEND only —
-  // in smartlead mode Smartlead owns sending, so there are no email tasks).
-  // Sends happen in parallel via Promise.allSettled so one failure doesn't
-  // block siblings. Cron picks up anything that didn't fire.
-  if (engine === "resend") {
-    const day0Tasks = (insertedTasks ?? []).filter((t) => {
-      const tt = t as { task_type: string; payload: Record<string, unknown> };
-      return tt.task_type === "outreach_email_send" && tt.payload?.day === 0;
-    }) as Array<{ id: string }>;
-    if (day0Tasks.length > 0) {
-      const fireResults = await Promise.allSettled(
-        day0Tasks.map((t) => executeEmailTask(t.id)),
-      );
-      for (const r of fireResults) {
-        if (r.status === "rejected") {
-          console.error("Inline Day 0 send failed:", r.reason);
-        }
-      }
-    }
-  }
+  // Smartlead owns the email drip — there are no inline Day-0 email tasks
+  // to fire here. The campaign starts PAUSED in Smartlead and a human
+  // clicks Start in the Smartlead UI when ready (existing safety: no
+  // START literal in the bridge code).
 
   // v9 final: contact-form Day 0 step. When PreFlight passed an
   // outcome, emit the touchpoint as part of the launch so the
@@ -1948,12 +1909,13 @@ async function handleScheduleSequence(
 async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) {
   const { data: campusRow } = await db
     .from("student_outreach_campuses")
-    .select("name, city")
+    .select("name, city, slug")
     .eq("id", row.campus_id)
     .maybeSingle();
-  const campus = campusRow as { name?: string; city?: string | null } | null;
+  const campus = campusRow as { name?: string; city?: string | null; slug?: string | null } | null;
   const campusName = campus?.name ?? "Unknown Campus";
   const campusCity = campus?.city ?? null;
+  const campusSlug = campus?.slug ?? null;
 
   // Approach (b): reuse the campus's existing campaign id from a sibling row's
   // stored linkage (one indexed read; no new engine surface).
@@ -1978,7 +1940,7 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
   // to avoid double-sending to the same inbox.
   const { data: contactRows } = await db
     .from("student_outreach_contacts")
-    .select("id, first_name, last_name, role, email")
+    .select("id, first_name, last_name, title, role, email")
     .eq("outreach_id", row.id)
     .eq("status", "active")
     .not("email", "is", null)
@@ -1987,6 +1949,7 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
     id: string;
     first_name: string | null;
     last_name: string | null;
+    title: string | null;
     role: string | null;
     email: string | null;
   }>)
@@ -1996,6 +1959,7 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
       email: c.email ?? "",
       first_name: c.first_name,
       last_name: c.last_name,
+      title: c.title,
       role: c.role,
     }));
 
@@ -2021,7 +1985,7 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
 
   const enroll = await enrollRowIntoCampusCampaign({
     row: bridgeRow,
-    campus: { name: campusName, city: campusCity },
+    campus: { name: campusName, city: campusCity, slug: campusSlug },
     campaignName: `MedJobs — ${campusName} — ${yyyymm}`,
     existingCampaignId,
     cadenceKey,

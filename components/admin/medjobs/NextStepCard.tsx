@@ -533,7 +533,6 @@ function ProspectBody({
               ctx.provider_business_profile?.phone ??
               null,
           }}
-          engine={ctx.outreach_engine}
           smartleadPreview={ctx.smartlead_preview}
           onCancel={() => setShowPreFlight(false)}
           onSubmit={async (payload) => {

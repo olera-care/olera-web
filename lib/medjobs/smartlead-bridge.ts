@@ -30,7 +30,7 @@ import {
 } from "@/lib/smartlead";
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
-import { CALENDLY_URL, PROGRAM_URL, getTemplate } from "@/lib/student-outreach/templates";
+import { CALENDLY_URL, PROGRAM_URL, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
 import type { Status } from "@/lib/student-outreach/types";
 
 export type BridgeKind = "provider" | "student_org" | "advisor" | "dept_head" | "professor";
@@ -48,6 +48,10 @@ export interface NamedContact {
   email: string;
   first_name: string | null;
   last_name: string | null;
+  /** Formal title (e.g. "Dr.", "Prof."). Drives the `{{salutation}}` merge
+   *  field for dept_head + professor stakeholder cadences — without it
+   *  formal recipients still get "Dear <Last>," fallback, not "Hi <First>,". */
+  title?: string | null;
   role: string | null;
   email_verdict?: "valid" | "invalid" | "risky" | "unknown" | null;
   suppressed?: boolean;
@@ -85,6 +89,10 @@ export interface BridgeRow {
 export interface CampusContext {
   name: string;
   city: string | null;
+  /** Campus slug — drives the campus-specific program PDF URL baked into
+   *  the body (`/api/medjobs/program-pdf?university=<slug>`). Optional for
+   *  callers that don't have it yet (the PDF link is omitted in that case). */
+  slug?: string | null;
 }
 
 export type SkipReason =
@@ -200,6 +208,11 @@ export interface FannedLead {
 export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] {
   const leads: FannedLead[] = [];
 
+  // Formal cadences (dept_head + professor) use "Dear Dr. <Last>," via
+  // salutationFor; informal cadences (provider + student_org + advisor)
+  // use "Hi <First>," for named recipients and "Hello," for general.
+  const isFormal = row.kind === "dept_head" || row.kind === "professor";
+
   const generalEmail = row.email?.trim();
   if (generalEmail && !row.suppressed && row.email_verdict !== "invalid") {
     leads.push({
@@ -217,6 +230,8 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           recipient_kind: "general",
           contact_id: "",
           role: "",
+          // General Contact is the org-level email (no person), so even for
+          // formal cadences the greeting stays neutral.
           salutation: "Hello",
         },
       },
@@ -229,6 +244,16 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
     if (c.suppressed) continue;
     if (c.email_verdict === "invalid") continue;
     const firstName = c.first_name?.trim() || "";
+    const salutation = isFormal
+      ? `Dear ${salutationFor(
+          row.kind === "dept_head" ? "dept_head" : "professor",
+          c.first_name,
+          c.last_name,
+          c.title ?? null,
+        )}`
+      : firstName
+        ? `Hi ${firstName}`
+        : "Hello";
     leads.push({
       outreach_id: row.outreach_id,
       contact_id: c.contact_id,
@@ -244,7 +269,7 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           recipient_kind: "named",
           contact_id: c.contact_id,
           role: c.role ?? "",
-          salutation: firstName ? `Hi ${firstName}` : "Hello",
+          salutation,
         },
       },
     });
@@ -304,6 +329,12 @@ const MERGE_SALUTATION = "{{salutation}}";
 export interface SequenceOptions {
   /** Sender first name woven into the copy. Defaults to "Graize". */
   adminFirstName?: string;
+  /** Campus slug — used to bake a campus-specific program PDF link into
+   *  the body. Smartlead can't attach files to automated campaign sends
+   *  (confirmed via API + help-center docs), so the PDF goes as a hosted
+   *  link instead. Without a slug, the body's "attached information
+   *  packet" phrasing is rewritten to a neutral fallback. */
+  campusSlug?: string | null;
 }
 
 /**
@@ -353,7 +384,7 @@ export function buildEmailSequence(
         seq_number: seq,
         seq_delay_details: { delay_in_days: seq === 1 ? 0 : day.day - prevEmailDay },
         subject: finalizeTokens(draft.subject, adminFirstName),
-        email_body: toSmartleadHtml(draft.body, adminFirstName),
+        email_body: toSmartleadHtml(draft.body, adminFirstName, opts.campusSlug ?? null),
       });
       prevEmailDay = day.day;
     }
@@ -393,20 +424,111 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     .replace(/(^|\n)Hello,/g, `$1${MERGE_SALUTATION},`);
 }
 
+const LOGAN_PHOTO_URL =
+  process.env.STUDENT_OUTREACH_LOGAN_PHOTO_URL ??
+  "https://olera.care/images/for-providers/team/logan.jpg";
+const GRAZIE_PHOTO_URL =
+  process.env.STUDENT_OUTREACH_GRAZIE_PHOTO_URL ??
+  "https://olera.care/images/for-providers/team/grazie.png";
+
+/**
+ * Smartlead-side outreach footer. Mirrors `email-send.ts:composeFooterHtml`
+ * with two cold-channel adjustments:
+ *
+ *   - Grazie's signature email line removed (no graize@findmedjobs.co
+ *     handle yet; when one exists, restore the line).
+ *   - "Reply STOP" line removed. Smartlead injects its own native
+ *     one-click unsubscribe link below the body which maps to the
+ *     EMAIL_UNSUBSCRIBE webhook → status=do_not_contact (compliance).
+ *
+ * Structure: Best, → Graize block → divider → "Message Approved" → Logan
+ * block. Matches the Resend ordering.
+ */
+function composeSmartleadFooterHtml(): string {
+  return [
+    `<p style="margin:16px 0 4px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
+    `<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Graize</p>`,
+    grazieSignatureHtml(),
+    `<hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;" />`,
+    `<p style="margin:0 0 8px;font-size:12px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">Message Approved by Dr. Logan DuBose, MD/MBA</p>`,
+    loganSignatureHtml(),
+  ].join("\n");
+}
+
+function loganSignatureHtml(): string {
+  return `
+<table cellpadding="0" cellspacing="0" style="margin-top:16px;">
+  <tr>
+    <td style="vertical-align:top;padding-right:16px;">
+      <img src="${LOGAN_PHOTO_URL}" alt="Dr. Logan DuBose" width="100" height="100" style="border-radius:8px;display:block;" />
+    </td>
+    <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
+      <p style="margin:0 0 4px;font-weight:600;color:#111827;">Dr. Logan DuBose, MD, MBA</p>
+      <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
+      <p style="margin:0 0 2px;">Affiliate Partner, Texas A&amp;M Center for Community Health and Aging</p>
+      <p style="margin:0 0 2px;">Researcher funded by the National Institutes of Health Small Business Innovation Research Program</p>
+      <p style="margin:0 0 2px;">General Practitioner, Fredericksburg Christian Health Clinic, Virginia</p>
+      <p style="margin:0 0 2px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Texas A&amp;M Student Caregiver Program</a></p>
+      <p style="margin:0 0 8px;">Co-founder, Olera Inc., <a href="https://www.olera.care" style="color:#059669;">www.olera.care</a></p>
+      <p style="margin:0;">
+        <a href="${CALENDLY_URL}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
+      </p>
+    </td>
+  </tr>
+</table>`;
+}
+
+function grazieSignatureHtml(): string {
+  return `
+<table cellpadding="0" cellspacing="0" style="margin-top:16px;">
+  <tr>
+    <td style="vertical-align:top;padding-right:16px;">
+      <img src="${GRAZIE_PHOTO_URL}" alt="Graize Belandres" width="100" height="100" style="border-radius:8px;display:block;" />
+    </td>
+    <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
+      <p style="margin:0 0 4px;font-weight:600;color:#111827;">Graize Belandres</p>
+      <p style="margin:0 0 2px;">Research Assistant to Dr. Logan DuBose</p>
+      <p style="margin:0;"><a href="${PROGRAM_URL}" style="color:#059669;">${PROGRAM_URL.replace(/^https?:\/\//, "")}</a></p>
+    </td>
+  </tr>
+</table>`;
+}
+
 /**
  * Markdown → HTML for the Smartlead body. Uses the SHARED renderer
- * (`email-markdown.ts:bodyToHtml`) so the cold channel produces byte-identical
- * body HTML to the Resend path — one source of truth.
+ * (`email-markdown.ts:bodyToHtml`) so the cold channel produces body HTML
+ * structurally identical to the Resend path.
  *
- * TODO(launch): the body is unified, but the footer/signature is still NOT
- * appended here. The Resend footer (Graize + Dr. DuBose signatures, "Reply
- * STOP") is built for the olera.care identity; the Smartlead channel sends
- * from logan@findmedjobs.co with Smartlead's own unsubscribe. The cold-channel
- * footer + sender identity + unsubscribe mechanism are a product decision for
- * Logan — settle that, then append the footer here.
+ * Two Smartlead-specific transforms before the shared renderer runs:
+ *
+ *   1. "Attached information packet" → "Program packet (linked below)".
+ *      Smartlead's API does not support file attachments on automated
+ *      campaign sends (verified against api.smartlead.ai/llms.txt + the
+ *      Save Sequence reference + the Master Inbox attachments help
+ *      article, which limits attachments to inbox REPLIES). The packet
+ *      ships as a hosted-PDF link instead.
+ *
+ *   2. Append a "Program details (PDF): <campus-specific URL>" line
+ *      after the body but before the signature so the recipient has
+ *      a clear path to download. URL pattern matches the existing
+ *      hosted endpoint at /api/medjobs/program-pdf?university=<slug>.
+ *      When `campusSlug` is null (preview without a campus or fallback),
+ *      the link line is omitted.
  */
-function toSmartleadHtml(body: string, adminFirstName: string): string {
-  return bodyToHtml(finalizeTokens(body, adminFirstName));
+function toSmartleadHtml(
+  body: string,
+  adminFirstName: string,
+  campusSlug: string | null,
+): string {
+  let rewritten = body
+    .replace(/The attached information packet/g, "The program packet (linked below)")
+    .replace(/the attached information packet/g, "the program packet (linked below)");
+  if (campusSlug) {
+    const pdfUrl = `https://olera.care/api/medjobs/program-pdf?university=${campusSlug}`;
+    rewritten += `\n\nProgram details (PDF): ${pdfUrl}`;
+  }
+  const bodyHtml = bodyToHtml(finalizeTokens(rewritten, adminFirstName));
+  return bodyHtml + composeSmartleadFooterHtml();
 }
 
 // ── Server-side preview rendering (no network) ───────────────────────────
@@ -530,6 +652,7 @@ export function buildSmartleadPreview(input: {
 
   const seq = buildEmailSequence(input.cadenceKey ?? "provider", {
     adminFirstName: input.adminFirstName,
+    campusSlug: input.campus.slug ?? null,
   });
   const days = OUTREACH_DAYS_BY_TYPE[input.cadenceKey ?? "provider"];
   const emailDays = days.filter((d) => d.steps.some((s) => s.channel === "email"));
@@ -747,7 +870,10 @@ export async function launchCampaign(input: LaunchInput): Promise<LaunchReport> 
   }
 
   // 4. Provision the campaign (create → attach → sequence); capture id immediately.
-  const steps = buildEmailSequence(input.cadenceKey ?? "provider", { adminFirstName: input.adminFirstName });
+  const steps = buildEmailSequence(input.cadenceKey ?? "provider", {
+    adminFirstName: input.adminFirstName,
+    campusSlug: input.campus.slug ?? null,
+  });
   const prov = await provisionCampaign(input.campaignName, mb.pool.ids, steps);
   report.errors.push(...prov.errors);
   if (!prov.campaign_id) return report;
@@ -857,7 +983,10 @@ export async function enrollRowIntoCampusCampaign(input: EnrollInput): Promise<E
     result.errors.push({ stage: "resolveMailboxPool", message: mb.error ?? "no mailboxes" });
     return result;
   }
-  const steps = buildEmailSequence(input.cadenceKey ?? "provider", { adminFirstName: input.adminFirstName });
+  const steps = buildEmailSequence(input.cadenceKey ?? "provider", {
+    adminFirstName: input.adminFirstName,
+    campusSlug: input.campus.slug ?? null,
+  });
   const prov = await provisionCampaign(input.campaignName, mb.pool.ids, steps);
   result.errors.push(...prov.errors);
   if (!prov.campaign_id) return result;

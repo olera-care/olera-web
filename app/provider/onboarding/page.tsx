@@ -1123,8 +1123,20 @@ function ProviderOnboardingContent() {
       ]);
 
       // Merge and dedupe profiles
-      const profileMap = new Map<string, typeof bpNameResult.data extends (infer T)[] | null ? T : never>();
-      for (const bp of [...(bpEmailResult.data || []), ...(bpNameResult.data || [])]) {
+      type PartialBusinessProfile = {
+        id: string;
+        display_name: string;
+        slug: string;
+        city: string | null;
+        state: string | null;
+        email: string | null;
+        image_url: string | null;
+        account_id: string | null;
+        source_provider_id: string | null;
+        claim_state: string | null;
+      };
+      const profileMap = new Map<string, PartialBusinessProfile>();
+      for (const bp of [...(bpEmailResult.data || []), ...(bpNameResult.data || [])] as PartialBusinessProfile[]) {
         if (!profileMap.has(bp.id)) {
           profileMap.set(bp.id, bp);
         }
@@ -1152,7 +1164,7 @@ function ProviderOnboardingContent() {
           .eq("claim_state", "claimed");
 
         claimedProviderIds = new Set(
-          (claimedProfiles || [])
+          ((claimedProfiles || []) as Array<{ source_provider_id: string | null }>)
             .map(p => p.source_provider_id)
             .filter(Boolean) as string[]
         );

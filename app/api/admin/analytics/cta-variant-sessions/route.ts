@@ -119,8 +119,8 @@ export async function GET(request: NextRequest) {
       .in("event_type", ["cta_variant_impression", "cta_variant_clicked"])
       .order("created_at", { ascending: false })
       .limit(20000);
-    if (from) impressionClickQuery = impressionClickQuery.gte("created_at", from);
-    if (to) impressionClickQuery = impressionClickQuery.lt("created_at", to);
+    if (from) impressionClickQuery = (impressionClickQuery as any).gte("created_at", from);
+    if (to) impressionClickQuery = (impressionClickQuery as any).lt("created_at", to);
 
     const icRes = await impressionClickQuery;
     if (icRes.error) {
@@ -158,8 +158,8 @@ export async function GET(request: NextRequest) {
       .eq("event_type", "lead_received")
       .order("created_at", { ascending: false })
       .limit(20000);
-    if (from) leadQuery = leadQuery.gte("created_at", from);
-    if (to) leadQuery = leadQuery.lt("created_at", to);
+    if (from) leadQuery = (leadQuery as any).gte("created_at", from);
+    if (to) leadQuery = (leadQuery as any).lt("created_at", to);
 
     const leadRes = await leadQuery;
     if (leadRes.error) {

@@ -104,8 +104,8 @@ export async function GET(request: NextRequest) {
         .neq("metadata->>session_id", "")
         .order("created_at", { ascending: true })
         .range(offset, offset + PAGE - 1);
-      if (from) pq = pq.gte("created_at", from.toISOString());
-      if (dateTo) pq = pq.lt("created_at", dateTo);
+      if (from) pq = (pq as any).gte("created_at", from.toISOString());
+      if (dateTo) pq = (pq as any).lt("created_at", dateTo);
       const { data: page, error: pErr } = await pq;
       if (pErr) {
         console.error("Admin analytics views stats (series) error:", pErr);

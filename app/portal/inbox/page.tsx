@@ -437,7 +437,7 @@ function InboxContent() {
 
           if (iosProviders?.length) {
             const iosMap = new Map(
-              iosProviders.map((p: { provider_id: string; provider_logo: string | null; provider_images: string | null }) => [
+              (iosProviders as Array<{ provider_id: string; provider_logo: string | null; provider_images: string | null }>).map((p) => [
                 p.provider_id,
                 p.provider_logo || (p.provider_images?.split(" | ")[0]) || null,
               ])

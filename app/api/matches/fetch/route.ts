@@ -198,7 +198,7 @@ export async function POST(request: Request) {
         .or(categoryFilter);
 
       if (excludeFilter) {
-        strictQuery = strictQuery.not("provider_id", "in", excludeFilter);
+        strictQuery = (strictQuery as any).not("provider_id", "in", excludeFilter);
       }
 
       const { data, count: c, error } = await applySortAndRange(strictQuery);
@@ -225,7 +225,7 @@ export async function POST(request: Request) {
         .eq("state", matchState);
 
       if (excludeFilter) {
-        broadQuery = broadQuery.not("provider_id", "in", excludeFilter);
+        broadQuery = (broadQuery as any).not("provider_id", "in", excludeFilter);
       }
 
       const { data, count: c, error } = await applySortAndRange(broadQuery);

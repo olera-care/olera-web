@@ -229,7 +229,7 @@ export default function ProviderDetailPanel({
       .select("provider_logo, provider_images")
       .eq("provider_id", profile.source_provider_id)
       .single()
-      .then(({ data }) => {
+      .then(({ data }: { data: { provider_logo: string | null; provider_images: string | null } | null }) => {
         if (!data) return;
         const allImages: string[] = [];
         if (data.provider_logo) allImages.push(data.provider_logo);

@@ -130,12 +130,12 @@ export async function GET(request: NextRequest) {
         .from("olera-providers")
         .select("provider_id", { count: "exact", head: true });
 
-      if (tab === "published") opCountQuery = opCountQuery.or("deleted.is.null,deleted.eq.false");
-      else if (tab === "deleted") opCountQuery = opCountQuery.eq("deleted", true);
-      else if (tab === "no_city") opCountQuery = opCountQuery.is("city", null);
-      if (search) opCountQuery = opCountQuery.ilike("provider_name", `%${search}%`);
-      if (category) opCountQuery = opCountQuery.eq("provider_category", category);
-      if (stateFilter) opCountQuery = opCountQuery.eq("state", stateFilter);
+      if (tab === "published") opCountQuery = (opCountQuery as any).or("deleted.is.null,deleted.eq.false");
+      else if (tab === "deleted") opCountQuery = (opCountQuery as any).eq("deleted", true);
+      else if (tab === "no_city") opCountQuery = (opCountQuery as any).is("city", null);
+      if (search) opCountQuery = (opCountQuery as any).ilike("provider_name", `%${search}%`);
+      if (category) opCountQuery = (opCountQuery as any).eq("provider_category", category);
+      if (stateFilter) opCountQuery = (opCountQuery as any).eq("state", stateFilter);
 
       const opCountResult = await opCountQuery;
       if (opCountResult.error) {
@@ -152,15 +152,15 @@ export async function GET(request: NextRequest) {
           .in("type", ["organization", "caregiver"])
           .is("source_provider_id", null);
 
-        if (tab === "no_city") bpCountQuery = bpCountQuery.is("city", null);
-        bpCountQuery = bpCountQuery.ilike("display_name", `%${search}%`);
+        if (tab === "no_city") bpCountQuery = (bpCountQuery as any).is("city", null);
+        bpCountQuery = (bpCountQuery as any).ilike("display_name", `%${search}%`);
         if (category) {
           const bpCategory = OP_TO_BP_CATEGORY[category];
           // If no mapping exists, filter will match nothing — that's correct
           // (the OP category has no BP equivalent).
-          bpCountQuery = bpCountQuery.eq("category", bpCategory ?? "__no_match__");
+          bpCountQuery = (bpCountQuery as any).eq("category", bpCategory ?? "__no_match__");
         }
-        if (stateFilter) bpCountQuery = bpCountQuery.eq("state", stateFilter);
+        if (stateFilter) bpCountQuery = (bpCountQuery as any).eq("state", stateFilter);
 
         const bpCountResult = await bpCountQuery;
         if (bpCountResult.error) {
@@ -184,13 +184,13 @@ export async function GET(request: NextRequest) {
 
     let opQuery = db.from("olera-providers").select(opColumns, { count: "exact" });
 
-    if (tab === "published") opQuery = opQuery.or("deleted.is.null,deleted.eq.false");
-    else if (tab === "deleted") opQuery = opQuery.eq("deleted", true);
-    else if (tab === "no_city") opQuery = opQuery.is("city", null);
-    if (search) opQuery = opQuery.ilike("provider_name", `%${search}%`);
-    if (category) opQuery = opQuery.eq("provider_category", category);
-    if (stateFilter) opQuery = opQuery.eq("state", stateFilter);
-    opQuery = opQuery.order("provider_name", { ascending: true });
+    if (tab === "published") opQuery = (opQuery as any).or("deleted.is.null,deleted.eq.false");
+    else if (tab === "deleted") opQuery = (opQuery as any).eq("deleted", true);
+    else if (tab === "no_city") opQuery = (opQuery as any).is("city", null);
+    if (search) opQuery = (opQuery as any).ilike("provider_name", `%${search}%`);
+    if (category) opQuery = (opQuery as any).eq("provider_category", category);
+    if (stateFilter) opQuery = (opQuery as any).eq("state", stateFilter);
+    opQuery = (opQuery as any).order("provider_name", { ascending: true });
 
     // Without union: preserve existing behavior — direct pagination on OP.
     if (!includeBps) {
@@ -248,14 +248,14 @@ export async function GET(request: NextRequest) {
       .in("type", ["organization", "caregiver"])
       .is("source_provider_id", null);
 
-    if (tab === "no_city") bpQuery = bpQuery.is("city", null);
-    bpQuery = bpQuery.ilike("display_name", `%${search}%`);
+    if (tab === "no_city") bpQuery = (bpQuery as any).is("city", null);
+    bpQuery = (bpQuery as any).ilike("display_name", `%${search}%`);
     if (category) {
       const bpCategory = OP_TO_BP_CATEGORY[category];
-      bpQuery = bpQuery.eq("category", bpCategory ?? "__no_match__");
+      bpQuery = (bpQuery as any).eq("category", bpCategory ?? "__no_match__");
     }
-    if (stateFilter) bpQuery = bpQuery.eq("state", stateFilter);
-    bpQuery = bpQuery.order("display_name", { ascending: true }).limit(BP_SAFETY_CAP);
+    if (stateFilter) bpQuery = (bpQuery as any).eq("state", stateFilter);
+    bpQuery = (bpQuery as any).order("display_name", { ascending: true }).limit(BP_SAFETY_CAP);
 
     const bpResult = await bpQuery;
     if (bpResult.error) {

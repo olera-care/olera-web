@@ -73,7 +73,15 @@ export function SavedProgramsProvider({ children }: { children: ReactNode }) {
           .order("created_at", { ascending: false });
 
         if (data) {
-          const entries: SavedProgramEntry[] = data.map((r) => ({
+          const entries: SavedProgramEntry[] = (data as Array<{
+            program_id: string;
+            state_id: string;
+            name: string;
+            short_name: string | null;
+            program_type: string;
+            savings_range: string;
+            created_at: string;
+          }>).map((r) => ({
             programId: r.program_id,
             stateId: r.state_id,
             name: r.name,

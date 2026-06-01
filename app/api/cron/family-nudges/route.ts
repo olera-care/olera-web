@@ -236,7 +236,7 @@ async function getTopProviders(
       .limit(limit);
 
     if (categories.length > 0) {
-      stateQuery = stateQuery.in("provider_category", categories);
+      stateQuery = (stateQuery as any).in("provider_category", categories);
     }
 
     const { data: stateProviders } = await stateQuery;

@@ -12,6 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { AuthState, Account, Profile, Membership, DeferredAction } from "@/lib/types";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { setDeferredAction, getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 
 export type AuthModalView = "sign-in" | "sign-up";
@@ -238,10 +239,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           .from("accounts")
           .select("*")
           .eq("user_id", userId)
-          .single<Account>(),
+          .single(),
         QUERY_TIMEOUT_MS,
         "accounts query"
-      );
+      ) as { data: Account | null; error: unknown };
       const account = accountResult.data;
       const accountError = accountResult.error;
       console.timeEnd(accountsLabel);
@@ -567,7 +568,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     // Auth state listener — handles sign in, sign out, token refresh
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       if (cancelled) return;
 
       if (event === "SIGNED_OUT") {
@@ -866,7 +867,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
       // Fire-and-forget — session invalidation happens in the background
       const supabase = createClient();
-      supabase.auth.signOut().catch((err) => {
+      supabase.auth.signOut().catch((err: unknown) => {
         console.error("Sign out error:", err);
       });
     },

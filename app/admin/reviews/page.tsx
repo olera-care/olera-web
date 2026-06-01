@@ -76,19 +76,21 @@ export default function AdminReviewsPage() {
   // Fetch stats for summary cards + counts for badges
   useEffect(() => {
     Promise.all([
-      fetch("/api/admin/reviews?limit=1").then((r) => r.json()),
-      fetch("/api/admin/olera-reviews?limit=1").then((r) => r.json()),
+      fetch("/api/admin/reviews?status=published&limit=1").then((r) => r.json()), // Only published
+      fetch("/api/admin/olera-reviews?flagged=not_flagged&limit=1").then((r) => r.json()), // Only visible
+      fetch("/api/admin/olera-reviews?flagged=flagged&limit=1").then((r) => r.json()), // Flagged count
       fetch("/api/admin/review-requests?period=all").then((r) => r.json()),
       fetch("/api/admin/reviews?status=rejected&limit=1").then((r) => r.json()),
       fetch("/api/admin/reviews?status=removed&limit=1").then((r) => r.json()),
     ])
-      .then(([reviewsData, oleraData, requestsData, rejectedData, removedData]) => {
-        const flagged = oleraData.flagged_count ?? 0;
+      .then(([publishedData, visibleOleraData, flaggedOleraData, requestsData, rejectedData, removedData]) => {
+        const flagged = flaggedOleraData.total ?? 0;
+        const visibleOlera = visibleOleraData.total ?? 0;
         setFlaggedCount(flagged);
         setRemovedCount((rejectedData.count ?? 0) + (removedData.count ?? 0));
         setStats({
-          total_reviews: reviewsData.count ?? 0,
-          olera_reviews: oleraData.total ?? 0,
+          total_reviews: publishedData.count ?? 0,
+          olera_reviews: visibleOlera,
           flagged_count: flagged,
           requests_sent: requestsData.summary?.total_requests ?? 0,
         });
@@ -265,17 +267,23 @@ function AllReviewsTab() {
   }, [fetchReviews]);
 
   async function handleRemove(review: UnifiedReview) {
-    if (!confirm("Are you sure you want to remove this review?")) return;
+    // Guest reviews are permanently deleted, family reviews are soft-deleted
+    const isGuest = review.source === "guest";
+    const confirmMessage = isGuest
+      ? "Are you sure you want to permanently delete this review? This cannot be undone."
+      : "Are you sure you want to remove this review? It can be restored from the Removed tab.";
+
+    if (!confirm(confirmMessage)) return;
 
     setActionLoading(review.id);
     setActionError(null);
     try {
-      const endpoint = review.source === "guest"
+      const endpoint = isGuest
         ? `/api/admin/olera-reviews/${review.id}`
         : `/api/admin/reviews/${review.id}`;
 
-      const method = review.source === "guest" ? "DELETE" : "PATCH";
-      const body = review.source === "guest" ? undefined : JSON.stringify({ action: "remove" });
+      const method = isGuest ? "DELETE" : "PATCH";
+      const body = isGuest ? undefined : JSON.stringify({ action: "remove" });
 
       const res = await fetch(endpoint, {
         method,
@@ -402,9 +410,14 @@ function AllReviewsTab() {
                       <button
                         onClick={() => handleRemove(review)}
                         disabled={actionLoading === review.id}
-                        className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 disabled:opacity-50 transition-colors"
+                        className={[
+                          "px-3 py-1.5 text-sm font-medium rounded-lg disabled:opacity-50 transition-colors",
+                          review.source === "guest"
+                            ? "bg-red-100 text-red-700 hover:bg-red-200"
+                            : "bg-gray-200 text-gray-700 hover:bg-gray-300",
+                        ].join(" ")}
                       >
-                        Remove
+                        {review.source === "guest" ? "Delete" : "Remove"}
                       </button>
                     </td>
                   </tr>

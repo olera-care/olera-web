@@ -159,13 +159,21 @@ export interface ResearchData {
     zip?: string | null;
   };
   /** v9.x Smartlead bridge linkage (cold-email engine). Set when the row's
-   *  General Contact is enrolled into its campus Smartlead campaign. JSONB on
-   *  research_data — no schema migration. The join key for the future D2
-   *  reply/bounce webhook is the Smartlead lead's custom_fields.outreach_id. */
+   *  General Contact (and any Named Contacts) are enrolled into its campus
+   *  Smartlead campaign. JSONB on research_data — no schema migration. The
+   *  join key for the D2 reply/bounce webhook is the Smartlead lead's
+   *  `custom_fields.outreach_id`; `contact_id` (also a custom field) picks
+   *  out the specific Named Contact when present. `enrolled_contact_ids`
+   *  mirrors the fan-out for fast lookup without re-querying Smartlead. */
   smartlead?: {
     campaign_id: number;
     lead_email: string | null;
     enrolled_at: string;
+    /** v9.x Named-Contact fan-out: contact_ids of Specific Contacts that
+     *  were enrolled alongside the General Contact. Empty array (or
+     *  undefined for rows enrolled before fan-out shipped) means General
+     *  Contact only. */
+    enrolled_contact_ids?: string[];
   };
 }
 

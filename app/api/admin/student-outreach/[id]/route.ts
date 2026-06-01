@@ -28,7 +28,11 @@ import {
   type CallScript,
 } from "@/lib/student-outreach/sequencer";
 import { executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
-import { enrollRowIntoCampusCampaign, type BridgeRow } from "@/lib/medjobs/smartlead-bridge";
+import {
+  enrollRowIntoCampusCampaign,
+  type BridgeRow,
+  type NamedContact,
+} from "@/lib/medjobs/smartlead-bridge";
 import {
   deriveRepliesState,
   deriveStateFromTouchpoints,
@@ -1907,6 +1911,34 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
     }
   }
 
+  // v9.x Named Contact fan-out: fetch active Specific Contacts on the row
+  // with a usable email. Each becomes its own Smartlead lead alongside the
+  // General Contact. "General Office" / "General Inbox" roles overlap with
+  // the org-level General Contact email path and are intentionally excluded
+  // to avoid double-sending to the same inbox.
+  const { data: contactRows } = await db
+    .from("student_outreach_contacts")
+    .select("id, first_name, last_name, role, email")
+    .eq("outreach_id", row.id)
+    .eq("status", "active")
+    .not("email", "is", null)
+    .neq("email", "");
+  const namedContacts: NamedContact[] = ((contactRows ?? []) as Array<{
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    role: string | null;
+    email: string | null;
+  }>)
+    .filter((c) => c.role !== "General Office" && c.role !== "General Inbox")
+    .map((c) => ({
+      contact_id: c.id,
+      email: c.email ?? "",
+      first_name: c.first_name,
+      last_name: c.last_name,
+      role: c.role,
+    }));
+
   const gc = row.research_data?.general_contact;
   const bridgeRow: BridgeRow = {
     outreach_id: row.id,
@@ -1915,10 +1947,13 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
     organization_name: row.organization_name,
     city: gc?.city ?? campusCity,
     // Pre-flight requires the General Contact email before launch; if it's
-    // somehow absent, the bridge filters the row out (no_email) and we throw.
+    // somehow absent, the bridge filters the row out (no_email) and we throw —
+    // unless the row has Named Contacts with usable emails, in which case
+    // those alone carry the enrollment.
     email: gc?.email ?? null,
     first_name: null,
     already_enrolled: typeof row.research_data?.smartlead?.campaign_id === "number",
+    contacts: namedContacts,
   };
 
   const cadenceKey: CadenceKey = row.kind === "provider" ? "provider" : row.stakeholder_type;
@@ -1940,24 +1975,32 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
     throw new Error(`Smartlead enrollment failed: ${detail}`);
   }
 
-  // Linkage on the row (G3: research_data JSONB, no migration).
+  // Linkage on the row (G3: research_data JSONB, no migration). Mirror the
+  // Named Contact fan-out so the D2 webhook can resolve a Smartlead event's
+  // `contact_id` custom field back to a CRM contact without re-querying.
+  const enrolledContactIds = namedContacts.map((c) => c.contact_id);
   const nextResearch: ResearchData = {
     ...row.research_data,
     smartlead: {
       campaign_id: enroll.campaign_id,
       lead_email: bridgeRow.email,
       enrolled_at: new Date().toISOString(),
+      enrolled_contact_ids: enrolledContactIds,
     },
   };
   await db.from("student_outreach").update({ research_data: nextResearch }).eq("id", row.id);
 
-  // Timeline touchpoint (G1/G5: existing note_added type).
+  // Timeline touchpoint (G1/G5: existing note_added type). Capture the
+  // recipient count so the admin can see fan-out happened in the timeline.
+  const recipientCount = (bridgeRow.email ? 1 : 0) + enrolledContactIds.length;
   await insertTouchpoint(db, row.id, "note_added", userId, {
     channel: "email",
     payload: {
       reason: "smartlead_enrolled",
       campaign_id: enroll.campaign_id,
       created_campaign: enroll.created,
+      recipient_count: recipientCount,
+      named_contact_count: enrolledContactIds.length,
     },
   });
 }

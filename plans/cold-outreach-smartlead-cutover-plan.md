@@ -15,7 +15,7 @@ The admin user experience stays the same: same buttons, same modals, same Launch
 |---|---|
 | D-0.1 — Smartlead footer | **Option A** — port Grazie + Logan signature blocks, drop Grazie's olera.care email line, drop "Reply STOP" (Smartlead native unsubscribe) |
 | D-0.2 — Per-recipient body editors in the modal | **Option A** — strip them. Smartlead ships canonical templates. |
-| D-0.3 — Campus PDF | **Option A** — per-campus Smartlead sequence templates with PDF attached. 30-min spike first to verify the `template_id` API works. Fallback: link in body. |
+| D-0.3 — Campus PDF | **Path A (revised after T0 spike)** — Logan pre-creates one persistent Smartlead campaign per campus in the UI, each with the campus PDF attached + sequence preset + mailboxes attached + schedule set. The bridge code is reduced to a single call: `addLeads` against the pre-existing campaign. T0 spike confirmed Smartlead's API does **not** support templates, attachments, or campaign cloning — so the API can't instantiate from a template. Path A is the persistent-campaign variant of TJ's original "template per campus" plan: same operational pattern, but the campaign is the persistent thing rather than a template the API spins up. |
 | D-0.4 — Stakeholder rows (advisor / student org / dept head / professor) | **Migrate to Smartlead too.** Provider-only scope was Logan's recommendation; he expanded it: every MedJobs outreach cadence moves to Smartlead. |
 
 ---
@@ -72,11 +72,21 @@ Only these files contain MedJobs cold-outreach sending logic:
 - `lib/student-outreach/email-send.ts` — the `sendOutreachEmail` function (row 1)
 - `lib/student-outreach/auto-send-executor.ts` — the cron-driven executor that calls `sendOutreachEmail`
 - `app/api/admin/student-outreach/[id]/route.ts` — the `schedule_sequence` action that admin's Launch button hits
-- `lib/medjobs/smartlead-bridge.ts` — already supports all kinds, needs salutation logic extended for formal stakeholders (Dr./Prof.)
-- `components/admin/medjobs/ProviderPreFlightModal.tsx` — provider modal (already has Smartlead preview; needs editor strip)
-- `app/admin/student-outreach/PreFlightReviewModal.tsx` — stakeholder modal (needs Smartlead preview added)
+- `lib/medjobs/smartlead-bridge.ts` — **simplified** to only call `addLeads` against pre-existing campus campaigns; remove `createCampaign` / `saveSequence` / `attachEmailAccounts` / `setCampaignSchedule` / `setCampaignStatus` calls from the live path (keep the functions in `lib/smartlead.ts` — they may be useful for one-off admin scripts). Extend salutation logic for formal stakeholders (Dr./Prof.).
+- `components/admin/medjobs/ProviderPreFlightModal.tsx` — provider modal (strip editors, show "campus wired / not wired" status)
+- `app/admin/student-outreach/PreFlightReviewModal.tsx` — stakeholder modal (add Smartlead preview + wired-status indicator)
 
 **The shared low-level wrapper `lib/email.ts:sendEmail` is NOT changed.** All 58 transactional call sites keep using it exactly as they do today.
+
+### New configuration: campus → campaign_id mapping
+
+Path A needs the bridge to know which Smartlead campaign serves which campus. Simplest mechanism:
+
+- **Env var `SMARTLEAD_CAMPUS_CAMPAIGN_IDS`** = `texas-am:12345,florida:67890,arizona:11223,...` (comma-separated, one slug:id per campus)
+- Logan populates this in Vercel after creating each Smartlead campaign
+- The bridge parses it at runtime; if a row's campus slug isn't in the map, enrollment fails closed with a clear message: "Campus 'Texas A&M' not yet wired to Smartlead — finish UI setup and add `texas-am:<campaign_id>` to `SMARTLEAD_CAMPUS_CAMPAIGN_IDS`"
+
+This is simpler than a DB migration; no `student_outreach_campuses.smartlead_campaign_id` column needed. Trade-off: changing the map requires a Vercel env-var update + redeploy. For ~25 one-time setups that's fine.
 
 ### What needs to be true before Phase 2 starts
 
@@ -98,12 +108,14 @@ Only these files contain MedJobs cold-outreach sending logic:
 
 **What we'll do:**
 - Remove the engine-flag plumbing (`MEDJOBS_OUTREACH_ENGINE` env var, `body.engine` override, conditional branches in `route.ts`). Smartlead becomes unconditional for **every** MedJobs cold outreach row, regardless of kind.
-- Extend the route.ts Smartlead branch to handle stakeholder cadences (advisor / student org / dept head / professor), not just provider. The bridge already supports `BridgeKind` for all 5 kinds; we just plumb stakeholders through the same `enrollRowIntoSmartlead` path with the right cadence key.
+- Extend the route.ts Smartlead branch to handle stakeholder cadences (advisor / student org / dept head / professor), not just provider. Same Named Contact fan-out applies.
 - Extend the per-lead salutation logic in the bridge to handle formal stakeholders (dept_head + professor get `"Dear Dr. Smith"` instead of `"Hi Jane"`). The existing `salutationFor` helper in `templates.ts` already encodes this rule; we apply it inside `rowToLeads` when setting the `{{salutation}}` custom field.
-- Add a safety net in the Resend executor: if any MedJobs cold-outreach email task somehow reaches the cron (e.g., a stale task queued before the migration), it short-circuits and doesn't fire.
-- Wire the campus PDF strategy (Smartlead UI templates per campus — see Decision D-0.3). Templates exist per campus, not per cadence, so they cover provider + stakeholder sends from the same campus.
-- Port the email footer to Smartlead's send pipeline (Grazie + Logan signature blocks; see Decision D-0.1)
-- Add a Smartlead preview panel to `PreFlightReviewModal` (stakeholder version), mirroring what `ProviderPreFlightModal` already shows for provider rows.
+- **Simplify the bridge to a thin lead-pusher.** Path A means Logan pre-creates persistent campus campaigns in Smartlead UI (with PDF + sequence + mailboxes + schedule preset). The bridge no longer calls `createCampaign` / `saveSequence` / `attachEmailAccounts` / `setCampaignSchedule` / `setCampaignStatus` in the launch path. It resolves the campus's pre-existing campaign id from `SMARTLEAD_CAMPUS_CAMPAIGN_IDS` and calls only `addLeads`.
+- Bridge fails closed when a campus isn't yet wired: clear error "Campus X has no Smartlead campaign yet — Logan must finish UI setup first." Admin can't accidentally launch a campus before its campaign exists.
+- Add a safety net in the Resend executor: if any MedJobs cold-outreach email task somehow reaches the cron, it short-circuits and doesn't fire.
+- Port the email footer to Smartlead's send pipeline (Grazie + Logan signature blocks; see Decision D-0.1). The footer ships in the body Logan sets in Smartlead UI — so this is operationally part of Logan's campus-setup work, not a bridge code change. The bridge's `buildEmailSequence` and `buildSmartleadPreview` still emit the footer-included body so the preview matches the canonical templates.
+- Add a Smartlead preview panel to `PreFlightReviewModal` (stakeholder version), mirroring what `ProviderPreFlightModal` already shows.
+- Add a "Smartlead status" indicator to both pre-flight modals: ✓ campus wired / ✗ campus not yet wired (with the campaign-id missing). Prevents the dead-end click.
 
 **How we'll know it's done:**
 - Test rows in staging (one of each kind: provider + advisor + student_org + dept_head + professor) → Launch → emails arrive from `logan@findmedjobs.co` or `partnerships@findmedjobs.co`
@@ -263,7 +275,9 @@ To keep this focused and safe, the following are explicitly out of scope:
 - **R-5: Stale test data in prod's `research_data.smartlead`.** Could collide with prod campaign IDs. **Mitigation:** pre-cutover SQL to clear that field from prod rows. One UPDATE.
 - **R-6: Grazie has no findmedjobs.co email handle yet.** Her signature email line is removed under D-0.1 Option A. **Mitigation:** logged as a follow-up; when she gets one, restore the line. Not blocking.
 - **R-7: Formal stakeholder salutation may render incorrectly if title is missing.** A dept_head row with no `title` on the contact would currently fall through `salutationFor` to "Dear <Last>," (no Dr./Prof. prefix). Mitigation: verify via tsx test in Phase 2 that every fallback path produces a natural-reading greeting. Confirmed acceptable since the existing Resend path has the exact same behavior — no regression vs today.
-- **R-8: Smartlead campaigns scale.** With all 5 cadences live, campaigns multiply per campus. Five cadences × 25 campuses = potentially 125 campaigns at full operation. Smartlead Base plan supports this; just worth monitoring storage cap usage. Mitigation: existing `SMARTLEAD_CONTACT_CAP=2000` budget guard in `launchCampaign` already covers it.
+- **R-8: Smartlead campaign count under Path A.** ONE persistent campaign per campus (not per cadence × campus), so the count is ~25 max — well within Smartlead Base plan limits. The contact-storage cap of 2000 is enforced by the existing `SMARTLEAD_CONTACT_CAP` guard.
+- **R-9: Sequence copy drift between `templates.ts` and the actual Smartlead UI sequence.** The bridge generates the preview from `templates.ts`; the real sends come from what Logan typed into Smartlead UI. If Logan tweaks copy in Smartlead UI without updating `templates.ts` (or vice versa), the preview lies about what recipients will see. **Mitigation:** discipline — when copy changes, Logan updates both surfaces. Plan to add a drift-detector script in v2 (compares `buildEmailSequence` output to live Smartlead sequences nightly, alerts on mismatch). Not blocking for cutover.
+- **R-10: Logan is the single point of failure for new campus setup.** Path A makes Logan responsible for creating every new campus's Smartlead campaign before admin can launch outreach for that campus. **Mitigation:** Logan creates all ~25 campuses BEFORE leaving for his 2-week absence, so the team is unblocked for the entire window. Any new campus added during those weeks just queues until he's back. Acceptable since campus expansion is slow.
 
 ---
 
@@ -277,9 +291,11 @@ To keep this focused and safe, the following are explicitly out of scope:
 
 ## Decisions are locked — ready to start Phase 2
 
-All four decisions confirmed by Logan (see "Logan's decisions — locked" table at the top). Phase 2 implementation estimate now ~10 hours of code (was ~6 — the D-0.4 expansion to stakeholders adds the second pre-flight modal preview + formal salutation handling + 4 additional test cadences).
+All four decisions confirmed by Logan (see top of doc). T0 spike complete; D-0.3 finalized as Path A (persistent campus campaigns, Logan-built).
 
-Next step: Logan says "go" → I start with Phase 2 task T8 (the 30-min Smartlead `template_id` API spike) to de-risk D-0.3 before any code commits.
+Phase 2 implementation estimate: ~8 hours of code (down from ~10 since the bridge simplification removes the provisioning code from the launch path). Plus ~25 manual Smartlead UI setups (Logan, ~30 min per campus = ~12 hours of operational work, parallelizable with the code work).
+
+Critical path: Logan completes ALL ~25 Smartlead campus setups before leaving for his 2-week absence, so the team is unblocked. Code can ship before all 25 are done — admins can launch wired campuses first.
 
 ---
 
@@ -290,21 +306,36 @@ Next step: Logan says "go" → I start with Phase 2 task T8 (the 30-min Smartlea
 
 ### Phase 2 implementation tasks
 
-- [ ] **T0. SPIKE FIRST**: verify Smartlead's `template_id` parameter on `createCampaign` works (30 min, one real API call). Pass → proceed with all Phase 2. Fail → fall to D-0.3 Option B (link in body) before committing any code.
+- [x] **T0. SPIKE COMPLETE** — Smartlead API does not support templates/attachments/cloning. Strategy changed to Path A (persistent campus campaigns, Logan-built in UI).
 - [ ] T1. Remove the `engine` branch in `route.ts:handleScheduleSequence`. For ALL MedJobs cold-outreach rows (every kind): always call `enrollRowIntoSmartlead`. Remove `body.engine` from the action body type. Remove `outreach_engine` field from `DrawerContext`.
-- [ ] T2. Extend `enrollRowIntoSmartlead` to handle stakeholder kinds (advisor / student_org / dept_head / professor): pass `row.stakeholder_type` as `cadenceKey` (already supported by the bridge). Same Named Contact fan-out applies.
-- [ ] T3. Extend `rowToLeads` salutation logic in `lib/medjobs/smartlead-bridge.ts` to call `salutationFor(stakeholder_type, first_name, last_name, title)` for dept_head + professor rows. Today it hardcodes "Hi <First>" — needs to switch to "Dear Dr. <Last>" when formal.
-- [ ] T4. Gate `auto-send-executor.executeEmailTask` to short-circuit ALL kinds (not just provider). Belt-and-suspenders.
-- [ ] T5. Remove `MEDJOBS_OUTREACH_ENGINE` env var from Vercel staging + prod (operational, post-merge).
-- [ ] T6. Strip variant editor blocks from `ProviderPreFlightModal.tsx`. Drop `generalSnaps`/`namedSnaps` state. `onSubmit` payload drops `email_snapshots_by_variant`. Server-side, make that field optional.
-- [ ] T7. Remove `smartleadMode` ternaries in `ProviderPreFlightModal` — there's only one mode now.
-- [ ] T8. Add Smartlead preview panel to `app/admin/student-outreach/PreFlightReviewModal.tsx` (the stakeholder modal). Reuse the `SmartleadPreviewSection` component from `ProviderPreFlightModal` — extract it to a shared file if needed.
-- [ ] T9. Extend server-side `buildSmartleadPreview` call in `route.ts:loadDrawerContext` to fire for ALL kinds, not just provider. Today: `if (outreachEngine === "smartlead" && row.kind === "provider")` → remove the kind check.
-- [ ] T10. Port `composeFooterHtml` from `email-send.ts` to `lib/medjobs/smartlead-bridge.ts:toSmartleadHtml`. Adjust email lines per D-0.1.
-- [ ] T11. Verify Smartlead's unsubscribe block renders correctly in campaign settings (operational).
-- [ ] T12. TJ: build first campus template in Smartlead UI (e.g. Texas A&M). Save as `medjobs-{slug}`. Templates are per-campus, not per-cadence — same template serves provider + all 4 stakeholder cadences. Operational.
-- [ ] T13. Bridge resolves `template_id` from campus slug → template-id mapping. Source of truth: env var (`SMARTLEAD_CAMPUS_TEMPLATES=texas-am:12345,...`) or new column on `student_outreach_campuses` (`smartlead_template_id`). Pick the simpler one.
-- [ ] T14. TJ: build remaining ~24 campus templates over weeks (operational, non-blocking).
+- [ ] T2. Extend `enrollRowIntoSmartlead` to handle stakeholder kinds (advisor / student_org / dept_head / professor): pass `row.stakeholder_type` as `cadenceKey`. Same Named Contact fan-out applies.
+- [ ] T3. Extend `rowToLeads` salutation logic to call `salutationFor(stakeholder_type, first_name, last_name, title)` for dept_head + professor. Today hardcodes "Hi <First>"; needs "Dear Dr. <Last>" when formal.
+- [ ] T4. **Simplify bridge for Path A.** Refactor `enrollRowIntoCampusCampaign`:
+  - Resolve `campaign_id` from new env var `SMARTLEAD_CAMPUS_CAMPAIGN_IDS` (parse as `slug:id,slug:id,...`) using the campus slug
+  - If campus not in map → return `{ ok: false, skipped_reason: "campus_not_wired" }` with clear error
+  - If campus in map → call `addLeads(campaign_id, leads)` and return
+  - Remove the auto-create branch (no more `provisionCampaign` / `finalizeCampaign` in this path)
+  - Keep `launchCampaign` and the provisioning helpers in `lib/medjobs/smartlead-bridge.ts` as exported utilities for one-off admin scripts (they're useful for "create the first campus campaign programmatically" tooling later) but mark them as non-launch-path
+- [ ] T5. Update `loadDrawerContext` to surface "campus wired" status: include `smartlead_campus_wired: boolean` in DrawerContext, computed from whether the campus's slug is in `SMARTLEAD_CAMPUS_CAMPAIGN_IDS`. The pre-flight modal reads this to show ✓/✗ and gate the Launch button.
+- [ ] T6. Gate `auto-send-executor.executeEmailTask` to short-circuit ALL MedJobs kinds. Belt-and-suspenders.
+- [ ] T7. Remove `MEDJOBS_OUTREACH_ENGINE` env var from Vercel staging + prod (operational, post-merge).
+- [ ] T8. Strip variant editor blocks from `ProviderPreFlightModal.tsx`. Drop `generalSnaps`/`namedSnaps` state. `onSubmit` payload drops `email_snapshots_by_variant`. Server-side, make that field optional.
+- [ ] T9. Remove `smartleadMode` ternaries in `ProviderPreFlightModal` — there's only one mode now.
+- [ ] T10. Add Smartlead preview panel to `app/admin/student-outreach/PreFlightReviewModal.tsx`. Extract the existing `SmartleadPreviewSection` to a shared file `components/admin/medjobs/SmartleadPreviewSection.tsx`.
+- [ ] T11. Both pre-flight modals: show "Campus wired ✓" or "Campus not yet wired in Smartlead — contact Logan" badge based on `smartlead_campus_wired`. Disable the Launch button when not wired.
+- [ ] T12. Extend server-side `buildSmartleadPreview` call in `loadDrawerContext` to fire for ALL kinds, not just provider.
+- [ ] T13. Port `composeFooterHtml` from `email-send.ts` to `lib/medjobs/smartlead-bridge.ts:toSmartleadHtml`. Adjust email lines per D-0.1. Used for the PREVIEW only — Logan must mirror this footer in each Smartlead UI sequence manually.
+- [ ] T14. Verify Smartlead's unsubscribe block renders correctly in campaign settings (operational, Logan does this once per campus).
+
+### Phase 2 — Logan's operational work (parallel to coding)
+
+- [ ] T15. Logan builds one Smartlead campaign per campus (~25 over the next 2 weeks before he leaves). Each campaign:
+  - PDF attached to each step (Day 0, Day 3, Day 7, etc.)
+  - Sequence body matches `buildEmailSequence` output (subject + body, with `{{salutation}}`, `{{company_name}}`, `{{campus}}`, `{{first_name}}` merge tags + footer per D-0.1)
+  - Attached mailboxes: `logan@findmedjobs.co` + `partnerships@findmedjobs.co`
+  - Schedule: weekday 9am-5pm America/Chicago
+  - Status: PAUSED (admin clicks Start in Smartlead UI per launch)
+- [ ] T16. Logan records each campus's `campaign_id` from Smartlead and populates `SMARTLEAD_CAMPUS_CAMPAIGN_IDS` in Vercel prod. Format: `texas-am:12345,florida:67890,arizona:11223,...`
 
 ### Phase 3 verification tasks
 

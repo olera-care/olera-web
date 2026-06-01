@@ -57,7 +57,7 @@ import {
   type RecipientPlan,
   type CallScript,
 } from "@/lib/student-outreach/sequencer";
-import type { Contact } from "@/lib/student-outreach/types";
+import type { Contact, SmartleadPreviewSnapshot } from "@/lib/student-outreach/types";
 import Input from "@/components/ui/Input";
 import { getProgramPdfConfig } from "@/lib/program-pdf/configs";
 
@@ -90,6 +90,17 @@ interface Props {
     email?: string | null;
     phone?: string | null;
   } | null;
+  /** v9.x cold-email engine. When "smartlead", the modal renders a
+   *  Smartlead-native preview banner above the existing variant editors
+   *  so admin sees WHAT WILL BE SENT (per-recipient salutations,
+   *  Smartlead-rendered HTML bodies with sample substitutions, Day 0/3/7
+   *  schedule). The body editors stay visible for reference but are
+   *  marked as not affecting Smartlead sends in this mode. */
+  engine?: "resend" | "smartlead";
+  /** v9.x Smartlead preview snapshot — server-precomputed via
+   *  buildSmartleadPreview. Present only when engine === "smartlead" and
+   *  the row has at least one usable recipient. */
+  smartleadPreview?: SmartleadPreviewSnapshot | null;
   onCancel: () => void;
   onSubmit: (payload: {
     recipients: RecipientPlan[];
@@ -167,9 +178,12 @@ export function ProviderPreFlightModal({
   campusProgramPdfUrl,
   contacts,
   generalContact,
+  engine = "resend",
+  smartleadPreview = null,
   onCancel,
   onSubmit,
 }: Props) {
+  const smartleadMode = engine === "smartlead" && smartleadPreview != null;
   // v9 final: surface the Program PDF that will be attached so
   // admin sees the outreach package before launching. Resolution
   // mirrors the server's loadProgramPdfAttachment order:
@@ -420,8 +434,17 @@ export function ProviderPreFlightModal({
               Confirm outreach plan
             </h3>
             <p className="mt-0.5 text-xs text-gray-500">
-              {organizationName} · per-recipient cadence. Day 0 emails fire
-              inline; calls queue to the Calls tab.
+              {smartleadMode ? (
+                <>
+                  {organizationName} · Smartlead campaign. Emails ship from
+                  findmedjobs.co (warmed); calls queue to the Calls tab.
+                </>
+              ) : (
+                <>
+                  {organizationName} · per-recipient cadence. Day 0 emails fire
+                  inline; calls queue to the Calls tab.
+                </>
+              )}
             </p>
           </div>
           <button
@@ -438,6 +461,10 @@ export function ProviderPreFlightModal({
             <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
               {err}
             </p>
+          )}
+
+          {smartleadMode && smartleadPreview && (
+            <SmartleadPreviewSection preview={smartleadPreview} />
           )}
 
           {/* v9 final: PDF attachment indicator. Two modes:
@@ -840,5 +867,151 @@ function CallScriptEditor({
         </p>
       </div>
     </div>
+  );
+}
+
+/**
+ * v9.x Smartlead-native preview. Renders WHAT WILL BE SENT — per-recipient
+ * roster (with computed salutations), Day 0/3/7 schedule, and a rendered
+ * preview of each step with sample substitutions taken from this row's
+ * first Named Contact (or "Hello," + "there" when no named contacts
+ * exist).
+ *
+ * Stays a panel rather than replacing the existing variant editors so
+ * admin can still cross-reference the Resend-shape body during the
+ * transition. A small note clarifies that in Smartlead mode the variant
+ * editors are reference-only.
+ */
+function SmartleadPreviewSection({
+  preview,
+}: {
+  preview: SmartleadPreviewSnapshot;
+}) {
+  const [activeStep, setActiveStep] = useState(0);
+  const step = preview.steps[activeStep];
+  const samplePill =
+    preview.sample_used.first_name && preview.sample_used.first_name !== "there"
+      ? `Preview rendered for ${preview.sample_used.first_name}`
+      : `Preview rendered with generic recipient`;
+
+  return (
+    <section className="rounded-md border border-primary-200 bg-white">
+      <header className="border-b border-primary-100 bg-primary-50/50 px-3 py-2">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-800">
+            Smartlead preview · {preview.campaign_name}
+          </p>
+          <p className="text-[10px] text-primary-700">{samplePill}</p>
+        </div>
+        <p className="mt-1 text-[11px] text-primary-700">
+          {preview.recipients.length === 1
+            ? "1 lead will enroll"
+            : `${preview.recipients.length} leads will enroll`}{" "}
+          ·{" "}
+          {preview.sender_pool.length > 0
+            ? `from ${preview.sender_pool.join(" / ")} (rotated)`
+            : "sender pool: all connected Smartlead mailboxes"}
+        </p>
+      </header>
+
+      <div className="space-y-3 px-3 py-3">
+        {/* Recipient roster — admin verifies each lead before launch. */}
+        <div>
+          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600">
+            Recipients
+          </p>
+          <ul className="divide-y divide-gray-100 rounded-md border border-gray-200">
+            {preview.recipients.map((r, i) => (
+              <li key={i} className="flex items-baseline justify-between gap-2 px-2.5 py-1.5 text-xs">
+                <div className="min-w-0">
+                  <span
+                    className={`rounded px-1 py-0.5 text-[10px] font-semibold uppercase ${
+                      r.recipient_kind === "general"
+                        ? "bg-gray-100 text-gray-700"
+                        : "bg-primary-100 text-primary-800"
+                    }`}
+                  >
+                    {r.recipient_kind === "general" ? "Org" : "Named"}
+                  </span>
+                  <span className="ml-1.5 text-gray-900">{r.name}</span>
+                  {r.role && (
+                    <span className="ml-1.5 text-[10px] text-gray-500">
+                      ({r.role})
+                    </span>
+                  )}
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="font-mono text-[11px] text-gray-700">{r.email}</p>
+                  <p className="text-[10px] text-gray-500">
+                    Greeting:{" "}
+                    <span className="text-gray-700">{r.salutation},</span>
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Step picker + rendered preview */}
+        <div>
+          <div className="mb-1.5 flex items-baseline justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-600">
+              Cadence
+            </p>
+            <div className="flex gap-1">
+              {preview.steps.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveStep(i)}
+                  type="button"
+                  className={`rounded px-2 py-0.5 text-[11px] font-medium transition-colors ${
+                    activeStep === i
+                      ? "bg-primary-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  Day {s.cadence_day}
+                </button>
+              ))}
+            </div>
+          </div>
+          {step && (
+            <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+              <p className="text-[10px] uppercase tracking-wide text-gray-500">
+                Step {step.seq_number} · delay {step.delay_in_days}d after
+                previous email
+              </p>
+              <p className="mt-1 text-sm font-medium text-gray-900">
+                {step.subject_preview}
+              </p>
+              <div
+                className="mt-2 max-h-72 overflow-y-auto rounded border border-gray-200 bg-white p-3 text-[12px] leading-snug"
+                dangerouslySetInnerHTML={{ __html: step.body_html_preview }}
+              />
+            </div>
+          )}
+        </div>
+
+        <p className="rounded-md bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-800">
+          <span className="font-semibold">Smartlead mode:</span> the email
+          body editors below are reference-only — Smartlead sends the
+          canonical template above with per-lead merge tags{" "}
+          (<code className="rounded bg-amber-100 px-1 text-[10px]">
+            {"{{salutation}}"}
+          </code>,{" "}
+          <code className="rounded bg-amber-100 px-1 text-[10px]">
+            {"{{first_name}}"}
+          </code>,{" "}
+          <code className="rounded bg-amber-100 px-1 text-[10px]">
+            {"{{company_name}}"}
+          </code>
+          ,{" "}
+          <code className="rounded bg-amber-100 px-1 text-[10px]">
+            {"{{campus}}"}
+          </code>
+          ). Per-day call scripts still apply.
+        </p>
+      </div>
+    </section>
   );
 }

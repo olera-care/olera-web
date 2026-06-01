@@ -409,6 +409,150 @@ function toSmartleadHtml(body: string, adminFirstName: string): string {
   return bodyToHtml(finalizeTokens(body, adminFirstName));
 }
 
+// ── Server-side preview rendering (no network) ───────────────────────────
+
+/**
+ * Apply sample substitutions to a Smartlead-rendered string so the admin
+ * sees what a real recipient will see — not raw merge tags. Sample values
+ * come from the actual outreach row + campus + first Named Contact (or a
+ * neutral fallback), so the preview reflects this row's data:
+ *   {{salutation}}   → first contact's "Hi <First>" or "Hello"
+ *   {{company_name}} → outreach row's organization_name
+ *   {{campus}}       → campus.name
+ *   {{first_name}}   → first Named Contact's first_name (or "there")
+ */
+function substituteSmartleadSample(
+  text: string,
+  sample: { salutation: string; company: string; campus: string; first_name: string },
+): string {
+  return text
+    .replace(/\{\{\s*salutation\s*\}\}/g, sample.salutation)
+    .replace(/\{\{\s*company_name\s*\}\}/g, sample.company)
+    .replace(/\{\{\s*campus\s*\}\}/g, sample.campus)
+    .replace(/\{\{\s*first_name\s*\}\}/g, sample.first_name);
+}
+
+export interface SmartleadPreviewRecipient {
+  contact_id: string | null;
+  recipient_kind: RecipientKind;
+  name: string;
+  email: string;
+  role: string | null;
+  /** Per-lead {{salutation}} value — "Hello" or "Hi <first>". */
+  salutation: string;
+}
+
+export interface SmartleadPreviewStep {
+  seq_number: number;
+  /** Days from previous step (Smartlead's model). seq_number=1 is delay 0. */
+  delay_in_days: number;
+  /** Cadence day this step maps to (0/3/7 for provider). */
+  cadence_day: number;
+  /** Raw subject with `{{...}}` merge tags intact. */
+  subject_template: string;
+  /** Subject after sample substitution — what the recipient will see. */
+  subject_preview: string;
+  /** Raw HTML body with `{{...}}` merge tags intact. */
+  body_html_template: string;
+  /** Body HTML after sample substitution — what the recipient will see. */
+  body_html_preview: string;
+}
+
+export interface SmartleadPreview {
+  campaign_name: string;
+  recipients: SmartleadPreviewRecipient[];
+  steps: SmartleadPreviewStep[];
+  /** Sample lead used to render the previews — surfaced so admin can see
+   *  whose name is in the preview ("Hi Susan, …" vs "Hello, …"). */
+  sample_used: {
+    salutation: string;
+    first_name: string;
+    company: string;
+    campus: string;
+  };
+  /** Sender pool that will rotate per Smartlead. Resolved from
+   *  SMARTLEAD_SENDER_EMAILS at preview time. Empty when unset (the
+   *  campaign will inherit whatever mailboxes are connected in the
+   *  Smartlead account). */
+  sender_pool: string[];
+}
+
+/**
+ * Build a server-side Smartlead preview for the pre-flight modal. Pure
+ * (no network, no DB) — caller assembles the BridgeRow + campus + named
+ * contacts the same way `enrollRowIntoSmartlead` does, plus an admin name
+ * + cadence + campaign-name pattern. The result is shipped to the client
+ * via DrawerContext.smartlead_preview so the modal renders WHAT WILL BE
+ * SENT, including per-recipient salutation and Day 0/3/7 schedule.
+ */
+export function buildSmartleadPreview(input: {
+  row: BridgeRow;
+  campus: CampusContext;
+  campaignName: string;
+  cadenceKey?: CadenceKey;
+  adminFirstName?: string;
+  senderEmails?: string[];
+}): SmartleadPreview {
+  const fanned = rowToLeads(input.row, input.campus);
+
+  // Map contact_id → full Name (First Last) so the preview shows whole names
+  // even though the Smartlead lead only carries first_name.
+  const contactNameById = new Map<string, string>();
+  for (const c of input.row.contacts ?? []) {
+    const full = [c.first_name, c.last_name].filter(Boolean).join(" ").trim();
+    contactNameById.set(c.contact_id, full || c.email);
+  }
+  const recipients: SmartleadPreviewRecipient[] = fanned.map((f) => ({
+    contact_id: f.contact_id,
+    recipient_kind: f.recipient_kind,
+    name:
+      f.recipient_kind === "general"
+        ? input.row.organization_name
+        : (f.contact_id && contactNameById.get(f.contact_id)) || f.lead.email,
+    email: f.lead.email,
+    role: String(f.lead.custom_fields?.role ?? "") || null,
+    salutation: String(f.lead.custom_fields?.salutation ?? "Hello"),
+  }));
+
+  // Sample for substitution: prefer the first Named Contact's first_name so
+  // the preview reads as a "Hi Susan,…" — that's the more illustrative case
+  // (a named-recipient send). Fall back to "there" + "Hello" if no named
+  // contacts exist, so the preview still renders for General-Contact-only
+  // rows.
+  const firstNamed = fanned.find((f) => f.recipient_kind === "named");
+  const sample = {
+    salutation:
+      firstNamed && firstNamed.lead.first_name ? `Hi ${firstNamed.lead.first_name}` : "Hello",
+    first_name: firstNamed?.lead.first_name || "there",
+    company: input.row.organization_name,
+    campus: input.campus.name,
+  };
+
+  const seq = buildEmailSequence(input.cadenceKey ?? "provider", {
+    adminFirstName: input.adminFirstName,
+  });
+  const days = OUTREACH_DAYS_BY_TYPE[input.cadenceKey ?? "provider"];
+  const emailDays = days.filter((d) => d.steps.some((s) => s.channel === "email"));
+
+  const steps: SmartleadPreviewStep[] = seq.map((step, i) => ({
+    seq_number: step.seq_number,
+    delay_in_days: step.seq_delay_details.delay_in_days,
+    cadence_day: emailDays[i]?.day ?? 0,
+    subject_template: step.subject,
+    subject_preview: substituteSmartleadSample(step.subject, sample),
+    body_html_template: step.email_body,
+    body_html_preview: substituteSmartleadSample(step.email_body, sample),
+  }));
+
+  return {
+    campaign_name: input.campaignName,
+    recipients,
+    steps,
+    sample_used: sample,
+    sender_pool: input.senderEmails ?? envSenderEmails(),
+  };
+}
+
 // ── Orchestration (network — drives lib/smartlead) ───────────────────────
 
 /**

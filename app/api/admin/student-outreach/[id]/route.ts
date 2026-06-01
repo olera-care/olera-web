@@ -29,6 +29,7 @@ import {
 } from "@/lib/student-outreach/sequencer";
 import { executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
 import {
+  buildSmartleadPreview,
   enrollRowIntoCampusCampaign,
   type BridgeRow,
   type NamedContact,
@@ -647,6 +648,59 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     }
   }
 
+  // v9.x Smartlead-native preview. Built only when the engine flag is on
+  // AND the row is a provider with at least one usable recipient — the
+  // pre-flight Smartlead panel is provider-only (stakeholder cadences use
+  // a different modal). Same lead-construction path as enrollRowIntoSmartlead
+  // so the preview matches what the server will enroll at launch.
+  const outreachEngine =
+    process.env.MEDJOBS_OUTREACH_ENGINE === "smartlead" ? "smartlead" : "resend";
+  let smartleadPreviewSnapshot: DrawerContext["smartlead_preview"] = null;
+  if (outreachEngine === "smartlead" && row.kind === "provider") {
+    const gc = row.research_data?.general_contact;
+    const previewContacts: NamedContact[] = ((contacts ?? []) as Contact[])
+      .filter(
+        (c) =>
+          c.status === "active" &&
+          c.email != null &&
+          c.email.trim().length > 0 &&
+          c.role !== "General Office" &&
+          c.role !== "General Inbox",
+      )
+      .map((c) => ({
+        contact_id: c.id,
+        email: c.email ?? "",
+        first_name: c.first_name,
+        last_name: c.last_name,
+        role: c.role,
+      }));
+    const previewRow: BridgeRow = {
+      outreach_id: row.id,
+      kind: row.kind,
+      status: row.status,
+      organization_name: row.organization_name,
+      city: gc?.city ?? (campus?.city ?? null),
+      email: gc?.email ?? null,
+      first_name: null,
+      already_enrolled: typeof row.research_data?.smartlead?.campaign_id === "number",
+      contacts: previewContacts,
+    };
+    const yyyymm = new Date().toISOString().slice(0, 7);
+    const campusName = campus?.name ?? "Unknown Campus";
+    const campusCity = campus?.city ?? null;
+    // Only render a preview if the row actually has at least one usable
+    // recipient — otherwise the modal still falls back to its Resend-style
+    // editors (admin sees the no-email banner from the existing pre-flight
+    // gate; we don't render an empty Smartlead panel).
+    if (previewRow.email || previewContacts.length > 0) {
+      smartleadPreviewSnapshot = buildSmartleadPreview({
+        row: previewRow,
+        campus: { name: campusName, city: campusCity },
+        campaignName: `MedJobs — ${campusName} — ${yyyymm}`,
+      });
+    }
+  }
+
   return {
     outreach: row,
     campus: campus as Campus,
@@ -666,6 +720,12 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     awaiting_callback_kind: derived.awaiting_callback_kind,
     provider_business_profile: providerBusinessProfile,
     email_engagement: emailEngagement,
+    // v9.x cold-email engine — same source of truth the schedule_sequence
+    // engine branch reads, so the Smartlead-native preview in
+    // ProviderPreFlightModal matches what the server will actually do.
+    outreach_engine:
+      process.env.MEDJOBS_OUTREACH_ENGINE === "smartlead" ? "smartlead" : "resend",
+    smartlead_preview: smartleadPreviewSnapshot,
   };
 }
 

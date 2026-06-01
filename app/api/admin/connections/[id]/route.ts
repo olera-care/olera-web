@@ -134,10 +134,50 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       };
     }
 
+    // Email trail — every notification sent to this provider since the lead
+    // arrived (provider_id keys both manual nudges and the consolidated cron
+    // nudges). Lifecycle fields drive the delivered/opened/clicked status.
+    type EmailLogRow = {
+      email_type: string | null;
+      recipient: string | null;
+      status: string | null;
+      created_at: string | null;
+      delivered_at: string | null;
+      first_opened_at: string | null;
+      first_clicked_at: string | null;
+      bounced_at: string | null;
+      complained_at: string | null;
+    };
+    // Only lead/connection-relevant mail — not weekly digests or profile nudges.
+    const LEAD_EMAIL_TYPES = [
+      "provider_nudge",
+      "add_email_notification",
+      "connection_request",
+      "guest_connection",
+      "question_received",
+      "new_message",
+      "post_connection_followup",
+    ];
+    let emails: EmailLogRow[] = [];
+    if (activityKey) {
+      const { data: logs } = await db
+        .from("email_log")
+        .select(
+          "email_type, recipient, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at"
+        )
+        .eq("provider_id", activityKey)
+        .in("email_type", LEAD_EMAIL_TYPES)
+        .gte("created_at", c.created_at)
+        .order("created_at", { ascending: false })
+        .limit(25);
+      emails = (logs as EmailLogRow[]) ?? [];
+    }
+
     return NextResponse.json({
       id: c.id,
       status: c.status,
       created_at: c.created_at,
+      emails,
       family: { display_name: family?.display_name ?? null },
       provider: {
         display_name: provider?.display_name ?? null,

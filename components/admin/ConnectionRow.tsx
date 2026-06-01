@@ -8,6 +8,7 @@ import {
   type ConnectionTemperature,
   type NextStep,
 } from "@/lib/connection-temperature";
+import EmailStatusPill from "@/components/admin/EmailStatusPill";
 
 export interface ConnectionRowData {
   id: string;
@@ -29,17 +30,59 @@ interface ThreadEntry {
   role: "provider" | "family" | "system";
 }
 
+interface EmailTrailEntry {
+  email_type: string | null;
+  recipient: string | null;
+  status: string | null;
+  created_at: string | null;
+  delivered_at: string | null;
+  first_opened_at: string | null;
+  first_clicked_at: string | null;
+  bounced_at: string | null;
+  complained_at: string | null;
+}
+
 interface Detail {
   id: string;
   family: { display_name: string | null };
   provider: { display_name: string | null; email: string | null; hasEmail: boolean; slug: string | null };
   ask: string | null;
   thread: ThreadEntry[];
+  emails: EmailTrailEntry[];
   nudgeCount: number;
   lastNudgedAt: string | null;
   engagement: Engagement;
   temperature: ConnectionTemperature;
   nextStep: NextStep;
+}
+
+const EMAIL_TYPE_LABELS: Record<string, string> = {
+  provider_nudge: "Nudge",
+  add_email_notification: "Lead notification",
+  connection_request: "Lead notification",
+  guest_connection: "Lead notification",
+  question_received: "Question",
+  new_message: "Message",
+  post_connection_followup: "Follow-up",
+};
+
+function emailLabel(type: string | null): string {
+  if (!type) return "Email";
+  return EMAIL_TYPE_LABELS[type] || type.replace(/_/g, " ");
+}
+
+function fmtDateTime(iso: string | null): string {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
 }
 
 function fmtDate(iso: string | null): string {
@@ -235,6 +278,45 @@ export default function ConnectionRow({
                           {m.created_at ? ` · ${fmtDate(m.created_at)}` : ""}
                         </span>
                         <p className="mt-0.5">{m.text || <span className="text-gray-300">—</span>}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Email trail — what's been sent to this provider, and whether it landed */}
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                  Emails sent to this provider
+                </p>
+                {detail.emails.length === 0 ? (
+                  <p className="mt-1 text-sm text-gray-400">
+                    {detail.nudgeCount > 0
+                      ? "Nudges were sent by the automated system; no itemized log for this provider."
+                      : "No emails sent yet."}
+                  </p>
+                ) : (
+                  <div className="mt-2 space-y-1.5">
+                    {detail.emails.map((e, i) => (
+                      <div key={i} className="flex items-center justify-between gap-3 text-sm">
+                        <div className="min-w-0">
+                          <span className="text-gray-700">{emailLabel(e.email_type)}</span>
+                          <span className="text-gray-300"> · </span>
+                          <span className="text-gray-500">{fmtDateTime(e.created_at)}</span>
+                          {e.recipient && (
+                            <span className="ml-1 truncate text-xs text-gray-400">→ {e.recipient}</span>
+                          )}
+                        </div>
+                        <EmailStatusPill
+                          status={e.status}
+                          sentAt={e.created_at}
+                          delivered_at={e.delivered_at}
+                          first_opened_at={e.first_opened_at}
+                          first_clicked_at={e.first_clicked_at}
+                          bounced_at={e.bounced_at}
+                          complained_at={e.complained_at}
+                          className="shrink-0"
+                        />
                       </div>
                     ))}
                   </div>

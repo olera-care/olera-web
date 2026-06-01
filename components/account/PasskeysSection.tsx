@@ -51,6 +51,10 @@ export default function PasskeysSection() {
   const [registering, setRegistering] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  // If listing fails (e.g. the dashboard passkey feature isn't enabled yet, or a
+  // transient error) we hide the whole section rather than showing a scary error
+  // box — passkeys are an optional, opt-in convenience.
+  const [loadFailed, setLoadFailed] = useState(false);
 
   useEffect(() => {
     setSupported(
@@ -71,7 +75,7 @@ export default function PasskeysSection() {
       setPasskeys((data ?? []) as Passkey[]);
     } catch (err) {
       console.error("[passkeys] list failed:", err);
-      setError("Couldn't load your passkeys.");
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -86,14 +90,16 @@ export default function PasskeysSection() {
     setRegistering(true);
     try {
       const supabase = createClient();
-      const { error: regErr } = await supabase.auth.registerPasskey();
+      const { data, error: regErr } = await supabase.auth.registerPasskey();
       if (regErr) {
         if (!isCancellation(regErr)) {
           setError("Couldn't create a passkey. Please try again.");
         }
         return;
       }
-      await loadPasskeys();
+      // Append the freshly-created passkey from the response instead of
+      // re-fetching — avoids a reload that could transiently fail.
+      if (data) setPasskeys((prev) => [...prev, data as Passkey]);
     } catch (err) {
       if (!isCancellation(err)) {
         console.error("[passkeys] register failed:", err);
@@ -120,7 +126,7 @@ export default function PasskeysSection() {
     }
   };
 
-  if (!supported) return null;
+  if (!supported || loadFailed) return null;
 
   return (
     <div className="p-6">

@@ -228,3 +228,13 @@ export async function getCampaign(
 ): Promise<SmartleadResult<SmartleadCampaign>> {
   return smartleadRequest<SmartleadCampaign>("GET", `/campaigns/${campaignId}`);
 }
+
+/**
+ * Delete a campaign (and its leads/sequence). Used to tear down test
+ * campaigns cleanly; irreversible on Smartlead's side, so gate call sites.
+ */
+export async function deleteCampaign(
+  campaignId: number
+): Promise<SmartleadResult<{ ok?: boolean }>> {
+  return smartleadRequest("DELETE", `/campaigns/${campaignId}`);
+}

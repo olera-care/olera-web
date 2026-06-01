@@ -159,13 +159,32 @@ export interface ResearchData {
     zip?: string | null;
   };
   /** v9.x Smartlead bridge linkage (cold-email engine). Set when the row's
-   *  General Contact is enrolled into its campus Smartlead campaign. JSONB on
-   *  research_data — no schema migration. The join key for the future D2
-   *  reply/bounce webhook is the Smartlead lead's custom_fields.outreach_id. */
+   *  General Contact (and any Named Contacts) are enrolled into its campus
+   *  Smartlead campaign. JSONB on research_data — no schema migration. The
+   *  join key for the D2 reply/bounce webhook is the Smartlead lead's
+   *  `custom_fields.outreach_id`; `contact_id` (also a custom field) picks
+   *  out the specific Named Contact when present. `enrolled_contact_ids`
+   *  mirrors the fan-out for fast lookup without re-querying Smartlead. */
   smartlead?: {
     campaign_id: number;
     lead_email: string | null;
     enrolled_at: string;
+    /** v9.x Named-Contact fan-out: contact_ids of Specific Contacts that
+     *  were enrolled alongside the General Contact. Empty array (or
+     *  undefined for rows enrolled before fan-out shipped) means General
+     *  Contact only. */
+    enrolled_contact_ids?: string[];
+    /** v9.x D2 webhook: aggregated open/click counters for the row's
+     *  Smartlead campaign. Updated by the webhook on EMAIL_OPEN /
+     *  EMAIL_CLICK events. Per-event timeline noise would be unhelpful
+     *  (Apple Mail Privacy Protection inflates open counts), so these
+     *  stay as row-level metadata, not touchpoints. */
+    engagement?: {
+      opens: number;
+      clicks: number;
+      last_opened_at?: string;
+      last_clicked_at?: string;
+    };
   };
 }
 
@@ -543,6 +562,55 @@ export interface DrawerContext {
       last_event_type: string | null;
     }
   >;
+
+  /**
+   * v9.x cold-email engine — drives the Smartlead-native preview in
+   * ProviderPreFlightModal. Resolved server-side from
+   * MEDJOBS_OUTREACH_ENGINE (same source of truth as the route.ts
+   * schedule_sequence engine branch), so the UI matches what the server
+   * will actually do at launch. Defaults to "resend".
+   */
+  outreach_engine: "resend" | "smartlead";
+
+  /**
+   * v9.x Smartlead preview — present only when outreach_engine ===
+   * "smartlead" and the row is a provider with at least one usable
+   * recipient. Precomputed server-side so the modal renders WHAT WILL BE
+   * SENT (per-recipient salutations, Smartlead-rendered HTML bodies with
+   * sample substitutions, Day 0/3/7 schedule, sender pool) without
+   * bundling lib/smartlead into the client.
+   */
+  smartlead_preview: SmartleadPreviewSnapshot | null;
+}
+
+/** Mirror of `lib/medjobs/smartlead-bridge.ts:SmartleadPreview` — kept here
+ *  so DrawerContext doesn't pull a server-only module into client bundles. */
+export interface SmartleadPreviewSnapshot {
+  campaign_name: string;
+  recipients: Array<{
+    contact_id: string | null;
+    recipient_kind: "general" | "named";
+    name: string;
+    email: string;
+    role: string | null;
+    salutation: string;
+  }>;
+  steps: Array<{
+    seq_number: number;
+    delay_in_days: number;
+    cadence_day: number;
+    subject_template: string;
+    subject_preview: string;
+    body_html_template: string;
+    body_html_preview: string;
+  }>;
+  sample_used: {
+    salutation: string;
+    first_name: string;
+    company: string;
+    campus: string;
+  };
+  sender_pool: string[];
 }
 
 export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {

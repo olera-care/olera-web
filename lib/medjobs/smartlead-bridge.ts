@@ -36,6 +36,24 @@ import type { Status } from "@/lib/student-outreach/types";
 export type BridgeKind = "provider" | "student_org" | "advisor" | "dept_head" | "professor";
 
 /**
+ * A Specific (Named) Contact attached to an outreach row. Each named
+ * contact becomes its OWN Smartlead lead alongside the General Contact —
+ * the per-recipient fan-out the Resend path always did. Assembled by the
+ * caller from `student_outreach_contacts`, filtered to active rows with a
+ * usable email and excluding "General Office"/"General Inbox" (those are
+ * the org-level General Contact, handled separately).
+ */
+export interface NamedContact {
+  contact_id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  role: string | null;
+  email_verdict?: "valid" | "invalid" | "risky" | "unknown" | null;
+  suppressed?: boolean;
+}
+
+/**
  * The minimal per-row data the bridge needs, assembled by the caller from
  * the DrawerContext. Decoupled from the full CRM row shape on purpose —
  * mirrors how `planSequence` takes a `SequencerInput`, not raw DB rows —
@@ -57,6 +75,11 @@ export interface BridgeRow {
   email_verdict?: "valid" | "invalid" | "risky" | "unknown" | null;
   /** In the shared bounce/complaint suppression set (same one Resend honors). */
   suppressed?: boolean;
+  /** Specific Contacts attached to this outreach row. Each becomes an
+   *  additional Smartlead lead with first_name/salutation per-lead and a
+   *  contact_id in custom_fields for D2 webhook attribution. Optional;
+   *  empty list = General Contact only (legacy behavior). */
+  contacts?: NamedContact[];
 }
 
 export interface CampusContext {
@@ -70,8 +93,7 @@ export type SkipReason =
   | "already_enrolled"
   | "no_email"
   | "suppressed"
-  | "unverified_email"
-  | "duplicate_in_batch";
+  | "unverified_email";
 
 export interface SelectionResult {
   eligible: BridgeRow[];
@@ -96,12 +118,17 @@ const IN_FLIGHT: ReadonlySet<Status> = new Set<Status>([
  * Filter rows down to those safe to enroll into a cold campaign, with a
  * reason for every exclusion. Order matters: the first failing check wins,
  * so a terminal row is reported as `terminal_status` even if it also lacks
- * an email. Dedupe is last and only over rows that passed every other gate.
+ * an email.
+ *
+ * `no_email` here means the row has NO General Contact email AND no
+ * usable Specific Contact emails — i.e. nothing to send to. Lead-level
+ * dedupe across the batch runs in `rowsToLeads` after fan-out, since it
+ * needs to compare every produced email (General + Named) against every
+ * other.
  */
 export function selectEligibleRows(rows: BridgeRow[]): SelectionResult {
   const eligible: BridgeRow[] = [];
   const skipped: { outreach_id: string; reason: SkipReason }[] = [];
-  const seenEmails = new Set<string>();
 
   for (const row of rows) {
     let reason: SkipReason | null = null;
@@ -109,13 +136,13 @@ export function selectEligibleRows(rows: BridgeRow[]): SelectionResult {
     if (TERMINAL.has(row.status)) reason = "terminal_status";
     else if (IN_FLIGHT.has(row.status)) reason = "already_in_flight";
     else if (row.already_enrolled) reason = "already_enrolled";
-    else if (!row.email || !row.email.trim()) reason = "no_email";
-    else if (row.suppressed) reason = "suppressed";
-    else if (row.email_verdict === "invalid") reason = "unverified_email";
-    else {
-      const key = row.email.trim().toLowerCase();
-      if (seenEmails.has(key)) reason = "duplicate_in_batch";
-      else seenEmails.add(key);
+    else if (!hasAnyUsableEmail(row)) reason = "no_email";
+    else if (row.suppressed && !hasUsableNamedContact(row)) reason = "suppressed";
+    else if (
+      row.email_verdict === "invalid" &&
+      (!row.email?.trim() || !hasUsableNamedContact(row))
+    ) {
+      reason = "unverified_email";
     }
 
     if (reason) skipped.push({ outreach_id: row.outreach_id, reason });
@@ -125,31 +152,154 @@ export function selectEligibleRows(rows: BridgeRow[]): SelectionResult {
   return { eligible, skipped };
 }
 
+function hasAnyUsableEmail(row: BridgeRow): boolean {
+  if (row.email && row.email.trim()) return true;
+  return hasUsableNamedContact(row);
+}
+
+function hasUsableNamedContact(row: BridgeRow): boolean {
+  return (row.contacts ?? []).some(
+    (c) => c.email && c.email.trim() && !c.suppressed && c.email_verdict !== "invalid",
+  );
+}
+
 /**
- * Map an eligible row to a Smartlead lead. `custom_fields.outreach_id` is
- * the join key the future D2 webhook uses to attribute Smartlead events
- * back to the CRM row — without it, inbound attribution is guesswork.
+ * Recipient kind baked into each lead's custom_fields. Used by the D2
+ * webhook to attribute reply/bounce events to the right CRM contact and
+ * by analytics to slice send-volume by recipient type.
  */
-export function rowToLead(row: BridgeRow, campus: CampusContext): SmartleadLead {
-  return {
-    email: (row.email ?? "").trim(),
-    first_name: row.first_name?.trim() || "",
-    company_name: row.organization_name,
-    custom_fields: {
-      campus: campus.name,
-      catchment_city: row.city ?? campus.city ?? "",
+export type RecipientKind = "general" | "named";
+
+/**
+ * A single fanned-out lead descriptor. `outreach_id` is the join key for
+ * D2 events back to the CRM row; `contact_id` is null for the General
+ * Contact lead and set to the `student_outreach_contacts.id` for each
+ * Named Contact, so D2 can attribute to the exact contact when a Named
+ * Contact replies. `salutation` is the per-lead merge field consumed by
+ * the body template — "Hello" for general, "Hi {first_name}" for named.
+ */
+export interface FannedLead {
+  outreach_id: string;
+  contact_id: string | null;
+  recipient_kind: RecipientKind;
+  lead: SmartleadLead;
+}
+
+/**
+ * Fan a single eligible row out into one lead per recipient: the General
+ * Contact (when it has an email) plus each usable Specific Contact. Each
+ * Named Contact carries its own `first_name` (so `{{first_name}}` and the
+ * `{{salutation}}` merge tag personalize per-lead) and its `contact_id`
+ * in custom_fields for D2 webhook attribution.
+ *
+ * Single-row helper — batch-level dedupe across produced leads happens
+ * in `rowsToLeads`, since duplicates can appear across rows (the same
+ * provider listed under two campuses) as well as within (e.g. the
+ * General Contact email matches a Named Contact email on the same row).
+ */
+export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] {
+  const leads: FannedLead[] = [];
+
+  const generalEmail = row.email?.trim();
+  if (generalEmail && !row.suppressed && row.email_verdict !== "invalid") {
+    leads.push({
       outreach_id: row.outreach_id,
-    },
-  };
+      contact_id: null,
+      recipient_kind: "general",
+      lead: {
+        email: generalEmail,
+        first_name: row.first_name?.trim() || "",
+        company_name: row.organization_name,
+        custom_fields: {
+          campus: campus.name,
+          catchment_city: row.city ?? campus.city ?? "",
+          outreach_id: row.outreach_id,
+          recipient_kind: "general",
+          contact_id: "",
+          role: "",
+          salutation: "Hello",
+        },
+      },
+    });
+  }
+
+  for (const c of row.contacts ?? []) {
+    const email = c.email?.trim();
+    if (!email) continue;
+    if (c.suppressed) continue;
+    if (c.email_verdict === "invalid") continue;
+    const firstName = c.first_name?.trim() || "";
+    leads.push({
+      outreach_id: row.outreach_id,
+      contact_id: c.contact_id,
+      recipient_kind: "named",
+      lead: {
+        email,
+        first_name: firstName,
+        company_name: row.organization_name,
+        custom_fields: {
+          campus: campus.name,
+          catchment_city: row.city ?? campus.city ?? "",
+          outreach_id: row.outreach_id,
+          recipient_kind: "named",
+          contact_id: c.contact_id,
+          role: c.role ?? "",
+          salutation: firstName ? `Hi ${firstName}` : "Hello",
+        },
+      },
+    });
+  }
+
+  return leads;
+}
+
+/**
+ * Fan a batch of eligible rows out into per-recipient leads with
+ * cross-row dedupe (the same email can appear on two different rows when
+ * a provider is in multiple campuses, and even within one row when the
+ * General Contact and a Named Contact share an inbox). First occurrence
+ * wins — General Contact takes precedence over Named within a single row
+ * because of insertion order in `rowToLeads`.
+ */
+export interface FanOutResult {
+  leads: FannedLead[];
+  duplicates: { outreach_id: string; email: string; contact_id: string | null }[];
+}
+
+export function rowsToLeads(rows: BridgeRow[], campus: CampusContext): FanOutResult {
+  const seen = new Set<string>();
+  const leads: FannedLead[] = [];
+  const duplicates: { outreach_id: string; email: string; contact_id: string | null }[] = [];
+
+  for (const row of rows) {
+    for (const fanned of rowToLeads(row, campus)) {
+      const key = fanned.lead.email.toLowerCase();
+      if (seen.has(key)) {
+        duplicates.push({
+          outreach_id: fanned.outreach_id,
+          email: fanned.lead.email,
+          contact_id: fanned.contact_id,
+        });
+        continue;
+      }
+      seen.add(key);
+      leads.push(fanned);
+    }
+  }
+
+  return { leads, duplicates };
 }
 
 /**
  * Smartlead merge tags for the per-lead fields. We pass these AS the
  * `organization_name`/`campus_name` context values to `getTemplate`, so the
  * rendered body carries the tags verbatim for Smartlead to fill per lead.
+ * `MERGE_SALUTATION` is the per-lead greeting custom field set in
+ * `rowToLeads` — "Hello" for General Contact, "Hi <first>" for Named.
  */
 const MERGE_COMPANY = "{{company_name}}";
 const MERGE_CAMPUS = "{{campus}}";
+const MERGE_SALUTATION = "{{salutation}}";
 
 export interface SequenceOptions {
   /** Sender first name woven into the copy. Defaults to "Graize". */
@@ -176,7 +326,14 @@ export function buildEmailSequence(
     organization_name: MERGE_COMPANY,
     campus_name: MERGE_CAMPUS,
     admin_first_name: opts.adminFirstName ?? "Graize",
-    // Org-level General Contact lead → general variant ("Hello,"), no per-name token.
+    // We start from the GENERAL variant body so a single sequence works
+    // for both General and Named recipients; the greeting is replaced
+    // below by the per-lead `{{salutation}}` merge tag, which renders to
+    // "Hello," for the General Contact and "Hi <first>," for a Named
+    // Contact. The general-variant body is also semantically valid for
+    // a Named recipient (it doesn't bake the recipient's name into the
+    // body copy itself), so one sequence covers both per-lead salutations
+    // without duplicating the campaign.
     variant: "general" as const,
     contacts: [],
   };
@@ -211,9 +368,14 @@ export function buildEmailSequence(
  * the Resend path fills them at send time via substituteVars. We do the
  * same here, but the per-lead fields become Smartlead merge tags instead of
  * concrete values, and the URLs/admin name resolve to constants.
- * {first_name}/{salutation} shouldn't appear in the general variant, but if
- * a template emits them we degrade to a Smartlead tag / neutral greeting
- * rather than leak a raw `{token}`.
+ *
+ * v9.x Named-Contact fan-out: the greeting line in the general-variant
+ * body is "Hello," — we rewrite it to `{{salutation}},` so the same
+ * sequence renders correctly for both General Contact ("Hello,") and
+ * Named ("Hi Jamie,") recipients via the per-lead `salutation` custom
+ * field set in `rowToLeads`. `{first_name}` falls back to a Smartlead tag
+ * so any template emitting it (named-variant templates routed through
+ * here) personalize per-lead.
  */
 function finalizeTokens(text: string, adminFirstName: string): string {
   return text
@@ -223,7 +385,12 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     .replace(/\{calendly_url\}/g, CALENDLY_URL)
     .replace(/\{program_url\}/g, PROGRAM_URL)
     .replace(/\{first_name\}/g, "{{first_name}}")
-    .replace(/\{salutation\}/g, "Hello");
+    .replace(/\{salutation\}/g, MERGE_SALUTATION)
+    // The general-variant body opens with a literal "Hello,". Rewriting
+    // it to the salutation merge tag means the named lead's "Hi <first>,"
+    // shows in the greeting line; the rest of the body stays neutral
+    // (no name-baked references) so it reads naturally either way.
+    .replace(/(^|\n)Hello,/g, `$1${MERGE_SALUTATION},`);
 }
 
 /**
@@ -240,6 +407,150 @@ function finalizeTokens(text: string, adminFirstName: string): string {
  */
 function toSmartleadHtml(body: string, adminFirstName: string): string {
   return bodyToHtml(finalizeTokens(body, adminFirstName));
+}
+
+// ── Server-side preview rendering (no network) ───────────────────────────
+
+/**
+ * Apply sample substitutions to a Smartlead-rendered string so the admin
+ * sees what a real recipient will see — not raw merge tags. Sample values
+ * come from the actual outreach row + campus + first Named Contact (or a
+ * neutral fallback), so the preview reflects this row's data:
+ *   {{salutation}}   → first contact's "Hi <First>" or "Hello"
+ *   {{company_name}} → outreach row's organization_name
+ *   {{campus}}       → campus.name
+ *   {{first_name}}   → first Named Contact's first_name (or "there")
+ */
+function substituteSmartleadSample(
+  text: string,
+  sample: { salutation: string; company: string; campus: string; first_name: string },
+): string {
+  return text
+    .replace(/\{\{\s*salutation\s*\}\}/g, sample.salutation)
+    .replace(/\{\{\s*company_name\s*\}\}/g, sample.company)
+    .replace(/\{\{\s*campus\s*\}\}/g, sample.campus)
+    .replace(/\{\{\s*first_name\s*\}\}/g, sample.first_name);
+}
+
+export interface SmartleadPreviewRecipient {
+  contact_id: string | null;
+  recipient_kind: RecipientKind;
+  name: string;
+  email: string;
+  role: string | null;
+  /** Per-lead {{salutation}} value — "Hello" or "Hi <first>". */
+  salutation: string;
+}
+
+export interface SmartleadPreviewStep {
+  seq_number: number;
+  /** Days from previous step (Smartlead's model). seq_number=1 is delay 0. */
+  delay_in_days: number;
+  /** Cadence day this step maps to (0/3/7 for provider). */
+  cadence_day: number;
+  /** Raw subject with `{{...}}` merge tags intact. */
+  subject_template: string;
+  /** Subject after sample substitution — what the recipient will see. */
+  subject_preview: string;
+  /** Raw HTML body with `{{...}}` merge tags intact. */
+  body_html_template: string;
+  /** Body HTML after sample substitution — what the recipient will see. */
+  body_html_preview: string;
+}
+
+export interface SmartleadPreview {
+  campaign_name: string;
+  recipients: SmartleadPreviewRecipient[];
+  steps: SmartleadPreviewStep[];
+  /** Sample lead used to render the previews — surfaced so admin can see
+   *  whose name is in the preview ("Hi Susan, …" vs "Hello, …"). */
+  sample_used: {
+    salutation: string;
+    first_name: string;
+    company: string;
+    campus: string;
+  };
+  /** Sender pool that will rotate per Smartlead. Resolved from
+   *  SMARTLEAD_SENDER_EMAILS at preview time. Empty when unset (the
+   *  campaign will inherit whatever mailboxes are connected in the
+   *  Smartlead account). */
+  sender_pool: string[];
+}
+
+/**
+ * Build a server-side Smartlead preview for the pre-flight modal. Pure
+ * (no network, no DB) — caller assembles the BridgeRow + campus + named
+ * contacts the same way `enrollRowIntoSmartlead` does, plus an admin name
+ * + cadence + campaign-name pattern. The result is shipped to the client
+ * via DrawerContext.smartlead_preview so the modal renders WHAT WILL BE
+ * SENT, including per-recipient salutation and Day 0/3/7 schedule.
+ */
+export function buildSmartleadPreview(input: {
+  row: BridgeRow;
+  campus: CampusContext;
+  campaignName: string;
+  cadenceKey?: CadenceKey;
+  adminFirstName?: string;
+  senderEmails?: string[];
+}): SmartleadPreview {
+  const fanned = rowToLeads(input.row, input.campus);
+
+  // Map contact_id → full Name (First Last) so the preview shows whole names
+  // even though the Smartlead lead only carries first_name.
+  const contactNameById = new Map<string, string>();
+  for (const c of input.row.contacts ?? []) {
+    const full = [c.first_name, c.last_name].filter(Boolean).join(" ").trim();
+    contactNameById.set(c.contact_id, full || c.email);
+  }
+  const recipients: SmartleadPreviewRecipient[] = fanned.map((f) => ({
+    contact_id: f.contact_id,
+    recipient_kind: f.recipient_kind,
+    name:
+      f.recipient_kind === "general"
+        ? input.row.organization_name
+        : (f.contact_id && contactNameById.get(f.contact_id)) || f.lead.email,
+    email: f.lead.email,
+    role: String(f.lead.custom_fields?.role ?? "") || null,
+    salutation: String(f.lead.custom_fields?.salutation ?? "Hello"),
+  }));
+
+  // Sample for substitution: prefer the first Named Contact's first_name so
+  // the preview reads as a "Hi Susan,…" — that's the more illustrative case
+  // (a named-recipient send). Fall back to "there" + "Hello" if no named
+  // contacts exist, so the preview still renders for General-Contact-only
+  // rows.
+  const firstNamed = fanned.find((f) => f.recipient_kind === "named");
+  const sample = {
+    salutation:
+      firstNamed && firstNamed.lead.first_name ? `Hi ${firstNamed.lead.first_name}` : "Hello",
+    first_name: firstNamed?.lead.first_name || "there",
+    company: input.row.organization_name,
+    campus: input.campus.name,
+  };
+
+  const seq = buildEmailSequence(input.cadenceKey ?? "provider", {
+    adminFirstName: input.adminFirstName,
+  });
+  const days = OUTREACH_DAYS_BY_TYPE[input.cadenceKey ?? "provider"];
+  const emailDays = days.filter((d) => d.steps.some((s) => s.channel === "email"));
+
+  const steps: SmartleadPreviewStep[] = seq.map((step, i) => ({
+    seq_number: step.seq_number,
+    delay_in_days: step.seq_delay_details.delay_in_days,
+    cadence_day: emailDays[i]?.day ?? 0,
+    subject_template: step.subject,
+    subject_preview: substituteSmartleadSample(step.subject, sample),
+    body_html_template: step.email_body,
+    body_html_preview: substituteSmartleadSample(step.email_body, sample),
+  }));
+
+  return {
+    campaign_name: input.campaignName,
+    recipients,
+    steps,
+    sample_used: sample,
+    sender_pool: input.senderEmails ?? envSenderEmails(),
+  };
 }
 
 // ── Orchestration (network — drives lib/smartlead) ───────────────────────
@@ -443,18 +754,28 @@ export async function launchCampaign(input: LaunchInput): Promise<LaunchReport> 
   report.campaign_id = prov.campaign_id;
   const campaignId = prov.campaign_id;
 
-  // 5. Push leads in chunks of 100 (the engine doesn't chunk). A failed chunk
-  //    is recorded and its rows are NOT counted as enrolled.
-  for (const group of chunk(admitted, LEAD_BATCH_SIZE)) {
-    const leads = group.map((row) => rowToLead(row, input.campus));
+  // 5. Fan-out → one lead per recipient (General Contact + each Named
+  //    Contact), dedupe across the batch, then push in chunks of 100 (the
+  //    engine doesn't chunk). A failed chunk is recorded; the outreach_ids
+  //    of rows contributing leads to a successful chunk are recorded as
+  //    enrolled even if some of their leads were dedup'd duplicates of
+  //    earlier leads in the same batch.
+  const fan = rowsToLeads(admitted, input.campus);
+  // Group fanned leads back by outreach_id so a chunk failure reports
+  // which rows are NOT enrolled.
+  const chunks = chunk(fan.leads, LEAD_BATCH_SIZE);
+  const successfulRowIds = new Set<string>();
+  for (const group of chunks) {
+    const leads = group.map((f) => f.lead);
     const res = await addLeads(campaignId, leads);
     if (res.ok) {
       report.enrolled += res.data?.upload_count ?? leads.length;
-      report.enrolled_outreach_ids.push(...group.map((r) => r.outreach_id));
+      for (const f of group) successfulRowIds.add(f.outreach_id);
     } else {
       report.errors.push({ stage: `addLeads[${group.length}]`, message: res.error ?? "addLeads failed" });
     }
   }
+  report.enrolled_outreach_ids.push(...successfulRowIds);
 
   // 6. Schedule + leave PAUSED (validated order: after leads).
   report.errors.push(...(await finalizeCampaign(campaignId, input.schedule ?? defaultSchedule())));
@@ -508,12 +829,18 @@ export async function enrollRowIntoCampusCampaign(input: EnrollInput): Promise<E
     result.skipped_reason = skipped[0]?.reason;
     return result;
   }
-  const lead = rowToLead(input.row, input.campus);
+  // Per-recipient fan-out (General Contact + each Named Contact).
+  const fanned = rowToLeads(input.row, input.campus);
+  if (!fanned.length) {
+    result.skipped_reason = "no_email";
+    return result;
+  }
+  const leads = fanned.map((f) => f.lead);
 
-  // Existing campus campaign → just append this lead.
+  // Existing campus campaign → just append these leads.
   if (input.existingCampaignId) {
     result.campaign_id = input.existingCampaignId;
-    const added = await addLeads(input.existingCampaignId, [lead]);
+    const added = await addLeads(input.existingCampaignId, leads);
     if (!added.ok) {
       result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
       return result;
@@ -537,7 +864,7 @@ export async function enrollRowIntoCampusCampaign(input: EnrollInput): Promise<E
   result.campaign_id = prov.campaign_id;
   result.created = true;
 
-  const added = await addLeads(prov.campaign_id, [lead]);
+  const added = await addLeads(prov.campaign_id, leads);
   if (!added.ok) {
     result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
     return result;

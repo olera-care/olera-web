@@ -5,9 +5,18 @@ Status: Not Started — awaiting Logan's Phase 1 review + Phase 0 decisions
 
 ## What we're doing
 
-We're moving **one specific kind of email** — the cold outreach emails MedJobs admins launch from the Pre-Flight checklist — from Resend to Smartlead. **Everything else Resend does today keeps working exactly as it does today.**
+We're moving **all MedJobs outreach emails** — every cold outreach email admins launch from the Pre-Flight checklist, across all cadences (provider, student org, advisor, dept head, professor) — from Resend to Smartlead. **Everything else Resend does today keeps working exactly as it does today.**
 
-The admin user experience stays the same: same buttons, same modal, same Launch flow. The difference is invisible — emails arrive from `findmedjobs.co` instead of `olera.care`, sent via the warmed cold-outreach infrastructure we built for this purpose.
+The admin user experience stays the same: same buttons, same modals, same Launch flow. The difference is invisible — emails arrive from `findmedjobs.co` instead of `olera.care`, sent via the warmed cold-outreach infrastructure we built for this purpose.
+
+## Logan's decisions — locked
+
+| Decision | Choice |
+|---|---|
+| D-0.1 — Smartlead footer | **Option A** — port Grazie + Logan signature blocks, drop Grazie's olera.care email line, drop "Reply STOP" (Smartlead native unsubscribe) |
+| D-0.2 — Per-recipient body editors in the modal | **Option A** — strip them. Smartlead ships canonical templates. |
+| D-0.3 — Campus PDF | **Option A** — per-campus Smartlead sequence templates with PDF attached. 30-min spike first to verify the `template_id` API works. Fallback: link in body. |
+| D-0.4 — Stakeholder rows (advisor / student org / dept head / professor) | **Migrate to Smartlead too.** Provider-only scope was Logan's recommendation; he expanded it: every MedJobs outreach cadence moves to Smartlead. |
 
 ---
 
@@ -26,7 +35,7 @@ Audited 60 call sites. Categorized below. **Only the first row migrates. Everyth
 
 | # | What the email does | Triggered by | MedJobs outreach? | Transactional/system? | Stays on Resend? | Moves to Smartlead? |
 |--:|---|---|---|---|---|---|
-| **1** | **MedJobs cold outreach (Day 0/3/7 emails to providers)** | **Admin clicks Launch in Pre-Flight modal** | **YES** | No | **NO** | **YES** ← *this migration* |
+| **1** | **All MedJobs cold outreach** — provider cadence (Day 0/3/7) + 4 stakeholder cadences (advisor, student org, dept head, professor — Day 0/3/5/7/10-12 depending on type) | **Admin clicks Launch in Pre-Flight modal (provider or stakeholder)** | **YES** | No | **NO** | **YES** ← *this migration* |
 | 2 | Email OTP login codes | User logs in with email | No | Yes | YES | No |
 | 3 | Account-creation confirmation | User signs up | No | Yes | YES | No |
 | 4 | Provider claim-listing OTP | Provider claims their page | No | Yes | YES | No |
@@ -59,18 +68,21 @@ Audited 60 call sites. Categorized below. **Only the first row migrates. Everyth
 
 ### Files we will touch in this migration
 
-Only these files contain the MedJobs cold-outreach sending logic:
+Only these files contain MedJobs cold-outreach sending logic:
 - `lib/student-outreach/email-send.ts` — the `sendOutreachEmail` function (row 1)
 - `lib/student-outreach/auto-send-executor.ts` — the cron-driven executor that calls `sendOutreachEmail`
 - `app/api/admin/student-outreach/[id]/route.ts` — the `schedule_sequence` action that admin's Launch button hits
-- `components/admin/medjobs/ProviderPreFlightModal.tsx` — the UI
+- `lib/medjobs/smartlead-bridge.ts` — already supports all kinds, needs salutation logic extended for formal stakeholders (Dr./Prof.)
+- `components/admin/medjobs/ProviderPreFlightModal.tsx` — provider modal (already has Smartlead preview; needs editor strip)
+- `app/admin/student-outreach/PreFlightReviewModal.tsx` — stakeholder modal (needs Smartlead preview added)
 
 **The shared low-level wrapper `lib/email.ts:sendEmail` is NOT changed.** All 58 transactional call sites keep using it exactly as they do today.
 
 ### What needs to be true before Phase 2 starts
 
-- [ ] Logan reviews the audit table above and confirms: "Yes, only row 1 moves to Smartlead. Everything else stays."
-- [ ] Logan answers four product questions (see "Decisions" section below) so Phase 2 has a concrete spec.
+- [x] Logan reviewed the audit and confirmed only row 1 moves; rows 2-27 stay on Resend
+- [x] All four Phase 0 decisions locked (see top of this doc)
+- [x] D-0.4 expanded to include stakeholder cadences (all MedJobs outreach)
 
 ---
 
@@ -85,15 +97,19 @@ Only these files contain the MedJobs cold-outreach sending logic:
 - All other emails (rows 2-27) keep working
 
 **What we'll do:**
-- Remove the engine-flag plumbing (`MEDJOBS_OUTREACH_ENGINE` env var, `body.engine` override, conditional branches in `route.ts`). Smartlead becomes unconditional for provider rows.
-- Add a safety net in the Resend executor: if a provider-row email task somehow reaches the cron (e.g., a stale task queued before the migration), it short-circuits and doesn't fire.
-- Wire the campus PDF strategy (Smartlead UI templates per campus — see Decision D-0.3)
-- Port the email footer to Smartlead's send pipeline so the body looks finished (Grazie + Logan signature blocks; see Decision D-0.1)
+- Remove the engine-flag plumbing (`MEDJOBS_OUTREACH_ENGINE` env var, `body.engine` override, conditional branches in `route.ts`). Smartlead becomes unconditional for **every** MedJobs cold outreach row, regardless of kind.
+- Extend the route.ts Smartlead branch to handle stakeholder cadences (advisor / student org / dept head / professor), not just provider. The bridge already supports `BridgeKind` for all 5 kinds; we just plumb stakeholders through the same `enrollRowIntoSmartlead` path with the right cadence key.
+- Extend the per-lead salutation logic in the bridge to handle formal stakeholders (dept_head + professor get `"Dear Dr. Smith"` instead of `"Hi Jane"`). The existing `salutationFor` helper in `templates.ts` already encodes this rule; we apply it inside `rowToLeads` when setting the `{{salutation}}` custom field.
+- Add a safety net in the Resend executor: if any MedJobs cold-outreach email task somehow reaches the cron (e.g., a stale task queued before the migration), it short-circuits and doesn't fire.
+- Wire the campus PDF strategy (Smartlead UI templates per campus — see Decision D-0.3). Templates exist per campus, not per cadence, so they cover provider + stakeholder sends from the same campus.
+- Port the email footer to Smartlead's send pipeline (Grazie + Logan signature blocks; see Decision D-0.1)
+- Add a Smartlead preview panel to `PreFlightReviewModal` (stakeholder version), mirroring what `ProviderPreFlightModal` already shows for provider rows.
 
 **How we'll know it's done:**
-- Test row in staging → Launch → emails arrive from `logan@findmedjobs.co` or `partnerships@findmedjobs.co`
-- Resend's dashboard shows zero outreach sends for the test row
+- Test rows in staging (one of each kind: provider + advisor + student_org + dept_head + professor) → Launch → emails arrive from `logan@findmedjobs.co` or `partnerships@findmedjobs.co`
+- Resend's dashboard shows zero outreach sends for any of the test rows
 - `git grep MEDJOBS_OUTREACH_ENGINE` returns zero hits in `app/` and `lib/`
+- A `dept_head` test row's email opens with `"Dear Dr. <Last>,"` not `"Hi <First>,"`
 
 ---
 
@@ -102,23 +118,28 @@ Only these files contain the MedJobs cold-outreach sending logic:
 **Goal:** The admin user experience after the migration is indistinguishable from before, except the email infrastructure is different under the hood.
 
 **Success looks like:**
-- The Launch Outreach UI still works exactly as it did
-- General Contact emails still send correctly
-- Specific Contact emails still send correctly (one per named contact)
-- Email variables (campus name, provider name, first name, salutation) all render correctly
-- The campus PDF arrives attached to every email
+- The Launch Outreach UI still works exactly as it did — for both provider rows (`ProviderPreFlightModal`) and stakeholder rows (`PreFlightReviewModal`)
+- General Contact emails still send correctly across all five cadences
+- Specific Contact emails still send correctly (one per named contact) across all five cadences
+- Email variables (campus name, provider name, organization name, first name, salutation) all render correctly per kind
+- Formal salutation works for dept_head + professor: "Dear Dr. <Last>," — not "Hi <First>,"
+- The campus PDF arrives attached to every email (regardless of cadence kind)
 - Sender mailbox rotates between `logan@findmedjobs.co` and `partnerships@findmedjobs.co` across sends
 
 **What we'll do:**
-- Send test emails to your own inboxes (logan@olera.care, personal Gmail) via 3-5 test provider rows in staging
-- Verify each personalization variable substitutes correctly per recipient
+- Send test emails to your own inboxes (logan@olera.care, personal Gmail) via 5 test rows — one per kind (provider, advisor, student_org, dept_head, professor) — in staging
+- Verify each personalization variable substitutes correctly per recipient per kind
+- Confirm formal salutation logic fires only for dept_head + professor
 - Confirm the PDF arrives attached
 - Confirm sender rotation by watching multiple sends
 
 **How we'll know it's done:**
-- You receive 5+ test emails covering both General Contact and Specific Contact paths
-- Every email has the correct salutation ("Hello" for general, "Hi <First>" for named)
-- Every email has the right campus name + provider name in subject and body
+- You receive 10+ test emails covering both General Contact and Specific Contact paths across all 5 cadence kinds
+- Every email has the correct salutation per kind:
+  - provider: "Hello" (general) or "Hi <First>" (named)
+  - student_org, advisor: same as provider
+  - dept_head, professor: "Dear Dr. <Last>," when title + last present, "Dear <Last>," when last only, "Dear <First>," fallback
+- Every email has the right campus name + organization name in subject and body
 - Every email has the campus PDF attached
 - Rotation is roughly 50/50 between the two sender inboxes across the test sends
 
@@ -227,10 +248,9 @@ These are a separate, smaller cadence (warmer emails to campus contacts). They c
 To keep this focused and safe, the following are explicitly out of scope:
 
 - ❌ **Touching any of the 58 transactional Resend call sites** (rows 2-27 in the audit). They keep working exactly as they do today.
-- ❌ **Migrating stakeholder cadences** (advisor / student org / dept head / professor) to Smartlead. They stay on Resend.
-- ❌ **Building a hybrid mode, toggle, or fallback.** Smartlead is unconditional for provider rows once the cutover happens.
+- ❌ **Building a hybrid mode, toggle, or fallback.** Smartlead is unconditional for every MedJobs outreach row once the cutover happens.
 - ❌ **Rewriting the `lib/email.ts` low-level Resend wrapper.** It stays; transactional paths keep using it.
-- ❌ **Retiring the `/api/cron/student-outreach-send` cron entirely.** It still serves stakeholder rows; we just gate it so provider rows can't accidentally fire through it.
+- ❌ **Retiring the `/api/cron/student-outreach-send` cron entirely.** It stays as dead-path infrastructure; we gate it so MedJobs cold-outreach tasks can't accidentally fire through it. Removing the cron itself adds incidental-breakage risk; leaving it dormant is safer.
 
 ---
 
@@ -242,6 +262,8 @@ To keep this focused and safe, the following are explicitly out of scope:
 - **R-4: Stale Resend-queued outreach tasks at cutover time.** If a provider row had Day 0 sent by Resend pre-cutover and Day 3 is still queued, the Day 3 task would fire through Resend post-cutover. **Mitigation:** pre-cutover SQL to cancel all pending `outreach_email_send` tasks for provider rows. ~5 lines.
 - **R-5: Stale test data in prod's `research_data.smartlead`.** Could collide with prod campaign IDs. **Mitigation:** pre-cutover SQL to clear that field from prod rows. One UPDATE.
 - **R-6: Grazie has no findmedjobs.co email handle yet.** Her signature email line is removed under D-0.1 Option A. **Mitigation:** logged as a follow-up; when she gets one, restore the line. Not blocking.
+- **R-7: Formal stakeholder salutation may render incorrectly if title is missing.** A dept_head row with no `title` on the contact would currently fall through `salutationFor` to "Dear <Last>," (no Dr./Prof. prefix). Mitigation: verify via tsx test in Phase 2 that every fallback path produces a natural-reading greeting. Confirmed acceptable since the existing Resend path has the exact same behavior — no regression vs today.
+- **R-8: Smartlead campaigns scale.** With all 5 cadences live, campaigns multiply per campus. Five cadences × 25 campuses = potentially 125 campaigns at full operation. Smartlead Base plan supports this; just worth monitoring storage cap usage. Mitigation: existing `SMARTLEAD_CONTACT_CAP=2000` budget guard in `launchCampaign` already covers it.
 
 ---
 
@@ -253,15 +275,11 @@ To keep this focused and safe, the following are explicitly out of scope:
 
 ---
 
-## Open question for Logan before Phase 2 starts
+## Decisions are locked — ready to start Phase 2
 
-Four answers needed:
-1. **D-0.1 footer** — Option A?
-2. **D-0.2 modal editors** — strip them?
-3. **D-0.3 campus PDF** — Option A with the 30-min spike to confirm Smartlead's template API?
-4. **D-0.4 stakeholder rows** — stay on Resend?
+All four decisions confirmed by Logan (see "Logan's decisions — locked" table at the top). Phase 2 implementation estimate now ~10 hours of code (was ~6 — the D-0.4 expansion to stakeholders adds the second pre-flight modal preview + formal salutation handling + 4 additional test cadences).
 
-If all four are A/yes, Phase 2 implementation is ~6 hours of code + Phase 3 audit. If any decision goes a different direction, the spec adjusts and I'll re-estimate.
+Next step: Logan says "go" → I start with Phase 2 task T8 (the 30-min Smartlead `template_id` API spike) to de-risk D-0.3 before any code commits.
 
 ---
 
@@ -272,27 +290,35 @@ If all four are A/yes, Phase 2 implementation is ~6 hours of code + Phase 3 audi
 
 ### Phase 2 implementation tasks
 
-- [ ] T1. Remove the `engine` branch in `route.ts:handleScheduleSequence` (lines 1769-1779). For `kind='provider'`: always call `enrollRowIntoSmartlead`. Remove `body.engine` from the action's body type. Remove `outreach_engine` field from `DrawerContext`.
-- [ ] T2. Gate `auto-send-executor.executeEmailTask` by row kind: provider rows return early with `outcome: "skipped_smartlead_owned"`. Belt-and-suspenders safety net.
-- [ ] T3. Remove `MEDJOBS_OUTREACH_ENGINE` env var from Vercel staging + prod (operational step, post-merge).
-- [ ] T4. Strip the variant editor blocks from `ProviderPreFlightModal.tsx`. Remove `generalSnaps`/`namedSnaps` state, `defaults`, `updateGeneral`, `updateNamed`. `onSubmit` payload drops `email_snapshots_by_variant`. Server-side, make that field optional and treat absence as "use canonical templates."
-- [ ] T5. Remove the `smartleadMode` ternary headers in the modal — there's only one mode now.
-- [ ] T6. Port `composeFooterHtml` from `email-send.ts` to `lib/medjobs/smartlead-bridge.ts:toSmartleadHtml`. Adjust email lines per D-0.1.
-- [ ] T7. Verify Smartlead's unsubscribe block renders correctly in the campaign settings (operational).
-- [ ] T8. **SPIKE**: verify Smartlead's `template_id` parameter on `createCampaign` works (30 minutes, one real API call). If pass → proceed with T9-T11. If fail → fall to D-0.3 Option B (link in body).
-- [ ] T9. TJ: build the first campus template in Smartlead UI (Texas A&M). Save as `medjobs-{slug}`. Operational.
-- [ ] T10. Bridge resolves `template_id` from campus slug → template-id mapping. Source of truth: env var or new column on `student_outreach_campuses`.
-- [ ] T11. TJ: build remaining ~24 campus templates over weeks (operational, non-blocking).
+- [ ] **T0. SPIKE FIRST**: verify Smartlead's `template_id` parameter on `createCampaign` works (30 min, one real API call). Pass → proceed with all Phase 2. Fail → fall to D-0.3 Option B (link in body) before committing any code.
+- [ ] T1. Remove the `engine` branch in `route.ts:handleScheduleSequence`. For ALL MedJobs cold-outreach rows (every kind): always call `enrollRowIntoSmartlead`. Remove `body.engine` from the action body type. Remove `outreach_engine` field from `DrawerContext`.
+- [ ] T2. Extend `enrollRowIntoSmartlead` to handle stakeholder kinds (advisor / student_org / dept_head / professor): pass `row.stakeholder_type` as `cadenceKey` (already supported by the bridge). Same Named Contact fan-out applies.
+- [ ] T3. Extend `rowToLeads` salutation logic in `lib/medjobs/smartlead-bridge.ts` to call `salutationFor(stakeholder_type, first_name, last_name, title)` for dept_head + professor rows. Today it hardcodes "Hi <First>" — needs to switch to "Dear Dr. <Last>" when formal.
+- [ ] T4. Gate `auto-send-executor.executeEmailTask` to short-circuit ALL kinds (not just provider). Belt-and-suspenders.
+- [ ] T5. Remove `MEDJOBS_OUTREACH_ENGINE` env var from Vercel staging + prod (operational, post-merge).
+- [ ] T6. Strip variant editor blocks from `ProviderPreFlightModal.tsx`. Drop `generalSnaps`/`namedSnaps` state. `onSubmit` payload drops `email_snapshots_by_variant`. Server-side, make that field optional.
+- [ ] T7. Remove `smartleadMode` ternaries in `ProviderPreFlightModal` — there's only one mode now.
+- [ ] T8. Add Smartlead preview panel to `app/admin/student-outreach/PreFlightReviewModal.tsx` (the stakeholder modal). Reuse the `SmartleadPreviewSection` component from `ProviderPreFlightModal` — extract it to a shared file if needed.
+- [ ] T9. Extend server-side `buildSmartleadPreview` call in `route.ts:loadDrawerContext` to fire for ALL kinds, not just provider. Today: `if (outreachEngine === "smartlead" && row.kind === "provider")` → remove the kind check.
+- [ ] T10. Port `composeFooterHtml` from `email-send.ts` to `lib/medjobs/smartlead-bridge.ts:toSmartleadHtml`. Adjust email lines per D-0.1.
+- [ ] T11. Verify Smartlead's unsubscribe block renders correctly in campaign settings (operational).
+- [ ] T12. TJ: build first campus template in Smartlead UI (e.g. Texas A&M). Save as `medjobs-{slug}`. Templates are per-campus, not per-cadence — same template serves provider + all 4 stakeholder cadences. Operational.
+- [ ] T13. Bridge resolves `template_id` from campus slug → template-id mapping. Source of truth: env var (`SMARTLEAD_CAMPUS_TEMPLATES=texas-am:12345,...`) or new column on `student_outreach_campuses` (`smartlead_template_id`). Pick the simpler one.
+- [ ] T14. TJ: build remaining ~24 campus templates over weeks (operational, non-blocking).
 
 ### Phase 3 verification tasks
 
-- [ ] V1. Test row, General Contact = logan@olera.care, 2 Named Contacts (your inboxes). Launch → confirm preview shows correctly.
-- [ ] V2. Manually START the campaign in Smartlead UI. Confirm Day 0 email arrives at all 3 inboxes within send window.
+- [ ] V1. 5 test rows, one per kind (provider, student_org, advisor, dept_head, professor). Each with General Contact = logan@olera.care + 2 Named Contacts (your inboxes). Launch each → confirm preview renders the right cadence + recipients.
+- [ ] V2. Manually START each campaign in Smartlead UI. Confirm Day 0 email arrives at all inboxes within send window.
 - [ ] V3. Re-run V1+V2 with 3-5 different campuses to confirm rotation across both sender mailboxes.
-- [ ] V4. Confirm `{{salutation}}` substitutes per recipient ("Hello" vs "Hi <First>").
-- [ ] V5. Confirm `{{company_name}}` + `{{campus}}` substitute correctly.
-- [ ] V6. Confirm campus PDF arrives attached to every email.
-- [ ] V7. Confirm signature blocks (Grazie + Logan) render in correct order with correct content.
+- [ ] V4. Confirm `{{salutation}}` substitutes per recipient:
+  - provider/student_org/advisor named: "Hi <First>"
+  - provider/student_org/advisor general: "Hello"
+  - dept_head/professor with title: "Dear Dr. <Last>" or "Dear Prof. <Last>"
+  - dept_head/professor without title: "Dear <Last>"
+- [ ] V5. Confirm `{{company_name}}` + `{{campus}}` substitute correctly across all cadences.
+- [ ] V6. Confirm campus PDF arrives attached to every email (regardless of kind).
+- [ ] V7. Confirm signature blocks (Grazie + Logan) render in correct order with correct content for all cadences.
 
 ### Phase 4 verification tasks
 

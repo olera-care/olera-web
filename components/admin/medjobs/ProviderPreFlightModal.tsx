@@ -277,8 +277,6 @@ export function ProviderPreFlightModal({
   // Derived state — what will the queue look like with the current
   // recipient selection?
   const includedRows = recipientRows.filter((r) => includedIds.has(recipientKeyOf(r)));
-  const generalRows = includedRows.filter((r) => r.is_general);
-  const namedRows = includedRows.filter((r) => !r.is_general);
   const emailRows = includedRows.filter((r) => r.hasEmail);
   const callRows = includedRows.filter((r) => r.hasPhone);
 
@@ -371,72 +369,50 @@ export function ProviderPreFlightModal({
             </p>
           )}
 
-          {smartleadPreview && (
-            <SmartleadPreviewSection preview={smartleadPreview} />
-          )}
-
-          {/* v9 final: PDF attachment indicator. Two modes:
-              programPdfAttachment is set    → green confirmation
-                                                with filename + source
-                                                label + Preview link
-              null (no config + no override) → amber notice so admin
-                                                knows the send goes
-                                                without a PDF
-              Either way, the source of truth is visible before launch. */}
-          <section className="rounded-md border border-gray-200 bg-white">
-            <header className="border-b border-gray-100 px-3 py-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                PDF attachment
-              </p>
-            </header>
-            {programPdfAttachment ? (
-              <div className="flex items-center justify-between gap-2 px-3 py-2.5">
-                <div className="flex items-center gap-2">
-                  <span aria-hidden className="text-base">📎</span>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-medium text-gray-900">
-                        {programPdfAttachment.filename}
-                      </p>
-                      <span
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                          programPdfAttachment.source === "custom"
-                            ? "bg-blue-50 text-blue-700"
-                            : "bg-primary-50 text-primary-700"
-                        }`}
-                      >
-                        {programPdfAttachment.source === "custom"
-                          ? "Custom upload"
-                          : `Default · ${campusName} template`}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-gray-500">
-                      Attached to every outreach email queued from this launch.
-                    </p>
-                  </div>
-                </div>
-                <a
-                  href={programPdfAttachment.previewUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Preview ↗
-                </a>
-              </div>
-            ) : (
-              <div className="px-3 py-2.5">
-                <p className="text-xs text-amber-800">
-                  No PDF configured for this campus. The send will go
-                  without an attachment. To wire one up, register a
-                  config in <code className="rounded bg-gray-100 px-1 font-mono text-[10px]">lib/program-pdf/configs/</code>{" "}
-                  or set <code className="rounded bg-gray-100 px-1 font-mono text-[10px]">program_pdf_url</code> on the campus row.
-                </p>
-              </div>
-            )}
+          {/* Summary strip — sender pool, recipient + queue counts, PDF
+              status. Replaces the standalone PDF banner + queue footer
+              from the old layout, since both restate things repeated in
+              the per-day cards below. */}
+          <section className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              Launch summary
+            </p>
+            <p className="mt-1 text-xs text-gray-700">
+              <strong className="tabular-nums">{queuedEmails}</strong> email
+              {queuedEmails === 1 ? "" : "s"} +{" "}
+              <strong className="tabular-nums">{queuedCalls}</strong> call
+              {queuedCalls === 1 ? "" : "s"} across the cadence below
+            </p>
+            <p className="mt-0.5 text-[11px] text-gray-600">
+              {smartleadPreview?.sender_pool.length
+                ? `Sender: ${smartleadPreview.sender_pool.join(" / ")} (rotated by Smartlead)`
+                : "Sender: all connected Smartlead mailboxes (rotated)"}
+            </p>
+            <p className="mt-0.5 text-[11px]">
+              Program PDF:{" "}
+              {programPdfAttachment ? (
+                <span className="text-gray-700">
+                  ✓ linked in body per email ({programPdfAttachment.filename}){" "}
+                  <a
+                    href={programPdfAttachment.previewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-700 hover:underline"
+                  >
+                    preview ↗
+                  </a>
+                </span>
+              ) : (
+                <span className="text-amber-700">
+                  ✗ no PDF configured for {campusName} — emails will ship
+                  without a program PDF link
+                </span>
+              )}
+            </p>
           </section>
 
-          {/* Recipients section */}
+          {/* Recipients — include/exclude only. Variant labels removed; the
+              cadence section below shows exactly what each recipient receives. */}
           <section className="rounded-md border border-gray-200 bg-white">
             <header className="border-b border-gray-100 px-3 py-2">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
@@ -468,23 +444,10 @@ export function ProviderPreFlightModal({
                               {r.name}
                             </span>
                             {r.role && (
-                              <span
-                                className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                                  r.is_general
-                                    ? "bg-blue-50 text-blue-700"
-                                    : "bg-gray-100 text-gray-700"
-                                }`}
-                              >
+                              <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-700">
                                 {r.role}
                               </span>
                             )}
-                            <span
-                              className={`text-[10px] font-medium uppercase tracking-wide ${
-                                r.is_general ? "text-blue-700" : "text-primary-700"
-                              }`}
-                            >
-                              {r.is_general ? "general variant" : "named variant"}
-                            </span>
                           </div>
                           <p className="mt-0.5 truncate text-xs text-gray-500">
                             {r.hasEmail ? (
@@ -506,76 +469,120 @@ export function ProviderPreFlightModal({
                 })}
               </ul>
             )}
-            <footer className="border-t border-gray-100 bg-gray-50 px-3 py-2 text-[11px] text-gray-600">
-              Will queue:{" "}
-              <strong className="tabular-nums">{queuedEmails}</strong> email
-              {queuedEmails === 1 ? "" : "s"} (
-              {emailRows.length} recipient{emailRows.length === 1 ? "" : "s"} ×{" "}
-              {emailDayCount} day{emailDayCount === 1 ? "" : "s"}) ·{" "}
-              <strong className="tabular-nums">{queuedCalls}</strong> call
-              {queuedCalls === 1 ? "" : "s"} (
-              {callRows.length} callable × {phoneDayCount} call day
-              {phoneDayCount === 1 ? "" : "s"}). Day 0 fires inline.
-            </footer>
           </section>
 
-          {/* Per-day editors — emails rendered above; only call scripts editable here. */}
-          {cadenceDays.map((d) => {
-            const isOpen = openDay === d.day;
-            const script = callScripts.find((s) => s.day === d.day);
-            const hasEmailStep = d.steps.some((s) => s.channel === "email");
-            const hasPhoneStep = d.steps.some((s) => s.channel === "phone");
-            return (
-              <div
-                key={d.day}
-                className="rounded-md border border-gray-200 bg-white"
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpenDay(isOpen ? null : d.day)}
-                  className="flex w-full items-start justify-between gap-3 px-3 py-2.5 text-left hover:bg-gray-50"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      {d.title}
-                    </p>
-                    <p className="mt-0.5 text-xs text-gray-500">
-                      {hasEmailStep &&
-                        `${generalRows.length} general + ${namedRows.length} named email${
-                          generalRows.length + namedRows.length === 1 ? "" : "s"
-                        }`}
-                      {hasEmailStep && hasPhoneStep && " · "}
-                      {hasPhoneStep && `${callRows.length} call${callRows.length === 1 ? "" : "s"}`}
-                    </p>
+          {/* Cadence — accordion per day. Each day expands to show every
+              communication scheduled (email previews per recipient + shared
+              call script + callable list). This is the source of truth for
+              "what will happen on Day N" — replaces the separate Smartlead
+              preview panel above. */}
+          <section>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              Cadence
+            </p>
+            <div className="space-y-2">
+              {cadenceDays.map((d) => {
+                const isOpen = openDay === d.day;
+                const script = callScripts.find((s) => s.day === d.day);
+                const hasEmailStep = d.steps.some((s) => s.channel === "email");
+                const hasPhoneStep = d.steps.some((s) => s.channel === "phone");
+                const previewStep = smartleadPreview?.steps.find(
+                  (s) => s.cadence_day === d.day,
+                );
+                const dayEmailRows = hasEmailStep ? emailRows : [];
+                const dayCallRows = hasPhoneStep ? callRows : [];
+                return (
+                  <div
+                    key={d.day}
+                    className="rounded-md border border-gray-200 bg-white"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setOpenDay(isOpen ? null : d.day)}
+                      className="flex w-full items-start justify-between gap-3 px-3 py-2.5 text-left hover:bg-gray-50"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900">
+                          {d.title}
+                        </p>
+                        <p className="mt-0.5 text-xs text-gray-500">
+                          {hasEmailStep &&
+                            `${dayEmailRows.length} email${dayEmailRows.length === 1 ? "" : "s"}`}
+                          {hasEmailStep && hasPhoneStep && " · "}
+                          {hasPhoneStep &&
+                            `${dayCallRows.length} call${dayCallRows.length === 1 ? "" : "s"}`}
+                        </p>
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        {isOpen ? "▾" : "▸"}
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div className="space-y-3 border-t border-gray-100 px-3 pb-3 pt-2">
+                        {hasEmailStep && previewStep &&
+                          dayEmailRows.map((r) => {
+                            const previewRecipient = smartleadPreview?.recipients.find(
+                              (pr) =>
+                                pr.contact_id === r.contact_id ||
+                                (pr.recipient_kind === "general" && r.is_general),
+                            );
+                            if (!previewRecipient || !smartleadPreview) {
+                              return null;
+                            }
+                            return (
+                              <EmailPreviewCard
+                                key={`email-${r.contact_id ?? "general"}`}
+                                recipient={previewRecipient}
+                                step={previewStep}
+                                sample={smartleadPreview.sample_used}
+                                senderPool={smartleadPreview.sender_pool}
+                                pdfConfigured={programPdfAttachment != null}
+                              />
+                            );
+                          })}
+                        {hasEmailStep && dayEmailRows.length === 0 && (
+                          <p className="text-xs italic text-gray-400">
+                            No email recipients selected for this day.
+                          </p>
+                        )}
+
+                        {hasPhoneStep && dayCallRows.length > 0 && script && (
+                          <div className="space-y-2 rounded-md border border-amber-200 bg-white">
+                            <header className="bg-amber-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+                              Call script — {dayCallRows.length} callable
+                            </header>
+                            <div className="space-y-2 px-3 py-2">
+                              <ul className="space-y-1 rounded-md bg-amber-50/50 px-2.5 py-1.5 text-[11px] text-amber-900">
+                                {dayCallRows.map((r) => (
+                                  <li key={`call-${r.contact_id ?? "general"}`}>
+                                    ☎ Will call <strong>{r.name}</strong>
+                                    {r.role && ` (${r.role})`}
+                                    {" · "}
+                                    <span className="font-mono">{r.phone}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                              <CallScriptEditor
+                                label={`Day ${d.day} script (shared by all callers above)`}
+                                script={script.script}
+                                onChange={(s) => updateScript(d.day, s)}
+                                tips={defaultCallTipsForDay("provider", d.day)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {hasPhoneStep && dayCallRows.length === 0 && (
+                          <p className="text-xs italic text-gray-400">
+                            No callable recipients selected for this day.
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <span className="text-xs text-gray-400">{isOpen ? "▾" : "▸"}</span>
-                </button>
-                {isOpen && (
-                  <div className="space-y-3 border-t border-gray-100 px-3 pb-3 pt-2">
-                    {hasEmailStep && (
-                      <p className="rounded-md bg-gray-50 px-2.5 py-1.5 text-[11px] text-gray-600">
-                        Email rendered by Smartlead — see the preview above for
-                        the actual subject + body that will ship per recipient.
-                      </p>
-                    )}
-                    {hasPhoneStep && callRows.length > 0 && script && (
-                      <CallScriptEditor
-                        label={`Call script · ${callRows.length} callable`}
-                        script={script.script}
-                        onChange={(s) => updateScript(d.day, s)}
-                        tips={defaultCallTipsForDay("provider", d.day)}
-                      />
-                    )}
-                    {hasPhoneStep && callRows.length === 0 && (
-                      <p className="text-xs italic text-gray-400">
-                        No callable recipients selected for this day.
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          </section>
         </div>
 
         <footer className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
@@ -706,152 +713,93 @@ function substituteSmartleadMergeTags(
     .replace(/\{\{\s*campus\s*\}\}/g, sample.campus);
 }
 
-function SmartleadPreviewSection({
-  preview,
+
+/**
+ * v9.x cadence-first email card. One per recipient × email day. Renders the
+ * exact subject + body that Smartlead will send to THIS recipient on THIS
+ * day, using per-lead `{{...}}` substitution. Replaces the standalone
+ * Smartlead preview panel — the cadence accordions now ARE the preview.
+ *
+ * Lives next to the day's call script editor in the per-day accordion so
+ * admin sees "Day N: email to X, email to Y, call to X, call to Y" as one
+ * grouped block, not three separate sections of the modal.
+ */
+function EmailPreviewCard({
+  recipient,
+  step,
+  sample,
+  senderPool,
+  pdfConfigured,
 }: {
-  preview: SmartleadPreviewSnapshot;
+  recipient: SmartleadPreviewSnapshot["recipients"][number];
+  step: SmartleadPreviewSnapshot["steps"][number];
+  sample: SmartleadPreviewSnapshot["sample_used"];
+  senderPool: string[];
+  pdfConfigured: boolean;
 }) {
-  const [activeStep, setActiveStep] = useState(0);
-  const [activeRecipientIdx, setActiveRecipientIdx] = useState(0);
-  const step = preview.steps[activeStep];
-  const recipient = preview.recipients[activeRecipientIdx];
-
-  // Per-recipient substitution — uses the templates form (with {{...}} intact)
-  // so each recipient sees their own salutation + first_name, not the server's
-  // single sample. Falls back to the server-rendered preview when something is
-  // missing (defensive).
-  const renderedSubject =
-    step && recipient
-      ? substituteSmartleadMergeTags(step.subject_template, recipient, preview.sample_used)
-      : step?.subject_preview ?? "";
-  const renderedBodyHtml =
-    step && recipient
-      ? substituteSmartleadMergeTags(step.body_html_template, recipient, preview.sample_used)
-      : step?.body_html_preview ?? "";
-
+  const subject = substituteSmartleadMergeTags(step.subject_template, recipient, sample);
+  const bodyHtml = substituteSmartleadMergeTags(step.body_html_template, recipient, sample);
   return (
-    <section className="rounded-md border border-primary-200 bg-white">
-      <header className="border-b border-primary-100 bg-primary-50/50 px-3 py-2">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-800">
-          Smartlead preview · {preview.campaign_name}
-        </p>
-        <p className="mt-1 text-[11px] text-primary-700">
-          {preview.recipients.length === 1
-            ? "1 lead will enroll"
-            : `${preview.recipients.length} leads will enroll`}{" "}
-          ·{" "}
-          {preview.sender_pool.length > 0
-            ? `from ${preview.sender_pool.join(" / ")} (rotated)`
-            : "sender pool: all connected Smartlead mailboxes"}
-        </p>
+    <div className="rounded-md border border-primary-200 bg-white">
+      <header className="bg-primary-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary-800">
+        {recipient.recipient_kind === "general" ? "✉ Email to org" : "✉ Email to named"}
+        {" — "}
+        <span className="normal-case text-primary-900">{recipient.name}</span>
+        {recipient.role && (
+          <span className="ml-1.5 normal-case text-primary-700">
+            ({recipient.role})
+          </span>
+        )}
       </header>
-
-      <div className="space-y-3 px-3 py-3">
-        {/* Recipient roster — clickable so admin can preview per recipient. */}
+      <div className="space-y-2 px-3 py-2 text-xs">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-600">
+          <span>
+            To:{" "}
+            <span className="font-mono text-gray-800">{recipient.email}</span>
+          </span>
+          <span>
+            From:{" "}
+            <span className="text-gray-800">
+              {senderPool.length > 0 ? senderPool.join(" / ") : "Smartlead mailbox pool"}
+            </span>
+          </span>
+        </div>
         <div>
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600">
-            Recipients — click to preview what each will receive
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+            Subject
           </p>
-          <ul className="divide-y divide-gray-100 rounded-md border border-gray-200">
-            {preview.recipients.map((r, i) => {
-              const isActive = i === activeRecipientIdx;
-              return (
-                <li key={i}>
-                  <button
-                    type="button"
-                    onClick={() => setActiveRecipientIdx(i)}
-                    className={`flex w-full items-baseline justify-between gap-2 px-2.5 py-1.5 text-left text-xs transition-colors ${
-                      isActive
-                        ? "bg-primary-50"
-                        : "hover:bg-gray-50"
-                    }`}
-                    aria-pressed={isActive}
-                  >
-                    <div className="min-w-0">
-                      <span
-                        className={`rounded px-1 py-0.5 text-[10px] font-semibold uppercase ${
-                          r.recipient_kind === "general"
-                            ? "bg-gray-100 text-gray-700"
-                            : "bg-primary-100 text-primary-800"
-                        }`}
-                      >
-                        {r.recipient_kind === "general" ? "Org" : "Named"}
-                      </span>
-                      <span className="ml-1.5 text-gray-900">{r.name}</span>
-                      {r.role && (
-                        <span className="ml-1.5 text-[10px] text-gray-500">
-                          ({r.role})
-                        </span>
-                      )}
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <p className="font-mono text-[11px] text-gray-700">{r.email}</p>
-                      <p className="text-[10px] text-gray-500">
-                        Greeting:{" "}
-                        <span className="text-gray-700">{r.salutation},</span>
-                      </p>
-                    </div>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          <p className="mt-0.5 text-sm font-medium text-gray-900">{subject}</p>
         </div>
-
-        {/* Step picker + rendered preview for the selected recipient. */}
         <div>
-          <div className="mb-1.5 flex items-baseline justify-between gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-600">
-              {recipient
-                ? `What ${recipient.name} will receive`
-                : "Cadence"}
-            </p>
-            <div className="flex gap-1">
-              {preview.steps.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveStep(i)}
-                  type="button"
-                  className={`rounded px-2 py-0.5 text-[11px] font-medium transition-colors ${
-                    activeStep === i
-                      ? "bg-primary-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  Day {s.cadence_day}
-                </button>
-              ))}
-            </div>
-          </div>
-          {step && (
-            <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-wide text-gray-500">
-                Step {step.seq_number} · delay {step.delay_in_days}d after
-                previous email
-                {recipient && (
-                  <>
-                    {" · sent to "}
-                    <span className="font-mono">{recipient.email}</span>
-                  </>
-                )}
-              </p>
-              <p className="mt-1 text-sm font-medium text-gray-900">
-                {renderedSubject}
-              </p>
-              <div
-                className="mt-2 max-h-72 overflow-y-auto rounded border border-gray-200 bg-white p-3 text-[12px] leading-snug"
-                dangerouslySetInnerHTML={{ __html: renderedBodyHtml }}
-              />
-              <p className="mt-2 text-[10px] text-gray-500">
-                Variables substituted: {"{{salutation}}"} · {"{{first_name}}"} ·{" "}
-                {"{{company_name}}"} · {"{{campus}}"}. Program PDF link is baked
-                per campus. Body rendered = what Smartlead will actually send to
-                this recipient.
-              </p>
-            </div>
-          )}
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+            Body — what {recipient.name} will see
+          </p>
+          <div
+            className="mt-1 max-h-64 overflow-y-auto rounded border border-gray-200 bg-gray-50 p-2.5 text-[12px] leading-snug"
+            dangerouslySetInnerHTML={{ __html: bodyHtml }}
+          />
         </div>
+        <p className="text-[10px] text-gray-500">
+          Variables substituted: {"{{salutation}}"} → {recipient.salutation} ·{" "}
+          {"{{company_name}}"} → {sample.company} · {"{{campus}}"} → {sample.campus}
+          {recipient.recipient_kind === "named" && (
+            <>
+              {" · "}
+              {"{{first_name}}"} → {recipient.salutation.replace(/^(Hi|Dear)\s+(Dr\.\s+|Prof\.\s+)?/, "").split(/\s+/)[0]}
+            </>
+          )}
+        </p>
+        <p className="text-[10px] text-gray-500">
+          Program PDF:{" "}
+          {pdfConfigured ? (
+            <span className="text-gray-700">linked in the body</span>
+          ) : (
+            <span className="text-amber-700">
+              not configured for this campus
+            </span>
+          )}
+        </p>
       </div>
-    </section>
+    </div>
   );
 }

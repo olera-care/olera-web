@@ -3,6 +3,43 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
+ * Detailed inquiry information for the verification modal
+ */
+interface InquiryDetail {
+  id: string;
+  from_name: string;
+  from_email: string | null;
+  message: string | null;
+  care_type: string | null;
+  timeline: string | null;
+  created_at: string;
+  provider_responded: boolean; // True if provider sent a message in the thread
+  response_count: number; // Number of messages in thread
+}
+
+/**
+ * Detailed question information for the verification modal
+ */
+interface QuestionDetail {
+  id: string;
+  question_text: string;
+  asker_name: string | null;
+  asker_email: string | null;
+  answer: string | null;
+  status: string; // 'pending', 'approved', 'answered', 'rejected', 'flagged'
+  created_at: string;
+  answered_at: string | null;
+}
+
+/**
+ * All leads and questions for a provider (shown in verification modal)
+ */
+interface ProviderEngagement {
+  inquiries: InquiryDetail[];
+  questions: QuestionDetail[];
+}
+
+/**
  * Claim journey data showing how a provider claimed and their pre-claim engagement
  */
 interface ClaimJourney {
@@ -14,6 +51,8 @@ interface ClaimJourney {
     questions_answered: number; // Q&A before claiming
   };
   first_engagement_at: string | null; // When they first interacted
+  // All engagement (not just pre-claim) for the details modal
+  all_engagement?: ProviderEngagement;
 }
 
 /**
@@ -104,6 +143,171 @@ async function getClaimJourney(
     return result;
   } catch (error) {
     console.error("Error fetching claim journey:", error);
+    return result;
+  }
+}
+
+/**
+ * Fetch ALL inquiries and questions for a provider (not just pre-claim)
+ * Used to show detailed leads in the verification modal
+ */
+async function getProviderEngagement(
+  db: SupabaseClient,
+  slug: string | null,
+  profileId: string
+): Promise<ProviderEngagement> {
+  const result: ProviderEngagement = {
+    inquiries: [],
+    questions: [],
+  };
+
+  try {
+    // Fetch all inquiries (connections where to_profile_id = profileId)
+    const { data: connections } = await db
+      .from("connections")
+      .select("id, from_profile_id, message, metadata, created_at")
+      .eq("to_profile_id", profileId)
+      .eq("type", "inquiry")
+      .order("created_at", { ascending: false })
+      .limit(20); // Limit to most recent 20
+
+    if (connections && connections.length > 0) {
+      // Get all from_profile_ids to fetch seeker details
+      const fromProfileIds = connections
+        .map((c) => c.from_profile_id)
+        .filter((id): id is string => Boolean(id));
+
+      // Fetch seeker profiles (including account_id for email lookup)
+      const { data: seekerProfiles } = await db
+        .from("business_profiles")
+        .select("id, display_name, email, account_id")
+        .in("id", fromProfileIds);
+
+      // Family emails are in auth.users, not business_profiles
+      // We need to look up: business_profiles.account_id → accounts.user_id → auth.users.email
+      const seekerEmailMap = new Map<string, string>();
+      const accountIds = (seekerProfiles || [])
+        .map((p) => p.account_id)
+        .filter((id): id is string => Boolean(id));
+
+      if (accountIds.length > 0) {
+        const { data: accounts } = await db
+          .from("accounts")
+          .select("id, user_id")
+          .in("id", accountIds);
+
+        if (accounts) {
+          // Fetch emails from auth.users in parallel
+          const emailResults = await Promise.all(
+            accounts.map(async (account) => {
+              try {
+                const { data: authUser } = await db.auth.admin.getUserById(account.user_id);
+                return { accountId: account.id, email: authUser?.user?.email || null };
+              } catch {
+                return { accountId: account.id, email: null };
+              }
+            })
+          );
+
+          for (const result of emailResults) {
+            if (result.email) {
+              seekerEmailMap.set(result.accountId, result.email);
+            }
+          }
+        }
+      }
+
+      const seekerMap = new Map(
+        (seekerProfiles || []).map((p) => [p.id, { ...p, resolvedEmail: p.account_id ? seekerEmailMap.get(p.account_id) : p.email }])
+      );
+
+      // Build inquiry details
+      result.inquiries = connections.map((conn) => {
+        const seeker = seekerMap.get(conn.from_profile_id);
+
+        // Parse message JSON if it exists
+        let messageText: string | null = null;
+        let careType: string | null = null;
+        let timeline: string | null = null;
+        let msgSeekerName: string | null = null;
+        let msgSeekerEmail: string | null = null;
+
+        if (conn.message) {
+          try {
+            const parsed = JSON.parse(conn.message);
+            messageText = parsed.message || parsed.additional_notes || null;
+            careType = parsed.care_type || null;
+            timeline = parsed.urgency || null;
+            // Message JSON also contains seeker info - use as fallback
+            msgSeekerName = parsed.seeker_name || null;
+            msgSeekerEmail = parsed.seeker_email || null;
+          } catch {
+            messageText = conn.message;
+          }
+        }
+
+        // Check metadata for auto_intro and thread messages
+        interface ThreadMessage {
+          from_profile_id: string;
+          text: string;
+          created_at: string;
+        }
+        const meta = conn.metadata as {
+          auto_intro?: string;
+          thread?: ThreadMessage[];
+        } | null;
+
+        if (!messageText && meta?.auto_intro) {
+          messageText = meta.auto_intro;
+        }
+
+        // Check if provider has responded in the thread
+        const thread = Array.isArray(meta?.thread) ? meta.thread : [];
+        const providerResponded = thread.some(
+          (msg) => msg.from_profile_id === profileId
+        );
+
+        // Use profile data first, fall back to message JSON data
+        return {
+          id: conn.id,
+          from_name: seeker?.display_name || msgSeekerName || "Anonymous",
+          from_email: seeker?.resolvedEmail || msgSeekerEmail || null,
+          message: messageText,
+          care_type: careType,
+          timeline: timeline,
+          created_at: conn.created_at,
+          provider_responded: providerResponded,
+          response_count: thread.length,
+        };
+      });
+    }
+
+    // Fetch all questions for this provider (by slug)
+    if (slug) {
+      const { data: questions } = await db
+        .from("provider_questions")
+        .select("id, question, answer, asker_name, asker_email, status, created_at, answered_at")
+        .eq("provider_id", slug)
+        .order("created_at", { ascending: false })
+        .limit(20); // Limit to most recent 20
+
+      if (questions) {
+        result.questions = questions.map((q) => ({
+          id: q.id,
+          question_text: q.question,
+          asker_name: q.asker_name || null,
+          asker_email: q.asker_email || null,
+          answer: q.answer || null,
+          status: q.status || "pending",
+          created_at: q.created_at,
+          answered_at: q.answered_at || null,
+        }));
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching provider engagement:", error);
     return result;
   }
 }
@@ -371,19 +575,29 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Fetch claim journey data for all providers in parallel
+    // Fetch claim journey and engagement data for all providers in parallel
     const claimJourneyPromises = paginated.map(
       (p: { id: string; slug?: string | null }) =>
         getClaimJourney(db, p.slug || null, p.id)
     );
-    const claimJourneys = await Promise.all(claimJourneyPromises);
+    const engagementPromises = paginated.map(
+      (p: { id: string; slug?: string | null }) =>
+        getProviderEngagement(db, p.slug || null, p.id)
+    );
+    const [claimJourneys, engagements] = await Promise.all([
+      Promise.all(claimJourneyPromises),
+      Promise.all(engagementPromises),
+    ]);
 
-    // Add claimer_email and claim_journey to each provider
+    // Add claimer_email, claim_journey, and engagement to each provider
     const providersWithData = paginated.map(
       (p: { account_id?: string }, index: number) => ({
         ...p,
         claimer_email: p.account_id ? accountEmailMap.get(p.account_id) || null : null,
-        claim_journey: claimJourneys[index],
+        claim_journey: {
+          ...claimJourneys[index],
+          all_engagement: engagements[index],
+        },
       })
     );
 

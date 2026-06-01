@@ -28,6 +28,7 @@ import {
   type CallScript,
 } from "@/lib/student-outreach/sequencer";
 import { executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
+import { enrollRowIntoCampusCampaign, type BridgeRow } from "@/lib/medjobs/smartlead-bridge";
 import {
   deriveRepliesState,
   deriveStateFromTouchpoints,
@@ -1692,6 +1693,10 @@ async function handleScheduleSequence(
     // launch so it lands in the timeline alongside Day 0 emails.
     contact_form_outcome?: "submitted" | "skipped" | "not_available";
     contact_form_url?: string | null;
+    /** v9.x cold-email engine. Optional override; defaults to the
+     *  MEDJOBS_OUTREACH_ENGINE config (not an operator toggle). "smartlead"
+     *  routes the email drip through Smartlead instead of Resend. */
+    engine?: "resend" | "smartlead";
   },
   userId: string,
 ) {
@@ -1758,18 +1763,48 @@ async function handleScheduleSequence(
     user_id: userId,
     has_phone: hasPhone,
   });
-  const inserts = plan.map((p) => ({
-    outreach_id: row.id,
-    task_type: p.task_type,
-    due_at: p.due_at.toISOString(),
-    payload: p.payload,
-    created_by: userId,
-  }));
-  const { data: insertedTasks, error: insertErr } = await db
-    .from("student_outreach_tasks")
-    .insert(inserts)
-    .select("id, task_type, payload, due_at");
-  if (insertErr) throw new Error(insertErr.message);
+  // v9.x cold-email engine. Default is the MEDJOBS_OUTREACH_ENGINE config
+  // (not an operator toggle); body.engine is an optional override for tests /
+  // gradual rollout. "resend" is byte-for-byte the prior behavior.
+  const engine: "resend" | "smartlead" =
+    body.engine ??
+    (process.env.MEDJOBS_OUTREACH_ENGINE === "smartlead" ? "smartlead" : "resend");
+
+  // Smartlead mode: enroll the lead into its campus campaign FIRST, so a skip
+  // (no email / already enrolled) or API failure aborts BEFORE any CRM
+  // mutation — no orphaned tasks, no half-transitioned row. enrollRowIntoSmartlead
+  // throws on skip/failure and writes the linkage + touchpoint on success.
+  if (engine === "smartlead") {
+    await enrollRowIntoSmartlead(db, row, userId);
+  }
+
+  // Task queue: smartlead mode queues ONLY the call tasks (Smartlead owns the
+  // email drip); resend mode queues all tasks as before.
+  const tasksToInsert =
+    engine === "smartlead"
+      ? plan.filter((p) => p.task_type === "outreach_followup_call")
+      : plan;
+  let insertedTasks: Array<{
+    id: string;
+    task_type: string;
+    payload: Record<string, unknown>;
+    due_at: string;
+  }> = [];
+  if (tasksToInsert.length > 0) {
+    const inserts = tasksToInsert.map((p) => ({
+      outreach_id: row.id,
+      task_type: p.task_type,
+      due_at: p.due_at.toISOString(),
+      payload: p.payload,
+      created_by: userId,
+    }));
+    const { data, error: insertErr } = await db
+      .from("student_outreach_tasks")
+      .insert(inserts)
+      .select("id, task_type, payload, due_at");
+    if (insertErr) throw new Error(insertErr.message);
+    insertedTasks = (data ?? []) as typeof insertedTasks;
+  }
 
   if (row.status !== "outreach_sent") {
     await transitionStage(db, row, "outreach_sent", userId, "sequence_scheduled");
@@ -1787,22 +1822,23 @@ async function handleScheduleSequence(
     .update({ viewed_at: null })
     .eq("id", row.id);
 
-  // v9 Phase 9: inline-fire ALL Day-0 email tasks in parallel. With
-  // per-recipient mode this can be N sends; we want the first wave
-  // out the door while admin is still on the launch screen. Sends
-  // happen in parallel via Promise.allSettled so one failure doesn't
+  // v9 Phase 9: inline-fire ALL Day-0 email tasks in parallel (RESEND only —
+  // in smartlead mode Smartlead owns sending, so there are no email tasks).
+  // Sends happen in parallel via Promise.allSettled so one failure doesn't
   // block siblings. Cron picks up anything that didn't fire.
-  const day0Tasks = (insertedTasks ?? []).filter((t) => {
-    const tt = t as { task_type: string; payload: Record<string, unknown> };
-    return tt.task_type === "outreach_email_send" && tt.payload?.day === 0;
-  }) as Array<{ id: string }>;
-  if (day0Tasks.length > 0) {
-    const fireResults = await Promise.allSettled(
-      day0Tasks.map((t) => executeEmailTask(t.id)),
-    );
-    for (const r of fireResults) {
-      if (r.status === "rejected") {
-        console.error("Inline Day 0 send failed:", r.reason);
+  if (engine === "resend") {
+    const day0Tasks = (insertedTasks ?? []).filter((t) => {
+      const tt = t as { task_type: string; payload: Record<string, unknown> };
+      return tt.task_type === "outreach_email_send" && tt.payload?.day === 0;
+    }) as Array<{ id: string }>;
+    if (day0Tasks.length > 0) {
+      const fireResults = await Promise.allSettled(
+        day0Tasks.map((t) => executeEmailTask(t.id)),
+      );
+      for (const r of fireResults) {
+        if (r.status === "rejected") {
+          console.error("Inline Day 0 send failed:", r.reason);
+        }
       }
     }
   }
@@ -1829,6 +1865,101 @@ async function handleScheduleSequence(
       },
     });
   }
+}
+
+/**
+ * Smartlead engine path for schedule_sequence (G2-approved branch). Enrolls the
+ * row's General Contact into its campus Smartlead campaign and records the
+ * linkage + a timeline touchpoint. Single-writer: the only CRM mutations here
+ * are the research_data linkage update and the note_added touchpoint.
+ *
+ * Approach (b): the campus's campaign id is reused from a sibling row's stored
+ * linkage; the first row for a campus provisions a new PAUSED campaign. The
+ * Smartlead API calls + find-or-create live in lib/medjobs/smartlead-bridge.ts;
+ * this function only assembles the inputs and persists the result.
+ *
+ * Throws on skip (no email / already enrolled) or API failure so the action
+ * surfaces the reason to the admin and aborts before queueing call tasks.
+ */
+async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) {
+  const { data: campusRow } = await db
+    .from("student_outreach_campuses")
+    .select("name, city")
+    .eq("id", row.campus_id)
+    .maybeSingle();
+  const campus = campusRow as { name?: string; city?: string | null } | null;
+  const campusName = campus?.name ?? "Unknown Campus";
+  const campusCity = campus?.city ?? null;
+
+  // Approach (b): reuse the campus's existing campaign id from a sibling row's
+  // stored linkage (one indexed read; no new engine surface).
+  const { data: siblings } = await db
+    .from("student_outreach")
+    .select("research_data")
+    .eq("campus_id", row.campus_id)
+    .neq("id", row.id);
+  let existingCampaignId: number | undefined;
+  for (const s of (siblings ?? []) as Array<{ research_data: ResearchData | null }>) {
+    const cid = s.research_data?.smartlead?.campaign_id;
+    if (typeof cid === "number") {
+      existingCampaignId = cid;
+      break;
+    }
+  }
+
+  const gc = row.research_data?.general_contact;
+  const bridgeRow: BridgeRow = {
+    outreach_id: row.id,
+    kind: row.kind,
+    status: row.status,
+    organization_name: row.organization_name,
+    city: gc?.city ?? campusCity,
+    // Pre-flight requires the General Contact email before launch; if it's
+    // somehow absent, the bridge filters the row out (no_email) and we throw.
+    email: gc?.email ?? null,
+    first_name: null,
+    already_enrolled: typeof row.research_data?.smartlead?.campaign_id === "number",
+  };
+
+  const cadenceKey: CadenceKey = row.kind === "provider" ? "provider" : row.stakeholder_type;
+  const yyyymm = new Date().toISOString().slice(0, 7);
+
+  const enroll = await enrollRowIntoCampusCampaign({
+    row: bridgeRow,
+    campus: { name: campusName, city: campusCity },
+    campaignName: `MedJobs — ${campusName} — ${yyyymm}`,
+    existingCampaignId,
+    cadenceKey,
+  });
+
+  if (enroll.skipped_reason) {
+    throw new Error(`Smartlead enrollment skipped: ${enroll.skipped_reason}`);
+  }
+  if (!enroll.ok || !enroll.campaign_id) {
+    const detail = enroll.errors.map((e) => `${e.stage}: ${e.message}`).join("; ") || "unknown error";
+    throw new Error(`Smartlead enrollment failed: ${detail}`);
+  }
+
+  // Linkage on the row (G3: research_data JSONB, no migration).
+  const nextResearch: ResearchData = {
+    ...row.research_data,
+    smartlead: {
+      campaign_id: enroll.campaign_id,
+      lead_email: bridgeRow.email,
+      enrolled_at: new Date().toISOString(),
+    },
+  };
+  await db.from("student_outreach").update({ research_data: nextResearch }).eq("id", row.id);
+
+  // Timeline touchpoint (G1/G5: existing note_added type).
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    channel: "email",
+    payload: {
+      reason: "smartlead_enrolled",
+      campaign_id: enroll.campaign_id,
+      created_campaign: enroll.created,
+    },
+  });
 }
 
 /**

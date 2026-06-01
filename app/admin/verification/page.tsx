@@ -1721,8 +1721,10 @@ function LeadsAndQuestionsSection({
       if (status === "flagged") {
         return { label: "Answer flagged", color: "bg-gray-100 border-gray-200 text-gray-500" };
       }
-      // Pending approval (status = "pending" or unknown) - also unpublished
-      return { label: "Answered (unpublished)", color: "bg-gray-100 border-gray-200 text-gray-500" };
+      // Pending approval (status = "pending" or unknown)
+      return isVerified
+        ? { label: "Answered (pending approval)", color: "bg-gray-100 border-gray-200 text-gray-500" }
+        : { label: "Answered (unpublished)", color: "bg-gray-100 border-gray-200 text-gray-500" };
     }
     // No answer yet
     return { label: "Awaiting answer", color: "bg-gray-100 border-gray-200 text-gray-500" };

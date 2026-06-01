@@ -1,0 +1,160 @@
+import { NextResponse, type NextRequest } from "next/server";
+import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getConnectionTemperature, recommendNextStep } from "@/lib/connection-temperature";
+
+/**
+ * GET /api/admin/connections/[id] — detail for one connection, so a tracker row
+ * can expand to show the actual gap: the family's ask, the conversation thread,
+ * the provider's contact + engagement, nudge history, and the recommended next
+ * step. Lazy-loaded on expand (the list stays light).
+ */
+
+const CARE_TYPE_LABELS: Record<string, string> = {
+  home_care: "Home Care",
+  home_health: "Home Health Care",
+  assisted_living: "Assisted Living",
+  memory_care: "Memory Care",
+};
+const TIMELINE_LABELS: Record<string, string> = {
+  immediate: "ASAP",
+  within_1_month: "Within 1 month",
+  within_3_months: "Within 3 months",
+  exploring: "Exploring",
+  asap: "ASAP",
+  within_month: "Within 1 month",
+  few_months: "Within 3 months",
+  researching: "Exploring",
+};
+
+interface ThreadMsg {
+  from_profile_id?: string;
+  text?: string;
+  created_at?: string;
+  is_auto_reply?: boolean;
+}
+
+/** Best-effort family "ask" from the connection.message JSON or care metadata. */
+function familyAsk(message: string | null, careTypes?: string[] | null): string | null {
+  if (message) {
+    try {
+      const j = JSON.parse(String(message));
+      const note = j.additional_notes || j.message || j.notes;
+      if (note) return String(note);
+      const parts: string[] = [];
+      const ct = j.care_type ? CARE_TYPE_LABELS[j.care_type] || j.care_type : null;
+      const tl = j.urgency ? TIMELINE_LABELS[j.urgency] || j.urgency : null;
+      if (ct) parts.push(`Looking for ${ct}`);
+      if (tl) parts.push(`Timeline: ${tl}`);
+      if (parts.length) return parts.join(" · ");
+    } catch {
+      return String(message);
+    }
+  }
+  if (careTypes && careTypes.length) {
+    return `Looking for ${CARE_TYPE_LABELS[careTypes[0]] || careTypes[0]}`;
+  }
+  return null;
+}
+
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const admin = await getAdminUser(user.id);
+    if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    const { id } = await params;
+    const db = getServiceClient();
+
+    const { data: c, error } = await db
+      .from("connections")
+      .select(`
+        id, type, status, message, metadata, created_at, from_profile_id, to_profile_id,
+        from_profile:business_profiles!connections_from_profile_id_fkey(display_name, care_types),
+        to_profile:business_profiles!connections_to_profile_id_fkey(display_name, slug, source_provider_id, email)
+      `)
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[connections/:id] query error:", error);
+      return NextResponse.json({ error: "Failed to load connection" }, { status: 500 });
+    }
+    if (!c) return NextResponse.json({ error: "Connection not found" }, { status: 404 });
+
+    const family = Array.isArray(c.from_profile) ? c.from_profile[0] : c.from_profile;
+    const provider = Array.isArray(c.to_profile) ? c.to_profile[0] : c.to_profile;
+    const meta = (c.metadata ?? {}) as Record<string, unknown>;
+
+    const temperature = getConnectionTemperature(
+      {
+        from_profile_id: c.from_profile_id ?? "",
+        to_profile_id: c.to_profile_id ?? "",
+        status: c.status,
+        created_at: c.created_at,
+        metadata: c.metadata,
+      },
+      Date.now()
+    );
+
+    const providerEmail = provider?.email ?? null;
+    const nudgeCount = (meta.nudge_count as number) || 0;
+    const nextStep = recommendNextStep(temperature, {
+      providerHasEmail: !!providerEmail?.trim(),
+      nudgeCount,
+    });
+
+    // Conversation thread, tagged by role for rendering.
+    const rawThread = (meta.thread as ThreadMsg[]) || [];
+    const thread = rawThread.map((m) => ({
+      text: m.text ?? "",
+      created_at: m.created_at ?? null,
+      is_auto_reply: m.is_auto_reply === true,
+      role:
+        m.from_profile_id === c.to_profile_id
+          ? "provider"
+          : m.from_profile_id === c.from_profile_id
+            ? "family"
+            : "system",
+    }));
+
+    // Provider engagement (opened/clicked/contact revealed).
+    const activityKey = provider?.slug || provider?.source_provider_id || null;
+    let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false };
+    if (activityKey) {
+      const { data: events } = await db
+        .from("provider_activity")
+        .select("event_type")
+        .eq("provider_id", activityKey)
+        .in("event_type", ["email_click", "lead_opened", "contact_revealed"]);
+      engagement = {
+        email_clicked: (events ?? []).some((e) => e.event_type === "email_click"),
+        lead_opened: (events ?? []).some((e) => e.event_type === "lead_opened"),
+        contact_revealed: (events ?? []).some((e) => e.event_type === "contact_revealed"),
+      };
+    }
+
+    return NextResponse.json({
+      id: c.id,
+      status: c.status,
+      created_at: c.created_at,
+      family: { display_name: family?.display_name ?? null },
+      provider: {
+        display_name: provider?.display_name ?? null,
+        email: providerEmail,
+        hasEmail: !!providerEmail?.trim(),
+        slug: provider?.slug ?? provider?.source_provider_id ?? null,
+      },
+      ask: familyAsk(c.message, family?.care_types),
+      thread,
+      nudgeCount,
+      lastNudgedAt: (meta.nudged_at as string) || null,
+      engagement,
+      temperature,
+      nextStep,
+    });
+  } catch (err) {
+    console.error("[connections/:id] fatal:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

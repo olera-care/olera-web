@@ -1,8 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import {
   TEMPERATURE_CONFIG,
   dotOpacityForStaleness,
   formatAge,
   type ConnectionTemperature,
+  type NextStep,
 } from "@/lib/connection-temperature";
 
 export interface ConnectionRowData {
@@ -18,12 +22,35 @@ interface Engagement {
   contact_revealed: boolean;
 }
 
-/**
- * One line in the intervention queue. Calm + typographic: a warm temperature
- * dot that fades as the connection cools (no red/amber/green heatmap), the
- * whose-turn label + relative age, and "family → provider". `awaiting_family`
- * rows carry the "provider replied, no answer" prompt — the sub-task 2 moment.
- */
+interface ThreadEntry {
+  text: string;
+  created_at: string | null;
+  is_auto_reply: boolean;
+  role: "provider" | "family" | "system";
+}
+
+interface Detail {
+  id: string;
+  family: { display_name: string | null };
+  provider: { display_name: string | null; email: string | null; hasEmail: boolean; slug: string | null };
+  ask: string | null;
+  thread: ThreadEntry[];
+  nudgeCount: number;
+  lastNudgedAt: string | null;
+  engagement: Engagement;
+  temperature: ConnectionTemperature;
+  nextStep: NextStep;
+}
+
+function fmtDate(iso: string | null): string {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  } catch {
+    return "";
+  }
+}
+
 export default function ConnectionRow({
   c,
   engagement,
@@ -31,47 +58,218 @@ export default function ConnectionRow({
   c: ConnectionRowData;
   engagement?: Engagement;
 }) {
+  const [open, setOpen] = useState(false);
+  const [detail, setDetail] = useState<Detail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+
+  // Nudge action state
+  const [nudging, setNudging] = useState(false);
+  const [nudgeMsg, setNudgeMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
   const cfg = TEMPERATURE_CONFIG[c.temperature.state];
   const opacity = dotOpacityForStaleness(c.temperature.stalenessMs);
   const family = c.family.display_name || "A family";
   const provider = c.provider.display_name || "Unknown provider";
   const isAwaitingFamily = c.temperature.state === "awaiting_family";
 
-  // Most-engaged signal worth surfacing, quietly.
-  const engaged =
-    engagement?.contact_revealed
-      ? "contact shown"
-      : engagement?.email_clicked
-        ? "clicked"
-        : engagement?.lead_opened
-          ? "opened"
-          : null;
+  const engaged = engagement?.contact_revealed
+    ? "contact shown"
+    : engagement?.email_clicked
+      ? "clicked"
+      : engagement?.lead_opened
+        ? "opened"
+        : null;
+
+  async function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && !detail && !loading) {
+      setLoading(true);
+      setLoadError(false);
+      try {
+        const res = await fetch(`/api/admin/connections/${c.id}`);
+        if (!res.ok) throw new Error("failed");
+        setDetail(await res.json());
+      } catch {
+        setLoadError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+  }
+
+  async function nudgeProvider() {
+    setNudging(true);
+    setNudgeMsg(null);
+    try {
+      const res = await fetch("/api/admin/send-nudge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection_id: c.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setNudgeMsg({ ok: true, text: "Nudge sent — the provider was emailed." });
+        setDetail((d) => (d ? { ...d, nudgeCount: d.nudgeCount + 1 } : d));
+      } else {
+        setNudgeMsg({ ok: false, text: data.error || "Couldn’t send the nudge." });
+      }
+    } catch {
+      setNudgeMsg({ ok: false, text: "Network error — nudge not sent." });
+    } finally {
+      setNudging(false);
+    }
+  }
 
   return (
-    <div className="flex items-start gap-3 px-4 py-3 hover:bg-stone-50/60 transition-colors">
-      <span
-        className={`mt-[7px] h-2 w-2 shrink-0 rounded-full ${cfg.dot}`}
-        style={{ opacity }}
-        aria-hidden
-      />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-2">
-          <span className={`text-sm font-medium ${cfg.text}`}>{cfg.label}</span>
-          <span className="text-xs text-gray-400">
-            · {formatAge(c.temperature.stalenessMs)}
-          </span>
-        </div>
-        <div className="mt-0.5 truncate text-sm text-gray-700">
-          {family} <span className="text-gray-300">→</span> {provider}
-        </div>
-        {isAwaitingFamily && (
-          <div className="mt-0.5 text-xs text-gray-400">
-            ↳ provider replied, no answer · nudge?
+    <div>
+      {/* Collapsed row */}
+      <button
+        onClick={toggle}
+        className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-stone-50/60 transition-colors"
+        aria-expanded={open}
+      >
+        <span
+          className={`mt-[7px] h-2 w-2 shrink-0 rounded-full ${cfg.dot}`}
+          style={{ opacity }}
+          aria-hidden
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-2">
+            <span className={`text-sm font-medium ${cfg.text}`}>{cfg.label}</span>
+            <span className="text-xs text-gray-400">· {formatAge(c.temperature.stalenessMs)}</span>
           </div>
-        )}
-      </div>
-      {engaged && (
-        <span className="mt-[3px] shrink-0 text-[11px] text-gray-400">{engaged}</span>
+          <div className="mt-0.5 truncate text-sm text-gray-700">
+            {family} <span className="text-gray-300">→</span> {provider}
+          </div>
+          {isAwaitingFamily && (
+            <div className="mt-0.5 text-xs text-gray-400">↳ provider replied, no answer · nudge?</div>
+          )}
+        </div>
+        {engaged && <span className="mt-[3px] shrink-0 text-[11px] text-gray-400">{engaged}</span>}
+        <svg
+          className={`mt-1 h-4 w-4 shrink-0 text-gray-300 transition-transform ${open ? "rotate-90" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+
+      {/* Expanded detail */}
+      {open && (
+        <div className="border-t border-gray-50 bg-stone-50/40 px-4 py-4">
+          {loading ? (
+            <p className="text-sm text-gray-400">Loading…</p>
+          ) : loadError ? (
+            <p className="text-sm text-rose-600">Couldn’t load this connection. Try again.</p>
+          ) : detail ? (
+            <div className="space-y-4">
+              {/* Next step — the headline action */}
+              <div className="rounded-lg border border-stone-200 bg-white px-4 py-3">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                  Next step
+                </p>
+                <p className="mt-1 text-sm text-gray-800">{detail.nextStep.label}</p>
+
+                {detail.nextStep.action === "nudge_provider" && (
+                  <button
+                    onClick={nudgeProvider}
+                    disabled={nudging}
+                    className="mt-3 rounded-lg bg-gray-900 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                  >
+                    {nudging ? "Sending…" : "Nudge provider"}
+                  </button>
+                )}
+                {detail.nextStep.action === "add_provider_email" && (
+                  <a
+                    href="/admin/leads?tab=needs_email"
+                    className="mt-3 inline-block rounded-lg border border-gray-200 px-3.5 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Add email in Leads →
+                  </a>
+                )}
+                {detail.nextStep.action === "follow_up_family" && (
+                  <p className="mt-2 text-xs text-gray-400">
+                    One-click family follow-up is coming; for now, reach out from the family’s record.
+                  </p>
+                )}
+
+                {nudgeMsg && (
+                  <p className={`mt-2 text-xs ${nudgeMsg.ok ? "text-emerald-600" : "text-rose-600"}`}>
+                    {nudgeMsg.text}
+                  </p>
+                )}
+              </div>
+
+              {/* The ask */}
+              {detail.ask && (
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                    What the family asked
+                  </p>
+                  <p className="mt-1 text-sm text-gray-700">{detail.ask}</p>
+                </div>
+              )}
+
+              {/* Conversation */}
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                  Conversation
+                </p>
+                {detail.thread.length === 0 ? (
+                  <p className="mt-1 text-sm text-gray-400">No messages yet.</p>
+                ) : (
+                  <div className="mt-2 space-y-2">
+                    {detail.thread.map((m, i) => (
+                      <div
+                        key={i}
+                        className={`text-sm ${m.role === "provider" ? "text-gray-800" : "text-gray-600"}`}
+                      >
+                        <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                          {m.role}
+                          {m.is_auto_reply ? " · auto" : ""}
+                          {m.created_at ? ` · ${fmtDate(m.created_at)}` : ""}
+                        </span>
+                        <p className="mt-0.5">{m.text || <span className="text-gray-300">—</span>}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Provider contact + history */}
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500">
+                <span>
+                  Provider:{" "}
+                  {detail.provider.hasEmail ? (
+                    <span className="text-gray-700">{detail.provider.email}</span>
+                  ) : (
+                    <span className="text-amber-600">no email on file</span>
+                  )}
+                </span>
+                <span>
+                  Engagement:{" "}
+                  {detail.engagement.contact_revealed
+                    ? "contact shown"
+                    : detail.engagement.email_clicked
+                      ? "clicked email"
+                      : detail.engagement.lead_opened
+                        ? "opened email"
+                        : "no signal"}
+                </span>
+                {detail.nudgeCount > 0 && (
+                  <span>
+                    Nudged {detail.nudgeCount}× · last {fmtDate(detail.lastNudgedAt)}
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : null}
+        </div>
       )}
     </div>
   );

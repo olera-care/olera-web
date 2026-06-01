@@ -251,6 +251,61 @@ export function dotOpacityForStaleness(stalenessMs: number): number {
   return Math.round((1 - ratio * 0.65) * 100) / 100;
 }
 
+// ── Next-step recommendation (what the operator should DO) ──
+
+export type NextStepAction =
+  | "nudge_provider"
+  | "add_provider_email"
+  | "follow_up_family"
+  | "none";
+
+export interface NextStep {
+  action: NextStepAction;
+  /** One-line advice shown in the row's detail panel. */
+  label: string;
+}
+
+/**
+ * Turn a connection's temperature into a concrete next step for the operator.
+ * The queue is only useful if it tells you what to do — this is that.
+ */
+export function recommendNextStep(
+  t: ConnectionTemperature,
+  opts: { providerHasEmail: boolean; nudgeCount: number }
+): NextStep {
+  if (t.state === "closed") {
+    return { action: "none", label: "Closed — no action needed." };
+  }
+  if (t.state === "live") {
+    return { action: "none", label: "Healthy — both sides are talking." };
+  }
+  // Provider replied, family went quiet.
+  if (t.waitingOn === "family") {
+    return {
+      action: "follow_up_family",
+      label: "Provider replied; the family went quiet. Follow up with the family.",
+    };
+  }
+  // Ball is with the provider (awaiting_provider, or going_cold on the provider side).
+  if (!opts.providerHasEmail) {
+    return {
+      action: "add_provider_email",
+      label: "No provider email on file — add one so this lead can be delivered.",
+    };
+  }
+  const age = formatAge(t.stalenessMs);
+  if (opts.nudgeCount > 0) {
+    return {
+      action: "nudge_provider",
+      label: `Provider nudged ${opts.nudgeCount}× and still hasn't replied (${age}). Nudge again.`,
+    };
+  }
+  return {
+    action: "nudge_provider",
+    label: `Provider hasn't replied (${age}). Send a nudge.`,
+  };
+}
+
 /** Compact relative age, e.g. "3h", "6d", "2w". */
 export function formatAge(stalenessMs: number): string {
   const mins = Math.floor(stalenessMs / 60000);

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Badge from "@/components/ui/Badge";
+import RequestEngagementSection from "@/components/admin/reviews/RequestEngagementSection";
 
 // ── Types ──
 
@@ -40,17 +41,37 @@ interface OleraReview {
   created_at: string;
 }
 
+interface ReviewStats {
+  total_reviews: number;
+  olera_reviews: number;
+  flagged_count: number;
+  requests_sent: number;
+}
+
 // ── Main Page Component ──
 
 export default function AdminReviewsPage() {
   const [mainTab, setMainTab] = useState<MainTab>("moderation");
   const [flaggedCount, setFlaggedCount] = useState(0);
+  const [stats, setStats] = useState<ReviewStats | null>(null);
 
-  // Fetch flagged count for badge
+  // Fetch stats for summary cards + flagged count for badge (3 parallel calls)
   useEffect(() => {
-    fetch("/api/admin/olera-reviews?flagged=flagged&limit=1")
-      .then((res) => res.json())
-      .then((data) => setFlaggedCount(data.flagged_count ?? 0))
+    Promise.all([
+      fetch("/api/admin/reviews?limit=1").then((r) => r.json()),
+      fetch("/api/admin/olera-reviews?limit=1").then((r) => r.json()),
+      fetch("/api/admin/review-requests?period=all").then((r) => r.json()),
+    ])
+      .then(([reviewsData, oleraData, requestsData]) => {
+        const flagged = oleraData.flagged_count ?? 0;
+        setFlaggedCount(flagged); // For tab badge
+        setStats({
+          total_reviews: reviewsData.count ?? 0,
+          olera_reviews: oleraData.total ?? 0,
+          flagged_count: flagged,
+          requests_sent: requestsData.summary?.total_requests ?? 0,
+        });
+      })
       .catch(() => {});
   }, []);
 
@@ -68,6 +89,37 @@ export default function AdminReviewsPage() {
           Moderate reviews and manage flagged content.
         </p>
       </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm text-gray-500">Total Reviews</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {stats ? stats.total_reviews.toLocaleString() : "-"}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm text-gray-500">Olera Reviews</p>
+          <p className="text-2xl font-bold text-primary-600">
+            {stats ? stats.olera_reviews.toLocaleString() : "-"}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm text-gray-500">Flagged Queue</p>
+          <p className="text-2xl font-bold text-amber-600">
+            {stats ? stats.flagged_count.toLocaleString() : "-"}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm text-gray-500">Review Requests Sent</p>
+          <p className="text-2xl font-bold text-emerald-600">
+            {stats ? stats.requests_sent.toLocaleString() : "-"}
+          </p>
+        </div>
+      </div>
+
+      {/* Request Engagement collapsible section */}
+      <RequestEngagementSection />
 
       {/* Main tabs */}
       <div className="border-b border-gray-200 mb-6">

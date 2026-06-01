@@ -6,7 +6,6 @@ import DateRangePopover, { type DateRangeValue, resolveRange } from "@/component
 // ── Types ──
 
 type MainTab = "all" | "flagged" | "removed";
-type SourceFilter = "all" | "guest" | "family" | "v1.0";
 
 interface AdminReview {
   id: string;
@@ -74,6 +73,7 @@ export default function AdminReviewsPage() {
   const [removedCount, setRemovedCount] = useState(0);
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [statsError, setStatsError] = useState(false);
+  const [search, setSearch] = useState("");
   const [dateRange, setDateRange] = useState<DateRangeValue>({
     preset: "all",
     customFrom: "",
@@ -136,15 +136,24 @@ export default function AdminReviewsPage() {
 
   return (
     <div>
-      {/* Header with date range */}
-      <div className="flex items-start justify-between mb-6">
+      {/* Header with search and date range */}
+      <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Reviews</h1>
           <p className="text-lg text-gray-600 mt-1">
             Manage reviews across all sources.
           </p>
         </div>
-        <DateRangePopover value={dateRange} onChange={setDateRange} />
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            placeholder="Search reviews..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-64 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+          <DateRangePopover value={dateRange} onChange={setDateRange} />
+        </div>
       </div>
 
       {/* Stats row */}
@@ -153,17 +162,11 @@ export default function AdminReviewsPage() {
           Failed to load stats. <button onClick={fetchStats} className="underline">Retry</button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <p className="text-sm text-gray-500">Total Reviews</p>
             <p className="text-2xl font-bold text-gray-900">
               {stats ? (stats.total_reviews + stats.olera_reviews).toLocaleString() : "-"}
-            </p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-sm text-gray-500">Guest Reviews</p>
-            <p className="text-2xl font-bold text-primary-600">
-              {stats ? stats.olera_reviews.toLocaleString() : "-"}
             </p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -219,6 +222,7 @@ export default function AdminReviewsPage() {
       {mainTab === "all" && (
         <AllReviewsTab
           dateRange={dateRange}
+          search={search}
           onStatsChange={onStatsChange}
           key={`all-${statsVersion}`}
         />
@@ -247,16 +251,15 @@ export default function AdminReviewsPage() {
 
 interface AllReviewsTabProps {
   dateRange: DateRangeValue;
+  search: string;
   onStatsChange: () => void;
 }
 
-function AllReviewsTab({ dateRange, onStatsChange }: AllReviewsTabProps) {
+function AllReviewsTab({ dateRange, search, onStatsChange }: AllReviewsTabProps) {
   const [reviews, setReviews] = useState<UnifiedReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   // Use composite key to avoid collision between sources
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -343,11 +346,6 @@ function AllReviewsTab({ dateRange, onStatsChange }: AllReviewsTabProps) {
     fetchReviews();
   }, [fetchReviews]);
 
-  // Filter reviews by source
-  const filteredReviews = sourceFilter === "all"
-    ? reviews
-    : reviews.filter((r) => r.source === sourceFilter);
-
   function handleRemoveClick(review: UnifiedReview) {
     setModalError(null);
     setPendingAction(review);
@@ -393,45 +391,8 @@ function AllReviewsTab({ dateRange, onStatsChange }: AllReviewsTabProps) {
   // Helper to create composite key for expand toggle
   const getReviewKey = (review: UnifiedReview) => `${review.source}-${review.id}`;
 
-  const sourceFilters: { label: string; value: SourceFilter }[] = [
-    { label: "All Sources", value: "all" },
-    { label: "Guest", value: "guest" },
-    { label: "Family", value: "family" },
-    { label: "v1.0", value: "v1.0" },
-  ];
-
   return (
     <div>
-      {/* Filters row */}
-      <div className="flex flex-wrap items-center gap-4 mb-6">
-        {/* Source filter */}
-        <div className="flex gap-2">
-          {sourceFilters.map((sf) => (
-            <button
-              key={sf.value}
-              onClick={() => setSourceFilter(sf.value)}
-              className={[
-                "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-                sourceFilter === sf.value
-                  ? "bg-primary-600 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-              ].join(" ")}
-            >
-              {sf.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search by reviewer or provider..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 max-w-md px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-      </div>
-
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
           {error}
@@ -448,11 +409,9 @@ function AllReviewsTab({ dateRange, onStatsChange }: AllReviewsTabProps) {
         <div className="flex items-center justify-center py-12">
           <div className="text-lg text-gray-500">Loading...</div>
         </div>
-      ) : filteredReviews.length === 0 ? (
+      ) : reviews.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-          <p className="text-gray-500">
-            {reviews.length === 0 ? "No reviews found." : "No reviews match the selected filter."}
-          </p>
+          <p className="text-gray-500">No reviews found.</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -470,7 +429,7 @@ function AllReviewsTab({ dateRange, onStatsChange }: AllReviewsTabProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredReviews.map((review) => {
+                {reviews.map((review) => {
                   const reviewKey = getReviewKey(review);
                   const isExpanded = expandedKey === reviewKey;
                   return (

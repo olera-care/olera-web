@@ -30,6 +30,7 @@ const navSections: NavSection[] = [
     items: [
       { label: "Activity Center", href: "/admin/activity" },
       { label: "Demand", href: "/admin/demand" },
+      { label: "Connections", href: "/admin/connections" },
       { label: "Leads", href: "/admin/leads" },
       { label: "Outreach", href: "/admin/outreach" },
       { label: "Questions", href: "/admin/questions" },
@@ -43,7 +44,6 @@ const navSections: NavSection[] = [
       { label: "Directory", href: "/admin/directory" },
       { label: "Care Seekers", href: "/admin/care-seekers" },
       { label: "Reviews", href: "/admin/reviews" },
-      { label: "Review Requests", href: "/admin/review-requests" },
       { label: "Emails", href: "/admin/emails" },
     ],
   },

@@ -192,7 +192,7 @@ export function useLeadCapture({
                 access_token: data.accessToken,
                 refresh_token: data.refreshToken,
               })
-              .then(({ data: sessionData, error: sessionError }) => {
+              .then(({ data: sessionData, error: sessionError }: { data: { session: { user?: { id?: string } | null } | null }; error: unknown }) => {
                 if (sessionError) {
                   console.error("[lead-capture] Session error:", sessionError);
                 } else {
@@ -202,7 +202,7 @@ export function useLeadCapture({
                   }
                 }
               })
-              .catch((err) => {
+              .catch((err: unknown) => {
                 console.error("[lead-capture] Session error:", err);
               })
               .finally(() => {

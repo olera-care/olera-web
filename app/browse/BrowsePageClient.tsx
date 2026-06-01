@@ -107,7 +107,7 @@ export default function BrowsePageClient({
           if (careTypeOption) {
             const profileCat = SUPABASE_CAT_TO_PROFILE_CATEGORY[careTypeOption.value];
             if (profileCat) {
-              bpQuery = bpQuery.eq("category", profileCat);
+              bpQuery = (bpQuery as any).eq("category", profileCat);
             }
           }
         }
@@ -118,19 +118,19 @@ export default function BrowsePageClient({
           if (cityStateMatch) {
             const city = cityStateMatch[1].trim();
             const state = cityStateMatch[2].toUpperCase();
-            bpQuery = bpQuery.ilike("city", `%${city}%`).eq("state", state);
+            bpQuery = (bpQuery as any).ilike("city", `%${city}%`).eq("state", state);
           } else if (/^[A-Z]{2}$/i.test(trimmed)) {
-            bpQuery = bpQuery.eq("state", trimmed.toUpperCase());
+            bpQuery = (bpQuery as any).eq("state", trimmed.toUpperCase());
           } else {
-            bpQuery = bpQuery.or(`city.ilike.%${trimmed}%,display_name.ilike.%${trimmed}%`);
+            bpQuery = (bpQuery as any).or(`city.ilike.%${trimmed}%,display_name.ilike.%${trimmed}%`);
           }
         }
 
         if (stateFilter) {
-          bpQuery = bpQuery.eq("state", stateFilter.toUpperCase());
+          bpQuery = (bpQuery as any).eq("state", stateFilter.toUpperCase());
         }
 
-        bpQuery = bpQuery.order("created_at", { ascending: false }).limit(50);
+        bpQuery = (bpQuery as any).order("created_at", { ascending: false }).limit(50);
 
         // Run both queries in parallel
         const [seededResult, bpResult] = await Promise.all([

@@ -232,7 +232,7 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
       .eq("outreach_id", row.id)
       .eq("status", "active");
     if (pinnedContactId) {
-      recipientQuery = recipientQuery.eq("id", pinnedContactId);
+      recipientQuery = (recipientQuery as any).eq("id", pinnedContactId);
     }
     const { data: contactRows } = await recipientQuery;
     recipients = ((contactRows ?? []) as Contact[])

@@ -123,8 +123,8 @@ export default function ProviderOnboardPage() {
           .select("*")
           .eq("provider_id", providerIdParam)
           .not("deleted", "is", true)
-          .single<Provider>();
-        if (data) foundProvider = data;
+          .single();
+        if (data) foundProvider = data as Provider;
       }
 
       // Strategy 2: Look up by slug in olera-providers
@@ -134,8 +134,8 @@ export default function ProviderOnboardPage() {
           .select("*")
           .eq("slug", slug)
           .not("deleted", "is", true)
-          .single<Provider>();
-        if (data) foundProvider = data;
+          .single();
+        if (data) foundProvider = data as Provider;
       }
 
       // Strategy 3: Look up by provider_id = slug in olera-providers (legacy)
@@ -145,8 +145,8 @@ export default function ProviderOnboardPage() {
           .select("*")
           .eq("provider_id", slug)
           .not("deleted", "is", true)
-          .single<Provider>();
-        if (data) foundProvider = data;
+          .single();
+        if (data) foundProvider = data as Provider;
       }
 
       // Strategy 4: Look up in business_profiles by slug (for native/claimed providers)
@@ -175,10 +175,10 @@ export default function ProviderOnboardPage() {
               .select("*")
               .eq("provider_id", bp.source_provider_id)
               .not("deleted", "is", true)
-              .single<Provider>();
+              .single();
             if (opData) {
               // Use the rich record but keep the BP slug (which is the URL slug)
-              foundProvider = { ...opData, slug: bp.slug };
+              foundProvider = { ...(opData as Provider), slug: bp.slug };
             }
           }
 
@@ -227,7 +227,7 @@ export default function ProviderOnboardPage() {
           .select("rating")
           .eq("provider_id", providerSlug);
         if (reviewRows && reviewRows.length > 0) {
-          const avg = reviewRows.reduce((sum, r) => sum + r.rating, 0) / reviewRows.length;
+          const avg = (reviewRows as Array<{ rating: number }>).reduce((sum, r) => sum + r.rating, 0) / reviewRows.length;
           foundProvider = {
             ...foundProvider,
             google_rating: Math.round(avg * 10) / 10,

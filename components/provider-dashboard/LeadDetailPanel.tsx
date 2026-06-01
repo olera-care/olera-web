@@ -78,7 +78,7 @@ export default function LeadDetailPanel({
             "id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at"
           )
           .eq("id", connectionId)
-          .single<Connection>();
+          .single() as { data: Connection | null };
 
         if (cancelled || !conn) return;
 

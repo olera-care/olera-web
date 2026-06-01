@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { buildSeries, resolveBucket, type Bucket } from "@/lib/admin-stats";
+import { providerResponded } from "@/lib/connection-temperature";
 
 /**
  * GET /api/admin/leads/stats — same shape as questions/stats.
@@ -81,7 +82,6 @@ export async function GET(request: NextRequest) {
     // - Provider must be active
     // - Provider must have no email (in business_profiles OR olera-providers)
     // - Provider must NOT have responded (goal already achieved if responded)
-    type ThreadMessage = { from_profile_id: string; is_auto_reply?: boolean };
     const isNeedsEmail = (r: (typeof allRows)[number]) => {
       // Supabase may return to_profile as array or single object depending on join
       const toProfile = r.to_profile as { email?: string | null; is_active?: boolean; source_provider_id?: string }[] | { email?: string | null; is_active?: boolean; source_provider_id?: string } | null;
@@ -89,12 +89,7 @@ export async function GET(request: NextRequest) {
       // Skip if no provider profile (deleted) or inactive
       if (!provider || provider.is_active === false) return false;
       // Skip if provider already responded (goal achieved)
-      const meta = (r.metadata as Record<string, unknown>) ?? {};
-      const thread = (meta.thread as ThreadMessage[]) || [];
-      const hasResponded = thread.some(
-        (m) => m.from_profile_id === r.to_profile_id && m.is_auto_reply !== true
-      );
-      if (hasResponded) return false;
+      if (providerResponded(r)) return false;
       // Check business_profiles.email first
       if (provider.email) return false;
       // Check olera-providers.email as fallback

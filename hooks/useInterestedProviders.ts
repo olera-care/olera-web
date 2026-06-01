@@ -95,18 +95,16 @@ export function useInterestedProviders(
 
           if (iosProviders?.length) {
             const iosMap = new Map(
-              iosProviders.map(
-                (p: {
-                  provider_id: string;
-                  provider_logo: string | null;
-                  provider_images: string | null;
-                  google_rating: number | null;
-                  provider_description: string | null;
-                  review_count: number | null;
-                  lower_price: number | null;
-                  upper_price: number | null;
-                }) => [p.provider_id, p]
-              )
+              (iosProviders as Array<{
+                provider_id: string;
+                provider_logo: string | null;
+                provider_images: string | null;
+                google_rating: number | null;
+                provider_description: string | null;
+                review_count: number | null;
+                lower_price: number | null;
+                upper_price: number | null;
+              }>).map((p) => [p.provider_id, p])
             );
             for (const [id, profile] of profileMap) {
               const iosKey = profileToIosKey.get(id);

@@ -190,7 +190,7 @@ export default function MedJobsApplyPage() {
   useEffect(() => {
     const supabase = createClient();
     supabase.from("medjobs_universities").select("id, name, city, state").eq("is_active", true).order("name")
-      .then(({ data }) => { if (data) setUniversityOptions(data); });
+      .then(({ data }: { data: { id: string; name: string; city: string; state: string }[] | null }) => { if (data) setUniversityOptions(data); });
   }, []);
 
   // Close city dropdown on click outside

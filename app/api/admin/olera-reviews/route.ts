@@ -39,6 +39,8 @@ export async function GET(req: NextRequest) {
   const flagged = searchParams.get("flagged") || "all"; // all, flagged, not_flagged
   const limit = parseInt(searchParams.get("limit") || "100", 10);
   const offset = parseInt(searchParams.get("offset") || "0", 10);
+  const fromDate = searchParams.get("from_date");
+  const toDate = searchParams.get("to_date");
 
   const db = getServiceClient();
 
@@ -55,6 +57,14 @@ export async function GET(req: NextRequest) {
       query = query.eq("flagged", true);
     } else if (flagged === "not_flagged") {
       query = query.eq("flagged", false);
+    }
+
+    // Filter by date range
+    if (fromDate) {
+      query = query.gte("created_at", fromDate);
+    }
+    if (toDate) {
+      query = query.lte("created_at", toDate);
     }
 
     // Search by reviewer name or provider slug

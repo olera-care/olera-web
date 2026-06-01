@@ -65,6 +65,34 @@ interface ProviderMetadata extends OrganizationMetadata {
   outreach_log?: OutreachLogEntry[];
 }
 
+interface InquiryDetail {
+  id: string;
+  from_name: string;
+  from_email: string | null;
+  message: string | null;
+  care_type: string | null;
+  timeline: string | null;
+  created_at: string;
+  provider_responded: boolean;
+  response_count: number;
+}
+
+interface QuestionDetail {
+  id: string;
+  question_text: string;
+  asker_name: string | null;
+  asker_email: string | null;
+  answer: string | null;
+  status: string;
+  created_at: string;
+  answered_at: string | null;
+}
+
+interface ProviderEngagement {
+  inquiries: InquiryDetail[];
+  questions: QuestionDetail[];
+}
+
 interface ClaimJourney {
   claim_source: "email" | "page" | "unknown";
   used_one_click: boolean;
@@ -74,6 +102,7 @@ interface ClaimJourney {
     questions_answered: number;
   };
   first_engagement_at: string | null;
+  all_engagement?: ProviderEngagement;
 }
 
 interface Provider {
@@ -1608,6 +1637,236 @@ function PreClaimEngagementSection({ journey }: { journey: ClaimJourney | null }
   );
 }
 
+// ── Truncatable Text Component ──
+
+function TruncatableText({ text, maxLength = 150 }: { text: string; maxLength?: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const needsTruncation = text.length > maxLength;
+
+  if (!needsTruncation) {
+    return <span>{text}</span>;
+  }
+
+  return (
+    <span>
+      {expanded ? text : `${text.slice(0, maxLength)}...`}
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="ml-1 text-primary-600 hover:text-primary-700 font-medium"
+      >
+        {expanded ? "Show less" : "Show more"}
+      </button>
+    </span>
+  );
+}
+
+// ── Leads & Questions Accordion Section ──
+
+function LeadsAndQuestionsSection({
+  engagement,
+  isVerified = false,
+}: {
+  engagement?: ProviderEngagement;
+  isVerified?: boolean;
+}) {
+  const [inquiriesExpanded, setInquiriesExpanded] = useState(false);
+  const [questionsExpanded, setQuestionsExpanded] = useState(false);
+
+  if (!engagement) return null;
+
+  const { inquiries, questions } = engagement;
+  const hasInquiries = inquiries.length > 0;
+  const hasQuestions = questions.length > 0;
+
+  if (!hasInquiries && !hasQuestions) return null;
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const formatTimeline = (timeline: string | null) => {
+    if (!timeline) return null;
+    const map: Record<string, string> = {
+      asap: "ASAP",
+      immediate: "Immediate",
+      within_month: "Within a month",
+      within_1_month: "Within a month",
+      few_months: "A few months",
+      within_3_months: "Within 3 months",
+      researching: "Just researching",
+      exploring: "Exploring options",
+    };
+    return map[timeline] || timeline;
+  };
+
+  // Get question status display info
+  // For unverified providers, answers are saved but not published
+  const getQuestionStatusInfo = (status: string, hasAnswer: boolean) => {
+    if (hasAnswer) {
+      if (status === "approved" || status === "answered") {
+        // Only show "Answered" if provider is verified (answer is actually published)
+        // Otherwise show "Answered (unpublished)"
+        return isVerified
+          ? { label: "Answered", color: "bg-gray-100 border-gray-200 text-gray-600" }
+          : { label: "Answered (unpublished)", color: "bg-gray-100 border-gray-200 text-gray-500" };
+      }
+      if (status === "rejected") {
+        return { label: "Answer rejected", color: "bg-gray-100 border-gray-200 text-gray-500" };
+      }
+      if (status === "flagged") {
+        return { label: "Answer flagged", color: "bg-gray-100 border-gray-200 text-gray-500" };
+      }
+      // Pending approval (status = "pending" or unknown)
+      return isVerified
+        ? { label: "Answered (pending approval)", color: "bg-gray-100 border-gray-200 text-gray-500" }
+        : { label: "Answered (unpublished)", color: "bg-gray-100 border-gray-200 text-gray-500" };
+    }
+    // No answer yet
+    return { label: "Awaiting answer", color: "bg-gray-100 border-gray-200 text-gray-500" };
+  };
+
+  return (
+    <div className="mb-6 pb-5 border-b border-gray-100">
+      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
+        Leads & Questions
+      </p>
+      <div className="space-y-2">
+        {/* Inquiries Accordion */}
+        {hasInquiries && (
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setInquiriesExpanded(!inquiriesExpanded)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">📩</span>
+                <span className="font-medium text-gray-900">Inquiries</span>
+                <span className="bg-gray-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                  {inquiries.length}
+                </span>
+              </div>
+              <svg
+                className={`w-5 h-5 text-gray-500 transition-transform ${inquiriesExpanded ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {inquiriesExpanded && (
+              <div className="divide-y divide-gray-100">
+                {inquiries.map((inquiry) => (
+                  <div key={inquiry.id} className="p-4 bg-white">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-medium text-gray-900">{inquiry.from_name}</p>
+                        {inquiry.from_email && (
+                          <p className="text-xs text-gray-500">{inquiry.from_email}</p>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-400">{formatDate(inquiry.created_at)}</span>
+                    </div>
+                    {(inquiry.care_type || inquiry.timeline) && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {inquiry.care_type && (
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                            {inquiry.care_type}
+                          </span>
+                        )}
+                        {inquiry.timeline && (
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                            {formatTimeline(inquiry.timeline)}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {inquiry.message && (
+                      <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3 mt-2">
+                        &ldquo;<TruncatableText text={inquiry.message} maxLength={150} />&rdquo;
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Questions Accordion */}
+        {hasQuestions && (
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setQuestionsExpanded(!questionsExpanded)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">❓</span>
+                <span className="font-medium text-gray-900">Questions</span>
+                <span className="bg-gray-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                  {questions.length}
+                </span>
+              </div>
+              <svg
+                className={`w-5 h-5 text-gray-500 transition-transform ${questionsExpanded ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {questionsExpanded && (
+              <div className="divide-y divide-gray-100">
+                {questions.map((question) => {
+                  const statusInfo = getQuestionStatusInfo(question.status, !!question.answer);
+                  return (
+                    <div key={question.id} className="p-4 bg-white">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {question.asker_name || "Anonymous"}
+                          </p>
+                          {question.asker_email && (
+                            <p className="text-xs text-gray-500">{question.asker_email}</p>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-400">{formatDate(question.created_at)}</span>
+                      </div>
+                      <div className="text-sm text-gray-900 font-medium mb-2">
+                        Q: <TruncatableText text={question.question_text} maxLength={150} />
+                      </div>
+                      {question.answer ? (
+                        <div className={`border rounded-lg p-3 ${statusInfo.color}`}>
+                          <p className="text-xs font-medium mb-1">{statusInfo.label}</p>
+                          <p className="text-sm text-gray-700">
+                            <TruncatableText text={question.answer} maxLength={200} />
+                          </p>
+                        </div>
+                      ) : (
+                        <p className={`text-xs px-2 py-1 rounded inline-block border ${statusInfo.color}`}>
+                          {statusInfo.label}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Outreach Log Section ──
 
 function OutreachLogSection({ outreachLog }: { outreachLog?: OutreachLogEntry[] }) {
@@ -1903,6 +2162,12 @@ function VerificationReviewModal({
 
       {/* Pre-Claim Engagement - Only show if there's engagement data */}
       <PreClaimEngagementSection journey={provider.claim_journey} />
+
+      {/* Leads & Questions - Show all inquiries and questions for this provider */}
+      <LeadsAndQuestionsSection
+        engagement={provider.claim_journey?.all_engagement}
+        isVerified={provider.verification_state === "verified" || provider.verification_state === "not_required"}
+      />
 
       {/* Outreach Log - Show for in_progress providers */}
       <OutreachLogSection outreachLog={provider.metadata?.outreach_log} />

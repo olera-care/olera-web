@@ -64,7 +64,7 @@ export async function countProspectGeneration(
     .from("student_outreach_campuses")
     .select("id, slug, viewed_at, research_complete, partner_prospect_unlocked_at")
     .eq("is_active", true);
-  if (options.campusId) campusQuery = campusQuery.eq("id", options.campusId);
+  if (options.campusId) campusQuery = (campusQuery as any).eq("id", options.campusId);
   const { data: campusData } = await campusQuery;
   const campuses = (campusData ?? []) as CampusLite[];
 

@@ -252,7 +252,7 @@ export async function POST(request: Request) {
 
     const { data: newProfile, error: insertErr } = await supabaseAdmin
       .from("business_profiles")
-      .insert(profileData)
+      .insert(profileData as Record<string, unknown>)
       .select("id")
       .single();
 

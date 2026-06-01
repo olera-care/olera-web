@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
       .order("provider_name", { ascending: true });
 
     if (category) {
-      providerQuery = providerQuery.eq("provider_category", category);
+      providerQuery = (providerQuery as any).eq("provider_category", category);
     }
 
     const { data: allProviders, error: providerError } = await providerQuery;

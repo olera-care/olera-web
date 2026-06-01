@@ -47,15 +47,15 @@ export async function POST(request: NextRequest) {
       .not("place_id", "is", null);
 
     if (requireRating) {
-      countQuery = countQuery.not("google_rating", "is", null).gt("google_rating", 0);
+      countQuery = (countQuery as any).not("google_rating", "is", null).gt("google_rating", 0);
     }
 
     if (!force) {
-      countQuery = countQuery.is("google_reviews_data", null);
+      countQuery = (countQuery as any).is("google_reviews_data", null);
     }
 
     if (categories) {
-      countQuery = countQuery.in("provider_category", categories);
+      countQuery = (countQuery as any).in("provider_category", categories);
     }
 
     const { count: totalEligible, error: countErr } = await countQuery;
@@ -87,15 +87,15 @@ export async function POST(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     if (requireRating) {
-      dataQuery = dataQuery.not("google_rating", "is", null).gt("google_rating", 0);
+      dataQuery = (dataQuery as any).not("google_rating", "is", null).gt("google_rating", 0);
     }
 
     if (!force) {
-      dataQuery = dataQuery.is("google_reviews_data", null);
+      dataQuery = (dataQuery as any).is("google_reviews_data", null);
     }
 
     if (categories) {
-      dataQuery = dataQuery.in("provider_category", categories);
+      dataQuery = (dataQuery as any).in("provider_category", categories);
     }
 
     const { data: providers, error: fetchErr } = await dataQuery;

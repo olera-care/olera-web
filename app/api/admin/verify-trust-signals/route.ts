@@ -75,7 +75,7 @@ async function handler(request: NextRequest) {
       .in("provider_category", categories);
 
     if (!force) {
-      countQuery = countQuery.is("ai_trust_signals", null);
+      countQuery = (countQuery as any).is("ai_trust_signals", null);
     }
 
     const { count: totalEligible, error: countErr } = await countQuery;
@@ -106,7 +106,7 @@ async function handler(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     if (!force) {
-      dataQuery = dataQuery.is("ai_trust_signals", null);
+      dataQuery = (dataQuery as any).is("ai_trust_signals", null);
     }
 
     const { data: providers, error: fetchErr } = await dataQuery;

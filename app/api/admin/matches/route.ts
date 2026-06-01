@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      recentQuery = recentQuery.or(
+      recentQuery = (recentQuery as any).or(
         `from_profile_id.in.(${ids.join(",")}),to_profile_id.in.(${ids.join(",")})`
       );
     }

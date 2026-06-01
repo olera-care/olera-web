@@ -207,15 +207,15 @@ export default function ProviderOnboardingModal({
         .not("deleted", "is", true);
 
       if (name) {
-        providerQuery = providerQuery.ilike("provider_name", `%${name}%`);
+        providerQuery = (providerQuery as any).ilike("provider_name", `%${name}%`);
       }
       if (loc) {
         const parts = loc.split(",").map((s) => s.trim());
         if (parts.length >= 2 && parts[1].length <= 3) {
-          providerQuery = providerQuery.ilike("city", `%${parts[0]}%`);
-          providerQuery = providerQuery.ilike("state", `%${parts[1]}%`);
+          providerQuery = (providerQuery as any).ilike("city", `%${parts[0]}%`);
+          providerQuery = (providerQuery as any).ilike("state", `%${parts[1]}%`);
         } else {
-          providerQuery = providerQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+          providerQuery = (providerQuery as any).or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
         }
       }
 
@@ -248,8 +248,9 @@ export default function ProviderOnboardingModal({
             .select("id, user_id")
             .in("id", accountIds);
 
-          const accountUserMap = new Map((accounts || []).map((a: { id: string; user_id: string }) => [a.id, a.user_id]));
-          const userIds = (accounts || []).map((a: { user_id: string }) => a.user_id).filter(Boolean);
+          const accountRows = (accounts || []) as Array<{ id: string; user_id: string }>;
+          const accountUserMap = new Map(accountRows.map((a) => [a.id, a.user_id]));
+          const userIds = accountRows.map((a) => a.user_id).filter(Boolean);
 
           // Get emails from users
           const { data: users } = await supabase
@@ -257,7 +258,7 @@ export default function ProviderOnboardingModal({
             .select("id, email")
             .in("id", userIds);
 
-          const userEmailMap = new Map((users || []).map((u: { id: string; email: string }) => [u.id, u.email]));
+          const userEmailMap = new Map(((users || []) as Array<{ id: string; email: string }>).map((u) => [u.id, u.email]));
 
           for (const claim of claimedData) {
             if (claim.source_provider_id) {
@@ -297,15 +298,15 @@ export default function ProviderOnboardingModal({
         .eq("is_active", true); // Only active profiles
 
       if (name) {
-        profileQuery = profileQuery.ilike("display_name", `%${name}%`);
+        profileQuery = (profileQuery as any).ilike("display_name", `%${name}%`);
       }
       if (loc) {
         const parts = loc.split(",").map((s) => s.trim());
         if (parts.length >= 2 && parts[1].length <= 3) {
-          profileQuery = profileQuery.ilike("city", `%${parts[0]}%`);
-          profileQuery = profileQuery.ilike("state", `%${parts[1]}%`);
+          profileQuery = (profileQuery as any).ilike("city", `%${parts[0]}%`);
+          profileQuery = (profileQuery as any).ilike("state", `%${parts[1]}%`);
         } else {
-          profileQuery = profileQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+          profileQuery = (profileQuery as any).or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
         }
       }
 
@@ -321,8 +322,9 @@ export default function ProviderOnboardingModal({
           .select("id, user_id")
           .in("id", accountIds);
 
-        const accountUserMap = new Map((accounts || []).map((a: { id: string; user_id: string }) => [a.id, a.user_id]));
-        const userIds = (accounts || []).map((a: { user_id: string }) => a.user_id).filter(Boolean);
+        const accountRows = (accounts || []) as Array<{ id: string; user_id: string }>;
+        const accountUserMap = new Map(accountRows.map((a) => [a.id, a.user_id]));
+        const userIds = accountRows.map((a) => a.user_id).filter(Boolean);
 
         // Get emails from users
         const { data: users } = await supabase
@@ -330,7 +332,7 @@ export default function ProviderOnboardingModal({
           .select("id, email")
           .in("id", userIds);
 
-        const userEmailMap = new Map((users || []).map((u: { id: string; email: string }) => [u.id, u.email]));
+        const userEmailMap = new Map(((users || []) as Array<{ id: string; email: string }>).map((u) => [u.id, u.email]));
 
         // Collect provider IDs already in results to avoid duplicates
         const existingProviderIds = new Set(

@@ -16,6 +16,8 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get("search") || "";
   const limit = parseInt(searchParams.get("limit") || "100", 10);
   const offset = parseInt(searchParams.get("offset") || "0", 10);
+  const fromDate = searchParams.get("from_date");
+  const toDate = searchParams.get("to_date");
 
   const db = getServiceClient();
 
@@ -28,6 +30,14 @@ export async function GET(req: NextRequest) {
   // Filter by status
   if (status !== "all") {
     query = query.eq("status", status);
+  }
+
+  // Filter by date range
+  if (fromDate) {
+    query = query.gte("created_at", fromDate);
+  }
+  if (toDate) {
+    query = query.lte("created_at", toDate);
   }
 
   // Search by reviewer name or provider_id (slug)

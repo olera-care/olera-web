@@ -35,7 +35,7 @@ export function useUnreadConnectionsCount(profileId: string | undefined): number
         // localStorage may be unavailable
       }
 
-      setCount(data.filter((c) => !readIds.has(c.id)).length);
+      setCount((data as Array<{ id: string }>).filter((c) => !readIds.has(c.id)).length);
     })();
   }, [profileId]);
 

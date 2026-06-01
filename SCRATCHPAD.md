@@ -39,6 +39,23 @@
 6. **3 sibling deliverability tasks** on Web App board (P2/P3): activate provider-notify domain split (#860, `PROVIDER_NOTIFY_FROM` unset in prod), fix complaint-rate instrumentation (reads 0.00%), move provider cold off Loops. + confirm staffing-outreach retired (P4).
 - Refs: memory `project_smartlead_bridge`; Logan one-pager (Notion, updated); spec `docs/medjobs/SMARTLEAD_BRIDGE_SPEC.md`.
 
+
+---
+
+### 2026-06-01 (Mon) — Connections tracker planned (gating-thread sub-task 4)
+
+**Context:** `/explore` → restructured the P1 "Connect the two sides" gating-thread card into 5 sub-tasks (Notion `3725903a-0ffe-81f1-8a54-d32371a60243`); folded + retired the P2 "Connection ledger" card. Audited lead delivery, the connection state machine, re-engagement crons, and email infra. Corrected two card errors: auto-send already works when a provider has an email (hard stop is only the emailless tail), and the "30-day post-connection email" doesn't exist (`accepted_at` is set but never read; true re-engage trigger = provider's first non-auto thread reply).
+
+**Planned (not started):** Connections tracker — hero "successful connections" KPI + prioritized intervention queue at `/admin/connections`. Plan: [`plans/connections-tracker-plan.md`](plans/connections-tracker-plan.md). Establishes the canonical "successful connection" definition (provider-responded OR accepted, server-confirmed) + a centralized temperature module (whose-turn + staleness). Design locked: Perena/Wispr — warm, big serif KPI, calm fading dot, NO heatmap.
+
+**Built this session (Phases 1–3, MVP complete):**
+- `lib/connection-temperature.ts` — canonical predicates (`providerResponded`, `isSuccessfulConnection` = replied OR accepted, TJ-approved) + `getConnectionTemperature` (whose-turn + staleness; awaiting_provider/awaiting_family/live/going_cold/closed; `GOING_COLD_MS`=3d) + `TEMPERATURE_CONFIG`/`dotOpacityForStaleness`/`formatAge`/`INTERVENTION_PRIORITY`. Unit-tested 6/6 via node type-strip.
+- Refactored 3 clean dup sites to `providerResponded()` (`leads/route` ×2, `leads/stats`); left analytics `.find` sites + `lead-response-nudge` (name collision) on purpose.
+- `GET /api/admin/connections/pulse` (KPI `{total,delta,series,bucket}`) + `GET /api/admin/connections` (temperature-sorted queue + per-state counts + engagement + truncation flag). **Verified vs 305 real conns: 6 successful, 218 going_cold, 31 awaiting_provider.**
+- UI: `app/admin/connections/page.tsx` + `components/admin/ConnectionRow.tsx` + sidebar link (Inbox › Connections). Serif hero, fading dots, tabs, search.
+
+**Resume next session here →** (1) **No local build** (worktree has no node_modules) — needs a staging CI build / `/run` on a built checkout for typecheck + visual pass; I caught+fixed a DateRangePopover default-import bug by hand but more may surface. (2) Eyeball against the Perena/Wispr mock (serif hero, calm fading dot, no heatmap). (3) Then commit + PR to staging. (4) Follow-ons: row click-through to a connection detail (none exists yet), email-quality badge (sub-task 1), provider lead-outcome follow-up. Plan: `plans/connections-tracker-plan.md`. Memory: `project_careseeker_leads_reframe`.
+
 ---
 
 ### 2026-05-22 (Fri) — Comfort Keepers (College Station) engagement kickoff (no code)

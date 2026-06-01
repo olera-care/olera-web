@@ -699,7 +699,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
           supabase.auth.setSession({
             access_token: data.accessToken,
             refresh_token: data.refreshToken,
-          }).then(({ data: sessionData, error: sessionError }) => {
+          }).then(({ data: sessionData, error: sessionError }: { data: { session: { user?: { id?: string } | null } | null }; error: unknown }) => {
             if (sessionError) {
               console.error("[guest-connection] Background session error:", sessionError);
             } else {
@@ -708,7 +708,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
                 refreshAccountData(userId).catch(() => {});
               }
             }
-          }).catch(err => {
+          }).catch((err: unknown) => {
             console.error("[guest-connection] Background session error:", err);
           });
         }

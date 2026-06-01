@@ -206,7 +206,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
         if (careType && careType !== "all") {
           const profileCat = CARE_TYPE_SLUG_TO_PROFILE_CATEGORY[careType];
           if (profileCat) {
-            bpQuery = bpQuery.eq("category", profileCat);
+            bpQuery = (bpQuery as any).eq("category", profileCat);
           }
         }
 
@@ -218,18 +218,18 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
             const state = cityStateMatch[2].toUpperCase();
             const aliases = expandCityAliases(city);
             if (aliases.length === 1) {
-              bpQuery = bpQuery.ilike("city", `%${aliases[0]}%`).eq("state", state);
+              bpQuery = (bpQuery as any).ilike("city", `%${aliases[0]}%`).eq("state", state);
             } else {
-              bpQuery = bpQuery.in("city", aliases).eq("state", state);
+              bpQuery = (bpQuery as any).in("city", aliases).eq("state", state);
             }
           } else if (/^[A-Z]{2}$/i.test(trimmed)) {
-            bpQuery = bpQuery.eq("state", trimmed.toUpperCase());
+            bpQuery = (bpQuery as any).eq("state", trimmed.toUpperCase());
           } else {
-            bpQuery = bpQuery.or(`city.ilike.%${trimmed}%,display_name.ilike.%${trimmed}%`);
+            bpQuery = (bpQuery as any).or(`city.ilike.%${trimmed}%,display_name.ilike.%${trimmed}%`);
           }
         }
 
-        bpQuery = bpQuery.order("created_at", { ascending: false }).limit(50);
+        bpQuery = (bpQuery as any).order("created_at", { ascending: false }).limit(50);
 
         // Run both queries in parallel
         const [seededResult, bpResult] = await Promise.all([

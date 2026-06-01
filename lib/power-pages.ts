@@ -264,15 +264,15 @@ export async function fetchPowerPageData(opts: {
     : null;
 
   if (bpQuery) {
-    if (stateAbbrev) bpQuery = bpQuery.eq("state", stateAbbrev);
+    if (stateAbbrev) bpQuery = (bpQuery as any).eq("state", stateAbbrev);
     if (cityNames) {
       if (cityNames.length === 1) {
-        bpQuery = bpQuery.ilike("city", cityNames[0]);
+        bpQuery = (bpQuery as any).ilike("city", cityNames[0]);
       } else {
-        bpQuery = bpQuery.in("city", cityNames);
+        bpQuery = (bpQuery as any).in("city", cityNames);
       }
     }
-    bpQuery = bpQuery.order("created_at", { ascending: false }).limit(limit);
+    bpQuery = (bpQuery as any).order("created_at", { ascending: false }).limit(limit);
   }
 
   // Run both queries in parallel

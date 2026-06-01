@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
       .eq("email_type", "review_request");
 
     if (dateFilter) {
-      emailQuery = emailQuery.gte("created_at", dateFilter);
+      emailQuery = (emailQuery as any).gte("created_at", dateFilter);
     }
 
     const { data: emailLogs, error: emailError } = await emailQuery;
@@ -155,7 +155,7 @@ export async function GET(req: NextRequest) {
       .in("id", providerIds);
 
     if (search) {
-      profileQuery = profileQuery.or(
+      profileQuery = (profileQuery as any).or(
         `display_name.ilike.%${search}%,slug.ilike.%${search}%`
       );
     }

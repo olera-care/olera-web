@@ -222,7 +222,17 @@ function OutreachPageContent() {
 
         // Find connections where family profile wasn't returned (inactive/deleted profiles)
         // RLS blocks profiles with is_active = false, so we need to fetch them via API
-        const connectionsWithMissingProfiles = (connections || []).filter((conn) => !conn.to_profile);
+        type OutreachConnectionRow = {
+          id: string;
+          to_profile_id: string;
+          message: string | null;
+          created_at: string;
+          status: string;
+          metadata: unknown;
+          to_profile: unknown;
+        };
+        const connectionRows = (connections || []) as OutreachConnectionRow[];
+        const connectionsWithMissingProfiles = connectionRows.filter((conn) => !conn.to_profile);
         const missingProfileIds = connectionsWithMissingProfiles.map((conn) => conn.to_profile_id);
 
         // Fetch inactive profiles via server API (bypasses RLS)
@@ -246,7 +256,7 @@ function OutreachPageContent() {
         }
 
         // Transform to OutreachItem format - include all connections
-        const items = (connections || [])
+        const items = connectionRows
           .map((conn): OutreachItem | null => {
             // Try to get profile from join, or fallback to inactive map
             let family: Profile | null = conn.to_profile as unknown as Profile | null;

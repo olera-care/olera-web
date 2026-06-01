@@ -128,14 +128,14 @@ export async function GET(request: NextRequest) {
         .in("type", ["organization", "caregiver"])
         .is("source_provider_id", null);
 
-      if (tab === "no_city") bpQuery = bpQuery.is("city", null);
-      bpQuery = bpQuery.ilike("display_name", `%${search}%`);
+      if (tab === "no_city") bpQuery = (bpQuery as any).is("city", null);
+      bpQuery = (bpQuery as any).ilike("display_name", `%${search}%`);
       if (category) {
         const bpCategory = OP_TO_BP_CATEGORY[category];
-        bpQuery = bpQuery.eq("category", bpCategory ?? "__no_match__");
+        bpQuery = (bpQuery as any).eq("category", bpCategory ?? "__no_match__");
       }
-      if (stateFilter) bpQuery = bpQuery.eq("state", stateFilter);
-      bpQuery = bpQuery.order("display_name", { ascending: true });
+      if (stateFilter) bpQuery = (bpQuery as any).eq("state", stateFilter);
+      bpQuery = (bpQuery as any).order("display_name", { ascending: true });
 
       const { data: bpData, error: bpError } = await bpQuery;
       if (bpError) {

@@ -55,10 +55,10 @@ export async function GET(request: NextRequest) {
           .neq("status", "rejected");
         if (searchSlugs) {
           if (searchSlugs.length === 0) return NextResponse.json({ count: 0 });
-          countQuery = countQuery.in("provider_id", searchSlugs);
+          countQuery = (countQuery as any).in("provider_id", searchSlugs);
         }
-        if (dateFrom) countQuery = countQuery.gte("created_at", dateFrom);
-        if (dateTo) countQuery = countQuery.lt("created_at", dateTo);
+        if (dateFrom) countQuery = (countQuery as any).gte("created_at", dateFrom);
+        if (dateTo) countQuery = (countQuery as any).lt("created_at", dateTo);
 
         const { data: questionsForCount, error: countFetchError } = await countQuery;
         if (countFetchError) {
@@ -109,14 +109,14 @@ export async function GET(request: NextRequest) {
 
       // Standard count query for non-needs_email filters
       let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true });
-      if (status) countQuery = countQuery.eq("status", status);
-      if (providerId) countQuery = countQuery.eq("provider_id", providerId);
+      if (status) countQuery = (countQuery as any).eq("status", status);
+      if (providerId) countQuery = (countQuery as any).eq("provider_id", providerId);
       if (searchSlugs) {
         if (searchSlugs.length === 0) return NextResponse.json({ count: 0 });
-        countQuery = countQuery.in("provider_id", searchSlugs);
+        countQuery = (countQuery as any).in("provider_id", searchSlugs);
       }
-      if (dateFrom) countQuery = countQuery.gte("created_at", dateFrom);
-      if (dateTo) countQuery = countQuery.lt("created_at", dateTo);
+      if (dateFrom) countQuery = (countQuery as any).gte("created_at", dateFrom);
+      if (dateTo) countQuery = (countQuery as any).lt("created_at", dateTo);
       const { count, error } = await countQuery;
       if (error) {
         console.error("Admin questions count error:", error);
@@ -139,10 +139,10 @@ export async function GET(request: NextRequest) {
 
       if (searchSlugs) {
         if (searchSlugs.length === 0) return NextResponse.json({ questions: [], count: 0 });
-        needsEmailQuery = needsEmailQuery.in("provider_id", searchSlugs);
+        needsEmailQuery = (needsEmailQuery as any).in("provider_id", searchSlugs);
       }
-      if (dateFrom) needsEmailQuery = needsEmailQuery.gte("created_at", dateFrom);
-      if (dateTo) needsEmailQuery = needsEmailQuery.lt("created_at", dateTo);
+      if (dateFrom) needsEmailQuery = (needsEmailQuery as any).gte("created_at", dateFrom);
+      if (dateTo) needsEmailQuery = (needsEmailQuery as any).lt("created_at", dateTo);
 
       const { data: allNeedsEmailQuestions, error: needsEmailError } = await needsEmailQuery;
       if (needsEmailError) {

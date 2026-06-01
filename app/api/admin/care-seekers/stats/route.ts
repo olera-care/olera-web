@@ -179,14 +179,14 @@ export async function GET(request: NextRequest) {
 
     // Apply date filters if provided
     if (fromDate) {
-      totalQuery = totalQuery.gte("created_at", fromDate);
-      publishedQuery = publishedQuery.gte("created_at", fromDate);
-      thisWeekQuery = thisWeekQuery.gte("created_at", fromDate);
+      totalQuery = (totalQuery as any).gte("created_at", fromDate);
+      publishedQuery = (publishedQuery as any).gte("created_at", fromDate);
+      thisWeekQuery = (thisWeekQuery as any).gte("created_at", fromDate);
     }
     if (toDate) {
-      totalQuery = totalQuery.lte("created_at", toDate);
-      publishedQuery = publishedQuery.lte("created_at", toDate);
-      thisWeekQuery = thisWeekQuery.lte("created_at", toDate);
+      totalQuery = (totalQuery as any).lte("created_at", toDate);
+      publishedQuery = (publishedQuery as any).lte("created_at", toDate);
+      thisWeekQuery = (thisWeekQuery as any).lte("created_at", toDate);
     }
 
     // Run count queries and paginated fetch in parallel

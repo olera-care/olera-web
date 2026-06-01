@@ -350,10 +350,16 @@ export function buildEmailSequence(
   cadenceKey: CadenceKey = "provider",
   opts: SequenceOptions = {},
 ): SmartleadSequenceStep[] {
+  // For provider templates, stakeholder_type is inert (provider templates
+  // branch on `variant`, not stakeholder_type). For stakeholder templates,
+  // the type drives greeting formality — "Dear Dr. <Last>," for dept_head
+  // and professor, "Hi <First>," for student_org and advisor. We pass the
+  // actual cadence-derived type so each stakeholder cadence gets the right
+  // greeting baked into the body before the per-lead {{salutation}}
+  // substitution takes over.
+  const ctxStakeholderType = cadenceKey === "provider" ? "student_org" : cadenceKey;
   const ctx = {
-    // Provider template functions branch on `variant`, not `stakeholder_type`;
-    // the value is inert for provider_* keys (see templates.ts).
-    stakeholder_type: "student_org" as const,
+    stakeholder_type: ctxStakeholderType,
     organization_name: MERGE_COMPANY,
     campus_name: MERGE_CAMPUS,
     admin_first_name: opts.adminFirstName ?? "Graize",
@@ -409,6 +415,14 @@ export function buildEmailSequence(
  * here) personalize per-lead.
  */
 function finalizeTokens(text: string, adminFirstName: string): string {
+  // Stakeholder templates emit "Hi {salutation}," (informal cadences) or
+  // "Dear {salutation}," (formal cadences); provider templates emit a
+  // literal "Hello,". The per-lead {{salutation}} custom field carries
+  // the COMPLETE greeting form ("Hi Logan" / "Dear Dr. Jones" / "Hello").
+  // Strip the body-baked "Hi "/"Dear " prefix before {salutation} so the
+  // merge tag substitutes the whole greeting once, not twice. Order
+  // matters: do the prefix-strip BEFORE replacing {salutation} with
+  // {{salutation}}.
   return text
     .replace(/\{organization_name\}/g, MERGE_COMPANY)
     .replace(/\{campus_name\}/g, MERGE_CAMPUS)
@@ -416,11 +430,13 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     .replace(/\{calendly_url\}/g, CALENDLY_URL)
     .replace(/\{program_url\}/g, PROGRAM_URL)
     .replace(/\{first_name\}/g, "{{first_name}}")
+    .replace(/(^|\n)(Hi|Dear) \{salutation\}/g, `$1{salutation}`)
     .replace(/\{salutation\}/g, MERGE_SALUTATION)
-    // The general-variant body opens with a literal "Hello,". Rewriting
-    // it to the salutation merge tag means the named lead's "Hi <first>,"
-    // shows in the greeting line; the rest of the body stays neutral
-    // (no name-baked references) so it reads naturally either way.
+    // The provider general-variant body opens with a literal "Hello,". Rewrite
+    // it to the salutation merge tag so the per-lead value drives the
+    // greeting; the rest of the body stays neutral (no name-baked references)
+    // so it reads naturally for both General Contact (Hello,) and Named
+    // (Hi <First>, / Dear Dr. <Last>,) recipients.
     .replace(/(^|\n)Hello,/g, `$1${MERGE_SALUTATION},`);
 }
 

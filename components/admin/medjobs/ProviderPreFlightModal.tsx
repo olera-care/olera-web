@@ -50,10 +50,8 @@ import {
   type CadenceKey,
 } from "@/lib/student-outreach/cadence";
 import {
-  defaultSnapshotsByVariant,
   defaultCallScriptsFor,
   defaultCallTipsForDay,
-  type EmailSnapshot,
   type RecipientPlan,
   type CallScript,
 } from "@/lib/student-outreach/sequencer";
@@ -97,7 +95,6 @@ interface Props {
   onCancel: () => void;
   onSubmit: (payload: {
     recipients: RecipientPlan[];
-    email_snapshots_by_variant: { general: EmailSnapshot[]; named: EmailSnapshot[] };
     call_scripts: CallScript[];
   }) => Promise<void>;
 }
@@ -138,27 +135,6 @@ function substituteStaticVars(
   },
 ): string {
   return text
-    .replace(/\{organization_name\}/g, vars.organization_name)
-    .replace(/\{campus_name\}/g, vars.campus_name)
-    .replace(/\{admin_first_name\}/g, vars.admin_first_name);
-}
-
-/**
- * v9: full preview substitution including a sample {first_name}.
- * Used by VariantEditor's preview pane so admin can screen what
- * the recipient will actually see.
- */
-function substitutePreviewVars(
-  text: string,
-  vars: {
-    first_name: string;
-    organization_name: string;
-    campus_name: string;
-    admin_first_name: string;
-  },
-): string {
-  return text
-    .replace(/\{first_name\}/g, vars.first_name)
     .replace(/\{organization_name\}/g, vars.organization_name)
     .replace(/\{campus_name\}/g, vars.campus_name)
     .replace(/\{admin_first_name\}/g, vars.admin_first_name);
@@ -264,25 +240,6 @@ export function ProviderPreFlightModal({
     () => new Set(recipientRows.map(recipientKeyOf)),
   );
 
-  // Snapshots seeded from defaults. Provider templates branch per
-  // variant; for non-provider cadences this still produces the same
-  // body for both general + named (templates ignore variant). MVP
-  // assumes this modal is provider-only — caller wires it via
-  // NextStepCard for kind='provider' rows.
-  const defaults = useMemo(
-    () =>
-      defaultSnapshotsByVariant(PROVIDER_CADENCE_KEY, {
-        organization_name: organizationName,
-        campus_name: campusName,
-        contacts,
-      }),
-    [organizationName, campusName, contacts],
-  );
-
-  const [generalSnaps, setGeneralSnaps] = useState<EmailSnapshot[]>(
-    defaults.general,
-  );
-  const [namedSnaps, setNamedSnaps] = useState<EmailSnapshot[]>(defaults.named);
   // v9: substitute static vars at seed time so admin sees the script
   // with org/campus/admin filled in. {recipient_name} stays as a
   // placeholder — planSequence substitutes per-task at queue time
@@ -344,16 +301,6 @@ export function ProviderPreFlightModal({
     });
   };
 
-  const updateGeneral = (day: number, patch: Partial<EmailSnapshot>) => {
-    setGeneralSnaps((cur) =>
-      cur.map((s) => (s.day === day ? { ...s, ...patch } : s)),
-    );
-  };
-  const updateNamed = (day: number, patch: Partial<EmailSnapshot>) => {
-    setNamedSnaps((cur) =>
-      cur.map((s) => (s.day === day ? { ...s, ...patch } : s)),
-    );
-  };
   const updateScript = (day: number, script: string) => {
     setCallScripts((cur) =>
       cur.map((s) => (s.day === day ? { ...s, script } : s)),
@@ -365,23 +312,6 @@ export function ProviderPreFlightModal({
     if (queuedEmails === 0 && queuedCalls === 0) {
       setErr("Select at least one recipient with email or phone to launch.");
       return;
-    }
-    // Validate snapshot copy is non-empty for the variants in use.
-    if (generalRows.length > 0 && emailDayCount > 0) {
-      for (const s of generalSnaps) {
-        if (!s.subject?.trim() || !s.body?.trim()) {
-          setErr(`Day ${s.day} general subject + body required`);
-          return;
-        }
-      }
-    }
-    if (namedRows.length > 0 && emailDayCount > 0) {
-      for (const s of namedSnaps) {
-        if (!s.subject?.trim() || !s.body?.trim()) {
-          setErr(`Day ${s.day} named subject + body required`);
-          return;
-        }
-      }
     }
 
     const plans: RecipientPlan[] = includedRows.map((r) => ({
@@ -403,10 +333,6 @@ export function ProviderPreFlightModal({
     try {
       await onSubmit({
         recipients: plans,
-        email_snapshots_by_variant: {
-          general: generalSnaps,
-          named: namedSnaps,
-        },
         call_scripts: callScripts,
       });
     } catch (e) {
@@ -593,11 +519,9 @@ export function ProviderPreFlightModal({
             </footer>
           </section>
 
-          {/* Per-day editors */}
+          {/* Per-day editors — emails rendered above; only call scripts editable here. */}
           {cadenceDays.map((d) => {
             const isOpen = openDay === d.day;
-            const general = generalSnaps.find((s) => s.day === d.day);
-            const named = namedSnaps.find((s) => s.day === d.day);
             const script = callScripts.find((s) => s.day === d.day);
             const hasEmailStep = d.steps.some((s) => s.channel === "email");
             const hasPhoneStep = d.steps.some((s) => s.channel === "phone");
@@ -628,39 +552,11 @@ export function ProviderPreFlightModal({
                 </button>
                 {isOpen && (
                   <div className="space-y-3 border-t border-gray-100 px-3 pb-3 pt-2">
-                    {hasEmailStep && generalRows.length > 0 && general && (
-                      <VariantEditor
-                        label={`General variant · ${generalRows.length} recipient${generalRows.length === 1 ? "" : "s"}`}
-                        tone="blue"
-                        snapshot={general}
-                        onChange={(p) => updateGeneral(d.day, p)}
-                        previewVars={{
-                          first_name:
-                            namedRows[0]?.first_name ||
-                            namedRows[0]?.name?.split(/\s+/)[0] ||
-                            "there",
-                          organization_name: organizationName,
-                          campus_name: campusName,
-                          admin_first_name: "Graize",
-                        }}
-                      />
-                    )}
-                    {hasEmailStep && namedRows.length > 0 && named && (
-                      <VariantEditor
-                        label={`Named variant · ${namedRows.length} recipient${namedRows.length === 1 ? "" : "s"}`}
-                        tone="emerald"
-                        snapshot={named}
-                        onChange={(p) => updateNamed(d.day, p)}
-                        previewVars={{
-                          first_name:
-                            namedRows[0]?.first_name ||
-                            namedRows[0]?.name?.split(/\s+/)[0] ||
-                            "there",
-                          organization_name: organizationName,
-                          campus_name: campusName,
-                          admin_first_name: "Graize",
-                        }}
-                      />
+                    {hasEmailStep && (
+                      <p className="rounded-md bg-gray-50 px-2.5 py-1.5 text-[11px] text-gray-600">
+                        Email rendered by Smartlead — see the preview above for
+                        the actual subject + body that will ship per recipient.
+                      </p>
                     )}
                     {hasPhoneStep && callRows.length > 0 && script && (
                       <CallScriptEditor
@@ -669,11 +565,6 @@ export function ProviderPreFlightModal({
                         onChange={(s) => updateScript(d.day, s)}
                         tips={defaultCallTipsForDay("provider", d.day)}
                       />
-                    )}
-                    {hasEmailStep && generalRows.length === 0 && namedRows.length === 0 && (
-                      <p className="text-xs italic text-gray-400">
-                        No email recipients selected for this day.
-                      </p>
                     )}
                     {hasPhoneStep && callRows.length === 0 && (
                       <p className="text-xs italic text-gray-400">
@@ -718,85 +609,6 @@ export function ProviderPreFlightModal({
 
 // ── Editors ─────────────────────────────────────────────────────────────
 
-function VariantEditor({
-  label,
-  tone,
-  snapshot,
-  onChange,
-  previewVars,
-}: {
-  label: string;
-  tone: "blue" | "emerald";
-  snapshot: EmailSnapshot;
-  onChange: (patch: Partial<EmailSnapshot>) => void;
-  /** v9: vars used by the preview pane so admin can screen the
-   *  rendered output (substitutions filled in) before launch. */
-  previewVars: {
-    first_name: string;
-    organization_name: string;
-    campus_name: string;
-    admin_first_name: string;
-  };
-}) {
-  const [showPreview, setShowPreview] = useState(false);
-  const borderClass = tone === "blue" ? "border-blue-200" : "border-primary-200";
-  const tagBg = tone === "blue" ? "bg-blue-50 text-blue-800" : "bg-primary-50 text-primary-800";
-  const previewSubject = substitutePreviewVars(snapshot.subject, previewVars);
-  const previewBody = substitutePreviewVars(snapshot.body, previewVars);
-  return (
-    <div className={`rounded-md border ${borderClass} bg-white`}>
-      <header className={`px-3 py-1.5 ${tagBg} text-[11px] font-semibold uppercase tracking-wide`}>
-        {label}
-      </header>
-      <div className="space-y-2 px-3 py-2">
-        <Input
-          label="Subject"
-          value={snapshot.subject}
-          onChange={(e) => onChange({ subject: e.target.value })}
-          size="sm"
-        />
-        <div>
-          <div className="mb-1.5 flex items-center justify-between text-[13px] font-semibold text-gray-700">
-            <span>Body</span>
-            <span className="text-[11px] font-normal text-gray-500">
-              Variables: <code>{"{first_name}"}</code>{" "}
-              <code>{"{organization_name}"}</code>{" "}
-              <code>{"{campus_name}"}</code>
-            </span>
-          </div>
-          <Input
-            as="textarea"
-            value={snapshot.body}
-            onChange={(e) => onChange({ body: e.target.value })}
-            rows={8}
-            size="sm"
-            className="font-mono"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowPreview((s) => !s)}
-          className="text-[11px] font-medium text-primary-700 hover:underline"
-        >
-          {showPreview ? "Hide preview" : "Preview substitution"}
-        </button>
-        {showPreview && (
-          <div className="space-y-1 rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-xs">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-              Preview (sample first_name: {previewVars.first_name})
-            </p>
-            <p className="font-medium text-gray-700">Subject:</p>
-            <p className="text-gray-800">{previewSubject}</p>
-            <p className="mt-2 font-medium text-gray-700">Body:</p>
-            <pre className="whitespace-pre-wrap text-gray-800 font-sans">
-              {previewBody}
-            </pre>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 /**
  * v9.1 Graize 05.13 audit (Item 8): tips render as a read-only
@@ -864,27 +676,65 @@ function CallScriptEditor({
  * transition. A small note clarifies that in Smartlead mode the variant
  * editors are reference-only.
  */
+/**
+ * Substitute Smartlead `{{...}}` merge tags client-side so admin sees the
+ * exact rendering for ANY recipient (not just the server-sampled default).
+ * Mirrors what Smartlead does per-lead at send time:
+ *
+ *   {{salutation}}    → recipient.salutation     ("Hello" / "Hi Susan" / "Dear Dr. Jones")
+ *   {{first_name}}    → recipient first_name     (empty for General Contact)
+ *   {{company_name}}  → preview.sample_used.company
+ *   {{campus}}        → preview.sample_used.campus
+ *
+ * Per-recipient substitution lets admin click each recipient and see
+ * "what THAT lead will receive" — fulfilling the General Contact + Specific
+ * Contact preview parity requirement.
+ */
+function substituteSmartleadMergeTags(
+  text: string,
+  recipient: SmartleadPreviewSnapshot["recipients"][number],
+  sample: SmartleadPreviewSnapshot["sample_used"],
+): string {
+  const firstName =
+    recipient.recipient_kind === "named"
+      ? recipient.salutation.replace(/^(Hi|Dear)\s+(Dr\.\s+|Prof\.\s+)?/, "").split(/\s+/)[0]
+      : "";
+  return text
+    .replace(/\{\{\s*salutation\s*\}\}/g, recipient.salutation)
+    .replace(/\{\{\s*first_name\s*\}\}/g, firstName)
+    .replace(/\{\{\s*company_name\s*\}\}/g, sample.company)
+    .replace(/\{\{\s*campus\s*\}\}/g, sample.campus);
+}
+
 function SmartleadPreviewSection({
   preview,
 }: {
   preview: SmartleadPreviewSnapshot;
 }) {
   const [activeStep, setActiveStep] = useState(0);
+  const [activeRecipientIdx, setActiveRecipientIdx] = useState(0);
   const step = preview.steps[activeStep];
-  const samplePill =
-    preview.sample_used.first_name && preview.sample_used.first_name !== "there"
-      ? `Preview rendered for ${preview.sample_used.first_name}`
-      : `Preview rendered with generic recipient`;
+  const recipient = preview.recipients[activeRecipientIdx];
+
+  // Per-recipient substitution — uses the templates form (with {{...}} intact)
+  // so each recipient sees their own salutation + first_name, not the server's
+  // single sample. Falls back to the server-rendered preview when something is
+  // missing (defensive).
+  const renderedSubject =
+    step && recipient
+      ? substituteSmartleadMergeTags(step.subject_template, recipient, preview.sample_used)
+      : step?.subject_preview ?? "";
+  const renderedBodyHtml =
+    step && recipient
+      ? substituteSmartleadMergeTags(step.body_html_template, recipient, preview.sample_used)
+      : step?.body_html_preview ?? "";
 
   return (
     <section className="rounded-md border border-primary-200 bg-white">
       <header className="border-b border-primary-100 bg-primary-50/50 px-3 py-2">
-        <div className="flex items-baseline justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-800">
-            Smartlead preview · {preview.campaign_name}
-          </p>
-          <p className="text-[10px] text-primary-700">{samplePill}</p>
-        </div>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-800">
+          Smartlead preview · {preview.campaign_name}
+        </p>
         <p className="mt-1 text-[11px] text-primary-700">
           {preview.recipients.length === 1
             ? "1 lead will enroll"
@@ -897,48 +747,64 @@ function SmartleadPreviewSection({
       </header>
 
       <div className="space-y-3 px-3 py-3">
-        {/* Recipient roster — admin verifies each lead before launch. */}
+        {/* Recipient roster — clickable so admin can preview per recipient. */}
         <div>
           <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600">
-            Recipients
+            Recipients — click to preview what each will receive
           </p>
           <ul className="divide-y divide-gray-100 rounded-md border border-gray-200">
-            {preview.recipients.map((r, i) => (
-              <li key={i} className="flex items-baseline justify-between gap-2 px-2.5 py-1.5 text-xs">
-                <div className="min-w-0">
-                  <span
-                    className={`rounded px-1 py-0.5 text-[10px] font-semibold uppercase ${
-                      r.recipient_kind === "general"
-                        ? "bg-gray-100 text-gray-700"
-                        : "bg-primary-100 text-primary-800"
+            {preview.recipients.map((r, i) => {
+              const isActive = i === activeRecipientIdx;
+              return (
+                <li key={i}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveRecipientIdx(i)}
+                    className={`flex w-full items-baseline justify-between gap-2 px-2.5 py-1.5 text-left text-xs transition-colors ${
+                      isActive
+                        ? "bg-primary-50"
+                        : "hover:bg-gray-50"
                     }`}
+                    aria-pressed={isActive}
                   >
-                    {r.recipient_kind === "general" ? "Org" : "Named"}
-                  </span>
-                  <span className="ml-1.5 text-gray-900">{r.name}</span>
-                  {r.role && (
-                    <span className="ml-1.5 text-[10px] text-gray-500">
-                      ({r.role})
-                    </span>
-                  )}
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="font-mono text-[11px] text-gray-700">{r.email}</p>
-                  <p className="text-[10px] text-gray-500">
-                    Greeting:{" "}
-                    <span className="text-gray-700">{r.salutation},</span>
-                  </p>
-                </div>
-              </li>
-            ))}
+                    <div className="min-w-0">
+                      <span
+                        className={`rounded px-1 py-0.5 text-[10px] font-semibold uppercase ${
+                          r.recipient_kind === "general"
+                            ? "bg-gray-100 text-gray-700"
+                            : "bg-primary-100 text-primary-800"
+                        }`}
+                      >
+                        {r.recipient_kind === "general" ? "Org" : "Named"}
+                      </span>
+                      <span className="ml-1.5 text-gray-900">{r.name}</span>
+                      {r.role && (
+                        <span className="ml-1.5 text-[10px] text-gray-500">
+                          ({r.role})
+                        </span>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="font-mono text-[11px] text-gray-700">{r.email}</p>
+                      <p className="text-[10px] text-gray-500">
+                        Greeting:{" "}
+                        <span className="text-gray-700">{r.salutation},</span>
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </div>
 
-        {/* Step picker + rendered preview */}
+        {/* Step picker + rendered preview for the selected recipient. */}
         <div>
           <div className="mb-1.5 flex items-baseline justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-600">
-              Cadence
+              {recipient
+                ? `What ${recipient.name} will receive`
+                : "Cadence"}
             </p>
             <div className="flex gap-1">
               {preview.steps.map((s, i) => (
@@ -962,37 +828,29 @@ function SmartleadPreviewSection({
               <p className="text-[10px] uppercase tracking-wide text-gray-500">
                 Step {step.seq_number} · delay {step.delay_in_days}d after
                 previous email
+                {recipient && (
+                  <>
+                    {" · sent to "}
+                    <span className="font-mono">{recipient.email}</span>
+                  </>
+                )}
               </p>
               <p className="mt-1 text-sm font-medium text-gray-900">
-                {step.subject_preview}
+                {renderedSubject}
               </p>
               <div
                 className="mt-2 max-h-72 overflow-y-auto rounded border border-gray-200 bg-white p-3 text-[12px] leading-snug"
-                dangerouslySetInnerHTML={{ __html: step.body_html_preview }}
+                dangerouslySetInnerHTML={{ __html: renderedBodyHtml }}
               />
+              <p className="mt-2 text-[10px] text-gray-500">
+                Variables substituted: {"{{salutation}}"} · {"{{first_name}}"} ·{" "}
+                {"{{company_name}}"} · {"{{campus}}"}. Program PDF link is baked
+                per campus. Body rendered = what Smartlead will actually send to
+                this recipient.
+              </p>
             </div>
           )}
         </div>
-
-        <p className="rounded-md bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-800">
-          <span className="font-semibold">Smartlead mode:</span> the email
-          body editors below are reference-only — Smartlead sends the
-          canonical template above with per-lead merge tags{" "}
-          (<code className="rounded bg-amber-100 px-1 text-[10px]">
-            {"{{salutation}}"}
-          </code>,{" "}
-          <code className="rounded bg-amber-100 px-1 text-[10px]">
-            {"{{first_name}}"}
-          </code>,{" "}
-          <code className="rounded bg-amber-100 px-1 text-[10px]">
-            {"{{company_name}}"}
-          </code>
-          ,{" "}
-          <code className="rounded bg-amber-100 px-1 text-[10px]">
-            {"{{campus}}"}
-          </code>
-          ). Per-day call scripts still apply.
-        </p>
       </div>
     </section>
   );

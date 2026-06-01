@@ -158,6 +158,15 @@ export interface ResearchData {
     state?: string | null;
     zip?: string | null;
   };
+  /** v9.x Smartlead bridge linkage (cold-email engine). Set when the row's
+   *  General Contact is enrolled into its campus Smartlead campaign. JSONB on
+   *  research_data — no schema migration. The join key for the future D2
+   *  reply/bounce webhook is the Smartlead lead's custom_fields.outreach_id. */
+  smartlead?: {
+    campaign_id: number;
+    lead_email: string | null;
+    enrolled_at: string;
+  };
 }
 
 export interface Campus {

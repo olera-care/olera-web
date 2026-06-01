@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
+import { providerResponded } from "@/lib/connection-temperature";
 
 /**
  * GET /api/admin/leads
@@ -81,7 +82,6 @@ export async function GET(request: NextRequest) {
     // - Provider must be active
     // - Provider must have no email
     // - Provider must NOT have responded (goal already achieved if responded)
-    type ThreadMessage = { from_profile_id: string; is_auto_reply?: boolean };
     const providerNeedsEmail = (conn: {
       to_profile_id?: string;
       to_profile: { email?: string | null; is_active?: boolean }[] | { email?: string | null; is_active?: boolean } | null;
@@ -92,12 +92,7 @@ export async function GET(request: NextRequest) {
       // Skip if no provider profile (deleted) or inactive
       if (!provider || provider.is_active === false) return false;
       // Skip if provider already responded (goal achieved)
-      const meta = conn.metadata ?? {};
-      const thread = (meta.thread as ThreadMessage[]) || [];
-      const hasResponded = thread.some(
-        (m) => m.from_profile_id === conn.to_profile_id && m.is_auto_reply !== true
-      );
-      if (hasResponded) return false;
+      if (providerResponded(conn)) return false;
       // Provider needs email if email is null or empty
       return !provider.email;
     };
@@ -165,12 +160,7 @@ export async function GET(request: NextRequest) {
         if (!provider || provider.is_active === false) return false;
 
         // Check if provider already responded
-        const meta = (conn.metadata ?? {}) as Record<string, unknown>;
-        const thread = (meta.thread as ThreadMessage[]) || [];
-        const hasResponded = thread.some(
-          (m) => m.from_profile_id === conn.to_profile_id && m.is_auto_reply !== true
-        );
-        if (hasResponded) return false;
+        if (providerResponded(conn)) return false;
 
         // Check business_profiles.email first
         if (provider.email) return false;

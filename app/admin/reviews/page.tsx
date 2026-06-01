@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Badge from "@/components/ui/Badge";
 import DateRangePopover, { type DateRangeValue, resolveRange } from "@/components/admin/DateRangePopover";
 
 // ── Types ──
@@ -262,6 +261,9 @@ function AllReviewsTab({ dateRange, onStatsChange }: AllReviewsTabProps) {
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  // Modal state
+  const [pendingAction, setPendingAction] = useState<UnifiedReview | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -346,17 +348,19 @@ function AllReviewsTab({ dateRange, onStatsChange }: AllReviewsTabProps) {
     ? reviews
     : reviews.filter((r) => r.source === sourceFilter);
 
-  async function handleRemove(review: UnifiedReview) {
-    // Guest reviews are permanently deleted, family reviews are soft-deleted
-    const isGuest = review.source === "guest";
-    const confirmMessage = isGuest
-      ? "Are you sure you want to permanently delete this review? This cannot be undone."
-      : "Are you sure you want to remove this review? It can be restored from the Removed tab.";
+  function handleRemoveClick(review: UnifiedReview) {
+    setModalError(null);
+    setPendingAction(review);
+  }
 
-    if (!confirm(confirmMessage)) return;
+  async function confirmRemove() {
+    if (!pendingAction) return;
+
+    const review = pendingAction;
+    const isGuest = review.source === "guest";
 
     setActionLoading(review.id);
-    setActionError(null);
+    setModalError(null);
     try {
       const endpoint = isGuest
         ? `/api/admin/olera-reviews/${review.id}`
@@ -372,14 +376,15 @@ function AllReviewsTab({ dateRange, onStatsChange }: AllReviewsTabProps) {
       });
 
       if (res.ok) {
+        setPendingAction(null);
         fetchReviews();
-        onStatsChange(); // Refresh stats after action
+        onStatsChange();
       } else {
         const data = await res.json().catch(() => ({}));
-        setActionError(data.error || "Failed to remove review.");
+        setModalError(data.error || "Failed to remove review.");
       }
     } catch {
-      setActionError("Failed to remove review. Please check your connection.");
+      setModalError("Failed to remove review. Please check your connection.");
     } finally {
       setActionLoading(null);
     }
@@ -521,7 +526,7 @@ function AllReviewsTab({ dateRange, onStatsChange }: AllReviewsTabProps) {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <button
-                          onClick={() => handleRemove(review)}
+                          onClick={() => handleRemoveClick(review)}
                           disabled={actionLoading === review.id}
                           className={[
                             "px-3 py-1.5 text-sm font-medium rounded-lg disabled:opacity-50 transition-colors",
@@ -538,6 +543,71 @@ function AllReviewsTab({ dateRange, onStatsChange }: AllReviewsTabProps) {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {pendingAction && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3 className="text-base font-semibold text-gray-900 mb-3">
+              {pendingAction.source === "guest" ? "Delete this review?" : "Remove this review?"}
+            </h3>
+            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Provider</dt>
+                <dd className="text-gray-900">{pendingAction.provider_name}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Reviewer</dt>
+                <dd className="text-gray-900">{pendingAction.reviewer_name}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Rating</dt>
+                <dd className="text-gray-900">{pendingAction.rating} {renderStars(pendingAction.rating)}</dd>
+              </div>
+            </dl>
+            <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
+              {pendingAction.source === "guest"
+                ? "This will permanently delete this guest review. This cannot be undone."
+                : "This will remove the review from public view. You can restore it from the Removed tab."}
+            </p>
+            {modalError && (
+              <p className="text-[12px] text-red-600 mb-3">{modalError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingAction(null);
+                  setModalError(null);
+                }}
+                disabled={actionLoading === pendingAction.id}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmRemove}
+                disabled={actionLoading === pendingAction.id}
+                className={[
+                  "text-xs font-medium text-white px-3 py-1.5 rounded-md disabled:opacity-50",
+                  pendingAction.source === "guest"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-gray-700 hover:bg-gray-800",
+                ].join(" ")}
+              >
+                {actionLoading === pendingAction.id
+                  ? (pendingAction.source === "guest" ? "Deleting..." : "Removing...")
+                  : (pendingAction.source === "guest" ? "Delete" : "Remove")}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -560,6 +630,9 @@ function FlaggedTab({ onFlaggedCountChange, onStatsChange, dateRange }: FlaggedT
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Modal state
+  const [pendingDelete, setPendingDelete] = useState<OleraReview | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const fetchReviews = useCallback(async () => {
     setLoading(true);
@@ -615,24 +688,30 @@ function FlaggedTab({ onFlaggedCountChange, onStatsChange, dateRange }: FlaggedT
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to permanently delete this review?")) return;
+  function handleDeleteClick(review: OleraReview) {
+    setModalError(null);
+    setPendingDelete(review);
+  }
 
-    setActionLoading(id);
-    setActionError(null);
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+
+    setActionLoading(pendingDelete.id);
+    setModalError(null);
     try {
-      const res = await fetch(`/api/admin/olera-reviews/${id}`, {
+      const res = await fetch(`/api/admin/olera-reviews/${pendingDelete.id}`, {
         method: "DELETE",
       });
       if (res.ok) {
+        setPendingDelete(null);
         fetchReviews();
-        onStatsChange(); // Refresh stats after action
+        onStatsChange();
       } else {
         const data = await res.json().catch(() => ({}));
-        setActionError(data.error || "Failed to delete review.");
+        setModalError(data.error || "Failed to delete review.");
       }
     } catch {
-      setActionError("Failed to delete review. Please check your connection.");
+      setModalError("Failed to delete review. Please check your connection.");
     } finally {
       setActionLoading(null);
     }
@@ -748,7 +827,7 @@ function FlaggedTab({ onFlaggedCountChange, onStatsChange, dateRange }: FlaggedT
                           Restore
                         </button>
                         <button
-                          onClick={() => handleDelete(review.id)}
+                          onClick={() => handleDeleteClick(review)}
                           disabled={actionLoading === review.id}
                           className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
                         >
@@ -760,6 +839,68 @@ function FlaggedTab({ onFlaggedCountChange, onStatsChange, dateRange }: FlaggedT
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {pendingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3 className="text-base font-semibold text-gray-900 mb-3">
+              Delete this flagged review?
+            </h3>
+            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Provider</dt>
+                <dd className="text-gray-900">{pendingDelete.provider_name}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Reviewer</dt>
+                <dd className="text-gray-900">{pendingDelete.reviewer_name}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Rating</dt>
+                <dd className="text-gray-900">{pendingDelete.rating} {renderStars(pendingDelete.rating)}</dd>
+              </div>
+              {pendingDelete.flagged_reason && (
+                <div className="flex gap-2">
+                  <dt className="w-20 shrink-0 text-gray-400">Reason</dt>
+                  <dd className="text-amber-600">{pendingDelete.flagged_reason}</dd>
+                </div>
+              )}
+            </dl>
+            <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
+              This will permanently delete this review. This cannot be undone.
+            </p>
+            {modalError && (
+              <p className="text-[12px] text-red-600 mb-3">{modalError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingDelete(null);
+                  setModalError(null);
+                }}
+                disabled={actionLoading === pendingDelete.id}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={actionLoading === pendingDelete.id}
+                className="text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                {actionLoading === pendingDelete.id ? "Deleting..." : "Delete"}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -782,6 +923,9 @@ function RemovedTab({ onCountChange, onStatsChange, dateRange }: RemovedTabProps
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Modal state
+  const [pendingDelete, setPendingDelete] = useState<AdminReview | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const fetchReviews = useCallback(async () => {
     setLoading(true);
@@ -838,7 +982,7 @@ function RemovedTab({ onCountChange, onStatsChange, dateRange }: RemovedTabProps
       });
       if (res.ok) {
         fetchReviews();
-        onStatsChange(); // Refresh stats after action
+        onStatsChange();
       } else {
         const data = await res.json().catch(() => ({}));
         setActionError(data.error || "Failed to restore review.");
@@ -850,11 +994,40 @@ function RemovedTab({ onCountChange, onStatsChange, dateRange }: RemovedTabProps
     }
   }
 
+  function handleDeleteClick(review: AdminReview) {
+    setModalError(null);
+    setPendingDelete(review);
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+
+    setActionLoading(pendingDelete.id);
+    setModalError(null);
+    try {
+      const res = await fetch(`/api/admin/reviews/${pendingDelete.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setPendingDelete(null);
+        fetchReviews();
+        onStatsChange();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setModalError(data.error || "Failed to delete review.");
+      }
+    } catch {
+      setModalError("Failed to delete review. Please check your connection.");
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   return (
     <div>
       <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 mb-6">
         <p className="text-sm text-gray-600">
-          Reviews that have been rejected or removed. You can restore them to make them visible again.
+          Reviews that have been removed. You can restore them or delete permanently.
         </p>
       </div>
 
@@ -888,7 +1061,6 @@ function RemovedTab({ onCountChange, onStatsChange, dateRange }: RemovedTabProps
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Reviewer</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Rating</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Review</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Source</th>
                   <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
                 </tr>
@@ -936,26 +1108,86 @@ function RemovedTab({ onCountChange, onStatsChange, dateRange }: RemovedTabProps
                       </button>
                     </td>
                     <td className="px-6 py-4">
-                      <Badge variant="rejected">
-                        {review.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4">
                       <SourceBadge source={review.migration_source ? "v1.0" : "family"} />
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleRestore(review.id)}
-                        disabled={actionLoading === review.id}
-                        className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-                      >
-                        Restore
-                      </button>
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => handleRestore(review.id)}
+                          disabled={actionLoading === review.id}
+                          className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                        >
+                          Restore
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(review)}
+                          disabled={actionLoading === review.id}
+                          className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {pendingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3 className="text-base font-semibold text-gray-900 mb-3">
+              Permanently delete this review?
+            </h3>
+            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Provider</dt>
+                <dd className="text-gray-900">{formatSlug(pendingDelete.provider_id)}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Reviewer</dt>
+                <dd className="text-gray-900">{pendingDelete.reviewer_name}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Rating</dt>
+                <dd className="text-gray-900">{pendingDelete.rating} {renderStars(pendingDelete.rating)}</dd>
+              </div>
+            </dl>
+            <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
+              This will permanently delete this review from the database. This cannot be undone.
+            </p>
+            {modalError && (
+              <p className="text-[12px] text-red-600 mb-3">{modalError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingDelete(null);
+                  setModalError(null);
+                }}
+                disabled={actionLoading === pendingDelete.id}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={actionLoading === pendingDelete.id}
+                className="text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                {actionLoading === pendingDelete.id ? "Deleting..." : "Delete"}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Badge from "@/components/ui/Badge";
-import RequestEngagementSection from "@/components/admin/reviews/RequestEngagementSection";
 
 // ── Types ──
 
@@ -63,6 +62,7 @@ interface ReviewStats {
   olera_reviews: number;
   flagged_count: number;
   requests_sent: number;
+  providers_requesting: number;
 }
 
 // ── Main Page Component ──
@@ -93,6 +93,7 @@ export default function AdminReviewsPage() {
           olera_reviews: visibleOlera,
           flagged_count: flagged,
           requests_sent: requestsData.summary?.total_requests ?? 0,
+          providers_requesting: requestsData.summary?.total_providers ?? 0,
         });
       })
       .catch(() => {});
@@ -114,7 +115,7 @@ export default function AdminReviewsPage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Total Reviews</p>
           <p className="text-2xl font-bold text-gray-900">
@@ -134,15 +135,18 @@ export default function AdminReviewsPage() {
           </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Review Requests Sent</p>
+          <p className="text-sm text-gray-500">Requests Sent</p>
           <p className="text-2xl font-bold text-emerald-600">
             {stats ? stats.requests_sent.toLocaleString() : "-"}
           </p>
         </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm text-gray-500">Providers Requesting</p>
+          <p className="text-2xl font-bold text-violet-600">
+            {stats ? stats.providers_requesting.toLocaleString() : "-"}
+          </p>
+        </div>
       </div>
-
-      {/* Request Engagement collapsible section */}
-      <RequestEngagementSection />
 
       {/* Main tabs */}
       <div className="border-b border-gray-200 mb-6">

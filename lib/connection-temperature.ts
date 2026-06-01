@@ -256,7 +256,7 @@ export function dotOpacityForStaleness(stalenessMs: number): number {
 export type NextStepAction =
   | "nudge_provider"
   | "add_provider_email"
-  | "follow_up_family"
+  | "nudge_family"
   | "none";
 
 export interface NextStep {
@@ -282,8 +282,8 @@ export function recommendNextStep(
   // Provider replied, family went quiet.
   if (t.waitingOn === "family") {
     return {
-      action: "follow_up_family",
-      label: "Provider replied; the family went quiet. Follow up with the family.",
+      action: "nudge_family",
+      label: `Provider replied; the family went quiet (${formatAge(t.stalenessMs)}). Nudge the family to reply.`,
     };
   }
   // Ball is with the provider (awaiting_provider, or going_cold on the provider side).

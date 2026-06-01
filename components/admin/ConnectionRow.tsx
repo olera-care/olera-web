@@ -142,24 +142,23 @@ export default function ConnectionRow({
     }
   }
 
-  async function nudgeProvider() {
+  async function sendNudge(endpoint: string, successText: string) {
     setNudging(true);
     setNudgeMsg(null);
     try {
-      const res = await fetch("/api/admin/send-nudge", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ connection_id: c.id }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        setNudgeMsg({ ok: true, text: "Nudge sent — the provider was emailed." });
-        setDetail((d) => (d ? { ...d, nudgeCount: d.nudgeCount + 1 } : d));
+        setNudgeMsg({ ok: true, text: successText });
       } else {
-        setNudgeMsg({ ok: false, text: data.error || "Couldn’t send the nudge." });
+        setNudgeMsg({ ok: false, text: data.error || "Couldn’t send." });
       }
     } catch {
-      setNudgeMsg({ ok: false, text: "Network error — nudge not sent." });
+      setNudgeMsg({ ok: false, text: "Network error — not sent." });
     } finally {
       setNudging(false);
     }
@@ -220,11 +219,27 @@ export default function ConnectionRow({
 
                 {detail.nextStep.action === "nudge_provider" && (
                   <button
-                    onClick={nudgeProvider}
+                    onClick={() =>
+                      sendNudge("/api/admin/send-nudge", "Nudge sent — the provider was emailed.")
+                    }
                     disabled={nudging}
                     className="mt-3 rounded-lg bg-gray-900 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
                   >
                     {nudging ? "Sending…" : "Nudge provider"}
+                  </button>
+                )}
+                {detail.nextStep.action === "nudge_family" && (
+                  <button
+                    onClick={() =>
+                      sendNudge(
+                        "/api/admin/send-family-nudge",
+                        "Follow-up sent — the family was emailed."
+                      )
+                    }
+                    disabled={nudging}
+                    className="mt-3 rounded-lg bg-gray-900 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                  >
+                    {nudging ? "Sending…" : "Nudge family"}
                   </button>
                 )}
                 {detail.nextStep.action === "add_provider_email" && (
@@ -234,11 +249,6 @@ export default function ConnectionRow({
                   >
                     Add email in Leads →
                   </a>
-                )}
-                {detail.nextStep.action === "follow_up_family" && (
-                  <p className="mt-2 text-xs text-gray-400">
-                    One-click family follow-up is coming; for now, reach out from the family’s record.
-                  </p>
                 )}
 
                 {nudgeMsg && (

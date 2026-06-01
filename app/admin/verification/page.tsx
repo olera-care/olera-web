@@ -1663,7 +1663,13 @@ function TruncatableText({ text, maxLength = 150 }: { text: string; maxLength?: 
 
 // ── Leads & Questions Accordion Section ──
 
-function LeadsAndQuestionsSection({ engagement }: { engagement?: ProviderEngagement }) {
+function LeadsAndQuestionsSection({
+  engagement,
+  isVerified = false,
+}: {
+  engagement?: ProviderEngagement;
+  isVerified?: boolean;
+}) {
   const [inquiriesExpanded, setInquiriesExpanded] = useState(false);
   const [questionsExpanded, setQuestionsExpanded] = useState(false);
 
@@ -1699,22 +1705,27 @@ function LeadsAndQuestionsSection({ engagement }: { engagement?: ProviderEngagem
   };
 
   // Get question status display info
+  // For unverified providers, answers are saved but not published
   const getQuestionStatusInfo = (status: string, hasAnswer: boolean) => {
     if (hasAnswer) {
       if (status === "approved" || status === "answered") {
-        return { label: "Answered", color: "bg-green-50 border-green-200 text-green-700" };
+        // Only show "Answered" if provider is verified (answer is actually published)
+        // Otherwise show "Answered (unpublished)"
+        return isVerified
+          ? { label: "Answered", color: "bg-gray-100 border-gray-200 text-gray-600" }
+          : { label: "Answered (unpublished)", color: "bg-gray-100 border-gray-200 text-gray-500" };
       }
       if (status === "rejected") {
-        return { label: "Answer rejected", color: "bg-red-50 border-red-200 text-red-700" };
+        return { label: "Answer rejected", color: "bg-gray-100 border-gray-200 text-gray-500" };
       }
       if (status === "flagged") {
-        return { label: "Answer flagged", color: "bg-orange-50 border-orange-200 text-orange-700" };
+        return { label: "Answer flagged", color: "bg-gray-100 border-gray-200 text-gray-500" };
       }
-      // Pending approval (status = "pending" or unknown)
-      return { label: "Answered (pending approval)", color: "bg-amber-50 border-amber-200 text-amber-700" };
+      // Pending approval (status = "pending" or unknown) - also unpublished
+      return { label: "Answered (unpublished)", color: "bg-gray-100 border-gray-200 text-gray-500" };
     }
     // No answer yet
-    return { label: "Awaiting answer", color: "bg-gray-100 border-gray-200 text-gray-600" };
+    return { label: "Awaiting answer", color: "bg-gray-100 border-gray-200 text-gray-500" };
   };
 
   return (
@@ -1729,12 +1740,12 @@ function LeadsAndQuestionsSection({ engagement }: { engagement?: ProviderEngagem
             <button
               type="button"
               onClick={() => setInquiriesExpanded(!inquiriesExpanded)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center gap-2">
-                <span className="text-emerald-600">📩</span>
+                <span className="text-gray-500">📩</span>
                 <span className="font-medium text-gray-900">Inquiries</span>
-                <span className="bg-emerald-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                <span className="bg-gray-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
                   {inquiries.length}
                 </span>
               </div>
@@ -1753,17 +1764,7 @@ function LeadsAndQuestionsSection({ engagement }: { engagement?: ProviderEngagem
                   <div key={inquiry.id} className="p-4 bg-white">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-gray-900">{inquiry.from_name}</p>
-                          {inquiry.provider_responded && (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                              Replied
-                            </span>
-                          )}
-                        </div>
+                        <p className="font-medium text-gray-900">{inquiry.from_name}</p>
                         {inquiry.from_email && (
                           <p className="text-xs text-gray-500">{inquiry.from_email}</p>
                         )}
@@ -1773,12 +1774,12 @@ function LeadsAndQuestionsSection({ engagement }: { engagement?: ProviderEngagem
                     {(inquiry.care_type || inquiry.timeline) && (
                       <div className="flex flex-wrap gap-2 mb-2">
                         {inquiry.care_type && (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                             {inquiry.care_type}
                           </span>
                         )}
                         {inquiry.timeline && (
-                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                             {formatTimeline(inquiry.timeline)}
                           </span>
                         )}
@@ -1788,11 +1789,6 @@ function LeadsAndQuestionsSection({ engagement }: { engagement?: ProviderEngagem
                       <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3 mt-2">
                         &ldquo;<TruncatableText text={inquiry.message} maxLength={150} />&rdquo;
                       </div>
-                    )}
-                    {!inquiry.provider_responded && (
-                      <p className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded inline-block mt-2">
-                        No response yet
-                      </p>
                     )}
                   </div>
                 ))}
@@ -1807,12 +1803,12 @@ function LeadsAndQuestionsSection({ engagement }: { engagement?: ProviderEngagem
             <button
               type="button"
               onClick={() => setQuestionsExpanded(!questionsExpanded)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-purple-50 hover:bg-purple-100 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center gap-2">
-                <span className="text-purple-600">❓</span>
+                <span className="text-gray-500">❓</span>
                 <span className="font-medium text-gray-900">Questions</span>
-                <span className="bg-purple-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                <span className="bg-gray-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
                   {questions.length}
                 </span>
               </div>
@@ -2166,7 +2162,10 @@ function VerificationReviewModal({
       <PreClaimEngagementSection journey={provider.claim_journey} />
 
       {/* Leads & Questions - Show all inquiries and questions for this provider */}
-      <LeadsAndQuestionsSection engagement={provider.claim_journey?.all_engagement} />
+      <LeadsAndQuestionsSection
+        engagement={provider.claim_journey?.all_engagement}
+        isVerified={provider.verification_state === "verified" || provider.verification_state === "not_required"}
+      />
 
       {/* Outreach Log - Show for in_progress providers */}
       <OutreachLogSection outreachLog={provider.metadata?.outreach_log} />

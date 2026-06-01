@@ -44,7 +44,7 @@ interface EmailTrailEntry {
 
 interface Detail {
   id: string;
-  family: { display_name: string | null };
+  family: { id: string | null; display_name: string | null };
   provider: { display_name: string | null; email: string | null; hasEmail: boolean; slug: string | null };
   ask: string | null;
   thread: ThreadEntry[];
@@ -247,6 +247,32 @@ export default function ConnectionRow({
                   </p>
                 )}
               </div>
+
+              {/* Records — jump into either account to investigate */}
+              {(detail.family.id || detail.provider.slug) && (
+                <div className="flex flex-wrap gap-2">
+                  {detail.family.id && (
+                    <a
+                      href={`/admin/care-seekers/${detail.family.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      Care seeker: {detail.family.display_name || "view"} ↗
+                    </a>
+                  )}
+                  {detail.provider.slug && (
+                    <a
+                      href={`/admin/directory/${detail.provider.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      Provider: {detail.provider.display_name || "view"} ↗
+                    </a>
+                  )}
+                </div>
+              )}
 
               {/* The ask */}
               {detail.ask && (

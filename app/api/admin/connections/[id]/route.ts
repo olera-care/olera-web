@@ -178,12 +178,13 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       status: c.status,
       created_at: c.created_at,
       emails,
-      family: { display_name: family?.display_name ?? null },
+      family: { id: c.from_profile_id ?? null, display_name: family?.display_name ?? null },
       provider: {
         display_name: provider?.display_name ?? null,
         email: providerEmail,
         hasEmail: !!providerEmail?.trim(),
-        slug: provider?.slug ?? provider?.source_provider_id ?? null,
+        // Directory accepts provider_id / slug / business-profile id as the key.
+        slug: provider?.slug ?? provider?.source_provider_id ?? c.to_profile_id ?? null,
       },
       ask: familyAsk(c.message, family?.care_types),
       thread,

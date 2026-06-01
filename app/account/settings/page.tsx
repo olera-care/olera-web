@@ -8,6 +8,7 @@ import Modal from "@/components/ui/Modal";
 import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
+import PasskeysSection from "@/components/account/PasskeysSection";
 
 type SettingsTab = "account" | "notifications";
 
@@ -494,6 +495,9 @@ export default function AccountSettingsPage() {
                     />
                   </div>
                 </div>
+
+                {/* ── Passkeys ── */}
+                <PasskeysSection />
 
                 {/* ── Subscription (Providers only) ── */}
                 {isProvider && (

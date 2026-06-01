@@ -20,6 +20,27 @@ import OtpInput from "@/components/auth/OtpInput";
 /** Key for storing pre-auth page in localStorage (for "Skip for now" on /welcome) */
 export const PRE_AUTH_PAGE_KEY = "olera_pre_auth_page";
 
+/**
+ * True when a passkey ceremony failure is just the user dismissing the system
+ * prompt (or it timing out) rather than a real error. WebAuthn surfaces this as
+ * a NotAllowedError / AbortError, sometimes wrapped in a Supabase WebAuthnError.
+ */
+function isPasskeyCancellation(err: unknown): boolean {
+  const e = err as { name?: string; code?: string; message?: string } | null;
+  if (!e) return false;
+  const name = e.name ?? "";
+  const message = (e.message ?? "").toLowerCase();
+  return (
+    name === "NotAllowedError" ||
+    name === "AbortError" ||
+    e.code === "passkey_cancelled" ||
+    message.includes("not allowed") ||
+    message.includes("cancel") ||
+    message.includes("aborted") ||
+    message.includes("timed out")
+  );
+}
+
 // ============================================================
 // Types
 // ============================================================
@@ -61,6 +82,17 @@ export default function UnifiedAuthModal({
   // Tracks whether the OTP screen is for signup confirmation or sign-in magic link
   const [otpContext, setOtpContext] = useState<"signup" | "signin">("signup");
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
+  // Passkey (WebAuthn) sign-in
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [passkeySupported, setPasskeySupported] = useState(false);
+
+  // Only surface the passkey option on browsers that support WebAuthn.
+  useEffect(() => {
+    setPasskeySupported(
+      typeof window !== "undefined" &&
+        typeof window.PublicKeyCredential !== "undefined"
+    );
+  }, []);
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -336,6 +368,74 @@ export default function UnifiedAuthModal({
       console.error("Sign in error:", err);
       setError("Something went wrong. Please try again.");
       setLoading(false);
+    }
+  };
+
+  // ──────────────────────────────────────────────────────────
+  // Passkey Sign In (WebAuthn, discoverable / usernameless)
+  // ──────────────────────────────────────────────────────────
+
+  const handlePasskeySignIn = async () => {
+    setError("");
+
+    // Store current page for "Skip for now" redirect on /welcome
+    try {
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname + window.location.search);
+    } catch { /* localStorage not available */ }
+
+    setPasskeyLoading(true);
+
+    try {
+      if (!isSupabaseConfigured()) {
+        setError("Authentication is not configured.");
+        setPasskeyLoading(false);
+        return;
+      }
+
+      // Discoverable-credential ceremony: the authenticator shows the account
+      // picker, so no email is needed. The session is written to cookies on this
+      // SSR client automatically (same as signInWithPassword).
+      const supabase = createClient();
+      const { data, error: authError } = await supabase.auth.signInWithPasskey();
+
+      if (authError) {
+        // User dismissed the system prompt (NotAllowedError) or it timed out —
+        // not a real error, so stay silent and let them choose another method.
+        if (isPasskeyCancellation(authError)) {
+          setPasskeyLoading(false);
+          return;
+        }
+        setError("Couldn't sign in with a passkey. Try your email or Google instead.");
+        setPasskeyLoading(false);
+        return;
+      }
+
+      // Pre-warm the auth cache so the dropdown has data immediately (mirrors
+      // the password path). 3s timeout as a safety net.
+      const userId = data?.user?.id;
+      if (userId) {
+        try {
+          await Promise.race([
+            refreshAccountData(userId),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("prefetch timeout")), 3000)),
+          ]);
+        } catch {
+          // Timeout or error — SIGNED_IN handler will continue in background
+        }
+      }
+
+      setPasskeyLoading(false);
+      handleAuthComplete();
+    } catch (err) {
+      // navigator.credentials.get() can throw on cancellation/abort instead of
+      // returning an error — treat those as a silent no-op too.
+      if (isPasskeyCancellation(err)) {
+        setPasskeyLoading(false);
+        return;
+      }
+      console.error("Passkey sign in error:", err);
+      setError("Couldn't sign in with a passkey. Try your email or Google instead.");
+      setPasskeyLoading(false);
     }
   };
 
@@ -989,6 +1089,21 @@ export default function UnifiedAuthModal({
     </div>
   );
 
+  // Secondary, clearly-labeled option — only shown on WebAuthn-capable browsers.
+  const passkeyButton = passkeySupported ? (
+    <button
+      type="button"
+      onClick={handlePasskeySignIn}
+      disabled={passkeyLoading || loading}
+      className="w-full flex items-center justify-center gap-2.5 px-4 py-3 border border-gray-200 rounded-xl text-[15px] font-medium text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+      </svg>
+      {passkeyLoading ? "Waiting for passkey…" : "Sign in with a passkey"}
+    </button>
+  ) : null;
+
   // ──────────────────────────────────────────────────────────
   // Render
   // ──────────────────────────────────────────────────────────
@@ -1047,6 +1162,8 @@ export default function UnifiedAuthModal({
               Continue
             </Button>
           </form>
+
+          {passkeyButton && <div className="mt-3">{passkeyButton}</div>}
 
           <p className="text-center text-[13px] text-gray-400 mt-5 leading-relaxed">
             By continuing, you agree to our{" "}
@@ -1185,6 +1302,8 @@ export default function UnifiedAuthModal({
               </Button>
             </div>
           </form>
+
+          {passkeyButton && <div className="mt-3">{passkeyButton}</div>}
 
           <p className="text-center text-sm text-gray-400 mt-5">
             New to Olera?{" "}

@@ -174,6 +174,17 @@ export interface ResearchData {
      *  undefined for rows enrolled before fan-out shipped) means General
      *  Contact only. */
     enrolled_contact_ids?: string[];
+    /** v9.x D2 webhook: aggregated open/click counters for the row's
+     *  Smartlead campaign. Updated by the webhook on EMAIL_OPEN /
+     *  EMAIL_CLICK events. Per-event timeline noise would be unhelpful
+     *  (Apple Mail Privacy Protection inflates open counts), so these
+     *  stay as row-level metadata, not touchpoints. */
+    engagement?: {
+      opens: number;
+      clicks: number;
+      last_opened_at?: string;
+      last_clicked_at?: string;
+    };
   };
 }
 

@@ -44,7 +44,6 @@ const navSections: NavSection[] = [
       { label: "Directory", href: "/admin/directory" },
       { label: "Care Seekers", href: "/admin/care-seekers" },
       { label: "Reviews", href: "/admin/reviews" },
-      { label: "Review Requests", href: "/admin/review-requests" },
       { label: "Emails", href: "/admin/emails" },
     ],
   },

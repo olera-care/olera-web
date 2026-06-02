@@ -48,6 +48,7 @@ import {
   getSimilarProviders,
   getSuggestedQuestions,
 } from "@/lib/provider-utils";
+import { normalizeQuestion } from "@/lib/qa-utils";
 
 // Cache provider detail pages for 1 hour (ISR) — reduces Supabase query volume
 export const revalidate = 3600;
@@ -515,7 +516,7 @@ export default async function ProviderPage({
     (async () => {
       try {
         const db = getServiceClient();
-        const [qaResponse, reviewResponse] = await Promise.all([
+        const [qaResponse, reviewResponse, askedResponse] = await Promise.all([
           db
             .from("provider_questions")
             .select("id, question, answer, asker_name, created_at")
@@ -531,13 +532,27 @@ export default async function ProviderPage({
             .select("id", { count: "exact", head: true })
             .eq("provider_id", profile.id)
             .eq("status", "published"),
+          // All questions ever asked here (any status) — used to tally repeats
+          // so suggested chips can de-prioritize already-asked topics and
+          // answered threads can show "N people asked this".
+          db
+            .from("provider_questions")
+            .select("question")
+            .eq("provider_id", profile.slug)
+            .limit(2000),
         ]);
+        const suggestionStats: Record<string, number> = {};
+        for (const row of (askedResponse.data || []) as { question: string }[]) {
+          const key = normalizeQuestion(row.question);
+          if (key) suggestionStats[key] = (suggestionStats[key] || 0) + 1;
+        }
         return {
           questions: (qaResponse.data || []).filter((q: { answer: string | null }) => q.answer && q.answer.trim().length > 0),
           reviewCount: reviewResponse.count ?? 0,
+          suggestionStats,
         };
       } catch {
-        return { questions: [], reviewCount: 0 };
+        return { questions: [], reviewCount: 0, suggestionStats: {} as Record<string, number> };
       }
     })(),
 
@@ -598,6 +613,7 @@ export default async function ProviderPage({
 
   const answeredQuestions = qaResult.questions as { id: string; question: string; answer: string; asker_name: string; created_at: string }[];
   const realReviewCount = qaResult.reviewCount;
+  const suggestionStats = (qaResult.suggestionStats ?? {}) as Record<string, number>;
 
   const pricingDetails = meta?.pricing_details || [];
   const staffScreening = meta?.staff_screening;
@@ -1240,6 +1256,7 @@ export default async function ProviderPage({
                     created_at: q.created_at,
                   }))}
                   suggestedQuestions={getSuggestedQuestions(profile.category)}
+                  suggestionStats={suggestionStats}
                   hasBenefitsData={hasBenefitsData && !!benefitsData}
                   similarProvidersForMulti={similarProvidersForMulti}
                   alternativeProviders={outreachCandidates}

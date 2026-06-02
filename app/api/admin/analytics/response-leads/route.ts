@@ -86,7 +86,8 @@ export async function GET(req: NextRequest) {
   const offset = Math.max(0, parseInt(searchParams.get("offset") || "0", 10));
 
   // Build query for connections (leads)
-  // We fetch comprehensive profile data to calculate completeness metrics
+  // Only include "inquiry" connections (family→provider) for Provider Response Rates
+  // Matches (type="request", provider→family) are tracked separately on the Outreach page
   let query = db
     .from("connections")
     .select(
@@ -132,7 +133,7 @@ export async function GET(req: NextRequest) {
     `,
       { count: "exact" }
     )
-    .in("type", ["inquiry", "request"])
+    .eq("type", "inquiry")
     .order("created_at", { ascending: false });
 
   // Date filters

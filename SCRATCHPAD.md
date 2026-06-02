@@ -7,6 +7,25 @@
 
 ## Current Focus
 
+### 2026-06-02 (Tue) — Market Diagnostic: "SEMrush for senior-care client acquisition" (PR #916, BUILDING)
+
+**Context:** Shower revelation off the Comfort Keepers / College Station thread → the real product. Olera has a two-sided "mall" (recurring care-seeker demand + engaged providers) but no goods to sell. The good = **client-acquisition intelligence** a single provider can't assemble: their local demand, competition, and referral map. Wedge = Olera sees demand (the funnel) no provider can. Framing locked: **intelligence is the hook, the qualified-lead outcome is the revenue — *because* the outcome is scarce (75k providers, ~100 live leads) and the intelligence is abundant.**
+
+**Built this session (PR #916 → staging, branch `market-diagnostic-v0`):**
+- **Engine** (`scripts/market-diagnostic/`): `fetch-diagnostic.mjs` (dependency-free; Google Places competitors+referral graph, Census ACS5 65+/income by ZCTA, Supabase funnel — families=`business_profiles` type=family, `provider_questions` has no city col→join via provider_id) + `analyze-diagnostic.mjs` (Claude Haiku classification, cached; competitor share-of-voice, prioritized referral-BD call sheet, channel ranking).
+- **Real College Station home-care numbers:** 22,339 seniors (9.8%, $30k–93k by ZIP; private-pay density in 77845/77802/77808, campus skipped); 17 local competitors (Comfort Keepers #1 @16.9% SoV; median 27 rev/4.9★); 212→147 referral sources, diverse deduped BD list (hospitals/SNF/hospice/AL/senior-resources). Olera has only 6 CS families → demographics = denominator, funnel = growing fulfillment.
+- **Credibility pass** (2nd commit): fixed criminal-defense-as-elder-law + ER-as-top-target + low-value buckets leading; value-ranked, interleaved diverse call sheet, name-guards. Honest gap: generically-named estate firms unverifiable → elder-law left empty not padded.
+- **Render**: `components/provider/market/MarketDiagnostic.tsx` (reusable, warm/serif) + admin preview `/admin/market-diagnostic`.
+- **Find Families integration** (3rd commit): diagnostic is now the **default** Find Families experience. `components/provider/market/FindFamiliesMarketView.tsx` (diagnostic-first; compact live-leads urgency strip pins on top only when local families exist) + `app/api/provider/market-diagnostic` (serves precomputed city×caretype snapshot; lazy-compute = Phase 2) + early-return gate in `app/provider/matches/page.tsx` (gated to Aggie / TJ email / `?market=1`; **zero change for all other providers**). Typechecks clean (0 errors).
+
+**IA DECISION (locked):** Diagnostic = strategic layer of the existing **Find Families** tab (provider nav = Profile/Find Families/Hire Caregivers), NOT standalone, NOT on the dense Profile page. Single adaptive page, leads+market combined (no separate toggle). Leads scoped LOCAL-only (fixes the MA/VA over-promise). Read-only now, workspace later (mark-target-contacted, review-climb). The old "43 families looking" image banner is retired.
+
+**Cost/scale answer:** ~$1.75/market one-time (Places ~$1.20 + Haiku ~$0.50; Census free). Unit = **city×caretype, shared across all local providers** → not 75k. Lazy-compute-on-visit + cache + quarterly refresh (the reviews-hydration pattern). Don't geo-limit; gate by rollout for quality. Cache-miss wrinkle (~60-90s compute can't block load) → Phase 2 background job or precompute-on-claim.
+
+**Next up →** (1) **TJ test Aggie's Find Families** on the PR #916 preview (`olera-web-git-market-diagnostic-v0-olera.vercel.app/provider/matches` as Aggie, or `?market=1`). Flip Aggie category → home care for a coherent dogfood (About already says home care). (2) React to render/tone. (3) Then: wire post-Q&A teaser + Find Families empty→"Your Market"; Phase 2 lazy-compute infra (market_diagnostics cache table + background job); workspace layer; verify-attorney-practice-area enrichment. (4) Then Susan meeting. Memory: `project_market_diagnostic`, `project_comfort_keepers`, `project_careseeker_leads_reframe`.
+
+---
+
 ### 2026-06-02 (Tue) — Provider outreach enrichment (P1 #2 emails + #3 contact-form URLs) — PLANNED
 
 **Context:** `/explore` audited all 7 of TJ's P1 cards → 3 already done (closed on Notion: Smartlead bridge, Benefits mobile +P2 dup, portal post-Q sign-in mobile), 1 mostly-done/diverged (SBF 2-step → empathic arm), 1 half-shipped (#4 connect-two-sides), 2 genuinely unbuilt: the paired email + contact-form enrichers. TJ chose to build both together (shared toolchain).

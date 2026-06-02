@@ -66,6 +66,7 @@ export type NotificationPrefs = {
   // Family preferences
   messages_and_responses?: NotificationChannelPrefs;
   match_updates?: NotificationChannelPrefs;
+  followup_reviews?: NotificationChannelPrefs;
   // Family legacy
   connection_updates?: NotificationChannelPrefs;
   saved_provider_alerts?: NotificationChannelPrefs;
@@ -405,6 +406,16 @@ export interface FamilyMetadata {
   publish_sequence?: NudgeSequence;
   // Global opt-out for all nudge sequences (set via /account/settings)
   nudges_unsubscribed?: boolean;
+
+  // ── Milestone Emails ──
+  // One-time celebration when profile reaches 100% complete
+  completion_celebrated_at?: string;
+  // Monthly provider recommendations for published families (max 12)
+  monthly_recommendations_sent_at?: string;
+  monthly_recommendations_count?: number;
+  // Inactivity re-engagement (max 2 attempts)
+  reengagement_sent_at?: string;
+  reengagement_count?: number;
 
   // ── Legacy nudge flags (backward compatibility) ──
   // These are superseded by the sequence system but kept for migration

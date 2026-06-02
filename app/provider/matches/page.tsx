@@ -19,6 +19,7 @@ import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
 import FiltersModal, { type FiltersState, DEFAULT_FILTERS_STATE, countActiveFilters, type SortOption } from "@/components/provider/matches/FiltersModal";
 import MyOutreach from "@/components/provider/matches/MyOutreach";
 import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
+import FindFamiliesMarketView from "@/components/provider/market/FindFamiliesMarketView";
 
 // Tab types for the matches view
 type MatchesTab = "best_matches" | "near_you";
@@ -867,6 +868,17 @@ export default function ProviderMatchesPage() {
   });
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<MatchesTab>("best_matches");
+
+  // ── "Your Market" gate ──
+  // Find Families defaults to the market diagnostic (the 99.9%-of-providers experience).
+  // Gated to the Aggie test provider / TJ while we dogfood; ?market=1 forces it on for previews.
+  const [forceLeads, setForceLeads] = useState(false);
+  const marketGateOn = useMemo(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("market")) return true;
+    const name = providerProfile?.display_name?.toLowerCase() || "";
+    const email = user?.email?.toLowerCase() || "";
+    return name.includes("aggie") || email === "tfalohun@gmail.com";
+  }, [providerProfile?.display_name, user?.email]);
   const [sortOption, setSortOption] = useState<SortOption>("recommended");
   // Shared state for MyOutreach (syncs mobile + desktop instances)
   const [isOutreachOpen, setIsOutreachOpen] = useState(false);
@@ -1743,6 +1755,21 @@ export default function ProviderMatchesPage() {
 
   // Get first name for greeting
   const firstName = providerProfile?.display_name?.split(" ")[0] || "there";
+
+  // "Your Market" default — diagnostic-first Find Families. Leads (when local) surface on top.
+  if (marketGateOn && !forceLeads) {
+    const pcity = providerProfile?.city?.toLowerCase();
+    const localLeadCount = pcity ? families.filter((f) => f.city?.toLowerCase() === pcity).length : 0;
+    return (
+      <FindFamiliesMarketView
+        city={providerProfile?.city || ""}
+        state={providerProfile?.state || ""}
+        category={providerProfile?.category || ""}
+        localLeadCount={localLeadCount}
+        onViewLeads={() => setForceLeads(true)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">

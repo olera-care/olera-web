@@ -118,6 +118,9 @@ export function preCallEmail(opts: {
       <a href="${BASE_URL}" style="color:${BRAND_COLOR};font-weight:600;">Learn more at olera.care →</a>
     </p>
     <p style="margin:20px 0 0;">Thanks,<br/>${escapeHtml(opts.adminFirstName)}, Olera</p>
+    <p style="font-size:13px;color:#9ca3af;margin:20px 0 0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
   `;
   return {
     subject,
@@ -141,6 +144,9 @@ export function followUpReminderEmail(opts: {
     <p>Just following up on my email from last week about Dr. Logan DuBose's student caregiver program at ${escapeHtml(opts.universityName)}.</p>
     <p>We're connecting pre-nursing and pre-med students with home care agencies like ${escapeHtml(opts.providerName)} for PRN shifts. The pilot is free — happy to share more details if you can point me to the right person.</p>
     <p style="margin:20px 0 0;">Thanks,<br/>${escapeHtml(opts.adminFirstName)}, Olera</p>
+    <p style="font-size:13px;color:#9ca3af;margin:20px 0 0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
   `;
   return {
     subject,
@@ -169,6 +175,9 @@ export function postConsentStep1Email(opts: {
     ${button("Activate Free Trial", opts.activationUrl)}
     <p>Trial details attached. Feel free to reach out with any questions. If you're interested, I'd love to meet to talk more about the program.</p>
     <p style="margin:20px 0 0;">— Logan</p>
+    <p style="font-size:13px;color:#9ca3af;margin:20px 0 0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
   `;
   return {
     subject,

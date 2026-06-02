@@ -7,6 +7,27 @@
 
 ## Current Focus
 
+### 2026-06-02 (Tue) — Provider outreach enrichment (P1 #2 emails + #3 contact-form URLs) — PLANNED
+
+**Context:** `/explore` audited all 7 of TJ's P1 cards → 3 already done (closed on Notion: Smartlead bridge, Benefits mobile +P2 dup, portal post-Q sign-in mobile), 1 mostly-done/diverged (SBF 2-step → empathic arm), 1 half-shipped (#4 connect-two-sides), 2 genuinely unbuilt: the paired email + contact-form enrichers. TJ chose to build both together (shared toolchain).
+
+**Plan:** [`plans/provider-outreach-enrichment-plan.md`](plans/provider-outreach-enrichment-plan.md). Batch enrichers (workhorse) + per-row "Find X" drawer buttons (escape hatch) writing onto `student_outreach.research_data.general_contact` (Option A). Shared TS finder lib consumed by both tsx batch scripts AND the button endpoint. No new CRM action/enum/touchpoint (G1–G4).
+
+**Built + verified this session (Tasks 1–3 of 4):**
+- `lib/medjobs/outreach-enrichment.ts` — shared finder: `resolveWebsite` / `findEmail` (scrape→role-rank→Perplexity, ZeroBounce-ready) / `findContactFormUrl` (path-ranked links + real-contact-form validation, NOT any `<form>`). Lazy env reads (tsx load-order safe). tsc clean + live smoke-tested.
+- `scripts/enrich-outreach-emails.ts` — `--city <City> <ST>` (directory, writes `olera-providers.email`) or `--outreach` (writes `research_data.general_contact.email`). Dry-run default, `--apply` gate, ZeroBounce verify, concurrency pool. **College Station --apply: 18 targets → 6 found, ZeroBounce dropped 3 invalid, 3 real emails written** (Allumine, Five Points, Interim). ~17% hit (chains hide email behind forms).
+- `scripts/enrich-outreach-contact-forms.ts` — `--outreach` (writes) or `--city` (preview, no write — directory has no column). **College Station preview: 28/37 forms found (~76%)** incl. the chains email missed. `--outreach --apply --limit 1` verified the JSONB merge preserves research_data on a staging row.
+- `package.json`: `enrich:outreach-emails`, `enrich:outreach-forms`.
+- Test scaffolding: worktree has symlinked `node_modules` + `.env.local` → main checkout (gitignored) so `npx tsx` runs locally.
+
+- **Task 4 (buttons) — DONE (code):** read-only `POST /api/admin/medjobs/enrich-contact` (auth-guarded, mode email|contact_form, resolves website from research_data→linked directory, runs shared finder, returns value, NO write) + "✦ Find email"/"✦ Find contact form" buttons in `SnapshotCard` General Contact (show when field empty, pre-fill via existing `saveField`/`update_general_contact`, loading + calm error). Full project `tsc` clean for all 4 files (8 unrelated pre-existing errors: passkey WIP + missing optional deps).
+
+**All 4 tasks built + verified (tsc + live data).** Not committed/pushed yet (TJ to decide).
+**Remaining QA:** click-test the buttons in the live admin drawer (needs auth/running app → staging).
+**Outreach-mode write runs available when wanted:** 7 rows need email, 13 need contact_form_url (live CRM, across cities — not auto-run).
+
+---
+
 ### 2026-06-01 (Mon) — Smartlead cold-email BRIDGE built end-to-end (PR #900 → staging, inert)
 
 **Context:** Resumed the cold-outreach engine (mailboxes `logan@`/`partnerships@findmedjobs.co` warming since 5/29, ~late June ready). Goal: build the software that turns CRM rows into live Smartlead campaigns — the "engine room" — ahead of warmup, then demo it. Branch `medjobs-smartlead-bridge` off `staging`; `lib/smartlead.ts` cherry-picked onto it from `save/email-deliverability-session`.

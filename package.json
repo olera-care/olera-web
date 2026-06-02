@@ -10,7 +10,9 @@
     "check:crons": "node scripts/check-cron-registry.js",
     "prebuild": "node scripts/check-cron-registry.js",
     "generate-cities": "npx tsx scripts/generate-city-data.ts",
-    "backfill:trust-levels": "npx tsx scripts/backfill-trust-levels.ts"
+    "backfill:trust-levels": "npx tsx scripts/backfill-trust-levels.ts",
+    "enrich:outreach-emails": "npx tsx scripts/enrich-outreach-emails.ts",
+    "enrich:outreach-forms": "npx tsx scripts/enrich-outreach-contact-forms.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

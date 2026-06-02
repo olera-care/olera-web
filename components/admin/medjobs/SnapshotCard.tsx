@@ -329,6 +329,8 @@ function GeneralContactSection({
   // admin sees "Saving…" → "Saved" feedback after every blur. The
   // earlier autosave was silent except for tiny per-field text.
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  // Per-row "Find X" lookup state (auto-fetch email / contact-form URL).
+  const [finding, setFinding] = useState<null | "email" | "contact_form">(null);
 
   useEffect(() => {
     setEmail(effective.email);
@@ -406,6 +408,42 @@ function GeneralContactSection({
       setError(e instanceof Error ? e.message : "Failed to save");
     } finally {
       setSaving(null);
+    }
+  };
+
+  // Auto-fetch a missing email / contact-form URL for this one row, then
+  // persist through the same saveField path the inline edits use. Read-only
+  // server lookup — no CRM action; the write is the existing override.
+  const findContact = async (mode: "email" | "contact_form") => {
+    setFinding(mode);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/medjobs/enrich-contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ outreachId: ctx.outreach.id, mode }),
+      });
+      const data = (await res.json()) as { value?: string | null; error?: string };
+      if (!res.ok) throw new Error(data.error || "Lookup failed");
+      if (!data.value) {
+        setError(
+          mode === "email"
+            ? "No email found on the provider's website."
+            : "No contact form found on the provider's website.",
+        );
+        return;
+      }
+      if (mode === "email") {
+        setEmail(data.value);
+        await saveField("email", data.value);
+      } else {
+        setContactFormUrl(data.value);
+        await saveField("contact_form_url", data.value);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Lookup failed");
+    } finally {
+      setFinding(null);
     }
   };
 
@@ -498,14 +536,24 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(email)} label="Email">
           {editable ? (
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => saveField("email", email)}
-              placeholder="info@agency.com"
-              size="sm"
-            />
+            <div className="space-y-1">
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => saveField("email", email)}
+                placeholder="info@agency.com"
+                size="sm"
+              />
+              {!email && (
+                <FindButton
+                  label="Find email"
+                  busy={finding === "email"}
+                  disabled={finding !== null}
+                  onClick={() => findContact("email")}
+                />
+              )}
+            </div>
           ) : (
             <span className="block truncate text-gray-700">
               {email || <span className="text-gray-400">Not on file</span>}
@@ -537,14 +585,24 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(contactFormUrl)} label="Contact form">
           {editable ? (
-            <Input
-              type="url"
-              value={contactFormUrl}
-              onChange={(e) => setContactFormUrl(e.target.value)}
-              onBlur={() => saveField("contact_form_url", contactFormUrl)}
-              placeholder="https://agency.com/contact"
-              size="sm"
-            />
+            <div className="space-y-1">
+              <Input
+                type="url"
+                value={contactFormUrl}
+                onChange={(e) => setContactFormUrl(e.target.value)}
+                onBlur={() => saveField("contact_form_url", contactFormUrl)}
+                placeholder="https://agency.com/contact"
+                size="sm"
+              />
+              {!contactFormUrl && (
+                <FindButton
+                  label="Find contact form"
+                  busy={finding === "contact_form"}
+                  disabled={finding !== null}
+                  onClick={() => findContact("contact_form")}
+                />
+              )}
+            </div>
           ) : contactFormUrl ? (
             <div className="flex flex-wrap items-center gap-2">
               <a
@@ -629,6 +687,34 @@ function SaveStatusBadge({
     );
   }
   return null;
+}
+
+/**
+ * Small inline "Find email" / "Find contact form" action shown under an empty
+ * General Contact field. Auto-fetches the value via the read-only enrich-contact
+ * endpoint; the caller pre-fills + saves on success.
+ */
+function FindButton({
+  label,
+  busy,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  busy: boolean;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-700 hover:text-primary-800 hover:underline disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
+    >
+      {busy ? "Finding…" : `✦ ${label}`}
+    </button>
+  );
 }
 
 // ── ContactRow ──────────────────────────────────────────────────────────

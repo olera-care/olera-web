@@ -178,20 +178,30 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
         />
       )}
 
-      {/* ── 2. Specific Contacts ────────────────────────────────────
-          Named individuals only (owner / hiring manager / etc.).
-          No "General Office" tag — that lives at the General
-          Contact section above. */}
-      <div>
-        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-          Specific Contacts
-        </p>
+      {/* ── 2. Decision Maker ───────────────────────────────────────
+          v9.x single-slot named recipient. Replaces the multi-contact
+          UI for new rows. Stored in research_data.decision_maker;
+          surfaces in the Smartlead fan-out as the named recipient
+          alongside the General Contact. */}
+      <DecisionMakerSection
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        editable={isPreLaunch}
+      />
 
-        {ctx.contacts.length === 0 ? (
-          <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs text-gray-500">
-            No named contacts yet. Add specific people here if you find them.
+      {/* ── 3. Legacy Specific Contacts ─────────────────────────────
+          Pre-v9.x multi-contact data. Read-only display so existing
+          rows don't lose data; new edits write to the Decision Maker
+          slot above. Hidden when no legacy contacts exist on the row. */}
+      {ctx.contacts.length > 0 && (
+        <div>
+          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+            Legacy contacts
+            <span className="ml-2 text-[10px] font-normal normal-case text-gray-400">
+              read-only · pre-Decision Maker data
+            </span>
           </p>
-        ) : (
           <ul className="space-y-2">
             {[...activeContacts, ...inactiveContacts].map((c) => (
               <li key={c.id}>
@@ -199,23 +209,15 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
                   contact={c}
                   action={action}
                   setError={setError}
-                  editable={isPreLaunch}
+                  editable={false}
                   hasCadenceWork={contactHasCadenceWork(c.id, ctx)}
                   isPostLaunch={!isPreLaunch}
                 />
               </li>
             ))}
           </ul>
-        )}
-
-        {isPreLaunch && (
-          <AddContactInline
-            orgName={orgName}
-            action={action}
-            setError={setError}
-          />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* ── 3. Research notes ─────────────────────────────────────── */}
       <div>
@@ -362,6 +364,27 @@ function GeneralContactSection({
       .filter((s) => s && s.trim())
       .join(" · ");
 
+  const faxUnavailable =
+    (ctx.outreach.research_data?.general_contact?.fax_unavailable as boolean | undefined) ?? false;
+  const contactFormUnavailable =
+    (ctx.outreach.research_data?.general_contact?.contact_form_unavailable as boolean | undefined) ?? false;
+
+  const toggleUnavailable = async (
+    field: "fax_unavailable" | "contact_form_unavailable",
+    next: boolean,
+  ) => {
+    setSaving(field);
+    setError(null);
+    try {
+      await action("update_general_contact", { [field]: next });
+      setSavedAt(Date.now());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update field");
+    } finally {
+      setSaving(null);
+    }
+  };
+
   const saveField = async (
     field:
       | "email"
@@ -478,6 +501,29 @@ function GeneralContactSection({
             <span className="text-gray-400">Not on file</span>
           )}
         </CoverageRow>
+        <CoverageRow checked={Boolean(website)} label="Website">
+          {editable ? (
+            <Input
+              type="url"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              onBlur={() => saveField("website", website)}
+              placeholder="https://agency.com"
+              size="sm"
+            />
+          ) : website ? (
+            <a
+              href={website.startsWith("http") ? website : `https://${website}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block truncate text-primary-700 hover:underline"
+            >
+              {website}
+            </a>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
         <CoverageRow checked={Boolean(phone)} label="Phone">
           {editable ? (
             <Input
@@ -512,39 +558,66 @@ function GeneralContactSection({
             </span>
           )}
         </CoverageRow>
-        <CoverageRow checked={Boolean(website)} label="Website">
+        <CoverageRow checked={Boolean(fax) || faxUnavailable} label="Fax">
           {editable ? (
-            <Input
-              type="url"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              onBlur={() => saveField("website", website)}
-              placeholder="https://agency.com"
-              size="sm"
-            />
-          ) : website ? (
-            <a
-              href={website.startsWith("http") ? website : `https://${website}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block truncate text-primary-700 hover:underline"
-            >
-              {website}
-            </a>
+            <div className="space-y-1">
+              <Input
+                type="tel"
+                value={fax}
+                onChange={(e) => setFax(e.target.value)}
+                onBlur={() => saveField("fax", fax)}
+                placeholder="(555) 123-9999"
+                disabled={faxUnavailable}
+                size="sm"
+              />
+              <button
+                type="button"
+                onClick={() => toggleUnavailable("fax_unavailable", !faxUnavailable)}
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
+              >
+                {faxUnavailable ? "Revert (mark available)" : "Mark not available"}
+              </button>
+            </div>
+          ) : faxUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
           ) : (
-            <span className="text-gray-400">Not on file</span>
+            <span className="block truncate text-gray-700">
+              {fax || <span className="text-gray-400">Not on file · coming soon</span>}
+            </span>
           )}
         </CoverageRow>
-        <CoverageRow checked={Boolean(contactFormUrl)} label="Contact form">
+        <CoverageRow
+          checked={Boolean(contactFormUrl) || contactFormUnavailable}
+          label="Contact form"
+        >
           {editable ? (
-            <Input
-              type="url"
-              value={contactFormUrl}
-              onChange={(e) => setContactFormUrl(e.target.value)}
-              onBlur={() => saveField("contact_form_url", contactFormUrl)}
-              placeholder="https://agency.com/contact"
-              size="sm"
-            />
+            <div className="space-y-1">
+              <Input
+                type="url"
+                value={contactFormUrl}
+                onChange={(e) => setContactFormUrl(e.target.value)}
+                onBlur={() => saveField("contact_form_url", contactFormUrl)}
+                placeholder="https://agency.com/contact"
+                disabled={contactFormUnavailable}
+                size="sm"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  toggleUnavailable(
+                    "contact_form_unavailable",
+                    !contactFormUnavailable,
+                  )
+                }
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
+              >
+                {contactFormUnavailable
+                  ? "Revert (mark available)"
+                  : "Mark not available"}
+              </button>
+            </div>
+          ) : contactFormUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
           ) : contactFormUrl ? (
             <div className="flex flex-wrap items-center gap-2">
               <a
@@ -572,22 +645,6 @@ function GeneralContactSection({
             </div>
           ) : (
             <span className="text-gray-400">Not on file</span>
-          )}
-        </CoverageRow>
-        <CoverageRow checked={Boolean(fax)} label="Fax">
-          {editable ? (
-            <Input
-              type="tel"
-              value={fax}
-              onChange={(e) => setFax(e.target.value)}
-              onBlur={() => saveField("fax", fax)}
-              placeholder="(555) 123-9999"
-              size="sm"
-            />
-          ) : (
-            <span className="block truncate text-gray-700">
-              {fax || <span className="text-gray-400">Not on file · coming soon</span>}
-            </span>
           )}
         </CoverageRow>
       </dl>
@@ -629,6 +686,206 @@ function SaveStatusBadge({
     );
   }
   return null;
+}
+
+// ── Decision Maker section ─────────────────────────────────────────────
+
+/**
+ * v9.x single-slot Decision Maker. Replaces multi-contact UX for new rows.
+ * Stored in `research_data.decision_maker`. The Smartlead bridge emails
+ * General Contact + Decision Maker (max 2 leads per row).
+ *
+ * "Mark not available" satisfies the Research Card row when the admin
+ * couldn't identify a decision maker after research + the call to confirm
+ * gate. The row launches with the General Contact lead only.
+ */
+function DecisionMakerSection({
+  ctx,
+  action,
+  setError,
+  editable,
+}: {
+  ctx: DrawerContext;
+  action: (
+    actionName: string,
+    payload?: Record<string, unknown>,
+  ) => Promise<DrawerContext>;
+  setError: (msg: string | null) => void;
+  editable: boolean;
+}) {
+  const dm = ctx.outreach.research_data?.decision_maker ?? {};
+  const [name, setName] = useState(dm.name ?? "");
+  const [role, setRole] = useState(dm.role ?? "");
+  const [phone, setPhone] = useState(dm.phone ?? "");
+  const [email, setEmail] = useState(dm.email ?? "");
+  const [saving, setSaving] = useState<string | null>(null);
+  const unavailable = dm.unavailable === true;
+
+  useEffect(() => {
+    setName(dm.name ?? "");
+    setRole(dm.role ?? "");
+    setPhone(dm.phone ?? "");
+    setEmail(dm.email ?? "");
+  }, [dm.name, dm.role, dm.phone, dm.email]);
+
+  const save = async (
+    field: "name" | "role" | "phone" | "email",
+    value: string,
+  ) => {
+    if ((dm[field] ?? "") === value.trim()) return;
+    setSaving(field);
+    setError(null);
+    try {
+      await action("update_decision_maker", {
+        [field]: value.trim() === "" ? null : value.trim(),
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save Decision Maker");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const toggleUnavailable = async () => {
+    setSaving("unavailable");
+    setError(null);
+    try {
+      await action("update_decision_maker", { unavailable: !unavailable });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update Decision Maker");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const hasAny =
+    Boolean(name.trim() || role.trim() || phone.trim() || email.trim()) ||
+    unavailable;
+
+  return (
+    <div>
+      <div className="mb-1.5 flex items-baseline justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          Decision Maker
+        </p>
+        {saving && (
+          <p className="text-[10px] text-gray-400">Saving {saving}…</p>
+        )}
+      </div>
+      {!editable && unavailable ? (
+        <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-3 py-2.5 text-xs text-gray-500">
+          Decision Maker marked not available.
+        </p>
+      ) : !editable && !hasAny ? (
+        <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-3 py-2.5 text-center text-xs text-gray-500">
+          No Decision Maker on file.
+        </p>
+      ) : (
+        <div
+          className={`rounded-md border ${unavailable ? "border-gray-200 bg-gray-50" : "border-gray-200 bg-white"} px-3 py-2.5`}
+        >
+          <dl className="grid grid-cols-[88px_1fr] gap-x-3 gap-y-1.5 text-sm">
+            <dt className="text-[11px] uppercase tracking-wide text-gray-500">
+              Name
+            </dt>
+            <dd>
+              {editable ? (
+                <Input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={() => save("name", name)}
+                  placeholder="First Last"
+                  disabled={unavailable}
+                  size="sm"
+                />
+              ) : (
+                <span className="block truncate text-gray-700">
+                  {name || <span className="text-gray-400">—</span>}
+                </span>
+              )}
+            </dd>
+            <dt className="text-[11px] uppercase tracking-wide text-gray-500">
+              Role
+            </dt>
+            <dd>
+              {editable ? (
+                <Input
+                  type="text"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  onBlur={() => save("role", role)}
+                  placeholder="Owner / Hiring Manager / Administrator"
+                  disabled={unavailable}
+                  size="sm"
+                />
+              ) : (
+                <span className="block truncate text-gray-700">
+                  {role || <span className="text-gray-400">—</span>}
+                </span>
+              )}
+            </dd>
+            <dt className="text-[11px] uppercase tracking-wide text-gray-500">
+              Phone
+            </dt>
+            <dd>
+              {editable ? (
+                <Input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  onBlur={() => save("phone", phone)}
+                  placeholder="(555) 123-4567"
+                  disabled={unavailable}
+                  size="sm"
+                />
+              ) : phone ? (
+                <a
+                  href={`tel:${phone}`}
+                  className="block truncate text-primary-700 hover:underline"
+                >
+                  {phone}
+                </a>
+              ) : (
+                <span className="text-gray-400">—</span>
+              )}
+            </dd>
+            <dt className="text-[11px] uppercase tracking-wide text-gray-500">
+              Email
+            </dt>
+            <dd>
+              {editable ? (
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => save("email", email)}
+                  placeholder="name@agency.com"
+                  disabled={unavailable}
+                  size="sm"
+                />
+              ) : (
+                <span className="block truncate text-gray-700">
+                  {email || <span className="text-gray-400">—</span>}
+                </span>
+              )}
+            </dd>
+          </dl>
+          {editable && (
+            <button
+              type="button"
+              onClick={toggleUnavailable}
+              className="mt-2 text-[11px] font-medium text-gray-600 hover:text-gray-900"
+            >
+              {unavailable
+                ? "Revert (mark Decision Maker available)"
+                : "Mark Decision Maker not available"}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ── ContactRow ──────────────────────────────────────────────────────────

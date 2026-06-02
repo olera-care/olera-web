@@ -157,6 +157,33 @@ export interface ResearchData {
     city?: string | null;
     state?: string | null;
     zip?: string | null;
+    /** v9.x research-card "Mark not available" override for fields
+     *  where the provider genuinely lacks one (rural agencies without
+     *  a fax line, very small agencies without a public contact form).
+     *  When `true`, the Research Card row renders satisfied and the
+     *  research-progress indicator counts the field as resolved. The
+     *  Pre-Flight Checklist gate doesn't look at these (it gates on
+     *  email + verified call only), but they keep the Research Card
+     *  visually complete instead of perpetually amber. */
+    fax_unavailable?: boolean;
+    contact_form_unavailable?: boolean;
+  };
+  /** v9.x single Decision Maker slot — the named person on the team admin
+   *  identified as the right recipient (owner, hiring manager, etc.). Stored
+   *  here (not in `student_outreach_contacts`) so the Pre-Flight UI surfaces
+   *  ONE prominent slot instead of a multi-contact hierarchy. Existing rows
+   *  with `student_outreach_contacts` entries remain readable as a legacy
+   *  section in the Research Card; new edits write here. The Smartlead fan-out
+   *  emails General Contact + Decision Maker (max 2 leads per row). */
+  decision_maker?: {
+    name?: string | null;
+    role?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    /** Admin marked the Decision Maker as not findable after reasonable
+     *  effort. Counts as resolved on the Research Card; the row launches
+     *  with the General Contact lead only. */
+    unavailable?: boolean;
   };
   /** v9.x Smartlead bridge linkage (cold-email engine). Set when the row's
    *  General Contact (and any Named Contacts) are enrolled into its campus

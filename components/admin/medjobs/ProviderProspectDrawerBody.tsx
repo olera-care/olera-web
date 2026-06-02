@@ -66,21 +66,18 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const generalPhone =
     gc.phone !== undefined ? gc.phone : ctx.provider_business_profile?.phone ?? null;
 
-  const hasEmail = Boolean(generalEmail?.includes("@"));
+  const hasGeneralEmail = Boolean(generalEmail?.includes("@"));
   const hasPhone = Boolean(generalPhone);
 
-  // v9 final: pre-flight gate. Required in every case:
-  //   - General Contact email (org-level outreach lane)
-  //   - General Contact phone (call cadence)
-  // Required only when a contact_form_url is on file:
-  //   - admin must mark Submitted / Skipped / Not available
-  // Recommended (non-blocking): Website, Address, Contact form URL, Fax.
-  // Address demoted to recommended — snail mail is a future channel,
-  // shouldn't block email/phone outreach.
-  const contactFormUrl = gc.contact_form_url ?? "";
-  const contactFormResolved =
-    !contactFormUrl ||
-    ctx.touchpoints.some((t) => t.touchpoint_type === "contact_form_submitted");
+  // v9.x simplified launch gate: a valid outreach destination + a verified
+  // call. EITHER a General Contact email OR a Decision Maker email satisfies
+  // the email requirement. Address / Website / Fax / Contact form / Decision
+  // Maker show in the checklist but DON'T gate — the philosophy is "do we
+  // know enough to confidently send outreach to the correct person?", not
+  // "force perfect data collection".
+  const dm = ctx.outreach.research_data?.decision_maker;
+  const hasDecisionMakerEmail = Boolean(dm?.email && dm.email.includes("@"));
+  const hasEmail = hasGeneralEmail || hasDecisionMakerEmail;
 
   // v9.x Pre-Flight verification gate: 3 call attempts across 3 distinct
   // days OR a verified call_connected (admin confirmed contacts) before
@@ -88,22 +85,18 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   // verification not applicable). See lib/student-outreach/verification-state.ts.
   const hasAnyPhone =
     hasPhone ||
+    Boolean(dm?.phone) ||
     ctx.contacts.some(
       (c) => c.status === "active" && (c.phone || c.mobile),
     );
   const verificationState = getVerificationState(ctx.touchpoints, hasAnyPhone);
 
-  const launchEnabled =
-    hasEmail && hasPhone && contactFormResolved && verificationState.can_launch;
+  const launchEnabled = hasEmail && verificationState.can_launch;
   const launchDisabledReason = !hasEmail
-    ? "Add a General Contact email — a Specific Contact email is not enough."
-    : !hasPhone
-      ? "Add a General Contact phone — a Specific Contact phone is not enough."
-      : !contactFormResolved
-        ? "Resolve the contact form (Submitted / Skipped / Not available) before launching."
-        : !verificationState.can_launch
-          ? `Call to confirm contacts first (attempt ${verificationState.attempts}/3 on ${verificationState.days_used}/3 days).`
-          : undefined;
+    ? "Add an email — General Contact or Decision Maker."
+    : !verificationState.can_launch
+      ? `Call to confirm contacts first (attempt ${verificationState.attempts}/3 on ${verificationState.days_used}/3 days).`
+      : undefined;
 
   return (
     <div className="space-y-6">

@@ -341,107 +341,145 @@ function ProspectBody({
   );
   const hasNotes = Boolean(ctx.outreach.notes?.trim());
 
+  // v9.x Decision Maker — single slot in research_data. Replaces multi-
+  // contact UI for new rows. Existing student_outreach_contacts data
+  // remains visible as a legacy section in the SnapshotCard.
+  const dm = ctx.outreach.research_data?.decision_maker ?? {};
+  const hasDecisionMaker =
+    Boolean(dm.email?.trim() || dm.phone?.trim() || dm.name?.trim()) ||
+    dm.unavailable === true;
+
+  // v9.x "Mark not available" override flags. When set, the Research Card
+  // row counts as resolved without an actual value (rural agency with no
+  // fax line; very small agency without a public contact form).
+  const faxResolved = hasFax || gc.fax_unavailable === true;
+  const contactFormFieldResolved =
+    hasContactFormUrl || gc.contact_form_unavailable === true;
+
+  // Research-progress indicator — passive, non-blocking. Counts the
+  // research-card fields filled or marked unavailable so admin sees
+  // how much work remains without the checklist becoming a wall of
+  // rows. Order: Address, Website, Phone, Fax, Contact form URL,
+  // Decision Maker (6 fields). Email + Call to confirm appear above
+  // as actual launch gates.
+  const researchFields = [
+    addressComplete,
+    hasWebsite,
+    hasPhone,
+    faxResolved,
+    contactFormFieldResolved,
+    hasDecisionMaker,
+  ];
+  const researchFilled = researchFields.filter(Boolean).length;
+  const researchTotal = researchFields.length;
+
   return (
     <>
       <p className="text-sm font-medium text-gray-900">
         Pre-flight checklist
       </p>
       <p className="mt-0.5 text-xs text-gray-500">
-        Confirm contact information and decision makers before launching outreach.
+        Visit website, collect information, then call to confirm.
       </p>
-      <ul className="mt-2 space-y-1 text-xs">
-        <ChecklistRow
-          done={hasEmail}
-          tone="required"
-          label="General Contact email"
-          hint={
-            hasEmail
-              ? "General email on file — outreach can launch."
-              : "Required. Provider outreach begins at the org-level email."
+      {showVisitWebsiteCta && generalContactWebsite && (
+        <a
+          href={
+            generalContactWebsite.startsWith("http")
+              ? generalContactWebsite
+              : `https://${generalContactWebsite}`
           }
-        />
-        <ChecklistRow
-          done={hasPhone}
-          tone="required"
-          label="General Contact phone"
-          hint={
-            hasPhone
-              ? "General phone on file — call tasks queue with email."
-              : "Required at the org level. Call cadence runs alongside email."
-          }
-        />
-        {/* v9.x verification gate. Requires 3 call attempts across 3 distinct
-            days, OR a verified call_connected, OR (for phone-less prospects)
-            exempts the row. Surfaces progress so admin sees the gate. */}
-        <ChecklistRow
-          done={verificationState.can_launch}
-          tone={verificationState.status === "exempt_no_phone" ? "recommended" : "required"}
-          label="Call to confirm"
-          hint={verificationState.label}
-        />
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          🌐 Visit Website
+        </a>
+      )}
+      <ul className="mt-3 space-y-1 text-xs">
         <ChecklistRow
           done={addressComplete}
           tone="recommended"
           label="Address"
           hint={
             addressComplete
-              ? "Street, city, state, ZIP set — ready for snail mail."
-              : "Recommended for future snail mail. Need street, city, state, and ZIP."
+              ? "Street, city, state, ZIP on file."
+              : "Add street, city, state, and ZIP in the Research Card."
           }
         />
-        {/* v9.1 admin feedback (Graize 05.13): Website is now
-            recommended, not required. Some agencies have no public
-            website or only a social profile, and we don't want that to
-            block outreach. Launch gate dropped the website check; this
-            row reflects the same tone. */}
         <ChecklistRow
           done={hasWebsite}
           tone="recommended"
           label="Website"
-          hint={
-            hasWebsite
-              ? "Website on file."
-              : "Recommended. Helpful for research, but not required to launch."
-          }
+          hint={hasWebsite ? "Website on file." : "Add a website in the Research Card."}
         />
-        {/* v9.1 Graize 05.13 audit fix (Items 1+2): contact form URL
-            no longer reads as "done" when nothing is on file. Prior
-            logic was `done={!hasContactFormUrl || contactFormResolved}`
-            which marked the row checked the moment the URL was empty
-            (vacuously satisfied). Admins saw an unchecked profile +
-            checked checklist for the same field. New semantics:
-              no URL on file       → not done, tone "recommended" (like Fax)
-              URL on file, unresolved → not done, tone "required"
-              URL on file, resolved   → done, tone "recommended" */}
         <ChecklistRow
-          done={hasContactFormUrl && contactFormResolved}
-          tone={hasContactFormUrl && !contactFormResolved ? "required" : "recommended"}
-          label="Contact form URL"
+          done={hasPhone}
+          tone="recommended"
+          label="Phone"
           hint={
-            !hasContactFormUrl
-              ? "Recommended. Paste the link to the agency's contact form page if they have one — the system generates a copy-ready message you can submit there."
-              : contactFormResolved
-                ? "Outcome logged."
-                : "URL on file. Copy the generated message from the banner above, submit it through their form, then mark Submitted below. Required when URL is present."
+            hasPhone
+              ? "General Contact phone on file."
+              : "Add a phone in the Research Card so call cadence + verification can run."
           }
         />
         <ChecklistRow
-          done={hasFax}
+          done={hasEmail}
+          tone="required"
+          label="Email on file"
+          hint={
+            hasEmail
+              ? "General Contact or Decision Maker email on file — outreach has a destination."
+              : "Required. Add a General Contact or Decision Maker email in the Research Card."
+          }
+        />
+        <ChecklistRow
+          done={faxResolved}
           tone="recommended"
           label="Fax"
           hint={
             hasFax
               ? "Fax on file."
-              : "Add the fax line if the agency has one (future fax cadence)."
+              : gc.fax_unavailable
+                ? "Marked not available."
+                : "Add the fax line in the Research Card, or mark not available there."
           }
         />
         <ChecklistRow
-          done={hasNotes}
-          tone="optional"
-          label="Research notes"
-          hint="Capture agency character + any context worth remembering."
+          done={contactFormFieldResolved}
+          tone="recommended"
+          label="Contact form URL"
+          hint={
+            hasContactFormUrl
+              ? "URL on file."
+              : gc.contact_form_unavailable
+                ? "Marked not available."
+                : "Add the contact form URL in the Research Card, or mark not available there."
+          }
+        />
+        <ChecklistRow
+          done={hasDecisionMaker}
+          tone="recommended"
+          label="Decision Maker"
+          hint={
+            dm.unavailable
+              ? "Marked not available."
+              : dm.email || dm.name
+                ? `${dm.name ?? "Decision Maker"}${dm.role ? ` · ${dm.role}` : ""} on file.`
+                : "Add a Decision Maker in the Research Card, or mark not available there."
+          }
+        />
+        {/* v9.x verification gate. Final step before launch. */}
+        <li className="my-1.5 border-t border-gray-100" aria-hidden />
+        <ChecklistRow
+          done={verificationState.can_launch}
+          tone={verificationState.status === "exempt_no_phone" ? "recommended" : "required"}
+          label="Call to confirm"
+          hint={verificationState.label}
         />
       </ul>
+      <p className="mt-2 text-[11px] text-gray-500">
+        Research progress: <strong className="tabular-nums">{researchFilled} of {researchTotal}</strong> fields filled or marked unavailable in the Research Card below.
+      </p>
       {/* v9 final: contact-form pre-flight banner. Mounted here so the
           decision lives next to the checklist + launch button — admin
           can't miss it. Hides the moment a contact_form_submitted
@@ -470,28 +508,13 @@ function ProspectBody({
         </div>
       )}
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        {showVisitWebsiteCta && generalContactWebsite && (
-          <a
-            href={
-              generalContactWebsite.startsWith("http")
-                ? generalContactWebsite
-                : `https://${generalContactWebsite}`
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-            title="Open the provider website in a new tab for pre-flight research."
-          >
-            🌐 Visit website to obtain information
-          </a>
-        )}
         {showCallForEmailCta && (
           <button
             onClick={() => setShowCallForEmail(true)}
             className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-            title="Phone the provider to obtain missing info — email, address details, hours, anything."
+            title="Phone the provider to verify email, phone, address, and decision maker."
           >
-            📞 Call to obtain information
+            📞 Call to Confirm
           </button>
         )}
         <button

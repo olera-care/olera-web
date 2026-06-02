@@ -307,6 +307,13 @@ export async function POST(
         await handleUpdateGeneralContact(db, row, body, user.id);
         break;
 
+      // v9.x single Decision Maker slot on `research_data.decision_maker`.
+      // Replaces the multi-contact UI for new rows; legacy
+      // student_outreach_contacts data remains readable.
+      case "update_decision_maker":
+        await handleUpdateDecisionMaker(db, row, body, user.id);
+        break;
+
       // v9 final: log a contact-form Day 0 outcome. Admin picks
       // Submitted / Skipped / Not available from PreFlight or from
       // the post-launch banner. Writes a contact_form_submitted
@@ -652,26 +659,47 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
   // for every MedJobs cadence (provider + stakeholder) when the row has
   // at least one usable recipient. Same lead-construction path as
   // enrollRowIntoSmartlead so the preview matches what the server will
-  // enroll. Provider rows: General Contact email comes from
-  // research_data.general_contact override. Stakeholder rows: no
-  // general-contact concept; recipients are Named Contacts only.
-  const previewContacts: NamedContact[] = ((contacts ?? []) as Contact[])
-    .filter(
-      (c) =>
-        c.status === "active" &&
-        c.email != null &&
-        c.email.trim().length > 0 &&
-        c.role !== "General Office" &&
-        c.role !== "General Inbox",
-    )
-    .map((c) => ({
-      contact_id: c.id,
-      email: c.email ?? "",
-      first_name: c.first_name,
-      last_name: c.last_name,
-      title: c.title,
-      role: c.role,
-    }));
+  // enroll. Provider rows: General Contact + Decision Maker (max 2 leads).
+  // Stakeholder rows: no general-contact concept; the Decision Maker slot
+  // (or legacy student_outreach_contacts data, if no Decision Maker is set
+  // yet) carries the named recipients.
+  const previewDm = row.research_data?.decision_maker;
+  const previewContacts: NamedContact[] = [];
+  if (
+    previewDm &&
+    !previewDm.unavailable &&
+    previewDm.email &&
+    previewDm.email.trim()
+  ) {
+    const [first, ...rest] = (previewDm.name ?? "").trim().split(/\s+/);
+    previewContacts.push({
+      contact_id: `dm:${row.id}`,
+      email: previewDm.email.trim(),
+      first_name: first || null,
+      last_name: rest.length > 0 ? rest.join(" ") : null,
+      title: null,
+      role: previewDm.role ?? null,
+    });
+  } else if (!previewDm) {
+    // Backward-compat for rows enrolled BEFORE the Decision Maker
+    // migration — surface existing student_outreach_contacts entries
+    // (active, email present, not General Office/Inbox) as preview
+    // recipients so the modal doesn't suddenly hide leads the cron is
+    // still managing.
+    for (const c of (contacts ?? []) as Contact[]) {
+      if (c.status !== "active") continue;
+      if (!c.email || !c.email.trim()) continue;
+      if (c.role === "General Office" || c.role === "General Inbox") continue;
+      previewContacts.push({
+        contact_id: c.id,
+        email: c.email,
+        first_name: c.first_name,
+        last_name: c.last_name,
+        title: c.title,
+        role: c.role,
+      });
+    }
+  }
   const gc = row.research_data?.general_contact;
   const previewRow: BridgeRow = {
     outreach_id: row.id,
@@ -932,6 +960,12 @@ async function handleUpdateGeneralContact(
     city?: string | null;
     state?: string | null;
     zip?: string | null;
+    /** v9.x "Mark not available" overrides for fields where a provider
+     *  genuinely lacks one. Both flags are admin-controlled toggles on the
+     *  Research Card; once true, the Research Progress indicator counts
+     *  the field as resolved without an actual value. */
+    fax_unavailable?: boolean;
+    contact_form_unavailable?: boolean;
   },
   userId: string,
 ) {
@@ -957,6 +991,12 @@ async function handleUpdateGeneralContact(
       nextGc[k] = value.trim();
     }
   }
+  if (typeof body.fax_unavailable === "boolean") {
+    nextGc.fax_unavailable = body.fax_unavailable;
+  }
+  if (typeof body.contact_form_unavailable === "boolean") {
+    nextGc.contact_form_unavailable = body.contact_form_unavailable;
+  }
   if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())) {
     throw new Error("Invalid email");
   }
@@ -964,6 +1004,47 @@ async function handleUpdateGeneralContact(
     throw new Error("ZIP must be 5 digits (or 5+4)");
   }
   const nextResearch: ResearchData = { ...current, general_contact: nextGc };
+  await touchOutreach(db, row.id, userId, { research_data: nextResearch });
+}
+
+/**
+ * v9.x update the single Decision Maker slot on `research_data.decision_maker`.
+ * Replaces the multi-contact UX for new rows. Existing
+ * `student_outreach_contacts` rows remain readable as a legacy section in
+ * the SnapshotCard. The Smartlead bridge fan-out emails General Contact +
+ * Decision Maker (max 2 leads per row) instead of N+1.
+ */
+async function handleUpdateDecisionMaker(
+  db: DB,
+  row: OutreachRow,
+  body: {
+    name?: string | null;
+    role?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    unavailable?: boolean;
+  },
+  userId: string,
+) {
+  const current = (row.research_data ?? {}) as ResearchData;
+  const currentDm = current.decision_maker ?? {};
+  const nextDm: NonNullable<ResearchData["decision_maker"]> = { ...currentDm };
+  for (const k of ["name", "role", "phone", "email"] as const) {
+    if (body[k] === undefined) continue;
+    const value = body[k];
+    if (value === null || (typeof value === "string" && value.trim() === "")) {
+      nextDm[k] = null;
+    } else if (typeof value === "string") {
+      nextDm[k] = value.trim();
+    }
+  }
+  if (typeof body.unavailable === "boolean") {
+    nextDm.unavailable = body.unavailable;
+  }
+  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())) {
+    throw new Error("Invalid Decision Maker email");
+  }
+  const nextResearch: ResearchData = { ...current, decision_maker: nextDm };
   await touchOutreach(db, row.id, userId, { research_data: nextResearch });
 }
 
@@ -1933,35 +2014,27 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
     }
   }
 
-  // v9.x Named Contact fan-out: fetch active Specific Contacts on the row
-  // with a usable email. Each becomes its own Smartlead lead alongside the
-  // General Contact. "General Office" / "General Inbox" roles overlap with
-  // the org-level General Contact email path and are intentionally excluded
-  // to avoid double-sending to the same inbox.
-  const { data: contactRows } = await db
-    .from("student_outreach_contacts")
-    .select("id, first_name, last_name, title, role, email")
-    .eq("outreach_id", row.id)
-    .eq("status", "active")
-    .not("email", "is", null)
-    .neq("email", "");
-  const namedContacts: NamedContact[] = ((contactRows ?? []) as Array<{
-    id: string;
-    first_name: string | null;
-    last_name: string | null;
-    title: string | null;
-    role: string | null;
-    email: string | null;
-  }>)
-    .filter((c) => c.role !== "General Office" && c.role !== "General Inbox")
-    .map((c) => ({
-      contact_id: c.id,
-      email: c.email ?? "",
-      first_name: c.first_name,
-      last_name: c.last_name,
-      title: c.title,
-      role: c.role,
-    }));
+  // v9.x Decision Maker fan-out: General Contact + ONE Decision Maker (max
+  // 2 leads per row). Replaces the prior multi-contact fan-out — admins
+  // identify a single decision maker during pre-flight and store them in
+  // `research_data.decision_maker`. When absent or marked unavailable, the
+  // row enrolls with the General Contact lead only.
+  const dm = row.research_data?.decision_maker;
+  const namedContacts: NamedContact[] = [];
+  if (dm && !dm.unavailable && dm.email && dm.email.trim()) {
+    const [first, ...rest] = (dm.name ?? "").trim().split(/\s+/);
+    const lastName = rest.length > 0 ? rest.join(" ") : null;
+    namedContacts.push({
+      // Synthetic contact_id so the D2 webhook can attribute back to the
+      // Decision Maker slot without a contacts-table row.
+      contact_id: `dm:${row.id}`,
+      email: dm.email.trim(),
+      first_name: first || null,
+      last_name: lastName,
+      title: null,
+      role: dm.role ?? null,
+    });
+  }
 
   const gc = row.research_data?.general_contact;
   const bridgeRow: BridgeRow = {

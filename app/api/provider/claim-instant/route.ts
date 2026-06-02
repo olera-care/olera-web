@@ -227,7 +227,7 @@ export async function POST(request: Request) {
           phone: phone || null,
           city: city,
           state: state,
-          care_services: careTypes || [],
+          care_types: careTypes || [],
           claim_state: "claimed",
           verification_state: "unverified", // Gated until verified
           source: "self_service",

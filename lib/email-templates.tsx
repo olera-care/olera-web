@@ -330,10 +330,10 @@ export function newMessageEmail(opts: {
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.recipientName, "there")},
+      Hi ${escapeHtml(firstName(opts.recipientName, "there"))},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      <strong>${safeSenderName}</strong> sent you a message:
+      <strong>${escapeHtml(safeSenderName)}</strong> sent you a message:
     </p>
     <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
@@ -362,7 +362,7 @@ export function unreadReminderEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You have an unread response</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.recipientName, "there")}, <strong>${safeSenderName}</strong> responded to your care inquiry, but we haven't heard back from you yet.
+      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, <strong>${escapeHtml(safeSenderName)}</strong> responded to your care inquiry, but we haven't heard back from you yet.
     </p>
     <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
@@ -783,7 +783,7 @@ export function providerReachOutEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${escapeHtml(opts.providerName)} wants to connect</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, <strong>${escapeHtml(opts.providerName)}</strong> in ${escapeHtml(opts.city)} saw your care needs and reached out to you.
+      Hi ${escapeHtml(firstName(opts.familyName, "there"))}, <strong>${escapeHtml(opts.providerName)}</strong> in ${escapeHtml(opts.city)} saw your care needs and reached out to you.
     </p>
     ${messageLine}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
@@ -791,7 +791,7 @@ export function providerReachOutEmail(opts: {
     </p>
     <div style="margin:0 0 24px;">${button("View Their Message", opts.matchesUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, preheader);
 }
@@ -807,7 +807,7 @@ export function matchesNudgeEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Still waiting to hear back?</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, you've reached out to ${opts.unansweredCount} ${providerWord} but haven't heard back yet. That's frustrating — but there's a better way.
+      Hi ${escapeHtml(firstName(opts.familyName, "there"))}, you've reached out to ${opts.unansweredCount} ${providerWord} but haven't heard back yet. That's frustrating — but there's a better way.
     </p>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
       Instead of chasing providers one by one, let them come to you. Share your care needs once, and qualified providers will reach out directly.
@@ -817,7 +817,7 @@ export function matchesNudgeEmail(opts: {
     </p>
     <div style="margin:0 0 24px;">${button("Let Providers Reach Out", opts.matchesUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
       <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>

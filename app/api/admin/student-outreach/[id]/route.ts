@@ -2919,7 +2919,7 @@ async function handleEnrollContactInCadence(
 async function handleLogResearchCall(
   db: DB,
   row: OutreachRow,
-  body: { outcome?: string; notes?: string },
+  body: { outcome?: string; notes?: string; verified?: boolean },
   userId: string,
 ) {
   const outcomeMap: Record<string, TouchpointType> = {
@@ -2930,11 +2930,18 @@ async function handleLogResearchCall(
   };
   const tpType = outcomeMap[body.outcome ?? ""];
   if (!tpType) throw new Error("Invalid research-call outcome");
+  // Pre-Flight 3-call verification gate: when admin reaches someone AND
+  // confirms contacts on the call, mark the touchpoint with `verified: true`.
+  // The Launch Outreach gate (derived state, see verification-state.ts) treats
+  // any `call_connected` touchpoint with `verified: true` as immediate
+  // verification; otherwise it counts toward the 3-attempts-across-3-days
+  // fallback unblock.
+  const verified = body.verified === true && body.outcome === "connected";
   await insertTouchpoint(db, row.id, tpType, userId, {
     channel: "phone",
     outcome: body.outcome,
     notes: body.notes ?? null,
-    payload: { reason: "research_call" },
+    payload: { reason: "research_call", verified },
   });
   await touchOutreach(db, row.id, userId);
 }

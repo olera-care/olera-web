@@ -48,6 +48,7 @@ import {
 } from "@/lib/student-outreach/formatters";
 import type { CadenceKey } from "@/lib/student-outreach/cadence";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightReviewModal";
 import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
@@ -259,14 +260,19 @@ function ProspectBody({
     generalContactSlot.website ??
     ctx.provider_business_profile?.website ??
     null;
-  const callAttempts = ctx.touchpoints.filter((t) =>
-    [
-      "call_no_answer",
-      "call_voicemail",
-      "call_connected",
-      "call_wrong_number",
-    ].includes(t.touchpoint_type),
-  ).length;
+  // v9.x Pre-Flight 3-call verification gate. Derived from existing
+  // call touchpoints — no new enum, no migration. See
+  // lib/student-outreach/verification-state.ts for the rule:
+  //   - Any call_connected with payload.verified=true → verified.
+  //   - 3 attempts across 3 distinct days → attempts_complete (unblock).
+  //   - No phone on file → exempt_no_phone (unblock).
+  //   - Otherwise → blocked.
+  const hasAnyPhone =
+    Boolean(generalContactPhone) ||
+    ctx.contacts.some(
+      (c) => c.status === "active" && (c.phone || c.mobile),
+    );
+  const verificationState = getVerificationState(ctx.touchpoints, hasAnyPhone);
   const showCallForEmailCta =
     isProviderProspect && Boolean(generalContactPhone);
   const showVisitWebsiteCta =
@@ -341,13 +347,8 @@ function ProspectBody({
         Pre-flight checklist
       </p>
       <p className="mt-0.5 text-xs text-gray-500">
-        Add missing info, then launch outreach.
+        Confirm contact information and decision makers before launching outreach.
       </p>
-      {showCallForEmailCta && (
-        <p className="mt-1 text-[11px] text-gray-500">
-          Or call them now — if they engage, log it directly (Interested / Became a Client / Not interested) and we&apos;ll close this out without launching the campaign.
-        </p>
-      )}
       <ul className="mt-2 space-y-1 text-xs">
         <ChecklistRow
           done={hasEmail}
@@ -368,6 +369,15 @@ function ProspectBody({
               ? "General phone on file — call tasks queue with email."
               : "Required at the org level. Call cadence runs alongside email."
           }
+        />
+        {/* v9.x verification gate. Requires 3 call attempts across 3 distinct
+            days, OR a verified call_connected, OR (for phone-less prospects)
+            exempts the row. Surfaces progress so admin sees the gate. */}
+        <ChecklistRow
+          done={verificationState.can_launch}
+          tone={verificationState.status === "exempt_no_phone" ? "recommended" : "required"}
+          label="Call to confirm"
+          hint={verificationState.label}
         />
         <ChecklistRow
           done={addressComplete}
@@ -459,11 +469,6 @@ function ProspectBody({
           />
         </div>
       )}
-      {showCallForEmailCta && callAttempts > 0 && (
-        <p className="mt-2 text-xs text-gray-500">
-          {callAttempts} call attempt{callAttempts === 1 ? "" : "s"} logged.
-        </p>
-      )}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {showVisitWebsiteCta && generalContactWebsite && (
           <a
@@ -512,7 +517,9 @@ function ProspectBody({
           }
           className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Launch outreach →
+          {verificationState.status === "attempts_complete"
+            ? "Launch outreach (unverified) →"
+            : "Launch outreach →"}
         </button>
       </div>
 

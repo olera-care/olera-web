@@ -142,6 +142,7 @@ export function CallForEmailModal({
 }: Props) {
   const [outcome, setOutcome] = useState<Outcome>("no_answer");
   const [engagement, setEngagement] = useState<Engagement>("none");
+  const [contactsVerified, setContactsVerified] = useState(false);
   const [notes, setNotes] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -152,12 +153,15 @@ export function CallForEmailModal({
   const [saving, setSaving] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  // Engagement only applies when the admin actually reached someone.
-  // If they switch outcome away from connected, drop any selection so
-  // we don't dispatch a stale engagement on submit.
+  // Engagement + verification only apply when the admin actually reached
+  // someone. If they switch outcome away from connected, drop both flags
+  // so we don't dispatch stale state on submit.
   const handleOutcomeChange = (next: Outcome) => {
     setOutcome(next);
-    if (next !== "connected") setEngagement("none");
+    if (next !== "connected") {
+      setEngagement("none");
+      setContactsVerified(false);
+    }
   };
 
   const submit = async () => {
@@ -177,7 +181,15 @@ export function CallForEmailModal({
           notes: notes.trim() || null,
         });
       } else {
-        await action("log_research_call", { outcome, notes: notes.trim() || null });
+        // Verification flag only carries for "Reached someone" — the
+        // route handler validates `outcome === "connected"` before
+        // honoring it, so other outcomes can't accidentally flip the
+        // Pre-Flight gate.
+        await action("log_research_call", {
+          outcome,
+          notes: notes.trim() || null,
+          verified: outcome === "connected" ? contactsVerified : false,
+        });
       }
 
       // If admin obtained a new contact during the call, add it. The
@@ -273,6 +285,27 @@ export function CallForEmailModal({
 
       {outcome === "connected" && (
         <div className="space-y-3 rounded-md border border-primary-200 bg-primary-50/30 px-3 py-3">
+          {/* Pre-Flight verification toggle. Checking this writes
+              `payload.verified: true` on the call_connected touchpoint,
+              which lib/student-outreach/verification-state.ts treats as
+              immediate unblock for the Launch Outreach gate. */}
+          <label className="flex cursor-pointer items-start gap-2 rounded-md border border-primary-300 bg-white px-3 py-2.5">
+            <input
+              type="checkbox"
+              checked={contactsVerified}
+              onChange={(e) => setContactsVerified(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span className="text-xs">
+              <span className="font-semibold text-primary-900">
+                ✓ Confirmed contacts on this call
+              </span>
+              <span className="ml-1 text-primary-800">
+                — email, phone, and decision makers verified with the provider.
+                Unblocks Launch Outreach immediately (skips the 3-call gate).
+              </span>
+            </span>
+          </label>
           <div>
             <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary-700">
               What happened on the call?

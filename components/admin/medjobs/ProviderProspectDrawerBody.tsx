@@ -24,6 +24,7 @@
 
 import { useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { ProviderSnapshotCard } from "@/components/admin/medjobs/SnapshotCard";
@@ -81,14 +82,28 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
     !contactFormUrl ||
     ctx.touchpoints.some((t) => t.touchpoint_type === "contact_form_submitted");
 
-  const launchEnabled = hasEmail && hasPhone && contactFormResolved;
+  // v9.x Pre-Flight verification gate: 3 call attempts across 3 distinct
+  // days OR a verified call_connected (admin confirmed contacts) before
+  // launch is unblocked. Phone-less prospects are exempt (no phone =
+  // verification not applicable). See lib/student-outreach/verification-state.ts.
+  const hasAnyPhone =
+    hasPhone ||
+    ctx.contacts.some(
+      (c) => c.status === "active" && (c.phone || c.mobile),
+    );
+  const verificationState = getVerificationState(ctx.touchpoints, hasAnyPhone);
+
+  const launchEnabled =
+    hasEmail && hasPhone && contactFormResolved && verificationState.can_launch;
   const launchDisabledReason = !hasEmail
     ? "Add a General Contact email — a Specific Contact email is not enough."
     : !hasPhone
       ? "Add a General Contact phone — a Specific Contact phone is not enough."
       : !contactFormResolved
         ? "Resolve the contact form (Submitted / Skipped / Not available) before launching."
-        : undefined;
+        : !verificationState.can_launch
+          ? `Call to confirm contacts first (attempt ${verificationState.attempts}/3 on ${verificationState.days_used}/3 days).`
+          : undefined;
 
   return (
     <div className="space-y-6">

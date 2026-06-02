@@ -6,6 +6,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { questionWelcomeEmail } from "@/lib/email-templates";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
+import { generateProviderSlug } from "@/lib/slugify";
 import { validateEmailStrict } from "@/lib/email-validation";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
 import { syncIntentToProfile } from "@/lib/sync-intent-to-profile";
@@ -286,22 +287,83 @@ export async function POST(req: Request) {
   // ═══════════════════════════════════════════════════════════════════
   // 3b. Pre-fill city and care_types from provider (for completeness)
   // ═══════════════════════════════════════════════════════════════════
-  // Lookup provider info and sync to profile so users get 31% completeness
-  // (email 10 + name 5 + city 8 + care_types 8 = 31) instead of just 15%
-  // Note: providerId from frontend is the SLUG, not UUID
+  // Multi-strategy provider lookup to get city, state, category.
+  // Many providers are in olera-providers (iOS data), not business_profiles.
+  // This mirrors the 4-strategy lookup from /api/questions/route.ts.
+  // Result: users get 31% completeness (email 10 + name 5 + city 8 + care_types 8)
   if (providerId) {
     try {
-      const { data: provider } = await db
-        .from("business_profiles")
-        .select("city, state, category")
-        .eq("slug", providerId)
-        .single();
+      let providerCity: string | null = null;
+      let providerState: string | null = null;
+      let providerCategory: string | null = null;
 
-      if (provider) {
+      // Strategy 1: business_profiles by slug
+      const { data: bpProvider } = await db
+        .from("business_profiles")
+        .select("city, state, category, source_provider_id")
+        .eq("slug", providerId)
+        .maybeSingle();
+
+      if (bpProvider) {
+        providerCity = bpProvider.city;
+        providerState = bpProvider.state;
+        providerCategory = bpProvider.category;
+      } else {
+        // Strategy 2: olera-providers by slug
+        let iosProvider = await db
+          .from("olera-providers")
+          .select("provider_id, city, state, provider_category, provider_name")
+          .eq("slug", providerId)
+          .not("deleted", "is", true)
+          .maybeSingle()
+          .then((r: { data: { provider_id: string; city: string | null; state: string | null; provider_category: string | null; provider_name: string | null } | null }) => r.data);
+
+        if (!iosProvider) {
+          // Strategy 3: olera-providers by provider_id (legacy alphanumeric ID)
+          iosProvider = await db
+            .from("olera-providers")
+            .select("provider_id, city, state, provider_category, provider_name")
+            .eq("provider_id", providerId)
+            .not("deleted", "is", true)
+            .maybeSingle()
+            .then((r: { data: { provider_id: string; city: string | null; state: string | null; provider_category: string | null; provider_name: string | null } | null }) => r.data);
+        }
+
+        if (!iosProvider) {
+          // Strategy 4: reverse-match auto-generated slug from name+state
+          const slugParts = providerId.split("-");
+          const namePrefix = slugParts.slice(0, 3).join("-");
+          const { data: candidates } = await db
+            .from("olera-providers")
+            .select("provider_id, city, state, provider_category, provider_name")
+            .not("deleted", "is", true)
+            .is("slug", null)
+            .ilike("provider_name", `${namePrefix.replace(/-/g, "%")}%`)
+            .limit(20);
+
+          if (candidates) {
+            for (const c of candidates) {
+              if (generateProviderSlug(c.provider_name, c.state) === providerId) {
+                iosProvider = c;
+                break;
+              }
+            }
+          }
+        }
+
+        if (iosProvider) {
+          providerCity = iosProvider.city;
+          providerState = iosProvider.state;
+          providerCategory = iosProvider.provider_category;
+        }
+      }
+
+      // Sync to profile if we found provider data
+      if (providerCity || providerState || providerCategory) {
         await syncIntentToProfile(db, familyProfileId, {
-          providerCity: provider.city,
-          providerState: provider.state,
-          providerCategory: provider.category,
+          providerCity,
+          providerState,
+          providerCategory,
         }, normalizedEmail);
       }
     } catch (prefillErr) {

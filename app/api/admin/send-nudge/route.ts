@@ -51,13 +51,14 @@ export async function POST(req: NextRequest) {
     .select(
       `
       id,
+      type,
       from_profile_id,
       to_profile_id,
       message,
       metadata,
       created_at,
-      from_profile:business_profiles!connections_from_profile_id_fkey(display_name, care_types, metadata),
-      to_profile:business_profiles!connections_to_profile_id_fkey(display_name, slug, source_provider_id, email)
+      from_profile:business_profiles!connections_from_profile_id_fkey(display_name, slug, source_provider_id, email, care_types, metadata),
+      to_profile:business_profiles!connections_to_profile_id_fkey(display_name, slug, source_provider_id, email, care_types, metadata)
     `
     )
     .eq("id", connection_id)
@@ -71,7 +72,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Normalize joined relations
+  // Normalize joined relations and resolve family/provider based on connection type
+  // - inquiry: from=family, to=provider
+  // - request (Matches): from=provider, to=family
   const fromProfile = Array.isArray(connection.from_profile)
     ? connection.from_profile[0]
     : connection.from_profile;
@@ -79,7 +82,12 @@ export async function POST(req: NextRequest) {
     ? connection.to_profile[0]
     : connection.to_profile;
 
-  if (!toProfile?.email?.trim()) {
+  const isInquiry = connection.type === "inquiry";
+  const familyProfile = isInquiry ? fromProfile : toProfile;
+  const providerProfile = isInquiry ? toProfile : fromProfile;
+  const familyProfileId = isInquiry ? connection.from_profile_id : connection.to_profile_id;
+
+  if (!providerProfile?.email?.trim()) {
     return NextResponse.json(
       { error: "Provider has no email address" },
       { status: 400 }
@@ -127,7 +135,7 @@ export async function POST(req: NextRequest) {
   if (!messagePreview) {
     const thread = (meta.thread as Array<{ from_profile_id?: string; text?: string; is_auto_reply?: boolean }>) || [];
     const familyMessage = thread.find(
-      (m) => m.from_profile_id === connection.from_profile_id && m.text && !m.is_auto_reply
+      (m) => m.from_profile_id === familyProfileId && m.text && !m.is_auto_reply
     );
     if (familyMessage?.text) {
       messagePreview = familyMessage.text;
@@ -163,8 +171,8 @@ export async function POST(req: NextRequest) {
     let timeline: string | null = null;
 
     // From family profile
-    const familyMeta = (fromProfile?.metadata as Record<string, unknown>) ?? {};
-    const familyCareTypes = (fromProfile as { care_types?: string[] })?.care_types;
+    const familyMeta = (familyProfile?.metadata as Record<string, unknown>) ?? {};
+    const familyCareTypes = (familyProfile as { care_types?: string[] })?.care_types;
     if (familyCareTypes && familyCareTypes.length > 0) {
       careType = CARE_TYPE_LABELS[familyCareTypes[0]] || familyCareTypes[0];
     }
@@ -202,13 +210,13 @@ export async function POST(req: NextRequest) {
   }
 
   const siteUrl = getSiteUrl();
-  const providerSlug = toProfile.slug || toProfile.source_provider_id || "";
-  const providerName = toProfile.display_name || "Your Organization";
-  const familyName = fromProfile?.display_name || "A family";
+  const providerSlug = providerProfile.slug || providerProfile.source_provider_id || "";
+  const providerName = providerProfile.display_name || "Your Organization";
+  const familyName = familyProfile?.display_name || "A family";
 
   // Reserve email log ID for tracking
   const emailLogId = await reserveEmailLogId({
-    to: toProfile.email,
+    to: providerProfile.email,
     subject: `${familyName} is waiting for a response`,
     emailType: "provider_nudge",
     recipientType: "provider",
@@ -237,7 +245,7 @@ export async function POST(req: NextRequest) {
   });
 
   const { success, error: sendError } = await sendEmail({
-    to: toProfile.email,
+    to: providerProfile.email,
     subject: `${familyName} is waiting for a response`,
     html,
     emailType: "provider_nudge",
@@ -281,6 +289,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     success: true,
     nudged_at: nudgedAt,
-    provider_email: toProfile.email,
+    provider_email: providerProfile.email,
   });
 }

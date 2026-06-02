@@ -1,47 +1,44 @@
 /**
- * Pre-Flight verification state — derived from touchpoints.
+ * Pre-Flight verification state — derived from touchpoints + the
+ * `research_data.pre_flight_overridden` flag.
  *
- * The Launch Outreach gate enforces a soft verification rule:
+ * Two ways to unlock Launch Outreach:
  *
- *   1. **Verified** — admin reached someone AND confirmed contacts on the
- *      call. Any `call_connected` touchpoint with `payload.verified === true`
- *      flips the row to verified immediately. Launch enabled.
+ *   1. **Verified** — admin selected "Confirmed Contact Information" in
+ *      the Pre-Flight call log modal. Logs a `call_connected` touchpoint
+ *      with `payload.verified === true`. Verified once → verified forever.
  *
- *   2. **Attempts complete** — admin tried 3 times across 3 distinct
- *      calendar days. Launch enabled with an "Unverified — 3 attempts
- *      logged" badge so the timeline preserves the discipline.
+ *   2. **Overridden** — admin selected "Override Pre-Flight" in the call
+ *      log modal (or any equivalent override surface). Writes
+ *      `research_data.pre_flight_overridden = true` and emits a
+ *      `note_added` touchpoint for audit. Used when verification isn't
+ *      possible (already-verified elsewhere, trusted source, leadership
+ *      exception).
  *
- *   3. **Exempt (no phone)** — when the prospect has no phone on file
- *      (general_contact.phone null AND no Specific Contact has a phone),
- *      the gate doesn't apply. Launch enabled day one with "No phone on
- *      file" badge.
+ * Otherwise: **blocked** — call attempts (no-answer / voicemail /
+ * wrong-number) keep the row in Pre-Flight regardless of how many times
+ * they're logged. The 3-attempts-across-3-days auto-unblock was removed
+ * in favor of the explicit Override path: admins try until they reach
+ * someone, or they consciously decide to bypass.
  *
- *   4. **Blocked** — none of the above. Launch button disabled with a
- *      hint indicating the current attempt count (1 of 3 on N days).
- *
- * Pure function — derives entirely from touchpoints + contact data the
- * drawer already has. No DB round trip, no new touchpoint type (G1), no
- * new action surface (G2). The CallForEmailModal logs through the existing
- * `log_research_call` action; this predicate just reads the payloads.
+ * Pure function — derives entirely from touchpoints + a single research-
+ * data flag the drawer already has. No DB round trip, no new touchpoint
+ * type (G1), no new action surface beyond the existing log_research_call
+ * and a thin override_pre_flight action (G2).
  */
 
 import type { Touchpoint } from "./types";
 
-export type VerificationStatus =
-  | "verified"
-  | "attempts_complete"
-  | "exempt_no_phone"
-  | "blocked";
+export type VerificationStatus = "verified" | "overridden" | "blocked";
 
 export interface VerificationState {
   status: VerificationStatus;
-  /** Number of call attempts logged (any phone-call touchpoint type). */
+  /** Number of call attempts logged. Informational only — no longer gates. */
   attempts: number;
-  /** Number of distinct calendar days those attempts span. */
-  days_used: number;
-  /** Whether the row can launch outreach. True unless `blocked`. */
+  /** Whether Launch Outreach can fire (verification-side; the caller still
+   *  AND-gates with "email on file"). */
   can_launch: boolean;
-  /** Human-readable explanation surfaced in the Pre-Flight checklist line. */
+  /** Human-readable explanation surfaced in the Pre-Flight checklist. */
   label: string;
 }
 
@@ -52,25 +49,10 @@ const CALL_ATTEMPT_TYPES = new Set([
   "call_wrong_number",
 ]);
 
-/** UTC date key (YYYY-MM-DD) for grouping attempts by calendar day. */
-function dayKey(isoTimestamp: string): string {
-  return isoTimestamp.slice(0, 10);
-}
-
 export function getVerificationState(
   touchpoints: Touchpoint[],
-  hasPhone: boolean,
+  preFlightOverridden: boolean,
 ): VerificationState {
-  if (!hasPhone) {
-    return {
-      status: "exempt_no_phone",
-      attempts: 0,
-      days_used: 0,
-      can_launch: true,
-      label: "No phone on file.",
-    };
-  }
-
   const attempts = touchpoints.filter((t) =>
     CALL_ATTEMPT_TYPES.has(t.touchpoint_type),
   );
@@ -85,30 +67,27 @@ export function getVerificationState(
     return {
       status: "verified",
       attempts: attempts.length,
-      days_used: new Set(attempts.map((t) => dayKey(t.created_at))).size,
       can_launch: true,
       label: "Information confirmed by phone.",
     };
   }
 
-  const distinctDays = new Set(attempts.map((t) => dayKey(t.created_at)));
-  const daysUsed = distinctDays.size;
-  if (attempts.length >= 3 && daysUsed >= 3) {
+  if (preFlightOverridden) {
     return {
-      status: "attempts_complete",
+      status: "overridden",
       attempts: attempts.length,
-      days_used: daysUsed,
       can_launch: true,
-      label: `Unverified — ${attempts.length} attempts across ${daysUsed} days.`,
+      label: "Pre-Flight overridden.",
     };
   }
 
-  // Blocked. Surface progress so the admin sees the gate.
   return {
     status: "blocked",
     attempts: attempts.length,
-    days_used: daysUsed,
     can_launch: false,
-    label: `Attempt ${attempts.length} of 3 on ${daysUsed} of 3 days.`,
+    label:
+      attempts.length === 0
+        ? "Not yet confirmed."
+        : `Not yet confirmed (${attempts.length} attempt${attempts.length === 1 ? "" : "s"} logged).`,
   };
 }

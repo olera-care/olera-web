@@ -322,6 +322,14 @@ export async function POST(
         await handleUpdateDecisionMaker(db, row, body, user.id);
         break;
 
+      // v9.x admin bypass of the Pre-Flight verification gate. Sets
+      // research_data.pre_flight_overridden=true and emits a note_added
+      // touchpoint for audit. Used when verification isn't possible
+      // (already verified elsewhere, trusted source, leadership exception).
+      case "override_pre_flight":
+        await handleOverridePreFlight(db, row, body, user.id);
+        break;
+
       // v9 final: log a contact-form Day 0 outcome. Admin picks
       // Submitted / Skipped / Not available from PreFlight or from
       // the post-launch banner. Writes a contact_form_submitted
@@ -970,12 +978,15 @@ async function handleUpdateGeneralContact(
     city?: string | null;
     state?: string | null;
     zip?: string | null;
-    /** v9.x "Mark not available" overrides for fields where a provider
-     *  genuinely lacks one. Both flags are admin-controlled toggles on the
-     *  Research Card; once true, the Research Progress indicator counts
-     *  the field as resolved without an actual value. */
+    /** v9.x "Mark not available" overrides. Each flag, when set true,
+     *  satisfies the matching research-card row without an actual value. */
     fax_unavailable?: boolean;
     contact_form_unavailable?: boolean;
+    website_unavailable?: boolean;
+    google_business_profile_unavailable?: boolean;
+    phone_unavailable?: boolean;
+    email_unavailable?: boolean;
+    address_unavailable?: boolean;
   },
   userId: string,
 ) {
@@ -1002,11 +1013,18 @@ async function handleUpdateGeneralContact(
       nextGc[k] = value.trim();
     }
   }
-  if (typeof body.fax_unavailable === "boolean") {
-    nextGc.fax_unavailable = body.fax_unavailable;
-  }
-  if (typeof body.contact_form_unavailable === "boolean") {
-    nextGc.contact_form_unavailable = body.contact_form_unavailable;
+  for (const flag of [
+    "fax_unavailable",
+    "contact_form_unavailable",
+    "website_unavailable",
+    "google_business_profile_unavailable",
+    "phone_unavailable",
+    "email_unavailable",
+    "address_unavailable",
+  ] as const) {
+    if (typeof body[flag] === "boolean") {
+      nextGc[flag] = body[flag];
+    }
   }
   if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())) {
     throw new Error("Invalid email");
@@ -1035,6 +1053,33 @@ async function handleUpdateOrganizationName(
   if (!next) throw new Error("Business name cannot be empty");
   if (next === row.organization_name) return;
   await touchOutreach(db, row.id, userId, { organization_name: next });
+}
+
+/**
+ * v9.x admin bypass of the Pre-Flight verification gate. Stamps
+ * `research_data.pre_flight_overridden=true` and emits a note_added
+ * touchpoint with `payload.reason="pre_flight_override"` so the audit
+ * trail is clear. The Launch gate AND's verification with email-on-file
+ * regardless, so an override without an email still can't ship outreach.
+ */
+async function handleOverridePreFlight(
+  db: DB,
+  row: OutreachRow,
+  body: { notes?: string | null },
+  userId: string,
+) {
+  const current = (row.research_data ?? {}) as ResearchData;
+  if (current.pre_flight_overridden === true) {
+    // Idempotent — already overridden, no-op.
+    return;
+  }
+  const nextResearch: ResearchData = { ...current, pre_flight_overridden: true };
+  await touchOutreach(db, row.id, userId, { research_data: nextResearch });
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    channel: "system",
+    notes: body.notes?.trim() || "Pre-Flight overridden by admin",
+    payload: { reason: "pre_flight_override" },
+  });
 }
 
 /**

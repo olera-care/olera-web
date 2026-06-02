@@ -161,16 +161,19 @@ export interface ResearchData {
      *  own website. Surfaces reviews, hours, photos, and verified
      *  contact info; useful research signal for the pre-flight call. */
     google_business_profile_url?: string | null;
-    /** v9.x research-card "Mark not available" override for fields
-     *  where the provider genuinely lacks one (rural agencies without
-     *  a fax line, very small agencies without a public contact form).
-     *  When `true`, the Research Card row renders satisfied and the
-     *  research-progress indicator counts the field as resolved. The
-     *  Pre-Flight Checklist gate doesn't look at these (it gates on
-     *  email + verified call only), but they keep the Research Card
-     *  visually complete instead of perpetually amber. */
+    /** v9.x research-card "Mark not available" overrides. Each flag, when
+     *  true, satisfies the matching research-card row without an actual
+     *  value (rural agency with no fax line, agency with no public
+     *  Google Business Profile, etc.). Pre-Flight Checklist rows render
+     *  as resolved; the Launch gate doesn't look at these directly (it
+     *  gates on verified-or-overridden call AND email on file). */
     fax_unavailable?: boolean;
     contact_form_unavailable?: boolean;
+    website_unavailable?: boolean;
+    google_business_profile_unavailable?: boolean;
+    phone_unavailable?: boolean;
+    email_unavailable?: boolean;
+    address_unavailable?: boolean;
   };
   /** v9.x single Decision Maker slot — the named person on the team admin
    *  identified as the right recipient (owner, hiring manager, etc.). Stored
@@ -189,6 +192,14 @@ export interface ResearchData {
      *  with the General Contact lead only. */
     unavailable?: boolean;
   };
+  /** v9.x admin bypass of the Pre-Flight verification gate. Set by the
+   *  "Override Pre-Flight" outcome in the call log modal — for cases
+   *  where the prospect was already verified elsewhere, came from a
+   *  trusted source, or a leadership exception. Launch Outreach unlocks
+   *  when (pre_flight_overridden OR verified-by-call) AND email-on-file.
+   *  Audit trail: each override emits a note_added touchpoint with
+   *  payload.reason = "pre_flight_override". */
+  pre_flight_overridden?: boolean;
   /** v9.x Smartlead bridge linkage (cold-email engine). Set when the row's
    *  General Contact (and any Named Contacts) are enrolled into its campus
    *  Smartlead campaign. JSONB on research_data — no schema migration. The

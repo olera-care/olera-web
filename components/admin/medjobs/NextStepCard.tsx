@@ -260,19 +260,15 @@ function ProspectBody({
     generalContactSlot.website ??
     ctx.provider_business_profile?.website ??
     null;
-  // v9.x Pre-Flight 3-call verification gate. Derived from existing
-  // call touchpoints — no new enum, no migration. See
-  // lib/student-outreach/verification-state.ts for the rule:
-  //   - Any call_connected with payload.verified=true → verified.
-  //   - 3 attempts across 3 distinct days → attempts_complete (unblock).
-  //   - No phone on file → exempt_no_phone (unblock).
-  //   - Otherwise → blocked.
-  const hasAnyPhone =
-    Boolean(generalContactPhone) ||
-    ctx.contacts.some(
-      (c) => c.status === "active" && (c.phone || c.mobile),
-    );
-  const verificationState = getVerificationState(ctx.touchpoints, hasAnyPhone);
+  // v9.x simplified Pre-Flight verification gate. Verified (call confirmed)
+  // or overridden (admin bypass) — both unlock Launch (when AND-ed with
+  // email-on-file in the parent). See verification-state.ts.
+  const preFlightOverridden =
+    ctx.outreach.research_data?.pre_flight_overridden === true;
+  const verificationState = getVerificationState(
+    ctx.touchpoints,
+    preFlightOverridden,
+  );
   const showCallForEmailCta =
     isProviderProspect && Boolean(generalContactPhone);
   const showVisitWebsiteCta =
@@ -351,12 +347,22 @@ function ProspectBody({
     Boolean(dm.email?.trim() || dm.phone?.trim() || dm.name?.trim()) ||
     dm.unavailable === true;
 
-  // v9.x "Mark not available" override flags. When set, the Research Card
-  // row counts as resolved without an actual value (rural agency with no
-  // fax line; very small agency without a public contact form).
+  // v9.x "Mark not available" override flags — each research field can
+  // be satisfied by EITHER an actual value OR the matching unavailable
+  // flag set in the Research Card. Email's `*_resolved` flag is for the
+  // checklist row only; the Launch gate uses `hasEmail` directly so an
+  // unavailable email still can't ship outreach (Logan's safeguard:
+  // verification OR override AND at least one email destination).
   const faxResolved = hasFax || gc.fax_unavailable === true;
   const contactFormFieldResolved =
     hasContactFormUrl || gc.contact_form_unavailable === true;
+  const websiteResolved = hasWebsite || gc.website_unavailable === true;
+  const googleBusinessProfileResolved =
+    hasGoogleBusinessProfile || gc.google_business_profile_unavailable === true;
+  const phoneResolved = hasPhone || gc.phone_unavailable === true;
+  const emailResolved = hasEmail || gc.email_unavailable === true;
+  const addressResolved =
+    addressComplete || gc.address_unavailable === true;
 
   // Research-progress indicator — passive, non-blocking. Counts the
   // research-card fields filled or marked unavailable so admin sees
@@ -364,10 +370,10 @@ function ProspectBody({
   // actual launch gates and are not counted here.
   const researchFields = [
     hasOrgName,
-    hasWebsite,
-    hasGoogleBusinessProfile,
-    hasPhone,
-    addressComplete,
+    websiteResolved,
+    phoneResolved,
+    googleBusinessProfileResolved,
+    addressResolved,
     faxResolved,
     contactFormFieldResolved,
     hasDecisionMaker,
@@ -405,38 +411,64 @@ function ProspectBody({
           hint={hasOrgName ? "Business name on file." : "Add the business name."}
         />
         <ChecklistRow
-          done={hasWebsite}
+          done={websiteResolved}
           tone="recommended"
           label="Website"
-          hint={hasWebsite ? "Website on file." : "Add a website."}
+          hint={
+            hasWebsite
+              ? "Website on file."
+              : gc.website_unavailable
+                ? "Marked not available."
+                : "Add a website."
+          }
         />
         <ChecklistRow
-          done={hasGoogleBusinessProfile}
+          done={phoneResolved}
+          tone="recommended"
+          label="Phone"
+          hint={
+            hasPhone
+              ? "Phone on file."
+              : gc.phone_unavailable
+                ? "Marked not available."
+                : "Add a phone."
+          }
+        />
+        <ChecklistRow
+          done={emailResolved}
+          tone="required"
+          label="Email"
+          hint={
+            hasEmail
+              ? "Outreach has a destination."
+              : gc.email_unavailable
+                ? "Marked not available — outreach still needs a destination."
+                : "Add an email."
+          }
+        />
+        <ChecklistRow
+          done={googleBusinessProfileResolved}
           tone="recommended"
           label="Google Business Profile"
           hint={
             hasGoogleBusinessProfile
               ? "Google Business Profile on file."
-              : "Add a Google Business Profile URL."
+              : gc.google_business_profile_unavailable
+                ? "Marked not available."
+                : "Add a Google Business Profile URL."
           }
         />
         <ChecklistRow
-          done={hasPhone}
-          tone="recommended"
-          label="Phone"
-          hint={hasPhone ? "Phone on file." : "Add a phone."}
-        />
-        <ChecklistRow
-          done={hasEmail}
-          tone="required"
-          label="Email"
-          hint={hasEmail ? "Outreach has a destination." : "Add an email."}
-        />
-        <ChecklistRow
-          done={addressComplete}
+          done={addressResolved}
           tone="recommended"
           label="Address"
-          hint={addressComplete ? "Address on file." : "Add street, city, state, ZIP."}
+          hint={
+            addressComplete
+              ? "Address on file."
+              : gc.address_unavailable
+                ? "Marked not available."
+                : "Add street, city, state, ZIP."
+          }
         />
         <ChecklistRow
           done={faxResolved}
@@ -478,7 +510,7 @@ function ProspectBody({
         <li className="my-1.5 border-t border-gray-100" aria-hidden />
         <ChecklistRow
           done={verificationState.can_launch}
-          tone={verificationState.status === "exempt_no_phone" ? "recommended" : "required"}
+          tone="required"
           label="Call to Confirm"
           hint={verificationState.label}
         />
@@ -546,8 +578,8 @@ function ProspectBody({
           }
           className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {verificationState.status === "attempts_complete"
-            ? "Launch outreach (unverified) →"
+          {verificationState.status === "overridden"
+            ? "Launch outreach (override) →"
             : "Launch outreach →"}
         </button>
       </div>

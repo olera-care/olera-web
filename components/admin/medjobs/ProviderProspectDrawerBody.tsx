@@ -63,11 +63,8 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const gc = ctx.outreach.research_data?.general_contact ?? {};
   const generalEmail =
     gc.email !== undefined ? gc.email : ctx.provider_business_profile?.email ?? null;
-  const generalPhone =
-    gc.phone !== undefined ? gc.phone : ctx.provider_business_profile?.phone ?? null;
 
   const hasGeneralEmail = Boolean(generalEmail?.includes("@"));
-  const hasPhone = Boolean(generalPhone);
 
   // v9.x simplified launch gate: a valid outreach destination + a verified
   // call. EITHER a General Contact email OR a Decision Maker email satisfies
@@ -79,23 +76,24 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const hasDecisionMakerEmail = Boolean(dm?.email && dm.email.includes("@"));
   const hasEmail = hasGeneralEmail || hasDecisionMakerEmail;
 
-  // v9.x Pre-Flight verification gate: 3 call attempts across 3 distinct
-  // days OR a verified call_connected (admin confirmed contacts) before
-  // launch is unblocked. Phone-less prospects are exempt (no phone =
-  // verification not applicable). See lib/student-outreach/verification-state.ts.
-  const hasAnyPhone =
-    hasPhone ||
-    Boolean(dm?.phone) ||
-    ctx.contacts.some(
-      (c) => c.status === "active" && (c.phone || c.mobile),
-    );
-  const verificationState = getVerificationState(ctx.touchpoints, hasAnyPhone);
+  // v9.x simplified verification gate. Two unlock paths:
+  //   1. Verified — admin confirmed contacts on a call.
+  //   2. Override — admin bypassed Pre-Flight (already verified elsewhere,
+  //      trusted source, leadership exception).
+  // Email-on-file is AND-ed in below so an override without a destination
+  // still can't fire outreach. See verification-state.ts.
+  const preFlightOverridden =
+    ctx.outreach.research_data?.pre_flight_overridden === true;
+  const verificationState = getVerificationState(
+    ctx.touchpoints,
+    preFlightOverridden,
+  );
 
   const launchEnabled = hasEmail && verificationState.can_launch;
   const launchDisabledReason = !hasEmail
     ? "Add an email — General Contact or Decision Maker."
     : !verificationState.can_launch
-      ? `Call to confirm contacts first (attempt ${verificationState.attempts}/3 on ${verificationState.days_used}/3 days).`
+      ? "Confirm contacts on a Pre-Flight call, or override Pre-Flight."
       : undefined;
 
   return (

@@ -382,13 +382,25 @@ function GeneralContactSection({
       .filter((s) => s && s.trim())
       .join(" · ");
 
-  const faxUnavailable =
-    (ctx.outreach.research_data?.general_contact?.fax_unavailable as boolean | undefined) ?? false;
-  const contactFormUnavailable =
-    (ctx.outreach.research_data?.general_contact?.contact_form_unavailable as boolean | undefined) ?? false;
+  const gcOverrides = ctx.outreach.research_data?.general_contact ?? {};
+  const faxUnavailable = gcOverrides.fax_unavailable === true;
+  const contactFormUnavailable = gcOverrides.contact_form_unavailable === true;
+  const websiteUnavailable = gcOverrides.website_unavailable === true;
+  const googleBusinessProfileUnavailable =
+    gcOverrides.google_business_profile_unavailable === true;
+  const phoneUnavailable = gcOverrides.phone_unavailable === true;
+  const emailUnavailable = gcOverrides.email_unavailable === true;
+  const addressUnavailable = gcOverrides.address_unavailable === true;
 
   const toggleUnavailable = async (
-    field: "fax_unavailable" | "contact_form_unavailable",
+    field:
+      | "fax_unavailable"
+      | "contact_form_unavailable"
+      | "website_unavailable"
+      | "google_business_profile_unavailable"
+      | "phone_unavailable"
+      | "email_unavailable"
+      | "address_unavailable",
     next: boolean,
   ) => {
     setSaving(field);
@@ -460,16 +472,35 @@ function GeneralContactSection({
         <SaveStatusBadge saving={saving} savedAt={savedAt} />
       </div>
       <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
-        <CoverageRow checked={Boolean(website)} label="Website">
+        <CoverageRow
+          checked={Boolean(website) || websiteUnavailable}
+          label="Website"
+        >
           {editable ? (
-            <Input
-              type="url"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              onBlur={() => saveField("website", website)}
-              placeholder="https://agency.com"
-              size="sm"
-            />
+            <div className="space-y-1">
+              <Input
+                type="url"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                onBlur={() => saveField("website", website)}
+                placeholder="https://agency.com"
+                disabled={websiteUnavailable}
+                size="sm"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  toggleUnavailable("website_unavailable", !websiteUnavailable)
+                }
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
+              >
+                {websiteUnavailable
+                  ? "Revert (mark available)"
+                  : "Mark not available"}
+              </button>
+            </div>
+          ) : websiteUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
           ) : website ? (
             <a
               href={website.startsWith("http") ? website : `https://${website}`}
@@ -484,23 +515,44 @@ function GeneralContactSection({
           )}
         </CoverageRow>
         <CoverageRow
-          checked={Boolean(googleBusinessProfileUrl)}
+          checked={
+            Boolean(googleBusinessProfileUrl) || googleBusinessProfileUnavailable
+          }
           label="GBP"
         >
           {editable ? (
-            <Input
-              type="url"
-              value={googleBusinessProfileUrl}
-              onChange={(e) => setGoogleBusinessProfileUrl(e.target.value)}
-              onBlur={() =>
-                saveField(
-                  "google_business_profile_url",
-                  googleBusinessProfileUrl,
-                )
-              }
-              placeholder="https://g.page/agency or maps.google.com/..."
-              size="sm"
-            />
+            <div className="space-y-1">
+              <Input
+                type="url"
+                value={googleBusinessProfileUrl}
+                onChange={(e) => setGoogleBusinessProfileUrl(e.target.value)}
+                onBlur={() =>
+                  saveField(
+                    "google_business_profile_url",
+                    googleBusinessProfileUrl,
+                  )
+                }
+                placeholder="https://g.page/agency or maps.google.com/..."
+                disabled={googleBusinessProfileUnavailable}
+                size="sm"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  toggleUnavailable(
+                    "google_business_profile_unavailable",
+                    !googleBusinessProfileUnavailable,
+                  )
+                }
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
+              >
+                {googleBusinessProfileUnavailable
+                  ? "Revert (mark available)"
+                  : "Mark not available"}
+              </button>
+            </div>
+          ) : googleBusinessProfileUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
           ) : googleBusinessProfileUrl ? (
             <a
               href={
@@ -518,16 +570,31 @@ function GeneralContactSection({
             <span className="text-gray-400">Not on file</span>
           )}
         </CoverageRow>
-        <CoverageRow checked={Boolean(phone)} label="Phone">
+        <CoverageRow
+          checked={Boolean(phone) || phoneUnavailable}
+          label="Phone"
+        >
           {editable ? (
-            <Input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              onBlur={() => saveField("phone", phone)}
-              placeholder="(555) 123-4567"
-              size="sm"
-            />
+            <div className="space-y-1">
+              <Input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                onBlur={() => saveField("phone", phone)}
+                placeholder="(555) 123-4567"
+                disabled={phoneUnavailable}
+                size="sm"
+              />
+              <button
+                type="button"
+                onClick={() => toggleUnavailable("phone_unavailable", !phoneUnavailable)}
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
+              >
+                {phoneUnavailable ? "Revert (mark available)" : "Mark not available"}
+              </button>
+            </div>
+          ) : phoneUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
           ) : phone ? (
             <a href={`tel:${phone}`} className="block truncate text-primary-700 hover:underline">
               {phone}
@@ -536,25 +603,41 @@ function GeneralContactSection({
             <span className="text-gray-400">Not on file</span>
           )}
         </CoverageRow>
-        <CoverageRow checked={Boolean(email)} label="Email">
+        <CoverageRow
+          checked={Boolean(email) || emailUnavailable}
+          label="Email"
+        >
           {editable ? (
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => saveField("email", email)}
-              placeholder="info@agency.com"
-              size="sm"
-            />
+            <div className="space-y-1">
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => saveField("email", email)}
+                placeholder="info@agency.com"
+                disabled={emailUnavailable}
+                size="sm"
+              />
+              <button
+                type="button"
+                onClick={() => toggleUnavailable("email_unavailable", !emailUnavailable)}
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
+              >
+                {emailUnavailable ? "Revert (mark available)" : "Mark not available"}
+              </button>
+            </div>
+          ) : emailUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
           ) : (
             <span className="block truncate text-gray-700">
               {email || <span className="text-gray-400">Not on file</span>}
             </span>
           )}
         </CoverageRow>
-        <CoverageRow checked={addressComplete} label="Address">
-          {/* v9 final: structured address — separate slots so admin
-              fixes one field without re-typing the whole line. */}
+        <CoverageRow
+          checked={addressComplete || addressUnavailable}
+          label="Address"
+        >
           {editable ? (
             <div className="space-y-1">
               <Input
@@ -563,6 +646,7 @@ function GeneralContactSection({
                 onChange={(e) => setStreet(e.target.value)}
                 onBlur={() => saveField("street", street)}
                 placeholder="Street + suite"
+                disabled={addressUnavailable}
                 size="sm"
               />
               <div className="grid grid-cols-[1fr_56px_88px] gap-1">
@@ -572,6 +656,7 @@ function GeneralContactSection({
                   onChange={(e) => setCity(e.target.value)}
                   onBlur={() => saveField("city", city)}
                   placeholder="City"
+                  disabled={addressUnavailable}
                   size="sm"
                 />
                 <Input
@@ -581,6 +666,7 @@ function GeneralContactSection({
                   onBlur={() => saveField("state", stateField)}
                   placeholder="ST"
                   maxLength={2}
+                  disabled={addressUnavailable}
                   size="sm"
                   className="uppercase"
                 />
@@ -590,17 +676,24 @@ function GeneralContactSection({
                   onChange={(e) => setZip(e.target.value)}
                   onBlur={() => saveField("zip", zip)}
                   placeholder="ZIP"
+                  disabled={addressUnavailable}
                   size="sm"
                 />
               </div>
-              {!addressComplete && (
-                <p className="text-[10px] text-gray-500">
-                  {!hasZip
-                    ? "Add ZIP — required for snail mail."
-                    : "Fill all four fields for snail mail."}
-                </p>
-              )}
+              <button
+                type="button"
+                onClick={() =>
+                  toggleUnavailable("address_unavailable", !addressUnavailable)
+                }
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
+              >
+                {addressUnavailable
+                  ? "Revert (mark available)"
+                  : "Mark not available"}
+              </button>
             </div>
+          ) : addressUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
           ) : composedAddress ? (
             <span className="block truncate text-gray-700">
               {composedAddress}

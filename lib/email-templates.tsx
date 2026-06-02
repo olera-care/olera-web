@@ -1867,10 +1867,105 @@ export function interviewRequestEmail(opts: {
     </p>
     <div style="margin:24px 0;">${button("View Interview", opts.magicLinkUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      This link expires in 72 hours. If you have any questions, just reply to this email.
+      This link expires in 72 hours. Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
-  `);
+  `, `Your interview request to ${opts.studentName} was sent`);
 }
+
+/** Email sent to recipient when someone proposes an interview */
+export function interviewProposedEmail(opts: {
+  proposerName: string;
+  interviewType: string;
+  proposedTime: string;
+  alternativeTime?: string | null;
+  notes: string | null;
+  viewUrl: string;
+}): string {
+  const safeProposerName = escapeHtml(opts.proposerName);
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You have an interview request</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      <strong>${safeProposerName}</strong> would like to schedule a ${escapeHtml(opts.interviewType.toLowerCase())} interview with you.
+    </p>
+    <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Interview Details</p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Format:</strong> ${escapeHtml(opts.interviewType)}
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Proposed time:</strong> ${escapeHtml(opts.proposedTime)}
+      </p>
+      ${opts.alternativeTime ? `<p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;"><strong>Alternative time:</strong> ${escapeHtml(opts.alternativeTime)}</p>` : ""}
+      ${opts.notes ? `<p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Notes:</strong> ${escapeHtml(opts.notes)}</p>` : ""}
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Review the details and respond to let them know if you're available.
+    </p>
+    <div style="margin:0 0 24px;">${button("View & Respond", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${opts.proposerName} wants to schedule an interview with you`);
+}
+
+/** Email sent to both parties when an interview is confirmed */
+export function interviewConfirmedEmail(opts: {
+  otherName: string;
+  interviewType: string;
+  confirmedTime: string;
+  durationMinutes: number;
+  location: string | null;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Interview Confirmed!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Your ${escapeHtml(opts.interviewType.toLowerCase())} interview with <strong>${escapeHtml(opts.otherName)}</strong> is confirmed.
+    </p>
+    <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Interview Details</p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Format:</strong> ${escapeHtml(opts.interviewType)}
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>When:</strong> ${escapeHtml(opts.confirmedTime)}
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Duration:</strong> ${opts.durationMinutes} minutes
+      </p>
+      ${opts.location ? `<p style="font-size:14px;color:#374151;margin:8px 0 0;line-height:1.5;"><strong>Where:</strong> ${escapeHtml(opts.location)}</p>` : ""}
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      A calendar invite is attached to this email.
+    </p>
+    <div style="margin:0 0 24px;">${button("View on Olera", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Your interview with ${opts.otherName} is confirmed`);
+}
+
+/** Email sent when an interview is cancelled */
+export function interviewCancelledEmail(opts: {
+  otherName: string;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Interview Cancelled</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      The interview with <strong>${escapeHtml(opts.otherName)}</strong> has been cancelled.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      These things happen — you can browse more candidates or schedule new interviews anytime.
+    </p>
+    <div style="margin:0 0 24px;">${button("View Interviews", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Your interview with ${opts.otherName} has been cancelled`);
+}
+
 /** Email to provider when they request to claim an existing listing */
 export function claimVerificationEmail(opts: {
   providerName: string;

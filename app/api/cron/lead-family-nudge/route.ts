@@ -13,11 +13,14 @@ import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
  * leads but need to complete or publish their profile:
  *
  * Criteria:
- * - Connection type is 'inquiry' or 'request'
+ * - Connection type is 'inquiry' (family→provider)
  * - Lead is at least 2 days old
  * - Family profile < 60% → nudge to complete
  * - Family profile ≥ 60% but not published → nudge to publish
  * - Family was NOT nudged (for this lead) in the last 7 days
+ *
+ * Note: Only processes 'inquiry' connections. For 'request' (Matches), the
+ * provider initiated so there's no need to nudge the family about profile completion.
  *
  * One email per family per run (even if they have multiple leads).
  */
@@ -66,6 +69,8 @@ export async function GET(request: NextRequest) {
     };
 
     // Fetch leads that are at least 2 days old
+    // Only process "inquiry" connections (family→provider)
+    // For "request" (Matches), the provider initiated so there's no need to nudge the family about profile completion
     const { data: connections, error: fetchError } = await db
       .from("connections")
       .select(
@@ -90,7 +95,7 @@ export async function GET(request: NextRequest) {
         to_profile:business_profiles!connections_to_profile_id_fkey(display_name)
       `
       )
-      .in("type", ["inquiry", "request"])
+      .eq("type", "inquiry")
       .lte("created_at", twoDaysAgo)
       .order("created_at", { ascending: true })
       .limit(limit);

@@ -79,10 +79,13 @@ export async function GET(request: NextRequest) {
 
     // Helper to check if a connection's provider needs email
     // Matches Analytics approach exactly:
+    // - Connection must be an inquiry (family → provider)
+    //   For "request" connections (Matches), the provider is from_profile and already has email (they're logged in)
     // - Provider must be active
     // - Provider must have no email
     // - Provider must NOT have responded (goal already achieved if responded)
     const providerNeedsEmail = (conn: {
+      type?: string;
       to_profile_id?: string;
       to_profile: { email?: string | null; is_active?: boolean }[] | { email?: string | null; is_active?: boolean } | null;
       metadata?: Record<string, unknown>;
@@ -115,7 +118,7 @@ export async function GET(request: NextRequest) {
           from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type, email, phone, metadata, care_types),
           to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id, email, is_active)
         `)
-        .in("type", ["inquiry", "request"])
+        .eq("type", "inquiry")
         .order("created_at", { ascending: false })
         .limit(10000);
 
@@ -223,23 +226,23 @@ export async function GET(request: NextRequest) {
       let countQuery = db
         .from("connections")
         .select("*", { count: "exact", head: true })
-        .in("type", ["inquiry", "request"]);
+        .eq("type", "inquiry");
       countQuery = applyFilters(countQuery);
       const { count } = await countQuery;
       return NextResponse.json({ count: count ?? 0 });
     }
 
     // Get total count for pagination
-    // Filter to inquiry/request types to match needsEmail path
+    // Only inquiry connections (family→provider) are counted as leads
     let totalQuery = db
       .from("connections")
       .select("*", { count: "exact", head: true })
-      .in("type", ["inquiry", "request"]);
+      .eq("type", "inquiry");
     totalQuery = applyFilters(totalQuery);
     const { count: total } = await totalQuery;
 
     // Fetch connections with joined profile names
-    // Filter to inquiry/request types to match needsEmail path and counts
+    // Only inquiry connections (family→provider) are leads
     let query = db
       .from("connections")
       .select(`
@@ -252,7 +255,7 @@ export async function GET(request: NextRequest) {
         from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type, email, phone, metadata, care_types),
         to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id, email, is_active)
       `)
-      .in("type", ["inquiry", "request"])
+      .eq("type", "inquiry")
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 

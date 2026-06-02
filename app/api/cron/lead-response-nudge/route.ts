@@ -81,6 +81,8 @@ export async function GET(request: NextRequest) {
     };
 
     // Fetch leads that are at least 3 days old
+    // Only process "inquiry" connections (family→provider)
+    // For "request" (Matches), the provider initiated so there's no response to wait for
     const { data: connections, error: fetchError } = await db
       .from("connections")
       .select(
@@ -94,7 +96,7 @@ export async function GET(request: NextRequest) {
         to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email)
       `
       )
-      .in("type", ["inquiry", "request"])
+      .eq("type", "inquiry")
       .lte("created_at", threeDaysAgo)
       .order("created_at", { ascending: true })
       .limit(limit);

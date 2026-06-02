@@ -86,12 +86,14 @@ export async function GET(req: NextRequest) {
   const offset = Math.max(0, parseInt(searchParams.get("offset") || "0", 10));
 
   // Build query for connections (leads)
-  // We fetch comprehensive profile data to calculate completeness metrics
+  // Only include "inquiry" connections (family→provider) for Provider Response Rates
+  // Matches (type="request", provider→family) are tracked separately on the Outreach page
   let query = db
     .from("connections")
     .select(
       `
       id,
+      type,
       from_profile_id,
       to_profile_id,
       message,
@@ -103,10 +105,13 @@ export async function GET(req: NextRequest) {
         email,
         phone,
         image_url,
+        slug,
+        source_provider_id,
         city,
         description,
         care_types,
-        metadata
+        metadata,
+        is_active
       ),
       to_profile:business_profiles!connections_to_profile_id_fkey(
         id,
@@ -128,7 +133,7 @@ export async function GET(req: NextRequest) {
     `,
       { count: "exact" }
     )
-    .in("type", ["inquiry", "request"])
+    .eq("type", "inquiry")
     .order("created_at", { ascending: false });
 
   // Date filters
@@ -151,19 +156,33 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // Normalize joined relations
-  const connections = (connectionsRaw ?? []).map((c) => ({
-    ...c,
-    from_profile: Array.isArray(c.from_profile) ? c.from_profile[0] ?? null : c.from_profile,
-    to_profile: Array.isArray(c.to_profile) ? c.to_profile[0] ?? null : c.to_profile,
-  }));
+  // Normalize joined relations and resolve family/provider based on connection type
+  // - inquiry: from=family, to=provider
+  // - request (Matches): from=provider, to=family
+  const connections = (connectionsRaw ?? []).map((c) => {
+    const fromProfile = Array.isArray(c.from_profile) ? c.from_profile[0] ?? null : c.from_profile;
+    const toProfile = Array.isArray(c.to_profile) ? c.to_profile[0] ?? null : c.to_profile;
+    const isInquiry = c.type === "inquiry";
+
+    return {
+      ...c,
+      from_profile: fromProfile,
+      to_profile: toProfile,
+      // Resolved profiles based on connection type
+      family_profile: isInquiry ? fromProfile : toProfile,
+      provider_profile: isInquiry ? toProfile : fromProfile,
+      family_profile_id: isInquiry ? c.from_profile_id : c.to_profile_id,
+      provider_profile_id: isInquiry ? c.to_profile_id : c.from_profile_id,
+    };
+  });
 
   // Get source_provider_ids for providers without email in business_profiles
   // to check olera-providers as fallback (emails may exist there from legacy data)
   const sourceProviderIds = connections
     .map((c) => {
-      if (!c.to_profile || c.to_profile.is_active === false || c.to_profile.email) return null;
-      return c.to_profile.source_provider_id;
+      const provider = c.provider_profile;
+      if (!provider || provider.is_active === false || provider.email) return null;
+      return provider.source_provider_id;
     })
     .filter(Boolean) as string[];
 
@@ -197,8 +216,9 @@ export async function GET(req: NextRequest) {
     }
 
     // Find first provider message (non-auto-reply)
+    // Use resolved provider_profile_id based on connection type
     const providerMsg = thread.find(
-      (m) => m.from_profile_id === conn.to_profile_id && m.is_auto_reply !== true
+      (m) => m.from_profile_id === conn.provider_profile_id && m.is_auto_reply !== true
     );
 
     const responded = !!providerMsg;
@@ -224,9 +244,10 @@ export async function GET(req: NextRequest) {
       }
     }
     // Fall back to first FAMILY message in thread (skip provider auto-replies)
+    // Use resolved family_profile_id based on connection type
     if (!messagePreview && thread.length > 0) {
       const familyMessage = thread.find(
-        (m) => m.from_profile_id === conn.from_profile_id && m.text && !m.is_auto_reply
+        (m) => m.from_profile_id === conn.family_profile_id && m.text && !m.is_auto_reply
       );
       if (familyMessage?.text) {
         messagePreview = familyMessage.text;
@@ -244,42 +265,42 @@ export async function GET(req: NextRequest) {
     const familyNudgedAt = (meta.family_nudged_at as string) || null;
     const familyPublishNudgedAt = (meta.family_publish_nudged_at as string) || null;
 
-    // Calculate profile completeness for both parties
-    const familyCompleteness = conn.from_profile
-      ? calculateFamilyCompleteness(conn.from_profile, conn.from_profile.email)
+    // Calculate profile completeness for both parties using resolved profiles
+    const familyCompleteness = conn.family_profile
+      ? calculateFamilyCompleteness(conn.family_profile, conn.family_profile.email)
       : { percentage: 0, missingFields: [] };
 
-    const providerCompleteness = conn.to_profile
-      ? calculateProviderCompleteness(conn.to_profile)
+    const providerCompleteness = conn.provider_profile
+      ? calculateProviderCompleteness(conn.provider_profile)
       : { percentage: 0, missingFields: [] };
 
     // Check if family profile is published (care_post.status === "active")
-    const familyMeta = (conn.from_profile?.metadata as Record<string, unknown>) ?? {};
+    const familyMeta = (conn.family_profile?.metadata as Record<string, unknown>) ?? {};
     const carePost = familyMeta.care_post as { status?: string } | undefined;
     const familyIsPublished = carePost?.status === "active";
 
     // Get provider email from business_profiles OR olera-providers fallback
-    const bpEmail = conn.to_profile?.email || null;
-    const oleraEmail = conn.to_profile?.source_provider_id
-      ? oleraEmailMap.get(conn.to_profile.source_provider_id) || null
+    const bpEmail = conn.provider_profile?.email || null;
+    const oleraEmail = conn.provider_profile?.source_provider_id
+      ? oleraEmailMap.get(conn.provider_profile.source_provider_id) || null
       : null;
     const effectiveProviderEmail = bpEmail || oleraEmail;
 
     allLeads.push({
       connection_id: conn.id,
-      family_id: conn.from_profile_id || "",
-      family_name: conn.from_profile?.display_name || "Care Seeker",
-      family_email: conn.from_profile?.email || null,
-      family_phone: conn.from_profile?.phone || null,
+      family_id: conn.family_profile_id || "",
+      family_name: conn.family_profile?.display_name || "Care Seeker",
+      family_email: conn.family_profile?.email || null,
+      family_phone: conn.family_profile?.phone || null,
       family_completeness: familyCompleteness,
       family_is_published: familyIsPublished,
       family_nudged_at: familyNudgedAt,
       family_publish_nudged_at: familyPublishNudgedAt,
-      provider_id: conn.to_profile_id || "",
-      provider_name: conn.to_profile?.display_name || "Unknown",
+      provider_id: conn.provider_profile_id || "",
+      provider_name: conn.provider_profile?.display_name || "Unknown",
       provider_email: effectiveProviderEmail,
-      provider_phone: conn.to_profile?.phone || null,
-      provider_slug: conn.to_profile?.slug || conn.to_profile?.source_provider_id || "",
+      provider_phone: conn.provider_profile?.phone || null,
+      provider_slug: conn.provider_profile?.slug || conn.provider_profile?.source_provider_id || "",
       provider_completeness: providerCompleteness,
       provider_nudged_at: providerNudgedAt,
       message_preview: messagePreview,
@@ -289,7 +310,7 @@ export async function GET(req: NextRequest) {
       response_time_hours: responseTimeHours ? Math.round(responseTimeHours * 10) / 10 : null,
       provider_response: providerResponse,
       cta_variant: ctaVariant,
-      provider_status: !conn.to_profile ? "deleted" : conn.to_profile.is_active === false ? "archived" : "active",
+      provider_status: !conn.provider_profile ? "deleted" : conn.provider_profile.is_active === false ? "archived" : "active",
       is_archived: !!meta.archived,
     });
   }

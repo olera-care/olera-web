@@ -32,11 +32,12 @@ export async function GET(request: NextRequest) {
 
     // Pull all non-archived leads in range+prior WITH provider profile data
     // so we can check live email status (matches Analytics approach exactly)
-    // Filter to inquiry/request types only (same as Analytics) for consistent counts
+    // Only inquiry connections (family→provider) are counted as leads.
+    // Matches (provider→family) are tracked on the Outreach page.
     let q = db
       .from("connections")
       .select("type, created_at, metadata, to_profile_id, to_profile:business_profiles!connections_to_profile_id_fkey(email, is_active, source_provider_id)")
-      .in("type", ["inquiry", "request"])
+      .eq("type", "inquiry")
       .order("created_at", { ascending: true })
       .limit(50000)
       .not("metadata", "cs", JSON.stringify({ archived: true }));
@@ -85,9 +86,6 @@ export async function GET(request: NextRequest) {
     // - Provider must have no email (in business_profiles OR olera-providers)
     // - Provider must NOT have responded (goal already achieved if responded)
     const isNeedsEmail = (r: (typeof allRows)[number]) => {
-      // Only inquiry connections need provider email collection
-      // For "request" (Matches), the provider initiated and already has an email
-      if (r.type === "request") return false;
       // Supabase may return to_profile as array or single object depending on join
       const toProfile = r.to_profile as { email?: string | null; is_active?: boolean; source_provider_id?: string }[] | { email?: string | null; is_active?: boolean; source_provider_id?: string } | null;
       const provider = Array.isArray(toProfile) ? toProfile[0] : toProfile;

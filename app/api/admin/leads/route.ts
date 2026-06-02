@@ -90,9 +90,6 @@ export async function GET(request: NextRequest) {
       to_profile: { email?: string | null; is_active?: boolean }[] | { email?: string | null; is_active?: boolean } | null;
       metadata?: Record<string, unknown>;
     }) => {
-      // Only inquiry connections need provider email collection
-      // For "request" (Matches), the provider initiated and already has an email
-      if (conn.type === "request") return false;
       // Supabase may return to_profile as array or single object depending on join
       const provider = Array.isArray(conn.to_profile) ? conn.to_profile[0] : conn.to_profile;
       // Skip if no provider profile (deleted) or inactive
@@ -121,7 +118,7 @@ export async function GET(request: NextRequest) {
           from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type, email, phone, metadata, care_types),
           to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id, email, is_active)
         `)
-        .in("type", ["inquiry", "request"])
+        .eq("type", "inquiry")
         .order("created_at", { ascending: false })
         .limit(10000);
 
@@ -162,10 +159,6 @@ export async function GET(request: NextRequest) {
 
       // Enhanced filter that checks both business_profiles AND olera-providers for email
       const providerNeedsEmailEnhanced = (conn: typeof allConnections[number]) => {
-        // Only inquiry connections need provider email collection
-        // For "request" (Matches), the provider initiated and already has an email
-        if (conn.type === "request") return false;
-
         const provider = Array.isArray(conn.to_profile) ? conn.to_profile[0] : conn.to_profile;
         if (!provider || provider.is_active === false) return false;
 
@@ -233,23 +226,23 @@ export async function GET(request: NextRequest) {
       let countQuery = db
         .from("connections")
         .select("*", { count: "exact", head: true })
-        .in("type", ["inquiry", "request"]);
+        .eq("type", "inquiry");
       countQuery = applyFilters(countQuery);
       const { count } = await countQuery;
       return NextResponse.json({ count: count ?? 0 });
     }
 
     // Get total count for pagination
-    // Filter to inquiry/request types to match needsEmail path
+    // Only inquiry connections (family→provider) are counted as leads
     let totalQuery = db
       .from("connections")
       .select("*", { count: "exact", head: true })
-      .in("type", ["inquiry", "request"]);
+      .eq("type", "inquiry");
     totalQuery = applyFilters(totalQuery);
     const { count: total } = await totalQuery;
 
     // Fetch connections with joined profile names
-    // Filter to inquiry/request types to match needsEmail path and counts
+    // Only inquiry connections (family→provider) are leads
     let query = db
       .from("connections")
       .select(`
@@ -262,7 +255,7 @@ export async function GET(request: NextRequest) {
         from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type, email, phone, metadata, care_types),
         to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id, email, is_active)
       `)
-      .in("type", ["inquiry", "request"])
+      .eq("type", "inquiry")
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 

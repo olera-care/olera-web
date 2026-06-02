@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { newMessageEmail, firstName, firstResponseConfirmationEmail } from "@/lib/email-templates";
+import { newMessageEmail, firstName, firstResponseConfirmationEmail, matchesEncouragementEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { normalizeUSPhone } from "@/lib/twilio";
@@ -88,9 +88,10 @@ export async function POST(request: Request) {
     }
 
     // Fetch the connection (use admin to bypass RLS for guests)
+    // Include 'type' to correctly identify provider vs family for different connection types
     const { data: connection, error: fetchError } = await admin
       .from("connections")
-      .select("id, from_profile_id, to_profile_id, status, metadata")
+      .select("id, from_profile_id, to_profile_id, status, metadata, type")
       .eq("id", connectionId)
       .single();
 
@@ -130,13 +131,22 @@ export async function POST(request: Request) {
 
     const updatedThread = [...existingThread, newMessage];
 
+    // Determine provider and family based on connection type
+    // inquiry: from=family, to=provider (family initiated)
+    // request: from=provider, to=family (provider initiated via Matches)
+    const isInquiry = connection.type === "inquiry";
+    const providerProfileId = isInquiry ? connection.to_profile_id : connection.from_profile_id;
+    const familyProfileId = isInquiry ? connection.from_profile_id : connection.to_profile_id;
+
     // Check if this is the provider's first response in this thread (for first response email)
-    // Provider is the to_profile_id in inquiry connections
-    const isProviderSender = profileId === connection.to_profile_id;
+    // Only applies to inquiry connections - for Matches (request), provider already initiated
+    const isProviderSender = profileId === providerProfileId;
     const providerMessagesBeforeThis = existingThread.filter(
-      (m) => m.from_profile_id === connection.to_profile_id && !m.is_auto_reply
+      (m) => m.from_profile_id === providerProfileId && !m.is_auto_reply
     );
-    const isFirstProviderResponse = isProviderSender && providerMessagesBeforeThis.length === 0;
+    // Only trigger first response email for inquiry connections (not Matches)
+    // For Matches, the provider already sent the first message (the reach-out)
+    const isFirstProviderResponse = isInquiry && isProviderSender && providerMessagesBeforeThis.length === 0;
 
     // Use admin client to bypass RLS (needed for guest flow)
     const { error: updateError } = await admin
@@ -384,20 +394,21 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
-    // First response confirmation email (provider only)
+    // First response confirmation email (provider only, inquiry connections only)
     if (isFirstProviderResponse) {
       try {
-        // Get provider and family details
+        // Get provider and family details using the correct profile IDs
+        // (providerProfileId and familyProfileId are defined above based on connection type)
         const [{ data: providerProfile }, { data: familyProfile }] = await Promise.all([
           admin
             .from("business_profiles")
             .select("display_name, email, account_id, slug")
-            .eq("id", connection.to_profile_id)
+            .eq("id", providerProfileId)
             .single(),
           admin
             .from("business_profiles")
             .select("display_name")
-            .eq("id", connection.from_profile_id)
+            .eq("id", familyProfileId)
             .single(),
         ]);
 
@@ -431,7 +442,7 @@ export async function POST(request: Request) {
             subject: "Great job reaching out!",
             emailType: "first_response_confirmation",
             recipientType: "provider",
-            providerId: connection.to_profile_id,
+            providerId: providerProfileId,
           });
 
           // Generate magic link for auto-sign-in (provider is claimed since they just sent a message)
@@ -469,12 +480,98 @@ export async function POST(request: Request) {
             }),
             emailType: "first_response_confirmation",
             recipientType: "provider",
-            providerId: connection.to_profile_id,
+            providerId: providerProfileId,
             emailLogId: emailLogId ?? undefined,
-            recipientProfileId: connection.to_profile_id,
+            recipientProfileId: providerProfileId,
           });
 
           console.log("[message] sent first response confirmation email to provider:", providerEmail);
+
+          // Matches encouragement: introduce Matches to providers who have never used it
+          try {
+            // Fetch provider metadata to check if we've already sent this email
+            const { data: fullProviderProfile } = await admin
+              .from("business_profiles")
+              .select("metadata")
+              .eq("id", providerProfileId)
+              .single();
+
+            const providerMeta = (fullProviderProfile?.metadata || {}) as Record<string, unknown>;
+            const alreadySentMatchesEncouragement = providerMeta.matches_encouragement_sent;
+
+            if (!alreadySentMatchesEncouragement) {
+              // Check if provider has ever used Matches (sent a reach-out)
+              const { count: matchesCount } = await admin
+                .from("connections")
+                .select("id", { count: "exact", head: true })
+                .eq("from_profile_id", providerProfileId)
+                .eq("type", "request");
+
+              const hasUsedMatches = (matchesCount || 0) > 0;
+
+              if (!hasUsedMatches) {
+                const matchesLogId = await reserveEmailLogId({
+                  to: providerEmail,
+                  subject: "Did you know you can reach out first?",
+                  emailType: "matches_encouragement",
+                  recipientType: "provider",
+                  providerId: providerProfileId,
+                });
+
+                // Generate magic link for Matches page
+                const matchesPath = appendTrackingParams("/provider/matches", matchesLogId);
+                let matchesUrl = `${siteUrl}${matchesPath}`;
+
+                try {
+                  const { data: matchesLinkData, error: matchesLinkError } = await admin.auth.admin.generateLink({
+                    type: "magiclink",
+                    email: providerEmail,
+                    options: {
+                      redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(matchesPath)}`,
+                    },
+                  });
+                  if (!matchesLinkError && matchesLinkData?.properties?.action_link) {
+                    matchesUrl = matchesLinkData.properties.action_link;
+                  }
+                } catch (matchesLinkErr) {
+                  console.error("[message] Failed to generate magic link for matches encouragement:", matchesLinkErr);
+                }
+
+                await sendEmail({
+                  to: providerEmail,
+                  subject: "Did you know you can reach out first?",
+                  html: matchesEncouragementEmail({
+                    providerName: providerProfile?.display_name || "Provider",
+                    recipientName: providerProfile?.display_name || "there",
+                    familyName: familyProfile?.display_name || "a family",
+                    matchesUrl,
+                  }),
+                  emailType: "matches_encouragement",
+                  recipientType: "provider",
+                  providerId: providerProfileId,
+                  emailLogId: matchesLogId ?? undefined,
+                  recipientProfileId: providerProfileId,
+                });
+
+                // Mark as sent so we don't send it again
+                await admin
+                  .from("business_profiles")
+                  .update({
+                    metadata: {
+                      ...providerMeta,
+                      matches_encouragement_sent: true,
+                      matches_encouragement_sent_at: new Date().toISOString(),
+                    },
+                  })
+                  .eq("id", providerProfileId);
+
+                console.log("[message] sent matches encouragement email to provider:", providerEmail);
+              }
+            }
+          } catch (matchesEncErr) {
+            console.error("[message] matches encouragement email failed:", matchesEncErr);
+            // Non-blocking
+          }
         }
       } catch (firstResponseErr) {
         console.error("[message] first response confirmation email failed:", firstResponseErr);

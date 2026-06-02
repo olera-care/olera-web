@@ -181,6 +181,36 @@ export const CRON_REGISTRY: CronJob[] = [
     successSignal: "Family completes or publishes their profile.",
     relatedAdminPath: "/admin/analytics",
   },
+  {
+    id: "matches-family-nudge",
+    name: "Matches family response nudge",
+    description:
+      "Daily nudge to families who haven't responded to provider reach-outs via Matches. Targets pending connections 3+ days old where family hasn't accepted or replied.",
+    recipientCohort: "Families with pending provider reach-outs 3+ days old, not nudged in last 7 days.",
+    audience: "Care seekers",
+    fn: "nudge",
+    schedule: "0 15 * * *",
+    humanSchedule: "Daily, 15:00 UTC (~10 AM ET)",
+    path: "/api/cron/matches-family-nudge",
+    emailTypes: ["family_reach_out_nudge"],
+    successSignal: "Family accepts or responds to the provider reach-out.",
+    relatedAdminPath: "/admin/matches",
+  },
+  {
+    id: "conversation-stale",
+    name: "Stale conversation nudge",
+    description:
+      "Daily nudge to both parties when a conversation has gone quiet for 5+ days after it started (2+ human messages exchanged). Encourages follow-up.",
+    recipientCohort: "Both providers and families with stale conversations (5+ days since last message), not nudged in 14 days.",
+    audience: "Care seekers",
+    fn: "nudge",
+    schedule: "0 16 * * *",
+    humanSchedule: "Daily, 16:00 UTC (~11 AM ET)",
+    path: "/api/cron/conversation-stale",
+    emailTypes: ["stale_conversation"],
+    successSignal: "One or both parties resume the conversation.",
+    relatedAdminPath: "/admin/leads",
+  },
 
   // ── Care seekers ───────────────────────────────────────────────────
   {

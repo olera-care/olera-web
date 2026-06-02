@@ -2772,3 +2772,177 @@ export function anniversaryMilestoneEmail(opts: {
     </p>
   `, `Celebrating ${opts.totalConnections?.toLocaleString()} families connected through Olera`);
 }
+
+/**
+ * Confirmation email to provider after they reach out to a family via Matches.
+ * Includes competitive urgency if other providers have also reached out.
+ */
+export function providerReachOutConfirmationEmail(opts: {
+  providerName: string;
+  familyName: string;
+  city: string;
+  competitorCount: number;
+  viewUrl: string;
+}): string {
+  const safeFamilyName = firstName(opts.familyName, "the family");
+
+  // Competitive urgency block (only shown when there's competition)
+  const competitionBlock = opts.competitorCount > 0
+    ? `<div style="background:#fef3c7;border-radius:8px;padding:16px;margin:0 0 20px;">
+        <p style="font-size:14px;color:#92400e;margin:0;line-height:1.5;">
+          <strong>Heads up:</strong> ${opts.competitorCount} other provider${opts.competitorCount === 1 ? " has" : "s have"} also reached out to this family. When they respond, reply quickly — families often go with providers who are most responsive.
+        </p>
+      </div>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your message was sent!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      ${escapeHtml(firstName(opts.providerName, "Hi"))}, your reach-out to <strong>${escapeHtml(safeFamilyName)}</strong> in ${escapeHtml(opts.city)} was delivered.
+    </p>
+    ${competitionBlock}
+    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">What happens next:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>The family will get a notification about your message</li>
+      <li>Most families respond within 24-48 hours</li>
+      <li>You'll get an email when they reply</li>
+    </ul>
+    <div style="margin:0 0 24px;">${button("View Conversation", opts.viewUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      While you wait, <a href="${BASE_URL}/provider/matches" style="color:${BRAND_COLOR};text-decoration:underline;">browse other families</a> who might be a good fit.
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Your reach-out to ${safeFamilyName} was delivered`);
+}
+
+/**
+ * Email encouraging providers to use Matches (proactive outreach) after their first lead response.
+ * Only sent to providers who have never used Matches before.
+ */
+export function matchesEncouragementEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  familyName: string;
+  matchesUrl: string;
+}): string {
+  const safeFamilyName = firstName(opts.familyName, "a family");
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Did you know you can reach out first?</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, you just responded to ${escapeHtml(safeFamilyName)} — nice work! But waiting for families to find you isn't your only option.
+    </p>
+    <div style="background:#f0fdfa;border-radius:8px;padding:16px;margin:0 0 20px;">
+      <p style="font-size:14px;color:#0d9488;margin:0;line-height:1.5;">
+        <strong>With Matches, you can browse families looking for care and reach out to them directly.</strong> No waiting for inquiries — just find families who need what you offer.
+      </p>
+    </div>
+    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">How it works:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>Browse families who've shared their care needs</li>
+      <li>Filter by location, care type, and timeline</li>
+      <li>Send a personalized message introducing yourself</li>
+      <li>Families get notified and can respond directly</li>
+    </ul>
+    <div style="margin:0 0 24px;">${button("Browse Families", opts.matchesUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, "Reach out to families looking for care — they're waiting to hear from you");
+}
+
+/**
+ * Nudge email to family when a provider reached out but family hasn't responded.
+ * Sent 3+ days after reach-out with 7-day cooldown.
+ */
+export function familyPendingReachOutNudgeEmail(opts: {
+  familyName: string;
+  providerName: string;
+  providerCity: string;
+  messagePreview: string | null;
+  daysSinceReachOut: number;
+  viewUrl: string;
+}): string {
+  const safeProviderName = escapeHtml(opts.providerName);
+  const daysText = opts.daysSinceReachOut === 1 ? "1 day" : `${opts.daysSinceReachOut} days`;
+
+  const messageBlock = opts.messagePreview
+    ? `<div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+        <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${escapeHtml(opts.messagePreview.length > 150 ? opts.messagePreview.slice(0, 150) + "..." : opts.messagePreview)}"</p>
+      </div>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${safeProviderName} is waiting to hear from you</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(firstName(opts.familyName, "there"))}, <strong>${safeProviderName}</strong> in ${escapeHtml(opts.providerCity)} reached out to you ${daysText} ago.
+    </p>
+    ${messageBlock}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      They took the time to reach out — a quick response helps them know if you're still looking for care. Even a "not interested" is helpful so they can assist other families.
+    </p>
+    <div style="margin:0 0 24px;">${button("View and Respond", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${opts.providerName} is still waiting for your response`);
+}
+
+/**
+ * Nudge email to provider when conversation with family has gone stale.
+ * Sent when both parties have been silent for 5+ days after conversation started.
+ */
+export function staleConversationProviderEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  familyName: string;
+  daysSinceLastMessage: number;
+  viewUrl: string;
+}): string {
+  const safeFamilyName = firstName(opts.familyName, "a family");
+  const daysText = opts.daysSinceLastMessage === 1 ? "1 day" : `${opts.daysSinceLastMessage} days`;
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Continue your conversation?</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, your conversation with <strong>${escapeHtml(safeFamilyName)}</strong> has been quiet for ${daysText}.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      A quick follow-up can restart the conversation. Even a simple "Any updates on your care search?" shows you're still interested in helping.
+    </p>
+    <div style="margin:0 0 24px;">${button("Send a Follow-up", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Your conversation with ${safeFamilyName} went quiet — send a follow-up`);
+}
+
+/**
+ * Nudge email to family when conversation with provider has gone stale.
+ * Sent when both parties have been silent for 5+ days after conversation started.
+ */
+export function staleConversationFamilyEmail(opts: {
+  familyName: string;
+  providerName: string;
+  daysSinceLastMessage: number;
+  viewUrl: string;
+}): string {
+  const safeProviderName = escapeHtml(opts.providerName);
+  const daysText = opts.daysSinceLastMessage === 1 ? "1 day" : `${opts.daysSinceLastMessage} days`;
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Still looking for care?</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(firstName(opts.familyName, "there"))}, your conversation with <strong>${safeProviderName}</strong> has been quiet for ${daysText}.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      If you're still exploring care options, they'd love to hear from you. And if you've moved on, letting them know helps them assist other families.
+    </p>
+    <div style="margin:0 0 24px;">${button("Continue the Conversation", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${opts.providerName} is still here to help — continue the conversation`);
+}

@@ -83,6 +83,14 @@
     {
       "path": "/api/cron/lead-family-nudge",
       "schedule": "0 16 * * 2,5"
+    },
+    {
+      "path": "/api/cron/matches-family-nudge",
+      "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/conversation-stale",
+      "schedule": "0 16 * * *"
     }
   ]
 }

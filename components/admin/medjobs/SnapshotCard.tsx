@@ -329,6 +329,16 @@ function GeneralContactSection({
   // admin sees "Saving…" → "Saved" feedback after every blur. The
   // earlier autosave was silent except for tiny per-field text.
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  // Per-row "Find X" lookup state (auto-fetch email / contact-form URL).
+  // Feedback is INLINE (under the field) — never the drawer-level setError,
+  // which blanks the whole panel. `finding` = which lookup is in flight;
+  // `findNote` = per-field calm result; `pulse*` = brief success flash.
+  const [finding, setFinding] = useState<null | "email" | "contact_form" | "both">(null);
+  const [findNote, setFindNote] = useState<
+    Partial<Record<"email" | "contact_form", { kind: "miss" | "error"; text: string }>>
+  >({});
+  const [pulseEmail, setPulseEmail] = useState(false);
+  const [pulseForm, setPulseForm] = useState(false);
 
   useEffect(() => {
     setEmail(effective.email);
@@ -409,13 +419,105 @@ function GeneralContactSection({
     }
   };
 
+  const note = (field: "email" | "contact_form", n: { kind: "miss" | "error"; text: string } | null) =>
+    setFindNote((prev) => ({ ...prev, [field]: n ?? undefined }));
+  const flash = (field: "email" | "contact_form") => {
+    const set = field === "email" ? setPulseEmail : setPulseForm;
+    set(true);
+    setTimeout(() => set(false), 1200);
+  };
+
+  // Apply one finder result: fill + save + flash on a hit; calm note on a miss.
+  const applyEmail = async (value: string | null) => {
+    if (value) {
+      setEmail(value);
+      note("email", null);
+      flash("email");
+      await saveField("email", value);
+    } else {
+      note("email", { kind: "miss", text: "No email on the site." });
+    }
+  };
+  const applyForm = async (value: string | null) => {
+    if (value) {
+      setContactFormUrl(value);
+      note("contact_form", null);
+      flash("contact_form");
+      await saveField("contact_form_url", value);
+    } else {
+      note("contact_form", { kind: "miss", text: "No contact form on the site." });
+    }
+  };
+
+  // Auto-fetch a missing email / contact-form URL (or both), then persist
+  // through the same saveField path the inline edits use. Read-only server
+  // lookup — no CRM action. Feedback stays inline (never blanks the drawer).
+  const findContact = async (mode: "email" | "contact_form" | "both") => {
+    setFinding(mode);
+    if (mode !== "contact_form") note("email", null);
+    if (mode !== "email") note("contact_form", null);
+    try {
+      const res = await fetch("/api/admin/medjobs/enrich-contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ outreachId: ctx.outreach.id, mode }),
+      });
+      const data = (await res.json()) as {
+        value?: string | null;
+        email?: { value: string | null };
+        contactForm?: { value: string | null };
+        error?: string;
+      };
+      if (!res.ok) throw new Error(data.error || "Lookup failed");
+      if (mode === "both") {
+        await applyEmail(data.email?.value ?? null);
+        await applyForm(data.contactForm?.value ?? null);
+      } else if (mode === "email") {
+        await applyEmail(data.value ?? null);
+      } else {
+        await applyForm(data.value ?? null);
+      }
+    } catch (e) {
+      const text = e instanceof Error ? e.message : "Lookup failed";
+      if (mode !== "contact_form") note("email", { kind: "error", text });
+      if (mode !== "email") note("contact_form", { kind: "error", text });
+    } finally {
+      setFinding(null);
+    }
+  };
+
+  const websiteHref = website
+    ? website.startsWith("http")
+      ? website
+      : `https://${website}`
+    : null;
+  const showAutofill = editable && Boolean(website) && (!email || !contactFormUrl);
+
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
           General Contact
         </p>
-        <SaveStatusBadge saving={saving} savedAt={savedAt} />
+        <div className="flex items-center gap-2">
+          {showAutofill && (
+            <button
+              type="button"
+              onClick={() => findContact("both")}
+              disabled={finding !== null}
+              className="inline-flex items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-[11px] font-medium text-primary-700 transition-colors hover:bg-primary-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {finding === "both" ? (
+                <>
+                  <Spinner /> Searching…
+                </>
+              ) : (
+                <>✦ Auto-fill from website</>
+              )}
+            </button>
+          )}
+          <SaveStatusBadge saving={saving} savedAt={savedAt} />
+        </div>
       </div>
       <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
         <CoverageRow checked={addressComplete} label="Address">
@@ -498,14 +600,31 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(email)} label="Email">
           {editable ? (
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => saveField("email", email)}
-              placeholder="info@agency.com"
-              size="sm"
-            />
+            <div className="space-y-1.5">
+              <div
+                className={`rounded-lg transition-shadow duration-700 ${
+                  pulseEmail ? "ring-2 ring-primary-400" : "ring-0"
+                }`}
+              >
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => saveField("email", email)}
+                  placeholder="info@agency.com"
+                  size="sm"
+                />
+              </div>
+              <FindRow
+                showButton={!email}
+                label="Find email"
+                busy={finding === "email" || finding === "both"}
+                disabled={finding !== null}
+                onClick={() => findContact("email")}
+                note={findNote.email}
+                websiteHref={websiteHref}
+              />
+            </div>
           ) : (
             <span className="block truncate text-gray-700">
               {email || <span className="text-gray-400">Not on file</span>}
@@ -537,14 +656,31 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(contactFormUrl)} label="Contact form">
           {editable ? (
-            <Input
-              type="url"
-              value={contactFormUrl}
-              onChange={(e) => setContactFormUrl(e.target.value)}
-              onBlur={() => saveField("contact_form_url", contactFormUrl)}
-              placeholder="https://agency.com/contact"
-              size="sm"
-            />
+            <div className="space-y-1.5">
+              <div
+                className={`rounded-lg transition-shadow duration-700 ${
+                  pulseForm ? "ring-2 ring-primary-400" : "ring-0"
+                }`}
+              >
+                <Input
+                  type="url"
+                  value={contactFormUrl}
+                  onChange={(e) => setContactFormUrl(e.target.value)}
+                  onBlur={() => saveField("contact_form_url", contactFormUrl)}
+                  placeholder="https://agency.com/contact"
+                  size="sm"
+                />
+              </div>
+              <FindRow
+                showButton={!contactFormUrl}
+                label="Find contact form"
+                busy={finding === "contact_form" || finding === "both"}
+                disabled={finding !== null}
+                onClick={() => findContact("contact_form")}
+                note={findNote.contact_form}
+                websiteHref={websiteHref}
+              />
+            </div>
           ) : contactFormUrl ? (
             <div className="flex flex-wrap items-center gap-2">
               <a
@@ -629,6 +765,90 @@ function SaveStatusBadge({
     );
   }
   return null;
+}
+
+/** Calm inline spinner for the in-flight "searching the site" state. */
+function Spinner() {
+  return (
+    <svg
+      className="h-3 w-3 animate-spin text-primary-600"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Inline find affordance under an empty General Contact field. Shows one of:
+ * an in-flight "searching" state, a soft "✦ Find X" pill, or a calm result
+ * note (a miss offers "Open website ↗" so the operator can look manually).
+ * Feedback never leaves this row — the drawer body stays put.
+ */
+function FindRow({
+  showButton,
+  label,
+  busy,
+  disabled,
+  onClick,
+  note,
+  websiteHref,
+}: {
+  showButton: boolean;
+  label: string;
+  busy: boolean;
+  disabled: boolean;
+  onClick: () => void;
+  note?: { kind: "miss" | "error"; text: string };
+  websiteHref: string | null;
+}) {
+  if (busy) {
+    return (
+      <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
+        <Spinner /> Searching the site…
+      </div>
+    );
+  }
+  if (!showButton && !note) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      {showButton && (
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={disabled}
+          className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-600 shadow-sm transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <span className="text-primary-600" aria-hidden>
+            ✦
+          </span>
+          {label}
+        </button>
+      )}
+      {note && (
+        <span className={`text-[11px] ${note.kind === "error" ? "text-red-600" : "text-gray-500"}`}>
+          {note.text}
+          {note.kind === "miss" && websiteHref && (
+            <a
+              href={websiteHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-1.5 font-medium text-primary-700 hover:underline"
+            >
+              Open website ↗
+            </a>
+          )}
+        </span>
+      )}
+    </div>
+  );
 }
 
 // ── ContactRow ──────────────────────────────────────────────────────────

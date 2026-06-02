@@ -32,6 +32,8 @@ interface QASectionWithVariantProps {
   providerState?: string;
   questions?: QAEntry[];
   suggestedQuestions?: string[];
+  /** Normalized-question → times-asked tally for this provider (passthrough). */
+  suggestionStats?: Record<string, number>;
   hasBenefitsData: boolean;
   /** Similar providers for multi_provider variant */
   similarProvidersForMulti?: SimilarProviderForMulti[];
@@ -66,6 +68,7 @@ export default function QASectionWithVariant({
   providerState,
   questions,
   suggestedQuestions,
+  suggestionStats,
   hasBenefitsData,
   similarProvidersForMulti,
   alternativeProviders,
@@ -126,6 +129,7 @@ export default function QASectionWithVariant({
       providerState={providerState}
       questions={questions}
       suggestedQuestions={suggestedQuestions}
+      suggestionStats={suggestionStats}
       hasBenefitsSection={hasBenefitsSection}
       variant={hookVariant ?? undefined}
       similarProvidersForMulti={similarProvidersForMulti}

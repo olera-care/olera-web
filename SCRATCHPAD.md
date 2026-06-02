@@ -7,6 +7,88 @@
 
 ## Current Focus
 
+### 2026-06-02 (Tue) — Provider outreach enrichment (P1 #2 emails + #3 contact-form URLs) — PLANNED
+
+**Context:** `/explore` audited all 7 of TJ's P1 cards → 3 already done (closed on Notion: Smartlead bridge, Benefits mobile +P2 dup, portal post-Q sign-in mobile), 1 mostly-done/diverged (SBF 2-step → empathic arm), 1 half-shipped (#4 connect-two-sides), 2 genuinely unbuilt: the paired email + contact-form enrichers. TJ chose to build both together (shared toolchain).
+
+**Plan:** [`plans/provider-outreach-enrichment-plan.md`](plans/provider-outreach-enrichment-plan.md). Batch enrichers (workhorse) + per-row "Find X" drawer buttons (escape hatch) writing onto `student_outreach.research_data.general_contact` (Option A). Shared TS finder lib consumed by both tsx batch scripts AND the button endpoint. No new CRM action/enum/touchpoint (G1–G4).
+
+**Built + verified this session (Tasks 1–3 of 4):**
+- `lib/medjobs/outreach-enrichment.ts` — shared finder: `resolveWebsite` / `findEmail` (scrape→role-rank→Perplexity, ZeroBounce-ready) / `findContactFormUrl` (path-ranked links + real-contact-form validation, NOT any `<form>`). Lazy env reads (tsx load-order safe). tsc clean + live smoke-tested.
+- `scripts/enrich-outreach-emails.ts` — `--city <City> <ST>` (directory, writes `olera-providers.email`) or `--outreach` (writes `research_data.general_contact.email`). Dry-run default, `--apply` gate, ZeroBounce verify, concurrency pool. **College Station --apply: 18 targets → 6 found, ZeroBounce dropped 3 invalid, 3 real emails written** (Allumine, Five Points, Interim). ~17% hit (chains hide email behind forms).
+- `scripts/enrich-outreach-contact-forms.ts` — `--outreach` (writes) or `--city` (preview, no write — directory has no column). **College Station preview: 28/37 forms found (~76%)** incl. the chains email missed. `--outreach --apply --limit 1` verified the JSONB merge preserves research_data on a staging row.
+- `package.json`: `enrich:outreach-emails`, `enrich:outreach-forms`.
+- Test scaffolding: worktree has symlinked `node_modules` + `.env.local` → main checkout (gitignored) so `npx tsx` runs locally.
+
+- **Task 4 (buttons) — DONE (code):** read-only `POST /api/admin/medjobs/enrich-contact` (auth-guarded, mode email|contact_form, resolves website from research_data→linked directory, runs shared finder, returns value, NO write) + "✦ Find email"/"✦ Find contact form" buttons in `SnapshotCard` General Contact (show when field empty, pre-fill via existing `saveField`/`update_general_contact`, loading + calm error). Full project `tsc` clean for all 4 files (8 unrelated pre-existing errors: passkey WIP + missing optional deps).
+
+**All 4 tasks built + verified (tsc + live data). COMMITTED + PUSHED** → `clever-jemison` (commit `3cc152b1`).
+**Pre-test review:** found + fixed 1 bug — `--outreach` status filter used non-existent values (`"converted"`/`"closed"`); only `do_not_contact` was actually excluded. Fixed → positive `.in()` of live-outreach statuses (research + in_progress groups). Validated: contact-form targets 13→12. Everything else traced clean.
+**Remaining QA:** click-test the "✦ Find email"/"✦ Find contact form" buttons in the live admin drawer (needs auth/running app → staging).
+**Outreach-mode write runs available when wanted:** 7 rows need email, 12 need contact_form_url (live CRM, across cities — not auto-run).
+
+**Next up:** (1) open/merge PR to staging + QA the buttons; (2) decide whether to fire the live `--outreach --apply` runs (7 emails / 12 forms); (3) optional follow-on: contact-form/email enrichment feeds the emailless-tail of P1 #4 "Connect the two sides" (sub-task 3). Note: worktree has gitignored symlinks (`node_modules`, `.env.local`) → main checkout so `npx tsx` runs locally.
+
+---
+
+### 2026-06-02 (Tue) — Provider-page Q&A: asked-aware suggested questions (branch `hardy-nobel`, pushed)
+
+**Context:** Explored the questions care seekers ask on provider pages. Data finding (8wk, 4,541 Qs): **98.8% are one-tap clicks on the fixed suggested-question chips** — only 17 genuinely typed in 8 weeks. The repetition floods providers with identical Qs (1,139× "What's included in the monthly fee?"). Cost/payment ≈48% of all questions. The 1.2% typed are 10× more likely to carry an email — the real leads.
+
+**Shipped (commit `b0acfaa7`, 4 files + new `lib/qa-utils.ts`):**
+- Deepened the **six live directory categories** (AL, MC, NH, IL, home care, home health) from **5→8** suggested questions (`lib/provider-utils.ts`). New Qs grounded in real organic asks (affordability/income-based, payment beyond Medicare, dementia progression, special diets). The other 7 switch cases are dead code (no provider hits them).
+- **Asked-aware ordering** in `QASectionV2.tsx`: show top 5, hold 3 as reserve. Already-**answered** topic → drops from chips (answer shows as thread) + thread gains "N people asked this" badge (N≥2). Already-**asked-unanswered** → sinks below un-asked so a fresh Q surfaces. Un-asked topics keep the proven order (new visitor unaffected).
+- Per-provider asked tally built server-side (`page.tsx`, query by `provider_id=slug`), shared `normalizeQuestion` (`lib/qa-utils.ts`, dependency-free for client import), threaded through `QASectionWithVariant`.
+
+**Decisions (WHY):**
+- **Don't shuffle / don't reorder un-asked Qs** — TJ: every visitor is new, so the optimized fixed order is best *for them*; repetition is a team/DB illusion. Fix is de-prioritize-on-asked only.
+- **De-prioritize, not remove** — diverse Qs = higher ROI, and sinking (vs removing) kills the pool-depletion trap, so no bench expansion beyond 5→8 needed.
+- **Count badge only on answered Qs** — social proof reinforces real content; showing it on unanswered chips would re-boost the topic we're sinking.
+- **Keep 6 category sets, not collapse to 2** — TJ's "senior living + home care" is the right *business* framing (97.5% of providers) but the code tailors per sub-type (MC dementia Qs, NH Medicaid Qs); keeping that is more thoughtful.
+
+**Status:** `/pre-test` clean (no bugs), tsc clean on changed files, committed + pushed. **PR to staging via this quicksave.**
+
+**Process note:** initially edited `~/Desktop/olera-web` (stale, on `chore/rename-compact-skill`, ~440 lines behind on QASectionV2) — caught it, reverted Desktop, redid against the worktree. New memory `feedback_edit_in_worktree_not_desktop`.
+
+**Next up (deferred surgical edits, not built):** provider-side duplicate-question collapse + notification suppression; promote the typed-question path; the answer-side problems (93% unanswered, 15% no provider email). UX idea worth revisiting: answer-in-the-moment from data we already have (pricing/payments/care types) so a tap returns value even when the provider never replies.
+
+---
+
+### 2026-06-01 (Mon) — Smartlead cold-email BRIDGE built end-to-end (PR #900 → staging, inert)
+
+**Context:** Resumed the cold-outreach engine (mailboxes `logan@`/`partnerships@findmedjobs.co` warming since 5/29, ~late June ready). Goal: build the software that turns CRM rows into live Smartlead campaigns — the "engine room" — ahead of warmup, then demo it. Branch `medjobs-smartlead-bridge` off `staging`; `lib/smartlead.ts` cherry-picked onto it from `save/email-deliverability-session`.
+
+**Built + committed (PR #900, 9 commits):**
+- `lib/medjobs/smartlead-bridge.ts` — pure helpers (`selectEligibleRows` w/ reasoned skips, `rowToLead` baking `custom_fields.outreach_id` as the D2 join key, `buildEmailSequence` provider email-days 0/3/7 → delays [0,3,4]) + orchestration (`launchCampaign` batch, `enrollRowIntoCampusCampaign` per-row, `resolveMailboxPool`, shared `provisionCampaign`/`finalizeCampaign`). **PAUSED-only — no `START` literal exists.**
+- `lib/student-outreach/email-markdown.ts` — `bodyToHtml` extracted (was private in `email-send.ts`) so Resend + Smartlead render identical HTML.
+- `lib/smartlead.ts` — added `deleteCampaign`.
+- `route.ts` `handleScheduleSequence` — engine branch (config `MEDJOBS_OUTREACH_ENGINE`, optional `body.engine`); smartlead mode enrolls first, queues only call tasks, skips Day-0 Resend fire, writes `research_data.smartlead` linkage + `note_added` touchpoint. `ResearchData.smartlead` type field added (JSONB, no migration).
+- `supabase/functions/smartlead-webhook/` — D2 reply/bounce → touchpoints, INERT until `SMARTLEAD_WEBHOOK_SECRET` set.
+- `docs/medjobs/SMARTLEAD_BRIDGE_SPEC.md` — design doc.
+
+**Validated:** pure helpers via tsx; orchestration mock 15/15 + per-row 14/14; **live PAUSED campaign against the real Smartlead account — every mutation path confirmed (create/attach/sequence/leads/schedule/status=PAUSED), then deleted, account clean.** `tsc` 0 errors.
+
+**Decisions (WHY):**
+- **No new frontend.** Interface = existing pre-flight "Schedule sequence" action; Smartlead is a backend swap chosen by config flag. Cockpit (dashboard) vs engine-room (Claude) — frontend emerges with the team, don't build a UI nobody asked for.
+- **Channel split:** Smartlead owns the EMAIL drip; CRM keeps CALL tasks + stays system of record.
+- **Campus-campaign reuse = approach (b):** per-row enroll looks up the campus's campaign id from a sibling row's `research_data.smartlead.campaign_id` (no new engine surface).
+- **D2 = service-role direct write (sanctioned G4 exception).** Original plan (route through `log_email_replied`) is impossible — the Vercel WAF that forces D2 off Vercel also blocks an Edge→Vercel callback. Kept faithful by replicating `insertTouchpoint`+`handleLogReply` + leaning on derived state. Documented in fn header/README/spec §10.
+- **Logan's role is NOT messaging approval** (that was overthinking) — narrow: sees copy once (his name on it), okays being the sender face. Monday = courtesy walkthrough.
+
+**Demo (live meeting w/ Logan):** connected `tj@findmedjobs.co` to Smartlead as a throwaway demo sender (warmup OFF — do NOT warm; it's the admin acct, not a 3rd cold sender). Campaigns now in account: MOCK `3433423` (no-sender PAUSED), DEMO `3433546` (ACTIVE, sending to tj@/logan@/graize@olera.care — new-mailbox dispatch delay, hadn't landed yet), DEMO-for-Logan `3434880` (PAUSED, tj@ sender). Gmail connector authed to `partnerships@` (DRAFT-ONLY — no send tool); confirmed partnerships@ actively warming via connector inbox read.
+
+**Resume next session here →**
+1. **Push pending** (this quicksave pushes the D2 commit + scratchpad → updates PR #900). PR is TJ-merge-only.
+2. **Logan sign-off** on messaging + the cold-channel **footer/sender-identity/unsubscribe** (the one deferred body piece) + audience read.
+3. **Before activating D2:** verify Smartlead webhook payload shape vs their docs; set `SMARTLEAD_WEBHOOK_SECRET` + register URL in Smartlead.
+4. **Post-warmup (~late June):** set `MEDJOBS_OUTREACH_ENGINE=smartlead` + `SMARTLEAD_SENDER_EMAILS` in prod, then a human clicks START.
+5. **Clean up** demo campaigns (`deleteCampaign` 3433423/3433546/3434880) when team's done; consider disconnecting tj@ from Smartlead.
+6. **3 sibling deliverability tasks** on Web App board (P2/P3): activate provider-notify domain split (#860, `PROVIDER_NOTIFY_FROM` unset in prod), fix complaint-rate instrumentation (reads 0.00%), move provider cold off Loops. + confirm staffing-outreach retired (P4).
+- Refs: memory `project_smartlead_bridge`; Logan one-pager (Notion, updated); spec `docs/medjobs/SMARTLEAD_BRIDGE_SPEC.md`.
+
+
+---
+
 ### 2026-06-01 (Mon) — Connections tracker planned (gating-thread sub-task 4)
 
 **Context:** `/explore` → restructured the P1 "Connect the two sides" gating-thread card into 5 sub-tasks (Notion `3725903a-0ffe-81f1-8a54-d32371a60243`); folded + retired the P2 "Connection ledger" card. Audited lead delivery, the connection state machine, re-engagement crons, and email infra. Corrected two card errors: auto-send already works when a provider has an email (hard stop is only the emailless tail), and the "30-day post-connection email" doesn't exist (`accepted_at` is set but never read; true re-engage trigger = provider's first non-auto thread reply).

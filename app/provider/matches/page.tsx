@@ -20,6 +20,7 @@ import FiltersModal, { type FiltersState, DEFAULT_FILTERS_STATE, countActiveFilt
 import MyOutreach from "@/components/provider/matches/MyOutreach";
 import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
 import FindFamiliesMarketView from "@/components/provider/market/FindFamiliesMarketView";
+import { marketGateEnabled } from "@/lib/market-gate";
 
 // Tab types for the matches view
 type MatchesTab = "best_matches" | "near_you";
@@ -873,12 +874,10 @@ export default function ProviderMatchesPage() {
   // Find Families defaults to the market diagnostic (the 99.9%-of-providers experience).
   // Gated to the Aggie test provider / TJ while we dogfood; ?market=1 forces it on for previews.
   const [forceLeads, setForceLeads] = useState(false);
-  const marketGateOn = useMemo(() => {
-    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("market")) return true;
-    const name = providerProfile?.display_name?.toLowerCase() || "";
-    const email = user?.email?.toLowerCase() || "";
-    return name.includes("aggie") || email === "tfalohun@gmail.com";
-  }, [providerProfile?.display_name, user?.email]);
+  const marketGateOn = useMemo(
+    () => marketGateEnabled({ displayName: providerProfile?.display_name, email: user?.email }),
+    [providerProfile?.display_name, user?.email],
+  );
   const [sortOption, setSortOption] = useState<SortOption>("recommended");
   // Shared state for MyOutreach (syncs mobile + desktop instances)
   const [isOutreachOpen, setIsOutreachOpen] = useState(false);

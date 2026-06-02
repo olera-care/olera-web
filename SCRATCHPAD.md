@@ -22,9 +22,12 @@
 
 - **Task 4 (buttons) — DONE (code):** read-only `POST /api/admin/medjobs/enrich-contact` (auth-guarded, mode email|contact_form, resolves website from research_data→linked directory, runs shared finder, returns value, NO write) + "✦ Find email"/"✦ Find contact form" buttons in `SnapshotCard` General Contact (show when field empty, pre-fill via existing `saveField`/`update_general_contact`, loading + calm error). Full project `tsc` clean for all 4 files (8 unrelated pre-existing errors: passkey WIP + missing optional deps).
 
-**All 4 tasks built + verified (tsc + live data).** Not committed/pushed yet (TJ to decide).
-**Remaining QA:** click-test the buttons in the live admin drawer (needs auth/running app → staging).
-**Outreach-mode write runs available when wanted:** 7 rows need email, 13 need contact_form_url (live CRM, across cities — not auto-run).
+**All 4 tasks built + verified (tsc + live data). COMMITTED + PUSHED** → `clever-jemison` (commit `3cc152b1`).
+**Pre-test review:** found + fixed 1 bug — `--outreach` status filter used non-existent values (`"converted"`/`"closed"`); only `do_not_contact` was actually excluded. Fixed → positive `.in()` of live-outreach statuses (research + in_progress groups). Validated: contact-form targets 13→12. Everything else traced clean.
+**Remaining QA:** click-test the "✦ Find email"/"✦ Find contact form" buttons in the live admin drawer (needs auth/running app → staging).
+**Outreach-mode write runs available when wanted:** 7 rows need email, 12 need contact_form_url (live CRM, across cities — not auto-run).
+
+**Next up:** (1) open/merge PR to staging + QA the buttons; (2) decide whether to fire the live `--outreach --apply` runs (7 emails / 12 forms); (3) optional follow-on: contact-form/email enrichment feeds the emailless-tail of P1 #4 "Connect the two sides" (sub-task 3). Note: worktree has gitignored symlinks (`node_modules`, `.env.local`) → main checkout so `npx tsx` runs locally.
 
 ---
 

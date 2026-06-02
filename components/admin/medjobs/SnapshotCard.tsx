@@ -137,6 +137,18 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
         )}
       </header>
 
+      {/* ── 0. Business Name ───────────────────────────────────────
+          Editable canonical name. Materialized from business_profiles
+          but the directory data can be stale; admin needs to fix it
+          during pre-flight so outreach + Smartlead campaign carry
+          the right brand. */}
+      <BusinessNameSection
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        editable={isPreLaunch}
+      />
+
       {/* ── 1. General Contact ─────────────────────────────────────
           Organization-level fallback contact info (front desk /
           info@ / contact form). Edits write to research_data.
@@ -279,6 +291,7 @@ function GeneralContactSection({
     fax?: string | null;
     contact_form_url?: string | null;
     website?: string | null;
+    google_business_profile_url?: string | null;
     street?: string | null;
     city?: string | null;
     state?: string | null;
@@ -296,6 +309,7 @@ function GeneralContactSection({
       fax: overrides.fax ?? "",
       contact_form_url: overrides.contact_form_url ?? "",
       website: overrides.website ?? bp?.website ?? "",
+      google_business_profile_url: overrides.google_business_profile_url ?? "",
       street: overrides.street ?? bp?.address ?? "",
       city: overrides.city ?? bp?.city ?? "",
       state: overrides.state ?? bp?.state ?? "",
@@ -322,6 +336,9 @@ function GeneralContactSection({
   const [fax, setFax] = useState(effective.fax);
   const [contactFormUrl, setContactFormUrl] = useState(effective.contact_form_url);
   const [website, setWebsite] = useState(effective.website);
+  const [googleBusinessProfileUrl, setGoogleBusinessProfileUrl] = useState(
+    effective.google_business_profile_url,
+  );
   const [street, setStreet] = useState(effective.street);
   const [city, setCity] = useState(effective.city);
   const [stateField, setStateField] = useState(effective.state);
@@ -338,6 +355,7 @@ function GeneralContactSection({
     setFax(effective.fax);
     setContactFormUrl(effective.contact_form_url);
     setWebsite(effective.website);
+    setGoogleBusinessProfileUrl(effective.google_business_profile_url);
     setStreet(effective.street);
     setCity(effective.city);
     setStateField(effective.state);
@@ -392,6 +410,7 @@ function GeneralContactSection({
       | "fax"
       | "contact_form_url"
       | "website"
+      | "google_business_profile_url"
       | "street"
       | "city"
       | "state"
@@ -441,12 +460,101 @@ function GeneralContactSection({
         <SaveStatusBadge saving={saving} savedAt={savedAt} />
       </div>
       <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
+        <CoverageRow checked={Boolean(website)} label="Website">
+          {editable ? (
+            <Input
+              type="url"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              onBlur={() => saveField("website", website)}
+              placeholder="https://agency.com"
+              size="sm"
+            />
+          ) : website ? (
+            <a
+              href={website.startsWith("http") ? website : `https://${website}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block truncate text-primary-700 hover:underline"
+            >
+              {website}
+            </a>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
+        <CoverageRow
+          checked={Boolean(googleBusinessProfileUrl)}
+          label="GBP"
+        >
+          {editable ? (
+            <Input
+              type="url"
+              value={googleBusinessProfileUrl}
+              onChange={(e) => setGoogleBusinessProfileUrl(e.target.value)}
+              onBlur={() =>
+                saveField(
+                  "google_business_profile_url",
+                  googleBusinessProfileUrl,
+                )
+              }
+              placeholder="https://g.page/agency or maps.google.com/..."
+              size="sm"
+            />
+          ) : googleBusinessProfileUrl ? (
+            <a
+              href={
+                googleBusinessProfileUrl.startsWith("http")
+                  ? googleBusinessProfileUrl
+                  : `https://${googleBusinessProfileUrl}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block truncate text-primary-700 hover:underline"
+            >
+              {googleBusinessProfileUrl}
+            </a>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
+        <CoverageRow checked={Boolean(phone)} label="Phone">
+          {editable ? (
+            <Input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              onBlur={() => saveField("phone", phone)}
+              placeholder="(555) 123-4567"
+              size="sm"
+            />
+          ) : phone ? (
+            <a href={`tel:${phone}`} className="block truncate text-primary-700 hover:underline">
+              {phone}
+            </a>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
+        <CoverageRow checked={Boolean(email)} label="Email">
+          {editable ? (
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => saveField("email", email)}
+              placeholder="info@agency.com"
+              size="sm"
+            />
+          ) : (
+            <span className="block truncate text-gray-700">
+              {email || <span className="text-gray-400">Not on file</span>}
+            </span>
+          )}
+        </CoverageRow>
         <CoverageRow checked={addressComplete} label="Address">
           {/* v9 final: structured address — separate slots so admin
-              fixes one field without re-typing the whole line.
-              Effective values fall back to bp.address / bp.city /
-              bp.state; ZIP has no bp fallback. Single-line render
-              when read-only. */}
+              fixes one field without re-typing the whole line. */}
           {editable ? (
             <div className="space-y-1">
               <Input
@@ -499,63 +607,6 @@ function GeneralContactSection({
             </span>
           ) : (
             <span className="text-gray-400">Not on file</span>
-          )}
-        </CoverageRow>
-        <CoverageRow checked={Boolean(website)} label="Website">
-          {editable ? (
-            <Input
-              type="url"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              onBlur={() => saveField("website", website)}
-              placeholder="https://agency.com"
-              size="sm"
-            />
-          ) : website ? (
-            <a
-              href={website.startsWith("http") ? website : `https://${website}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block truncate text-primary-700 hover:underline"
-            >
-              {website}
-            </a>
-          ) : (
-            <span className="text-gray-400">Not on file</span>
-          )}
-        </CoverageRow>
-        <CoverageRow checked={Boolean(phone)} label="Phone">
-          {editable ? (
-            <Input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              onBlur={() => saveField("phone", phone)}
-              placeholder="(555) 123-4567"
-              size="sm"
-            />
-          ) : phone ? (
-            <a href={`tel:${phone}`} className="block truncate text-primary-700 hover:underline">
-              {phone}
-            </a>
-          ) : (
-            <span className="text-gray-400">Not on file</span>
-          )}
-        </CoverageRow>
-        <CoverageRow checked={Boolean(email)} label="Email">
-          {editable ? (
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => saveField("email", email)}
-              placeholder="info@agency.com"
-              size="sm"
-            />
-          ) : (
-            <span className="block truncate text-gray-700">
-              {email || <span className="text-gray-400">Not on file</span>}
-            </span>
           )}
         </CoverageRow>
         <CoverageRow checked={Boolean(fax) || faxUnavailable} label="Fax">
@@ -686,6 +737,75 @@ function SaveStatusBadge({
     );
   }
   return null;
+}
+
+// ── Business Name section ──────────────────────────────────────────────
+
+/**
+ * v9.x editable canonical Business Name. Sits at the top of the Research
+ * Card. Directory data (business_profiles.display_name) can be stale or
+ * wrong; admin needs to correct it during pre-flight so outreach,
+ * snapshots, and the Smartlead campaign carry the right brand.
+ */
+function BusinessNameSection({
+  ctx,
+  action,
+  setError,
+  editable,
+}: {
+  ctx: DrawerContext;
+  action: (
+    actionName: string,
+    payload?: Record<string, unknown>,
+  ) => Promise<DrawerContext>;
+  setError: (msg: string | null) => void;
+  editable: boolean;
+}) {
+  const [name, setName] = useState(ctx.outreach.organization_name);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setName(ctx.outreach.organization_name);
+  }, [ctx.outreach.organization_name]);
+
+  const save = async () => {
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === ctx.outreach.organization_name) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await action("update_organization_name", { organization_name: trimmed });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save business name");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="mb-1.5 flex items-baseline justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          Business Name
+        </p>
+        {saving && <p className="text-[10px] text-gray-400">Saving…</p>}
+      </div>
+      {editable ? (
+        <Input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={save}
+          placeholder="Provider business name"
+          size="sm"
+        />
+      ) : (
+        <p className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900">
+          {ctx.outreach.organization_name}
+        </p>
+      )}
+    </div>
+  );
 }
 
 // ── Decision Maker section ─────────────────────────────────────────────

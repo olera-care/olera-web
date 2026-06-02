@@ -307,6 +307,14 @@ export async function POST(
         await handleUpdateGeneralContact(db, row, body, user.id);
         break;
 
+      // v9.x editable Business Name on the row itself. The
+      // organization_name is materialized from business_profiles at row
+      // creation but the directory data can be stale or wrong — admin
+      // needs to be able to fix it during pre-flight research.
+      case "update_organization_name":
+        await handleUpdateOrganizationName(db, row, body, user.id);
+        break;
+
       // v9.x single Decision Maker slot on `research_data.decision_maker`.
       // Replaces the multi-contact UI for new rows; legacy
       // student_outreach_contacts data remains readable.
@@ -953,6 +961,8 @@ async function handleUpdateGeneralContact(
     fax?: string | null;
     contact_form_url?: string | null;
     website?: string | null;
+    /** v9.x Google Business Profile URL — research signal for pre-flight. */
+    google_business_profile_url?: string | null;
     /** v9 final: structured address. Each field is independently
      *  updatable so admin can fix a single ZIP without re-typing
      *  the whole address. */
@@ -978,6 +988,7 @@ async function handleUpdateGeneralContact(
     "fax",
     "contact_form_url",
     "website",
+    "google_business_profile_url",
     "street",
     "city",
     "state",
@@ -1005,6 +1016,25 @@ async function handleUpdateGeneralContact(
   }
   const nextResearch: ResearchData = { ...current, general_contact: nextGc };
   await touchOutreach(db, row.id, userId, { research_data: nextResearch });
+}
+
+/**
+ * v9.x update the row's organization_name directly. Directory data can be
+ * stale or wrong; admin needs to correct it during pre-flight research so
+ * outreach emails, snapshots, and the Smartlead campaign carry the right
+ * brand. Writes to the row's column (not research_data) — this is the
+ * canonical org name everything else reads from.
+ */
+async function handleUpdateOrganizationName(
+  db: DB,
+  row: OutreachRow,
+  body: { organization_name?: string | null },
+  userId: string,
+) {
+  const next = (body.organization_name ?? "").trim();
+  if (!next) throw new Error("Business name cannot be empty");
+  if (next === row.organization_name) return;
+  await touchOutreach(db, row.id, userId, { organization_name: next });
 }
 
 /**

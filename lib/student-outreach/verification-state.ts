@@ -67,7 +67,7 @@ export function getVerificationState(
       attempts: 0,
       days_used: 0,
       can_launch: true,
-      label: "No phone on file — verification skipped",
+      label: "No phone on file.",
     };
   }
 
@@ -87,7 +87,7 @@ export function getVerificationState(
       attempts: attempts.length,
       days_used: new Set(attempts.map((t) => dayKey(t.created_at))).size,
       can_launch: true,
-      label: "Contacts confirmed on call",
+      label: "Information confirmed by phone.",
     };
   }
 
@@ -99,7 +99,7 @@ export function getVerificationState(
       attempts: attempts.length,
       days_used: daysUsed,
       can_launch: true,
-      label: `Unverified — ${attempts.length} attempts across ${daysUsed} days`,
+      label: `Unverified — ${attempts.length} attempts across ${daysUsed} days.`,
     };
   }
 
@@ -109,6 +109,6 @@ export function getVerificationState(
     attempts: attempts.length,
     days_used: daysUsed,
     can_launch: false,
-    label: `Call to confirm — attempt ${attempts.length} of 3 on ${daysUsed} of 3 days`,
+    label: `Attempt ${attempts.length} of 3 on ${daysUsed} of 3 days.`,
   };
 }

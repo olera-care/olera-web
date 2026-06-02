@@ -334,6 +334,8 @@ function ProspectBody({
   const hasEmail = Boolean(generalEmail?.includes("@"));
   const hasPhone = Boolean(generalPhone);
   const hasWebsite = Boolean(generalWebsite?.trim());
+  const hasOrgName = Boolean(ctx.outreach.organization_name?.trim());
+  const hasGoogleBusinessProfile = Boolean(gc.google_business_profile_url?.trim());
   const hasFax = Boolean(gc.fax?.trim());
   const hasContactFormUrl = Boolean(gc.contact_form_url?.trim());
   const contactFormResolved = ctx.touchpoints.some(
@@ -358,14 +360,14 @@ function ProspectBody({
 
   // Research-progress indicator — passive, non-blocking. Counts the
   // research-card fields filled or marked unavailable so admin sees
-  // how much work remains without the checklist becoming a wall of
-  // rows. Order: Address, Website, Phone, Fax, Contact form URL,
-  // Decision Maker (6 fields). Email + Call to confirm appear above
-  // as actual launch gates.
+  // how much work remains. Email + Call to confirm appear above as
+  // actual launch gates and are not counted here.
   const researchFields = [
-    addressComplete,
+    hasOrgName,
     hasWebsite,
+    hasGoogleBusinessProfile,
     hasPhone,
+    addressComplete,
     faxResolved,
     contactFormFieldResolved,
     hasDecisionMaker,
@@ -397,40 +399,44 @@ function ProspectBody({
       )}
       <ul className="mt-3 space-y-1 text-xs">
         <ChecklistRow
-          done={addressComplete}
+          done={hasOrgName}
           tone="recommended"
-          label="Address"
-          hint={
-            addressComplete
-              ? "Street, city, state, ZIP on file."
-              : "Add street, city, state, and ZIP in the Research Card."
-          }
+          label="Business Name"
+          hint={hasOrgName ? "Business name on file." : "Add the business name."}
         />
         <ChecklistRow
           done={hasWebsite}
           tone="recommended"
           label="Website"
-          hint={hasWebsite ? "Website on file." : "Add a website in the Research Card."}
+          hint={hasWebsite ? "Website on file." : "Add a website."}
+        />
+        <ChecklistRow
+          done={hasGoogleBusinessProfile}
+          tone="recommended"
+          label="Google Business Profile"
+          hint={
+            hasGoogleBusinessProfile
+              ? "Google Business Profile on file."
+              : "Add a Google Business Profile URL."
+          }
         />
         <ChecklistRow
           done={hasPhone}
           tone="recommended"
           label="Phone"
-          hint={
-            hasPhone
-              ? "General Contact phone on file."
-              : "Add a phone in the Research Card so call cadence + verification can run."
-          }
+          hint={hasPhone ? "Phone on file." : "Add a phone."}
         />
         <ChecklistRow
           done={hasEmail}
           tone="required"
-          label="Email on file"
-          hint={
-            hasEmail
-              ? "General Contact or Decision Maker email on file — outreach has a destination."
-              : "Required. Add a General Contact or Decision Maker email in the Research Card."
-          }
+          label="Email"
+          hint={hasEmail ? "Outreach has a destination." : "Add an email."}
+        />
+        <ChecklistRow
+          done={addressComplete}
+          tone="recommended"
+          label="Address"
+          hint={addressComplete ? "Address on file." : "Add street, city, state, ZIP."}
         />
         <ChecklistRow
           done={faxResolved}
@@ -441,19 +447,19 @@ function ProspectBody({
               ? "Fax on file."
               : gc.fax_unavailable
                 ? "Marked not available."
-                : "Add the fax line in the Research Card, or mark not available there."
+                : "Add fax or mark not available."
           }
         />
         <ChecklistRow
           done={contactFormFieldResolved}
           tone="recommended"
-          label="Contact form URL"
+          label="Contact Form URL"
           hint={
             hasContactFormUrl
-              ? "URL on file."
+              ? "Contact form on file."
               : gc.contact_form_unavailable
                 ? "Marked not available."
-                : "Add the contact form URL in the Research Card, or mark not available there."
+                : "Add URL or mark not available."
           }
         />
         <ChecklistRow
@@ -464,8 +470,8 @@ function ProspectBody({
             dm.unavailable
               ? "Marked not available."
               : dm.email || dm.name
-                ? `${dm.name ?? "Decision Maker"}${dm.role ? ` · ${dm.role}` : ""} on file.`
-                : "Add a Decision Maker in the Research Card, or mark not available there."
+                ? "Decision Maker identified."
+                : "Identify a decision maker."
           }
         />
         {/* v9.x verification gate. Final step before launch. */}
@@ -473,7 +479,7 @@ function ProspectBody({
         <ChecklistRow
           done={verificationState.can_launch}
           tone={verificationState.status === "exempt_no_phone" ? "recommended" : "required"}
-          label="Call to confirm"
+          label="Call to Confirm"
           hint={verificationState.label}
         />
       </ul>

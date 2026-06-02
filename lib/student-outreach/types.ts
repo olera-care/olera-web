@@ -157,6 +157,10 @@ export interface ResearchData {
     city?: string | null;
     state?: string | null;
     zip?: string | null;
+    /** v9.x Google Business Profile URL — separate from the agency's
+     *  own website. Surfaces reviews, hours, photos, and verified
+     *  contact info; useful research signal for the pre-flight call. */
+    google_business_profile_url?: string | null;
     /** v9.x research-card "Mark not available" override for fields
      *  where the provider genuinely lacks one (rural agencies without
      *  a fax line, very small agencies without a public contact form).

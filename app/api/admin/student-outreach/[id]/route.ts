@@ -1909,33 +1909,12 @@ async function handleScheduleSequence(
   },
   userId: string,
 ) {
-  const usingPerRecipient =
-    Array.isArray(body.recipients) && body.recipients.length > 0;
-
-  if (usingPerRecipient) {
-    // Validate at least one variant has at least one day's snapshot.
-    const variants = body.email_snapshots_by_variant ?? {};
-    const totalSnaps =
-      (variants.general?.length ?? 0) + (variants.named?.length ?? 0);
-    if (totalSnaps === 0) {
-      throw new Error("email_snapshots_by_variant required for per-recipient mode");
-    }
-    for (const snaps of [variants.general ?? [], variants.named ?? []]) {
-      for (const s of snaps) {
-        if (!s.subject?.trim() || !s.body?.trim()) {
-          throw new Error(`Day ${s.day} subject and body required`);
-        }
-      }
-    }
-  } else {
-    const snapshots = body.email_snapshots ?? [];
-    if (snapshots.length === 0) throw new Error("email_snapshots required");
-    for (const s of snapshots) {
-      if (!s.subject?.trim() || !s.body?.trim()) {
-        throw new Error(`Day ${s.day} subject and body required`);
-      }
-    }
-  }
+  // Snapshot validation (subject/body presence) is no longer enforced —
+  // Smartlead ships canonical templates from `lib/student-outreach/templates.ts`
+  // via `buildEmailSequence`, so the client doesn't send editable subject/body
+  // copy. The bridge's `selectEligibleRows` handles the "at least one usable
+  // recipient" check below; route-side snapshot validation would block
+  // launches that Smartlead would actually accept.
 
   // Reject if a sequence is already in flight (avoid duplicate scheduling).
   const { data: existing } = await db

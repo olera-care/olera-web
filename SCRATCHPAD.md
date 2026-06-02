@@ -31,6 +31,29 @@
 
 ---
 
+### 2026-06-02 (Tue) — Provider-page Q&A: asked-aware suggested questions (branch `hardy-nobel`, pushed)
+
+**Context:** Explored the questions care seekers ask on provider pages. Data finding (8wk, 4,541 Qs): **98.8% are one-tap clicks on the fixed suggested-question chips** — only 17 genuinely typed in 8 weeks. The repetition floods providers with identical Qs (1,139× "What's included in the monthly fee?"). Cost/payment ≈48% of all questions. The 1.2% typed are 10× more likely to carry an email — the real leads.
+
+**Shipped (commit `b0acfaa7`, 4 files + new `lib/qa-utils.ts`):**
+- Deepened the **six live directory categories** (AL, MC, NH, IL, home care, home health) from **5→8** suggested questions (`lib/provider-utils.ts`). New Qs grounded in real organic asks (affordability/income-based, payment beyond Medicare, dementia progression, special diets). The other 7 switch cases are dead code (no provider hits them).
+- **Asked-aware ordering** in `QASectionV2.tsx`: show top 5, hold 3 as reserve. Already-**answered** topic → drops from chips (answer shows as thread) + thread gains "N people asked this" badge (N≥2). Already-**asked-unanswered** → sinks below un-asked so a fresh Q surfaces. Un-asked topics keep the proven order (new visitor unaffected).
+- Per-provider asked tally built server-side (`page.tsx`, query by `provider_id=slug`), shared `normalizeQuestion` (`lib/qa-utils.ts`, dependency-free for client import), threaded through `QASectionWithVariant`.
+
+**Decisions (WHY):**
+- **Don't shuffle / don't reorder un-asked Qs** — TJ: every visitor is new, so the optimized fixed order is best *for them*; repetition is a team/DB illusion. Fix is de-prioritize-on-asked only.
+- **De-prioritize, not remove** — diverse Qs = higher ROI, and sinking (vs removing) kills the pool-depletion trap, so no bench expansion beyond 5→8 needed.
+- **Count badge only on answered Qs** — social proof reinforces real content; showing it on unanswered chips would re-boost the topic we're sinking.
+- **Keep 6 category sets, not collapse to 2** — TJ's "senior living + home care" is the right *business* framing (97.5% of providers) but the code tailors per sub-type (MC dementia Qs, NH Medicaid Qs); keeping that is more thoughtful.
+
+**Status:** `/pre-test` clean (no bugs), tsc clean on changed files, committed + pushed. **PR to staging via this quicksave.**
+
+**Process note:** initially edited `~/Desktop/olera-web` (stale, on `chore/rename-compact-skill`, ~440 lines behind on QASectionV2) — caught it, reverted Desktop, redid against the worktree. New memory `feedback_edit_in_worktree_not_desktop`.
+
+**Next up (deferred surgical edits, not built):** provider-side duplicate-question collapse + notification suppression; promote the typed-question path; the answer-side problems (93% unanswered, 15% no provider email). UX idea worth revisiting: answer-in-the-moment from data we already have (pricing/payments/care types) so a tap returns value even when the provider never replies.
+
+---
+
 ### 2026-06-01 (Mon) — Smartlead cold-email BRIDGE built end-to-end (PR #900 → staging, inert)
 
 **Context:** Resumed the cold-outreach engine (mailboxes `logan@`/`partnerships@findmedjobs.co` warming since 5/29, ~late June ready). Goal: build the software that turns CRM rows into live Smartlead campaigns — the "engine room" — ahead of warmup, then demo it. Branch `medjobs-smartlead-bridge` off `staging`; `lib/smartlead.ts` cherry-picked onto it from `save/email-deliverability-session`.

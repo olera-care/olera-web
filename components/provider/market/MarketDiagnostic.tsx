@@ -93,28 +93,6 @@ export default function MarketDiagnostic({ data, showHeader = true }: { data: Ma
         </p>
       </Section>
 
-      {/* Where to focus */}
-      <Section kicker="Where to focus" title="Not all of town is your customer">
-        <p className="text-[14px] text-stone-600 leading-relaxed mb-5 max-w-xl">
-          Private-pay care lives where senior density meets income. These are the areas worth your
-          marketing and visit time — ranked. The campus core is dense but young; skip it.
-        </p>
-        <div className="space-y-2.5">
-          {topAreas.map((z, i) => (
-            <div key={z.zcta} className="flex items-center gap-4 rounded-xl border border-stone-200/70 bg-white/50 px-4 py-3">
-              <div className="font-display text-lg text-[#199087] w-7">{i + 1}</div>
-              <div className="flex-1">
-                <div className="text-[15px] text-stone-900 font-medium">ZIP {z.zcta}</div>
-                <div className="text-[12px] text-stone-500">{z.seniors65plus.toLocaleString()} seniors · {z.medianIncome ? usd(z.medianIncome) + " median income" : "—"}</div>
-              </div>
-              {z.medianIncome && z.medianIncome >= 70000 && (
-                <span className="text-[11px] font-medium text-[#199087] bg-emerald-50 rounded-full px-2.5 py-1">High private-pay</span>
-              )}
-            </div>
-          ))}
-        </div>
-      </Section>
-
       {/* Competition */}
       <Section kicker="Your competition" title={`${cl.count} agencies competing for the same families`}>
         <p className="text-[14px] text-stone-600 leading-relaxed mb-5 max-w-xl">
@@ -160,6 +138,28 @@ export default function MarketDiagnostic({ data, showHeader = true }: { data: Ma
                 <div className="text-[12px] text-stone-500">{CAT_LABEL[t.cat] ?? t.cat} · {t.distanceMiles}mi{t.phone ? ` · ${t.phone}` : ""}</div>
               </div>
               <span className="text-[11px] font-medium text-stone-400">{t.reviews} rev</span>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Where to focus */}
+      <Section kicker="Where to focus" title="Not all of town is your customer">
+        <p className="text-[14px] text-stone-600 leading-relaxed mb-5 max-w-xl">
+          Private-pay care lives where senior density meets income. These are the areas worth your
+          marketing and visit time — ranked. The campus core is dense but young; skip it.
+        </p>
+        <div className="space-y-2.5">
+          {topAreas.map((z, i) => (
+            <div key={z.zcta} className="flex items-center gap-4 rounded-xl border border-stone-200/70 bg-white/50 px-4 py-3">
+              <div className="font-display text-lg text-[#199087] w-7">{i + 1}</div>
+              <div className="flex-1">
+                <div className="text-[15px] text-stone-900 font-medium">ZIP {z.zcta}</div>
+                <div className="text-[12px] text-stone-500">{z.seniors65plus.toLocaleString()} seniors · {z.medianIncome ? usd(z.medianIncome) + " median income" : "—"}</div>
+              </div>
+              {z.medianIncome && z.medianIncome >= 70000 && (
+                <span className="text-[11px] font-medium text-[#199087] bg-emerald-50 rounded-full px-2.5 py-1">High private-pay</span>
+              )}
             </div>
           ))}
         </div>

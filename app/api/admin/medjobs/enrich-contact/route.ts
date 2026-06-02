@@ -38,9 +38,9 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as { outreachId?: string; mode?: string };
     const outreachId = body.outreachId?.trim();
     const mode = body.mode;
-    if (!outreachId || (mode !== "email" && mode !== "contact_form")) {
+    if (!outreachId || (mode !== "email" && mode !== "contact_form" && mode !== "both")) {
       return NextResponse.json(
-        { error: "outreachId and mode ('email' | 'contact_form') are required" },
+        { error: "outreachId and mode ('email' | 'contact_form' | 'both') are required" },
         { status: 400 },
       );
     }
@@ -91,6 +91,15 @@ export async function POST(request: NextRequest) {
       state,
     };
 
+    if (mode === "both") {
+      // Anticipate-needs: one click fills both gaps. Both finders share the
+      // same resolved website, so run them together.
+      const [e, f] = await Promise.all([findEmail(ctx), findContactFormUrl(ctx)]);
+      return NextResponse.json({
+        email: { value: e.email, source: e.source },
+        contactForm: { value: f.url, source: f.source },
+      });
+    }
     if (mode === "email") {
       const r = await findEmail(ctx);
       return NextResponse.json({ value: r.email, source: r.source });

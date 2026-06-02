@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { newMessageEmail, firstName } from "@/lib/email-templates";
+import { newMessageEmail, firstName, firstResponseConfirmationEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { normalizeUSPhone } from "@/lib/twilio";
@@ -11,6 +11,7 @@ interface ThreadMessage {
   from_profile_id: string;
   text: string;
   created_at: string;
+  is_auto_reply?: boolean;
 }
 
 /**
@@ -128,6 +129,14 @@ export async function POST(request: Request) {
     };
 
     const updatedThread = [...existingThread, newMessage];
+
+    // Check if this is the provider's first response in this thread (for first response email)
+    // Provider is the to_profile_id in inquiry connections
+    const isProviderSender = profileId === connection.to_profile_id;
+    const providerMessagesBeforeThis = existingThread.filter(
+      (m) => m.from_profile_id === connection.to_profile_id && !m.is_auto_reply
+    );
+    const isFirstProviderResponse = isProviderSender && providerMessagesBeforeThis.length === 0;
 
     // Use admin client to bypass RLS (needed for guest flow)
     const { error: updateError } = await admin
@@ -373,6 +382,103 @@ export async function POST(request: Request) {
       }
     } catch {
       // Non-blocking
+    }
+
+    // First response confirmation email (provider only)
+    if (isFirstProviderResponse) {
+      try {
+        // Get provider and family details
+        const [{ data: providerProfile }, { data: familyProfile }] = await Promise.all([
+          admin
+            .from("business_profiles")
+            .select("display_name, email, account_id, slug")
+            .eq("id", connection.to_profile_id)
+            .single(),
+          admin
+            .from("business_profiles")
+            .select("display_name")
+            .eq("id", connection.from_profile_id)
+            .single(),
+        ]);
+
+        // Resolve provider email
+        let providerEmail = providerProfile?.email;
+        if (!providerEmail && providerProfile?.account_id) {
+          const { data: acct } = await admin
+            .from("accounts")
+            .select("user_id")
+            .eq("id", providerProfile.account_id)
+            .single();
+          if (acct?.user_id) {
+            const { data: { user: authUser } } = await admin.auth.admin.getUserById(acct.user_id);
+            providerEmail = authUser?.email;
+          }
+        }
+
+        if (providerEmail) {
+          // Calculate response time in hours
+          const connectionCreatedAt = connection.metadata?.created_at || existingThread[0]?.created_at;
+          let responseTimeHours = 24; // default if we can't calculate
+          if (connectionCreatedAt) {
+            const createdMs = new Date(connectionCreatedAt as string).getTime();
+            const nowMs = Date.now();
+            responseTimeHours = Math.round((nowMs - createdMs) / (1000 * 60 * 60));
+          }
+
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          const emailLogId = await reserveEmailLogId({
+            to: providerEmail,
+            subject: "Great job reaching out!",
+            emailType: "first_response_confirmation",
+            recipientType: "provider",
+            providerId: connection.to_profile_id,
+          });
+
+          // Generate magic link for auto-sign-in (provider is claimed since they just sent a message)
+          const redirectPath = appendTrackingParams(
+            `/portal/inbox?role=provider&id=${connectionId}`,
+            emailLogId
+          );
+          let viewUrl = `${siteUrl}${redirectPath}`;
+
+          try {
+            const { data: magicLinkData, error: magicLinkError } = await admin.auth.admin.generateLink({
+              type: "magiclink",
+              email: providerEmail,
+              options: {
+                redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
+              },
+            });
+            if (!magicLinkError && magicLinkData?.properties?.action_link) {
+              viewUrl = magicLinkData.properties.action_link;
+            }
+          } catch (linkErr) {
+            console.error("[message] Failed to generate magic link for first response confirmation:", linkErr);
+            // Continue with fallback URL
+          }
+
+          await sendEmail({
+            to: providerEmail,
+            subject: "Great job reaching out!",
+            html: firstResponseConfirmationEmail({
+              providerName: providerProfile?.display_name || "Provider",
+              recipientName: providerProfile?.display_name || "there",
+              familyName: familyProfile?.display_name || "A family",
+              responseTimeHours,
+              viewUrl,
+            }),
+            emailType: "first_response_confirmation",
+            recipientType: "provider",
+            providerId: connection.to_profile_id,
+            emailLogId: emailLogId ?? undefined,
+            recipientProfileId: connection.to_profile_id,
+          });
+
+          console.log("[message] sent first response confirmation email to provider:", providerEmail);
+        }
+      } catch (firstResponseErr) {
+        console.error("[message] first response confirmation email failed:", firstResponseErr);
+      }
     }
 
     return NextResponse.json({ thread: updatedThread });

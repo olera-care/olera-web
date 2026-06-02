@@ -3,7 +3,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, careReportEmail } from "@/lib/email-templates";
+import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, careReportEmail, firstLeadCelebrationEmail } from "@/lib/email-templates";
 import { getPricingForProviderSync, formatPricingRange, getFundingOptions } from "@/lib/pricing-ranges";
 import { sendSlackAlert, slackNewLead, slackMissingEmail, slackLeadCaptureConverted, slackLegacyConnectConverted } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
@@ -700,6 +700,14 @@ async function handleGuestConnection({
     },
   ];
 
+  // Check if this is the provider's first lead (before insert)
+  const { count: existingLeadCount } = await db
+    .from("connections")
+    .select("id", { count: "exact", head: true })
+    .eq("to_profile_id", toProfileId)
+    .eq("type", "inquiry");
+  const isFirstLead = existingLeadCount === 0;
+
   // Insert connection
   const { data: newConnection, error: insertError } = await db
     .from("connections")
@@ -869,6 +877,52 @@ async function handleGuestConnection({
         emailLogId: emailLogId ?? undefined,
         recipientProfileId: toProfileId,
       });
+
+      // Send first lead celebration email if this is the provider's first lead
+      if (isFirstLead) {
+        const celebrationEmailLogId = await reserveEmailLogId({
+          to: providerEmail,
+          subject: "You got your first lead!",
+          emailType: "first_lead_celebration",
+          recipientType: "provider",
+          providerId: toProfileId,
+        });
+
+        let celebrationViewUrl: string;
+        try {
+          const { generateNotificationUrl } = await import("@/lib/claim-tokens");
+          celebrationViewUrl = generateNotificationUrl(
+            providerSlug || toProfileId,
+            providerEmail,
+            "lead",
+            newConnection.id,
+            siteUrl
+          );
+          celebrationViewUrl = appendTrackingParams(celebrationViewUrl, celebrationEmailLogId);
+        } catch {
+          celebrationViewUrl = appendTrackingParams(
+            `${siteUrl}/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
+            celebrationEmailLogId
+          );
+        }
+
+        await sendEmail({
+          to: providerEmail,
+          subject: "You got your first lead!",
+          html: firstLeadCelebrationEmail({
+            providerName: providerDisplayName || providerName,
+            recipientName: providerDisplayName || providerName,
+            familyName: firstName || "A family",
+            connectionId: newConnection.id,
+            viewUrl: celebrationViewUrl,
+          }),
+          emailType: "first_lead_celebration",
+          recipientType: "provider",
+          providerId: toProfileId,
+          emailLogId: celebrationEmailLogId ?? undefined,
+          recipientProfileId: toProfileId,
+        });
+      }
     }
   } catch (emailErr) {
     console.error("Failed to send provider email:", emailErr);
@@ -1634,6 +1688,14 @@ export async function POST(request: Request) {
       },
     ];
 
+    // Check if this is the provider's first lead (before insert)
+    const { count: existingLeadCountAuth } = await db
+      .from("connections")
+      .select("id", { count: "exact", head: true })
+      .eq("to_profile_id", toProfileId)
+      .eq("type", "inquiry");
+    const isFirstLeadAuth = existingLeadCountAuth === 0;
+
     // 8. Insert connection
     const { data: newConnection, error: insertError } = await db
       .from("connections")
@@ -1795,6 +1857,52 @@ export async function POST(request: Request) {
           emailLogId: emailLogId ?? undefined,
           recipientProfileId: toProfileId,
         });
+
+        // Send first lead celebration email if this is the provider's first lead
+        if (isFirstLeadAuth) {
+          const celebrationEmailLogId = await reserveEmailLogId({
+            to: providerEmail,
+            subject: "You got your first lead!",
+            emailType: "first_lead_celebration",
+            recipientType: "provider",
+            providerId: toProfileId,
+          });
+
+          let celebrationViewUrl: string;
+          try {
+            const { generateNotificationUrl } = await import("@/lib/claim-tokens");
+            celebrationViewUrl = generateNotificationUrl(
+              providerSlug || toProfileId,
+              providerEmail,
+              "lead",
+              newConnection.id,
+              siteUrl
+            );
+            celebrationViewUrl = appendTrackingParams(celebrationViewUrl, celebrationEmailLogId);
+          } catch {
+            celebrationViewUrl = appendTrackingParams(
+              `${siteUrl}/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
+              celebrationEmailLogId
+            );
+          }
+
+          await sendEmail({
+            to: providerEmail,
+            subject: "You got your first lead!",
+            html: firstLeadCelebrationEmail({
+              providerName: providerDisplayName || providerName,
+              recipientName: providerDisplayName || providerName,
+              familyName: account.display_name || "A family",
+              connectionId: newConnection.id,
+              viewUrl: celebrationViewUrl,
+            }),
+            emailType: "first_lead_celebration",
+            recipientType: "provider",
+            providerId: toProfileId,
+            emailLogId: celebrationEmailLogId ?? undefined,
+            recipientProfileId: toProfileId,
+          });
+        }
       }
     } catch (emailErr) {
       // Non-blocking — connection was created, email is best-effort

@@ -2494,3 +2494,281 @@ export function familyNudgeEmail(opts: {
     `Complete your profile to help ${escapeHtml(opts.providerName)} respond to your inquiry`
   );
 }
+
+// ── Provider Lifecycle Emails (Phase 9) ──────────────────────────────
+
+/**
+ * Welcome email sent 24h after provider verification approved.
+ * Warm onboarding, sets expectations for getting leads.
+ */
+export function providerWelcomeEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  slug: string;
+  profileCompleteness: number;
+  dashboardUrl: string;
+  profileUrl: string;
+}): string {
+  const completenessLine = opts.profileCompleteness < 100
+    ? `<p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        Your profile is ${opts.profileCompleteness}% complete. Providers with complete profiles get more inquiries from families.
+      </p>`
+    : "";
+
+  const completeProfileCta = opts.profileCompleteness < 100
+    ? `<p style="font-size:14px;color:#6b7280;margin:16px 0 0;line-height:1.5;">
+        Want to stand out? ${ctaLink("Complete your profile", opts.profileUrl)} to attract more families.
+      </p>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to Olera</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, you're all set up and ready to connect with families looking for care from <strong>${escapeHtml(opts.providerName)}</strong>.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">Here's what happens next:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>Families browsing Olera will find your listing and can reach out directly</li>
+      <li>You'll get an email notification for each new inquiry</li>
+      <li>Respond promptly — families appreciate timely replies</li>
+    </ul>
+    ${completenessLine}
+    <div style="margin:0 0 24px;">${button("View Your Dashboard", opts.dashboardUrl)}</div>
+    ${completeProfileCta}
+    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a> — we're here to help you succeed.
+    </p>
+  `, "You're verified and ready to connect with families");
+}
+
+/**
+ * Celebration email sent when provider receives their FIRST ever lead.
+ * Reinforces value, tips for responding.
+ */
+export function firstLeadCelebrationEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  familyName: string;
+  connectionId: string;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td align="center">
+        <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#fef3c7;border-radius:50%;">
+          <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">🎉</td></tr>
+        </table>
+      </td></tr>
+    </table>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">You got your first lead!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;text-align:center;">
+      Congratulations, ${escapeHtml(firstName(opts.recipientName, "there"))}! <strong>${escapeHtml(firstName(opts.familyName, "A family"))}</strong> is interested in care from ${escapeHtml(opts.providerName)}.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">Tips for a great first response:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>Respond within 24 hours — families appreciate promptness</li>
+      <li>Acknowledge their specific needs if they shared any</li>
+      <li>Share what makes your organization a great fit</li>
+    </ul>
+    <div style="text-align:center;margin:0 0 24px;">${button("View & Respond", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${firstName(opts.familyName, "A family")} reached out — your first lead on Olera!`);
+}
+
+/**
+ * Confirmation email sent when provider sends their FIRST message in a thread.
+ * Reinforces good behavior.
+ */
+export function firstResponseConfirmationEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  familyName: string;
+  responseTimeHours: number;
+  viewUrl: string;
+}): string {
+  const timeText = opts.responseTimeHours < 1
+    ? "less than an hour"
+    : opts.responseTimeHours === 1
+      ? "1 hour"
+      : opts.responseTimeHours < 24
+        ? `${opts.responseTimeHours} hours`
+        : opts.responseTimeHours < 48
+          ? "1 day"
+          : `${Math.floor(opts.responseTimeHours / 24)} days`;
+
+  const fastResponseBonus = opts.responseTimeHours <= 4
+    ? `<div style="background:#ecfdf5;border-radius:8px;padding:16px;margin:0 0 20px;">
+        <p style="font-size:14px;color:#065f46;margin:0;line-height:1.5;">
+          <strong>Fast responder!</strong> You replied in ${timeText}. Families love prompt responses — keep it up!
+        </p>
+      </div>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Great job reaching out!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, you just sent your first response to <strong>${escapeHtml(firstName(opts.familyName, "a family"))}</strong> on Olera.
+    </p>
+    ${fastResponseBonus}
+    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">What happens next:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>The family will get a notification about your message</li>
+      <li>Continue the conversation through your inbox</li>
+      <li>You'll get an email when they reply</li>
+    </ul>
+    <div style="margin:0 0 24px;">${button("View Conversation", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, "Your message was delivered — nice work!");
+}
+
+/**
+ * Celebration email sent when provider profile reaches 100% completeness.
+ * Celebrates milestone, explains what's next.
+ */
+export function profileCompleteEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  slug: string;
+  dashboardUrl: string;
+  profileUrl: string;
+}): string {
+  return layout(`
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td align="center">
+        <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#ecfdf5;border-radius:50%;">
+          <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">✓</td></tr>
+        </table>
+      </td></tr>
+    </table>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">Your profile is complete!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;text-align:center;">
+      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, ${escapeHtml(opts.providerName)} now has a complete profile on Olera. This helps families find you and understand what you offer.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">Complete profiles get:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>Higher visibility in family searches</li>
+      <li>More qualified leads from families who understand your services</li>
+      <li>Better engagement from families who've read your full listing</li>
+    </ul>
+    <div style="text-align:center;margin:0 0 24px;">${button("View Your Listing", opts.profileUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, "Your profile is now 100% complete");
+}
+
+/**
+ * Re-engagement email sent to providers inactive for 30+ days.
+ * "We miss you" + new families in their area.
+ */
+export function dormantReengagementEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  slug: string;
+  daysSinceActivity: number;
+  newFamiliesCount?: number;
+  city?: string;
+  dashboardUrl: string;
+  providerSlug?: string;
+}): string {
+  const locationText = opts.city ? ` in ${escapeHtml(opts.city)}` : "";
+  const familiesLine = opts.newFamiliesCount && opts.newFamiliesCount > 0
+    ? `<div style="background:#f0fdfa;border-radius:8px;padding:16px;margin:0 0 20px;">
+        <p style="font-size:14px;color:#065f46;margin:0;line-height:1.5;">
+          <strong>${opts.newFamiliesCount} new ${opts.newFamiliesCount === 1 ? "family" : "families"}</strong> ${opts.newFamiliesCount === 1 ? "has" : "have"} searched for care${locationText} this month.
+        </p>
+      </div>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families are still looking for you</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, it's been a while since you've been active on Olera. Families${locationText} are still searching for care providers like ${escapeHtml(opts.providerName)}.
+    </p>
+    ${familiesLine}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Log in to check for any new inquiries, update your listing, and make sure families can find you.
+    </p>
+    <div style="margin:0 0 24px;">${button("Go to Dashboard", opts.dashboardUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 16px;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `, `Families${locationText} are looking for care — don't miss out`);
+}
+
+/**
+ * Anniversary/milestone email for providers.
+ * Celebrates 1-year anniversary OR connection milestones (10, 50, 100).
+ */
+export function anniversaryMilestoneEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  slug: string;
+  milestoneType: "anniversary" | "connections";
+  /** Years on platform (for anniversary) */
+  yearsOnPlatform?: number;
+  /** Total connections count (for connections milestone) */
+  totalConnections?: number;
+  /** The specific milestone reached: 10, 50, 100 (for connections) */
+  connectionMilestone?: number;
+  dashboardUrl: string;
+}): string {
+  if (opts.milestoneType === "anniversary") {
+    const yearsText = opts.yearsOnPlatform === 1 ? "1 year" : `${opts.yearsOnPlatform} years`;
+    return layout(`
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+        <tr><td align="center">
+          <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#fef3c7;border-radius:50%;">
+            <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">🎂</td></tr>
+          </table>
+        </td></tr>
+      </table>
+      <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">Happy ${yearsText} on Olera!</h1>
+      <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;text-align:center;">
+        ${escapeHtml(firstName(opts.recipientName, "Hi"))}, ${yearsText} ago ${escapeHtml(opts.providerName)} joined Olera. Thank you for being part of our community and helping families find quality care.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;text-align:center;">
+        We're grateful to have you as a partner in connecting families with the care they need.
+      </p>
+      <div style="text-align:center;margin:0 0 24px;">${button("View Your Dashboard", opts.dashboardUrl)}</div>
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
+        Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+      </p>
+    `, `Celebrating ${yearsText} of connecting families with care`);
+  }
+
+  // Connection milestone
+  const milestoneText = opts.connectionMilestone === 10
+    ? "10th"
+    : opts.connectionMilestone === 50
+      ? "50th"
+      : opts.connectionMilestone === 100
+        ? "100th"
+        : `${opts.connectionMilestone}th`;
+
+  return layout(`
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td align="center">
+        <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#ecfdf5;border-radius:50%;">
+          <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">🏆</td></tr>
+        </table>
+      </td></tr>
+    </table>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">Milestone: ${milestoneText} connection!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;text-align:center;">
+      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, ${escapeHtml(opts.providerName)} just reached ${opts.totalConnections?.toLocaleString()} connections with families on Olera!
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;text-align:center;">
+      Each connection represents a family you've helped on their care journey. Thank you for your commitment to providing quality care.
+    </p>
+    <div style="text-align:center;margin:0 0 24px;">${button("View Your Dashboard", opts.dashboardUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Celebrating ${opts.totalConnections?.toLocaleString()} families connected through Olera`);
+}

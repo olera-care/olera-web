@@ -1957,7 +1957,7 @@ export function interviewCancelledEmail(opts: {
       The interview with <strong>${escapeHtml(opts.otherName)}</strong> has been cancelled.
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      These things happen — you can browse more candidates or schedule new interviews anytime.
+      These things happen — you can schedule new interviews anytime.
     </p>
     <div style="margin:0 0 24px;">${button("View Interviews", opts.viewUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">

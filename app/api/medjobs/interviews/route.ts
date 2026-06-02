@@ -307,6 +307,12 @@ export async function POST(request: NextRequest) {
           weekday: "long", month: "long", day: "numeric",
           hour: "numeric", minute: "2-digit", timeZoneName: "short",
         });
+        const formattedAltTime = alternativeTime
+          ? new Date(alternativeTime).toLocaleString("en-US", {
+              weekday: "long", month: "long", day: "numeric",
+              hour: "numeric", minute: "2-digit", timeZoneName: "short",
+            })
+          : null;
 
         // Email goes to whoever did NOT propose
         const recipientEmail = proposedById === providerProfile.id ? studentProfile.email : providerProfile.email;
@@ -335,6 +341,7 @@ export async function POST(request: NextRequest) {
             proposerName,
             interviewType: typeLabel,
             proposedTime: time,
+            alternativeTime: formattedAltTime,
             notes: notes || null,
             viewUrl,
           }),
@@ -384,7 +391,7 @@ export async function PATCH(request: NextRequest) {
       .from("interviews")
       .select(`
         *,
-        provider:business_profiles!interviews_provider_profile_id_fkey(id, display_name, email),
+        provider:business_profiles!interviews_provider_profile_id_fkey(id, display_name, email, slug),
         student:business_profiles!interviews_student_profile_id_fkey(id, display_name, email, slug)
       `)
       .eq("id", interviewId)
@@ -462,7 +469,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Send emails based on status change
-    const provider = interview.provider as { display_name: string; email: string };
+    const provider = interview.provider as { display_name: string; email: string; slug: string };
     const student = interview.student as { display_name: string; email: string; slug: string };
 
     if (status === "confirmed") {
@@ -486,8 +493,11 @@ export async function PATCH(request: NextRequest) {
         hour: "numeric", minute: "2-digit", timeZoneName: "short",
       });
 
-      // Email both parties with .ics attachment
-      const viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+      // Generate view URLs - providers get magic link for auto-sign-in, students get portal link
+      const studentViewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+      const providerViewUrl = provider.slug && provider.email
+        ? generateMedJobsNotificationUrl(provider.slug, provider.email, "interview", interviewId)
+        : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
 
       try {
         await sendEmail({
@@ -499,7 +509,7 @@ export async function PATCH(request: NextRequest) {
             confirmedTime: time,
             durationMinutes: interview.duration_minutes || 30,
             location: interview.location || null,
-            viewUrl,
+            viewUrl: studentViewUrl,
           }),
           emailType: "interview_confirmed",
           attachments: [{ filename: "interview.ics", content: icsBase64, encoding: "base64", type: "text/calendar" }],
@@ -513,7 +523,7 @@ export async function PATCH(request: NextRequest) {
             confirmedTime: time,
             durationMinutes: interview.duration_minutes || 30,
             location: interview.location || null,
-            viewUrl,
+            viewUrl: providerViewUrl,
           }),
           emailType: "interview_confirmed",
           attachments: [{ filename: "interview.ics", content: icsBase64, encoding: "base64", type: "text/calendar" }],
@@ -525,14 +535,19 @@ export async function PATCH(request: NextRequest) {
 
     if (status === "cancelled") {
       try {
-        const viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+        // Generate view URLs - providers get magic link for auto-sign-in, students get portal link
+        const studentViewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+        const providerViewUrl = provider.slug && provider.email
+          ? generateMedJobsNotificationUrl(provider.slug, provider.email, "interview", interviewId)
+          : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
+
         // Only notify student if they were actually notified about the interview
         // (i.e., it wasn't pending provider verification)
         if (!interview.is_pending_verification) {
           await sendEmail({
             to: student.email,
             subject: `Interview with ${provider.display_name} cancelled`,
-            html: interviewCancelledEmail({ otherName: provider.display_name, viewUrl }),
+            html: interviewCancelledEmail({ otherName: provider.display_name, viewUrl: studentViewUrl }),
             emailType: "interview_cancelled",
           });
         }
@@ -540,7 +555,7 @@ export async function PATCH(request: NextRequest) {
         await sendEmail({
           to: provider.email,
           subject: `Interview with ${student.display_name} cancelled`,
-          html: interviewCancelledEmail({ otherName: student.display_name, viewUrl }),
+          html: interviewCancelledEmail({ otherName: student.display_name, viewUrl: providerViewUrl }),
           emailType: "interview_cancelled",
         });
       } catch (err) {

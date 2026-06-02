@@ -282,9 +282,10 @@ export function getDefaultQA(
 // ============================================================
 
 /**
- * Returns 4-5 emotionally resonant suggested questions for the Q&A section,
- * tailored to the provider's category. These are the primary UI element
- * when a provider has 0 existing questions.
+ * Returns emotionally resonant suggested questions for the Q&A section,
+ * tailored to the provider's category. The six live directory categories
+ * carry 8 each; QASectionV2 shows the top 5 and holds the rest as reserve
+ * that surfaces as the leading questions get asked and de-prioritized.
  */
 export function getSuggestedQuestions(
   category: ProfileCategory | null
@@ -297,6 +298,9 @@ export function getSuggestedQuestions(
         "Do you have a minimum number of hours per visit?",
         "Are your caregivers background-checked?",
         "Can caregivers help with medication reminders?",
+        "What are your hourly rates?",
+        "Will the same caregiver come each time?",
+        "Can you help with bathing and other personal care?",
       ];
 
     case "home_health_agency":
@@ -306,6 +310,9 @@ export function getSuggestedQuestions(
         "Can you coordinate with my doctor's office?",
         "What happens after my insurance authorization ends?",
         "Do you offer physical therapy at home?",
+        "Do you accept my insurance plan?",
+        "Can you provide skilled nursing like wound care or injections?",
+        "Is care available on evenings and weekends?",
       ];
 
     case "hospice_agency":
@@ -324,6 +331,9 @@ export function getSuggestedQuestions(
         "How do you handle medical emergencies?",
         "Can residents bring their own furniture?",
         "What activities and outings do you offer?",
+        "Do you accept Medicaid or long-term care insurance?",
+        "What care is included, and what costs extra?",
+        "Can you accommodate special diets or food preferences?",
       ];
 
     case "memory_care":
@@ -333,6 +343,9 @@ export function getSuggestedQuestions(
         "Can my parent still go outside?",
         "How do you handle sundowning behavior?",
         "What training do your caregivers receive?",
+        "What happens as my parent's dementia progresses?",
+        "How do you keep families updated on day-to-day changes?",
+        "What's the monthly cost for memory care?",
       ];
 
     case "nursing_home":
@@ -342,6 +355,9 @@ export function getSuggestedQuestions(
         "What's the staff-to-patient ratio?",
         "How do you handle a change in care needs?",
         "What are the options for rehab-to-long-term transitions?",
+        "What is this facility's Medicare quality rating?",
+        "How do you prevent falls and infections?",
+        "Are private rooms available?",
       ];
 
     case "independent_living":
@@ -351,6 +367,9 @@ export function getSuggestedQuestions(
         "What social activities are available?",
         "Can I bring my pet?",
         "Is there a waitlist?",
+        "Are there income-based or affordable options?",
+        "What apartment sizes and floor plans are available?",
+        "Are meals, housekeeping, and transportation included?",
       ];
 
     case "inpatient_hospice":

@@ -44,9 +44,9 @@ Categories (pick ONE):
 - hospice: hospice / palliative.
 - skilled_nursing: skilled nursing facility, nursing & rehab, post-acute rehab.
 - assisted_living: assisted living, memory care, senior living / retirement community, personal care home.
-- hospital: acute hospital, ER, medical center (discharge source).
-- clinic: outpatient clinic, urgent care, physical therapy, specialty practice, pharmacy, wellness/chiro/cryo. (low referral value)
-- elder_law: elder-law / estate-planning attorney, fiduciary.
+- hospital: a GENERAL / ACUTE-CARE hospital or medical center with inpatient beds — a real discharge source. A standalone urgent care, freestanding/independent ER, walk-in or "convenient care" clinic, or outpatient specialty practice is NOT a hospital → classify as "clinic".
+- clinic: outpatient clinic, urgent care, freestanding ER, physical therapy, specialty practice, pharmacy, wellness/chiro/cryo. (low referral value)
+- elder_law: ONLY attorneys whose practice is elder law, estate planning, wills/trusts, probate, guardianship, special-needs planning, or Medicaid planning. A criminal-defense, DUI/DWI, personal-injury, family/divorce, immigration, employment, or general-business attorney is NOT elder_law → classify as "other".
 - financial: financial advisor, retirement planner, insurance for seniors.
 - senior_resource: senior center, Area Agency on Aging, council on aging, independent-living center, support org.
 - faith: church / faith community / ministry.
@@ -104,6 +104,16 @@ const median = (arr) => { if (!arr.length) return null; const s = [...arr].sort(
   }
   if (todo.length) writeFileSync(CACHE, JSON.stringify(cache, null, 2));
   const classified = universe.map((p) => ({ ...p, ...(cache[p.id] || { cat: "other", referralValue: "none" }) }));
+  // Deterministic name-guards for the common LLM confusions (high precision, override the model)
+  const NAME_RULES = [
+    [/\bhospice\b/i, "hospice", "high"],
+    [/\bhome health\b/i, "home_health", "med"],
+    [/(senior living|assisted living|retirement (community|home)|memory care|personal care home)/i, "assisted_living", "high"],
+    // Recover self-identifying estate/elder-law firms that the strict LLM prompt dumped to "other"
+    [/(estate planning|elder law|elder-law|wills (and|&) trusts|\bprobate\b|trusts? (and|&) estates?)/i, "elder_law", "high"],
+    [/(criminal defense|\bdui\b|\bdwi\b|personal injury|divorce|family law|immigration attorney)/i, "other", "none"],
+  ];
+  for (const p of classified) for (const [re, cat, rv] of NAME_RULES) if (re.test(p.name || "")) { p.cat = cat; p.referralValue = rv; break; }
 
   // ---- Competitor landscape (true home_care, local catchment only) ----
   const competitors = classified.filter((p) => p.cat === "home_care" && inCatchment(p)).sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
@@ -122,16 +132,29 @@ const median = (arr) => { if (!arr.length) return null; const s = [...arr].sort(
   };
 
   // ---- Referral graph (cleaned + prioritized, local catchment only) ----
-  const refSources = classified.filter((p) => (p.referralValue === "high" || p.referralValue === "med") && inCatchment(p));
+  // Role value = strength as a HOME-CARE client referral source (discharge + care-mgmt ecosystem first)
+  const ROLE_VALUE = { hospital: 7, skilled_nursing: 6, hospice: 5, assisted_living: 4, elder_law: 3, senior_resource: 3, home_health: 2, financial: 1, faith: 1 };
+  let refSources = classified.filter((p) => (p.referralValue === "high" || p.referralValue === "med") && inCatchment(p));
+  // Dedup near-duplicate listings (e.g. an ER listed twice) by normalized name prefix
+  const seenName = new Set();
+  refSources = refSources.filter((r) => { const k = (r.name || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 22); if (!k || seenName.has(k)) return false; seenName.add(k); return true; });
   const byRole = {};
   for (const r of refSources) (byRole[r.cat] ||= []).push(r);
-  const roleSummary = Object.entries(byRole).map(([cat, arr]) => ({ cat, count: arr.length })).sort((a, b) => b.count - a.count);
-  // Prioritized BD list: high-value, nearest first, established (has reviews/website as a proxy for being a real org)
-  const VAL = { high: 2, med: 1 };
-  const bdTargets = refSources
-    .map((r) => ({ ...r, score: (VAL[r.referralValue] || 0) * 10 - (r.distanceMiles || 30) * 0.3 + Math.min((r.reviews || 0) / 50, 2) }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 25)
+  // Surface high-value buckets first (not raw count — financial/faith are large but weak)
+  const roleSummary = Object.entries(byRole).map(([cat, arr]) => ({ cat, count: arr.length }))
+    .sort((a, b) => (ROLE_VALUE[b.cat] || 0) - (ROLE_VALUE[a.cat] || 0) || b.count - a.count);
+  // "Start here" list = a DIVERSE call sheet across true discharge / care-mgmt / legal sources.
+  // Pick the best few from each category (quality = reviews + proximity), then interleave so the
+  // top of the list shows variety — not 12 hospitals. Drop system-only / 0-signal listings.
+  const BD_CATS = ["hospital", "skilled_nursing", "hospice", "assisted_living", "elder_law", "senior_resource"];
+  const PER_CAT = { hospital: 4, skilled_nursing: 3, hospice: 3, assisted_living: 4, elder_law: 4, senior_resource: 2 };
+  const isReal = (r) => (r.reviews > 0 || r.phone) && !/meditech|\(system\)/i.test(r.name || "");
+  const picks = BD_CATS.map((cat) => (byRole[cat] || []).filter(isReal)
+    .map((r) => ({ ...r, q: Math.min((r.reviews || 0) / 100, 2) - (r.distanceMiles || 30) * 0.05 }))
+    .sort((a, b) => b.q - a.q).slice(0, PER_CAT[cat] || 3));
+  const bdTargets = [];
+  for (let i = 0, more = true; more; i++) { more = false; for (const col of picks) if (col[i]) { bdTargets.push(col[i]); more = true; } }
+  const bdTargetsOut = bdTargets.slice(0, 18)
     .map((r) => ({ name: r.name, cat: r.cat, referralValue: r.referralValue, distanceMiles: r.distanceMiles, reviews: r.reviews, rating: r.rating, phone: r.phone, website: r.website, address: r.address }));
 
   // ---- Channel prioritization ----
@@ -157,7 +180,7 @@ const median = (arr) => { if (!arr.length) return null; const s = [...arr].sort(
       olera: snap.oleraDemand,
     },
     competitorLandscape,
-    referralGraph: { totalViableSources: refSources.length, byRole: roleSummary, prioritizedTargets: bdTargets },
+    referralGraph: { totalViableSources: refSources.length, byRole: roleSummary, prioritizedTargets: bdTargetsOut },
     channels,
     classificationCounts: CATS.map((c) => ({ cat: c, n: classified.filter((p) => p.cat === c).length })).filter((x) => x.n),
   };

@@ -31,43 +31,74 @@ async function backfillFamilyEmails(dryRun: boolean) {
   console.log(`\n🔍 Finding family profiles without email...\n`);
   console.log(dryRun ? "🏃 DRY RUN - No changes will be made\n" : "");
 
-  // Find family profiles with account_id but no email
-  const { data: profiles, error: profilesError } = await db
-    .from("business_profiles")
-    .select("id, display_name, account_id, email")
-    .eq("type", "family")
-    .is("email", null)
-    .not("account_id", "is", null)
-    .order("created_at", { ascending: false });
+  // Find family profiles with account_id but no email (paginated to handle >1000)
+  const PAGE_SIZE = 1000;
+  const profiles: Array<{ id: string; display_name: string; account_id: string | null; email: string | null }> = [];
+  let offset = 0;
+  let hasMore = true;
 
-  if (profilesError) {
-    console.error("Error fetching profiles:", profilesError);
-    process.exit(1);
+  while (hasMore) {
+    const { data: batch, error: profilesError } = await db
+      .from("business_profiles")
+      .select("id, display_name, account_id, email")
+      .eq("type", "family")
+      .is("email", null)
+      .not("account_id", "is", null)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (profilesError) {
+      console.error("Error fetching profiles:", profilesError);
+      process.exit(1);
+    }
+
+    if (batch && batch.length > 0) {
+      profiles.push(...batch);
+      offset += PAGE_SIZE;
+      hasMore = batch.length === PAGE_SIZE;
+      process.stdout.write(`  Fetched ${profiles.length} profiles...\r`);
+    } else {
+      hasMore = false;
+    }
   }
 
-  if (!profiles || profiles.length === 0) {
+  if (profiles.length === 0) {
     console.log("✅ No family profiles need email backfill.");
     return;
   }
 
   console.log(`Found ${profiles.length} family profiles without email\n`);
 
-  // Get account_id → user_id mapping
-  const accountIds = profiles.map((p) => p.account_id).filter(Boolean) as string[];
-  const { data: accounts, error: accountsError } = await db
-    .from("accounts")
-    .select("id, user_id")
-    .in("id", accountIds);
+  // Get account_id → user_id mapping (batched to handle large arrays)
+  const accountIds = [...new Set(profiles.map((p) => p.account_id).filter(Boolean))] as string[];
+  const accountToUser = new Map<string, string>();
 
-  if (accountsError) {
-    console.error("Error fetching accounts:", accountsError);
-    process.exit(1);
+  console.log(`Looking up ${accountIds.length} accounts...\n`);
+
+  const ACCOUNT_BATCH_SIZE = 100;
+  for (let i = 0; i < accountIds.length; i += ACCOUNT_BATCH_SIZE) {
+    const batch = accountIds.slice(i, i + ACCOUNT_BATCH_SIZE);
+    const { data: accounts, error: accountsError } = await db
+      .from("accounts")
+      .select("id, user_id")
+      .in("id", batch);
+
+    if (accountsError) {
+      console.error("Error fetching accounts:", accountsError);
+      process.exit(1);
+    }
+
+    for (const a of accounts || []) {
+      if (a.user_id) {
+        accountToUser.set(a.id, a.user_id);
+      }
+    }
+    process.stdout.write(`  Fetched ${Math.min(i + ACCOUNT_BATCH_SIZE, accountIds.length)}/${accountIds.length} accounts\r`);
   }
-
-  const accountToUser = new Map(accounts?.map((a) => [a.id, a.user_id]) || []);
+  console.log("\n");
 
   // Look up emails from auth.users
-  const userIds = [...new Set(accounts?.map((a) => a.user_id).filter(Boolean) || [])] as string[];
+  const userIds = [...accountToUser.values()];
   const userEmails = new Map<string, string>();
 
   console.log(`Looking up ${userIds.length} auth users...\n`);

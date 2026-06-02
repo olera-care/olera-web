@@ -157,6 +157,12 @@ const TRUST_OPTIONS = [
   { value: "none", label: "Not scored" },
 ];
 
+const ENGAGEMENT_OPTIONS = [
+  { value: "has_leads", label: "Has leads" },
+  { value: "has_questions", label: "Has questions" },
+  { value: "has_any", label: "Has leads or questions" },
+];
+
 // ── Helper to format relative time ──
 
 function formatDaysAgo(dateString: string): string {
@@ -382,6 +388,87 @@ function TrustSelectFilter({
   );
 }
 
+function EngagementSelectFilter({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(containerRef, () => setIsOpen(false), isOpen);
+
+  const selectedOption = ENGAGEMENT_OPTIONS.find((o) => o.value === value);
+  const selectedLabel = selectedOption?.label || "Engagement";
+
+  const handleSelect = (optValue: string) => {
+    onChange(optValue);
+    setIsOpen(false);
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`
+          flex items-center justify-between gap-2 px-3 py-2
+          bg-white border rounded-lg text-sm font-medium
+          transition-all min-w-[140px]
+          ${value
+            ? "border-primary-400 text-gray-900"
+            : "border-gray-200 text-gray-500 hover:border-gray-300"
+          }
+          ${isOpen ? "ring-2 ring-primary-100 border-primary-400" : ""}
+        `}
+      >
+        <span className="truncate">{selectedLabel}</span>
+        <svg
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-[calc(100%+4px)] left-0 w-56 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+          {value && (
+            <button
+              type="button"
+              onClick={() => handleSelect("")}
+              className="w-full px-3 py-2.5 text-left text-sm text-gray-500 hover:bg-gray-50 transition-colors border-b border-gray-100"
+            >
+              Clear selection
+            </button>
+          )}
+
+          {ENGAGEMENT_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => handleSelect(option.value)}
+              className={`
+                w-full px-3 py-2.5 text-left text-sm transition-colors
+                ${value === option.value
+                  ? "bg-primary-50 text-primary-700 font-medium"
+                  : "text-gray-900 hover:bg-gray-50"
+                }
+              `}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Pagination({ page, setPage, total, pageSize }: {
   page: number; setPage: (p: number) => void; total: number; pageSize: number;
 }) {
@@ -424,6 +511,7 @@ export default function AdminVerificationPage() {
   const [search, setSearch] = useState("");
   const [stateFilter, setStateFilter] = useState("");
   const [trustFilter, setTrustFilter] = useState("");
+  const [engagementFilter, setEngagementFilter] = useState("");
   const [tabCounts, setTabCounts] = useState<Record<StatusFilter, number>>({
     unverified_claims: 0,
     in_progress: 0,
@@ -493,6 +581,7 @@ export default function AdminVerificationPage() {
       if (search.trim()) params.set("search", search.trim());
       if (stateFilter) params.set("state", stateFilter);
       if (trustFilter) params.set("trust_level", trustFilter);
+      if (engagementFilter) params.set("engagement", engagementFilter);
       const res = await fetch(`/api/admin/verification?${params}`);
       if (res.ok) {
         const data = await res.json();
@@ -507,7 +596,7 @@ export default function AdminVerificationPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, page, search, stateFilter, trustFilter]);
+  }, [filter, page, search, stateFilter, trustFilter, engagementFilter]);
 
   useEffect(() => {
     // Clear selections when provider list changes (page, filter, search, etc.)
@@ -769,8 +858,14 @@ export default function AdminVerificationPage() {
           onChange={(v) => { setPage(0); setProviders([]); setLoading(true); setTrustFilter(v); }}
         />
 
+        {/* Engagement filter */}
+        <EngagementSelectFilter
+          value={engagementFilter}
+          onChange={(v) => { setPage(0); setProviders([]); setLoading(true); setEngagementFilter(v); }}
+        />
+
         {/* Clear filters - only when active */}
-        {(stateFilter || trustFilter) && (
+        {(stateFilter || trustFilter || engagementFilter) && (
           <button
             onClick={() => {
               setPage(0);
@@ -778,6 +873,7 @@ export default function AdminVerificationPage() {
               setLoading(true);
               setStateFilter("");
               setTrustFilter("");
+              setEngagementFilter("");
             }}
             className="text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap"
           >
@@ -821,7 +917,7 @@ export default function AdminVerificationPage() {
       )}
 
       {(() => {
-        const hasActiveFilters = search || stateFilter || trustFilter;
+        const hasActiveFilters = search || stateFilter || trustFilter || engagementFilter;
 
         if (loading) {
           return (

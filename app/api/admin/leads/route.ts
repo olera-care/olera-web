@@ -79,14 +79,20 @@ export async function GET(request: NextRequest) {
 
     // Helper to check if a connection's provider needs email
     // Matches Analytics approach exactly:
+    // - Connection must be an inquiry (family → provider)
+    //   For "request" connections (Matches), the provider is from_profile and already has email (they're logged in)
     // - Provider must be active
     // - Provider must have no email
     // - Provider must NOT have responded (goal already achieved if responded)
     const providerNeedsEmail = (conn: {
+      type?: string;
       to_profile_id?: string;
       to_profile: { email?: string | null; is_active?: boolean }[] | { email?: string | null; is_active?: boolean } | null;
       metadata?: Record<string, unknown>;
     }) => {
+      // Only inquiry connections need provider email collection
+      // For "request" (Matches), the provider initiated and already has an email
+      if (conn.type === "request") return false;
       // Supabase may return to_profile as array or single object depending on join
       const provider = Array.isArray(conn.to_profile) ? conn.to_profile[0] : conn.to_profile;
       // Skip if no provider profile (deleted) or inactive
@@ -156,6 +162,10 @@ export async function GET(request: NextRequest) {
 
       // Enhanced filter that checks both business_profiles AND olera-providers for email
       const providerNeedsEmailEnhanced = (conn: typeof allConnections[number]) => {
+        // Only inquiry connections need provider email collection
+        // For "request" (Matches), the provider initiated and already has an email
+        if (conn.type === "request") return false;
+
         const provider = Array.isArray(conn.to_profile) ? conn.to_profile[0] : conn.to_profile;
         if (!provider || provider.is_active === false) return false;
 

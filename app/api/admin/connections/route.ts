@@ -332,6 +332,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch engagement events by provider
+    let debugEventCount = 0;
+    let debugMatchedCount = 0;
     if (allProviderKeys.length > 0) {
       const { data: actEvents } = await db
         .from("provider_activity")
@@ -340,9 +342,12 @@ export async function GET(request: NextRequest) {
         .in("event_type", ["lead_opened", "contact_revealed"])
         .limit(10000);
 
+      debugEventCount = actEvents?.length ?? 0;
+
       for (const ev of actEvents ?? []) {
         const eng = providerEngagement.get(ev.provider_id);
         if (!eng) continue;
+        debugMatchedCount++;
 
         if (ev.event_type === "lead_opened") eng.lead_opened = true;
         else if (ev.event_type === "contact_revealed") eng.contact_revealed = true;
@@ -412,6 +417,13 @@ export async function GET(request: NextRequest) {
       noActivityCount,
       engagement,
       truncated,
+      // Debug info - remove after fixing
+      _debug: {
+        providerKeysCount: allProviderKeys.length,
+        sampleProviderKeys: allProviderKeys.slice(0, 5),
+        eventsFound: debugEventCount,
+        eventsMatched: debugMatchedCount,
+      },
     });
   } catch (err) {
     console.error("[connections] fatal:", err);

@@ -70,12 +70,10 @@ function one<T>(p: ProfileJoin<T>): T | undefined {
   return Array.isArray(p) ? p[0] : p ?? undefined;
 }
 
-// Simplified tab filters (new)
-type TabFilter = "todo" | "waiting" | "connected";
-// Action queue filters
-type ActionFilter = "hot_leads" | "nudge_provider" | "nudge_family" | "call_no_email";
-// Legacy granular filters (still supported for backwards compatibility)
-type ResponseFilter = TabFilter | ActionFilter | "all" | "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
+// Simplified tab filters: All | Engaged | No Activity
+type TabFilter = "all" | "engaged" | "no_activity";
+// Legacy filters (still supported for backwards compatibility)
+type ResponseFilter = TabFilter | "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
 type ResponseCategory = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
 
 interface ResponseCounts {
@@ -310,42 +308,11 @@ export async function GET(request: NextRequest) {
     };
     for (const c of searched) counts[c.temperature.state]++;
 
-    // Response-based counts (new)
-    // Note: `all` only counts active providers (those with a responseCategory)
-    // Inactive providers are excluded from all counts for consistency
-    const responseCounts: ResponseCounts = {
-      all: 0,
-      needs_attention: 0,
-      provider_nudged: 0,
-      family_nudged: 0,
-      responded: 0,
-      no_email: 0,
-    };
-    // Count truly connected (both parties engaged) separately
-    let trulyConnectedCount = 0;
-    for (const c of searched) {
-      if (c.responseCategory) {
-        responseCounts.all++;
-        responseCounts[c.responseCategory]++;
-        // Truly connected = provider responded AND family replied back
-        if (c.responseCategory === "responded" && c.familyRepliedAfterProvider) {
-          trulyConnectedCount++;
-        }
-      }
-    }
+    // Engagement-based counts
+    // Engaged = provider opened lead OR copied contact
+    // No Activity = lead sent but provider hasn't viewed it
 
-    // Calculate action counts for the Action Queue
-    // Requires engagement data to identify hot leads
-    const HEAT_WEIGHTS = {
-      contact_revealed: 40,
-      claim_completed: 30,
-      one_click_access: 25,
-      lead_opened: 20,
-      email_click: 10,
-    } as const;
-    const HOT_LEAD_THRESHOLD = 50;
-    const RECENT_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
-    const COLD_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    // Fetch engagement data to determine engaged vs no_activity
 
     // Fetch engagement data for hot lead detection (limited to searched set)
     const allProviderKeys = [...new Set(
@@ -394,108 +361,37 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Calculate heat scores and action counts
-    // Also build a map of connection -> action category for filtering
-    const action_counts = {
-      nudge_provider: 0,
-      nudge_family: 0,
-      call_no_email: 0,
-      hot_leads: 0,
-    };
+    // Count engaged vs no_activity
+    // Engaged = provider opened lead (lead_opened) OR copied contact (contact_revealed)
+    // No Activity = no engagement events
+    let engagedCount = 0;
+    let noActivityCount = 0;
 
-    // Track which action category each connection belongs to
-    const connectionActionCategory = new Map<string, keyof typeof action_counts>();
+    // Track engagement status for each connection
+    const connectionEngaged = new Map<string, boolean>();
 
     for (const c of searched) {
-      if (!c.responseCategory) continue; // Skip inactive providers
-
-      // Calculate heat score for this connection
       const eng = c.provider.activityKey ? actionEngagement.get(c.provider.activityKey) : null;
-      let baseScore = 0;
-      if (eng) {
-        if (eng.contact_revealed) baseScore += HEAT_WEIGHTS.contact_revealed;
-        if (eng.claim_completed) baseScore += HEAT_WEIGHTS.claim_completed;
-        if (eng.one_click_access) baseScore += HEAT_WEIGHTS.one_click_access;
-        if (eng.lead_opened) baseScore += HEAT_WEIGHTS.lead_opened;
-        if (eng.email_clicked) baseScore += HEAT_WEIGHTS.email_click;
+      // Engaged = opened lead OR copied contact
+      const isEngaged = !!(eng?.lead_opened || eng?.contact_revealed);
+      connectionEngaged.set(c.id, isEngaged);
+
+      if (isEngaged) {
+        engagedCount++;
+      } else {
+        noActivityCount++;
       }
-
-      // Apply time multiplier
-      let multiplier = 1;
-      if (eng && eng.last_engagement_at > 0) {
-        const daysSinceEngagement = now - eng.last_engagement_at;
-        if (daysSinceEngagement < RECENT_DAYS_MS) multiplier = 2;
-        else if (daysSinceEngagement > COLD_DAYS_MS) multiplier = 0.5;
-      }
-      const heatScore = Math.round(baseScore * multiplier);
-
-      // Hot leads: high engagement BUT only from needs_attention category
-      // Don't count provider_nudged/family_nudged as hot - we've already taken action
-      const isHotLead =
-        heatScore >= HOT_LEAD_THRESHOLD &&
-        c.responseCategory === "needs_attention";
-
-      // Categorize for action queue
-      // Each connection belongs to exactly ONE action category
-      if (c.responseCategory === "no_email") {
-        action_counts.call_no_email++;
-        connectionActionCategory.set(c.id, "call_no_email");
-      } else if (isHotLead) {
-        action_counts.hot_leads++;
-        connectionActionCategory.set(c.id, "hot_leads");
-      } else if (c.responseCategory === "needs_attention") {
-        action_counts.nudge_provider++;
-        connectionActionCategory.set(c.id, "nudge_provider");
-      } else if (c.responseCategory === "responded") {
-        // Provider responded - only count as nudge_family if:
-        // 1. Family has NOT replied after provider's response
-        // 2. Family was NOT nudged recently
-        const familyNudgedRecently = c.familyNudgedAt
-          ? now - new Date(c.familyNudgedAt).getTime() < SEVEN_DAYS_MS
-          : false;
-
-        if (!c.familyRepliedAfterProvider && !familyNudgedRecently) {
-          action_counts.nudge_family++;
-          connectionActionCategory.set(c.id, "nudge_family");
-        }
-        // else: family already replied or was nudged - no action needed
-      }
-      // Note: provider_nudged and family_nudged are "waiting" states - no action needed
     }
 
-    // Filtering:
-    //   - Action queue filters: "hot_leads", "nudge_provider", "nudge_family", "call_no_email"
-    //   - Simplified tabs: "todo", "waiting", "connected"
-    //   - Legacy granular: "needs_attention", "provider_nudged", etc.
-    //   - Else if explicit `state` param, use temperature-based filter
-    //   - Else if include_closed, show everything
-    //   - Else default queue
-    const actionFilters: ActionFilter[] = ["hot_leads", "nudge_provider", "nudge_family", "call_no_email"];
+    // Filtering: all, engaged, no_activity
     let list = searched;
 
-    if (actionFilters.includes(responseFilter as ActionFilter)) {
-      // Filter by action queue category
-      list = list.filter((c) => connectionActionCategory.get(c.id) === responseFilter);
-    } else if (responseFilter === "todo") {
-      // To Do = needs_attention + no_email
-      list = list.filter((c) => c.responseCategory === "needs_attention" || c.responseCategory === "no_email");
-    } else if (responseFilter === "waiting") {
-      // Waiting = provider_nudged + family_nudged
-      list = list.filter((c) => c.responseCategory === "provider_nudged" || c.responseCategory === "family_nudged");
-    } else if (responseFilter === "connected") {
-      // Connected = provider responded AND family replied (truly connected)
-      // Excludes connections still needing family follow-up
-      list = list.filter((c) => c.responseCategory === "responded" && c.familyRepliedAfterProvider);
-    } else if (responseFilter && responseFilter !== "all") {
-      // Legacy granular filter
-      list = list.filter((c) => c.responseCategory === responseFilter);
-    } else if (stateFilter) {
-      list = list.filter((c) => c.temperature.state === stateFilter);
-    } else if (!includeClosed) {
-      list = list.filter(
-        (c) => c.temperature.state !== "closed" && c.temperature.state !== "live"
-      );
+    if (responseFilter === "engaged") {
+      list = list.filter((c) => connectionEngaged.get(c.id) === true);
+    } else if (responseFilter === "no_activity") {
+      list = list.filter((c) => connectionEngaged.get(c.id) === false);
     }
+    // "all" or no filter shows everything
 
     list.sort((a, b) => {
       const pa = INTERVENTION_PRIORITY[a.temperature.state];
@@ -529,13 +425,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       connections: page,
-      total,
-      counts,
-      responseCounts,
-      trulyConnectedCount,
+      total: searched.length,
+      engagedCount,
+      noActivityCount,
       engagement,
       truncated,
-      action_counts,
     });
   } catch (err) {
     console.error("[connections] fatal:", err);

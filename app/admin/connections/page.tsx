@@ -5,82 +5,45 @@ import PulseHeader from "@/components/admin/PulseHeader";
 import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 import ConnectionRow, { type ConnectionRowData } from "@/components/admin/ConnectionRow";
 
-interface ActionCounts {
-  nudge_provider: number;
-  nudge_family: number;
-  call_no_email: number;
-  hot_leads: number;
-}
-
 type Engagement = { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean };
-
-interface ResponseCounts {
-  all: number;
-  needs_attention: number;
-  provider_nudged: number;
-  family_nudged: number;
-  responded: number;
-  no_email: number;
-}
 
 interface ListResponse {
   connections: (ConnectionRowData & { provider: { activityKey: string | null } })[];
   total: number;
-  responseCounts?: ResponseCounts;
-  trulyConnectedCount?: number;
+  engagedCount?: number;
+  noActivityCount?: number;
   engagement: Record<string, Engagement>;
   truncated: boolean;
-  action_counts?: ActionCounts;
 }
 
-// Unified filter type combining action queues and status tabs
-type FilterKey = "hot_leads" | "nudge_provider" | "nudge_family" | "call_no_email" | "waiting" | "connected";
+// Simplified tabs: All, Engaged, No Activity
+type FilterKey = "all" | "engaged" | "no_activity";
 
 interface TabConfig {
   key: FilterKey;
   label: string;
-  emoji?: string;
   getCount: (list: ListResponse | null) => number;
   emptyMessage: string;
 }
 
 const TABS: TabConfig[] = [
   {
-    key: "hot_leads",
-    label: "Hot",
-    emoji: "🔥",
-    getCount: (list) => list?.action_counts?.hot_leads ?? 0,
-    emptyMessage: "No hot leads right now.",
+    key: "all",
+    label: "All",
+    getCount: (list) => list?.total ?? 0,
+    emptyMessage: "No connections yet.",
   },
   {
-    key: "nudge_provider",
-    label: "Nudge Provider",
-    getCount: (list) => list?.action_counts?.nudge_provider ?? 0,
-    emptyMessage: "No providers to nudge.",
+    key: "engaged",
+    label: "Engaged",
+    getCount: (list) => list?.engagedCount ?? 0,
+    emptyMessage: "No engaged providers yet.",
   },
   {
-    key: "nudge_family",
-    label: "Nudge Family",
-    getCount: (list) => list?.action_counts?.nudge_family ?? 0,
-    emptyMessage: "No families to follow up with.",
-  },
-  {
-    key: "call_no_email",
-    label: "Call",
-    getCount: (list) => list?.action_counts?.call_no_email ?? 0,
-    emptyMessage: "No providers without email.",
-  },
-  {
-    key: "waiting",
-    label: "Waiting",
-    getCount: (list) => (list?.responseCounts?.provider_nudged ?? 0) + (list?.responseCounts?.family_nudged ?? 0),
-    emptyMessage: "No connections waiting for response.",
-  },
-  {
-    key: "connected",
-    label: "Connected",
-    getCount: (list) => list?.trulyConnectedCount ?? 0,
-    emptyMessage: "No successful connections yet.",
+    key: "no_activity",
+    label: "No Activity",
+    getCount: (list) => list?.noActivityCount ?? 0,
+    emptyMessage: "All providers have engaged.",
   },
 ];
 
@@ -92,7 +55,7 @@ export default function ConnectionsTrackerPage() {
   });
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState<FilterKey>("nudge_provider");
+  const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
 
   // Debounce search input by 300ms
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -181,8 +144,7 @@ export default function ConnectionsTrackerPage() {
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
-                {tab.emoji && <span>{tab.emoji}</span>}
-                {tab.label}
+{tab.label}
                 <span
                   className={`ml-0.5 px-1.5 py-0.5 rounded text-xs font-semibold ${
                     isActive ? "bg-white/20 text-white" : "bg-gray-200 text-gray-500"

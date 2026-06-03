@@ -31,7 +31,7 @@ export interface VerificationResult {
 interface VerificationMethodModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (result: VerificationResult) => Promise<{ verified: boolean; pendingReview: boolean } | void>;
+  onSubmit: (result: VerificationResult) => Promise<{ verified: boolean; pendingReview: boolean; suggestion?: string } | void>;
   onDismiss?: () => void;
   businessName: string;
   businessWebsite?: string | null;
@@ -400,7 +400,12 @@ export default function VerificationMethodModal({
         if (distinctMethodsTried >= 4) {
           setScreen("pending-review");
         } else {
-          setError("We couldn't verify automatically. Try another method.");
+          // Use the API suggestion, and add "try another method" hint if not already present
+          let errorMsg = result.suggestion || "We couldn't verify automatically.";
+          if (!errorMsg.toLowerCase().includes("another method")) {
+            errorMsg += " You can also try another method.";
+          }
+          setError(errorMsg);
         }
       } else {
         setScreen("success");
@@ -485,7 +490,12 @@ export default function VerificationMethodModal({
         if (distinctMethodsTried >= 4) {
           setScreen("pending-review");
         } else {
-          setError(data.suggestion || "We couldn't verify automatically. Try another method.");
+          // Use the API suggestion, and add "try another method" hint if not already present
+          let errorMsg = data.suggestion || "We couldn't verify automatically.";
+          if (!errorMsg.toLowerCase().includes("another method")) {
+            errorMsg += " You can also try another method.";
+          }
+          setError(errorMsg);
         }
       } else {
         // Invalid code

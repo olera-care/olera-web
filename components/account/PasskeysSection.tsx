@@ -70,7 +70,8 @@ export default function PasskeysSection() {
     }
     try {
       const supabase = createClient();
-      const { data, error: listErr } = await supabase.auth.passkey.list();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error: listErr } = await (supabase.auth as any).passkey.list();
       if (listErr) throw listErr;
       setPasskeys((data ?? []) as Passkey[]);
     } catch (err) {
@@ -90,7 +91,8 @@ export default function PasskeysSection() {
     setRegistering(true);
     try {
       const supabase = createClient();
-      const { data, error: regErr } = await supabase.auth.registerPasskey();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error: regErr } = await (supabase.auth as any).registerPasskey();
       if (regErr) {
         if (!isCancellation(regErr)) {
           setError("Couldn't create a passkey. Please try again.");
@@ -115,7 +117,8 @@ export default function PasskeysSection() {
     setDeletingId(id);
     try {
       const supabase = createClient();
-      const { error: delErr } = await supabase.auth.passkey.delete({ passkeyId: id });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: delErr } = await (supabase.auth as any).passkey.delete({ passkeyId: id });
       if (delErr) throw delErr;
       setPasskeys((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {

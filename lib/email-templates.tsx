@@ -428,51 +428,66 @@ export function claimDecisionEmail(opts: {
   `, "We need more information to verify your claim");
 }
 
-/** Email to provider when their identity verification is approved or rejected */
+/** Email to provider when their identity verification is approved or rejected (from admin panel) */
 export function verificationDecisionEmail(opts: {
   providerName: string;
   recipientName: string;
   approved: boolean;
   dashboardUrl: string;
 }): string {
+  const name = firstName(opts.recipientName, "there");
+
   if (opts.approved) {
     return layout(`
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
         <tr><td align="center">
-          <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#ecfdf5;border-radius:50%;">
+          <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);border-radius:50%;">
             <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">✓</td></tr>
           </table>
         </td></tr>
       </table>
-      <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">You're verified</h1>
+      <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">You're all set!</h1>
       <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;text-align:center;">
-        ${escapeHtml(firstName(opts.recipientName, "Hi"))}, your connection to <strong>${escapeHtml(opts.providerName)}</strong> has been verified. You now have full access to your dashboard.
+        Great news, ${escapeHtml(name)}! Our team has reviewed and verified your connection to <strong>${escapeHtml(opts.providerName)}</strong>.
       </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">With verification complete, you can:</p>
-      <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
-        <li>Edit your listing with photos & pricing</li>
-        <li>Respond to family inquiries</li>
-        <li>Hire caregivers</li>
-        <li>View your profile analytics</li>
-      </ul>
-      <div style="text-align:center;margin:0 0 24px;">${button("Go to Dashboard", opts.dashboardUrl)}</div>
+      <div style="background:#f0fdf4;border-radius:12px;padding:20px;margin:0 0 24px;">
+        <p style="font-size:14px;color:#166534;margin:0 0 12px;font-weight:600;">Here's what you can do now:</p>
+        <ul style="font-size:14px;color:#166534;margin:0;padding-left:20px;line-height:1.8;">
+          <li>Respond to family inquiries and answer questions</li>
+          <li>Customize your listing with photos and business details</li>
+          <li>Reach out to families looking for care</li>
+          <li>Hire caregivers</li>
+        </ul>
+      </div>
+      <div style="text-align:center;margin:0 0 24px;">${button("Go to Your Dashboard", opts.dashboardUrl)}</div>
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
-        Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+        We're excited to have you on Olera! Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">We're here to help</a>
       </p>
-    `, "You're verified — full dashboard access unlocked");
+    `, "You're verified — your dashboard is ready");
   }
 
+  // Rejection case
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verification needs attention</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      We were unable to verify the identity documents submitted for <strong>${escapeHtml(opts.providerName)}</strong>.
-      This may be due to unclear images or mismatched information.
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Let's get you verified</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(name)}, we reviewed your verification for <strong>${escapeHtml(opts.providerName)}</strong> but need a bit more information to confirm your connection.
     </p>
-    <div style="text-align:center;margin:0 0 24px;">${button("Resubmit Verification", opts.dashboardUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:0;text-align:center;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.5;">
+      Don't worry — there are several ways to verify. Here's what works best:
     </p>
-  `, "We need more information to complete verification");
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li><strong style="color:#111827;">Work email</strong> — Use an email with your company's domain (e.g., you@company.com)</li>
+      <li><strong style="color:#111827;">LinkedIn</strong> — Make sure your profile shows this organization as your current employer</li>
+      <li><strong style="color:#111827;">Business website</strong> — Link to a page that lists you as staff (About Us, Team page)</li>
+      <li><strong style="color:#111827;">Document</strong> — Upload a business license, ID badge, or official letterhead</li>
+    </ul>
+    <div style="margin:0 0 24px;">${button("Try Again", opts.dashboardUrl)}</div>
+    <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:0 0 16px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Need help?</strong> Our team is happy to assist — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us here</a> and we'll sort this out together.
+      </p>
+    </div>
+  `, "Let's try another way to verify your connection");
 }
 
 /** Email to provider when they receive a new review */
@@ -2212,30 +2227,39 @@ export function verificationApprovedEmail(opts: {
   dashboardUrl: string;
   autoApproved?: boolean;
 }): string {
+  const name = firstName(opts.recipientName, "there");
+
+  // Different messaging for auto vs manual approval
+  const greeting = opts.autoApproved
+    ? `Great news, ${escapeHtml(name)}! Your connection to <strong>${escapeHtml(opts.providerName)}</strong> has been verified.`
+    : `Great news, ${escapeHtml(name)}! Our team has reviewed and verified your connection to <strong>${escapeHtml(opts.providerName)}</strong>.`;
+
   return layout(`
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
       <tr><td align="center">
-        <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#ecfdf5;border-radius:50%;">
+        <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);border-radius:50%;">
           <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">✓</td></tr>
         </table>
       </td></tr>
     </table>
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">You're verified</h1>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">You're all set!</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;text-align:center;">
-      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, your connection to <strong>${escapeHtml(opts.providerName)}</strong> has been verified. You now have full access to your dashboard.
+      ${greeting}
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">With verification complete, you can:</p>
-    <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
-      <li>Edit your listing with photos & pricing</li>
-      <li>Respond to family inquiries</li>
-      <li>Hire caregivers</li>
-      <li>View your profile analytics</li>
-    </ul>
-    <div style="text-align:center;margin:0 0 24px;">${button("Go to Dashboard", opts.dashboardUrl)}</div>
+    <div style="background:#f0fdf4;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#166534;margin:0 0 12px;font-weight:600;">Here's what you can do now:</p>
+      <ul style="font-size:14px;color:#166534;margin:0;padding-left:20px;line-height:1.8;">
+        <li>Respond to family inquiries and answer questions</li>
+        <li>Customize your listing with photos and business details</li>
+        <li>Reach out to families looking for care</li>
+        <li>Hire caregivers</li>
+      </ul>
+    </div>
+    <div style="text-align:center;margin:0 0 24px;">${button("Go to Your Dashboard", opts.dashboardUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+      We're excited to have you on Olera! Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">We're here to help</a>
     </p>
-  `, "You're verified — full dashboard access unlocked");
+  `, "You're verified — your dashboard is ready");
 }
 
 /** Email sent when verification is submitted and routed to manual review */
@@ -2327,30 +2351,141 @@ export function verificationReminder21DayEmail(opts: {
   `, "Final reminder — verify before your claim expires");
 }
 
-/** Email sent when verification is rejected with reason */
+/** Email sent when verification is rejected with reason (admin rejection) */
 export function verificationRejectedEmail(opts: {
   providerName: string;
   recipientName: string;
   reason: string;
   resubmitUrl: string;
 }): string {
+  const name = firstName(opts.recipientName, "there");
+
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verification needs more info</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, we couldn't verify your connection to <strong>${escapeHtml(opts.providerName)}</strong> with the information provided.
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Let's get you verified</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(name)}, we reviewed your verification for <strong>${escapeHtml(opts.providerName)}</strong> but need a bit more information to confirm your connection.
     </p>
-    <div style="background:#fef2f2;border-left:3px solid #ef4444;padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-      <p style="font-size:14px;color:#991b1b;margin:0 0 4px;font-weight:600;">Reason:</p>
-      <p style="font-size:14px;color:#7f1d1d;margin:0;line-height:1.5;">${escapeHtml(opts.reason)}</p>
+    <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#92400e;margin:0 0 4px;font-weight:600;">What we found:</p>
+      <p style="font-size:14px;color:#78350f;margin:0;line-height:1.5;">${escapeHtml(opts.reason)}</p>
     </div>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Please resubmit with updated information. Make sure your LinkedIn profile or business website clearly shows your connection to the organization.
+    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.5;">
+      Don't worry — there are several ways to verify. Here's what works best:
     </p>
-    <div style="margin:0 0 24px;">${button("Resubmit Verification", opts.resubmitUrl)}</div>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li><strong style="color:#111827;">Work email</strong> — Use an email with your company's domain (e.g., you@company.com)</li>
+      <li><strong style="color:#111827;">LinkedIn</strong> — Make sure your profile shows this organization as your current employer</li>
+      <li><strong style="color:#111827;">Business website</strong> — Link to a page that lists you as staff (About Us, Team page)</li>
+      <li><strong style="color:#111827;">Document</strong> — Upload a business license, ID badge, or official letterhead</li>
+    </ul>
+    <div style="margin:0 0 24px;">${button("Try Again", opts.resubmitUrl)}</div>
+    <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:0 0 16px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Need help?</strong> Our team is happy to assist — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us here</a> and we'll sort this out together.
+      </p>
+    </div>
+  `, "Let's try another way to verify your connection");
+}
+
+/**
+ * Email sent when a self-verification attempt fails.
+ * Method-specific messaging with warm, encouraging tone.
+ * Lists other verification methods they can try.
+ */
+export function verificationMethodFailedEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  method: "email" | "linkedin" | "website" | "document";
+  reason: string;
+  attemptNumber: number;
+  verifyUrl: string;
+}): string {
+  const name = firstName(opts.recipientName, "there");
+
+  // Method-specific explanations and what they can try
+  const methodInfo: Record<string, { label: string; explanation: string; tip: string }> = {
+    email: {
+      label: "work email",
+      explanation: "We couldn't match your email domain to the business on file.",
+      tip: "Use an email address with a domain that matches the business (e.g., name@yourbusiness.com).",
+    },
+    linkedin: {
+      label: "LinkedIn profile",
+      explanation: "We couldn't confirm your current employment from your LinkedIn profile.",
+      tip: "Make sure your LinkedIn shows this organization as your current employer in your Experience section.",
+    },
+    website: {
+      label: "business website",
+      explanation: "We couldn't find your name listed on the website you provided.",
+      tip: "Link to a page that shows your name as staff (About Us, Team page, or staff directory).",
+    },
+    document: {
+      label: "uploaded document",
+      explanation: "We couldn't verify your connection from the document provided.",
+      tip: "Upload a clear photo of your business license, ID badge, or official letterhead showing your name.",
+    },
+  };
+
+  const current = methodInfo[opts.method];
+  const otherMethods = Object.entries(methodInfo)
+    .filter(([key]) => key !== opts.method)
+    .map(([, info]) => info);
+
+  // Progressive warmth based on attempt number
+  let greeting: string;
+  let encouragement: string;
+
+  if (opts.attemptNumber === 1) {
+    greeting = `Hi ${escapeHtml(name)}, thank you for starting the verification process for <strong>${escapeHtml(opts.providerName)}</strong>.`;
+    encouragement = "Don't worry — there are several ways to verify, and we're here to help you through it.";
+  } else if (opts.attemptNumber === 2) {
+    greeting = `Hi ${escapeHtml(name)}, we appreciate you trying again to verify your connection to <strong>${escapeHtml(opts.providerName)}</strong>.`;
+    encouragement = "We know this can be frustrating, but you're almost there. Let's try a different approach.";
+  } else if (opts.attemptNumber === 3) {
+    greeting = `Hi ${escapeHtml(name)}, thank you for your patience in verifying <strong>${escapeHtml(opts.providerName)}</strong>.`;
+    encouragement = "We really want to get you verified. Here's one more option that might work better for your situation.";
+  } else {
+    greeting = `Hi ${escapeHtml(name)}, we can see you've been working hard to verify <strong>${escapeHtml(opts.providerName)}</strong>.`;
+    encouragement = "We're committed to helping you get verified. Please reach out to our support team and we'll sort this out together.";
+  }
+
+  // Build alternative methods section
+  const alternativesHtml = otherMethods.map((m) => `
+    <li style="margin:0 0 12px;padding:0;">
+      <strong style="color:#111827;">${m.label.charAt(0).toUpperCase() + m.label.slice(1)}</strong>
+      <p style="font-size:13px;color:#6b7280;margin:4px 0 0;line-height:1.4;">${m.tip}</p>
+    </li>
+  `).join("");
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Let's try another way</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      ${greeting}
+    </p>
+    <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#92400e;margin:0 0 4px;font-weight:600;">What happened with your ${current.label}:</p>
+      <p style="font-size:14px;color:#78350f;margin:0;line-height:1.5;">${current.explanation}</p>
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+      <strong style="color:#111827;">Tip:</strong> ${current.tip}
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.5;">
+      ${encouragement}
+    </p>
+    <p style="font-size:14px;color:#374151;margin:0 0 8px;font-weight:600;">Other ways to verify:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.6;">
+      ${alternativesHtml}
+    </ul>
+    <div style="margin:0 0 24px;">${button("Try Another Method", opts.verifyUrl)}</div>
+    <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:0 0 16px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Need help?</strong> Our team is happy to assist — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us here</a> and we'll get you sorted.
+      </p>
+    </div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+      Once verified, you'll have full access to respond to family inquiries and manage your listing.
     </p>
-  `, "We need more information to verify your connection");
+  `, `We couldn't verify via ${current.label} — here are other options`);
 }
 
 /**

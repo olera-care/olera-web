@@ -4,10 +4,25 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY;
-const STYLE = MAPTILER_KEY
-  ? `https://api.maptiler.com/maps/positron/style.json?key=${MAPTILER_KEY}`
-  : "https://demotiles.maplibre.org/style.json";
+// CARTO Positron raster tiles — free, key-free, reliable (same clean light aesthetic
+// as MapTiler positron). Mirrors BrowseMap's fallback; the MapTiler key currently 403s.
+const STYLE: maplibregl.StyleSpecification = {
+  version: 8,
+  sources: {
+    "carto-positron": {
+      type: "raster",
+      tiles: [
+        "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
+        "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
+        "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
+      ],
+      tileSize: 256,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>, &copy; <a href="https://carto.com/">CARTO</a>',
+    },
+  },
+  layers: [{ id: "carto-positron", type: "raster", source: "carto-positron", minzoom: 0, maxzoom: 19 }],
+  glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+};
 
 export const CAT_COLOR: Record<string, string> = {
   hospital: "#e11d48", skilled_nursing: "#d97706", hospice: "#7c3aed",

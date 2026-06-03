@@ -318,11 +318,12 @@ export async function GET(request: NextRequest) {
     )].slice(0, 1000);
 
     // Per-provider engagement tracking
-    // Engaged = clicked email link OR opened lead OR copied contact
+    // Engaged = opened lead OR copied contact OR clicked continue in inbox
     const providerEngagement = new Map<string, {
       email_clicked: boolean;
       lead_opened: boolean;
       contact_revealed: boolean;
+      continue_in_inbox: boolean;
     }>();
 
     // Initialize all providers as not engaged
@@ -331,6 +332,7 @@ export async function GET(request: NextRequest) {
         email_clicked: false,
         lead_opened: false,
         contact_revealed: false,
+        continue_in_inbox: false,
       });
     }
 
@@ -340,7 +342,7 @@ export async function GET(request: NextRequest) {
         .from("provider_activity")
         .select("provider_id, event_type")
         .in("provider_id", allProviderKeys)
-        .in("event_type", ["email_click", "lead_opened", "contact_revealed"])
+        .in("event_type", ["email_click", "lead_opened", "contact_revealed", "continue_in_inbox"])
         .limit(10000);
 
       for (const ev of actEvents ?? []) {
@@ -350,6 +352,7 @@ export async function GET(request: NextRequest) {
         if (ev.event_type === "email_click") eng.email_clicked = true;
         else if (ev.event_type === "lead_opened") eng.lead_opened = true;
         else if (ev.event_type === "contact_revealed") eng.contact_revealed = true;
+        else if (ev.event_type === "continue_in_inbox") eng.continue_in_inbox = true;
       }
     }
 
@@ -360,9 +363,9 @@ export async function GET(request: NextRequest) {
 
     for (const c of searched) {
       const eng = c.provider.activityKey ? providerEngagement.get(c.provider.activityKey) : null;
-      // Engaged = opened lead drawer OR copied/clicked contact info
+      // Engaged = opened lead drawer OR copied contact OR clicked continue in inbox
       // email_click alone doesn't count - they might have bounced before seeing the lead
-      const isEngaged = !!(eng?.lead_opened || eng?.contact_revealed);
+      const isEngaged = !!(eng?.lead_opened || eng?.contact_revealed || eng?.continue_in_inbox);
       connectionEngaged.set(c.id, isEngaged);
 
       if (isEngaged) {
@@ -392,7 +395,7 @@ export async function GET(request: NextRequest) {
     const page = list.slice(offset, offset + limit);
 
     // Per-provider engagement data for UI badges (keyed by provider activityKey)
-    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }> = {};
+    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; continue_in_inbox: boolean }> = {};
     for (const c of page) {
       const key = c.provider.activityKey;
       if (key && !engagement[key]) {
@@ -401,6 +404,7 @@ export async function GET(request: NextRequest) {
           email_clicked: eng?.email_clicked ?? false,
           lead_opened: eng?.lead_opened ?? false,
           contact_revealed: eng?.contact_revealed ?? false,
+          continue_in_inbox: eng?.continue_in_inbox ?? false,
         };
       }
     }

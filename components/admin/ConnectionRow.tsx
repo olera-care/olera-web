@@ -48,6 +48,7 @@ interface Engagement {
   email_clicked: boolean;
   lead_opened: boolean;
   contact_revealed: boolean;
+  continue_in_inbox: boolean;
 }
 
 interface ThreadEntry {
@@ -164,8 +165,8 @@ export default function ConnectionRow({
   const providerStatus = (() => {
     if (c.responded) return "replied";
     if (engagement?.contact_revealed) return "copied contact";
+    if (engagement?.continue_in_inbox) return "went to inbox";
     if (engagement?.lead_opened) return "viewed lead";
-    // email_click alone doesn't count as engagement - they may have bounced
     if (c.responseCategory === "no_email") return "no email";
     return "no response";
   })();
@@ -397,6 +398,7 @@ export default function ConnectionRow({
                     {(() => {
                       if (c.responded) return "Status: Replied to family";
                       if (detail.engagement.contact_revealed) return "Status: Copied family contact";
+                      if (detail.engagement.continue_in_inbox) return "Status: Went to inbox to message";
                       if (detail.engagement.lead_opened) return "Status: Viewed lead";
                       return "Status: No engagement yet";
                     })()}

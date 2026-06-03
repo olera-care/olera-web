@@ -118,19 +118,20 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
             : "system",
     }));
 
-    // Provider engagement (opened/clicked/contact revealed).
+    // Provider engagement (opened/clicked/contact revealed/continue in inbox).
     const activityKey = provider?.slug || provider?.source_provider_id || null;
-    let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false };
+    let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false, continue_in_inbox: false };
     if (activityKey) {
       const { data: events } = await db
         .from("provider_activity")
         .select("event_type")
         .eq("provider_id", activityKey)
-        .in("event_type", ["email_click", "lead_opened", "contact_revealed"]);
+        .in("event_type", ["email_click", "lead_opened", "contact_revealed", "continue_in_inbox"]);
       engagement = {
         email_clicked: (events ?? []).some((e) => e.event_type === "email_click"),
         lead_opened: (events ?? []).some((e) => e.event_type === "lead_opened"),
         contact_revealed: (events ?? []).some((e) => e.event_type === "contact_revealed"),
+        continue_in_inbox: (events ?? []).some((e) => e.event_type === "continue_in_inbox"),
       };
     }
 

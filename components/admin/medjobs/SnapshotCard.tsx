@@ -234,12 +234,14 @@ export function ProviderSnapshotCard({
         }
       />
 
-      {/* Contact-form banner is mounted by NextStepCard pre-launch
-          where it gates the Launch button. Post-launch (after the
-          cadence is in motion), if a URL is added later or never
-          resolved, the banner appears here under the General Contact
-          section so admin still has the prompt. */}
-      {showContactFormBanner && !isPreLaunch && (
+      {/* v9.x Phase 2d: contact-form banner lives directly under
+          the General Contact section (whose final row is the
+          Contact Form URL field) so the decision sits next to the
+          field that triggered it. Renders pre-launch AND post-
+          launch — whenever a URL is on file and no
+          contact_form_submitted touchpoint exists yet. Hides the
+          moment any outcome lands. */}
+      {showContactFormBanner && (
         <ContactFormBanner
           url={
             outreach.research_data?.general_contact?.contact_form_url ?? ""

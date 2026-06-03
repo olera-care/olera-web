@@ -56,7 +56,7 @@ export function useVerificationModal({
   const close = useCallback(() => setIsOpen(false), []);
 
   const handleSubmit = useCallback(
-    async (result: VerificationResult): Promise<{ verified: boolean; pendingReview: boolean }> => {
+    async (result: VerificationResult): Promise<{ verified: boolean; pendingReview: boolean; suggestion?: string }> => {
       const response = await fetch("/api/provider/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

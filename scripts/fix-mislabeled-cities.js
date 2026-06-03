@@ -24,9 +24,11 @@ const fs = require("fs");
 const args = process.argv.slice(2);
 const APPLY = args.includes("--apply");
 const AUDIT = args.includes("--audit");
+const AUDIT_FIX = args.includes("--audit-fix");
 const arg = (f) => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : null; };
 const CITY = arg("--city");
 const STATE = arg("--state");
+const TOP = arg("--top") ? parseInt(arg("--top"), 10) : null;
 const KM = (lat1, lon1, lat2, lon2) => {
   const R = 6371, d = Math.PI / 180;
   const a = Math.sin((lat2 - lat1) * d / 2) ** 2 +
@@ -98,9 +100,77 @@ async function revGeo(lat, lon) {
   return { error: "no locality" };
 }
 
+// Directory-wide repair: reverse-geocode ONLY the audit-flagged rows (those
+// >50km from their stated city) to their true city/state. Coordinate-
+// authoritative — a row only changes to where its coords actually resolve, so
+// false-flagged buckets (e.g. duplicate PA township names) self-correct to
+// no-ops. --top N restricts to the N worst buckets (for staged runs).
+async function runAuditFix() {
+  const THRESH_KM = 50;
+  const ref = new Map();
+  const cities = JSON.parse(fs.readFileSync(path.join(__dirname, "../public/data/cities-tier2.json"), "utf8"));
+  for (const [name, st, , lat, lon] of cities) ref.set(`${name.toLowerCase()}|${st}`, [lat, lon]);
+
+  // Scan all active rows, collect flagged ones grouped by stated bucket.
+  const flaggedByBucket = new Map(); // "City|ST" -> [rows]
+  let from = 0;
+  for (;;) {
+    const { data, error } = await db
+      .from("olera-providers")
+      .select("provider_id, provider_name, city, state, lat, lon")
+      .or("deleted.is.null,deleted.eq.false")
+      .order("provider_id", { ascending: true })
+      .range(from, from + 999);
+    if (error) { console.error("DB error:", error.message); process.exit(1); }
+    for (const r of data) {
+      if (r.lat == null || r.lon == null) continue;
+      const c = ref.get(`${(r.city || "").toLowerCase()}|${r.state}`);
+      if (!c) continue;
+      if (KM(r.lat, r.lon, c[0], c[1]) > THRESH_KM) {
+        const k = `${r.city}|${r.state}`;
+        if (!flaggedByBucket.has(k)) flaggedByBucket.set(k, []);
+        flaggedByBucket.get(k).push(r);
+      }
+    }
+    if (!data || data.length < 1000) break;
+    from += 1000;
+  }
+
+  let buckets = [...flaggedByBucket.entries()].sort((a, b) => b[1].length - a[1].length);
+  if (TOP) buckets = buckets.slice(0, TOP);
+  const totalRows = buckets.reduce((n, [, rows]) => n + rows.length, 0);
+  console.log(`Audit-fix — ${APPLY ? "APPLY" : "DRY RUN"} — ${buckets.length} bucket(s), ${totalRows} flagged rows${TOP ? ` (top ${TOP})` : ""}\n`);
+
+  let fixed = 0, noChange = 0, geoErr = 0, applied = 0;
+  for (const [bucket, rows] of buckets) {
+    console.log(`── ${bucket.replace("|", ", ")} (${rows.length} flagged) ──`);
+    for (const r of rows) {
+      const g = await revGeo(r.lat, r.lon);
+      await new Promise((res) => setTimeout(res, 110));
+      if (g.error) { geoErr++; console.log(`   ! geo ${g.error}: ${r.provider_name}`); continue; }
+      const changed = g.city.toLowerCase() !== (r.city || "").toLowerCase() || g.state !== r.state;
+      if (!changed) { noChange++; continue; }
+      fixed++;
+      console.log(`   → ${r.provider_name}: ${r.city}, ${r.state} ⇒ ${g.city}, ${g.state}`);
+      if (APPLY) {
+        const patch = { city: g.city, state: g.state };
+        // zipcode is a bigint column — only write all-digit (US) zips; skip
+        // alphanumeric foreign postcodes so the city/state still get corrected.
+        if (g.zip && /^\d+$/.test(g.zip)) patch.zipcode = g.zip;
+        const { error: uerr } = await db.from("olera-providers").update(patch).eq("provider_id", r.provider_id);
+        if (uerr) console.log(`     ✗ ${uerr.message}`); else applied++;
+      }
+    }
+  }
+  console.log(`\n── ${totalRows} flagged: ${fixed} relabeled${APPLY ? ` (${applied} written)` : " (dry run)"}, ${noChange} already-correct (false flags), ${geoErr} geocode errors`);
+  if (!APPLY) console.log(`DRY RUN — re-run with --apply to write.`);
+  process.exit(0);
+}
+
 (async () => {
   if (AUDIT) return runAudit();
-  if (!CITY || !STATE) { console.error("Usage: --city <City> --state <ST> [--apply]  |  --audit"); process.exit(1); }
+  if (AUDIT_FIX) return runAuditFix();
+  if (!CITY || !STATE) { console.error("Usage: --city <City> --state <ST> [--apply]  |  --audit  |  --audit-fix [--top N] [--apply]"); process.exit(1); }
   console.log(`Fix mislabeled cities — bucket "${CITY}, ${STATE}" — ${APPLY ? "APPLY" : "DRY RUN"}\n`);
 
   const { data, error } = await db

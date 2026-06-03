@@ -160,14 +160,22 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       "new_message",
       "post_connection_followup",
     ];
+    // Query emails by all possible provider identifiers
+    // Emails may be logged with profile ID, slug, or source_provider_id depending on context
+    const emailProviderKeys = [
+      c.to_profile_id,
+      provider?.slug,
+      provider?.source_provider_id,
+    ].filter(Boolean) as string[];
+
     let emails: EmailLogRow[] = [];
-    if (activityKey) {
+    if (emailProviderKeys.length > 0) {
       const { data: logs } = await db
         .from("email_log")
         .select(
           "id, email_type, recipient, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at"
         )
-        .eq("provider_id", activityKey)
+        .in("provider_id", emailProviderKeys)
         .in("email_type", LEAD_EMAIL_TYPES)
         .gte("created_at", c.created_at)
         .order("created_at", { ascending: false })

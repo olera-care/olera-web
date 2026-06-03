@@ -212,7 +212,16 @@ const SLAM_DUNK_DELETE_REGEX = [
 // Order matters: HC franchise wins first, then HHC brand, then explicit-name.
 // Skip combined-category providers (current category contains `|`) — those
 // are explicit multi-level facilities and need LLM/human judgment.
-const HC_FRANCHISE_REGEX = /\b(visiting angels|home instead|comfort keepers|right at home|senior helpers|always best care|firstlight home ?care|caring senior service|comforcare|synergy home ?care|touching hearts at home|home helpers|griswold home ?care|homewell care services|brightstar care)\b/i;
+// Non-medical home-care franchise brands. These are definitively non-clinical, so
+// matching the name is a zero-FP slam-dunk → Home Care (Non-medical). This is the
+// SAFE fix for the "generic home_care discovery bundle defaults to Home Health Care"
+// problem (sweep #2 found 123 such mislabels): the LLM batch pass often stays silent
+// on HHC-vs-HC and the HHC default sticks. We do NOT flip the CATEGORY_MAP default
+// (Medicare certification is not inferable from a name — flipping would mislabel real
+// HHAs the other way). Brand recognition catches the name-INNOCENT franchise cases;
+// independent "X Home Care" agencies still rely on the web-grounded LLM verify.
+// 2026-06-03 (sweep #2) additions appended after the original sweep-#1 set.
+const HC_FRANCHISE_REGEX = /\b(visiting angels|home instead|comfort keepers|right at home|senior helpers|always best care|firstlight home ?care|caring senior service|comforcare|synergy home ?care|touching hearts at home|home helpers|griswold home ?care|homewell care services|brightstar care|homewatch ?care ?givers|seniors helping seniors|preferred care at home|a place at home|qualicare|assisting hands|happier at home|americare|beehive home ?care|one you love home ?care|at your side home ?care|granny nannies|hallmark home ?care|a better solution in home ?care|alvita care|executive home ?care|the caregiving company)\b/i;
 const HHC_BRAND_REGEX    = /\b(amedisys|encompass health home health|kindred at home|bayada home health|interim healthcare|interim health ?care|lhc group)\b/i;
 const NH_EXPLICIT_REGEX  = /\b(skilled nursing facility|skilled nursing & rehab|skilled nursing and rehab|convalescent hospital|skilled nursing center)\b/i;
 const MC_EXPLICIT_REGEX  = /\bmemory care\b/i;

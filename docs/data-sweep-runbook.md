@@ -86,7 +86,15 @@ Sweep #2 actuals: 399 batched-OUT → 320 confirmed (73 spared, 6 unclear); 451 
 
 ```javascript
 // Home Care (Non-medical) franchises — these chains exclusively do non-clinical in-home care
-const HC_FRANCHISE_REGEX = /\b(visiting angels|home instead|comfort keepers|right at home|senior helpers|always best care|firstlight home ?care|caring senior service|comforcare|synergy home ?care|touching hearts at home|home helpers|griswold home ?care|homewell care services|nurturecare|live well home ?care|cariloop|seniorcare|always there senior care)\b/i;
+const HC_FRANCHISE_REGEX = /\b(visiting angels|home instead|comfort keepers|right at home|senior helpers|always best care|firstlight home ?care|caring senior service|comforcare|synergy home ?care|touching hearts at home|home helpers|griswold home ?care|homewell care services|brightstar care|homewatch ?care ?givers|seniors helping seniors|preferred care at home|a place at home|qualicare|assisting hands|happier at home|americare|beehive home ?care|one you love home ?care|at your side home ?care|granny nannies|hallmark home ?care|a better solution in home ?care|alvita care|executive home ?care|the caregiving company)\b/i;
+// 2026-06-03 (sweep #2): appended non-medical franchise brands surfaced by the 123 HHC→HC
+// mislabels (Homewatch CareGivers, Seniors Helping Seniors, Preferred Care at Home, A Place
+// At Home, Qualicare, Assisting Hands, Happier at Home, ameriCARE, BeeHive, One You Love, At
+// Your Side, Granny Nannies, Hallmark Homecare, A Better Solution, Alvita Care, Executive Home
+// Care, The Caregiving Company). 0 FP vs 79 confirmed HHAs. NOTE: the CATEGORY_MAP
+// 'home_care'→'Home Health Care' default is intentionally NOT flipped — Medicare certification
+// is not inferable from a name, so flipping would mislabel real HHAs. Independent "X Home Care"
+// agencies (no franchise brand) still depend on the web-grounded LLM verify.
 
 // Home Health Care brands (Medicare-certified HHA)
 const HHC_BRAND_REGEX = /\b(amedisys|encompass health home health|kindred at home|bayada home health|interim healthcare|interim health ?care|lhc group|loyal home ?health)\b/i;

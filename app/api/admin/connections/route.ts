@@ -321,10 +321,16 @@ export async function GET(request: NextRequest) {
       responded: 0,
       no_email: 0,
     };
+    // Count truly connected (both parties engaged) separately
+    let trulyConnectedCount = 0;
     for (const c of searched) {
       if (c.responseCategory) {
         responseCounts.all++;
         responseCounts[c.responseCategory]++;
+        // Truly connected = provider responded AND family replied back
+        if (c.responseCategory === "responded" && c.familyRepliedAfterProvider) {
+          trulyConnectedCount++;
+        }
       }
     }
 
@@ -477,8 +483,9 @@ export async function GET(request: NextRequest) {
       // Waiting = provider_nudged + family_nudged
       list = list.filter((c) => c.responseCategory === "provider_nudged" || c.responseCategory === "family_nudged");
     } else if (responseFilter === "connected") {
-      // Connected = responded
-      list = list.filter((c) => c.responseCategory === "responded");
+      // Connected = provider responded AND family replied (truly connected)
+      // Excludes connections still needing family follow-up
+      list = list.filter((c) => c.responseCategory === "responded" && c.familyRepliedAfterProvider);
     } else if (responseFilter && responseFilter !== "all") {
       // Legacy granular filter
       list = list.filter((c) => c.responseCategory === responseFilter);
@@ -525,6 +532,7 @@ export async function GET(request: NextRequest) {
       total,
       counts,
       responseCounts,
+      trulyConnectedCount,
       engagement,
       truncated,
       action_counts,

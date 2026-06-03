@@ -36,6 +36,7 @@ export interface ConnectionRowData {
   };
   messagePreview?: string;
   responded?: boolean;
+  familyRepliedAfterProvider?: boolean;
   nudgeCount?: number;
   providerNudgedAt?: string | null;
   familyNudgedAt?: string | null;
@@ -288,7 +289,8 @@ export default function ConnectionRow({
               // Build status description
               let status = "";
               if (category === "responded") {
-                status = "connected";
+                // Differentiate between truly connected vs awaiting family
+                status = c.familyRepliedAfterProvider ? "connected" : "provider responded";
               } else if (category === "provider_nudged") {
                 status = "waiting on provider";
               } else if (category === "family_nudged") {

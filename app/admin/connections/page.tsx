@@ -29,6 +29,7 @@ interface ListResponse {
   connections: (ConnectionRowData & { provider: { activityKey: string | null } })[];
   total: number;
   responseCounts?: ResponseCounts;
+  trulyConnectedCount?: number;
   engagement: Record<string, Engagement>;
   truncated: boolean;
   action_counts?: ActionCounts;
@@ -41,7 +42,7 @@ interface TabConfig {
   key: FilterKey;
   label: string;
   emoji?: string;
-  getCount: (rc: ResponseCounts | undefined, ac: ActionCounts | undefined) => number;
+  getCount: (list: ListResponse | null) => number;
   emptyMessage: string;
 }
 
@@ -50,37 +51,37 @@ const TABS: TabConfig[] = [
     key: "hot_leads",
     label: "Hot",
     emoji: "🔥",
-    getCount: (_, ac) => ac?.hot_leads ?? 0,
+    getCount: (list) => list?.action_counts?.hot_leads ?? 0,
     emptyMessage: "No hot leads right now.",
   },
   {
     key: "nudge_provider",
     label: "Nudge Provider",
-    getCount: (_, ac) => ac?.nudge_provider ?? 0,
+    getCount: (list) => list?.action_counts?.nudge_provider ?? 0,
     emptyMessage: "No providers to nudge.",
   },
   {
     key: "nudge_family",
     label: "Nudge Family",
-    getCount: (_, ac) => ac?.nudge_family ?? 0,
+    getCount: (list) => list?.action_counts?.nudge_family ?? 0,
     emptyMessage: "No families to follow up with.",
   },
   {
     key: "call_no_email",
     label: "Call",
-    getCount: (_, ac) => ac?.call_no_email ?? 0,
+    getCount: (list) => list?.action_counts?.call_no_email ?? 0,
     emptyMessage: "No providers without email.",
   },
   {
     key: "waiting",
     label: "Waiting",
-    getCount: (rc) => (rc?.provider_nudged ?? 0) + (rc?.family_nudged ?? 0),
+    getCount: (list) => (list?.responseCounts?.provider_nudged ?? 0) + (list?.responseCounts?.family_nudged ?? 0),
     emptyMessage: "No connections waiting for response.",
   },
   {
     key: "connected",
     label: "Connected",
-    getCount: (rc) => rc?.responded ?? 0,
+    getCount: (list) => list?.trulyConnectedCount ?? 0,
     emptyMessage: "No successful connections yet.",
   },
 ];
@@ -166,7 +167,7 @@ export default function ConnectionsTrackerPage() {
       <div className="flex items-center gap-3 mb-4">
         <div className="flex gap-1.5">
           {TABS.map((tab) => {
-            const count = tab.getCount(list?.responseCounts, list?.action_counts);
+            const count = tab.getCount(list);
             const isActive = activeFilter === tab.key;
             return (
               <button

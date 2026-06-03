@@ -114,6 +114,44 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
   );
   const showContactFormBanner = hasContactFormUrl && !lastContactFormTp;
 
+  // v9.x Research progress — passive indicator. 7 fields counted: each
+  // is resolved if filled OR marked unavailable OR (for Decision Maker)
+  // has name/email/phone OR unavailable. Same predicate set Phase 0a
+  // landed in NextStepCard; surfaced here too so the Research Card
+  // can stand alone as the Pre-Flight surface once Phase 2e removes
+  // the NextStepCard checklist.
+  const gc = outreach.research_data?.general_contact ?? {};
+  const bpRow = bp;
+  const _effWebsite = gc.website !== undefined ? gc.website : bpRow?.website ?? null;
+  const _effPhone = gc.phone !== undefined ? gc.phone : bpRow?.phone ?? null;
+  const _effEmail = gc.email !== undefined ? gc.email : bpRow?.email ?? null;
+  const _effStreet =
+    gc.street !== undefined ? gc.street ?? "" : bpRow?.address ?? "";
+  const _effCity = gc.city !== undefined ? gc.city ?? "" : bpRow?.city ?? "";
+  const _effState = gc.state !== undefined ? gc.state ?? "" : bpRow?.state ?? "";
+  const _effZip = gc.zip ?? bpRow?.zip ?? "";
+  const _addressComplete = Boolean(
+    _effStreet?.trim() &&
+      _effCity?.trim() &&
+      _effState?.trim() &&
+      /^\d{5}(?:-\d{4})?$/.test(_effZip?.trim() ?? ""),
+  );
+  const dm = outreach.research_data?.decision_maker ?? {};
+  const _hasDecisionMaker =
+    Boolean(dm.email?.trim() || dm.phone?.trim() || dm.name?.trim()) ||
+    dm.unavailable === true;
+  const _researchFields = [
+    Boolean(_effWebsite?.trim()) || gc.website_unavailable === true,
+    Boolean(_effPhone?.trim()) || gc.phone_unavailable === true,
+    Boolean(_effEmail?.trim()) || gc.email_unavailable === true,
+    _addressComplete || gc.address_unavailable === true,
+    Boolean(gc.fax?.trim()) || gc.fax_unavailable === true,
+    Boolean(gc.contact_form_url?.trim()) || gc.contact_form_unavailable === true,
+    _hasDecisionMaker,
+  ];
+  const researchFilled = _researchFields.filter(Boolean).length;
+  const researchTotal = _researchFields.length;
+
   return (
     <section className="space-y-5 rounded-lg border border-gray-200 bg-white p-4">
       <header className="flex items-start justify-between gap-3">
@@ -125,16 +163,23 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
             {orgName}
           </h3>
         </div>
-        {livePagePath && (
-          <a
-            href={livePagePath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 text-xs font-medium text-primary-700 hover:underline"
-          >
-            🔗 Open live page →
-          </a>
-        )}
+        <div className="flex shrink-0 items-center gap-3 text-xs">
+          {isPreLaunch && (
+            <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-medium text-gray-700">
+              Research: <strong className="tabular-nums">{researchFilled} of {researchTotal}</strong>
+            </span>
+          )}
+          {livePagePath && (
+            <a
+              href={livePagePath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-primary-700 hover:underline"
+            >
+              🔗 Open live page →
+            </a>
+          )}
+        </div>
       </header>
 
       {/* ── 0. Business Name ───────────────────────────────────────

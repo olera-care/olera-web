@@ -318,7 +318,9 @@ export async function GET(request: NextRequest) {
     )].slice(0, 1000);
 
     // Per-provider engagement tracking
+    // Engaged = clicked email link OR opened lead OR copied contact
     const providerEngagement = new Map<string, {
+      email_clicked: boolean;
       lead_opened: boolean;
       contact_revealed: boolean;
     }>();
@@ -326,6 +328,7 @@ export async function GET(request: NextRequest) {
     // Initialize all providers as not engaged
     for (const key of allProviderKeys) {
       providerEngagement.set(key, {
+        email_clicked: false,
         lead_opened: false,
         contact_revealed: false,
       });
@@ -339,7 +342,7 @@ export async function GET(request: NextRequest) {
         .from("provider_activity")
         .select("provider_id, event_type")
         .in("provider_id", allProviderKeys)
-        .in("event_type", ["lead_opened", "contact_revealed"])
+        .in("event_type", ["email_click", "lead_opened", "contact_revealed"])
         .limit(10000);
 
       debugEventCount = actEvents?.length ?? 0;
@@ -349,7 +352,8 @@ export async function GET(request: NextRequest) {
         if (!eng) continue;
         debugMatchedCount++;
 
-        if (ev.event_type === "lead_opened") eng.lead_opened = true;
+        if (ev.event_type === "email_click") eng.email_clicked = true;
+        else if (ev.event_type === "lead_opened") eng.lead_opened = true;
         else if (ev.event_type === "contact_revealed") eng.contact_revealed = true;
       }
     }
@@ -361,8 +365,8 @@ export async function GET(request: NextRequest) {
 
     for (const c of searched) {
       const eng = c.provider.activityKey ? providerEngagement.get(c.provider.activityKey) : null;
-      // Engaged = provider opened lead OR copied contact
-      const isEngaged = !!(eng?.lead_opened || eng?.contact_revealed);
+      // Engaged = clicked email OR opened lead OR copied contact
+      const isEngaged = !!(eng?.email_clicked || eng?.lead_opened || eng?.contact_revealed);
       connectionEngaged.set(c.id, isEngaged);
 
       if (isEngaged) {
@@ -398,7 +402,7 @@ export async function GET(request: NextRequest) {
       if (key && !engagement[key]) {
         const eng = providerEngagement.get(key);
         engagement[key] = {
-          email_clicked: false,
+          email_clicked: eng?.email_clicked ?? false,
           lead_opened: eng?.lead_opened ?? false,
           contact_revealed: eng?.contact_revealed ?? false,
         };

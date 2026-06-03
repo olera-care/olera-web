@@ -1,8 +1,37 @@
-# Plan: Post-Launch Outreach Redesign — Strategy v2
+# Plan: Post-Launch Outreach Redesign — Strategy v2.1
 
-Created: 2026-06-03 (v1 same day)
+Created: 2026-06-03 (v1 + v2 same day; v2.1 adds the rigorous journey + state model)
 Status: STRATEGY / NOT STARTED (no code yet)
-Author: Claude (revising per Logan's feedback + the pilot agreement PDF)
+Author: Claude
+
+## v2.1 update — what changed from v2
+
+Logan pushed back on v2's hand-wavy treatment of "magic-link is MVP"
+(Δ5) and "just-in-time account creation" (Δ6). He's right — those two
+lines glossed over what is actually the *most consequential* design
+decision in the whole plan: how a cold provider's identity, claim
+status, pilot membership, and verification state interact across the
+email → click → browse → activate journey.
+
+v2.1 keeps every other v2 decision intact but **replaces section P1.E
+in full** with a rigorous state model and step-by-step journey. The
+key conceptual revision: these are **four orthogonal state axes**,
+not one stacked progression.
+
+| Axis | Field(s) | Question it answers |
+|------|----------|---------------------|
+| 1. Authentication | `auth.users`, `accounts` | Are you signed in? |
+| 2. Profile ownership | `business_profiles.account_id`, `claim_state` | Are you operating this org's CRM profile? |
+| 3. Pilot membership | `metadata.interview_terms_accepted_at`, `metadata.pilot_active_through` | Are you participating in the 3-month pilot? |
+| 4. Public verification | `verification_state` | Have we publicly verified your claim (drives the "Claimed" badge)? |
+
+A provider can be in any combination of these. Magic-link click
+advances axes 1 and 2. Terms acceptance advances axis 3. Formal
+verification (existing flow) advances axis 4. Each is its own
+transition with its own trigger.
+
+The journey, the CTA copy, the T&C placement, and the edge cases all
+fall out of this state model. Detailed in revised P1.E below.
 
 ## What changed from v1
 
@@ -17,8 +46,8 @@ consistent whole.
 | Δ2 | New `trial_activated` derived stage | **No new stage.** Provider self-activation sets the existing `metadata.interview_terms_accepted_at` flag — same field `make_client` already writes. | Admin-driven conversion (post-meeting) and provider-driven conversion (self-served) collapse to ONE terminal: `active_partner` / `converted`. Two paths in, one state out. No new derivation, no new UI fork, no new touchpoint type. |
 | Δ3 | New `trial_state` JSONB tracking 4 sub-events | **Drop the sub-state JSONB.** Track engagement via `note_added` touchpoints with `reason:` payload, plus the existing email/meeting/call touchpoint stream. The terminal is binary: terms accepted or not. | Sub-state was overbuild. The timeline is the audit log; we don't need a parallel state machine that re-records what's already in touchpoints. G1 + G4 satisfied. |
 | Δ4 | Email CTA: "Review your students and **start your trial**" | Email CTA: **"Review the candidate board →"** (no "trial" word). Pilot framing appears only AFTER they're on the platform and have seen the students. | Logan: trial-language triggers sales-defensiveness in cold readers. The PDF agrees — Scope clause says "Provider may review student profiles and invite candidates to interview." Lead with the value, not the commercial structure. |
-| Δ5 | Magic-token is a Phase-2 nice-to-have; MVP uses a public URL | Magic-token is **MVP**. Plug `/api/auth/auto-sign-in` → `/auth/magic-link` → personalized welcome page. The primitives exist; building it isn't more work than building a thoughtful public page would be. | The infrastructure survey confirmed `auto-sign-in` + `magic-link` are production-grade and reusable. Skipping them and shipping a public page that we'd then have to re-do is the patchwork Logan warned against. |
-| Δ6 | Pre-create accounts so the welcome page can personalize | **Just-in-time account creation** on first magic-link click. Token carries `outreach_id`; click → resolve to email/org → `claim-instant` → session → land. | Pre-creating accounts that may never be claimed leaves zombie rows in `business_profiles` and confuses claim-state semantics. JIT keeps the database clean. |
+| Δ5 | Magic-token is a Phase-2 nice-to-have; MVP uses a public URL | Magic-token is **MVP**. Plug `/api/auth/auto-sign-in` → `claim-instant` logic → land directly on the candidate board (no separate welcome page). Token carries `{outreach_id, email, jti, expires_at}`; one-shot, 30-day TTL. | The infrastructure survey confirmed `auto-sign-in` + `magic-link` are production-grade and reusable. Public URL would force re-onboarding work later. v2.1 also clarifies: this advances axes 1 + 2 only; pilot membership and public verification stay at their pre-click values. |
+| Δ6 | Pre-create accounts so the welcome page can personalize | **Just-in-time account creation** on first magic-link click. Click → server handler resolves token → silent `auto-sign-in` + (only if no business_profile exists) `claim-instant` → session → redirect to candidate board. | Pre-creating accounts that may never be claimed leaves zombie rows in `business_profiles` and false claim signals in the directory. JIT keeps state honest. v2.1 also defines the edge case for orgs already claimed by a different account (read-only co-tenancy + admin reconcile task). |
 
 Three new findings from the PDF + survey that didn't exist as
 considerations in v1:
@@ -44,18 +73,20 @@ DuBose is *one* path to Pilot Active, not the goal.
 |---|----------------|----------------|
 | S1 | Day 0 includes a call | Day 0 = email only. First post-launch call is Day 3. |
 | S2 | Primary conversion = scheduled meeting | Primary conversion = **Pilot Active** (terms accepted + account active). Meeting is one path to it. |
-| S3 | CTA = "reply or book a call" | CTA = **"Review the candidate board →"**. Reply + Calendly are secondary. No "trial" language. |
+| S3 | CTA = "reply or book a call" | CTA = **"Review {campus} student caregivers →"** (campus-personalized). Reply + Calendly are secondary. No "trial" language. |
 | S4 | Calls re-pitch the program | Calls confirm receipt, answer questions, redirect to the link. The PDF + the platform carry the pitch. |
 | S5 | Meeting = terminal-positive | Meeting = high-signal lead. Pilot Active is terminal. |
 | S6 | Timeline = single stream | Timeline = **Upcoming** + **Past Activity**. |
 | S7 | "Replies" tab = email replies only | "Emails" tab = single event stream, smart-filtered with Needs Reply + Bounced pinned, lower-signal collapsed by default. |
 | S8 | Open/click events not surfaced | Open/click events update the existing `email_sent` touchpoint's payload — one row per email with engagement chips, not a flood of new rows. |
 | S9 | Calendly = link in the email | Calendly = inbound webhook. Self-booked + admin-booked both land in Meetings tab via the same `mark_meeting_scheduled` action. |
-| **S10** (new) | Onboarding is a multi-step flow | Onboarding is **the magic-link click**. `auto-sign-in` + `claim-instant` happen atomically; provider lands authenticated on the welcome page. The "form" is the PDF terms button. |
-| **S11** (new) | Welcome page is a marketing landing | Welcome page is the candidate board, personalized + pilot-tier-gated. The provider's first impression IS the product. |
-| **S12** (new) | Empty-state is "students recruiting" | Empty-state is a tiered fallback: real local students → sample students from peer campuses → labeled demo candidate (e.g., Logan as a clearly-marked demo) → "recruiting in progress" momentum. The page must *always* show something usable. |
+| **S10** (new) | Onboarding is a multi-step flow | Onboarding is **the magic-link click**. `auto-sign-in` + `claim-instant` happen silently in one server handler; provider lands authenticated. The "form" is the PDF terms button — and it only appears at the first action that requires it. |
+| **S11** (new) | Welcome page is a marketing landing | There is no separate landing page. The provider's first impression IS the candidate board (with a thin welcome banner). Browse first, T&C later. |
+| **S12** (new) | Empty-state is "students recruiting" | Empty-state is a tiered fallback: real local students → sample students from peer campuses → labeled demo candidate (Logan as a clearly-marked demo) → "recruiting in progress" momentum. The page must *always* show something usable. |
+| **S13** (v2.1 new) | Magic-link click ≈ full activation | Magic-link click advances **two of four** state axes (auth identity + CRM-internal profile claim), not all four. Pilot membership requires terms acceptance. Public verification badge requires the existing verification flow. The four axes are orthogonal — see P1.E. |
+| **S14** (v2.1 new) | T&C appears on landing | T&C appears at the **first axis-3 action attempt** ("Invite to interview" / "Save student" / "See contact info"). Browsing is free. The modal carries the verb of the action the provider was trying to take ("Accept and invite this student"). |
 
-If any of S1–S12 is wrong, the rest of this doc is wrong.
+If any of S1–S14 is wrong, the rest of this doc is wrong.
 
 ---
 
@@ -109,14 +140,12 @@ care which path was taken — it just sees the row as converted.
 
 ## P1.D — Email strategy (no "trial" language)
 
-Primary CTA in every post-launch email, button-styled:
+Primary CTA in every post-launch email, campus-personalized,
+button-styled:
 
-> **Review the candidate board →**
+> **Review {campus_name} student caregivers →**
 
-…linking to a magic-link URL:
-`olera.care/medjobs/welcome?t=<token>` where the token is a one-shot
-signed payload containing `{outreach_id, email, expires_at}` (30-day
-TTL).
+…linking to a magic-link URL: `olera.care/medjobs/m/<token>`. Token is a server-signed one-shot blob containing `{outreach_id, email, jti, expires_at}` with 30-day TTL. Full journey in P1.E.
 
 Secondary CTAs, smaller text below the button:
 - "Or reply with any questions"
@@ -128,86 +157,236 @@ the action is consistent.
 
 **Body copy tone** (illustrative, not final):
 
-> Hi {first_name},
+> Hi Mr. French,
 >
 > Graize here, on behalf of Dr. Logan DuBose at Olera. We've been
-> recruiting and vetting pre-nursing and pre-medical students from
-> Texas A&M who are looking for caregiver experience, and {org_name}
-> stood out as a great fit to invite into our pilot program.
+> recruiting pre-nursing and pre-medical students from Texas A&M who
+> are looking for caregiver shifts — and HomeSpark Care stood out as
+> a great fit to invite into our pilot.
 >
-> You can review the candidate board here:
+> Take a look at the students near you:
 >
-> **Review the candidate board →**
+> **[ Review Texas A&M student caregivers → ]**
 >
-> Background on the program is attached. If you want to chat first,
-> you can also book a quick call with Dr. DuBose — no pressure
+> A short background on the pilot is attached. If you'd rather chat
+> first, you can [book a quick call with Dr. DuBose] — no pressure
 > either way.
 
-Notice: no "trial," no "subscription," no "start now" language. Just
-an invitation to look.
+Notice: no "trial," no "subscription," no "start now" language. "Pilot" appears once as honest framing for why we're inviting them; the CTA is about reviewing students, not about activating anything.
 
-## P1.E — Magic-link & welcome-page flow
+## P1.E (revised in v2.1) — Provider journey & state model
 
-**Reuse the existing primitives.** The infrastructure survey
-confirmed:
+### The state model (four orthogonal axes)
 
-- `/api/auth/auto-sign-in` takes an email, creates/finds a Supabase user with `email_confirm: true`, returns a one-shot token hash.
-- `/auth/magic-link` (page) redeems the token hash, establishes a session, calls `/api/auth/ensure-account`.
-- `/api/provider/claim-instant` creates `accounts` + `business_profiles` + `memberships` atomically with `verification_state: "unverified"`, redirects to `/provider`.
-- `/medjobs/staffing-pilot/page.tsx` already has a T&C modal pattern that writes `interview_terms_accepted_at`.
+A provider's state across our system isn't a single linear progression
+— it's four independent axes. Magic-link click advances axes 1 + 2.
+Terms acceptance advances axis 3. Formal verification (existing flow,
+unchanged) advances axis 4.
 
-**The flow:**
+**Axis 1 — Authentication identity.** Are they signed in?
+- Backed by `auth.users` (Supabase) + `accounts` (our row).
+- Values: `unauthenticated` | `authenticated`.
+- Magic-link click sets this. Persists via cookie session afterward.
 
-```
-Email click  →  /medjobs/welcome?t=<token>
-                          │
-                          ▼
-                ┌──────────────────────────────┐
-                │  Server-side token decode    │
-                │  → resolve outreach_id, email│
-                │  → claim-instant if no       │
-                │    business_profile exists   │
-                │  → auto-sign-in              │
-                │  → set session               │
-                └──────────────────────────────┘
-                          │
-                          ▼
-            ┌─────────────────────────────────────┐
-            │  /medjobs/welcome (authenticated)   │
-            │                                      │
-            │  ┌── Hero ─────────────────────┐    │
-            │  │ Welcome, {org_name}.        │    │
-            │  │ Texas A&M pilot program     │    │
-            │  └─────────────────────────────┘    │
-            │                                      │
-            │  ┌── Candidate board ──────────┐    │
-            │  │ Filtered to their catchment │    │
-            │  │ Full data (pilot-tier gate) │    │
-            │  └─────────────────────────────┘    │
-            │                                      │
-            │  ┌── About the pilot ──────────┐    │
-            │  │ Inline PDF terms reveal     │    │
-            │  │ "How students get vetted"   │    │
-            │  │ "What we're learning"       │    │
-            │  └─────────────────────────────┘    │
-            │                                      │
-            │  ┌── Sticky bottom CTA ────────┐    │
-            │  │ [ Activate pilot account ]  │    │
-            │  │  → opens T&C modal          │    │
-            │  └─────────────────────────────┘    │
-            └─────────────────────────────────────┘
-```
+**Axis 2 — Profile ownership.** Split into two sub-axes because the existing codebase treats them as related-but-distinct signals:
 
-**Token security:** one-shot redemption, 30-day TTL, scoped to one
-`outreach_id`. If forwarded and someone else clicks, the page warns
-"You're being signed in as {org} — continue?" because the email goes
-to an org-level address (`info@`, owner direct) and a forwarder has
-the same authority anyway.
+- **Axis 2a — Account linkage.** Has someone been granted platform-level access to operate this org's profile? Backed by `business_profiles.account_id`. Values: `null` (no account linked) | `<uuid>` (linked).
+- **Axis 2b — Claim status.** How formally has that account identified themselves? Backed by `business_profiles.claim_state`. Values: `unclaimed | pending | claimed | rejected | archived`.
 
-**Just-in-time account creation:** if there's no `business_profiles`
-row for this org yet (cold provider), `claim-instant` runs server-side
-INSIDE the welcome handler — not at email-send time. This avoids
-zombie accounts for providers who never click.
+**Why split:** today the existing claim flows (`claim-instant`, `claim-listing`) advance 2a and 2b together at the same moment, because both require explicit user identification. The magic-link flow is weaker — clicking a link is not the same as identifying yourself as the org's operator. Splitting lets the magic-link click advance 2a (we now have a platform link to act through) without falsely advancing 2b (the formal "I'm the operator" representation).
+
+- **Magic-link click advances 2a only.** Sets `account_id` if it was NULL; leaves `claim_state` unchanged (typically still `"unclaimed"`).
+- **Terms acceptance advances 2b.** Sets `claim_state = "claimed"` because signing the pilot agreement is a formal representation that the signer can bind the org.
+
+**Why this matters for the rest of the system:** Several existing cron paths gate on `claim_state = "claimed"` (`medjobs-digest`, `google-reviews`, others). Under v2.0's wording (claim at click), every cold-clicker would have triggered those crons immediately — Google Places billing for reviews refresh would fire on cold providers, the digest would email people who hadn't actually opted in. Under v2.1's split (click → 2a only; terms → 2b), the cron triggers stay aligned to actual provider commitment.
+
+**Public listing impact (axis 4):** the public "Claimed" badge requires BOTH `claim_state = "claimed"` AND `verification_state = "verified"` (per `app/provider/[slug]/page.tsx:610`). Magic-link click affects neither, so the public listing is fully unchanged. Terms acceptance advances 2b but not axis 4, so the badge still doesn't appear until the provider goes through formal verification at their own pace.
+
+**Axis 3 — Pilot membership.** Are they participating in the 3-month pilot?
+- Backed by `business_profiles.metadata.interview_terms_accepted_at` (timestamp, existing field) + `business_profiles.metadata.pilot_active_through` (timestamp, new field).
+- Values: `not_active` | `active` (terms accepted and pilot window unexpired) | `expired` (terms accepted but pilot window passed).
+- Terms acceptance sets both fields. Drives access to candidate board's full data (P1.I) and the right to invite students to interview.
+
+**Axis 4 — Public verification.** Have we publicly verified the claim?
+- Backed by `verification_state`.
+- Values: `unverified | pending | verified | rejected | not_required`.
+- Independent of magic-link flow. Provider goes through existing verification routes (`/api/provider/verify/...`) at their own pace. Drives the public "Claimed" badge.
+
+**Why orthogonal matters:** A provider can be Authenticated + Account-Linked-only (2a) + Pilot-Active (3) + Publicly-Unverified (4) + Not-Formally-Claimed (2b stays `"unclaimed"` because they only signed the pilot, not the formal verification). That's the most common state under the new flow, and it's perfectly valid. The codebase's two key gates remain coherent:
+- Public listing "Claimed" badge: still requires (2b: claimed AND 4: verified). Magic-link + pilot terms do NOT trigger this; formal verification does.
+- Pilot board full mode: gated on axis 3 only. Pilot terms acceptance is sufficient.
+
+Each axis advances when its trigger fires. No silent overreach.
+
+### Answering Logan's 10 questions explicitly
+
+| # | Question | Answer |
+|---|----------|--------|
+| 1 | When provider receives the magic link, what account/auth record exists? | **None.** No `auth.users`, no `accounts`, no `business_profiles` mutation. The token in the URL is the entire record — it carries `{outreach_id, email, jti, expires_at}` signed server-side. The directory listing (`olera-providers`) row exists but that's not an account; it's a scraped record. |
+| 2 | Does clicking the magic link mean they've "claimed" the profile? | **No, not formally.** It advances axis 2a only (account-linkage — sets `business_profiles.account_id` if previously NULL). `claim_state` stays `"unclaimed"`. The formal "claim" semantic — and the cron triggers that depend on it — fire at terms acceptance (T8), not at click. This is wiser than v2.0's reading because clicking an email is not the same as identifying yourself as the org's operator. |
+| 3 | Or does it only authenticate them into a limited portal? | Authentication (axis 1) advances, account-linkage (axis 2a) advances, claim-status (axis 2b) does NOT advance, pilot membership (axis 3) does NOT advance, public verification (axis 4) does NOT advance. They get a session and a CRM-internal account-link, but no formal claim, no pilot privileges, no public badge. The "limited portal" is the candidate board in preview mode. |
+| 4 | How does this relate to the existing claim/verification system? | The magic-link path REUSES the `claim-instant` insertion logic for creating `business_profiles` rows that don't exist yet — but writes `claim_state = "unclaimed"` instead of `"claimed"`. (This is a new pattern: `account_id NOT NULL` + `claim_state = "unclaimed"`. Distinct from anything the existing flows produce.) The existing claim/verification system remains the ONLY path to formal claim + verified states for providers who want them. Magic-link is a softer parallel track for pilot-only access. |
+| 5 | If provider already has an account, what happens? | We resolve to their existing `auth.users` + `accounts` row via the `auto-sign-in` primitive. Session established. If they've ALREADY claimed THIS specific business_profile, no claim mutation runs — axis 2 is already at `claimed` for this profile. They go straight to the candidate board with whatever pilot/verification state they had. |
+| 6 | If provider does not have an account, what happens? | `auto-sign-in` creates `auth.users` with `email_confirm: true` (silent — no separate confirmation email), creates `accounts`, and creates `business_profiles` via `claim-instant`-style insertion BUT writes `claim_state = "unclaimed"` (not `"claimed"` — see Q2). Session established. Land on candidate board in preview mode. Pilot membership (axis 3) NOT yet activated. |
+| 7 | What identity do we use to authenticate them? | The email we sent the cold outreach to — typically the General Contact email from `outreach.research_data.general_contact.email`. NOT the Decision Maker email (they may or may not have one, and it's a softer signal). NOT a separate "provider organization email" — there isn't one. The General Contact is the most reliable email per row. |
+| 8 | What permissions do they have immediately after magic-link click? | (a) Browse the candidate board, filtered to their catchment. (b) View preview cards (name, year, brief bio, photo). (c) Click a student card to see expanded bio. (d) See "Edit your profile" surface if/when we expose it. **They CANNOT** (yet): invite students to interview, save students to a shortlist, see student contact info, see Verified badge publicly. Those unlock at axis 3 (terms acceptance). |
+| 9 | When do they become Pilot Active? | The moment they accept the pilot terms via the T&C modal. The trigger is the first action click that requires axis 3 — typically "Invite to interview" on a specific student. Modal interrupts that action; on accept, the action proceeds and Pilot Active is set. |
+| 10 | When and where do they accept terms? | At first axis-3 action attempt. NOT as a sign-up wall. NOT on landing. T&C lives inside a modal triggered by "Invite to interview" / "Save student" / "See contact info" — whichever they reach first. The modal explains the pilot (3-month free, either party can end with written notice) and shows the PDF inline. Single CTA: "Accept and continue." |
+
+### The exact 10-step journey
+
+**T0 — Email send time** (no account state mutation yet):
+- Outreach row exists in `student_outreach` table with `general_contact.email = "info@homesparkcare.com"`.
+- Smartlead sends the email; CTA button links to `https://olera.care/medjobs/m/<token>`.
+- `<token>` is a server-signed JWT containing `{outreach_id, email, jti, expires_at: now + 30d}`. JTI is a UUID stored in a revocation set for one-shot redemption.
+
+**T1 — Click time / Step A: Token redemption** (`/medjobs/m/[token]/route.ts`):
+- Server decodes token, verifies signature, checks expiry, checks JTI not previously redeemed.
+- Resolves to `{outreach_id, email}`, loads the outreach row to get `provider_id` and `organization_name`.
+- Bad token → redirect to a "this link expired" page with "Request a new one" form.
+
+**T2 — Click time / Step B: Account resolution** (axis 1):
+- Look up `auth.users` by email:
+  - **Exists:** call `auto-sign-in` → get magic-link token hash → server-side `verifyOtp({ token_hash, type: "magiclink" })` to establish session.
+  - **Doesn't exist:** `admin.createUser({ email, email_confirm: true })` (no confirmation email sent), then `auto-sign-in` flow as above.
+- Call `/api/auth/ensure-account` to ensure `accounts` row exists.
+- Now: axis 1 = `authenticated`.
+
+**T3 — Click time / Step C: Profile resolution** (axis 2a only):
+- Look up `business_profiles` where `source_provider_id = outreach.provider_id`:
+  - **Doesn't exist:** server-side INSERT with `account_id = <this user>`, `claim_state = "unclaimed"` (NOT "claimed"), `verification_state = "unverified"`, `source_provider_id` linked. Reuses the `claim-instant` route's insertion logic but with the softer claim_state. Now axis 2a = linked, axis 2b = unclaimed.
+  - **Exists, `account_id IS NULL` (truly unclaimed):** UPDATE to set `account_id = <this user>` only; leave `claim_state` at `"unclaimed"`. Now axis 2a = linked, axis 2b stays as-is.
+  - **Exists, `account_id = <this user>` (already linked):** no-op.
+  - **Exists, `account_id != <this user>` (linked to someone else):** EDGE CASE — see below.
+- Audit: emit `note_added` touchpoint on the outreach row with `reason: "platform_visited"` and payload `{token_jti, user_id, business_profile_id}`.
+
+**Why this is safe:** the resulting state (`account_id NOT NULL` + `claim_state = "unclaimed"`) is a new pattern in the codebase, but no existing code path treats `account_id` alone as the claim signal — every gate reads `claim_state`. Crons that fire on `claim_state = "claimed"` (digest, reviews refresh) are untouched. Public listing rendering is untouched.
+
+**T4 — Click time / Step D: Redirect to candidate board:**
+- Redirect to `/medjobs/candidates?campus=<their_campus>` (or whatever the catchment query param is).
+- Session cookies persist for subsequent visits.
+
+**T5 — Land on candidate board** (axis 3 still not active):
+- Top of page: small welcome banner — "Welcome, {org_name}. You're previewing the {campus} student caregiver board. Browse what's here; accept the pilot agreement to invite students to interview."
+- Student cards render in **preview mode**: name, year, brief bio, photo. NO contact info. "Invite to interview" button visible but in disabled / preview state.
+- Empty-state ladder applies (P1.F): real → sample → demo → recruiting-momentum.
+
+**T6 — Browse experience** (no T&C wall):
+- Provider browses cards, applies filters (catchment, availability, languages, certifications — existing on the page).
+- Clicking a student card opens the expanded profile in preview mode (full bio, photo, expanded info; contact still hidden).
+- Browsing is fully unblocked; no T&C friction here.
+
+**T7 — First action attempt** (triggers axis 3 transition):
+- Provider clicks "Invite to interview" (or "Save to shortlist" or "See contact info" — any axis-3 action).
+- Modal opens: the **T&C modal** displaying the pilot agreement.
+- Header: "One-time agreement to participate in the pilot."
+- Body: PDF rendered inline (or a clean structured version of it).
+- Primary CTA: "Accept and invite this student" (verb-matched to the action they were trying to take).
+- Cancel button: closes modal, no state change.
+
+**T8 — Accept T&C** (axes 2b + 3 transition together):
+- POST `/api/medjobs/pilot/activate` with `{business_profile_id, source: "self_serve", original_action: "invite_to_interview", student_id?}`.
+- Server-side, in a single transaction:
+  - SET `business_profiles.claim_state = "claimed"` (axis 2b advances — the pilot signature IS the formal "I represent this org" identification).
+  - SET `business_profiles.metadata.interview_terms_accepted_at = now()` (axis 3).
+  - SET `business_profiles.metadata.pilot_active_through = now() + interval '90 days'` (axis 3).
+  - SET `business_profiles.metadata.terms_accepted_via = "self_serve"` (audit; differentiates from `make_client` admin path).
+  - Transition outreach row → `active_partner` via the EXISTING conversion engine (reuses `make_client` internals so the CRM-side state is identical to the admin path).
+  - Emit `stage_change` touchpoint.
+- Modal closes. The original action (e.g., invite to interview) proceeds with the now-unlocked permissions.
+- Now: axis 2b = `claimed`, axis 3 = `active`. Public listing now would show "Claimed" badge IF the provider also went through verification — but they don't have to. They can stay pilot-active forever without verifying. Verification just unlocks the public badge separately.
+
+**T9 — Subsequent visits** (session persistence):
+- Provider opens `olera.care/medjobs/candidates` directly. No magic link needed; session cookie carries auth.
+- Candidate board now renders in full mode (axis 3 = active). Contact info visible. Invite buttons enabled. No preview banner.
+
+**T10 — CRM reflection** (no separate work, falls out of T8):
+- Row drops out of active In Basket tabs (Prospects / Calls / Emails) because status is now `active_partner`.
+- Surfaces in Clients tab (existing).
+- Timeline shows: email_sent → email_opened → email_clicked → platform_visited → stage_change.
+- Partner Prospects unlock for the catchment (existing `make_client` behavior).
+
+### Edge case: org already claimed by another account
+
+When magic-link click resolves a `business_profiles` row whose
+`account_id` belongs to a different user (e.g., owner claimed it last
+year; we cold-emailed `info@`, a different person, who clicked).
+
+**MVP behavior — read-only co-tenancy:**
+- Sign the cold-email recipient in (axis 1 = `authenticated`).
+- Do NOT mutate `business_profiles.account_id` or `claim_state` (axis 2 stays at whatever the original claimer set).
+- Redirect to candidate board in **read-only preview mode** (same as pre-T&C state).
+- Any action that would require axis 3 transition prompts:
+  > "This organization is already linked to another team member's account ({redacted_email}). Want us to email them to add you?"
+- That prompt emits an admin task ("two-person claim conflict on {outreach_id} — reconcile") rather than auto-resolving. Manual reconciliation in admin.
+
+**Why not auto-merge:** Multi-user team support isn't built (one
+business_profile = one account_id today). Auto-mutating an existing
+claim would silently overwrite the other user's ownership. Read-only
+co-tenancy is safe and flags the conflict for human resolution.
+
+**Audit:** still emit the `note_added(reason: "platform_visited")`
+touchpoint so the CRM sees the click, plus a `note_added(reason: "claim_conflict")` so it's visible in admin.
+
+### Email CTA copy (final recommendation)
+
+Logan offered four options. Wisest:
+
+> **Review {campus_name} student caregivers →**
+
+(Campus-personalized in the email body, e.g., "Review Texas A&M
+student caregivers →".)
+
+**Why this beats the others:**
+- "See a demo student" — implies it IS a demo, undersells when real students exist.
+- "View student profile" — singular; implies one profile; thin.
+- "Review students near you" — solid, but less concrete than naming the campus.
+- "See student caregivers" — too neutral, no specificity.
+
+**Email body** (illustrative, not final copy):
+
+> Hi Mr. French,
+>
+> Graize here, on behalf of Dr. Logan DuBose at Olera. We've been
+> recruiting pre-nursing and pre-medical students from Texas A&M who
+> are looking for caregiver shifts — and HomeSpark Care stood out as
+> a great fit to invite into our pilot.
+>
+> Take a look at the students near you:
+>
+> **[ Review Texas A&M student caregivers → ]**
+>
+> A short background on the pilot is attached. If you'd rather chat
+> first, you can [book a quick call with Dr. DuBose] — no pressure
+> either way.
+
+The body mentions "pilot" once (honest framing, not sales-y) but
+leads with the value (vetted students near them). Calendly stays as
+a smaller secondary CTA. PDF stays attached.
+
+### Token security & forwarding
+
+- **One-shot redemption** — JTI is added to a revocation set on
+  first use. A second click on the same token shows "This link was
+  already used. Sign in at olera.care/login" with the email
+  pre-filled.
+- **30-day TTL** — long enough for slow readers; not perpetually
+  open.
+- **Email match check** — the welcome handler re-verifies the token's
+  `email` field matches the recipient before mutating any state. (Protects against tampered tokens; the signature already prevents this but defense in depth.)
+- **Forwarding behavior** — if someone forwards the email and a
+  different person clicks, the magic-link still works (same email
+  inbox = same authority). But because cold outreach goes to
+  org-level addresses (`info@`, `partnerships@`, owner direct),
+  forwarders inside the org have legitimate access already. The
+  welcome page header reads "Signed in as {org_name}" so the
+  recipient understands what they're operating.
+
+### Why we still call it a "welcome page" — but it's the candidate board
+
+Not a separate marketing landing. The "welcome" experience IS the
+candidate board with a small welcome banner at top. Provider's first
+impression IS the product. Lower bounce, faster time-to-value.
 
 ## P1.F — Empty-state ladder
 
@@ -301,21 +480,26 @@ upsell). Admin gets a Day-T-minus-7 task to reach out about
 continuation. (This is post-MVP; for the first 3 months we just need
 the activation path, not the expiry path.)
 
-## P1.J — MVP vs later (revised)
+## P1.J — MVP vs later (revised in v2.1)
 
-**Implementation Phase 1 — MVP (3-week scope)**
+**Implementation Phase 1 — MVP (~4-week scope)**
 
 1. **Cadence change** in `cadence.ts` — Day 0 email-only, Day 3 email+call, Day 5 call, Day 7 email. (1 day)
-2. **Provider email template rewrite** — single "Review the candidate board →" CTA in `templates.ts`, no "trial" language. (1 day)
-3. **Pilot-tier backend** — `business_profiles.metadata.pilot_active_through` field + extend `medjobs_subscription_active` predicate. (1 day)
-4. **Magic-link welcome route** — `/api/medjobs/welcome/[token]` server handler that decodes the token, calls `claim-instant`, calls `auto-sign-in`, redirects to welcome page. (3 days)
-5. **Welcome page** at `/medjobs/welcome` — hero + candidate board (catchment-filtered, pilot-tier-gated) + "About the pilot" reveal + Accept Pilot Terms modal that writes `interview_terms_accepted_at` + `pilot_active_through`. (5 days)
-6. **Empty-state ladder** — real → sample → demo (Logan profile) → recruiting-in-progress. (3 days)
-7. **Smartlead webhook expansion** — `email_open` + `email_link_click` handlers update the `email_sent` touchpoint payload. (2 days)
-8. **Provider-self-signing conversion** — terms-acceptance handler transitions outreach to `active_partner` (reuses existing `make_client` engine, just a different invocation surface). (1 day)
+2. **Provider email template rewrite** — single "Review {campus} student caregivers →" campus-personalized CTA, no "trial" language, magic-link URL embed. (1 day)
+3. **Pilot-tier backend** — `business_profiles.metadata.pilot_active_through` field + extend `medjobs_subscription_active` predicate (Option A). (1 day)
+4. **Magic-link infrastructure** — `lib/medjobs/welcome-token.ts` (sign / verify / one-shot JTI revocation set) + `/medjobs/m/[token]/route.ts` server handler implementing the full T1–T4 journey (token decode → axis-1 advance via auto-sign-in → axis-2 advance via claim-instant logic OR co-tenancy edge case → audit → redirect). (4 days)
+5. **Candidate board preview-mode rendering** — extend `/medjobs/candidates/page.tsx` to honor axis-3 state: pre-pilot accounts see preview cards (no contact, disabled action buttons) + welcome banner; pilot-active accounts see full mode. (3 days)
+6. **T&C action-trigger modal** — modal that opens on first axis-3 action attempt ("Invite to interview" / "Save student" / "See contact info"). Renders the PDF inline. On accept, POST `/api/medjobs/pilot/activate` → axis-3 advance + outreach transition to `active_partner`. Modal CTA carries the verb of the action they were trying to take. (3 days)
+7. **Empty-state ladder** — `components/medjobs/EmptyCandidates.tsx`: real local students → sample students from peer campuses → labeled demo candidate (Logan profile) → recruiting-in-progress momentum. (3 days)
+8. **Co-tenancy edge case** — when business_profile is claimed by a different account, sign in but stay in read-only mode + emit `note_added(reason: "claim_conflict")` admin task. (2 days)
+9. **Smartlead webhook expansion** — `email_open` + `email_link_click` handlers update the `email_sent` touchpoint payload. (2 days)
+10. **CRM stage signals** — `note_added(reason: "platform_visited")` from welcome handler; `stage_change` from `/api/medjobs/pilot/activate`. Outreach drawer renders the new payload reasons in its narration. (2 days)
 
-Total: ~17 days of focused work. **No tab UI changes, no timeline
-split, no Calendly webhook.** Those are Phase 2.
+Total: ~22 days of focused work (~4 weeks at 1 dev). The journey
+(T1–T4) is the load-bearing piece — items 4, 5, 6, 8 are tightly
+coupled and should land as one coherent PR sequence rather than
+shipping individually. **No tab UI changes, no timeline split, no
+Calendly webhook.** Those are Phase 2.
 
 **Implementation Phase 2 — Surfaces (after MVP data starts flowing)**
 
@@ -520,6 +704,9 @@ conversions.
 | Pilot-tier flag drift | Single predicate `medjobs_subscription_active` (Option A) means there's only ONE function to update if pilot logic changes. |
 | Just-in-time account creation race | The welcome handler is atomic in a Supabase transaction; concurrent clicks would resolve to the same business_profile via upsert-by-source_provider_id. |
 | `interview_terms_accepted_at` set by two paths — which path was it? | Add `metadata.terms_accepted_via: "admin" \| "self_serve"` audit field so we can analyze conversion path mix. |
+| **v2.1: `account_id NOT NULL + claim_state = "unclaimed"` is a new state pattern** | No existing code path treats `account_id` alone as the claim signal — every gate I surveyed reads `claim_state`. Crons stay safe. But: anyone WRITING new code should know this pattern exists and not assume `account_id != null` ⇒ `claim_state = "claimed"`. Document in `lib/supabase/schema.sql` comment + add a test fixture. |
+| **v2.1: Co-tenancy conflict (org already claimed)** | Read-only co-tenancy + admin reconcile task (P1.E edge case). The provider gets a session and can browse but can't trigger axis 3. Admin sees a `claim_conflict` task to manually link the second user (when team support lands) or block it. |
+| **v2.1: First-action T&C creates friction at the most valuable moment** | The modal interrupts an action the provider WANTS to take. Modal language carries the verb ("Accept and invite this student") so it feels less like a wall and more like a confirmation. Single primary CTA, no scrolling required, PDF inline (collapsible). |
 
 ## Open questions for Logan
 
@@ -531,26 +718,36 @@ The five from v1 are mostly resolved by the PDF + survey. Updated set:
 4. **Demo-candidate copy & photo** — Logan as a clearly-marked demo profile is the recommendation. Approved? Or use a different sample face?
 5. **Token TTL** — 30 days feels right (allows for slow readers, doesn't leave an open door forever). Confirm.
 6. **Pilot expiry behavior** — when `pilot_active_through` passes, the candidate board re-redacts (free tier). Admin gets a Day-T-minus-7 reach-out task. Defer to Phase 2 or include in MVP? (Recommend defer.)
+7. **v2.1: First axis-3 action** — which action triggers the T&C modal? Recommendation: "Invite to interview" (highest-intent, most natural verb) as the primary trigger; "Save to shortlist" + "See contact info" as secondary triggers. Confirm.
+8. **v2.1: Co-tenancy edge case** — when business_profile is already claimed by a different account, recommendation is read-only co-tenancy + admin reconcile task. Alternative is hard-block ("ask your team admin for access"). The read-only path is friendlier but creates an audit obligation. Pick.
+9. **v2.1: Split axis 2 into 2a (account-linkage) and 2b (claim-status)** — magic-link click advances only 2a, leaving `claim_state = "unclaimed"`. Terms acceptance advances 2b to `"claimed"` (the pilot signature IS the formal identification). This means cold magic-link clickers don't trigger crons that gate on `claim_state = "claimed"` (digest, reviews refresh, etc.). Confirm this is the right reading; the alternative is to advance both 2a and 2b at click (v2.0 behavior), accepting that cron side-effects need per-cron mitigation.
+10. **v2.1: Welcome banner language** — "Welcome, {org_name}. You're previewing the {campus} student caregiver board. Browse what's here; accept the pilot agreement to invite students to interview." Approved? Or different tone?
 
 ---
 
 ## Implementation roadmap (suggested ticket order, post-approval)
 
-### MVP — Implementation Phase 1 (~17 days focused work)
+### MVP — Implementation Phase 1 (~22 days focused work, ~4 weeks)
 
 | # | Ticket | Files | Verify |
 |---|--------|-------|--------|
 | 1 | Cadence change | `lib/student-outreach/cadence.ts` | Unit test: provider cadence emits 3 emails + 2 calls, no Day 1. |
-| 2 | Email template rewrite | `lib/student-outreach/templates.ts` | Render Day 0/3/7 emails for a fixture row; confirm "Review the candidate board" CTA + no "trial" language. |
+| 2 | Email template rewrite | `lib/student-outreach/templates.ts` | Render Day 0/3/7 emails for a fixture row; confirm campus-personalized CTA + magic-link URL + no "trial" language. |
 | 3 | Pilot-tier predicate | `lib/medjobs/access.ts` (or equivalent), `app/medjobs/candidates/page.tsx` | Manual test: create a `business_profiles` row with `pilot_active_through = now + 1d`; confirm full candidate data renders. |
-| 4 | Magic-link welcome route | `app/api/medjobs/welcome/[token]/route.ts`, `lib/medjobs/welcome-token.ts` | Manual test: send self a token-link, click, land authenticated on welcome page. |
-| 5 | Welcome page UI | `app/medjobs/welcome/page.tsx`, reuse `<CandidateBoard>` | Visit the page authenticated; see personalized hero + candidate board + Accept terms CTA. |
-| 6 | Empty-state ladder | `components/medjobs/EmptyCandidates.tsx` | Manual test against catchments with: ≥3 students, 0 students. Confirm ladder rungs render. |
-| 7 | Smartlead webhook (open + click) | `supabase/functions/smartlead-webhook/` | Webhook test: simulate open + click events; confirm `email_sent` payload updates. |
-| 8 | Provider-self-signing conversion | `app/api/medjobs/pilot/activate/route.ts` | E2E: click magic link → accept terms → confirm `interview_terms_accepted_at` set + outreach transitions to `active_partner` + Partner Prospects unlock. |
+| 4 | Magic-link infrastructure | `lib/medjobs/welcome-token.ts` (sign / verify / JTI), `app/medjobs/m/[token]/route.ts` | Unit: sign + verify round-trip; one-shot JTI revocation. Manual: click a valid token → authenticated; click an expired/used token → "this link expired" page. |
+| 5 | Candidate board preview-mode rendering | `app/medjobs/candidates/page.tsx`, `components/medjobs/CandidateCard.tsx` | Manual test: (a) unauthenticated visitor sees public mode; (b) pre-pilot signed-in visitor sees preview cards + welcome banner; (c) pilot-active signed-in visitor sees full mode. |
+| 6 | T&C action-trigger modal + pilot activation | `components/medjobs/PilotTermsModal.tsx`, `app/api/medjobs/pilot/activate/route.ts` | E2E: signed-in pre-pilot user clicks "Invite to interview" → modal opens with PDF + "Accept and invite this student" CTA → on accept, action proceeds + axis-3 advance + outreach transitions to `active_partner` + Partner Prospects unlock. |
+| 7 | Empty-state ladder | `components/medjobs/EmptyCandidates.tsx` | Manual test against catchments with: ≥3 students, 1 student, 0 students. Confirm ladder rungs render correctly and Logan demo profile is clearly labeled. |
+| 8 | Co-tenancy edge case | `app/medjobs/m/[token]/route.ts`, `app/medjobs/candidates/page.tsx` | Manual test: pre-claim a business_profile with account A, click a magic-link token addressed to account B's email; confirm read-only mode + admin task emitted (`reason: "claim_conflict"`). |
+| 9 | Smartlead webhook (open + click) | `supabase/functions/smartlead-webhook/` | Webhook test: simulate open + click events; confirm `email_sent` payload updates with `open_count` / `click_count`. |
+| 10 | CRM stage signals | outreach drawer narration, `lib/student-outreach/narration.ts` | E2E: walk a full row (email click → platform_visited → terms_accepted → stage_change) and confirm timeline narration reads correctly. |
 
-Each ticket is one PR. Order matters: 1+2 are independent and tiny;
-3 and 7 are independent; 4 unblocks 5+6+8.
+Each ticket is one PR. **Order matters:**
+- 1 + 2 + 3 are independent and tiny.
+- 4 is the foundation — unblocks 5, 6, 8.
+- 5 + 6 are the journey heart; ship them as a tight pair.
+- 7 + 8 can run in parallel with 5/6.
+- 9 + 10 are tangential and can land anytime.
 
 ### Phase 2 — Surfaces (after MVP data starts flowing)
 

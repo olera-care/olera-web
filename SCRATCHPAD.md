@@ -7,17 +7,21 @@
 
 ## Current Focus
 
-### 2026-06-03 (Tue) — Post-launch outreach STRATEGY PLAN v2 (no code yet)
+### 2026-06-03 (Tue) — Post-launch outreach STRATEGY PLAN v2.1 (no code yet)
 
-**Context:** Logan reviewed v1 of the post-launch plan + uploaded the pilot agreement PDF (`pilotagreementhomespark.pdf` — 3-month free pilot, "either party may end with written notice"). Six material revisions forced — most notably: drop "trial" language entirely (PDF says "Pilot Program"), drop the new `trial_activated` derived stage (use existing `interview_terms_accepted_at` field that `make_client` already writes), promote magic-link to MVP (the `auto-sign-in` + `magic-link` + `claim-instant` primitives all exist and are production-grade), and just-in-time account creation (don't pre-create).
+**Context:** Logan pushed back on v2's hand-wavy treatment of Δ5 (magic-link as MVP) and Δ6 (just-in-time account creation), demanding rigorous step-by-step modeling of how the cold provider's identity / claim / pilot / verification states interact across the email → click → browse → activate journey. Read the pilot agreement PDF + ran another infra survey (`claim_state` semantics, `account_id` cardinality, conflict handling) before revising.
 
-**Survey findings (logged in v2 doc):** `/api/auth/auto-sign-in` is the exact primitive (returns token hash; `/auth/magic-link` redeems it). `/app/medjobs/staffing-pilot/page.tsx` has a T&C modal pattern that already writes `interview_terms_accepted_at`. The existing `/medjobs/candidates` board redacts data for free-tier — pilot providers need a new `pilot_active_through` metadata field + the `medjobs_subscription_active` predicate extended to include pilot membership (Option A, one-predicate single-source-of-truth).
+**Material v2 → v2.1 revisions:**
+- Split axis 2 (profile ownership) into **2a (account-linkage, set by magic-link click)** and **2b (claim-status, set by terms acceptance)**. v2.0 had click setting both, which would have spuriously triggered existing crons that gate on `claim_state="claimed"` (medjobs-digest, google-reviews refresh, etc.). v2.1's split keeps cron triggers aligned to real provider commitment.
+- Defined four orthogonal state axes (auth identity / 2a account-link / 2b claim / 3 pilot / 4 public verification) — provider can be in any combination; magic-link advances 1+2a only, terms accept advances 2b+3, formal verification advances 4 separately.
+- Explicit answers to Logan's 10 step-by-step questions (T0–T10 journey table) — token signing, account resolution, profile resolution, browse mode, T&C trigger placement, activation, CRM reflection.
+- Co-tenancy edge case (org already claimed by different account): read-only co-tenancy + admin `claim_conflict` task, not auto-merge.
+- Email CTA finalized: **"Review {campus} student caregivers →"** (campus-personalized), not generic "Review the candidate board." Strongest of the four options Logan offered.
+- T&C placement: appears at the **first axis-3 action attempt** ("Invite to interview" / "Save student" / "See contact info"), NOT on landing. Browse is free; modal CTA carries the verb of the action they were trying to take.
 
-**Plan v2:** [`plans/post-launch-outreach-redesign-plan.md`](plans/post-launch-outreach-redesign-plan.md) (overwrote v1; v1 lives in git history). Strategic shifts S1–S12 (was S1–S9 in v1); new shifts S10/S11/S12 capture magic-link onboarding, welcome-page-IS-product, empty-state ladder. MVP scope = ~17 days of focused work: cadence change + email rewrite + pilot-tier predicate + magic-link welcome route + welcome page + empty-state ladder + Smartlead webhook expansion + provider-self-signing handler. No tab/timeline UI in MVP — those are Phase 2 once data flows.
+**Plan v2.1:** [`plans/post-launch-outreach-redesign-plan.md`](plans/post-launch-outreach-redesign-plan.md) (771 lines). Strategic shifts now S1–S14 (added S13/S14 for axis orthogonality + T&C placement). MVP scope grew from ~17 to ~22 days because the journey is the load-bearing piece (items 4–6 + 8 are tightly coupled and ship as a coherent PR sequence). 10 open questions for Logan; 4 new ones in v2.1.
 
-**Backend deltas (revised, more G1-compliant than v1):** ONE new metadata field (`pilot_active_through`), NO new touchpoint types (engagement events update existing `email_sent` payload; platform events use `note_added{reason}`), NO new stages (existing `active_partner` + `converted` carries both admin and provider conversion paths).
-
-**Resume next session here →** Logan reviews S1–S12 + 6 open questions in v2. Critical decisions: (1) does admin `make_client` ALSO set `pilot_active_through` (one timer, two paths)? (2) Calendly account ownership (Olera org or Dr. DuBose personal)? (3) demo-candidate copy (Logan as labeled demo profile recommended)? Once approved, next session cuts MVP Implementation Phase 1 tickets 1–8 in order.
+**Resume next session here →** Logan reviews v2.1 — especially the four-axis state model in P1.E, the T0–T10 journey, the co-tenancy edge case, and Open Questions 7–10 (T&C trigger action, co-tenancy default, axis 2 split, welcome banner copy). Critical: does the axis 2a/2b split feel right? If so, MVP Implementation Phase 1 tickets 1–10 in order.
 
 ---
 

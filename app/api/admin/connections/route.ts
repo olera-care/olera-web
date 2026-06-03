@@ -72,8 +72,10 @@ function one<T>(p: ProfileJoin<T>): T | undefined {
 
 // Simplified tab filters (new)
 type TabFilter = "todo" | "waiting" | "connected";
+// Action queue filters
+type ActionFilter = "hot_leads" | "nudge_provider" | "nudge_family" | "call_no_email";
 // Legacy granular filters (still supported for backwards compatibility)
-type ResponseFilter = TabFilter | "all" | "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
+type ResponseFilter = TabFilter | ActionFilter | "all" | "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
 type ResponseCategory = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
 
 interface ResponseCounts {
@@ -166,13 +168,29 @@ export async function GET(request: NextRequest) {
       const familyNudgedAt = (meta.family_nudged_at as string) || null;
       const nudgeCount = (meta.nudge_count as number) || 0;
 
-      // Check for provider response (non-auto-reply)
-      type ThreadMsg = { from_profile_id: string; text?: string; is_auto_reply?: boolean };
+      // Check for provider response and conversation state
+      type ThreadMsg = { from_profile_id: string; text?: string; is_auto_reply?: boolean; created_at?: string };
       const thread = (meta.thread as ThreadMsg[]) || [];
+
+      // Find provider's first non-auto-reply response
       const providerMsg = thread.find(
         (m) => m.from_profile_id === r.to_profile_id && m.is_auto_reply !== true
       );
       const responded = !!providerMsg;
+
+      // Check if family has replied AFTER provider's response
+      // This determines if we need to nudge the family
+      let familyRepliedAfterProvider = false;
+      if (responded && providerMsg?.created_at) {
+        const providerResponseTime = new Date(providerMsg.created_at).getTime();
+        familyRepliedAfterProvider = thread.some(
+          (m) =>
+            m.from_profile_id === r.from_profile_id &&
+            m.is_auto_reply !== true &&
+            m.created_at &&
+            new Date(m.created_at).getTime() > providerResponseTime
+        );
+      }
 
       // Extract message preview
       let messagePreview = "";
@@ -246,6 +264,7 @@ export async function GET(request: NextRequest) {
         },
         messagePreview,
         responded,
+        familyRepliedAfterProvider,
         nudgeCount,
         providerNudgedAt,
         familyNudgedAt,
@@ -352,12 +371,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate heat scores and action counts
+    // Also build a map of connection -> action category for filtering
     const action_counts = {
       nudge_provider: 0,
       nudge_family: 0,
       call_no_email: 0,
       hot_leads: 0,
     };
+
+    // Track which action category each connection belongs to
+    const connectionActionCategory = new Map<string, keyof typeof action_counts>();
 
     for (const c of searched) {
       if (!c.responseCategory) continue; // Skip inactive providers
@@ -381,30 +404,55 @@ export async function GET(request: NextRequest) {
         else if (daysSinceEngagement > COLD_DAYS_MS) multiplier = 0.5;
       }
       const heatScore = Math.round(baseScore * multiplier);
-      const isHotLead = heatScore >= HOT_LEAD_THRESHOLD && !c.responded;
+
+      // Hot leads: high engagement BUT only from needs_attention category
+      // Don't count provider_nudged/family_nudged as hot - we've already taken action
+      const isHotLead =
+        heatScore >= HOT_LEAD_THRESHOLD &&
+        c.responseCategory === "needs_attention";
 
       // Categorize for action queue
-      // Priority: call_no_email > hot_leads > nudge_provider > nudge_family
+      // Each connection belongs to exactly ONE action category
       if (c.responseCategory === "no_email") {
         action_counts.call_no_email++;
+        connectionActionCategory.set(c.id, "call_no_email");
       } else if (isHotLead) {
         action_counts.hot_leads++;
+        connectionActionCategory.set(c.id, "hot_leads");
       } else if (c.responseCategory === "needs_attention") {
         action_counts.nudge_provider++;
+        connectionActionCategory.set(c.id, "nudge_provider");
       } else if (c.responseCategory === "responded") {
-        // Provider responded - count as potential family nudge candidate
-        action_counts.nudge_family++;
+        // Provider responded - only count as nudge_family if:
+        // 1. Family has NOT replied after provider's response
+        // 2. Family was NOT nudged recently
+        const familyNudgedRecently = c.familyNudgedAt
+          ? now - new Date(c.familyNudgedAt).getTime() < SEVEN_DAYS_MS
+          : false;
+
+        if (!c.familyRepliedAfterProvider && !familyNudgedRecently) {
+          action_counts.nudge_family++;
+          connectionActionCategory.set(c.id, "nudge_family");
+        }
+        // else: family already replied or was nudged - no action needed
       }
+      // Note: provider_nudged and family_nudged are "waiting" states - no action needed
     }
 
     // Filtering:
+    //   - Action queue filters: "hot_leads", "nudge_provider", "nudge_family", "call_no_email"
     //   - Simplified tabs: "todo", "waiting", "connected"
     //   - Legacy granular: "needs_attention", "provider_nudged", etc.
     //   - Else if explicit `state` param, use temperature-based filter
     //   - Else if include_closed, show everything
     //   - Else default queue
+    const actionFilters: ActionFilter[] = ["hot_leads", "nudge_provider", "nudge_family", "call_no_email"];
     let list = searched;
-    if (responseFilter === "todo") {
+
+    if (actionFilters.includes(responseFilter as ActionFilter)) {
+      // Filter by action queue category
+      list = list.filter((c) => connectionActionCategory.get(c.id) === responseFilter);
+    } else if (responseFilter === "todo") {
       // To Do = needs_attention + no_email
       list = list.filter((c) => c.responseCategory === "needs_attention" || c.responseCategory === "no_email");
     } else if (responseFilter === "waiting") {
@@ -434,28 +482,19 @@ export async function GET(request: NextRequest) {
     const total = list.length;
     const page = list.slice(offset, offset + limit);
 
-    // Provider engagement (opened/clicked/contact revealed), batched — same
-    // shape as /api/admin/leads. Non-blocking: supplementary signal.
+    // Provider engagement (opened/clicked/contact revealed) — reuse data from
+    // actionEngagement map instead of making a second query
     const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }> = {};
-    try {
-      const keys = [...new Set(page.map((c) => c.provider.activityKey).filter(Boolean) as string[])];
-      if (keys.length > 0) {
-        const { data: events } = await db
-          .from("provider_activity")
-          .select("provider_id, event_type")
-          .in("provider_id", keys)
-          .in("event_type", ["email_click", "lead_opened", "contact_revealed"]);
-        for (const key of keys) {
-          const ev = (events ?? []).filter((e) => e.provider_id === key);
-          engagement[key] = {
-            email_clicked: ev.some((e) => e.event_type === "email_click"),
-            lead_opened: ev.some((e) => e.event_type === "lead_opened"),
-            contact_revealed: ev.some((e) => e.event_type === "contact_revealed"),
-          };
-        }
+    for (const c of page) {
+      const key = c.provider.activityKey;
+      if (key) {
+        const eng = actionEngagement.get(key);
+        engagement[key] = {
+          email_clicked: eng?.email_clicked ?? false,
+          lead_opened: eng?.lead_opened ?? false,
+          contact_revealed: eng?.contact_revealed ?? false,
+        };
       }
-    } catch {
-      // Non-blocking — engagement is supplementary.
     }
 
     const truncated = (rows ?? []).length >= FETCH_CAP;

@@ -338,7 +338,7 @@ export default function ConnectionRow({
           {loading ? (
             <p className="text-sm text-gray-400">Loading…</p>
           ) : loadError ? (
-            <p className="text-sm text-rose-600">Couldn’t load this connection. Try again.</p>
+            <p className="text-sm text-rose-600">Could not load this connection. Try again.</p>
           ) : detail ? (
             <div className="space-y-4">
               {/* Next step — the headline action */}

@@ -103,11 +103,21 @@ function EngagementFunnel({ funnel }: { funnel: Funnel | null }) {
   );
 }
 
+type ActionQueueKey = "nudge_provider" | "nudge_family" | "call_no_email" | "hot_leads";
+
 /** Action Queue Cards */
-function ActionQueue({ counts }: { counts: ActionCounts | undefined }) {
+function ActionQueue({
+  counts,
+  activeAction,
+  onActionClick,
+}: {
+  counts: ActionCounts | undefined;
+  activeAction: ActionQueueKey | null;
+  onActionClick: (key: ActionQueueKey | null) => void;
+}) {
   if (!counts) return null;
 
-  const actions = [
+  const actions: Array<{ key: ActionQueueKey; label: string; emoji: string; count: number }> = [
     { key: "nudge_provider", label: "Nudge Provider", emoji: "📧", count: counts.nudge_provider },
     { key: "nudge_family", label: "Nudge Family", emoji: "👨‍👩‍👧", count: counts.nudge_family },
     { key: "call_no_email", label: "Call (No Email)", emoji: "📞", count: counts.call_no_email },
@@ -116,20 +126,46 @@ function ActionQueue({ counts }: { counts: ActionCounts | undefined }) {
 
   return (
     <div className="mb-6">
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-3">
-        Action Queue
-      </p>
-      <div className="grid grid-cols-4 gap-2">
-        {actions.map((action) => (
-          <div
-            key={action.key}
-            className="bg-white rounded-xl border border-gray-200 p-3 text-center"
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+          Action Queue
+        </p>
+        {activeAction && (
+          <button
+            type="button"
+            onClick={() => onActionClick(null)}
+            className="text-xs text-primary-600 hover:text-primary-700 font-medium"
           >
-            <span className="text-lg">{action.emoji}</span>
-            <p className="text-[11px] text-gray-500 mt-1">{action.label}</p>
-            <p className="text-xl font-bold text-gray-900">{action.count}</p>
-          </div>
-        ))}
+            Clear filter
+          </button>
+        )}
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {actions.map((action) => {
+          const isActive = activeAction === action.key;
+          const hasItems = action.count > 0;
+          return (
+            <button
+              key={action.key}
+              type="button"
+              onClick={() => hasItems && onActionClick(isActive ? null : action.key)}
+              disabled={!hasItems}
+              className={`rounded-xl border p-3 text-center transition-all ${
+                isActive
+                  ? "bg-primary-50 border-primary-300 ring-2 ring-primary-200"
+                  : hasItems
+                    ? "bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm cursor-pointer"
+                    : "bg-gray-50 border-gray-100 cursor-default opacity-60"
+              }`}
+            >
+              <span className="text-lg">{action.emoji}</span>
+              <p className="text-[11px] text-gray-500 mt-1">{action.label}</p>
+              <p className={`text-xl font-bold ${isActive ? "text-primary-700" : "text-gray-900"}`}>
+                {action.count}
+              </p>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -152,6 +188,7 @@ export default function ConnectionsTrackerPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeTab, setActiveTab] = useState<TabFilter>("todo");
+  const [activeAction, setActiveAction] = useState<ActionQueueKey | null>(null);
 
   // Debounce search input by 300ms
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -226,7 +263,13 @@ export default function ConnectionsTrackerPage() {
     setError(false);
     const params = buildDateParams();
     if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
-    params.set("filter", activeTab); // "todo", "waiting", or "connected"
+
+    // Use action filter if active, otherwise use tab filter
+    if (activeAction) {
+      params.set("filter", activeAction);
+    } else {
+      params.set("filter", activeTab);
+    }
 
     fetch(`/api/admin/connections?${params}`)
       .then((r) => {
@@ -246,7 +289,7 @@ export default function ConnectionsTrackerPage() {
     return () => {
       cancelled = true;
     };
-  }, [buildDateParams, debouncedSearch, activeTab]);
+  }, [buildDateParams, debouncedSearch, activeTab, activeAction]);
 
   // Compute simplified counts from raw response counts
   const simplifiedCounts: SimplifiedCounts | null = useMemo(() => {
@@ -302,18 +345,25 @@ export default function ConnectionsTrackerPage() {
       <EngagementFunnel funnel={funnel} />
 
       {/* Action Queue */}
-      <ActionQueue counts={list?.action_counts} />
+      <ActionQueue
+        counts={list?.action_counts}
+        activeAction={activeAction}
+        onActionClick={setActiveAction}
+      />
 
       {/* Tabs */}
       <div className="flex gap-2 mb-4">
         {TABS.map(({ key, label }) => {
-          const active = activeTab === key;
+          const active = activeTab === key && !activeAction;
           const count = simplifiedCounts?.[key] ?? 0;
           return (
             <button
               key={key}
               type="button"
-              onClick={() => setActiveTab(key)}
+              onClick={() => {
+                setActiveTab(key);
+                setActiveAction(null); // Clear action filter when switching tabs
+              }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 active
                   ? "bg-primary-600 text-white"
@@ -350,11 +400,19 @@ export default function ConnectionsTrackerPage() {
           <div className="px-4 py-16 text-center text-sm text-gray-400">Loading…</div>
         ) : error ? (
           <div className="px-4 py-16 text-center text-sm text-rose-600">
-            Couldn’t load connections. Try again.
+            Could not load connections. Try again.
           </div>
         ) : !list || list.connections.length === 0 ? (
           <div className="px-4 py-16 text-center text-sm text-gray-400">
-            {activeTab === "todo"
+            {activeAction === "hot_leads"
+              ? "No hot leads right now."
+              : activeAction === "nudge_provider"
+              ? "No providers to nudge."
+              : activeAction === "nudge_family"
+              ? "No families to follow up with."
+              : activeAction === "call_no_email"
+              ? "No providers without email."
+              : activeTab === "todo"
               ? "Nothing to do. All caught up!"
               : activeTab === "waiting"
               ? "No connections waiting for response."

@@ -1,0 +1,518 @@
+{
+  "meta": {
+    "city": "College Station",
+    "state": "TX",
+    "careType": "homecare",
+    "center": {
+      "lat": 30.628,
+      "lng": -96.3344
+    },
+    "radiusMeters": 40000,
+    "zctas": [
+      "77840",
+      "77845",
+      "77801",
+      "77802",
+      "77803",
+      "77807",
+      "77808"
+    ],
+    "generatedAt": "2026-06-02T13:35:33.378Z"
+  },
+  "demand": {
+    "demographics": {
+      "year": 2022,
+      "zctas": [
+        {
+          "zcta": "77840",
+          "population": 53891,
+          "seniors65plus": 1765,
+          "medianIncome": 30049
+        },
+        {
+          "zcta": "77845",
+          "population": 73969,
+          "seniors65plus": 8532,
+          "medianIncome": 87391
+        },
+        {
+          "zcta": "77801",
+          "population": 15163,
+          "seniors65plus": 583,
+          "medianIncome": 30849
+        },
+        {
+          "zcta": "77802",
+          "population": 24226,
+          "seniors65plus": 4892,
+          "medianIncome": 65150
+        },
+        {
+          "zcta": "77803",
+          "population": 32130,
+          "seniors65plus": 2743,
+          "medianIncome": 51914
+        },
+        {
+          "zcta": "77807",
+          "population": 12949,
+          "seniors65plus": 1246,
+          "medianIncome": 71966
+        },
+        {
+          "zcta": "77808",
+          "population": 14666,
+          "seniors65plus": 2578,
+          "medianIncome": 92868
+        }
+      ],
+      "totals": {
+        "population": 226994,
+        "seniors65plus": 22339
+      },
+      "seniorSharePct": 9.8,
+      "medianIncomeRange": {
+        "min": 30049,
+        "max": 92868
+      }
+    },
+    "olera": {
+      "familiesInCity": 6,
+      "familiesTotalAllCities": 451,
+      "providersListed": 45,
+      "questionsInCity": 0
+    }
+  },
+  "competitorLandscape": {
+    "count": 21,
+    "totalReviewsInMarket": 426,
+    "medianReviews": 22,
+    "medianRating": 4.9,
+    "withWebsitePct": 81,
+    "leaders": [
+      {
+        "name": "Comfort Keepers",
+        "reviews": 62,
+        "rating": 4.8,
+        "distanceMiles": 2.2,
+        "website": true,
+        "shareOfVoicePct": 14.6
+      },
+      {
+        "name": "CareCo - The Caregiving Company: Senior Home Care College Station",
+        "reviews": 53,
+        "rating": 4.9,
+        "distanceMiles": 0.2,
+        "website": true,
+        "shareOfVoicePct": 12.4
+      },
+      {
+        "name": "Right at Home",
+        "reviews": 41,
+        "rating": 4.8,
+        "distanceMiles": 2.5,
+        "website": true,
+        "shareOfVoicePct": 9.6
+      },
+      {
+        "name": "Homewatch CareGivers of Bryan College Station",
+        "reviews": 41,
+        "rating": 5,
+        "distanceMiles": 5.2,
+        "website": true,
+        "shareOfVoicePct": 9.6
+      },
+      {
+        "name": "BrightStar Care",
+        "reviews": 36,
+        "rating": 4.9,
+        "distanceMiles": 2.7,
+        "website": true,
+        "shareOfVoicePct": 8.5
+      },
+      {
+        "name": "Visiting Angels Senior Home Care",
+        "reviews": 28,
+        "rating": 4.6,
+        "distanceMiles": 0.1,
+        "website": true,
+        "shareOfVoicePct": 6.6
+      },
+      {
+        "name": "Home Instead",
+        "reviews": 27,
+        "rating": 4.8,
+        "distanceMiles": 1.6,
+        "website": true,
+        "shareOfVoicePct": 6.3
+      },
+      {
+        "name": "Senior Helpers",
+        "reviews": 27,
+        "rating": 4.8,
+        "distanceMiles": 1.3,
+        "website": true,
+        "shareOfVoicePct": 6.3
+      },
+      {
+        "name": "Brazos Home Care",
+        "reviews": 22,
+        "rating": 4.8,
+        "distanceMiles": 4,
+        "website": true,
+        "shareOfVoicePct": 5.2
+      },
+      {
+        "name": "Century Home Care Partners",
+        "reviews": 22,
+        "rating": 5,
+        "distanceMiles": 4.8,
+        "website": true,
+        "shareOfVoicePct": 5.2
+      }
+    ]
+  },
+  "referralGraph": {
+    "totalViableSources": 147,
+    "byRole": [
+      {
+        "cat": "hospital",
+        "count": 11
+      },
+      {
+        "cat": "skilled_nursing",
+        "count": 11
+      },
+      {
+        "cat": "hospice",
+        "count": 11
+      },
+      {
+        "cat": "assisted_living",
+        "count": 28
+      },
+      {
+        "cat": "senior_resource",
+        "count": 14
+      },
+      {
+        "cat": "home_health",
+        "count": 18
+      },
+      {
+        "cat": "financial",
+        "count": 30
+      },
+      {
+        "cat": "faith",
+        "count": 24
+      }
+    ],
+    "prioritizedTargets": [
+      {
+        "id": "ChIJ4fymJ2GBRoYR1lJlXsyTq04",
+        "name": "St. Joseph Health Regional Hospital - Bryan, TX",
+        "cat": "hospital",
+        "referralValue": "high",
+        "distanceMiles": 2,
+        "reviews": 3704,
+        "rating": 4.5,
+        "phone": "(979) 776-3777",
+        "website": "https://stjoseph.stlukeshealth.org/locations/chi-st-joseph-health-regional-hospital?utm_source=LocalSearch&utm_medium=Facility&utm_campaign=CHITexas&utm_term=CHIStJosephRegionalHealthCareCenter",
+        "address": "2801 Franciscan Dr, Bryan, TX 77802, USA",
+        "lat": 30.655579099999997,
+        "lng": -96.3467003
+      },
+      {
+        "id": "ChIJeeTN3XqBRoYRx3XqzHd4rsk",
+        "name": "Lampstand Nursing and Rehabilitation",
+        "cat": "skilled_nursing",
+        "referralValue": "high",
+        "distanceMiles": 2.4,
+        "reviews": 94,
+        "rating": 4.4,
+        "phone": "(979) 822-6611",
+        "website": "http://lampstandnursing.com/",
+        "address": "2001 E 29th St, Bryan, TX 77802, USA",
+        "lat": 30.6578236,
+        "lng": -96.3557503
+      },
+      {
+        "id": "ChIJQzDaQO-DRoYR6k_SVEOB2Sg",
+        "name": "Luminos Hospice",
+        "cat": "hospice",
+        "referralValue": "high",
+        "distanceMiles": 0.1,
+        "reviews": 41,
+        "rating": 4.8,
+        "phone": "(979) 291-0319",
+        "website": "https://luminoshospice.com/",
+        "address": "111 University Dr E # 110, College Station, TX 77840, USA",
+        "lat": 30.628899999999998,
+        "lng": -96.334667
+      },
+      {
+        "id": "ChIJU2nxV5uGRoYRJOIuVdXSnLE",
+        "name": "Watercrest at Bryan",
+        "cat": "assisted_living",
+        "referralValue": "high",
+        "distanceMiles": 3.2,
+        "reviews": 101,
+        "rating": 4.5,
+        "phone": "(979) 314-5591",
+        "website": "https://www.integratedseniorlifestyles.com/senior-living/tx/bryan/watercrest-at-bryan/?utm_source=GBP&utm_medium=organic",
+        "address": "3801 E Crest Dr, Bryan, TX 77802, USA",
+        "lat": 30.657152200000002,
+        "lng": -96.2920982
+      },
+      {
+        "id": "ChIJLWXTi46BRoYRvX8KI_FVTWM",
+        "name": "Save Our Streets (S.O.S.) Ministries",
+        "cat": "senior_resource",
+        "referralValue": "high",
+        "distanceMiles": 3.4,
+        "reviews": 87,
+        "rating": 4.4,
+        "phone": "(979) 775-5357",
+        "website": "https://saveourstreetsministries.org/",
+        "address": "1700 Groesbeck St, Bryan, TX 77803, USA",
+        "lat": 30.656911800000003,
+        "lng": -96.3800298
+      },
+      {
+        "id": "ChIJQ7_jOt2ERoYRMF9zoWNex24",
+        "name": "St. Joseph Health College Station Hospital - College Station, TX",
+        "cat": "hospital",
+        "referralValue": "high",
+        "distanceMiles": 4.2,
+        "reviews": 1451,
+        "rating": 4.5,
+        "phone": "(979) 764-5100",
+        "website": "https://stjoseph.stlukeshealth.org/locations/chi-st-joseph-health-college-station-hospital?utm_source=LocalSearch&utm_medium=Facility&utm_campaign=CHITexas&utm_term=CHIStJosephHealthCollegeStationHospital",
+        "address": "1604 Rock Prairie Rd, College Station, TX 77845, USA",
+        "lat": 30.581328000000003,
+        "lng": -96.289674
+      },
+      {
+        "id": "ChIJy_gw6SGFRoYR4VFqnSv7pOg",
+        "name": "Accel at College Station",
+        "cat": "skilled_nursing",
+        "referralValue": "high",
+        "distanceMiles": 4.7,
+        "reviews": 105,
+        "rating": 3.2,
+        "phone": "(979) 272-1000",
+        "website": "https://accelcollegestation.com/",
+        "address": "1500 Medical Avenue, College Station, TX 77845, USA",
+        "lat": 30.5847642,
+        "lng": -96.27441209999999
+      },
+      {
+        "id": "ChIJDV1Bo52BRoYRosDP5EXWv74",
+        "name": "Vantage Hospice",
+        "cat": "hospice",
+        "referralValue": "high",
+        "distanceMiles": 2,
+        "reviews": 9,
+        "rating": 5,
+        "phone": "(979) 321-4008",
+        "website": "https://vantagehospicebcs.com/",
+        "address": "2100 E Villa Maria Rd # 101, Bryan, TX 77802, USA",
+        "lat": 30.654642400000004,
+        "lng": -96.349148
+      },
+      {
+        "id": "ChIJjcUcBFaHRoYRnUH43T-7Wt8",
+        "name": "Hudson Oaks 62+ Active Senior Living Apartments",
+        "cat": "assisted_living",
+        "referralValue": "high",
+        "distanceMiles": 2.9,
+        "reviews": 93,
+        "rating": 5,
+        "phone": "(979) 378-6183",
+        "website": "https://www.livehudsonoaks.com/?utm_knock=gmb&utm_source=googlemybusiness&utm_medium=organic&utm_campaign=gmblisting",
+        "address": "3345 University Dr E, Bryan, TX 77802, USA",
+        "lat": 30.6521284,
+        "lng": -96.2939052
+      },
+      {
+        "id": "ChIJD6mLx_yDRoYR45-k3q6o-8k",
+        "name": "Brazos Valley Council of Governments",
+        "cat": "senior_resource",
+        "referralValue": "high",
+        "distanceMiles": 1.2,
+        "reviews": 31,
+        "rating": 3.1,
+        "phone": "(979) 595-2800",
+        "website": "http://www.bvcog.org/",
+        "address": "3991 E 29th St, Bryan, TX 77802, USA",
+        "lat": 30.6453936,
+        "lng": -96.33226309999999
+      },
+      {
+        "id": "ChIJNxJ9bSCFRoYRI8KRlWKrfSY",
+        "name": "Baylor Scott & White Medical Center - College Station",
+        "cat": "hospital",
+        "referralValue": "high",
+        "distanceMiles": 4.6,
+        "reviews": 693,
+        "rating": 4,
+        "phone": "(979) 207-0100",
+        "website": "https://www.bswhealth.com/locations/hospital/college-station?utm_content=main-website&utm_source=pg-google&utm_medium=organic&utm_campaign=29985-9717896",
+        "address": "700 Scott & White Dr, College Station, TX 77845, USA",
+        "lat": 30.582364299999995,
+        "lng": -96.27920809999999
+      },
+      {
+        "id": "ChIJe6fM8MCERoYRmmbTd3J_0co",
+        "name": "Fortress Nursing and Rehabilitation",
+        "cat": "skilled_nursing",
+        "referralValue": "high",
+        "distanceMiles": 3.9,
+        "reviews": 96,
+        "rating": 4.3,
+        "phone": "(979) 694-2200",
+        "website": "http://fortressnursing.com/",
+        "address": "1105 Rock Prairie Rd, College Station, TX 77845, USA",
+        "lat": 30.5795873,
+        "lng": -96.29963629999999
+      },
+      {
+        "id": "ChIJyaziEuqFRoYR3dAJEuiuQac",
+        "name": "Bluebonnet Hospice",
+        "cat": "hospice",
+        "referralValue": "high",
+        "distanceMiles": 2.7,
+        "reviews": 12,
+        "rating": 5,
+        "phone": "(979) 977-4422",
+        "website": null,
+        "address": "3201 University Dr E Suite 350, Bryan, TX 77802, USA",
+        "lat": 30.650437399999998,
+        "lng": -96.29761649999999
+      },
+      {
+        "id": "ChIJ5d9Bi7uFRoYRRQLfkddQKn0",
+        "name": "Sodalis College Station",
+        "cat": "assisted_living",
+        "referralValue": "high",
+        "distanceMiles": 2.8,
+        "reviews": 57,
+        "rating": 4.4,
+        "phone": "(979) 704-5561",
+        "website": "https://sodaliscollegestation.com/",
+        "address": "3211 Harvey Rd, College Station, TX 77845, USA",
+        "lat": 30.6431975,
+        "lng": -96.29030259999999
+      },
+      {
+        "id": "ChIJrzf0fG-BRoYR2jt1MGO4Fxs",
+        "name": "CHI St. Joseph Health Rehabilitation Hospital",
+        "cat": "hospital",
+        "referralValue": "high",
+        "distanceMiles": 2.4,
+        "reviews": 108,
+        "rating": 4.4,
+        "phone": "(979) 213-4300",
+        "website": "https://www.encompasshealth.com/locations/st-j-rehab?utm_source=google&utm_medium=organic&utm_campaign=gbp",
+        "address": "1600 Joseph Dr #2000, Bryan, TX 77802, USA",
+        "lat": 30.660123700000003,
+        "lng": -96.350961
+      },
+      {
+        "id": "ChIJwzIQgr-ERoYRlxwmgSMMSjs",
+        "name": "The Waterford at College Station",
+        "cat": "assisted_living",
+        "referralValue": "high",
+        "distanceMiles": 3.9,
+        "reviews": 53,
+        "rating": 4.8,
+        "phone": "(979) 705-7170",
+        "website": "https://www.sonidaseniorliving.com/community/the-waterford-at-college-station/",
+        "address": "1103 Rock Prairie Rd, College Station, TX 77845, USA",
+        "lat": 30.579857,
+        "lng": -96.301727
+      }
+    ]
+  },
+  "channels": [
+    {
+      "channel": "Reviews / reputation engine",
+      "priority": 1,
+      "key": "reviews",
+      "rationale": "The fastest win you control. Market median is 22 reviews — more reviews means higher Google rank and more trust, starting now.",
+      "oleraTool": "Request reviews from your clients"
+    },
+    {
+      "channel": "Referral relationship development",
+      "priority": 2,
+      "key": "callsheet",
+      "rationale": "The biggest lever: half your clients can come from here, and it's the one channel a single agency can't map alone. Your sources are mapped above.",
+      "oleraTool": "Your prioritized call sheet"
+    },
+    {
+      "channel": "Local community + Facebook groups",
+      "priority": 3,
+      "key": "community",
+      "rationale": "Families ask for recommendations in local Facebook groups. Most of your competitors aren't there.",
+      "oleraTool": "Get the community playbook from Olera"
+    },
+    {
+      "channel": "Google LSA / SEO / targeted PPC",
+      "priority": 4,
+      "key": "ads",
+      "rationale": "Real, but volume-capped in a senior-thin college town. The smart play is Local Services Ads + tight geo — not broad spend.",
+      "oleraTool": "Contact the Olera team for ads guidance"
+    }
+  ],
+  "classificationCounts": [
+    {
+      "cat": "home_care",
+      "n": 29
+    },
+    {
+      "cat": "home_health",
+      "n": 38
+    },
+    {
+      "cat": "hospice",
+      "n": 40
+    },
+    {
+      "cat": "skilled_nursing",
+      "n": 15
+    },
+    {
+      "cat": "assisted_living",
+      "n": 56
+    },
+    {
+      "cat": "hospital",
+      "n": 27
+    },
+    {
+      "cat": "clinic",
+      "n": 69
+    },
+    {
+      "cat": "elder_law",
+      "n": 8
+    },
+    {
+      "cat": "financial",
+      "n": 41
+    },
+    {
+      "cat": "senior_resource",
+      "n": 45
+    },
+    {
+      "cat": "faith",
+      "n": 40
+    },
+    {
+      "cat": "other",
+      "n": 66
+    }
+  ]
+}

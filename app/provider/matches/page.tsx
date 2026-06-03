@@ -19,6 +19,8 @@ import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
 import FiltersModal, { type FiltersState, DEFAULT_FILTERS_STATE, countActiveFilters, type SortOption } from "@/components/provider/matches/FiltersModal";
 import MyOutreach from "@/components/provider/matches/MyOutreach";
 import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
+import FindFamiliesMarketView from "@/components/provider/market/FindFamiliesMarketView";
+import { marketGateEnabled } from "@/lib/market-gate";
 
 // Tab types for the matches view
 type MatchesTab = "best_matches" | "near_you";
@@ -867,6 +869,15 @@ export default function ProviderMatchesPage() {
   });
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<MatchesTab>("best_matches");
+
+  // ── "Your Market" gate ──
+  // Find Families defaults to the market diagnostic (the 99.9%-of-providers experience).
+  // Gated to the Aggie test provider / TJ while we dogfood; ?market=1 forces it on for previews.
+  const [forceLeads, setForceLeads] = useState(false);
+  const marketGateOn = useMemo(
+    () => marketGateEnabled({ displayName: providerProfile?.display_name, email: user?.email }),
+    [providerProfile?.display_name, user?.email],
+  );
   const [sortOption, setSortOption] = useState<SortOption>("recommended");
   // Shared state for MyOutreach (syncs mobile + desktop instances)
   const [isOutreachOpen, setIsOutreachOpen] = useState(false);
@@ -1706,6 +1717,26 @@ export default function ProviderMatchesPage() {
       return publishedAt && new Date(publishedAt).toDateString() === today;
     }).length;
   }, [families]);
+
+  // "Your Market" default — render as soon as the profile is ready; the diagnostic
+  // fetches its own data and shows the purposeful MarketLoading state, so we don't
+  // wait on the families fetch (the market view doesn't need it beyond the optional
+  // leads strip, which pins in once families resolve).
+  if (providerProfile && marketGateOn && !forceLeads) {
+    const pcity = providerProfile.city?.toLowerCase();
+    const localLeadCount = pcity ? families.filter((f) => f.city?.toLowerCase() === pcity).length : 0;
+    const careType = providerProfile.category || providerProfile.care_types?.[0] || "";
+    return (
+      <FindFamiliesMarketView
+        city={providerProfile.city || ""}
+        state={providerProfile.state || ""}
+        category={careType}
+        providerName={providerProfile.display_name || ""}
+        localLeadCount={localLeadCount}
+        onViewLeads={() => setForceLeads(true)}
+      />
+    );
+  }
 
   if (!providerProfile || loading) {
     return <MatchesSkeleton />;

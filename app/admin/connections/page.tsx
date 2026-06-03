@@ -5,7 +5,7 @@ import PulseHeader from "@/components/admin/PulseHeader";
 import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 import ConnectionRow, { type ConnectionRowData } from "@/components/admin/ConnectionRow";
 
-type Engagement = { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean };
+type Engagement = { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; continue_in_inbox: boolean };
 
 interface ListResponse {
   connections: (ConnectionRowData & { provider: { activityKey: string | null } })[];

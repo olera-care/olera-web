@@ -1759,11 +1759,14 @@ export default function ProviderMatchesPage() {
   if (marketGateOn && !forceLeads) {
     const pcity = providerProfile?.city?.toLowerCase();
     const localLeadCount = pcity ? families.filter((f) => f.city?.toLowerCase() === pcity).length : 0;
+    // Resolve care-type from category, falling back to care_types (claimed profiles
+    // like "Aggie Home Care" can have a null category but care_types: ["home-care"]).
+    const careType = providerProfile?.category || providerProfile?.care_types?.[0] || "";
     return (
       <FindFamiliesMarketView
         city={providerProfile?.city || ""}
         state={providerProfile?.state || ""}
-        category={providerProfile?.category || ""}
+        category={careType}
         localLeadCount={localLeadCount}
         onViewLeads={() => setForceLeads(true)}
       />

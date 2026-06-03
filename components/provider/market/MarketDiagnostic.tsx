@@ -193,7 +193,7 @@ export default function MarketDiagnostic({
         <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-3">
           {interactive ? "Your call sheet — work it" : "Start here — prioritized targets"}
         </div>
-        <ReferralTargets targets={ref.prioritizedTargets} interactive={interactive} />
+        <ReferralTargets targets={ref.prioritizedTargets} interactive={interactive} providerName={providerName} city={a.meta.city} />
       </Section>
 
       {/* ── Where to focus — the ZIPs (tactical, absorbs income) ── */}

@@ -214,6 +214,13 @@ export default function MarketDiagnostic({
         <div className="space-y-3">
           {a.channels.map((c, i) => {
             const lead = i === 0;
+            const subj = (s: string) => `mailto:hello@olera.care?subject=${encodeURIComponent(`${s} — ${a.meta.city}, ${a.meta.state}`)}`;
+            const href =
+              c.priority === 1 ? "#referral"
+              : c.priority === 2 ? "/provider/reviews"
+              : c.priority === 3 ? subj("Community presence playbook")
+              : c.priority === 4 ? subj("Ads guidance")
+              : undefined;
             return (
               <div
                 key={c.channel}
@@ -223,7 +230,9 @@ export default function MarketDiagnostic({
                 <div className="min-w-0">
                   <div className={`font-semibold text-stone-900 ${lead ? "text-[17px]" : "text-[15px]"}`}>{c.channel}</div>
                   <p className="text-[13.5px] text-stone-600 leading-relaxed mt-1">{c.rationale}</p>
-                  <div className="text-[12px] font-medium text-[#199087] mt-2">→ {c.oleraTool}</div>
+                  <a href={href} className="inline-flex items-center gap-1 text-[12.5px] font-medium text-[#199087] mt-2 hover:text-[#147a72] hover:gap-1.5 transition-all">
+                    {c.oleraTool} <span aria-hidden>→</span>
+                  </a>
                 </div>
               </div>
             );

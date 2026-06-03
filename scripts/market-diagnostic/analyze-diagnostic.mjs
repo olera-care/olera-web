@@ -164,13 +164,13 @@ const median = (arr) => { if (!arr.length) return null; const s = [...arr].sort(
       oleraTool: "Your prioritized call sheet" },
     { channel: "Reviews / reputation engine", priority: 2,
       rationale: `Market median is ${competitorLandscape.medianReviews} reviews. More reviews = higher Google rank and more trust — the one lever you fully control.`,
-      oleraTool: "Olera review-request flow" },
+      oleraTool: "Request reviews from your clients" },
     { channel: "Local community + Facebook groups", priority: 3,
       rationale: `Families ask for recommendations in local Facebook groups. Most of your competitors aren't there.`,
-      oleraTool: "Community presence playbook" },
+      oleraTool: "Get the community playbook from Olera" },
     { channel: "Google LSA / SEO / targeted PPC", priority: 4,
       rationale: `Real, but volume-capped in a senior-thin college town. The smart play is Local Services Ads + tight geo — not broad spend.`,
-      oleraTool: "Olera-hosted intake (Door B)" },
+      oleraTool: "Contact the Olera team for ads guidance" },
   ];
 
   const analysis = {

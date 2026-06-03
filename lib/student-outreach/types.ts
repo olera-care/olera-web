@@ -157,20 +157,15 @@ export interface ResearchData {
     city?: string | null;
     state?: string | null;
     zip?: string | null;
-    /** v9.x Google Business Profile URL — separate from the agency's
-     *  own website. Surfaces reviews, hours, photos, and verified
-     *  contact info; useful research signal for the pre-flight call. */
-    google_business_profile_url?: string | null;
     /** v9.x research-card "Mark not available" overrides. Each flag, when
      *  true, satisfies the matching research-card row without an actual
      *  value (rural agency with no fax line, agency with no public
-     *  Google Business Profile, etc.). Pre-Flight Checklist rows render
-     *  as resolved; the Launch gate doesn't look at these directly (it
-     *  gates on verified-or-overridden call AND email on file). */
+     *  contact form). Pre-Flight Checklist rows render as resolved;
+     *  the Launch gate doesn't look at these directly (it gates on
+     *  verified-or-overridden call AND email on file). */
     fax_unavailable?: boolean;
     contact_form_unavailable?: boolean;
     website_unavailable?: boolean;
-    google_business_profile_unavailable?: boolean;
     phone_unavailable?: boolean;
     email_unavailable?: boolean;
     address_unavailable?: boolean;

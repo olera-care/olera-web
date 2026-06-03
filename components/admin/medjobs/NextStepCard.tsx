@@ -331,7 +331,6 @@ function ProspectBody({
   const hasPhone = Boolean(generalPhone);
   const hasWebsite = Boolean(generalWebsite?.trim());
   const hasOrgName = Boolean(ctx.outreach.organization_name?.trim());
-  const hasGoogleBusinessProfile = Boolean(gc.google_business_profile_url?.trim());
   const hasFax = Boolean(gc.fax?.trim());
   const hasContactFormUrl = Boolean(gc.contact_form_url?.trim());
   const contactFormResolved = ctx.touchpoints.some(
@@ -357,8 +356,6 @@ function ProspectBody({
   const contactFormFieldResolved =
     hasContactFormUrl || gc.contact_form_unavailable === true;
   const websiteResolved = hasWebsite || gc.website_unavailable === true;
-  const googleBusinessProfileResolved =
-    hasGoogleBusinessProfile || gc.google_business_profile_unavailable === true;
   const phoneResolved = hasPhone || gc.phone_unavailable === true;
   const emailResolved = hasEmail || gc.email_unavailable === true;
   const addressResolved =
@@ -372,7 +369,6 @@ function ProspectBody({
     hasOrgName,
     websiteResolved,
     phoneResolved,
-    googleBusinessProfileResolved,
     addressResolved,
     faxResolved,
     contactFormFieldResolved,
@@ -444,18 +440,6 @@ function ProspectBody({
               : gc.email_unavailable
                 ? "Marked not available — outreach still needs a destination."
                 : "Add an email."
-          }
-        />
-        <ChecklistRow
-          done={googleBusinessProfileResolved}
-          tone="recommended"
-          label="Google Business Profile"
-          hint={
-            hasGoogleBusinessProfile
-              ? "Google Business Profile on file."
-              : gc.google_business_profile_unavailable
-                ? "Marked not available."
-                : "Add a Google Business Profile URL."
           }
         />
         <ChecklistRow

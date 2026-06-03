@@ -291,7 +291,6 @@ function GeneralContactSection({
     fax?: string | null;
     contact_form_url?: string | null;
     website?: string | null;
-    google_business_profile_url?: string | null;
     street?: string | null;
     city?: string | null;
     state?: string | null;
@@ -309,7 +308,6 @@ function GeneralContactSection({
       fax: overrides.fax ?? "",
       contact_form_url: overrides.contact_form_url ?? "",
       website: overrides.website ?? bp?.website ?? "",
-      google_business_profile_url: overrides.google_business_profile_url ?? "",
       street: overrides.street ?? bp?.address ?? "",
       city: overrides.city ?? bp?.city ?? "",
       state: overrides.state ?? bp?.state ?? "",
@@ -336,9 +334,6 @@ function GeneralContactSection({
   const [fax, setFax] = useState(effective.fax);
   const [contactFormUrl, setContactFormUrl] = useState(effective.contact_form_url);
   const [website, setWebsite] = useState(effective.website);
-  const [googleBusinessProfileUrl, setGoogleBusinessProfileUrl] = useState(
-    effective.google_business_profile_url,
-  );
   const [street, setStreet] = useState(effective.street);
   const [city, setCity] = useState(effective.city);
   const [stateField, setStateField] = useState(effective.state);
@@ -367,7 +362,6 @@ function GeneralContactSection({
     setFax(effective.fax);
     setContactFormUrl(effective.contact_form_url);
     setWebsite(effective.website);
-    setGoogleBusinessProfileUrl(effective.google_business_profile_url);
     setStreet(effective.street);
     setCity(effective.city);
     setStateField(effective.state);
@@ -398,8 +392,6 @@ function GeneralContactSection({
   const faxUnavailable = gcOverrides.fax_unavailable === true;
   const contactFormUnavailable = gcOverrides.contact_form_unavailable === true;
   const websiteUnavailable = gcOverrides.website_unavailable === true;
-  const googleBusinessProfileUnavailable =
-    gcOverrides.google_business_profile_unavailable === true;
   const phoneUnavailable = gcOverrides.phone_unavailable === true;
   const emailUnavailable = gcOverrides.email_unavailable === true;
   const addressUnavailable = gcOverrides.address_unavailable === true;
@@ -409,7 +401,6 @@ function GeneralContactSection({
       | "fax_unavailable"
       | "contact_form_unavailable"
       | "website_unavailable"
-      | "google_business_profile_unavailable"
       | "phone_unavailable"
       | "email_unavailable"
       | "address_unavailable",
@@ -434,7 +425,6 @@ function GeneralContactSection({
       | "fax"
       | "contact_form_url"
       | "website"
-      | "google_business_profile_url"
       | "street"
       | "city"
       | "state"
@@ -618,62 +608,6 @@ function GeneralContactSection({
               className="block truncate text-primary-700 hover:underline"
             >
               {website}
-            </a>
-          ) : (
-            <span className="text-gray-400">Not on file</span>
-          )}
-        </CoverageRow>
-        <CoverageRow
-          checked={
-            Boolean(googleBusinessProfileUrl) || googleBusinessProfileUnavailable
-          }
-          label="GBP"
-        >
-          {editable ? (
-            <div className="space-y-1">
-              <Input
-                type="url"
-                value={googleBusinessProfileUrl}
-                onChange={(e) => setGoogleBusinessProfileUrl(e.target.value)}
-                onBlur={() =>
-                  saveField(
-                    "google_business_profile_url",
-                    googleBusinessProfileUrl,
-                  )
-                }
-                placeholder="https://g.page/agency or maps.google.com/..."
-                disabled={googleBusinessProfileUnavailable}
-                size="sm"
-              />
-              <button
-                type="button"
-                onClick={() =>
-                  toggleUnavailable(
-                    "google_business_profile_unavailable",
-                    !googleBusinessProfileUnavailable,
-                  )
-                }
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {googleBusinessProfileUnavailable
-                  ? "Revert (mark available)"
-                  : "Mark not available"}
-              </button>
-            </div>
-          ) : googleBusinessProfileUnavailable ? (
-            <span className="text-gray-500">Marked not available</span>
-          ) : googleBusinessProfileUrl ? (
-            <a
-              href={
-                googleBusinessProfileUrl.startsWith("http")
-                  ? googleBusinessProfileUrl
-                  : `https://${googleBusinessProfileUrl}`
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block truncate text-primary-700 hover:underline"
-            >
-              {googleBusinessProfileUrl}
             </a>
           ) : (
             <span className="text-gray-400">Not on file</span>

@@ -969,8 +969,6 @@ async function handleUpdateGeneralContact(
     fax?: string | null;
     contact_form_url?: string | null;
     website?: string | null;
-    /** v9.x Google Business Profile URL — research signal for pre-flight. */
-    google_business_profile_url?: string | null;
     /** v9 final: structured address. Each field is independently
      *  updatable so admin can fix a single ZIP without re-typing
      *  the whole address. */
@@ -983,7 +981,6 @@ async function handleUpdateGeneralContact(
     fax_unavailable?: boolean;
     contact_form_unavailable?: boolean;
     website_unavailable?: boolean;
-    google_business_profile_unavailable?: boolean;
     phone_unavailable?: boolean;
     email_unavailable?: boolean;
     address_unavailable?: boolean;
@@ -999,7 +996,6 @@ async function handleUpdateGeneralContact(
     "fax",
     "contact_form_url",
     "website",
-    "google_business_profile_url",
     "street",
     "city",
     "state",
@@ -1017,7 +1013,6 @@ async function handleUpdateGeneralContact(
     "fax_unavailable",
     "contact_form_unavailable",
     "website_unavailable",
-    "google_business_profile_unavailable",
     "phone_unavailable",
     "email_unavailable",
     "address_unavailable",

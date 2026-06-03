@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import MarketDiagnostic, { type MarketDiagnosticData } from "./MarketDiagnostic";
+import MarketLoading from "./MarketLoading";
 
 /**
  * Find Families — "Your Market" default experience.
@@ -62,15 +63,7 @@ export default function FindFamiliesMarketView({
           </button>
         )}
 
-        {status === "loading" && (
-          <div className="max-w-3xl animate-pulse space-y-6">
-            <div className="h-10 w-2/3 rounded-lg bg-stone-100" />
-            <div className="grid grid-cols-3 gap-5">
-              {[0, 1, 2].map((i) => <div key={i} className="h-20 rounded-xl bg-stone-100" />)}
-            </div>
-            <div className="h-40 rounded-xl bg-stone-100" />
-          </div>
-        )}
+        {status === "loading" && <MarketLoading city={city} />}
 
         {status === "unavailable" && (
           <div className="max-w-xl rounded-2xl border border-stone-200/70 bg-white/50 px-6 py-10 text-center">

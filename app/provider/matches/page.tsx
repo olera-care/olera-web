@@ -1718,6 +1718,26 @@ export default function ProviderMatchesPage() {
     }).length;
   }, [families]);
 
+  // "Your Market" default — render as soon as the profile is ready; the diagnostic
+  // fetches its own data and shows the purposeful MarketLoading state, so we don't
+  // wait on the families fetch (the market view doesn't need it beyond the optional
+  // leads strip, which pins in once families resolve).
+  if (providerProfile && marketGateOn && !forceLeads) {
+    const pcity = providerProfile.city?.toLowerCase();
+    const localLeadCount = pcity ? families.filter((f) => f.city?.toLowerCase() === pcity).length : 0;
+    const careType = providerProfile.category || providerProfile.care_types?.[0] || "";
+    return (
+      <FindFamiliesMarketView
+        city={providerProfile.city || ""}
+        state={providerProfile.state || ""}
+        category={careType}
+        providerName={providerProfile.display_name || ""}
+        localLeadCount={localLeadCount}
+        onViewLeads={() => setForceLeads(true)}
+      />
+    );
+  }
+
   if (!providerProfile || loading) {
     return <MatchesSkeleton />;
   }
@@ -1754,25 +1774,6 @@ export default function ProviderMatchesPage() {
 
   // Get first name for greeting
   const firstName = providerProfile?.display_name?.split(" ")[0] || "there";
-
-  // "Your Market" default — diagnostic-first Find Families. Leads (when local) surface on top.
-  if (marketGateOn && !forceLeads) {
-    const pcity = providerProfile?.city?.toLowerCase();
-    const localLeadCount = pcity ? families.filter((f) => f.city?.toLowerCase() === pcity).length : 0;
-    // Resolve care-type from category, falling back to care_types (claimed profiles
-    // like "Aggie Home Care" can have a null category but care_types: ["home-care"]).
-    const careType = providerProfile?.category || providerProfile?.care_types?.[0] || "";
-    return (
-      <FindFamiliesMarketView
-        city={providerProfile?.city || ""}
-        state={providerProfile?.state || ""}
-        category={careType}
-        providerName={providerProfile?.display_name || ""}
-        localLeadCount={localLeadCount}
-        onViewLeads={() => setForceLeads(true)}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">

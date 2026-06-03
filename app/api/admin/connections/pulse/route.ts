@@ -84,7 +84,58 @@ export async function GET(request: NextRequest) {
     const seriesStart = from ?? successTimestamps[0] ?? now;
     const series = buildSeries(successTimestamps, seriesStart, to, bucket);
 
-    return NextResponse.json({ total: kpiCurrent, delta, series, bucket });
+    // Calculate response metrics from all rows in range
+    type ThreadMsg = { from_profile_id: string; text?: string; created_at?: string; is_auto_reply?: boolean };
+    let respondedCount = 0;
+    let awaitingCount = 0;
+    const responseTimes: number[] = [];
+
+    for (const r of allRows) {
+      const t = new Date(r.created_at);
+      if (!inRange(t)) continue;
+
+      const meta = (r.metadata as Record<string, unknown>) ?? {};
+      const thread = (meta.thread as ThreadMsg[]) || [];
+      const providerMsg = thread.find(
+        (m) => m.from_profile_id === r.to_profile_id && m.is_auto_reply !== true
+      );
+
+      if (providerMsg) {
+        respondedCount++;
+        if (providerMsg.created_at) {
+          const responseTimeHours =
+            (new Date(providerMsg.created_at).getTime() - new Date(r.created_at).getTime()) /
+            (1000 * 60 * 60);
+          if (responseTimeHours > 0) responseTimes.push(responseTimeHours);
+        }
+      } else {
+        awaitingCount++;
+      }
+    }
+
+    const totalInRange = respondedCount + awaitingCount;
+    const responseRate = totalInRange > 0 ? Math.round((respondedCount / totalInRange) * 100) : 0;
+
+    let medianResponseTime: number | null = null;
+    if (responseTimes.length > 0) {
+      responseTimes.sort((a, b) => a - b);
+      const mid = Math.floor(responseTimes.length / 2);
+      medianResponseTime =
+        responseTimes.length % 2 === 0
+          ? Math.round(((responseTimes[mid - 1] + responseTimes[mid]) / 2) * 10) / 10
+          : Math.round(responseTimes[mid] * 10) / 10;
+    }
+
+    return NextResponse.json({
+      total: kpiCurrent,
+      delta,
+      series,
+      bucket,
+      // Response metrics
+      responseRate,
+      medianResponseTime,
+      awaitingCount,
+    });
   } catch (err) {
     console.error("[connections/pulse] fatal:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

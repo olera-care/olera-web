@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DateRangePopover, {
   resolveRange,
-  rangeLabel,
   type DateRangeValue,
 } from "@/components/admin/DateRangePopover";
 import ConnectionRow, { type ConnectionRowData } from "@/components/admin/ConnectionRow";
@@ -14,21 +13,22 @@ interface Pulse {
   delta: number | null;
   series: { date: string; count: number }[];
   bucket: string;
+  // Response metrics
+  responseRate?: number;
+  medianResponseTime?: number | null;
+  awaitingCount?: number;
 }
 
 interface Funnel {
   leads_sent: number;
   emails_opened: number;
-  emails_clicked: number;
   leads_viewed: number;
   contacts_revealed: number;
   providers_responded: number;
   open_rate: number;
-  click_rate: number;
   view_rate: number;
   reveal_rate: number;
   response_rate: number;
-  overall_rate: number;
 }
 
 interface ActionCounts {
@@ -38,54 +38,32 @@ interface ActionCounts {
   hot_leads: number;
 }
 
-interface FunnelSummary {
-  total_leads: number;
-  emails_opened: number;
-  leads_viewed: number;
-  contacts_revealed: number;
-  hot_leads: number;
-  connected: number;
+type Engagement = { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean };
+
+interface ResponseCounts {
+  all: number;
+  needs_attention: number;
+  provider_nudged: number;
+  family_nudged: number;
+  responded: number;
+  no_email: number;
 }
 
-type Engagement = { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean };
+// Simplified counts for 3-tab UI
+interface SimplifiedCounts {
+  todo: number;      // needs_attention + no_email
+  waiting: number;   // provider_nudged + family_nudged
+  connected: number; // responded
+}
 
 interface ListResponse {
   connections: (ConnectionRowData & { provider: { activityKey: string | null } })[];
   total: number;
   counts: Record<ConnectionTemperatureState, number>;
+  responseCounts?: ResponseCounts;
   engagement: Record<string, Engagement>;
   truncated: boolean;
   action_counts?: ActionCounts;
-  funnel?: FunnelSummary;
-}
-
-type Filter = "queue" | "live" | "closed";
-type ActionTab = "nudge_provider" | "nudge_family" | "call_no_email" | "hot_leads" | null;
-
-/** A minimal, dependency-free sparkline for the hero. Decorative — cosmetic
- *  glitches are harmless if the data shape ever shifts. */
-function Sparkline({ series }: { series: { date: string; count: number }[] }) {
-  if (!series || series.length < 2) return null;
-  const counts = series.map((s) => s.count);
-  const max = Math.max(1, ...counts);
-  const W = 120;
-  const H = 28;
-  const step = W / (series.length - 1);
-  const pts = counts
-    .map((c, i) => `${(i * step).toFixed(1)},${(H - (c / max) * H).toFixed(1)}`)
-    .join(" ");
-  return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="text-emerald-400" aria-hidden>
-      <polyline
-        points={pts}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 }
 
 /** Engagement Funnel Visualization */
@@ -102,26 +80,21 @@ function EngagementFunnel({ funnel }: { funnel: Funnel | null }) {
 
   return (
     <div className="mb-6">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+      <p className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-3">
         Engagement Funnel
-      </h2>
-      <div className="flex items-stretch gap-1">
-        {stages.map((stage, i) => (
+      </p>
+      <div className="grid grid-cols-5 gap-2">
+        {stages.map((stage) => (
           <div
             key={stage.label}
-            className="flex-1 rounded-lg border border-gray-100 bg-white px-3 py-3 text-center"
+            className="bg-white rounded-xl border border-gray-200 p-3 text-center"
           >
-            <p className="text-[11px] font-medium text-gray-500">{stage.label}</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-gray-900">
+            <p className="text-[11px] text-gray-500 truncate">{stage.label}</p>
+            <p className="text-xl font-bold text-gray-900 mt-1">
               {stage.value.toLocaleString()}
             </p>
             {stage.rate !== null && (
-              <p className="mt-0.5 text-xs tabular-nums text-gray-400">({stage.rate}%)</p>
-            )}
-            {i < stages.length - 1 && (
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-200" aria-hidden>
-                →
-              </div>
+              <p className="text-[10px] text-gray-400">({stage.rate}%)</p>
             )}
           </div>
         ))}
@@ -130,61 +103,45 @@ function EngagementFunnel({ funnel }: { funnel: Funnel | null }) {
   );
 }
 
-/** Action Queue Tabs */
-function ActionQueueTabs({
-  counts,
-  selected,
-  onSelect,
-}: {
-  counts: ActionCounts | undefined;
-  selected: ActionTab;
-  onSelect: (tab: ActionTab) => void;
-}) {
-  const tabs: { key: ActionTab; label: string; emoji: string; count: number | undefined }[] = [
-    { key: "nudge_provider", label: "Nudge Provider", emoji: "📧", count: counts?.nudge_provider },
-    { key: "nudge_family", label: "Nudge Family", emoji: "👨‍👩‍👧", count: counts?.nudge_family },
-    { key: "call_no_email", label: "Call (No Email)", emoji: "📞", count: counts?.call_no_email },
-    { key: "hot_leads", label: "Hot Leads", emoji: "🔥", count: counts?.hot_leads },
+/** Action Queue Cards */
+function ActionQueue({ counts }: { counts: ActionCounts | undefined }) {
+  if (!counts) return null;
+
+  const actions = [
+    { key: "nudge_provider", label: "Nudge Provider", emoji: "📧", count: counts.nudge_provider },
+    { key: "nudge_family", label: "Nudge Family", emoji: "👨‍👩‍👧", count: counts.nudge_family },
+    { key: "call_no_email", label: "Call (No Email)", emoji: "📞", count: counts.call_no_email },
+    { key: "hot_leads", label: "Hot Leads", emoji: "🔥", count: counts.hot_leads },
   ];
 
   return (
-    <div className="mb-4">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+    <div className="mb-6">
+      <p className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-3">
         Action Queue
-      </h2>
-      <div className="flex gap-2">
-        {tabs.map((tab) => {
-          const isSelected = selected === tab.key;
-          return (
-            <button
-              key={tab.key}
-              onClick={() => onSelect(isSelected ? null : tab.key)}
-              className={[
-                "flex-1 rounded-xl border px-3 py-3 text-center transition-all",
-                isSelected
-                  ? "border-gray-900 bg-gray-900 text-white"
-                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50",
-              ].join(" ")}
-            >
-              <span className="text-lg" aria-hidden>
-                {tab.emoji}
-              </span>
-              <p className="mt-1 text-xs font-medium">{tab.label}</p>
-              <p
-                className={[
-                  "mt-0.5 text-lg font-semibold tabular-nums",
-                  isSelected ? "text-white" : "text-gray-900",
-                ].join(" ")}
-              >
-                {tab.count ?? "—"}
-              </p>
-            </button>
-          );
-        })}
+      </p>
+      <div className="grid grid-cols-4 gap-2">
+        {actions.map((action) => (
+          <div
+            key={action.key}
+            className="bg-white rounded-xl border border-gray-200 p-3 text-center"
+          >
+            <span className="text-lg">{action.emoji}</span>
+            <p className="text-[11px] text-gray-500 mt-1">{action.label}</p>
+            <p className="text-xl font-bold text-gray-900">{action.count}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
+
+type TabFilter = "todo" | "waiting" | "connected";
+
+const TABS: Array<{ key: TabFilter; label: string; description: string }> = [
+  { key: "todo", label: "To Do", description: "Action needed" },
+  { key: "waiting", label: "Waiting", description: "Pending response" },
+  { key: "connected", label: "Connected", description: "Success" },
+];
 
 export default function ConnectionsTrackerPage() {
   const [range, setRange] = useState<DateRangeValue>({
@@ -193,10 +150,27 @@ export default function ConnectionsTrackerPage() {
     customTo: "",
   });
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<Filter>("queue");
-  const [actionTab, setActionTab] = useState<ActionTab>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [activeTab, setActiveTab] = useState<TabFilter>("todo");
+
+  // Debounce search input by 300ms
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [search]);
 
   const [pulse, setPulse] = useState<Pulse | null>(null);
+  const [pulseError, setPulseError] = useState(false);
   const [funnel, setFunnel] = useState<Funnel | null>(null);
   const [list, setList] = useState<ListResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -213,17 +187,26 @@ export default function ConnectionsTrackerPage() {
   // Hero KPI (own fetch — independent of the queue filter).
   useEffect(() => {
     let cancelled = false;
+    setPulseError(false);
     const params = buildDateParams();
     fetch(`/api/admin/connections/pulse?${params}`)
-      .then((r) => (r.ok ? r.json() : null))
+      .then((r) => {
+        if (!r.ok) throw new Error("failed");
+        return r.json();
+      })
       .then((data) => !cancelled && setPulse(data))
-      .catch(() => !cancelled && setPulse(null));
+      .catch(() => {
+        if (!cancelled) {
+          setPulse(null);
+          setPulseError(true);
+        }
+      });
     return () => {
       cancelled = true;
     };
   }, [buildDateParams]);
 
-  // Funnel metrics (own fetch — independent of the queue filter).
+  // Engagement funnel metrics.
   useEffect(() => {
     let cancelled = false;
     const params = buildDateParams();
@@ -236,23 +219,14 @@ export default function ConnectionsTrackerPage() {
     };
   }, [buildDateParams]);
 
-  // Queue list.
+  // Connection list with response-based filtering.
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(false);
     const params = buildDateParams();
-    if (search.trim()) params.set("search", search.trim());
-
-    // Apply action tab filter if selected
-    if (actionTab) {
-      params.set("tab", actionTab);
-    } else if (filter === "live") {
-      params.set("state", "live");
-    } else if (filter === "closed") {
-      params.set("state", "closed");
-    }
-    // "queue" with no action tab => no state param: API returns all non-closed, prioritized.
+    if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
+    params.set("filter", activeTab); // "todo", "waiting", or "connected"
 
     fetch(`/api/admin/connections?${params}`)
       .then((r) => {
@@ -272,168 +246,120 @@ export default function ConnectionsTrackerPage() {
     return () => {
       cancelled = true;
     };
-  }, [buildDateParams, search, filter, actionTab]);
+  }, [buildDateParams, debouncedSearch, activeTab]);
 
-  const counts = list?.counts;
-  const needsYouCount = counts
-    ? counts.going_cold + counts.awaiting_provider + counts.awaiting_family
-    : 0;
-
-  const deltaEl = useMemo(() => {
-    if (!pulse || pulse.delta === null || range.preset === "all") return null;
-    const up = pulse.delta > 0;
-    const flat = pulse.delta === 0;
-    const color = up ? "text-emerald-600" : flat ? "text-gray-400" : "text-rose-600";
-    const label = flat ? "flat" : `${up ? "↑" : "↓"} ${Math.abs(pulse.delta)}%`;
-    return (
-      <span className={`text-sm font-medium ${color}`}>
-        {label}
-        <span className="ml-1.5 font-normal text-gray-400">vs. prior {rangeLabel(range)}</span>
-      </span>
-    );
-  }, [pulse, range]);
-
-  const tabs: { key: Filter; label: string; count: number | undefined }[] = [
-    { key: "queue", label: "Needs you", count: counts ? needsYouCount : undefined },
-    { key: "live", label: "Live & healthy", count: counts?.live },
-    { key: "closed", label: "Closed", count: counts?.closed },
-  ];
-
-  // Reset action tab when changing main filter
-  const handleFilterChange = (newFilter: Filter) => {
-    setFilter(newFilter);
-    setActionTab(null);
-  };
-
-  // Get empty state message based on current filter/tab
-  const getEmptyMessage = () => {
-    if (actionTab) {
-      switch (actionTab) {
-        case "nudge_provider":
-          return "No providers to nudge right now.";
-        case "nudge_family":
-          return "No families to nudge right now.";
-        case "call_no_email":
-          return "No providers without email to call.";
-        case "hot_leads":
-          return "No hot leads to review.";
-      }
-    }
-    switch (filter) {
-      case "queue":
-        return "Nothing needs you right now.";
-      case "live":
-        return "No live conversations in this range.";
-      case "closed":
-        return "No closed connections in this range.";
-    }
-  };
+  // Compute simplified counts from raw response counts
+  const simplifiedCounts: SimplifiedCounts | null = useMemo(() => {
+    const rc = list?.responseCounts;
+    if (!rc) return null;
+    return {
+      todo: rc.needs_attention + rc.no_email,
+      waiting: rc.provider_nudged + rc.family_nudged,
+      connected: rc.responded,
+    };
+  }, [list?.responseCounts]);
 
   return (
-    <div className="mx-auto max-w-4xl px-1 py-2">
+    <div>
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between gap-4">
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Connections</h1>
-          <p className="mt-0.5 text-sm text-gray-500">Family inquiries to providers</p>
+          <h1 className="text-2xl font-bold text-gray-900">Connections</h1>
+          <p className="text-sm text-gray-500 mt-1">Family inquiries to providers</p>
         </div>
         <DateRangePopover value={range} onChange={setRange} />
       </div>
 
+      {/* Stats - 4 column grid like Care Seekers */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm text-gray-500">Successful</p>
+          <p className="text-2xl font-bold text-gray-900">{pulse ? pulse.total : "—"}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm text-gray-500">Response Rate</p>
+          <p className="text-2xl font-bold text-emerald-600">{pulse?.responseRate ?? 0}%</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm text-gray-500">Median Response</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {pulse?.medianResponseTime != null ? `${pulse.medianResponseTime}h` : "—"}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm text-gray-500">Awaiting Response</p>
+          <p className="text-2xl font-bold text-amber-600">{pulse?.awaitingCount ?? 0}</p>
+        </div>
+      </div>
+
+      {pulseError && (
+        <p className="mb-4 text-xs text-amber-600">
+          Could not load metrics. Refresh to try again.
+        </p>
+      )}
+
       {/* Engagement Funnel */}
       <EngagementFunnel funnel={funnel} />
 
-      {/* Action Queue Tabs */}
-      {filter === "queue" && (
-        <ActionQueueTabs
-          counts={list?.action_counts}
-          selected={actionTab}
-          onSelect={setActionTab}
-        />
-      )}
+      {/* Action Queue */}
+      <ActionQueue counts={list?.action_counts} />
 
-      {/* Hero KPI — successful connections (provider replied or accepted) */}
-      <div className="mb-6 rounded-2xl border border-stone-200/70 bg-stone-50/40 px-6 py-5">
-        <p className="text-sm text-gray-500">Successful connections</p>
-        <div className="mt-1 flex items-end justify-between gap-4">
-          <div className="flex items-baseline gap-3">
-            <span className="font-display text-[42px] leading-none text-gray-900 tabular-nums">
-              {pulse ? pulse.total.toLocaleString() : "—"}
-            </span>
-            {deltaEl}
-          </div>
-          <Sparkline series={pulse?.series ?? []} />
-        </div>
-        <p className="mt-2 text-xs text-gray-400">
-          A family and provider actually connected — the provider replied, or the connection was
-          accepted.
-        </p>
-      </div>
-
-      {/* Section tabs */}
-      <div className="mb-3 flex items-center gap-1 border-b border-gray-100">
-        {tabs.map((t) => {
-          const active = filter === t.key && !actionTab;
+      {/* Tabs */}
+      <div className="flex gap-2 mb-4">
+        {TABS.map(({ key, label }) => {
+          const active = activeTab === key;
+          const count = simplifiedCounts?.[key] ?? 0;
           return (
             <button
-              key={t.key}
-              onClick={() => handleFilterChange(t.key)}
-              className={[
-                "relative -mb-px px-3 py-2 text-sm transition-colors",
-                active ? "font-medium text-gray-900" : "text-gray-500 hover:text-gray-800",
-              ].join(" ")}
+              key={key}
+              type="button"
+              onClick={() => setActiveTab(key)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                active
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
             >
-              {t.label}
-              {t.count !== undefined && (
-                <span className="ml-1.5 text-xs text-gray-400 tabular-nums">{t.count}</span>
-              )}
-              {active && (
-                <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-gray-900" />
-              )}
+              {label}
+              <span
+                className={`ml-1.5 px-1.5 py-0.5 rounded text-xs ${
+                  active ? "bg-white/20 text-white" : "bg-gray-200 text-gray-500"
+                }`}
+              >
+                {count}
+              </span>
             </button>
           );
         })}
-
-        <div className="ml-auto py-1">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search family or provider…"
-            className="w-52 rounded-lg border border-gray-200 px-3 py-1.5 text-sm outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-100"
-          />
-        </div>
       </div>
 
-      {/* Active action tab indicator */}
-      {actionTab && (
-        <div className="mb-3 flex items-center gap-2">
-          <span className="text-sm text-gray-500">Filtering by:</span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-gray-900 px-3 py-1 text-sm font-medium text-white">
-            {actionTab === "nudge_provider" && "📧 Nudge Provider"}
-            {actionTab === "nudge_family" && "👨‍👩‍👧 Nudge Family"}
-            {actionTab === "call_no_email" && "📞 Call (No Email)"}
-            {actionTab === "hot_leads" && "🔥 Hot Leads"}
-            <button
-              onClick={() => setActionTab(null)}
-              className="ml-1 hover:text-gray-300"
-              aria-label="Clear filter"
-            >
-              ×
-            </button>
-          </span>
-        </div>
-      )}
+      {/* Search */}
+      <div className="mb-4">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by family or provider name..."
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
+        />
+      </div>
 
       {/* List */}
-      <div className="rounded-xl border border-gray-100 bg-white">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="px-4 py-16 text-center text-sm text-gray-400">Loading…</div>
         ) : error ? (
           <div className="px-4 py-16 text-center text-sm text-rose-600">
-            Could not load connections. Try again.
+            Couldn’t load connections. Try again.
           </div>
         ) : !list || list.connections.length === 0 ? (
-          <div className="px-4 py-16 text-center text-sm text-gray-400">{getEmptyMessage()}</div>
+          <div className="px-4 py-16 text-center text-sm text-gray-400">
+            {activeTab === "todo"
+              ? "Nothing to do. All caught up!"
+              : activeTab === "waiting"
+              ? "No connections waiting for response."
+              : "No successful connections yet."}
+          </div>
         ) : (
           <div className="divide-y divide-gray-50">
             {list.connections.map((c) => (
@@ -443,7 +369,6 @@ export default function ConnectionsTrackerPage() {
                 engagement={
                   c.provider.activityKey ? list.engagement[c.provider.activityKey] : undefined
                 }
-                showHeatScore={actionTab === "hot_leads"}
               />
             ))}
           </div>

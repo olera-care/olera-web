@@ -1,44 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
-  TEMPERATURE_CONFIG,
-  dotOpacityForStaleness,
   formatAge,
   type ConnectionTemperature,
   type NextStep,
 } from "@/lib/connection-temperature";
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
 
-interface EngagementTimeline {
-  email_sent_at: string | null;
-  email_delivered_at: string | null;
-  email_opened_at: string | null;
-  email_clicked_at: string | null;
-  lead_opened_at: string | null;
-  contact_revealed_at: string | null;
-  account_claimed_at: string | null;
-  one_click_at: string | null;
-  first_response_at: string | null;
+interface ProfileCompleteness {
+  percentage: number;
+  missingFields: string[];
 }
+
+export type ResponseCategory = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
 
 export interface ConnectionRowData {
   id: string;
-  created_at?: string;
-  family: { display_name: string | null; email?: string | null; phone?: string | null };
-  provider: {
+  family: {
+    id?: string | null;
     display_name: string | null;
     email?: string | null;
-    claim_state?: string | null;
+    phone?: string | null;
+    image_url?: string | null;
+    completeness?: ProfileCompleteness;
   };
+  provider: {
+    id?: string | null;
+    display_name: string | null;
+    email?: string | null;
+    phone?: string | null;
+    image_url?: string | null;
+    is_active?: boolean;
+    completeness?: ProfileCompleteness;
+  };
+  messagePreview?: string;
+  responded?: boolean;
+  nudgeCount?: number;
+  providerNudgedAt?: string | null;
+  familyNudgedAt?: string | null;
+  responseCategory?: ResponseCategory | null;
   temperature: ConnectionTemperature;
-  // Enhanced engagement data
-  engagement?: EngagementTimeline;
-  heat_score?: number;
-  is_hot_lead?: boolean;
-  is_responded?: boolean;
-  provider_claimed?: boolean;
-  provider_claim_state?: string;
 }
 
 interface Engagement {
@@ -118,150 +120,33 @@ function fmtDate(iso: string | null): string {
   }
 }
 
-/** Engagement badges shown in collapsed row */
-function EngagementBadges({ engagement, showHeat, heatScore }: {
-  engagement?: EngagementTimeline;
-  showHeat?: boolean;
-  heatScore?: number;
-}) {
-  if (!engagement) return null;
-
-  const badges: { emoji: string; label: string; active: boolean }[] = [
-    { emoji: "📧", label: "Opened", active: !!engagement.email_opened_at },
-    { emoji: "👁", label: "Viewed", active: !!engagement.lead_opened_at },
-    { emoji: "📋", label: "Copied", active: !!engagement.contact_revealed_at },
-    { emoji: "✓", label: "Claimed", active: !!engagement.account_claimed_at },
-  ];
-
-  const activeBadges = badges.filter((b) => b.active);
-  if (activeBadges.length === 0 && !showHeat) return null;
-
-  return (
-    <div className="flex items-center gap-1.5">
-      {showHeat && heatScore !== undefined && heatScore >= 50 && (
-        <span className="inline-flex items-center gap-0.5 rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] font-medium text-orange-700">
-          🔥 {heatScore}
-        </span>
-      )}
-      {activeBadges.map((badge) => (
-        <span
-          key={badge.label}
-          className="inline-flex items-center gap-0.5 text-[10px] text-gray-400"
-          title={badge.label}
-        >
-          {badge.emoji} {badge.label}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-/** Full engagement timeline shown in expanded view */
-function EngagementTimelineView({ engagement, claimState }: {
-  engagement?: EngagementTimeline;
-  claimState?: string;
-}) {
-  if (!engagement) return null;
-
-  const events: { label: string; timestamp: string | null; emoji: string }[] = [
-    { label: "Email sent", timestamp: engagement.email_sent_at, emoji: "📤" },
-    { label: "Email delivered", timestamp: engagement.email_delivered_at, emoji: "📬" },
-    { label: "Email opened", timestamp: engagement.email_opened_at, emoji: "📧" },
-    { label: "Email clicked", timestamp: engagement.email_clicked_at, emoji: "🔗" },
-    { label: "Lead viewed", timestamp: engagement.lead_opened_at, emoji: "👁" },
-    { label: "Contact copied", timestamp: engagement.contact_revealed_at, emoji: "📋" },
-    { label: "One-click access", timestamp: engagement.one_click_at, emoji: "⚡" },
-    { label: "Account claimed", timestamp: engagement.account_claimed_at, emoji: "✓" },
-    { label: "First response", timestamp: engagement.first_response_at, emoji: "💬" },
-  ].filter((e) => e.timestamp);
-
-  if (events.length === 0 && !claimState) {
-    return (
-      <p className="text-sm text-gray-400">No engagement signals yet.</p>
-    );
-  }
-
-  return (
-    <div className="space-y-1.5">
-      {claimState && (
-        <div className="flex items-center gap-2 text-sm">
-          <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium ${
-            claimState === "claimed"
-              ? "bg-emerald-100 text-emerald-700"
-              : claimState === "pending"
-                ? "bg-amber-100 text-amber-700"
-                : "bg-gray-100 text-gray-600"
-          }`}>
-            {claimState === "claimed" ? "✓ Claimed" : claimState === "pending" ? "⏳ Pending" : "⚪ Unclaimed"}
-          </span>
-          <span className="text-gray-500">Provider account</span>
-        </div>
-      )}
-      {events.map((event, i) => (
-        <div key={i} className="flex items-center gap-2 text-sm">
-          <span className="w-5 text-center">{event.emoji}</span>
-          <span className="text-gray-700">{event.label}</span>
-          <span className="text-gray-400">·</span>
-          <span className="text-gray-500">{fmtDateTime(event.timestamp)}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/** Heat score visualization */
-function HeatScoreBar({ score }: { score: number }) {
-  const clampedScore = Math.min(100, Math.max(0, score));
-  const color = score >= 80 ? "bg-red-500" : score >= 50 ? "bg-orange-500" : score >= 30 ? "bg-yellow-500" : "bg-gray-300";
-
-  return (
-    <div className="flex items-center gap-2">
-      <div className="h-2 flex-1 rounded-full bg-gray-100">
-        <div
-          className={`h-2 rounded-full ${color} transition-all`}
-          style={{ width: `${clampedScore}%` }}
-        />
-      </div>
-      <span className="text-xs font-medium tabular-nums text-gray-600">{score}</span>
-    </div>
-  );
-}
-
 export default function ConnectionRow({
   c,
   engagement,
-  showHeatScore = false,
 }: {
   c: ConnectionRowData;
   engagement?: Engagement;
-  showHeatScore?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   // Nudge action state
   const [nudging, setNudging] = useState(false);
   const [nudgeMsg, setNudgeMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const cfg = TEMPERATURE_CONFIG[c.temperature.state];
-  const opacity = dotOpacityForStaleness(c.temperature.stalenessMs);
-  const family = c.family.display_name || "A family";
-  const provider = c.provider.display_name || "Unknown provider";
-  const isAwaitingFamily = c.temperature.state === "awaiting_family";
-  const isHotLead = c.is_hot_lead;
+  const handleImgError = useCallback(() => setImgError(true), []);
 
-  // Use enhanced engagement data if available, otherwise fall back to legacy
-  const hasEnhancedEngagement = !!c.engagement;
-  const engaged = hasEnhancedEngagement
-    ? (c.engagement?.contact_revealed_at ? "contact shown" :
-       c.engagement?.lead_opened_at ? "viewed" :
-       c.engagement?.email_clicked_at ? "clicked" :
-       c.engagement?.email_opened_at ? "opened" : null)
-    : (engagement?.contact_revealed ? "contact shown" :
-       engagement?.email_clicked ? "clicked" :
-       engagement?.lead_opened ? "opened" : null);
+  const family = c.family.display_name || "A family";
+  const provider = c.provider.display_name || "Provider";
+  const providerInitial = provider.charAt(0).toUpperCase();
+  const age = formatAge(c.temperature.stalenessMs);
+
+  // Determine the primary action based on response category
+  const category = c.responseCategory;
+  const hasProviderPhone = !!c.provider.phone;
 
   async function toggle() {
     const next = !open;
@@ -294,7 +179,7 @@ export default function ConnectionRow({
       if (res.ok) {
         setNudgeMsg({ ok: true, text: successText });
       } else {
-        setNudgeMsg({ ok: false, text: data.error || "Couldn't send." });
+        setNudgeMsg({ ok: false, text: data.error || "Couldn’t send." });
       }
     } catch {
       setNudgeMsg({ ok: false, text: "Network error — not sent." });
@@ -303,59 +188,148 @@ export default function ConnectionRow({
     }
   }
 
+  // Action button config based on category
+  const actionConfig = {
+    no_email: {
+      label: "Call",
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+        </svg>
+      ),
+      style: "bg-amber-50 text-amber-700 hover:bg-amber-100",
+      href: hasProviderPhone ? `tel:${c.provider.phone}` : undefined,
+    },
+    needs_attention: {
+      label: "Nudge",
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      ),
+      style: "bg-blue-50 text-blue-700 hover:bg-blue-100",
+      href: undefined as string | undefined,
+    },
+    provider_nudged: {
+      label: "Waiting on provider",
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      style: "bg-gray-100 text-gray-500",
+      href: undefined as string | undefined,
+    },
+    family_nudged: {
+      label: "Waiting on family",
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      style: "bg-gray-100 text-gray-500",
+      href: undefined as string | undefined,
+    },
+    responded: {
+      label: "Connected",
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      ),
+      style: "bg-emerald-50 text-emerald-700",
+      href: undefined as string | undefined,
+    },
+  };
+
+  const action = category ? actionConfig[category] : null;
+
   return (
     <div>
       {/* Collapsed row */}
       <button
         onClick={toggle}
-        className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-stone-50/60 transition-colors"
+        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-stone-50/60 transition-colors"
         aria-expanded={open}
       >
-        <span
-          className={`mt-[7px] h-2 w-2 shrink-0 rounded-full ${cfg.dot}`}
-          style={{ opacity }}
-          aria-hidden
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium ${cfg.text}`}>{cfg.label}</span>
-            <span className="text-xs text-gray-400">· {formatAge(c.temperature.stalenessMs)}</span>
-            {isHotLead && (
-              <span className="inline-flex items-center rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] font-semibold text-orange-700">
-                🔥 Hot
+        {/* Provider avatar */}
+        <div className="w-10 h-10 shrink-0">
+          {c.provider.image_url && !imgError ? (
+            <img
+              src={c.provider.image_url}
+              alt=""
+              className="w-10 h-10 rounded-full object-cover"
+              onError={handleImgError}
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+              <span className="text-sm font-medium text-gray-400">
+                {providerInitial}
               </span>
-            )}
-          </div>
-          <div className="mt-0.5 truncate text-sm text-gray-700">
-            {family} <span className="text-gray-300">→</span> {provider}
-          </div>
-          {isAwaitingFamily && (
-            <div className="mt-0.5 text-xs text-gray-400">↳ provider replied, no answer · nudge?</div>
-          )}
-          {/* Engagement badges */}
-          {hasEnhancedEngagement && (
-            <div className="mt-1">
-              <EngagementBadges
-                engagement={c.engagement}
-                showHeat={showHeatScore}
-                heatScore={c.heat_score}
-              />
             </div>
           )}
         </div>
-        {/* Legacy engaged text (shown when no enhanced engagement) */}
-        {!hasEnhancedEngagement && engaged && (
-          <span className="mt-[3px] shrink-0 text-[11px] text-gray-400">{engaged}</span>
-        )}
-        <svg
-          className={`mt-1 h-4 w-4 shrink-0 text-gray-300 transition-transform ${open ? "rotate-90" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
+
+        {/* Main content */}
+        <div className="min-w-0 flex-1">
+          <div className="font-medium text-gray-900 truncate">{provider}</div>
+          <div className="text-sm text-gray-500 truncate">
+            from {family} · {age}
+          </div>
+          {/* Engagement badges */}
+          {engagement && (engagement.email_clicked || engagement.lead_opened || engagement.contact_revealed) && (
+            <div className="mt-1 flex items-center gap-1.5 text-[11px]">
+              {engagement.email_clicked && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
+                  📧 Opened
+                </span>
+              )}
+              {engagement.lead_opened && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-violet-50 text-violet-600">
+                  👁 Viewed
+                </span>
+              )}
+              {engagement.contact_revealed && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">
+                  📋 Copied
+                </span>
+              )}
+            </div>
+          )}
+          {c.messagePreview && !engagement?.email_clicked && !engagement?.lead_opened && !engagement?.contact_revealed && (
+            <div className="mt-0.5 text-xs text-gray-400 truncate italic">{c.messagePreview}</div>
+          )}
+        </div>
+
+        {/* Action button */}
+        <div className="flex items-center gap-2 shrink-0">
+          {action && (
+            action.href ? (
+              <a
+                href={action.href}
+                onClick={(e) => e.stopPropagation()}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${action.style}`}
+              >
+                {action.icon}
+                {action.label}
+              </a>
+            ) : (
+              <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${action.style}`}>
+                {action.icon}
+                {action.label}
+              </span>
+            )
+          )}
+          <svg
+            className={`h-5 w-5 text-gray-300 transition-transform ${open ? "rotate-90" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
       </button>
 
       {/* Expanded detail */}
@@ -364,39 +338,9 @@ export default function ConnectionRow({
           {loading ? (
             <p className="text-sm text-gray-400">Loading…</p>
           ) : loadError ? (
-            <p className="text-sm text-rose-600">Could not load this connection. Try again.</p>
+            <p className="text-sm text-rose-600">Couldn’t load this connection. Try again.</p>
           ) : detail ? (
             <div className="space-y-4">
-              {/* Heat Score (for hot leads) */}
-              {showHeatScore && c.heat_score !== undefined && c.heat_score >= 50 && (
-                <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-orange-600">
-                    Heat Score
-                  </p>
-                  <div className="mt-2">
-                    <HeatScoreBar score={c.heat_score} />
-                  </div>
-                  <p className="mt-2 text-xs text-orange-700">
-                    High engagement, consider priority outreach.
-                  </p>
-                </div>
-              )}
-
-              {/* Engagement Timeline */}
-              {hasEnhancedEngagement && (
-                <div className="rounded-lg border border-stone-200 bg-white px-4 py-3">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                    Engagement Timeline
-                  </p>
-                  <div className="mt-2">
-                    <EngagementTimelineView
-                      engagement={c.engagement}
-                      claimState={c.provider_claim_state}
-                    />
-                  </div>
-                </div>
-              )}
-
               {/* Next step — the headline action */}
               <div className="rounded-lg border border-stone-200 bg-white px-4 py-3">
                 <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
@@ -430,12 +374,12 @@ export default function ConnectionRow({
                   </button>
                 )}
                 {detail.nextStep.action === "add_provider_email" && (
-                  <button
-                    onClick={() => window.location.href = "/admin/leads?tab=needs_email"}
+                  <a
+                    href="/admin/leads?tab=needs_email"
                     className="mt-3 inline-block rounded-lg border border-gray-200 px-3.5 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Add email in Leads →
-                  </button>
+                  </a>
                 )}
 
                 {nudgeMsg && (
@@ -443,38 +387,6 @@ export default function ConnectionRow({
                     {nudgeMsg.text}
                   </p>
                 )}
-              </div>
-
-              {/* Contact Info */}
-              <div className="rounded-lg border border-stone-200 bg-white px-4 py-3">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                  Contact Info
-                </p>
-                <div className="mt-2 grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs text-gray-500">Family</p>
-                    <p className="text-sm font-medium text-gray-800">
-                      {detail.family.display_name || "Unknown"}
-                    </p>
-                    {c.family.email && (
-                      <p className="text-xs text-gray-500">{c.family.email}</p>
-                    )}
-                    {c.family.phone && (
-                      <p className="text-xs text-gray-500">{c.family.phone}</p>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Provider</p>
-                    <p className="text-sm font-medium text-gray-800">
-                      {detail.provider.display_name || "Unknown"}
-                    </p>
-                    {detail.provider.hasEmail ? (
-                      <p className="text-xs text-gray-500">{detail.provider.email}</p>
-                    ) : (
-                      <p className="text-xs text-amber-600">No email on file</p>
-                    )}
-                  </div>
-                </div>
               </div>
 
               {/* Records — jump into either account to investigate */}
@@ -578,34 +490,32 @@ export default function ConnectionRow({
                 )}
               </div>
 
-              {/* Provider contact + history (legacy - kept for backward compatibility) */}
-              {!hasEnhancedEngagement && (
-                <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500">
-                  <span>
-                    Provider:{" "}
-                    {detail.provider.hasEmail ? (
-                      <span className="text-gray-700">{detail.provider.email}</span>
-                    ) : (
-                      <span className="text-amber-600">no email on file</span>
-                    )}
-                  </span>
-                  <span>
-                    Engagement:{" "}
-                    {detail.engagement.contact_revealed
-                      ? "contact shown"
-                      : detail.engagement.email_clicked
-                        ? "clicked email"
-                        : detail.engagement.lead_opened
-                          ? "opened email"
-                          : "no signal"}
-                  </span>
-                  {detail.nudgeCount > 0 && (
-                    <span>
-                      Nudged {detail.nudgeCount}× · last {fmtDate(detail.lastNudgedAt)}
-                    </span>
+              {/* Provider contact + history */}
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500">
+                <span>
+                  Provider:{" "}
+                  {detail.provider.hasEmail ? (
+                    <span className="text-gray-700">{detail.provider.email}</span>
+                  ) : (
+                    <span className="text-amber-600">no email on file</span>
                   )}
-                </div>
-              )}
+                </span>
+                <span>
+                  Engagement:{" "}
+                  {detail.engagement.contact_revealed
+                    ? "contact shown"
+                    : detail.engagement.email_clicked
+                      ? "clicked email"
+                      : detail.engagement.lead_opened
+                        ? "opened email"
+                        : "no signal"}
+                </span>
+                {detail.nudgeCount > 0 && (
+                  <span>
+                    Nudged {detail.nudgeCount}× · last {fmtDate(detail.lastNudgedAt)}
+                  </span>
+                )}
+              </div>
             </div>
           ) : null}
         </div>

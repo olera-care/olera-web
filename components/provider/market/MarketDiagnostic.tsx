@@ -1,12 +1,22 @@
 import type { ReactNode } from "react";
 import ReferralTargets from "./ReferralTargets";
+import SectionNav from "./SectionNav";
+import CatchmentMapLoader from "./CatchmentMapLoader";
+import { CAT_COLOR } from "./CatchmentMap";
+
+const NAV = [
+  { id: "competition", label: "Competition" },
+  { id: "referral", label: "Referral map" },
+  { id: "focus", label: "Where to focus" },
+  { id: "playbook", label: "Playbook" },
+];
 
 // ── Types (shape produced by scripts/market-diagnostic/analyze-diagnostic.mjs) ──
 export interface Zcta { zcta: string; population: number; seniors65plus: number; medianIncome: number | null }
 export interface Leader { name: string; reviews: number; rating: number | null; distanceMiles: number | null; website: boolean; shareOfVoicePct: number }
-export interface BdTarget { id: string; name: string; cat: string; referralValue: string; distanceMiles: number | null; reviews: number; rating: number | null; phone: string | null; website: string | null; address: string }
+export interface BdTarget { id: string; name: string; cat: string; referralValue: string; distanceMiles: number | null; reviews: number; rating: number | null; phone: string | null; website: string | null; address: string; lat: number | null; lng: number | null }
 export interface MarketDiagnosticData {
-  meta: { city: string; state: string; careType: string; generatedAt: string };
+  meta: { city: string; state: string; careType: string; generatedAt: string; center: { lat: number; lng: number } };
   demand: {
     demographics: { totals?: { population: number; seniors65plus: number }; seniorSharePct?: number; medianIncomeRange?: { min: number; max: number }; zctas?: Zcta[]; note?: string };
     olera: { familiesInCity: number; providersListed: number };
@@ -29,9 +39,9 @@ function Eyebrow({ children }: { children: ReactNode }) {
   return <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#199087]">{children}</div>;
 }
 
-function Section({ kicker, title, children }: { kicker: string; title: string; children: ReactNode }) {
+function Section({ id, kicker, title, children }: { id?: string; kicker: string; title: string; children: ReactNode }) {
   return (
-    <section className="border-t border-stone-200/80 pt-10 mt-10">
+    <section id={id} className="border-t border-stone-200/80 pt-10 mt-10 scroll-mt-24">
       <Eyebrow>{kicker}</Eyebrow>
       <h2 className="font-display text-[1.75rem] leading-tight text-stone-900 mt-1.5 mb-5">{title}</h2>
       {children}
@@ -76,8 +86,11 @@ export default function MarketDiagnostic({
   const maxRev = Math.max(...cl.leaders.map((l) => l.reviews), 1);
 
   return (
-    <div className="max-w-3xl">
+    <div className="lg:grid lg:grid-cols-[180px_minmax(0,680px)] lg:gap-12">
+      <SectionNav sections={NAV} />
+      <div className="min-w-0">
       {/* ── HERO = Competition (the hook), demand folded in as the stakes ── */}
+      <div id="competition" className="scroll-mt-24">
       {showHeader && (
         <Eyebrow>Your market · {a.meta.city}, {a.meta.state} · {a.meta.careType === "homecare" ? "Home care" : "Assisted living"}</Eyebrow>
       )}
@@ -117,20 +130,33 @@ export default function MarketDiagnostic({
         {dem.medianIncomeRange && <>Household income runs {usdK(dem.medianIncomeRange.min)}–{usdK(dem.medianIncomeRange.max)} across the area. </>}
         Olera sees {a.demand.olera.familiesInCity} families actively searching here today — a foothold we grow into qualified leads for you.
       </p>
+      </div>{/* /competition */}
 
       {/* ── The unlock — referral map (the differentiated payoff) ── */}
-      <Section kicker="The unlock" title="The referral map most agencies never build">
+      <Section id="referral" kicker="The unlock" title="The referral map most agencies never build">
         <p className="text-[14px] text-stone-600 leading-relaxed mb-6 max-w-xl">
           In home care, <span className="text-stone-900 font-medium">50–70% of clients come from professional referrals</span> —
           hospital discharge, rehab, hospice, assisted living, elder-law — not ads. We mapped{" "}
           <span className="text-stone-900 font-medium">{ref.totalViableSources} local sources</span>. This is the
           single highest-leverage channel, and it&apos;s one you can&apos;t assemble yourself.
         </p>
-        <div className="grid grid-cols-3 gap-3 mb-7">
+        <div className="grid grid-cols-3 gap-3 mb-6">
           {ref.byRole.filter((r) => CAT_LABEL[r.cat]).slice(0, 6).map((r) => (
             <StatCard key={r.cat} value={r.count} label={CAT_LABEL[r.cat]} />
           ))}
         </div>
+
+        {/* The literal map — your referral landscape */}
+        <CatchmentMapLoader center={a.meta.center} targets={ref.prioritizedTargets} />
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 mb-7">
+          {ref.byRole.filter((r) => CAT_LABEL[r.cat] && CAT_COLOR[r.cat]).slice(0, 6).map((r) => (
+            <div key={r.cat} className="flex items-center gap-1.5 text-[11px] text-stone-500">
+              <span className="w-2 h-2 rounded-full" style={{ background: CAT_COLOR[r.cat] }} />
+              {CAT_LABEL[r.cat]}
+            </div>
+          ))}
+        </div>
+
         <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-3">
           {interactive ? "Your call sheet — work it" : "Start here — prioritized targets"}
         </div>
@@ -138,7 +164,7 @@ export default function MarketDiagnostic({
       </Section>
 
       {/* ── Where to focus — the ZIPs (tactical, absorbs income) ── */}
-      <Section kicker="Where to focus" title="Not all of town is your customer">
+      <Section id="focus" kicker="Where to focus" title="Not all of town is your customer">
         <p className="text-[14px] text-stone-600 leading-relaxed mb-5 max-w-xl">
           Private-pay care lives where senior density meets income. These are the areas worth your
           marketing and visit time — ranked. The campus core is dense but young; skip it.
@@ -160,7 +186,7 @@ export default function MarketDiagnostic({
       </Section>
 
       {/* ── The playbook ── */}
-      <Section kicker="The playbook" title="Where to spend your effort, in order">
+      <Section id="playbook" kicker="The playbook" title="Where to spend your effort, in order">
         <div className="space-y-4">
           {a.channels.map((c) => (
             <div key={c.channel} className="flex gap-4">
@@ -179,6 +205,7 @@ export default function MarketDiagnostic({
         Olera Market Intelligence · live data from Google Places, U.S. Census ACS, and Olera&apos;s demand funnel ·
         generated {new Date(a.meta.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
       </div>
+      </div>{/* /content */}
     </div>
   );
 }

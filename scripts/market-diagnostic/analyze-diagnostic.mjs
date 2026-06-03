@@ -155,7 +155,7 @@ const median = (arr) => { if (!arr.length) return null; const s = [...arr].sort(
   const bdTargets = [];
   for (let i = 0, more = true; more; i++) { more = false; for (const col of picks) if (col[i]) { bdTargets.push(col[i]); more = true; } }
   const bdTargetsOut = bdTargets.slice(0, 18)
-    .map((r) => ({ id: r.id, name: r.name, cat: r.cat, referralValue: r.referralValue, distanceMiles: r.distanceMiles, reviews: r.reviews, rating: r.rating, phone: r.phone, website: r.website, address: r.address }));
+    .map((r) => ({ id: r.id, name: r.name, cat: r.cat, referralValue: r.referralValue, distanceMiles: r.distanceMiles, reviews: r.reviews, rating: r.rating, phone: r.phone, website: r.website, address: r.address, lat: r.lat, lng: r.lng }));
 
   // ---- Channel prioritization ----
   const channels = [

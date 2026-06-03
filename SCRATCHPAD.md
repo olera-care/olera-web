@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-06-03 (Tue) — MedJobs catchment undercount fix + provider city-mislabel discovery (branch `vibrant-joliot`)
+
+**Origin:** Logan flagged catchments may undercount providers. Investigation cascaded into three layers.
+
+**Layer 1 — wrong-table bug (FIXED, PR #919 → staging).** Catchment COUNT/AUDIT surfaces read `business_profiles` (Olera account-holders, tiny) while the prospect LIST reads `olera-providers` (the 75K directory). 7–140× undercount. Decision (TJ): count **non-medical home care only** (`Home Care (Non-medical)`). Fixed `lib/medjobs/{catchment,prospect-counts,catchment-audit}.ts` → read olera-providers + non-medical filter; kept business_profiles only for the client-unlock gate. Added shared `NON_MEDICAL_ILIKE` + paginated `fetchNonMedicalProviders()` with **stable `.order("provider_id")`** (pre-test caught unstable pagination skipping/duping rows past the 10k PostgREST cap). Verified vs live DB: Houston 42→106, Emory 2→76, U.Florida 0→21. Committed `30df681b`, PR #919.
+
+**Layer 2 — discovery completeness.** Built `scripts/medjobs-homecare-backfill.js` (Places New text search → classify non-medical → dedup by place_id/phone/brand → review-ranked coverage report; dry-run default, `--import` reads reviewed JSON). Imported 3 solid net-new: SYNERGY HomeCare (Bryan `bryan-tx-0026`), Visiting Angels (Houston `houston-tx-0091`), TheKey (Houston `houston-tx-0092`). Hardened after TJ's "table stakes" push: franchise brand-probes default-on, **metro-wide capture** (assign each place to its REAL locality, not the query city) + coverage report ranking by Google reviews so a top-of-market miss can't be silent.
+
+**Layer 3 — THE REAL DEFECT (in progress).** BCS coverage proof showed all 8 top agencies as `✓have` — but they were "missing" from a College Station/Bryan filter because a **legacy import batch mislabeled their `city`/`state`**. The `Navasota, TX` bucket (26 rows) is a dumping ground: real Navasota + Bryan/CS agencies (Home Instead, Right at Home, CareCo, Amada, Visiting Angels — all addressed in CS/Bryan per lat/lon) + out-of-area (Dallas, Denton, Athens, Kilgore) + **3 Florida rows** (lat 27.x labeled TX). Tells: mislabeled rows have **random-prefix legacy IDs**; **lat/lon are accurate, city/state are not**. Not a discovery miss — a data-integrity bug. Fix = reverse-geocode lat/lon → correct city/state.
+
+**Next up:** (1) RUN Navasota geocode-fix (26 rows) as proof; (2) RUN directory-wide lat/lon-vs-city audit to size the corruption; (3) Notion report of findings (append branch name); (4) PR #919 merge; (5) decide breadth of directory repair. NOT done: importing the 2 tiny BCS net-new (Margie Stibora ★5/1, Mir ★1/1 — low value, skip).
+
+**Cost note:** Places New text search ~$32/1k requests; this session spent ~$5–6 across diagnostics/sweeps.
+
+---
+
 ### 2026-06-02 (Tue eve) — Provider page-creation bugs: schema column + post-create redirect (branch `proud-feynman`, pushed)
 
 **Context:** Esther flagged in Slack that creating new home-care provider pages failed. Two distinct bugs found and fixed; both verified working live by TJ.

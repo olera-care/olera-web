@@ -439,26 +439,26 @@
     {
       "channel": "Referral relationship development",
       "priority": 1,
-      "rationale": "In home care, 50–70% of clients originate from the local discharge + care-management ecosystem. We mapped 147 viable referral sources here (11 hospitals, 11 SNF/rehab, 11 hospice, 28 assisted living, 0 elder-law). This is the highest-leverage channel and the one a single agency cannot map itself.",
-      "oleraTool": "Prioritized BD target list + outreach tracker (this diagnostic)"
+      "rationale": "Half your clients can come from here — and it's the one channel a single agency can't map alone. Your sources are mapped above.",
+      "oleraTool": "Your prioritized call sheet"
     },
     {
       "channel": "Reviews / reputation engine",
       "priority": 2,
-      "rationale": "Market median is 22 reviews. Review volume is the share-of-voice currency on Google for senior care; a deliberate review-generation push moves local rank and trust.",
-      "oleraTool": "Olera review-request flow + profile trust signals"
+      "rationale": "Market median is 22 reviews. More reviews = higher Google rank and more trust — the one lever you fully control.",
+      "oleraTool": "Olera review-request flow"
     },
     {
       "channel": "Local community + Facebook groups",
       "priority": 3,
-      "rationale": "Families increasingly source recommendations in local FB groups (e.g. the B-CS women's group). Low cost, high trust, currently unworked by most competitors.",
-      "oleraTool": "Community presence playbook + Olera profile to point families to"
+      "rationale": "Families ask for recommendations in local Facebook groups. Most of your competitors aren't there.",
+      "oleraTool": "Community presence playbook"
     },
     {
       "channel": "Google LSA / SEO / targeted PPC",
       "priority": 4,
-      "rationale": "Real but volume-capped in a senior-thin college town. Smart version = Local Services Ads (pay-per-lead, Google-screened) + tight geo PPC, not broad spend. Route to a qualified intake, not a phone number.",
-      "oleraTool": "Olera-hosted intake / qualified-lead handoff (Door B)"
+      "rationale": "Real, but volume-capped in a senior-thin college town. The smart play is Local Services Ads + tight geo — not broad spend.",
+      "oleraTool": "Olera-hosted intake (Door B)"
     }
   ],
   "classificationCounts": [

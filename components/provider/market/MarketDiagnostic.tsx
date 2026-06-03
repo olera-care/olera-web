@@ -211,17 +211,23 @@ export default function MarketDiagnostic({
 
       {/* ── The playbook ── */}
       <Section id="playbook" kicker="The playbook" title="Where to spend your effort, in order">
-        <div className="space-y-4">
-          {a.channels.map((c) => (
-            <div key={c.channel} className="flex gap-4">
-              <div className="font-display text-2xl text-[#199087] w-8 shrink-0">{c.priority}</div>
-              <div>
-                <div className="text-[15px] font-medium text-stone-900">{c.channel}</div>
-                <p className="text-[13px] text-stone-600 leading-relaxed mt-1">{c.rationale}</p>
-                <div className="text-[12px] text-[#199087] mt-1.5">↳ Olera: {c.oleraTool}</div>
+        <div className="space-y-3">
+          {a.channels.map((c, i) => {
+            const lead = i === 0;
+            return (
+              <div
+                key={c.channel}
+                className={`flex gap-4 rounded-2xl p-4 transition-colors ${lead ? "bg-[#199087]/[0.05] border border-[#199087]/15" : "hover:bg-stone-50"}`}
+              >
+                <div className={`font-display leading-none shrink-0 w-9 ${lead ? "text-[2.25rem] text-[#199087]" : "text-[1.75rem] text-stone-300"}`}>{c.priority}</div>
+                <div className="min-w-0">
+                  <div className={`font-semibold text-stone-900 ${lead ? "text-[17px]" : "text-[15px]"}`}>{c.channel}</div>
+                  <p className="text-[13.5px] text-stone-600 leading-relaxed mt-1">{c.rationale}</p>
+                  <div className="text-[12px] font-medium text-[#199087] mt-2">→ {c.oleraTool}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Section>
 

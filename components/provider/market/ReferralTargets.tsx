@@ -103,7 +103,7 @@ export default function ReferralTargets({
         </div>
       )}
       <div className="space-y-2">
-        {visible.map((t) => {
+        {visible.map((t, idx) => {
           const k = keyOf(t);
           const s = status[k] || "to_contact";
           const meta = STATUS_META[s] ?? STATUS_META.to_contact;
@@ -115,14 +115,15 @@ export default function ReferralTargets({
             <div
               key={k}
               className={`rounded-xl border overflow-hidden transition-colors ${
-                referring ? "border-emerald-200/80 bg-emerald-50/40" : "border-stone-200/70 bg-white/50"
+                referring ? "border-emerald-200/80 bg-emerald-50/40" : isOpen ? "border-stone-300/80 bg-white" : "border-stone-200/70 bg-white/50"
               } ${dimmed ? "opacity-50" : ""} ${celebrating[k] ? "mro-pop" : ""}`}
             >
               <div
-                className={`flex items-center gap-3 px-4 py-2.5 ${guidance ? "cursor-pointer" : ""}`}
+                className={`flex items-center gap-3 px-4 py-3 ${guidance ? "cursor-pointer" : ""}`}
                 onClick={() => guidance && setExpanded(isOpen ? null : k)}
               >
                 <div className="flex-1 min-w-0">
+                  {idx === 0 && <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#199087] mb-0.5">Start here</div>}
                   <div className={`text-[14px] text-stone-900 truncate ${dimmed ? "line-through" : ""}`}>{t.name}</div>
                   <div className="text-[12px] text-stone-500">
                     {CAT_LABEL[t.cat] ?? t.cat} · {t.distanceMiles}mi
@@ -154,33 +155,34 @@ export default function ReferralTargets({
               </div>
 
               {isOpen && guidance && (
-                <div className="border-t border-stone-200/60 bg-stone-50/40 px-4 py-3.5 space-y-3 text-[13px]">
-                  <div className="flex gap-2">
-                    <span className="text-stone-400 w-[88px] shrink-0">Ask for</span>
-                    <span className="text-stone-800 font-medium">{guidance.askFor}</span>
+                <div className="px-4 pb-4 pt-1">
+                  {/* Who to ask for */}
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-stone-400">Ask for</div>
+                  <div className="text-[14px] font-semibold text-stone-900 mt-0.5">{guidance.askFor}</div>
+
+                  {/* The script — the hero */}
+                  <div className="mt-3 rounded-lg border-l-2 border-[#199087] bg-[#199087]/[0.05] pl-3.5 pr-3 py-2.5">
+                    <p className="text-[14px] text-stone-800 leading-relaxed">&ldquo;{guidance.opener}&rdquo;</p>
                   </div>
-                  <div className="rounded-lg bg-white border border-stone-200/70 p-3">
-                    <p className="text-stone-700 leading-relaxed">&ldquo;{guidance.opener}&rdquo;</p>
-                    <button
-                      type="button"
-                      onClick={() => copyScript(guidance.opener, k)}
-                      className="mt-2.5 inline-flex items-center gap-1 text-[12px] font-medium text-[#199087] hover:text-[#147a72] transition-colors"
-                    >
-                      {copied === k ? "Copied ✓" : "Copy script"}
-                    </button>
+                  <button
+                    type="button"
+                    onClick={() => copyScript(guidance.opener, k)}
+                    className="mt-1.5 text-[12px] font-medium text-stone-500 hover:text-stone-800 transition-colors"
+                  >
+                    {copied === k ? "Copied ✓" : "Copy script"}
+                  </button>
+
+                  {/* Supporting context — quiet one-liners */}
+                  <div className="mt-3.5 space-y-1.5 text-[12.5px] text-stone-500 leading-relaxed">
+                    <div><span className="text-stone-400">Your ask — </span>{guidance.ask}</div>
+                    <div><span className="text-stone-400">Why it works — </span>{guidance.whyCare}</div>
                   </div>
-                  <div className="flex gap-2">
-                    <span className="text-stone-400 w-[88px] shrink-0">Your ask</span>
-                    <span className="text-stone-700">{guidance.ask}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="text-stone-400 w-[88px] shrink-0">Why they care</span>
-                    <span className="text-stone-600">{guidance.whyCare}</span>
-                  </div>
+
+                  {/* The one primary action */}
                   {t.phone && (
                     <a
                       href={`tel:${t.phone}`}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-[#199087] px-3.5 py-1.5 text-[12.5px] font-semibold text-white hover:bg-[#147a72] transition-colors"
+                      className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#199087] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_1px_4px_rgba(25,144,135,0.3)] hover:bg-[#147a72] hover:shadow-[0_3px_10px_rgba(25,144,135,0.35)] hover:-translate-y-px active:translate-y-0 transition-all"
                     >
                       Call {t.phone} <span aria-hidden>→</span>
                     </a>

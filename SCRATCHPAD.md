@@ -7,6 +7,20 @@
 
 ## Current Focus
 
+### 2026-06-03 (Tue) — Post-launch outreach STRATEGY PLAN v2.2 (no code yet)
+
+**Context:** Third feedback pass from Logan focused on T&C modal UX, public-listing-deletion policy while pilot active, and a welcome-banner cut. Five material additions: (1) three actions trigger T&C, not one (Invite to interview / Save to shortlist / See contact info); (2) T&C modal redesigned with 4 plain-language reassurance bullets, full agreement + PDF links, unchecked agreement checkbox (legal best practice for e-consent enforceability); (3) public listing required while `pilot_active_through > now()` — backend guard blocks deletion with a clear "end the pilot first" message; (4) welcome banner removed (the board IS the welcome); (5) state-distinction reference table added so future authors don't conflate Directory-only / Portal-access / Pilot-active / Verified-claimed.
+
+**Pressure-tested in v2.2:** pre-checked T&C checkboxes are NOT best practice. US ESIGN Act + UETA require "clear, affirmative consent"; EU/GDPR requires "unambiguous indication via clear affirmative act"; Nielsen/Baymard treat pre-check as a dark pattern. Recommendation: unchecked-by-default, continue button disabled until checked.
+
+**Strategic shifts grew S1–S14 → S1–S16.** New: S15 (T&C as plain-language reassurance card not single-line ack), S16 (public listing required while pilot active). MVP ticket list grew from 10 to 11 (added ticket 11: pilot-required listing deletion guard, 1 day). New Phase 2 ticket: self-serve End-Pilot portal surface (MVP relies on "contact us" matching PDF's written-notice clause).
+
+**Plan v2.2:** [`plans/post-launch-outreach-redesign-plan.md`](plans/post-launch-outreach-redesign-plan.md). 13 open questions; v2.2 resolves Q10 (no welcome banner) and Q12 (unchecked checkbox); new Q11 (listing deletion policy) and Q13 (T&C reassurance copy approval).
+
+**Resume next session here →** Logan reviews v2.2 — especially the T&C modal v2.2 spec in P1.E T7 (4 reassurance bullets, unchecked checkbox, verb-matched continue button), the state-distinction table (4 mutually distinct states with publicly-visible vs operational consequences), and the P1.E.5 listing-deletion policy. If approved, MVP Implementation Phase 1 tickets 1–11 next.
+
+---
+
 ### 2026-06-03 (Tue) — Post-launch outreach STRATEGY PLAN v2.1 (no code yet)
 
 **Context:** Logan pushed back on v2's hand-wavy treatment of Δ5 (magic-link as MVP) and Δ6 (just-in-time account creation), demanding rigorous step-by-step modeling of how the cold provider's identity / claim / pilot / verification states interact across the email → click → browse → activate journey. Read the pilot agreement PDF + ran another infra survey (`claim_state` semantics, `account_id` cardinality, conflict handling) before revising.

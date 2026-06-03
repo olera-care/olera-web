@@ -1,8 +1,25 @@
-# Plan: Post-Launch Outreach Redesign — Strategy v2.1
+# Plan: Post-Launch Outreach Redesign — Strategy v2.2
 
-Created: 2026-06-03 (v1 + v2 same day; v2.1 adds the rigorous journey + state model)
+Created: 2026-06-03 (v1 + v2 + v2.1 same day; v2.2 deepens T&C UX + adds provider-page deletion policy)
 Status: STRATEGY / NOT STARTED (no code yet)
 Author: Claude
+
+## v2.2 update — what changed from v2.1
+
+Logan's third feedback pass focused on the actual T&C modal UX, the
+relationship between pilot membership and the public provider listing
+(can a participating provider delete their listing?), and a cut: the
+welcome banner I'd proposed in v2.1 is probably clutter and should go.
+
+Material v2.1 → v2.2 revisions:
+
+| # | What changed | Why |
+|---|--------------|-----|
+| Δ7 | **Three actions trigger T&C, not one.** Invite to interview, Save to shortlist, See contact info — all "meaningful student engagement" actions gate on terms acceptance. Browse + filter remain free. | Anchoring T&C to just one action (invite) misses providers who want to shortlist or look up contact first. The unifying rule is "any action that touches a specific student's identity or your relationship with them." |
+| Δ8 | **T&C modal redesigned** with plain-language reassurance bullets answering the four predictable provider concerns (payment, hiring obligation, employment responsibility, public listing). Full agreement linked + PDF download. **Unchecked checkbox by default** (legal best practice). Continue button verb-matched to the action they were trying to take. | A "scary legal wall" loses providers at the conversion moment. The reassurance bullets resolve the four objections most providers will have before reading any legalese. Unchecked-by-default is required for meaningful e-consent enforceability (US/EU norm). |
+| Δ9 | **Public provider listing is required while pilot is active.** New backend guard: delete-profile flow blocks deletion when `pilot_active_through > now()`. Provider can edit freely; can end the pilot via written notice (per PDF) to unlock deletion. T&C modal includes this acknowledgment as one of the reassurance bullets. | First-principles: students invited to interview need to research the agency; families clicking through Olera need to find them. A pilot-active row without a public listing creates a broken ecosystem state. |
+| Δ10 | **Welcome banner removed from T5.** The candidate board IS the welcome. Preview mode is communicated by the disabled action buttons + their tooltip, not a separate banner. | Logan's directive: "less is more." A welcome banner doesn't add value the disabled buttons aren't already conveying. Removing it tightens the first impression. |
+| Δ11 | **State-distinction reference table** added to P1.E for quick lookup. Four mutually distinct states (public listing exists / portal access / pilot active / claimed and verified) with a one-row "what this means publicly and operationally" table. | Logan's §6 ask: "Do not conflate these unless that is truly the best architecture." Surfacing the distinctions at-a-glance makes future drift less likely. |
 
 ## v2.1 update — what changed from v2
 
@@ -83,10 +100,12 @@ DuBose is *one* path to Pilot Active, not the goal.
 | **S10** (new) | Onboarding is a multi-step flow | Onboarding is **the magic-link click**. `auto-sign-in` + `claim-instant` happen silently in one server handler; provider lands authenticated. The "form" is the PDF terms button — and it only appears at the first action that requires it. |
 | **S11** (new) | Welcome page is a marketing landing | There is no separate landing page. The provider's first impression IS the candidate board (with a thin welcome banner). Browse first, T&C later. |
 | **S12** (new) | Empty-state is "students recruiting" | Empty-state is a tiered fallback: real local students → sample students from peer campuses → labeled demo candidate (Logan as a clearly-marked demo) → "recruiting in progress" momentum. The page must *always* show something usable. |
-| **S13** (v2.1 new) | Magic-link click ≈ full activation | Magic-link click advances **two of four** state axes (auth identity + CRM-internal profile claim), not all four. Pilot membership requires terms acceptance. Public verification badge requires the existing verification flow. The four axes are orthogonal — see P1.E. |
-| **S14** (v2.1 new) | T&C appears on landing | T&C appears at the **first axis-3 action attempt** ("Invite to interview" / "Save student" / "See contact info"). Browsing is free. The modal carries the verb of the action the provider was trying to take ("Accept and invite this student"). |
+| **S13** (v2.1 new) | Magic-link click ≈ full activation | Magic-link click advances **two of four+ state axes** (auth identity + CRM-internal account-linkage), not all of them. Pilot membership requires terms acceptance. Public verification badge requires the existing verification flow. See P1.E for the four orthogonal axes. |
+| **S14** (v2.1, revised v2.2) | T&C appears on landing | T&C appears at the first **meaningful student engagement** action — any of *Invite to interview*, *Save to shortlist*, *See contact info*. Browse + filter remain free. The modal CTA carries the verb of the original action ("Agree and invite this student"). |
+| **S15** (v2.2 new) | T&C is a single-line legal acknowledgment | T&C modal is a **plain-language reassurance card** with four bullets addressing the predictable provider concerns (payment, hiring obligation, employment responsibility, public listing requirement), plus full-agreement link, PDF download, **unchecked agreement checkbox** (legal best practice for e-consent enforceability), and an action-verb-matched continue button. |
+| **S16** (v2.2 new) | Provider can delete their public listing at any time | While `pilot_active_through > now()`, deletion of the public listing is **blocked** by the backend. Provider can edit freely. To delete: end the pilot via written notice (per PDF) → `pilot_active_through = now()` → deletion unlocks. T&C explicitly notes this so it isn't a surprise. |
 
-If any of S1–S14 is wrong, the rest of this doc is wrong.
+If any of S1–S16 is wrong, the rest of this doc is wrong.
 
 ---
 
@@ -267,22 +286,75 @@ Each axis advances when its trigger fires. No silent overreach.
 - Session cookies persist for subsequent visits.
 
 **T5 — Land on candidate board** (axis 3 still not active):
-- Top of page: small welcome banner — "Welcome, {org_name}. You're previewing the {campus} student caregiver board. Browse what's here; accept the pilot agreement to invite students to interview."
-- Student cards render in **preview mode**: name, year, brief bio, photo. NO contact info. "Invite to interview" button visible but in disabled / preview state.
+- No welcome banner (revised in v2.2 — see rationale above).
+- Student cards render in **preview mode**: name, year, brief bio, photo, no contact info. Action buttons (Invite to interview, Save to shortlist, See contact info) visible but disabled-with-tooltip: "Accept the pilot agreement to {verb}".
+- Filters work fully (catchment, availability, languages, certifications — existing on the page).
 - Empty-state ladder applies (P1.F): real → sample → demo → recruiting-momentum.
 
 **T6 — Browse experience** (no T&C wall):
-- Provider browses cards, applies filters (catchment, availability, languages, certifications — existing on the page).
-- Clicking a student card opens the expanded profile in preview mode (full bio, photo, expanded info; contact still hidden).
-- Browsing is fully unblocked; no T&C friction here.
+- Browse, filter, click student cards to see expanded profiles. All free.
+- No T&C friction. The browsing experience is meant to deliver value first.
 
-**T7 — First action attempt** (triggers axis 3 transition):
-- Provider clicks "Invite to interview" (or "Save to shortlist" or "See contact info" — any axis-3 action).
-- Modal opens: the **T&C modal** displaying the pilot agreement.
-- Header: "One-time agreement to participate in the pilot."
-- Body: PDF rendered inline (or a clean structured version of it).
-- Primary CTA: "Accept and invite this student" (verb-matched to the action they were trying to take).
-- Cancel button: closes modal, no state change.
+**T7 — First meaningful engagement attempt** (triggers axes 2b + 3 transition):
+
+Three actions are gated on pilot acceptance — collectively the
+"meaningful student engagement" set:
+
+| Action | Why it's gated |
+|--------|----------------|
+| **Invite to interview** | Touches the student's relationship with the provider; creates expectations on both sides. |
+| **Save to shortlist** | Implicit commitment signal; pulls the student into a private workflow. |
+| **See contact info** | Hands over a student's personal contact details — should not happen without agreement to the program terms. |
+
+The first click on any of these opens the T&C modal. Browse + filter
+remain free.
+
+**T&C modal — content & UX** (v2.2 spec):
+
+Title bar (varies by action — verb-matched):
+- "Before you invite this student"
+- "Before you save this student"
+- "Before you view contact information"
+
+Intro line:
+> "One quick agreement so we can get {org_name} set up. Here's what you're saying yes to:"
+
+Reassurance bullets (4, in plain language, addressing the predictable provider concerns from Logan's feedback):
+- ✓ **Free for 3 months** — no payment information needed.
+- ✓ **No obligation to hire anyone** you review or interview.
+- ✓ **Your agency makes all hiring decisions** — we just connect you with students.
+- ✓ **Your public Olera profile stays visible** while you're in the pilot — students and families need to find you. ([Learn why →])
+
+Reference links (below the bullets, smaller):
+- [Read the full pilot agreement →] (opens modal-within-modal or a side panel)
+- [Download as PDF →] (link to the original `pilotagreementhomespark.pdf` template, org-personalized)
+
+Agreement checkbox (**UNCHECKED by default** — see "Why unchecked" below):
+- ☐ I have read and agree to the pilot agreement.
+
+Primary CTA (verb-matched to original action, disabled until checkbox checked):
+- "Agree and invite this student" / "Agree and save this student" / "Agree and view contact info"
+
+Secondary action:
+- "Cancel" (closes modal, no state change)
+
+**Why unchecked-by-default is wisest** (pressure-tested per Logan's ask):
+- US e-sign norms (ESIGN Act + UETA) require **clear, affirmative consent** for electronic agreements to be enforceable. A pre-checked box is widely viewed as not satisfying "affirmative" — it requires the user to take action to un-consent rather than to consent.
+- EU/GDPR similarly requires "unambiguous indication" via "a clear affirmative act."
+- Industry/UX research (Nielsen, Baymard) treats pre-checked checkboxes as a dark pattern.
+- Practical: the friction of checking a single box is essentially zero, while the legal certainty of an unchecked-by-default flow is significant.
+- **Recommendation: unchecked, must be actively checked to enable the CTA.**
+
+**Visual tone:** matches the existing `LogModalShell` pattern from
+`components/admin/medjobs/LogModalShell.tsx` — clean, professional,
+not legalese-heavy. Card-style modal, ample whitespace, no scary
+border colors.
+
+**Implementation note:** the modal mounts whichever action the
+provider was trying to take in component-local state, so on accept the
+modal's continue handler runs (a) the pilot-activate API call, then
+(b) the original action handler with the now-unlocked permissions. No
+re-click required. Single-flow UX.
 
 **T8 — Accept T&C** (axes 2b + 3 transition together):
 - POST `/api/medjobs/pilot/activate` with `{business_profile_id, source: "self_serve", original_action: "invite_to_interview", student_id?}`.
@@ -382,11 +454,54 @@ a smaller secondary CTA. PDF stays attached.
   welcome page header reads "Signed in as {org_name}" so the
   recipient understands what they're operating.
 
-### Why we still call it a "welcome page" — but it's the candidate board
+### No welcome banner (revised in v2.2)
 
-Not a separate marketing landing. The "welcome" experience IS the
-candidate board with a small welcome banner at top. Provider's first
-impression IS the product. Lower bounce, faster time-to-value.
+v2.1 proposed a welcome banner at the top of the candidate board.
+Logan pushed back — and he's right. The board itself IS the welcome;
+a banner would just dilute the first impression with onboarding
+language. The preview mode (no contact info, action buttons disabled
+with a clear tooltip) communicates what the provider needs to know.
+
+If we later find provider confusion about *why* contact info is hidden,
+the right fix is a one-line cue in the disabled tooltip ("Accept the
+pilot agreement to see contact info") — not a page-level banner.
+
+### State distinctions (v2.2 reference)
+
+Quick at-a-glance table so future authors don't conflate the states.
+The four distinct states a provider can be in (combinations allowed):
+
+| State | Public listing visible? | Portal access? | Can engage students? | Public "Claimed" badge? |
+|-------|-------------------------|----------------|----------------------|-------------------------|
+| **Directory-only** (default) | Yes (we scraped them) | No | No | No |
+| **Portal-access** (post magic-link click) | Yes | Yes — browse only, preview cards | No | No |
+| **Pilot-active** (post T&C accept) | Yes — **required**; deletion blocked while pilot active | Yes — full board | Yes — invite, save, see contact | No (until they verify separately) |
+| **Verified-claimed** (existing flow) | Yes — with "Claimed" badge | Yes (if also has portal access) | Yes (if also pilot-active) | Yes |
+
+A provider can be Verified-claimed without ever joining the pilot,
+or Pilot-active without ever going through formal verification.
+The two tracks are independent. The CRM cares about Pilot-active;
+the public site cares about Verified-claimed.
+
+### P1.E.5 — Provider listing & deletion policy (v2.2 new)
+
+**Principle:** if a provider is in the active pilot, their public
+listing must remain visible. Students invited to interview need to
+research the agency; families clicking through Olera need to find
+them; the pilot ecosystem assumes the listing is part of the
+provider's public face.
+
+**Policy:**
+- **While `pilot_active_through > now()`** — public listing is **required**. Backend `DELETE /api/provider/[slug]` (or equivalent) returns 409 with a clear message: "Your public listing is required while your pilot is active. To delete, end the pilot first by contacting us — see [Contact Olera] in your settings."
+- **Editing** the listing is always permitted (existing flow, unchanged).
+- **Verifying** the listing for the public "Claimed" badge is always permitted (existing flow, unchanged) — this is independent of pilot membership.
+- **To delete:** provider sends written notice to end the pilot (per the pilot agreement). Admin sets `pilot_active_through = now()` (or null). The deletion guard releases. Provider can then delete normally.
+
+**T&C disclosure:** the modal's reassurance bullets include "Your public Olera profile stays visible while you're in the pilot — students and families need to find you" so this isn't a surprise post-acceptance.
+
+**MVP scope:** the deletion guard ships in MVP (one-line check in the existing delete handler). The self-serve "End pilot" portal surface is **deferred to Phase 2** — for the first 3 months we expect zero such requests, and "contact us" via email matches the PDF's "written notice" language.
+
+**Edge case:** if the public listing is somehow deleted while pilot is active (admin override, race condition), the candidate-side surface should gracefully degrade — student interview-invite flow checks `provider.listing_visible !== false` before showing the "Research the agency" link, falls back to "Agency profile not available."
 
 ## P1.F — Empty-state ladder
 
@@ -480,35 +595,38 @@ upsell). Admin gets a Day-T-minus-7 task to reach out about
 continuation. (This is post-MVP; for the first 3 months we just need
 the activation path, not the expiry path.)
 
-## P1.J — MVP vs later (revised in v2.1)
+## P1.J — MVP vs later (revised in v2.2)
 
 **Implementation Phase 1 — MVP (~4-week scope)**
 
 1. **Cadence change** in `cadence.ts` — Day 0 email-only, Day 3 email+call, Day 5 call, Day 7 email. (1 day)
 2. **Provider email template rewrite** — single "Review {campus} student caregivers →" campus-personalized CTA, no "trial" language, magic-link URL embed. (1 day)
 3. **Pilot-tier backend** — `business_profiles.metadata.pilot_active_through` field + extend `medjobs_subscription_active` predicate (Option A). (1 day)
-4. **Magic-link infrastructure** — `lib/medjobs/welcome-token.ts` (sign / verify / one-shot JTI revocation set) + `/medjobs/m/[token]/route.ts` server handler implementing the full T1–T4 journey (token decode → axis-1 advance via auto-sign-in → axis-2 advance via claim-instant logic OR co-tenancy edge case → audit → redirect). (4 days)
-5. **Candidate board preview-mode rendering** — extend `/medjobs/candidates/page.tsx` to honor axis-3 state: pre-pilot accounts see preview cards (no contact, disabled action buttons) + welcome banner; pilot-active accounts see full mode. (3 days)
-6. **T&C action-trigger modal** — modal that opens on first axis-3 action attempt ("Invite to interview" / "Save student" / "See contact info"). Renders the PDF inline. On accept, POST `/api/medjobs/pilot/activate` → axis-3 advance + outreach transition to `active_partner`. Modal CTA carries the verb of the action they were trying to take. (3 days)
+4. **Magic-link infrastructure** — `lib/medjobs/welcome-token.ts` (sign / verify / one-shot JTI revocation set) + `/medjobs/m/[token]/route.ts` server handler implementing the full T1–T4 journey (token decode → axis-1 advance via auto-sign-in → axis-2a advance via claim-instant-style insertion with `claim_state="unclaimed"` OR co-tenancy edge case → audit → redirect). (4 days)
+5. **Candidate board preview-mode rendering** — extend `/medjobs/candidates/page.tsx` to honor axis-3 state: pre-pilot accounts see preview cards (no contact, action buttons disabled with action-verb tooltips); pilot-active accounts see full mode. **No welcome banner** (v2.2 cut). (3 days)
+6. **T&C action-trigger modal + pilot activation** — modal opens on first "meaningful engagement" action (Invite to interview / Save to shortlist / See contact info). Renders the v2.2 spec: action-verb-matched title, 4 reassurance bullets, full-agreement link, PDF link, unchecked agreement checkbox, action-verb-matched continue button. On accept, POST `/api/medjobs/pilot/activate` → axes 2b + 3 advance + outreach transition to `active_partner` + original action proceeds in the same flow. (3 days)
 7. **Empty-state ladder** — `components/medjobs/EmptyCandidates.tsx`: real local students → sample students from peer campuses → labeled demo candidate (Logan profile) → recruiting-in-progress momentum. (3 days)
 8. **Co-tenancy edge case** — when business_profile is claimed by a different account, sign in but stay in read-only mode + emit `note_added(reason: "claim_conflict")` admin task. (2 days)
 9. **Smartlead webhook expansion** — `email_open` + `email_link_click` handlers update the `email_sent` touchpoint payload. (2 days)
 10. **CRM stage signals** — `note_added(reason: "platform_visited")` from welcome handler; `stage_change` from `/api/medjobs/pilot/activate`. Outreach drawer renders the new payload reasons in its narration. (2 days)
+11. **Pilot-required listing deletion guard** (v2.2) — server-side guard in the existing provider-delete handler that returns 409 when `pilot_active_through > now()`. (1 day)
 
-Total: ~22 days of focused work (~4 weeks at 1 dev). The journey
-(T1–T4) is the load-bearing piece — items 4, 5, 6, 8 are tightly
+Total: ~23 days of focused work (~4.5 weeks at 1 dev). The journey
+(T1–T8) is the load-bearing piece — items 4, 5, 6, 8 are tightly
 coupled and should land as one coherent PR sequence rather than
 shipping individually. **No tab UI changes, no timeline split, no
-Calendly webhook.** Those are Phase 2.
+Calendly webhook, no self-serve End-Pilot surface.** Those are
+Phase 2.
 
 **Implementation Phase 2 — Surfaces (after MVP data starts flowing)**
 
-9. Timeline split (Upcoming / Past Activity).
-10. Next Step post-launch state branches.
-11. Emails tab (rename + smart-filter sections).
-12. Calls tab Today/Upcoming sections.
-13. Meetings tab + Calendly webhook.
-14. Pilot-expiry awareness (Day T-7 reach-out task, post-pilot upsell).
+12. Timeline split (Upcoming / Past Activity).
+13. Next Step post-launch state branches.
+14. Emails tab (rename + smart-filter sections).
+15. Calls tab Today/Upcoming sections.
+16. Meetings tab + Calendly webhook.
+17. Pilot-expiry awareness (Day T-7 reach-out task, post-pilot upsell).
+18. **Self-serve "End Pilot" surface** (v2.2 deferred) — provider portal page where pilot-active providers can voluntarily end the pilot (sends admin notification, sets `pilot_active_through = now()`, unlocks listing deletion). MVP relies on "contact us via email" matching the PDF's written-notice clause.
 
 **Implementation Phase 3 — Polish (later)**
 
@@ -718,10 +836,13 @@ The five from v1 are mostly resolved by the PDF + survey. Updated set:
 4. **Demo-candidate copy & photo** — Logan as a clearly-marked demo profile is the recommendation. Approved? Or use a different sample face?
 5. **Token TTL** — 30 days feels right (allows for slow readers, doesn't leave an open door forever). Confirm.
 6. **Pilot expiry behavior** — when `pilot_active_through` passes, the candidate board re-redacts (free tier). Admin gets a Day-T-minus-7 reach-out task. Defer to Phase 2 or include in MVP? (Recommend defer.)
-7. **v2.1: First axis-3 action** — which action triggers the T&C modal? Recommendation: "Invite to interview" (highest-intent, most natural verb) as the primary trigger; "Save to shortlist" + "See contact info" as secondary triggers. Confirm.
-8. **v2.1: Co-tenancy edge case** — when business_profile is already claimed by a different account, recommendation is read-only co-tenancy + admin reconcile task. Alternative is hard-block ("ask your team admin for access"). The read-only path is friendlier but creates an audit obligation. Pick.
-9. **v2.1: Split axis 2 into 2a (account-linkage) and 2b (claim-status)** — magic-link click advances only 2a, leaving `claim_state = "unclaimed"`. Terms acceptance advances 2b to `"claimed"` (the pilot signature IS the formal identification). This means cold magic-link clickers don't trigger crons that gate on `claim_state = "claimed"` (digest, reviews refresh, etc.). Confirm this is the right reading; the alternative is to advance both 2a and 2b at click (v2.0 behavior), accepting that cron side-effects need per-cron mitigation.
-10. **v2.1: Welcome banner language** — "Welcome, {org_name}. You're previewing the {campus} student caregiver board. Browse what's here; accept the pilot agreement to invite students to interview." Approved? Or different tone?
+7. **v2.1/2.2: Actions that trigger T&C** — confirmed in v2.2 as the three "meaningful engagement" actions: Invite to interview, Save to shortlist, See contact info. Browse + filter remain free. Confirm the set is right; specifically, should "Click into expanded student profile" also gate (currently no — it stays free)?
+8. **v2.1: Co-tenancy edge case** — when business_profile is already claimed by a different account, recommendation is read-only co-tenancy + admin reconcile task. Alternative is hard-block ("ask your team admin for access"). Pick.
+9. **v2.1: Split axis 2 into 2a (account-linkage) and 2b (claim-status)** — magic-link click advances only 2a; terms acceptance advances 2b. Avoids spurious cron triggers on cold clickers. Confirm.
+10. **v2.1: Welcome banner** — RESOLVED in v2.2. Removed entirely. The candidate board IS the welcome; preview mode is communicated via the disabled action buttons + their tooltips.
+11. **v2.2: Provider listing deletion policy** — recommendation is to BLOCK deletion while `pilot_active_through > now()`, with a clear message directing the provider to end the pilot first (per the PDF's written-notice clause). Alternative is to allow deletion + silently end the pilot. The block is wiser (matches PDF, prevents broken ecosystem state) but adds a small admin task ("provider X wants to end pilot, please process"). Confirm.
+12. **v2.2: T&C checkbox** — RESOLVED in v2.2. Unchecked-by-default is the legal/UX best practice. Continue button disabled until checked.
+13. **v2.2: T&C reassurance bullet wording** — four bullets drafted in P1.E T7. Tone aimed at "clear / reassuring / professional, not scary legal wall." Approve copy, or workshop a tweak?
 
 ---
 
@@ -741,13 +862,16 @@ The five from v1 are mostly resolved by the PDF + survey. Updated set:
 | 8 | Co-tenancy edge case | `app/medjobs/m/[token]/route.ts`, `app/medjobs/candidates/page.tsx` | Manual test: pre-claim a business_profile with account A, click a magic-link token addressed to account B's email; confirm read-only mode + admin task emitted (`reason: "claim_conflict"`). |
 | 9 | Smartlead webhook (open + click) | `supabase/functions/smartlead-webhook/` | Webhook test: simulate open + click events; confirm `email_sent` payload updates with `open_count` / `click_count`. |
 | 10 | CRM stage signals | outreach drawer narration, `lib/student-outreach/narration.ts` | E2E: walk a full row (email click → platform_visited → terms_accepted → stage_change) and confirm timeline narration reads correctly. |
+| 11 | Pilot-required listing deletion guard (v2.2) | existing `DELETE /api/provider/...` handler, or equivalent | Manual test: try to delete a profile with `pilot_active_through > now()` → expect 409 + clear error. Try with expired `pilot_active_through` → expect success. |
 
 Each ticket is one PR. **Order matters:**
-- 1 + 2 + 3 are independent and tiny.
+- 1 + 2 + 3 + 11 are independent and tiny.
 - 4 is the foundation — unblocks 5, 6, 8.
 - 5 + 6 are the journey heart; ship them as a tight pair.
 - 7 + 8 can run in parallel with 5/6.
 - 9 + 10 are tangential and can land anytime.
+
+Total: ~23 days (v2.1 was 22; +1 for ticket 11).
 
 ### Phase 2 — Surfaces (after MVP data starts flowing)
 

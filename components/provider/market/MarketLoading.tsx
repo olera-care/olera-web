@@ -13,8 +13,11 @@ const STEPS = [
  * Purposeful loading state for "Your Market" — narrates the work being assembled
  * instead of showing blank skeleton blocks. Reframes the wait as intelligence being
  * generated. Doubles as the Phase-2 cache-miss ("building your report") experience.
+ *
+ * `longRunning` softens the copy once a first-visit compute crosses ~20s, so the one
+ * unlucky visitor who triggers a cold-city build isn't left staring at a stalled loader.
  */
-export default function MarketLoading({ city }: { city?: string }) {
+export default function MarketLoading({ city, longRunning = false }: { city?: string; longRunning?: boolean }) {
   const [done, setDone] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setDone((d) => (d < STEPS.length ? d + 1 : d)), 700);
@@ -33,7 +36,9 @@ export default function MarketLoading({ city }: { city?: string }) {
         Building your {city || "local"} market…
       </h2>
       <p className="text-[13px] text-stone-500 mt-2 max-w-xs">
-        Live data from Google, the U.S. Census, and Olera&apos;s demand funnel.
+        {longRunning
+          ? "Almost there — we’re pulling this one fresh, which takes about a minute. Hang tight, or check back shortly."
+          : "Live data from Google, the U.S. Census, and Olera’s demand funnel."}
       </p>
 
       <div className="mt-8 space-y-2.5 text-left">

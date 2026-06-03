@@ -308,71 +308,63 @@ export async function GET(request: NextRequest) {
     };
     for (const c of searched) counts[c.temperature.state]++;
 
-    // Engagement-based counts
-    // Engaged = provider opened lead OR copied contact
-    // No Activity = lead sent but provider hasn't viewed it
+    // Engagement-based counts (PER-CONNECTION, not per-provider)
+    // Engaged = provider opened THIS specific lead OR copied THIS lead's contact
+    // No Activity = this specific lead hasn't been viewed
 
-    // Fetch engagement data to determine engaged vs no_activity
-
-    // Fetch engagement data (limited to searched set)
+    // Build set of connection IDs and provider keys we need to check
+    const connectionIds = new Set(searched.map((c) => c.id));
     const allProviderKeys = [...new Set(
       searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
-    )].slice(0, 1000); // Cap to prevent huge queries
+    )].slice(0, 1000);
 
-    const actionEngagement = new Map<string, {
-      email_clicked: boolean;
+    // Per-connection engagement tracking
+    const connectionEngagement = new Map<string, {
       lead_opened: boolean;
       contact_revealed: boolean;
-      one_click_access: boolean;
-      claim_completed: boolean;
-      last_engagement_at: number;
     }>();
 
+    // Initialize all connections as not engaged
+    for (const c of searched) {
+      connectionEngagement.set(c.id, {
+        lead_opened: false,
+        contact_revealed: false,
+      });
+    }
+
+    // Fetch engagement events with metadata to match by lead_id/connection_id
     if (allProviderKeys.length > 0) {
       const { data: actEvents } = await db
         .from("provider_activity")
-        .select("provider_id, event_type, created_at")
+        .select("provider_id, event_type, created_at, metadata")
         .in("provider_id", allProviderKeys)
-        .in("event_type", ["email_click", "lead_opened", "contact_revealed", "one_click_access", "claim_completed"])
+        .in("event_type", ["lead_opened", "contact_revealed"])
         .limit(10000);
 
-      for (const key of allProviderKeys) {
-        actionEngagement.set(key, {
-          email_clicked: false,
-          lead_opened: false,
-          contact_revealed: false,
-          one_click_access: false,
-          claim_completed: false,
-          last_engagement_at: 0,
-        });
-      }
-
       for (const ev of actEvents ?? []) {
-        const eng = actionEngagement.get(ev.provider_id);
-        if (!eng) continue;
-        const evTime = new Date(ev.created_at).getTime();
-        if (evTime > eng.last_engagement_at) eng.last_engagement_at = evTime;
+        // Extract connection/lead ID from metadata
+        const meta = ev.metadata as Record<string, unknown> | null;
+        const leadId = (meta?.lead_id as string) || (meta?.connection_id as string);
 
-        if (ev.event_type === "email_click") eng.email_clicked = true;
-        else if (ev.event_type === "lead_opened") eng.lead_opened = true;
+        // Only count if this event is for one of our connections
+        if (!leadId || !connectionIds.has(leadId)) continue;
+
+        const eng = connectionEngagement.get(leadId);
+        if (!eng) continue;
+
+        if (ev.event_type === "lead_opened") eng.lead_opened = true;
         else if (ev.event_type === "contact_revealed") eng.contact_revealed = true;
-        else if (ev.event_type === "one_click_access") eng.one_click_access = true;
-        else if (ev.event_type === "claim_completed") eng.claim_completed = true;
       }
     }
 
     // Count engaged vs no_activity
-    // Engaged = provider opened lead (lead_opened) OR copied contact (contact_revealed)
-    // No Activity = no engagement events
     let engagedCount = 0;
     let noActivityCount = 0;
-
-    // Track engagement status for each connection
     const connectionEngaged = new Map<string, boolean>();
 
     for (const c of searched) {
-      const eng = c.provider.activityKey ? actionEngagement.get(c.provider.activityKey) : null;
-      // Engaged = opened lead OR copied contact
+      const eng = connectionEngagement.get(c.id);
+      // Engaged = THIS lead was opened OR contact was copied for THIS lead
       const isEngaged = !!(eng?.lead_opened || eng?.contact_revealed);
       connectionEngaged.set(c.id, isEngaged);
 
@@ -402,19 +394,15 @@ export async function GET(request: NextRequest) {
 
     const page = list.slice(offset, offset + limit);
 
-    // Provider engagement (opened/clicked/contact revealed) — reuse data from
-    // actionEngagement map instead of making a second query
+    // Per-connection engagement data for UI badges (keyed by connection ID)
     const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }> = {};
     for (const c of page) {
-      const key = c.provider.activityKey;
-      if (key) {
-        const eng = actionEngagement.get(key);
-        engagement[key] = {
-          email_clicked: eng?.email_clicked ?? false,
-          lead_opened: eng?.lead_opened ?? false,
-          contact_revealed: eng?.contact_revealed ?? false,
-        };
-      }
+      const eng = connectionEngagement.get(c.id);
+      engagement[c.id] = {
+        email_clicked: false, // Not tracked per-connection currently
+        lead_opened: eng?.lead_opened ?? false,
+        contact_revealed: eng?.contact_revealed ?? false,
+      };
     }
 
     const truncated = (rows ?? []).length >= FETCH_CAP;

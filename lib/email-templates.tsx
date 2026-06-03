@@ -456,7 +456,7 @@ export function verificationDecisionEmail(opts: {
           <li>Respond to family inquiries and answer questions</li>
           <li>Customize your listing with photos and business details</li>
           <li>Reach out to families looking for care</li>
-          <li>Post jobs and hire caregivers</li>
+          <li>Hire caregivers</li>
         </ul>
       </div>
       <div style="text-align:center;margin:0 0 24px;">${button("Go to Your Dashboard", opts.dashboardUrl)}</div>
@@ -2252,7 +2252,7 @@ export function verificationApprovedEmail(opts: {
         <li>Respond to family inquiries and answer questions</li>
         <li>Customize your listing with photos and business details</li>
         <li>Reach out to families looking for care</li>
-        <li>Post jobs and hire caregivers</li>
+        <li>Hire caregivers</li>
       </ul>
     </div>
     <div style="text-align:center;margin:0 0 24px;">${button("Go to Your Dashboard", opts.dashboardUrl)}</div>

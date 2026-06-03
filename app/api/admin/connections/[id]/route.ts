@@ -139,6 +139,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     // arrived (provider_id keys both manual nudges and the consolidated cron
     // nudges). Lifecycle fields drive the delivered/opened/clicked status.
     type EmailLogRow = {
+      id: string;
       email_type: string | null;
       recipient: string | null;
       status: string | null;
@@ -148,6 +149,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       first_clicked_at: string | null;
       bounced_at: string | null;
       complained_at: string | null;
+      html_body: string | null;
     };
     // Only lead/connection-relevant mail — not weekly digests or profile nudges.
     const LEAD_EMAIL_TYPES = [
@@ -164,7 +166,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       const { data: logs } = await db
         .from("email_log")
         .select(
-          "email_type, recipient, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at"
+          "id, email_type, recipient, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, html_body"
         )
         .eq("provider_id", activityKey)
         .in("email_type", LEAD_EMAIL_TYPES)
@@ -178,6 +180,23 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const familyNudgeCount = (meta.family_nudge_count as number) || 0;
     const familyLastNudgedAt = (meta.family_nudged_at as string) || null;
 
+    // Parse care metadata from connection message
+    let careType: string | null = null;
+    let timeline: string | null = null;
+    if (c.message) {
+      try {
+        const msgJson = JSON.parse(String(c.message));
+        careType = msgJson.care_type ? (CARE_TYPE_LABELS[msgJson.care_type] || msgJson.care_type) : null;
+        timeline = msgJson.urgency ? (TIMELINE_LABELS[msgJson.urgency] || msgJson.urgency) : null;
+      } catch {
+        // Not JSON, ignore
+      }
+    }
+    // Fallback to family profile care_types
+    if (!careType && family?.care_types?.length) {
+      careType = CARE_TYPE_LABELS[family.care_types[0]] || family.care_types[0];
+    }
+
     return NextResponse.json({
       id: c.id,
       status: c.status,
@@ -190,6 +209,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         phone: family?.phone ?? null,
         nudgeCount: familyNudgeCount,
         lastNudgedAt: familyLastNudgedAt,
+        careType,
+        timeline,
       },
       provider: {
         display_name: provider?.display_name ?? null,

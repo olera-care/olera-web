@@ -59,6 +59,7 @@ interface ThreadEntry {
 }
 
 interface EmailTrailEntry {
+  id: string;
   email_type: string | null;
   recipient: string | null;
   status: string | null;
@@ -68,6 +69,7 @@ interface EmailTrailEntry {
   first_clicked_at: string | null;
   bounced_at: string | null;
   complained_at: string | null;
+  html_body: string | null;
 }
 
 interface Detail {
@@ -79,6 +81,8 @@ interface Detail {
     phone: string | null;
     nudgeCount: number;
     lastNudgedAt: string | null;
+    careType: string | null;
+    timeline: string | null;
   };
   provider: {
     display_name: string | null;
@@ -89,7 +93,6 @@ interface Detail {
     lastNudgedAt: string | null;
     slug: string | null;
   };
-  ask: string | null;
   thread: ThreadEntry[];
   emails: EmailTrailEntry[];
   engagement: Engagement;
@@ -150,6 +153,9 @@ export default function ConnectionRow({
   // Nudge action state
   const [nudging, setNudging] = useState(false);
   const [nudgeMsg, setNudgeMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  // Email preview state
+  const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null);
 
   const family = c.family.display_name || "A family";
   const provider = c.provider.display_name || "Provider";
@@ -273,9 +279,25 @@ export default function ConnectionRow({
                     )}
                   </div>
 
-                  <p className="font-medium text-gray-900 mb-2">
+                  <p className="font-medium text-gray-900 mb-1">
                     {detail.family.display_name || "Unknown"}
                   </p>
+
+                  {/* Care metadata tags */}
+                  {(detail.family.careType || detail.family.timeline) && (
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {detail.family.careType && (
+                        <span className="inline-flex px-2 py-0.5 rounded text-xs bg-blue-50 text-blue-700">
+                          {detail.family.careType}
+                        </span>
+                      )}
+                      {detail.family.timeline && (
+                        <span className="inline-flex px-2 py-0.5 rounded text-xs bg-amber-50 text-amber-700">
+                          {detail.family.timeline}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Contact info */}
                   <div className="space-y-1.5 mb-3">
@@ -451,18 +473,6 @@ export default function ConnectionRow({
                 </p>
               )}
 
-              {/* What the family asked */}
-              {detail.ask && (
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
-                    Family Request
-                  </h3>
-                  <p className="text-sm text-gray-700 bg-white rounded-lg border border-gray-200 p-3">
-                    {detail.ask}
-                  </p>
-                </div>
-              )}
-
               {/* Conversation thread */}
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
@@ -509,26 +519,59 @@ export default function ConnectionRow({
                   </p>
                 ) : (
                   <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
-                    {detail.emails.map((e, i) => (
-                      <div key={i} className="flex items-center justify-between gap-3 p-3">
-                        <div className="min-w-0">
-                          <span className="text-sm text-gray-700">{emailLabel(e.email_type)}</span>
-                          <span className="text-gray-300 mx-1.5">-</span>
-                          <span className="text-sm text-gray-500">{fmtDateTime(e.created_at)}</span>
-                          {e.recipient && (
-                            <span className="ml-2 text-xs text-gray-400 truncate">to {e.recipient}</span>
-                          )}
-                        </div>
-                        <EmailStatusPill
-                          status={e.status}
-                          sentAt={e.created_at}
-                          delivered_at={e.delivered_at}
-                          first_opened_at={e.first_opened_at}
-                          first_clicked_at={e.first_clicked_at}
-                          bounced_at={e.bounced_at}
-                          complained_at={e.complained_at}
-                          className="shrink-0"
-                        />
+                    {detail.emails.map((e) => (
+                      <div key={e.id}>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedEmailId(expandedEmailId === e.id ? null : e.id)}
+                          className="flex w-full items-center justify-between gap-3 p-3 text-left hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="min-w-0 flex items-center gap-2">
+                            <svg
+                              className={`w-4 h-4 text-gray-400 transition-transform shrink-0 ${expandedEmailId === e.id ? "rotate-90" : ""}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                            <span className="text-sm text-gray-700">{emailLabel(e.email_type)}</span>
+                            <span className="text-gray-300">-</span>
+                            <span className="text-sm text-gray-500">{fmtDateTime(e.created_at)}</span>
+                            {e.recipient && (
+                              <span className="text-xs text-gray-400 truncate hidden sm:inline">to {e.recipient}</span>
+                            )}
+                          </div>
+                          <EmailStatusPill
+                            status={e.status}
+                            sentAt={e.created_at}
+                            delivered_at={e.delivered_at}
+                            first_opened_at={e.first_opened_at}
+                            first_clicked_at={e.first_clicked_at}
+                            bounced_at={e.bounced_at}
+                            complained_at={e.complained_at}
+                            className="shrink-0"
+                          />
+                        </button>
+                        {expandedEmailId === e.id && (
+                          <div className="border-t border-gray-100 p-3 bg-gray-50">
+                            {e.html_body ? (
+                              <div className="rounded border border-gray-200 bg-white overflow-hidden">
+                                <iframe
+                                  srcDoc={e.html_body}
+                                  className="w-full border-0"
+                                  style={{ minHeight: "300px" }}
+                                  title="Email preview"
+                                  sandbox=""
+                                />
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-400 text-center py-4">
+                                No preview available for this email.
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

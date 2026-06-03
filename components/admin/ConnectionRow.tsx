@@ -69,7 +69,6 @@ interface EmailTrailEntry {
   first_clicked_at: string | null;
   bounced_at: string | null;
   complained_at: string | null;
-  html_body: string | null;
 }
 
 interface Detail {
@@ -156,6 +155,36 @@ export default function ConnectionRow({
 
   // Email preview state
   const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null);
+  const [emailHtmlCache, setEmailHtmlCache] = useState<Record<string, string | null>>({});
+  const [emailHtmlLoading, setEmailHtmlLoading] = useState<string | null>(null);
+
+  // Fetch email HTML when expanding
+  async function toggleEmailPreview(emailId: string) {
+    if (expandedEmailId === emailId) {
+      // Collapse
+      setExpandedEmailId(null);
+      return;
+    }
+    // Expand
+    setExpandedEmailId(emailId);
+    // If already cached, don't fetch again
+    if (emailHtmlCache[emailId] !== undefined) return;
+    // Fetch HTML
+    setEmailHtmlLoading(emailId);
+    try {
+      const res = await fetch(`/api/admin/emails/${emailId}/html`);
+      if (res.ok) {
+        const data = await res.json();
+        setEmailHtmlCache((prev) => ({ ...prev, [emailId]: data.html_body }));
+      } else {
+        setEmailHtmlCache((prev) => ({ ...prev, [emailId]: null }));
+      }
+    } catch {
+      setEmailHtmlCache((prev) => ({ ...prev, [emailId]: null }));
+    } finally {
+      setEmailHtmlLoading(null);
+    }
+  }
 
   const family = c.family.display_name || "A family";
   const provider = c.provider.display_name || "Provider";
@@ -523,7 +552,7 @@ export default function ConnectionRow({
                       <div key={e.id}>
                         <button
                           type="button"
-                          onClick={() => setExpandedEmailId(expandedEmailId === e.id ? null : e.id)}
+                          onClick={() => toggleEmailPreview(e.id)}
                           className="flex w-full items-center justify-between gap-3 p-3 text-left hover:bg-gray-50 transition-colors"
                         >
                           <div className="min-w-0 flex items-center gap-2">
@@ -555,10 +584,12 @@ export default function ConnectionRow({
                         </button>
                         {expandedEmailId === e.id && (
                           <div className="border-t border-gray-100 p-3 bg-gray-50">
-                            {e.html_body ? (
+                            {emailHtmlLoading === e.id ? (
+                              <p className="text-sm text-gray-400 text-center py-4">Loading preview...</p>
+                            ) : emailHtmlCache[e.id] ? (
                               <div className="rounded border border-gray-200 bg-white overflow-hidden">
                                 <iframe
-                                  srcDoc={e.html_body}
+                                  srcDoc={emailHtmlCache[e.id]!}
                                   className="w-full border-0"
                                   style={{ minHeight: "300px" }}
                                   title="Email preview"

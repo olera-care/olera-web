@@ -149,7 +149,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       first_clicked_at: string | null;
       bounced_at: string | null;
       complained_at: string | null;
-      html_body: string | null;
     };
     // Only lead/connection-relevant mail — not weekly digests or profile nudges.
     const LEAD_EMAIL_TYPES = [
@@ -166,7 +165,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       const { data: logs } = await db
         .from("email_log")
         .select(
-          "id, email_type, recipient, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, html_body"
+          "id, email_type, recipient, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at"
         )
         .eq("provider_id", activityKey)
         .in("email_type", LEAD_EMAIL_TYPES)

@@ -7,9 +7,11 @@
  * up-front so TJ + the team can prioritize Sites where enrichment
  * has paid off and defer the ones still data-starved.
  *
- * Mirrors the rules used by getProvidersInCatchment + the Provider
- * Prospect virtual-row computation so the predicted count matches
- * what the In Basket would actually surface.
+ * Mirrors the rules used by getProviderProspectsInCatchment + the
+ * Provider Prospect virtual-row computation so the predicted count
+ * matches what the In Basket would actually surface: it reads the
+ * olera-providers directory (NOT business_profiles) and restricts to
+ * non-medical home care — the only employer type MedJobs targets.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -17,6 +19,7 @@ import {
   PARTNER_UNIVERSITIES,
   type PartnerUniversity,
 } from "@/lib/staffing-outreach/partner-universities";
+import { fetchNonMedicalProviders } from "@/lib/medjobs/catchment";
 
 export interface CatchmentAuditRow {
   slug: string;
@@ -25,24 +28,28 @@ export interface CatchmentAuditRow {
   state: string;
   /** Number of {city,state} pairs in the catchment definition. */
   catchment_cities: number;
-  /** Active provider organizations in catchment that are NOT yet
-   *  clients — these become Provider Prospects on activation. */
+  /** Non-medical home care providers (olera-providers directory) in
+   *  catchment that are NOT yet materialized — these become Provider
+   *  Prospects on activation. */
   providers_in_catchment: number;
-  /** Providers in catchment already converted to clients (interview
-   *  T&C accepted in last 90d OR active subscription). Counted
-   *  separately so admin sees both numerator and denominator. */
+  /** Account-holders (business_profiles) in catchment already converted
+   *  to clients (interview T&C accepted in last 90d OR active
+   *  subscription). Sourced from business_profiles because clients are
+   *  account-holders, not directory rows. Informational. */
   providers_already_clients: number;
-  /** Providers in catchment already materialized as student_outreach
-   *  rows (kind='provider'). Subtracted from the prospect count. */
+  /** Directory providers in catchment already materialized as
+   *  student_outreach rows (kind='provider'), keyed by olera_provider_id
+   *  (new) or provider_business_profile_id (legacy). Excluded from the
+   *  prospect count. */
   providers_already_materialized: number;
-  /** Per-state total of provider organizations — informational. Shows
-   *  the gap between "providers in any of this Site's states" and
-   *  "providers actually in catchment cities." A wide gap suggests
-   *  either the catchment list is too narrow OR providers are
-   *  clustered elsewhere in the state. */
+  /** Per-state total of non-medical home care providers — informational.
+   *  Shows the gap between "non-medical providers in any of this Site's
+   *  states" and "non-medical providers actually in catchment cities." A
+   *  wide gap suggests either the catchment list is too narrow OR
+   *  providers are clustered elsewhere in the state. */
   providers_in_states: number;
-  /** Catchment cities that have ZERO matching providers — useful
-   *  hint for where enrichment should focus. */
+  /** Catchment cities that have ZERO matching non-medical providers —
+   *  the worklist for /city-pipeline enrichment. */
   empty_cities: Array<{ city: string; state: string }>;
   /** True when student_outreach_campuses has an is_active row with
    *  this slug — i.e. the Site is already activated. */
@@ -74,10 +81,20 @@ export async function auditCatchments(
   );
 
   const [
-    { data: providerData },
+    oleraData,
+    { data: clientData },
     { data: materializedData },
     { data: activeSiteData },
   ] = await Promise.all([
+    // Prospect universe: non-medical home care directory rows.
+    // Paginated to defeat the PostgREST max-rows cap.
+    fetchNonMedicalProviders<{
+      provider_id: string;
+      city: string | null;
+      state: string | null;
+    }>(db, "provider_id, city, state", allStates),
+    // Clients are account-holders, so the clients column reads
+    // business_profiles, not the directory.
     db
       .from("business_profiles")
       .select("id, city, state, metadata")
@@ -85,7 +102,9 @@ export async function auditCatchments(
       .in("state", allStates),
     db
       .from("student_outreach")
-      .select("provider_business_profile_id, campus_id, student_outreach_campuses(slug)")
+      .select(
+        "provider_business_profile_id, research_data, student_outreach_campuses(slug)",
+      )
       .eq("kind", "provider"),
     db
       .from("student_outreach_campuses")
@@ -93,38 +112,50 @@ export async function auditCatchments(
       .eq("is_active", true),
   ]);
 
-  type ProviderLite = {
-    id: string;
+  // Index the non-medical directory by city|state (prospect universe).
+  const oleraByCityState = new Map<string, Array<{ id: string }>>();
+  const oleraByState = new Map<string, number>();
+  for (const p of oleraData) {
+    if (p.state) {
+      oleraByState.set(p.state, (oleraByState.get(p.state) ?? 0) + 1);
+    }
+    if (!p.city || !p.state) continue;
+    const key = `${p.city.toLowerCase()}|${p.state}`;
+    if (!oleraByCityState.has(key)) oleraByCityState.set(key, []);
+    oleraByCityState.get(key)!.push({ id: p.provider_id });
+  }
+
+  // Index account-holder clients by city|state.
+  type ClientLite = {
     city: string | null;
     state: string | null;
     metadata: Record<string, unknown> | null;
   };
-  const providerByCityState = new Map<string, ProviderLite[]>();
-  const providersByState = new Map<string, number>();
-  for (const p of (providerData ?? []) as ProviderLite[]) {
-    if (p.state) {
-      providersByState.set(p.state, (providersByState.get(p.state) ?? 0) + 1);
-    }
+  const clientByCityState = new Map<string, ClientLite[]>();
+  for (const p of (clientData ?? []) as ClientLite[]) {
     if (!p.city || !p.state) continue;
     const key = `${p.city.toLowerCase()}|${p.state}`;
-    if (!providerByCityState.has(key)) providerByCityState.set(key, []);
-    providerByCityState.get(key)!.push(p);
+    if (!clientByCityState.has(key)) clientByCityState.set(key, []);
+    clientByCityState.get(key)!.push(p);
   }
 
-  // Materialized provider rows keyed by slug (so we can subtract per-
-  // university). Fall back to provider_id|<any> if the join failed.
+  // Materialized provider ids per slug. Honors BOTH the legacy
+  // provider_business_profile_id and the new research_data.olera_provider_id
+  // so directory-sourced materializations are correctly excluded.
   const materializedBySlug = new Map<string, Set<string>>();
   for (const r of (materializedData ?? []) as Array<{
     provider_business_profile_id: string | null;
+    research_data: { olera_provider_id?: string } | null;
     student_outreach_campuses: { slug: string } | { slug: string }[] | null;
   }>) {
-    if (!r.provider_business_profile_id) continue;
     const slug = Array.isArray(r.student_outreach_campuses)
       ? r.student_outreach_campuses[0]?.slug
       : r.student_outreach_campuses?.slug;
     if (!slug) continue;
     if (!materializedBySlug.has(slug)) materializedBySlug.set(slug, new Set());
-    materializedBySlug.get(slug)!.add(r.provider_business_profile_id);
+    const set = materializedBySlug.get(slug)!;
+    if (r.provider_business_profile_id) set.add(r.provider_business_profile_id);
+    if (r.research_data?.olera_provider_id) set.add(r.research_data.olera_provider_id);
   }
 
   const activeSlugs = new Set(
@@ -133,7 +164,7 @@ export async function auditCatchments(
 
   const now = Date.now();
   const rows: CatchmentAuditRow[] = PARTNER_UNIVERSITIES.map((uni) => {
-    const matCount = materializedBySlug.get(uni.slug)?.size ?? 0;
+    const matSet = materializedBySlug.get(uni.slug) ?? new Set<string>();
     const emptyCities: Array<{ city: string; state: string }> = [];
     let inCatchment = 0;
     let asClient = 0;
@@ -141,18 +172,18 @@ export async function auditCatchments(
     for (const cc of uni.catchment) {
       stateSet.add(cc.state);
       const key = `${cc.city.toLowerCase()}|${cc.state}`;
-      const list = providerByCityState.get(key) ?? [];
-      if (list.length === 0) emptyCities.push({ city: cc.city, state: cc.state });
-      for (const p of list) {
-        if (isClientMeta(p.metadata, now)) {
-          asClient += 1;
-          continue;
-        }
+      const oleraList = oleraByCityState.get(key) ?? [];
+      if (oleraList.length === 0) emptyCities.push({ city: cc.city, state: cc.state });
+      for (const p of oleraList) {
+        if (matSet.has(p.id)) continue; // already being worked
         inCatchment += 1;
+      }
+      for (const p of clientByCityState.get(key) ?? []) {
+        if (isClientMeta(p.metadata, now)) asClient += 1;
       }
     }
     let inStates = 0;
-    for (const s of stateSet) inStates += providersByState.get(s) ?? 0;
+    for (const s of stateSet) inStates += oleraByState.get(s) ?? 0;
 
     return {
       slug: uni.slug,
@@ -160,9 +191,9 @@ export async function auditCatchments(
       city: uni.city,
       state: uni.state,
       catchment_cities: uni.catchment.length,
-      providers_in_catchment: Math.max(0, inCatchment - matCount),
+      providers_in_catchment: inCatchment,
       providers_already_clients: asClient,
-      providers_already_materialized: matCount,
+      providers_already_materialized: matSet.size,
       providers_in_states: inStates,
       empty_cities: emptyCities,
       is_active_site: activeSlugs.has(uni.slug),

@@ -1,10 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import DateRangePopover, {
-  resolveRange,
-  type DateRangeValue,
-} from "@/components/admin/DateRangePopover";
+import PulseHeader from "@/components/admin/PulseHeader";
+import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 import ConnectionRow, { type ConnectionRowData } from "@/components/admin/ConnectionRow";
 
 interface ActionCounts {
@@ -157,11 +155,14 @@ export default function ConnectionsTrackerPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Connections</h1>
-        <DateRangePopover value={range} onChange={setRange} />
-      </div>
+      {/* Header with KPI + trend chart */}
+      <PulseHeader
+        title="Connections"
+        kpiSuffix="successful"
+        statsPath="/api/admin/connections/pulse"
+        range={range}
+        onRangeChange={setRange}
+      />
 
       {/* Unified filter tabs + search */}
       <div className="flex items-center gap-3 mb-4">

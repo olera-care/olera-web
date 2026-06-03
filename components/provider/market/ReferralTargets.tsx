@@ -32,6 +32,8 @@ const POP_CSS = "@keyframes mroPop{0%{transform:scale(1)}40%{transform:scale(1.0
 export default function ReferralTargets({ targets, interactive = false }: { targets: BdTarget[]; interactive?: boolean }) {
   const [status, setStatus] = useState<Record<string, string>>({});
   const [celebrating, setCelebrating] = useState<Record<string, boolean>>({});
+  const [showAll, setShowAll] = useState(false);
+  const visible = showAll ? targets : targets.slice(0, 5);
 
   useEffect(() => {
     if (!interactive) return;
@@ -84,12 +86,12 @@ export default function ReferralTargets({ targets, interactive = false }: { targ
             <div className="h-full bg-[#199087]/80 rounded-full transition-all" style={{ width: `${total ? (worked / total) * 100 : 0}%` }} />
           </div>
           <div className="text-[12px] text-stone-500 tabular-nums shrink-0">
-            {worked} of {total} worked{referring ? ` · ${referring} referring` : ""}
+            {worked === 0 ? "Start with your first 5" : `${worked} worked${referring ? ` · ${referring} referring` : ""}`}
           </div>
         </div>
       )}
       <div className="space-y-2">
-        {targets.map((t) => {
+        {visible.map((t) => {
           const s = status[keyOf(t)] || "to_contact";
           const meta = STATUS_META[s] ?? STATUS_META.to_contact;
           const dimmed = s === "dismissed";
@@ -128,6 +130,15 @@ export default function ReferralTargets({ targets, interactive = false }: { targ
           );
         })}
       </div>
+      {targets.length > 5 && (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="mt-3 text-[13px] font-medium text-[#199087] hover:text-[#147a72] transition-colors"
+        >
+          {showAll ? "Show fewer ↑" : `Show all ${targets.length} referral sources →`}
+        </button>
+      )}
     </div>
   );
 }
